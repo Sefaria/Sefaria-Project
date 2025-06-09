@@ -1830,39 +1830,53 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-
+  /**
+   *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
+   *  `children` single element or nested group of elements wrapped in a div
+   *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
+   *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
+   */
 function OnInView({ children, onVisible }) {
-  const nodeRef        = useRef(null);        // DOM element
-  const onVisibleRef   = useRef(onVisible);   // always-current cb
-  const wasFullyVisible = useRef(false);      // “in view” flag
+  const nodeRef = useRef(null); // DOM element and children
+  const onVisibleRef = useRef(onVisible);
+  const wasFullyVisible = useRef(false); // Check whether the element and its tree are "in view"
 
   // Keep the ref in sync with the latest prop without remounting the observer
-  useEffect(() => { onVisibleRef.current = onVisible; }, [onVisible]);
+  useEffect(() => {
+    onVisibleRef.current = onVisible;
+  }, [onVisible]);
 
   // Set up the observer once – runs only on mount / unmount
   useEffect(() => {
     const observer = new IntersectionObserver(
+      // Callback function will be invoked whenever the visibility of the observed element changes
       ([entry]) => {
         const fullyInView = entry.intersectionRatio === 1;
 
+        // Check if the observed element is intersecting with the viewport (it's visible)
         if (fullyInView && !wasFullyVisible.current) {
-          // Rising edge: just became 100 % visible
+          // Rising edge: element just became 100% visible
           wasFullyVisible.current = true;
-          onVisibleRef.current();        // analytics!
+          // Invoke provided prop callback for analytics purposes
+          onVisibleRef.current();
         } else if (!fullyInView && wasFullyVisible.current) {
-          // Falling edge: it’s no longer fully visible
+          // Falling edge: element is no longer fully visible
           wasFullyVisible.current = false;
         }
       },
-      { threshold: 1 }                   // fire at 100 % only
+      // The entire element must be entirely visible
+      { threshold: 1 }
     );
 
     const node = nodeRef.current;
+    // Start observing the element, but wait until the element exists
     if (node) observer.observe(node);
 
-    return () => observer.disconnect();  // tidy up on unmount
-  }, []);                                // ← empty deps ⇒ once per mount
+    // Cleanup when the component unmounts
+    return () => observer.disconnect();
+  }, []);
 
+  // Attach nodeRef to a div wrapper and pass the children to be rendered within it
   return <div ref={nodeRef}>{children}</div>;
 }
 
