@@ -5,7 +5,6 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
 import {
   CategoryColorLine,
   DropdownModal,
@@ -296,7 +295,6 @@ class CollectionPage extends Component {
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );

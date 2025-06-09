@@ -10,6 +10,7 @@ import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
+import FilterNode from "./FilterNode";
 
 
 let Sefaria = Sefaria || {
@@ -784,7 +785,7 @@ Sefaria = extend(Sefaria, {
         educator: educatorCheck,
         firstName: firstName,
         lastName: lastName,
-        lists: lists,
+        ...(lists?.length && { lists }),
       };
       return await Sefaria.apiRequestWithBody(`/api/subscribe/${email}`, null, payload);
   },
@@ -815,7 +816,7 @@ Sefaria = extend(Sefaria, {
           return result;
       }
   },
-  apiRequestWithBody: async function(url, urlParams, payload, method="POST") {
+  apiRequestWithBody: async function(url, urlParams, payload, method="POST", convertResponseToJSON=true) {
     /**
      * Generic function for performing an API request with a payload. Payload and urlParams are optional and will not be used if falsy.
      */
@@ -833,17 +834,18 @@ Sefaria = extend(Sefaria, {
         credentials: 'same-origin',
         body: payload && JSON.stringify(payload)
     });
-
-    if (!response.ok) {
-        throw new Error("Error posting to API");
+    if (convertResponseToJSON) {
+        if (!response.ok) {
+            throw new Error("Error posting to API");
+        }
+        const json = await response.json();
+        if (json.error) {
+            throw new Error(json.error);
+        }
+        return json;
+    } else {
+        return response;
     }
-
-    const json = await response.json();
-    if (json.error) {
-        throw new Error(json.error);
-    }
-
-    return json;
 },
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
       const responses = await Promise.all([
@@ -1497,10 +1499,6 @@ Sefaria = extend(Sefaria, {
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
     });
   },
-  _filterSheetFromLinks: function(links, sheetID) {
-    links = links.filter(link => !link.isSheet || link.id !== sheetID );
-    return links;
-  },
   _dedupeLinks: function(links) {
     const key = (link) => [link.anchorRef, link.sourceRef, link.type].join("|");
     let dedupedLinks = {};
@@ -1573,7 +1571,6 @@ Sefaria = extend(Sefaria, {
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
-    // If `excludedSheet` is present, exclude links to that sheet ID.
     const categoryOrderOverrides = {
         "Tanakh": [
             "Talmud",
@@ -2823,72 +2820,101 @@ _media: {},
       url,
       key,
       store: this._topics,
-      processor: this.processTopicsData,
+      processor: this.processTopicsTabsData,
     });
   },
   _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
       return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
-  processTopicsData: function(data) {
-    const lang = Sefaria.interfaceLang == "hebrew" ? 'he' : 'en'
-    if (!data) { return null; }
-    if (!data.refs) { return data; }
-    const tabs = {};
-    for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
-      for (let refObj of linkTypeObj.refs) {
-        // sheets are no longer displayed on topic pages
-        if (refObj.is_sheet) { continue; }
-        let tabKey = linkTypeSlug;
-        if (tabKey === 'about') {
-            // Mark as notable if it has a prompt, title, and isn't explicitly unpublished (happens when returns from LLM pod);
-            tabKey = (refObj.descriptions?.[lang]?.title || refObj.descriptions?.[lang]?.prompt) && refObj.descriptions?.[lang]?.published != false ? 'notable-sources' : 'sources';
-        }
-        if (!tabs[tabKey]) {
-          let { title } = linkTypeObj;
-          if (tabKey === 'notable-sources') {
-            title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
-          }
-          if (tabKey === 'sources') {
-            title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
-          }
-          tabs[tabKey] = {
-            refMap: {},
-            title,
-            shouldDisplay: linkTypeObj.shouldDisplay,
-          };
-        }
-        if (refObj.order) {
-            refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
-                                numDatasource: refObj?.order?.numDatasource || 1,
-                                tfidf: refObj?.order?.tfidf || 0,
-                                pr: refObj?.order?.pr || 0,
-                                curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
-        tabs[tabKey].refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
+  _deriveTabDataForTopicLink: function (linkType, refObj) {
+    /* Helper function for processTopicsTabsData
+     @param {string} linkType - string to be converted.
+     @param {object} refObj - 'refObj' is an object with description, title, is_sheet, ref, and more
+     Based on linkType and refObj, we return the appropriate 'tabKey' and 'title' of the tab that will display in the topic page.
+     We support two types of 'linkType's -- confusingly called "about" and "popular-writing-of". This distinction is only relevant for the library module.
+     In the library module, an author's topic links' are "Top Citations".  These are of type "popular-writing-of" and all other topics are of type "about".
+     In the sheets module, every source is under the "Sheets" tab.
+     */
+    let tabKey, title;
+    if (refObj.is_sheet && Sefaria.activeModule === 'sheets') {
+      tabKey = 'sheets';
+      title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
+    } else if (linkType === 'popular-writing-of' && Sefaria.activeModule === 'library') {
+      tabKey = linkType;
+      title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
+    } else if (linkType === 'about' && Sefaria.activeModule === 'library') {
+      const lang = Sefaria._getShortInterfaceLang();
+      const desc = refObj.descriptions?.[lang];
+      const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
+      if (isNotableSource) {
+        tabKey = 'notable-sources';
+        title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
+      } else {
+        tabKey = 'sources';
+        title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
       }
+    }
+    return {tabKey, title};
+  },
+  processTopicsTabsData: function(topicData) {
+    // In the library module, topic tabs can be "Admin", "Notable Sources", "Sources", and "Top Citations".  In the sheets module, the only topic tab is "Sheets"
+    // This function takes the ref topic links in the topicData and puts each ref in the appropriate tab.
+    // After this function 'topicData' now has a 'tabs' property which is an object with keys for each tab and values that are objects with 'refs' and 'title' properties.
+    if (!topicData || !topicData.refs) { return topicData || null; }
+    const tabs = {};
+    for (let [linkType, topicLinks] of Object.entries(topicData.refs)) {
+        for (let refObj of topicLinks.refs) {
+          const {tabKey, title} = Sefaria._deriveTabDataForTopicLink(linkType, refObj);
+          if (!tabKey) continue;
+          if (!tabs[tabKey]) {
+          tabs[tabKey] = {
+              refs: new Set(),
+              title,
+              shouldDisplay: topicLinks.shouldDisplay,
+            };
+          }
+          if (refObj.order) {
+            refObj.order = {
+              ...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
+              numDatasource: refObj?.order?.numDatasource || 1,
+              tfidf: refObj?.order?.tfidf || 0,
+              pr: refObj?.order?.pr || 0,
+              curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}
+            }
+          }
+          tabs[tabKey].refs.add({
+            ref: refObj.ref,
+            order: refObj.order,
+            dataSources: refObj.dataSources,
+            descriptions: refObj.descriptions
+          });
+        }
     }
     for (let tabObj of Object.values(tabs)) {
-      tabObj.refs = Object.values(tabObj.refMap);
-      delete tabObj.refMap;
+      tabObj.refs = [...tabObj.refs];  // dont want it to be set
     }
 
-    if (tabs["notable-sources"]) {
-      if (!tabs.sources) {
-          tabs.sources = {refMap: {}, shouldDisplay: true, refs: []};
+    if (Sefaria.activeModule === 'library') {
+      // turn "sources" tab into 'super-set', containing all refs from all tabs:
+      if (tabs["notable-sources"]) {
+        if (!tabs.sources) {
+          tabs.sources = {
+            shouldDisplay: true,
+            refs: [],
+            title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}
+          };
+        }
+        tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       }
-      tabs.sources.title = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
-      //turn "sources" tab into 'super-set', containing all refs from all tabs:
-      const allRefs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
-      tabs.sources.refs = allRefs;
-    }
-    if (Sefaria.is_moderator){
+
+      // set up admin tab which is all 'sources'
+      if (Sefaria.is_moderator) {
         tabs["admin"] = {...tabs["sources"]};
         tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
-
+      }
     }
-
-
-    data.tabs = tabs;
-    return data;
+    topicData.tabs = tabs;
+    return topicData;
   },
   getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
       const key = this._getTopicCacheKey(slug, {annotated, with_html});
@@ -2910,12 +2936,25 @@ _media: {},
         store: this._seasonalTopic,
     });
   },
-  trendingTopics: {},
-  getTrendingTopics: function() {
+  trendingSheetsTopics: {},
+  trendingLibraryTopics: {},
+  getTrendingTopics: function(n=10) {
+    return this.activeModule === "library" ? this.getTrendingLibraryTopics(n) : this.getTrendingSheetsTopics(n);
+  },
+  getTrendingLibraryTopics: function(n=10) {
+    const url = `api/topics/trending?n=${n}&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`;
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/${url}`,
+      key: (new Date()).toLocaleDateString(),
+      store: this.trendingLibraryTopics,
+    });
+  },
+  getTrendingSheetsTopics: function(n=10) {
+      const url = `api/sheets/trending-tags?n=${n}`
       return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/api/topics/trending?n=10&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`,
+        url: `${Sefaria.apiHost}/${url}`,
         key: (new Date()).toLocaleDateString(),
-        store: this.trendingTopics,
+        store: this.trendingSheetsTopics,
     });
   },
   _topicSlugsToTitles: null,
@@ -3005,6 +3044,56 @@ _media: {},
     return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
+    getSheetsByRef: function(srefs, callback) {
+        return Sefaria._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/sheets/ref/${srefs}?include_collections=1`,
+          key: `include_collections|${srefs}`,
+          store: Sefaria.sheets._sheetsByRef,
+          processor: callback
+        });
+      },
+    sheetsWithRefFilterNodes(sheets) {
+      /*
+      This function is used to generate the SearchState with its relevant
+      FilterNodes to be used by SheetsWithRef for filtering sheets by topic and collection
+       */
+      const newFilter = (item, type) => {
+          let title, heTitle;
+          if (type === 'topics') {
+              [title, heTitle] = [item.en, item.he];
+              type = 'topics_en';
+          }
+          else if (type === 'collections') {
+              [title, heTitle] = [item.name, item.name];
+          }
+          return {
+              title, heTitle,
+              docCount: 0, aggKey: item.slug,
+              selected: 0, aggType: type,
+          };
+      }
+
+      let filters = {};
+      sheets.forEach(sheet => {
+        let slugsFound = new Set();  // keep track of slugs in this sheet\n
+        ['topics', 'collections'].forEach(itemsType => {
+            sheet[itemsType]?.forEach(item => {
+              const key = `${item.slug}|${itemsType}`;
+              if (!slugsFound.has(key)) { // we don't want to increase docCount when one sheet already
+                                              // has a topic/collection with the same slug as the current topic/collection
+                let filter = filters[key];
+                if (!filter) {
+                  filter = newFilter(item, itemsType);
+                  filters[key] = filter;
+                }
+                slugsFound.add(key);
+                filter.docCount += 1;
+              }
+            })
+        })
+      })
+      return Object.values(filters).map(f => new FilterNode(f));;
+    },
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
@@ -3168,10 +3257,10 @@ _media: {},
     },
     sheetsTotalCount: function(refs) {
       // Returns the total number of private and public sheets on `refs` without double counting my public sheets.
-      var sheets = Sefaria.sheets.sheetsByRef(refs) || [];
+      let sheets = Sefaria.sheets.sheetsByRef(refs) || [];
       if (Sefaria._uid) {
-        var mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
-        sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
+        const mySheets = Sefaria.sheets.userSheetsByRef(refs) || [];
+        sheets = mySheets.concat(sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }));
       }
       return sheets.length;
     },
@@ -3300,13 +3389,16 @@ _media: {},
       return inputStr;
     }
   },
+  _getShortInterfaceLang: function() {
+    return Sefaria.interfaceLang.slice(0, 2);
+  },
   _v: function(langOptions){
     /* Takes an object {en: "something", he: "משהו"}
      * and returns the correct one according to interface language
      * Convenience method for when there are two data variables in an object one wishes to return
      * according to interface, in places where HTML is not allowed (inside <options> tag for ex.
     */
-    const lang = Sefaria.interfaceLang.slice(0,2);
+    const lang = Sefaria._getShortInterfaceLang();
     return langOptions[lang] ? langOptions[lang] : "";
   },
   _r: function (inputRef) {
@@ -3407,7 +3499,11 @@ _media: {},
       setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
       lastEndIndex += increment;
     }
-  }
+  },
+  getLogoutUrl: () => {
+    const next = Sefaria.activeModule === 'sheets' ? 'sheets' : 'texts';
+    return `/logout?next=/${next}`;
+  },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
@@ -3448,7 +3544,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._translations[props.initialTranslationsSlug] = props.translationsData;
   }
   if (props.topicData) {
-    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
+    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsTabsData(props.topicData);
   }
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
@@ -3469,6 +3565,7 @@ Sefaria.unpackBaseProps = function(props){
           return;
       }
       const dataPassedAsProps = [
+      "activeModule",
       "_uid",
       "_email",
       "slug",

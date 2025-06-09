@@ -4,7 +4,6 @@ import classNames  from 'classnames';
 import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import Footer  from './Footer';
 import { NavSidebar } from './NavSidebar';
 import {
   CategoryColorLine,
@@ -45,7 +44,6 @@ class TopicPageAll extends Component {
     const sidebarModules = [
       {type: "Promo"},
       {type: "TrendingTopics"},
-      {type: "JoinTheConversation"},
       {type: "GetTheApp"},
       {type: "SupportSefaria"},
     ];
@@ -67,7 +65,7 @@ class TopicPageAll extends Component {
       return false;
     
     }).sort((a, b) => {
-      const lang = Sefaria.interfaceLang.slice(0,2);
+      const lang = Sefaria._getShortInterfaceLang();
       if (!hasFilter) {
         return b.primaryTitle[lang].stripNikkud() > a.primaryTitle[lang].stripNikkud() ? -1 : 1; // Alphabetical if no filter
       } else {
@@ -121,7 +119,6 @@ class TopicPageAll extends Component {
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );

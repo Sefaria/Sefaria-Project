@@ -77,8 +77,10 @@ const Strings = {
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
+    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
+    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -167,6 +169,7 @@ const Strings = {
     "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
+    "View in Google Docs": "לפתיחה בגוגל דוקס",
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
@@ -358,6 +361,7 @@ const Strings = {
     "Add to Collection": "צירוף לאסופה",
 
     // Edit Collection page
+    "Edit Collections": "עריכת אסופות",
     "Edit Collection": "עריכת אסופה",
     "Collection Name": "שם האסופה",
     "Website": "כתובת אתר",
@@ -479,6 +483,7 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
+    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -555,6 +560,7 @@ const Strings = {
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
+    "Top Citations": "ציטוטים עיקריים",
 
     "Install Now": "התקינו עכשיו",
 
@@ -664,6 +670,12 @@ const Strings = {
       "Tanakh": "",
       "Talmud": ""
     },
+    "Share": "שיתוף",
+    "Library": "ספריה",
+    "Delete Sheet": "מחיקת דף מקורות",
+    "Developers": "מפתחים",
+    "Export to Google Docs": "ייצוא לגוגל דוקס",
+
     "Sheet Share": {
       "View": "לצפות",
       "Add": "להוסיף",

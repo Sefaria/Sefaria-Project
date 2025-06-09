@@ -23,7 +23,6 @@ import { NavSidebar, SidebarModules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock/VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
-import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
@@ -32,7 +31,7 @@ import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import DropdownMenu from "./common/DropdownMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import Cookies from "js-cookie";
 
 
@@ -223,7 +222,7 @@ class BookPage extends Component {
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
+                  <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={(<DisplaySettingsButton/>)}><ReaderDisplayOptionsMenu/></DropdownMenu>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>
@@ -297,8 +296,6 @@ class BookPage extends Component {
             {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar sidebarModules={sidebarModules} /> : null}
           </div>
-          {this.isBookToc() && ! this.props.compare ?
-          <Footer /> : null}
         </div>
       </div>
     );

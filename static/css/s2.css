@@ -18,137 +18,7 @@ body:not(.user-is-tabbing) *:focus {
 a, a:hover {
   color: inherit;
 }
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'), local(Georgia), local(serif);
-  font-weight: bold;
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf'), local(Georgia), local(serif);
-  font-style: italic;
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf'), local(Georgia), local(serif);
-  font-weight: bold;
-  font-style: italic;
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/2011b6/00000000000000003b9b00c1/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n4&v=3");
-  font-weight: normal;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/af619f/00000000000000003b9b00c5/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n7&v=3");
-  font-weight: bold;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/5cace6/00000000000000003b9b00c2/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i4&v=3");
-  font-style: italic;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/6c275f/00000000000000003b9b00c6/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i7&v=3");
-  font-style: italic;
-  font-weight: bold;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  font-family: 'Noto Color Emoji';
-  src: url('/static/fonts/NotoColorEmoji.ttf');
-  unicode-range: U+1F1E6-1F1FF;
-}
-@font-face {
-  font-family: 'Meltho';
-  src: url('/static/fonts/SyrCOMBatnan.otf');
-  unicode-range: U+0700-074F;
-}
-@font-face {
-  font-family: 'Noto Sans Samaritan';
-  unicode-range: U+0800-083F;
-}
-@font-face {
-  /*Greek*/
-  font-family: 'Cardo';
-    src: url('/static/fonts/Cardo-Regular.ttf');
-  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
-}
-:root {
-  /* font stacks */
-  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
-  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
-
-  --serif-h1-font-size: 48px;
-  --serif-h2-font-size: 30px;
-  --serif-h3-font-size: 24px;
-  --serif-body-font-size: 18px;
-  --serif-small-font-size: 14px;
-
-  --sans-serif-h1-font-size: 40px;
-  --sans-serif-h2-font-size: 30px;
-  --sans-serif-h3-font-size: 22px;
-  --sans-serif-body-font-size: 16px;
-  --sans-serif-small-font-size: 14px;
-
-  /* colors */
-  --inline-link-blue: #4871bf;
-  --sefaria-blue: #18345D;
-  --highlight-blue: #DDEEFF;
-  --highlight-blue-light: #F0F7FF;
-  --beit-midrash-grey: #333333;
-  --darkest-grey: #333333;
-  --dark-grey: #666666;
-  --medium-grey: #999999;
-  --light-grey: #CCCCCC;
-  --lighter-grey: #EDEDEC;
-  --lightest-grey: #FBFBFA;
-  --commentary-blue: #4B71B7;
-  --essay-links-green: #3B5849;
-  --tanakh-teal: #004E5F;
-  --mishnah-blue: #5A99B7;
-  --talmud-gold: #CCB479;
-  --midrash-green: #5D956F;
-  --halakhah-red: #802F3E;
-  --kabbalah-purple: #594176;
-  --liturgy-rose: #AB4E66;
-  --philosophy-purple: #7F85A9;
-  --taanitic-green: #00827F;
-  --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
-  --responsa-red: #CB6158;
-  --apocrypha-pink: #C6A7B4;
-  --modern-works-blue: #B8D4D3;
-  --grammar-green: #B2B272;
-  --reference-orange: #D4896C;
-  --miscelaneous-green: #3B5849;
-  --selected-option: #000000;
-  --select-blue: #0B71E7;
-}
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -171,7 +41,6 @@ body, .en, .int-en {
   unicode-bidi: plaintext;
   --is-hebrew: ; /* true */
 }
-
 * {
   --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
   font-family: var(--hebrew-font-conditional, var(--english-font));
@@ -355,6 +224,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
 }
 
+
 #s2.headerOnly {
   z-index: 1000;
   height: 60px;
@@ -524,7 +394,7 @@ input.noselect {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerNavSection a {
+.headerInner .headerNavSection a, .header img.home {
   font-size: 16px;
   color: #666;
   margin-inline-end: 30px;
@@ -533,10 +403,13 @@ input.noselect {
   vertical-align: middle;
 }
 .headerInner .headerLinksSection {
-  display: flex;
-  justify-content: flex-end;
-  min-width: 40%;
-  align-items: center;
+	display: flex;
+	justify-content: flex-end;
+	min-width: 50%;
+	align-items: center;
+}
+.headerInner .headerLinksSection > * {
+  margin-inline-start: 2%;
 }
 .header .header-nav {
   margin-top: 1px;
@@ -582,7 +455,7 @@ input.noselect {
   text-align: inherit;
   background: #EDEDEC;
   border-radius: 250px;
-  width: 140px;
+  width: 250px;
   height: 30px;
 }
 .header .searchBox.searchFocused {
@@ -659,6 +532,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #666;
   font-size: 16px;
   padding: 15px;
+}
+.mobileNavMenu hr {
+  border: none;
   border-bottom: 1px solid #EDEDEC;
 }
 .mobileNavMenu a > img,
@@ -690,8 +566,23 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks .login {
-  display: block;
   padding: 15px;
+}
+.mobileNavMenu .signupLink::after {
+  content: "•";
+  padding: 0px 4px;
+}
+.interface-english .mobileNavMenu .signupLink {
+  padding-right: 0px !important;
+}
+.interface-english .mobileNavMenu .loginLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .signupLink {
+  padding-left: 0px !important;
+}
+.interface-hebrew .mobileNavMenu .loginLink {
+  padding-right: 0px !important;
 }
 .mobileNavMenu .profile-pic {
   display: inline-block;
@@ -731,15 +622,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.header .home {
-  margin-top: 2px;
-}
-.header .home img {
-  vertical-align: middle;
-  height: 25px;
-  margin-top: -7px;
-  width: 92px;
-}
 .interface-hebrew .header .home img {
   width: 77px;
 }
@@ -777,13 +659,19 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .accountLinks.anon .help {
   margin-top: 6px;
 }
-.header .interfaceLinks {
-  display: block;
+.headerLinksSection .help {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  margin-top: 2px;
+  height: 100%;
+  margin-top: 4px;
+}
+.header .interfaceLinks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: #666;
   cursor: pointer;
-  position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
@@ -793,6 +681,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: 18px;
   vertical-align: middle;
   margin-inline-end: 2px;
+}
+.header .interfaceLinks a.interfaceLinks-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
@@ -856,10 +749,12 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
+
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
-  padding: 4px 0;
+  padding: 4px;
+  max-width: 220px;
 }
 .header .interfaceLinks .interfaceLinks-option {
   display: flex;
@@ -868,7 +763,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  text-align: right;
   color: #666666;
   padding: 5px;
   direction: ltr;
@@ -941,19 +835,18 @@ div.interfaceLinks-row a {
 .header .profile-menu-he {
   color: #666666;
 }
-.header .interfaceLinks .interfaceLinks-option::before {
+.header .interfaceLinks-option::before {
   content: "";
   font-family: FontAwesome;
   color: #999;
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
-  padding: 0 15px;
 }
-.header .interfaceLinks .interfaceLinks-option.active {
+.header  .interfaceLinks-option.active {
   order: -1;
 }
-.header .interfaceLinks .interfaceLinks-option.active::before {
+.header .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
@@ -980,6 +873,7 @@ div.interfaceLinks-row a {
 }
 @media screen and (max-width: 580px) {
   .header .interfaceLinks,
+  .header .dropdownLinks,
   .accountLinks .help,
   .header .notifications {
     display: none;
@@ -1028,6 +922,22 @@ div.interfaceLinks-row a {
   opacity: 0.3;
   position: fixed;
   z-index: 1001;
+}
+.dialogModal {
+  border: none;
+  background: transparent;
+  display: block;
+  top: -20%;
+}
+.dialogModal::backdrop {
+  background-color: rgba(1, 1, 1, 0.7);
+}
+.dialogModal .modal-content {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
 }
 .sefariaModalBox {
   transition: none;
@@ -1660,6 +1570,9 @@ div.interfaceLinks-row a {
 .navSidebarModule + .dedication {
   margin-top: -30px;
 }
+.navSidebarModule .joinTheConversation {
+  margin-block-end: 20px;
+}
 .navTitle .languageToggle,
 .tocTitle .languageToggle,
 .header .languageToggle {
@@ -1842,7 +1755,6 @@ div.interfaceLinks-row a {
   letter-spacing: 0em;
   text-decoration: underline;
 }
-.readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
 .readerPanel .bookPage h3{
   margin: 0 0 20px;
@@ -1862,7 +1774,7 @@ div.interfaceLinks-row a {
 .singlePanel .navSidebarModule.blue {
   padding: 34px 15px 45px;
 }
-.readerPanel .navSidebarModule.blue h3 {
+.readerPanel .navSidebarModule.blue h1 {
   color: white;
 }
 .navSidebarIcon {
@@ -1883,13 +1795,15 @@ div.interfaceLinks-row a {
   color: #666;
 }
 
-.navSidebarLink > ul {
+.navSidebarLink > ul, .sheetTopicsList > ul {
   font-size: 18px;
   margin-top: 16px;
   display: flex;
   flex-wrap:wrap;
   padding: 0;
-  margin: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  margin-bottom: 0;
 }
 .singlePanel .recentlyViewed .navSidebarLink {
   padding-inline-start: 25px;
@@ -1898,16 +1812,16 @@ div.interfaceLinks-row a {
 .multiPanel .recentlyViewed #history span::after {
   content: "\203A";
 }
-.navSidebarLink > ul > li {
+.navSidebarLink > ul > li, .sheetTopicsList > ul > li {
   display: inline;
 }
-.navSidebarLink > ul > li:after {
+.navSidebarLink > ul > li:after, .sheetTopicsList > ul > li:after {
   content: "\2022";
   white-space:pre;
   margin: 0 5px;
 }
 
-.navSidebarLink > ul > li:last-child:after {
+.navSidebarLink > ul > li:last-child:after, .sheetTopicsList > ul > li:last-child:after {
   content: none;
 }
 
@@ -1929,8 +1843,11 @@ div.interfaceLinks-row a {
 .navSidebar .linkList {
   margin-top: 20px;
 }
-.navSidebarModule .button {
+.navSidebarModule .button{
   margin: 12px 0 0 0;
+}
+.navSidebarModule .sidebarModuleText{
+  margin-bottom: 12px;
 }
 .navSidebarModule .button img {
   filter: invert(1);
@@ -2543,11 +2460,11 @@ div.interfaceLinks-row a {
     padding-left: 0;
     padding-right: 0;
 }
-@media (max-width: 540px) {
+@media (max-width: 600px) {
   .imageWithCaptionPhoto{
     height: auto;
-    max-width: 66.67vw;
-    max-height: 66.67vw;
+    max-width: calc(66.67vw);
+    max-height: calc(66.67vw);
     margin: 0 auto 10px;
     display: block;
   }
@@ -2853,6 +2770,10 @@ a.cardTitle:hover {
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .hebrew .cardDescription {
   line-height: 24px;
@@ -2860,8 +2781,7 @@ a.cardTitle:hover {
 .navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
-.interface-english .navBlockDescription.clamped .int-en,
-.interface-hebrew .navBlockDescription.clamped .int-he {
+.interface-english .navBlockDescription.clamped .int-en, .interface-hebrew .navBlockDescription.clamped .int-he, .cardDescription {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -3105,7 +3025,7 @@ a.cardTitle:hover {
 .readerNavMenu.readerNavCategoryMenu .navTitle {
   margin-bottom: 40px;
 }
-.readerNavMenu.readerNavCategoryMenu h1 {
+.readerNavMenu.readerNavCategoryMenu .navTitle h1 {
   color: #000;
   text-transform: uppercase;
   font-size: 30px;
@@ -3290,9 +3210,7 @@ a.cardTitle:hover {
   --english-font: var(--english-sans-serif-font-family);
 }
 .bookPage .tocTitle,
-.sheetContent .title,
 .bookMetaDataBox .title {
-  text-align: center;
   font-size: 30px;
   line-height: 1.3;
   unicode-bidi: plaintext;
@@ -3304,23 +3222,34 @@ a.cardTitle:hover {
   flex-direction: row;
   justify-content: space-between;
 }
+
+.sheetContentSidebar .profile-pic {
+  display: block;
+  margin-block-end: 20px;
+  margin-block-start: 30px;
+  margin-inline-start: -5px;
+}
+.sheetContentSidebar .profileFollowers {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  margin-block-end: 20px;
+  color: var(--dark-grey);
+}
+.sheetViewer {
+  display: flex;
+}
+.sheetContentSidebar {
+  width: 33%;
+}
 .bookPage .currentSection,
-.bookPage .authorStatement,
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
+.bookPage .authorStatement {
   font-size: 17px;
   color: #999;
   margin-top: 6px;
   letter-spacing: 1px;
-}
-.sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .collectionStatement {
-  margin-top: 16px;
-}
-.sheetContent .sheetMetaDataBox .collectionStatement a,
-.sheetContent .sheetMetaDataBox .authorStatement a {
-  color: #999;
-  margin-inline-start: 5px;
 }
 .bookPage .currentSection .he,
 .bookPage .authorStatement .he,
@@ -4186,6 +4115,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item:hover{
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   text-decoration: underline;
 }
+.singlePanel .searchContent h1 {
+  height: revert;
+}
 .searchContent h1 {
   height: 40px;
   font-size: 30px;
@@ -4652,6 +4584,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 24px;
   margin-bottom: 15px;
 }
+.sheetResult .result-title {
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  color: #000000;
+}
+.sheetResult .snippet.en {
+  color: #666666;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+}
 .searchContent .result-title .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
@@ -4671,8 +4617,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: #000;
+  color: var(--midrash-green);
   margin-inline-start: 10px;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+}
+.searchContent .sheetResult .date {
+  color: #999999;
+  --english-font: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-inline-start: 5px;
+}
+.searchContent .sheetResult .bullet {
+  margin-inline-start: 5px;
 }
 .searchContent .sheetResult .sheetData .tagsViews a:not(:last-of-type):after{
   content: ",";
@@ -4738,9 +4697,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.search-container{
-  position: relative;
-}
+
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
@@ -5496,9 +5453,19 @@ h1.topic-landing-header {
   display: flex;
   justify-content: space-between;
   padding: 20px 0;
+}
+
+.readerNavMenu .sheet:not(.profile-page .sheet) {
   border-bottom: 1px solid #eee;
   color: black;
 }
+
+.sheetsProfileList .sheet {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
@@ -6134,6 +6101,33 @@ h1.topic-landing-header {
   position: relative;
   padding: 0 30px;
 }
+.sheetContent .modalTitle {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 25.78px;
+  text-align: center;
+  color: var(--dark-grey);
+  padding-block-end: 15px;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+.sheetContent .successMessage {
+  color: var(--inline-link-blue);
+  margin-inline-start: 5px;
+}
+.dialogModal .modal-content > * {
+   padding: 20px;
+}
+.sheetContent .modalMessage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-align: center;
+  color: black;
+}
 .singlePanel .textRange.basetext,
 .singlePanel .sheetContent {
   padding: 0;
@@ -6190,7 +6184,6 @@ h1.topic-landing-header {
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
-  padding: 0 44px;
   margin: 30px 0;
   background-color: inherit;
 }
@@ -6225,7 +6218,6 @@ h1.topic-landing-header {
   cursor: pointer;
   display: block;
   background-color: inherit;
-  margin-bottom: 14px;
 }
 .continuous .segment {
   display: inline;
@@ -6382,10 +6374,8 @@ h1.topic-landing-header {
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
 .heRight.bilingual .segment > p > .primary,
-.heRight.bilingual .sheetItem.segment > .he,
-.heLeft.bilingual .sheetItem.segment > .en,
-.heRight.bilingual .SheetSource.segment > .he,
-.heLeft.bilingual .SheetSource.segment > .en {
+.heRight.bilingual .SheetSource .sheetItem.segment > .he,
+.heLeft.bilingual .SheetSource .sheetItem.segment > .en{
   float: right;
   padding-left: 20px;
 }
@@ -6393,10 +6383,8 @@ h1.topic-landing-header {
 .heLeft.bilingual .segment > .primary,
 .heRight.bilingual .segment > p > .translation,
 .heLeft.bilingual .segment > p > .primary,
-.heRight.bilingual .sheetItem.segment > .en,
-.heLeft.bilingual .sheetItem.segment > .he,
-.heRight.bilingual .SheetSource.segment > .en,
-.heLeft.bilingual .SheetSource.segment > .he {
+.heRight.bilingual .SheetSource .sheetItem.segment > .en,
+.heLeft.bilingual .SheetSource .sheetItem.segment > .he{
   float: left;
   padding-right: 20px;
 }
@@ -6423,27 +6411,12 @@ h1.topic-landing-header {
   background-color: #444;
 }
 .basetext .segment.highlight,
-.sheetContent .segment.highlight .en,
-.sheetContent .segment.highlight .he,
-.sheetContent .textPreviewSegment.highlight,
 .editTextInfo .textPreviewSegment.highlight,
-.readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
-.readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
 .editorContent .sheetItem.highlight .SheetSource .en,
 .editorContent .sheetItem.highlight .SheetSource::after
 {
   background-color: #F0F7FF;
-}
-.sheetContent .segment.highlight .linkCount .en,
-.sheetContent .segment.highlight .linkCount .he,
-.sheetContent .segment.highlight .segmentNumber .en,
-.sheetContent .segment.highlight .segmentNumber .he {
-  background-color: transparent;
-}
-.sheetContent .segment.highlight .en div,
-.sheetContent .segment.highlight .he div {
-  background-color: inherit;
 }
 .sheetContent .segment a {
   color: #4B71B7;
@@ -6452,21 +6425,14 @@ h1.topic-landing-header {
 .sheetContent .segment .sourceContentText a {
   text-decoration: underline;
 }
-.readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
-  padding-bottom: 1px;
-}
 .basetext .segment.highlight .segmentNumber,
-.basetext .segment.highlight .linkCount,
-.sheetContent .segment.highlight .linkCount,
-.sheetContent .segment.highlight .segmentNumber {
+.basetext .segment.highlight .linkCount {
   background-color: transparent;
 }
-.sepia .basetext .segment.highlight,
-.sepia .sheetContent .segment.highlight {
+.sepia .basetext .segment.highlight {
   background-color: #E3E3E1;
 }
-.dark .basetext .segment.highlight,
-.dark .sheetContent .segment.highlight {
+.dark .basetext .segment.highlight {
   background-color: #444;
 }
 .textRange {
@@ -7752,7 +7718,9 @@ But not to use a display block directive that might break continuous mode for ot
 .connection-buttons .add-to-sheet-link::before{
   background-image: url("/static/icons/add-to-sheet.svg");
 }
-
+.sheetContent .toolsButtonContainer {
+  letter-spacing: 0;
+}
 .toolsButtonContainer {
   display: flex;
   justify-content: flex-start;
@@ -8261,7 +8229,6 @@ But not to use a display block directive that might break continuous mode for ot
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin-bottom: 4px;
 }
 .profile-page {
   background-color: var(--lightest-grey);
@@ -8412,14 +8379,14 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .notification .sheetTitle,
 .notification .collectionName {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 24px;
   display: block;
 }
 .notification .sheetSummary {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 18px;
   margin-top: 10px;
@@ -8582,6 +8549,9 @@ But not to use a display block directive that might break continuous mode for ot
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border: none;
 }
+.saveProfileButton{
+  background-color: var(--midrash-green);
+}
 .button.disabled{
   border: 1px solid var(--light-grey);
   background-color: var(--lightest-grey);
@@ -8657,7 +8627,14 @@ a .button:hover {
   width: -moz-fit-content;
   width: fit-content;
 }
-
+.button.small.publish {
+  color: #666666;
+  background-color: white;
+  font-weight: 500;
+  min-height: 31px;
+  height: 31px;
+  padding: 0 10px;
+}
 .headerWithAdminButtonsContainer{
   display: flex;
   justify-content: space-between;
@@ -9015,9 +8992,19 @@ a .button:hover {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
 }
 .profile-page .collectionListing {
   padding: 20px 0;
+  margin-top: 20px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
+  width: 100%;
 }
 .collectionListing .left-content {
   display: flex;
@@ -9035,22 +9022,86 @@ a .button:hover {
   overflow: hidden;
   flex-shrink: 0;
 }
-.sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
   background-color: transparent;
   overflow: initial;
 }
-.sheetMetaDataBox .title {
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
+.sheetMetaDataBox .profile-pic {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 10px;
+}
+.readerPanel.hebrew .sheetMetaDataBox .user {
+  direction: rtl;
+}
+.sheetMetaDataBox {
+  margin-block-end: 40px;
+}
+a.sheetAuthorName {
+  color: var(--midrash-green);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18.75px;
+  display: inline;
+  margin-block-end: 10px;
+}
+a.sheetAuthorName:hover {
+  text-decoration: none;
+}
+.sheetContentSidebar a.sheetAuthorName {
   display: block;
 }
-.sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
-    display: none;
+.sheetMetaDataBox .sidebarLayout .items {
+  display: flex;
+  justify-content: space-between;
 }
-.sheetMetaDataBox .title * {  /* chrome adds <div> tags to contenteditables and we want those inline as well  */
-  display: inline;
+.marginInlineIndent {
+  margin-inline-start: 15px;
+  margin-inline-end: 15px;
 }
+.sheetMetaDataBox .texts-properties-menu {
+  top: 40px;
+}
+.sheetMetaDataBox .sidebarLayout {
+  justify-content: space-between;
+}
+.sheetMetaDataBox .summary {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18.75px;
+  color: var(--dark-grey);
+  margin-block-end: 25px;
+  text-align: initial;
+}
+.sheetMetaDataBox .title {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 35.16px;
+  margin-block-end: 15px;
+  flex: 0 0 70%;
+  text-align: initial;
+}
+
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
+  color: #999;
+  position: relative;
+  pointer-events: none;
+  width: auto;
+}
+.sheetMetaDataBox .summary:empty:before {
+  content: "Add a description...";
   color: #999;
   position: relative;
   pointer-events: none;
@@ -9059,16 +9110,24 @@ a .button:hover {
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
 }
-
 .publishBox {
   text-align: start;
-  background-color: #EDEDEC;
   border-radius: 6px;
   padding: 10px 20px;
   max-width: 540px;
-  margin: 20px -20px;
   font-size: 16px;
   color: #666;
+}
+.publishBox .publishLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: var(--dark-grey);
+  margin-bottom: 10px;
 }
 
 div.transparentBackground.publishBox {
@@ -9090,6 +9149,38 @@ div.transparentBackground.publishBox {
 .publishBox .error .react-tags,
 .publishBox textarea.error {
   border: 1px solid red;
+}
+.sheetMetaDataBox .publishBox .react-tags__selected {
+  display: inline;
+}
+.sheetMetaDataBox .publishBox .react-tags__selected-tag {
+  display: inline-block;
+  box-sizing: border-box;
+  margin: 0 6px 6px 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #000;
+  /* match the font styles */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.sheetMetaDataBox .publishBox textarea, .sheetMetaDataBox .publishBox input, .sheetMetaDataBox .publishBox .react-tags {
+  border-radius: 6px;
+  border: none;
+  width: 98%;
+  padding: 7px;
+  background: #EDEDEC;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  margin-bottom: 10px;
 }
 .publishBox p strong {
   color: black;
@@ -9113,26 +9204,6 @@ div.transparentBackground.publishBox {
 }
 .publishBox .smallText {
   color: #666666
-}
-.publishBox textarea {
-  width: 100%;
-  height: 100px;
-  resize: none;
-  box-sizing: border-box;
-  font-size: 16px;
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  font-style: normal;
-  padding: 10px 10px 4px 10px;
-  margin-bottom: 0px;
-}
-.publishBox textarea::placeholder {
-  font-size: 16px;
-  color: #666;
-  font-style: normal;
-  font-family: var(--english-sans-serif-font-family);
 }
 .publishBox .react-tags {
   position: relative;
@@ -9299,9 +9370,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.5;
   cursor: auto;
 }
-.interface-hebrew .sheetMetaDataBox .authorStatement {
-  direction: rtl;
-}
 .editorSidebarToggle {
   position: fixed;
   top: 200px;
@@ -9350,9 +9418,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .collectionListingName:hover {
   color: #333;
 }
-.collectionListingDetails {
-  color: #999;
-  font-size: 14px;
+.collectionListingDetails .collectionListingSheetCount {
+  color: #999 !important;
+  font-size: 14px !important;
+  font-family: Roboto !important;
+  font-weight: 400 !important;
+  line-height: 18px !important;
 }
 .collectionListingMembership {
   text-transform: capitalize;
@@ -9462,7 +9533,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   flex: 1;
 }
 .sheet .sheetTitleText {
-  font-family: var(--english-serif-font-family);
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
 }
 .sheetListingPinButton {
   display: none;
@@ -9688,15 +9762,20 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.6;
 }
 
-ul.aboutSheetLinks {
+.sheetCollectionsList ul {
   list-style-type: none;
   padding-inline-start: 0;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  font-size: var(--serif-body-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+}
+.sheetCollectionsList ul li {
+  margin-block-end: 10px;
 }
 
-h3.aboutSheetHeader {
+.sheetContentSidebar h3 {
   text-transform: none;
   color: var(--dark-grey);
   font-size: var(--sans-serif-h3-font-size);
@@ -9734,24 +9813,11 @@ h3.aboutSheetHeader {
   border: 1px solid var(--light-grey);
 }
 
-.aboutSheetPanel div.description {
-  color: var(--dark-grey);
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  font-size: var(--sans-serif-body-font-size);
-  margin: 20px 0px;
-}
-
 .aboutSheetPanel h2 {
   font-size: var(--serif-h3-font-size);
   color: #000000;
   text-transform: none;
   margin: 0px;
-}
-
-div.aboutSheetPanel>div.authorStatement {
-  font-size: 16px;
-  margin: 20px 0px;
 }
 
 .aboutSheetPanel h3.aboutSheetSubtitle {
@@ -9786,6 +9852,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing {
   margin-bottom: 30px;
   border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
 }
 .noteListing a:hover {
   text-decoration: none;
@@ -10557,6 +10624,7 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
+  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -10564,6 +10632,19 @@ span.purim-emoji img{
   box-sizing: border-box;
   position: relative;
 }
+.sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
+  background-color: var(--midrash-green);
+}
+.sheetContentSidebar .largeFollowButton {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  min-height: 31px;
+  height: 31px;
+}
+
 .sheetContent {
   width: 100%;
   box-sizing: border-box;
@@ -10575,7 +10656,6 @@ span.purim-emoji img{
   max-width: 760px;
   position: relative;
   padding: 0 30px;
-  counter-reset: css-counter 0;
 }
 .sheetContent .ref {
   cursor: pointer;
@@ -10702,10 +10782,6 @@ span.purim-emoji img{
   margin-bottom: 0;
   padding-bottom: 8px;
 }
-.sheetMetaDataBox {
-  margin: 40px auto 0 auto;
-  text-align: center;
-}
 .bookMetaDataBox {
   margin: 40px auto;
   text-align: center;
@@ -10730,6 +10806,135 @@ span.purim-emoji img{
   border-bottom: 4px solid var(--lighter-grey);
 }
 
+#aboutCover {
+  margin-top: -90px;
+  height: 240px;
+  padding: 180px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#aboutVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  min-width: 1200px;
+  z-index: 0;
+  width: 100%;
+}
+@media (max-width: 450px) {
+  #aboutCover {
+    height: 270px;
+    padding: 180px 0;
+  }
+  #aboutVideo {
+    min-width: 900px;
+  }
+}
+.overlayTextOnSheetsHero {
+  color: white;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-weight: 400;
+  margin-inline-start: 10%;
+}
+.overlayTextOnSheetsHero #title {
+  position: absolute;
+  font-size: 50px;
+  font-weight: 500;
+  top: 145px;
+  line-height: 62.65px;
+}
+.overlayTextOnSheetsHero #message {
+  position: absolute;
+  font-size: 24px;
+  line-height: 18px;
+  top: 227px;
+}
+@media screen and (max-width: 800px) {
+  .overlayTextOnSheetsHero {
+    margin-inline-start: 15%;
+  }
+  .overlayTextOnSheetsHero #title {
+    font-size: 24px;
+    top: 115px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 16px;
+    top: 175px;
+  }
+  #aboutCover {
+    height: 150px;
+    padding: 130px 0;
+  }
+}
+.sheetContent .addToSheetPlus {
+  display: inline-flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 25px;
+  height: 25px;
+  background-color: var(--midrash-green);
+  border-radius: 50%;
+  color: white;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+.SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
+  margin-inline-start: 15px;
+  padding-block-start: 10px;
+  padding-block-end: 10px;
+  border: none;
+  background-color: white;
+}
+.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+  margin-block-start: -10px;
+  margin-block-end: 30px;
+}
+.sheetContent .addToSheetText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--dark-grey);
+  margin-inline-start: 10px;
+  cursor: pointer;
+}
+@media screen and (min-width: 900px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
+}
+@media screen and (min-width: 700px) and (max-width: 900px)  {
+  .contentInner .table {
+    display: flex;
+    flex-direction: column;
+  }
+}
+@media screen and (min-width: 600px) and (max-width: 700px) {
+  .contentInner .table {
+    display: flex;
+    flex-direction: row;
+  }
+  div.sheetsWrapper :nth-child(-n+2 of .card) {
+    border-top: 1px solid #EDEDEC;
+  }
+}
+@media screen and (max-width: 600px) {
+   .contentInner .table {
+    display: flex;
+    flex-direction: column;
+  }
+}
 
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
@@ -10898,6 +11103,8 @@ span.purim-emoji img{
 }
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .sheetContent .spacer:only-of-type.empty:before {
@@ -11278,44 +11485,12 @@ section.SheetOutsideBiText .en {
 section.SheetSource,
 section.SheetOutsideBiText {
   border-inline-start: 4px solid;
-  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+  border-inline-end: 1px solid #DDDDDD;
+  border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+  border-radius: 4px;
   margin-bottom: 30px;
 }
-
-.SheetOutsideBiText, .SheetSource {
-    counter-increment: css-counter 1;
-}
-
-.SheetOutsideBiText:before,
-.SheetSource:before {
-  position: absolute;
-  color:  var(--medium-grey);
-  font-size: 12px;
-}
-
-.english .SheetOutsideBiText:before,
-.english .SheetSource:before {
-  content: counter(css-counter);
-  left: -34px;
-  font-family: var(--english-sans-serif-font-family);
-}
-
-.bilingual .SheetOutsideBiText:before,
-.bilingual .SheetSource:before {
-  content: counter(css-counter);
-  right: -34px;
-  font-family: var(--english-sans-serif-font-family);
-
-}
-
-
-.hebrew .SheetOutsideBiText:before,
-.hebrew .SheetSource:before {
-  content: counter(css-counter, hebrew);
-  right: -34px;
-  font-family: var(--hebrew-sans-serif-font-family);
-}
-
 
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
 .readerPanel.english section.SheetSource .sheetItem > .en,
@@ -11342,29 +11517,30 @@ section.SheetOutsideBiText {
 .interface-english section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 20px 15px 16px;
 }
+.interface-english .stacked section.SheetSource .sheetItem > .en {
+  border-block-start: 1px solid #DDDDDD;
+  border-block-end: 1px solid #DDDDDD;
+}
+.interface-english .heRight section.SheetSource .sheetItem,
+.interface-english .heLeft section.SheetSource .sheetItem {
+  border-block-end: 1px solid #DDDDDD;
+}
 .interface-hebrew section.SheetSource .sheetItem > .he,
 .interface-hebrew section.SheetSource .sheetItem > .en,
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .he,
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
-.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he,
-.readerPanel.bilingual.stacked .sheetContent section.SheetOutsideBiText .segment.highlight .he {
-  padding-bottom: 15px;
-}
-section.SheetSource.highlight,
-section.SheetOutsideBiText.highlight {
-  background-color: #E9E9E7;
-}
 section.SheetSource .segmentNumber,
 section.SheetSource .SheetOutsideBiText {
   display: none;
 }
-.sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
-.sheetContent section.SheetOutsideBiText.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
   margin: 0;
+}
+.sheetContent section.SheetSource .sheetItem.segment {
+  margin-block-end: 0;
 }
 .sheetItem .SheetSource,
 .sheetItem .SheetOutsideBiText {
@@ -11540,6 +11716,11 @@ cursor: pointer;
 .bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment,
 .bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
   margin-bottom: 0;
+  display: flex;
+}
+
+.bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
+  flex-direction: row-reverse;
 }
 
 .boxedSheetItem + .spacer {
@@ -11877,10 +12058,25 @@ cursor: pointer;
   opacity: 0.6;
   cursor:pointer;
 }
-.profile-page .social-icon img {
+.profile-page .social-icon img, .sheetContentSidebar .social-icon img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
+}
+.sheetContentSidebar .title.sub-title, .sheetContentSidebar .title.sub-sub-title {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-block-end: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sheetContentSidebar .title.sub-sub-title {
+  margin-block-end: 20px;
 }
 .profile-page .social-icon + .social-icon {
   padding: 0 5px;
@@ -12007,8 +12203,8 @@ cursor: pointer;
 .sheetList .sheet .sheetTags {
   color: #999;
 }
-.sheetList .sheet .sheetTags .bullet {
-  margin: 0 5px;
+.sheetsProfileList .sheet .sheetTags .bullet {
+  padding: 0 5px;
 }
 .sheetList .sheet a {
   color: inherit;
@@ -12144,8 +12340,12 @@ cursor: pointer;
   top: -2px;
 }
 .profile-page .collectionListingName {
-  font-size: 18px;
   margin-bottom: 10px;
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+
 }
 .profile-page .collectionListing + .collectionListing {
   border-top: 0;
@@ -12175,26 +12375,35 @@ cursor: pointer;
 .profile-page .profile-summary .summary-column.end {
   flex-grow: 1;
 }
-.profile-page .profile-summary .small-margin {
+.profile-summary .small-margin {
   margin: 0 4px;
 }
-.profile-page .profile-summary .sub-sub-title > .small-margin:first-child,
-.profile-page .profile-summary .sub-sub-title > span:first-child .small-margin {
+.profile-summary .sub-sub-title > .small-margin:first-child,
+.profile-summary .sub-sub-title > span:first-child .small-margin {
   margin: 0 4px 0 0;
 }
-.profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
-.profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
+.profile-summary .sub-sub-title > .small-margin:last-child,
+.profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 0 0 4px;
 }
-.interface-hebrew .profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
-.interface-hebrew .profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
+.interface-hebrew .profile-summary .sub-sub-title > .small-margin:last-child,
+.interface-hebrew .profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 4px 0 0;
 }
 .profile-page .aboutText {
   margin-top: 20px;
   font-size: 18px;
   line-height: 1.4;
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.41px;
 }
+
+.profile-page .aboutText a {
+  font-family: Roboto;
+}
+
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
     display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
@@ -12216,9 +12425,15 @@ cursor: pointer;
     font-size: 43.5px !important;
   }
   .profile-page .profile-summary .profile-actions {
+    display: flex;
     flex-wrap: wrap;
+    flex-direction: row;
   }
 }
+.profilePicAndButtonContainer .profile-actions {
+  margin-top: 10px;
+}
+
 .profile-page .profile-summary .follow {
   color: #999;
   font-size: 13px;
@@ -12227,11 +12442,7 @@ cursor: pointer;
 .profile-page .profile-summary .follow .follow-bull {
   padding: 0 5px;
 }
-.profile-page .profile-summary .profile-actions {
-  display: flex;
-  flex-direction: row;
-  margin: 10px 0;
-}
+
 .profile-page .resourcesLink.faded {
   color: #666;
 }
@@ -12400,7 +12611,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--sefaria-blue);
+  background: var(--midrash-green);;
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
@@ -14081,7 +14292,7 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
-.dropdownMenu {
+.readerDropdownMenu {
   position: relative;
   display: flex;
   flex-direction: row-reverse;
@@ -14117,12 +14328,23 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
 }
 
-.dropdownButton {
+.dropdownLinks-button {
   border: none;
   background-color: inherit;
+  cursor: default;
 }
 
-.rightButtons .dropdownButton {
+.dropdownLinks-button img {
+  cursor: pointer;
+}
+
+.headerDropdownMenu {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.rightButtons .dropdownLinks-button {
   text-align: end;
 }
 
@@ -14372,7 +14594,109 @@ span.ref-link-color-3 {color: blue}
 .blockButton {
   cursor: pointer;
 }
+.sheetsHomepage .button {
+  background-color: var(--midrash-green);
+}
+.sheetsHomepage .sheetsHomepageSectionTitle {
+  color: var(--midrash-green);
+  font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-bottom: 15px;
+}
+.multiPanel .sheetsHomepage .sheetsTopicTOC .sheetsHomepageSectionTitle {
+  flex: 1 1 100%;
+}
+.sheetsHomepage .sidebarLayout {
+  justify-content: space-between;
+  margin-top: 50px;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopics {
+  display: flex;
+  flex-direction: column;
+}
+.sheetsHomepage .content .contentInner {
+  width: 875px;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+  margin-inline-start: 10%;
+}
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
+  column-gap: 20px;
+}
+.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+}
+.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.singlePanel .sheetsTopicTOC, .singlePanel .sheetsTopicsCalendar {
+  margin-top: 30px;
+}
+.multiPanel .sheetsTopicTOC {
+  margin-top: 30px;
+}
+.singlePanel .sheetsHomepage .navSidebar {
+  margin-block-start: 5px;
+  width: revert;
+}
+.singlePanel .sheetsHomepage .navSidebarModule {
+  padding: 0 10%;
+}
+.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.singlePanel .sheetsHomepage .sidebarLayout {
+  margin-top: revert;
+}
 
+.singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
+  width: revert;
+}
+.singlePanel .sheetsHomepage .button {
+  display: block;
+}
+@media screen and (max-width: 840px) {
+  .sheetsHomepage .sidebarLayout .sheetsTopics {
+    width: 100%;
+  }
+  .sheetsHomepage .button {
+    display: block;
+  }
+  .sheetsHomepage .navSidebar {
+    width: revert;
+    border-top: 40px solid #FBFBFA;
+    margin-block-start: -40px;
+    border-bottom: 40px solid #FBFBFA;
+  }
+}
+@media screen and (max-width: 700px) {
+  .sheetsHomepage .navSidebar {
+    margin-top: 30px;
+  }
+}
+.button.getStartedSheets {
+  width: 111px;
+  height: 39px;
+  padding: 10px 15px 10px 15px;
+  border-radius: 6px;
+  border: 1px solid #CCCCCC;
+  display: block;
+  background-color: white;
+  color: black;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.button.getStartedSheets:hover {
+  color: black;
+}
 .image-in-text {
     display: flex;
     justify-content: center;
@@ -14406,6 +14730,193 @@ span.ref-link-color-3 {color: blue}
   }
 }
 
+.dropdownHeader {
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18.75px;
+  color: var(--selected-option);
+}
+
+.dropdownHeaderText {
+  padding-left: 10px;
+}
+
+.dropdownDesc {
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  padding-left: 30px;
+  padding-bottom: 10px;
+  padding-right: 10px;
+}
+
+.dropdownSeparator {
+  border: 1px solid var(--light-grey);
+  margin-block: 5px;
+}
+.sheetMetaDataBox .dropdownLinks-button {
+  font-weight: bold;
+}
+.sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
+  padding-top: 3px;
+}
+.header .headerDropdownMenu {
+  display: block;
+  align-items: center;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  color: #666;
+  position: relative;
+}
+.headerDropdownMenu .toolsButtonContainer {
+  margin: revert;
+}
+.headerDropdownMenu #saveButtonText {
+  padding-inline-start: 15px;
+}
+.sheetsInPanel .dropdownDesc {
+  display: none;
+}
+.sheetsInPanel .toolsButtonText,
+.sheetsInPanel .dropdownHeaderText,
+.sheetsInPanel #saveButtonText {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #666666;
+  margin-inline-start: 10px;
+  padding: revert;
+}
+.sheetsInPanel .headerDropdownMenu {
+  margin-top: 7px;
+  color: var(--dark-grey);
+  position: relative;
+  line-height: 0;
+}
+.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
+  height: 18px;
+  width: 18px;
+  vertical-align: middle;
+}
+
+.interface-english .header .headerDropdownMenu img {
+  margin-inline-end: 2px;
+}
+
+.interface-hebrew .header .headerDropdownMenu img {
+  margin-inline-end: 6px;
+}
+
+/* .header .headerDropdownMenu .dropdownLinks-button::after {
+  display: inline-block;
+  background: no-repeat url("/static/icons/chevron-down.svg");
+  height: 10px;
+  width: 12px;
+  vertical-align: middle;
+  content: "";
+  transform: scale(0.75);
+} */
+.sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
+  display: inline-block;
+  height: 10px;
+  width: 12px;
+  vertical-align: middle;
+  content: "";
+  transform: scale(0.75);
+}
+.header .headerDropdownMenu .dropdownLinks-menu, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  top: 35px;
+  position: absolute;
+  z-index: 1;
+  width: 150px;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  display:none;
+  overflow:hidden;
+}
+
+.dropdownItem {
+  padding-inline: 15px;
+  flex-direction: column;
+}
+.dropdownItem:nth-child(n+2):nth-last-child(n+2) {
+  padding-block: 5px 5px;
+}
+
+.dropdownItem:first-child {
+  padding-block-start: 10px;
+  padding-block-end: 5px;
+}
+
+.dropdownItem:last-child {
+  padding-block-start: 5px;
+  padding-block-end: 10px;
+}
+
+.sheetsInPanel .dropdownItem {
+  cursor: pointer;
+}
+
+.sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  background: white;
+  box-shadow: revert;
+  border: 1px solid var(--light-grey);
+}
+
+.sheetsInPanel .dropdownSeparator {
+  margin-block: 5px;
+  border: 0.5px solid var(--light-grey);
+}
+
+.interface-english .header .headerDropdownMenu .dropdownLinks-menu {
+  right: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+
+.interface-english .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  min-width: 150px;
+  width: max-content;
+}
+
+.interface-hebrew .header .headerDropdownMenu .dropdownLinks-menu {
+  left: 0px;
+  min-width: 150px;
+  width: max-content;
+}
+
+.interface-hebrew .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu  {
+  min-width: 150px;
+  width: max-content;
+}
+
+.dropdownLinks-options {
+  display: flex;
+  flex-direction: column;
+  max-width: 220px;
+}
+
+/*.dropdownLinks-options > * {*/
+/*  margin: 10px;*/
+/*}*/
+
+/*.dropdownLinks-options > :first-child {*/
+/*  margin: 20px; */
+/*}*/
+
+/*.dropdownLinks-options > :last-child {*/
+/*  margin: 5px; */
+/*}*/
+
+.header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
+  display: block;
+}
+
 .productsFlexWrapper {
   display: flex;
   flex-direction: column;
@@ -14435,7 +14946,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productInner img {
-  max-width: 100%; 
+  max-width: 100%;
   max-height: 116px;
   height: auto;
   display: block;
@@ -14444,7 +14955,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productInner .productsDesc {
-  font: var(--english-sans-serif-font-family); 
+  font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 16px;
 }
@@ -14477,21 +14988,21 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .productsTitle {
-  font: var(--english-sans-serif-font-family); 
+  font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 22px;
   font-weight: 500px;
 }
 
 .productsHeader .productsTypeLabel {
-  font: var(--english-sans-serif-font-family); 
+  font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  background-color: var(--lighter-grey); 
-  border-radius: 6px; 
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
   padding: 0.01px 5px;
-  color: var(--dark-grey); 
+  color: var(--dark-grey);
   margin-inline-start: 3%;
 }
 
@@ -14501,7 +15012,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsHeader .cta .productsCTA {
-  color: var(--commentary-blue); 
+  color: var(--commentary-blue);
   border-width: 10px;
   margin-inline-end: 10px;
 }
@@ -14513,7 +15024,7 @@ span.ref-link-color-3 {color: blue}
   left: 610px;
   margin: 0 5px;
   vertical-align: baseline;
-  /** This uses the filter to recolor SVGs in a single line to commentary blue. 
+  /** This uses the filter to recolor SVGs in a single line to commentary blue.
   To determine the appropriate parameters, see a filter color picker such as https://angel-rs.github.io/css-color-filter-generator/ */
   filter: brightness(0) saturate(100%) invert(52%) sepia(17%) saturate(6763%) hue-rotate(200deg) brightness(78%) contrast(77%);
 
@@ -14541,7 +15052,7 @@ span.ref-link-color-3 {color: blue}
     font-weight: 400;
     line-height: 18.75px;
     display: flex;
-    align-items: flex-start; 
+    align-items: flex-start;
     flex-direction: column;
     padding: 3%;
     margin-top: 10%;
@@ -14558,7 +15069,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .productsDevBox a {
-  color: var(--commentary-blue) !important; 
+  color: var(--commentary-blue) !important;
 
 }
 
@@ -14586,7 +15097,7 @@ span.ref-link-color-3 {color: blue}
     display: block;
     margin-left: auto;
     margin-right: auto;
-  } 
+  }
 
   #productsPageContent {
     margin: 100px 10px 0px 10px;;
@@ -14631,6 +15142,207 @@ span.ref-link-color-3 {color: blue}
     padding-left: 0px;
     padding-right: 0px;
   }
+}
+
+.noteRefTitle {
+  font-size: 18px;
+}
+
+.noteText{
+  color: var(--dark-grey);
+}
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
+
+
+.footerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding-top: 25px;
+}
+
+.footerContainer a {
+  padding: 3px 10px;
+}
+
+.stickySidebarFooter {
+  position: sticky;
+  top: 0;
+}
+
+.image-in-text-title {
+  margin: auto; /* English System Small */
+  margin-top: 15px;
+  text-align: center;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  color: #666666;
+}
+
+.languageHeader {
+  padding-inline: 15px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--medium-grey);
+  padding-block-start: 5px;
+  padding-block-end: 2px;
+}
+
+.dropdownLanguageToggle{
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  line-height: 18px;
+  height: 23px;
+  padding-inline: 15px;
+}
+
+.languageDot{
+  font-size: 25px;
+  padding: 10px 2px;
+}
+
+
+
+.englishLanguageButton::after {
+  content: "•";
+  padding: 6px;
+}
+
+.profilePicAndButtonContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.createButtons {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-evenly;
+  padding-top: 20px;
+}
+
+.sheetsProfileList {
+  margin-top: 20px;
+  background-color: white;
+  border: 1000px solid white;
+  border-top: 4px solid white;
+  border-bottom: 120px solid white;
+  margin: -4px 0 -120px -1000px;
+  width: 100%;
+
+}
+
+.profile-page .sheetsProfileList {
+  margin: -4px 0 -120px 0;
+  margin-inline-start: -1000px;
+  margin-inline-end: 0;
+}
+
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin: 0 10px 0 5px;
+  display: inline-flex;
+  top: 0;
+}
+.sheetsProfileList .readerNavMenuSearchButton {
+  margin-inline-start: 10px;
+  margin-inline-end: 5px;
+}
+.sheetsProfileList input {
+  border: 0;
+  font-size: 18px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  background-color: transparent;
+}
+.sheetsProfileList .loadingMessage {
+  margin-top: 30px;
+}
+
+.notificationUserName {
+  color: var(--midrash-green) !important;
+}
+
+.emptyNotificationsTitle{
+  font-family: Roboto;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 18.75px;
+  padding-bottom: 10px;
+}
+
+.emptyNotificationsMessage{
+  font-family: Roboto;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: start;
+}
+
+.emptyNotificationPage{
+  display: flex;
+  flex-direction: column;
+}
+
+<<<<<<< HEAD
+.mobileProfileFlexContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+}
+
+.mobileProfileFlexContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+}
+
+.librarySavedIcon{
+  width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  margin-top: 2px;
+}
+
+.sheetsNotificationsHeaderIcon {
+  width: 20px;
+  height: 18px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.sheetsNotificationsHeaderIcon img{
+  width: 100%;
+  height: 100%;
+}
+
+.librarySavedIcon img{
+  width: 100%;
+  height: 100%;
+}
+.languageFlex {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  direction:ltr;
 }
 
 @-webkit-keyframes load5 {

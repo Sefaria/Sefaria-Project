@@ -19,6 +19,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
+from django_topics.models.topic import Topic as DjangoTopic
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
@@ -5169,7 +5170,8 @@ class Library(object):
                 "shouldDisplay": True if len(children) > 0 else topic.should_display(),
                 "en": topic.get_primary_title("en"),
                 "he": topic.get_primary_title("he"),
-                "displayOrder": getattr(topic, "displayOrder", 10000)
+                "displayOrder": getattr(topic, "displayOrder", 10000),
+                "pools": DjangoTopic.objects.slug_to_pools.get(topic.slug, [])
             }
 
             with_descriptions = True # TODO revisit for data size / performance

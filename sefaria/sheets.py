@@ -129,7 +129,6 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
-	sheet["sheetNotice"] = present_sheet_notice(sheet.get("is_moderated", None))
 	if "displayedCollection" in sheet:
 		collection = Collection().load({"slug": sheet["displayedCollection"]})
 		if collection:
@@ -783,6 +782,22 @@ def get_top_sheets(limit=3):
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
 
+def annotate_sheets_with_collections(sheets):
+	"""
+	Annotate a list of `sheets` with a list of public collections that the sheet appears in.
+	"""
+	ids = list({int(s['id']) for s in sheets})
+	collections = CollectionSet({'sheets': {'$in': ids}, 'listed': True}, hint="sheets_listed") #Return every public collection that has a sheet in `ids`
+
+	sheet_id_to_collections = defaultdict(list)
+	for collection in collections:
+		for sheet_id in collection.sheets:
+			sheet_id_to_collections[sheet_id].append(collection)
+
+	for sheet in sheets:
+		collections = sheet_id_to_collections[int(sheet["id"])]
+		sheet["collections"] = [{'name': collection.name, 'slug': collection.slug} for collection in collections]
+	return sheets
 
 def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
@@ -805,8 +820,10 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
 		query["id"] = {"$in": sheets_ids}
 
-	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
+	projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
+		 "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
+		 "displayedCollection":1, "options":1}
+	sheetsObj = db.sheets.find(query, projection).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
@@ -861,7 +878,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"assignerName":	   sheet.get("assignerName", None),
 				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
 				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
-				"ownerProfileUrl": "/profile/" + ownerData["slug"],
+				"ownerProfileUrl": "/sheets/profile/" + ownerData["slug"],
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
@@ -872,8 +889,8 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
+				"dateCreated":	   sheet.get("dateCreated", None)
 			}
-
 			results.append(sheet_data)
 	return results
 
@@ -1286,8 +1303,3 @@ def update_sheet_tags_categories(body, uid):
 	time = datetime.now().isoformat()
 	noTags = time if body.get("noTags", False) else False
 	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})
-
-
-def present_sheet_notice(is_moderated):
-	"""This method is here in case one day we will want to differentiate based on other logic on moderation"""
-	return is_moderated
