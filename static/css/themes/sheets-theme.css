@@ -31,6 +31,14 @@
   --theme-button-dropshadow: none;
 }
 
+[data-active-module="sheets"] .header img.home {
+  height: 30px;
+}
+
+[data-active-module="sheets"] .interface-hebrew .header img.home {
+  height: 25px;
+}
+
 /**
 either a secondary button inside active module or a button with active module on it explicitly
 **/

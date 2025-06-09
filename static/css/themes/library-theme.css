@@ -29,6 +29,11 @@
   --theme-button-icon-filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(106deg) brightness(101%) contrast(103%);  /* white */
   --theme-button-border: transparent;
   --theme-button-dropshadow: 0 1px 3px rgba(0,0,0,0.25);
+
+}
+
+[data-active-module="library"] .header img.home {
+  height: 25px;
 }
 
 /**
