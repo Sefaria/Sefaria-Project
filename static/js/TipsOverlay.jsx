@@ -72,7 +72,7 @@ const TipsOverlay = ({
   onClose,
   guideType = "sheets",
   forceShow = false,
-  timeoutLength = 3
+  timeoutLength = 7
 }) => {
   const cookieName = `tips_overlay_seen_${guideType}`;
   const initialShouldShow = forceShow || !$.cookie(cookieName);
@@ -102,8 +102,8 @@ const TipsOverlay = ({
         console.warn(`Tips loading timed out after ${timeoutLength} seconds`);
         handleClose();
         // TODO: add an analytics event for this
-        console.log(Sefaria._("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.")); //TODO fix - heb isn't showing up
-        alert(Sefaria._("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it."));
+        console.log(localize("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.")); //TODO fix - heb isn't showing up
+        alert(localize("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it."));
       }
     }, timeoutLength * 1000);
 
@@ -111,8 +111,6 @@ const TipsOverlay = ({
       setLoading(true);
 
       try {
-        // Add artificial delay for testing loading state TODO: remove this
-        // await new Promise(resolve => setTimeout(resolve, 4000)); // 4 second delay for testing
         
         const data = await Sefaria.getTips(guideType);
 
@@ -128,7 +126,7 @@ const TipsOverlay = ({
           console.error("Error loading tips:", error);
           handleClose();
           // TODO: add an analytics event for this
-          alert(Sefaria._("Sorry, we couldn't load the guide tips. Please try refreshing the page."));
+          alert(localize("Sorry, we couldn't load the guide tips. Please try refreshing the page."));
         }
       } finally {
         if (isComponentMounted) {
