@@ -14847,7 +14847,7 @@ span.ref-link-color-3 {color: blue}
 
 .titlePrefix {
   font-weight: 700;
-  margin-right: 0.5rem; /* Consistent spacing in rem units */
+  margin-inline-end: 0.5rem;
 }
 
 .titleVariable {
