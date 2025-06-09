@@ -14636,6 +14636,9 @@ span.ref-link-color-3 {color: blue}
   flex-wrap: wrap;
   column-gap: 20px;
 }
+.TOCCardsWrapper .card:nth-child(odd):last-child {
+  flex: 0 0 45%;
+}
 .sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
