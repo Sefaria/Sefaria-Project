@@ -852,6 +852,8 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         )
     }
 
+    console.log('attributes', attributes)
+
 
   return (
       <div
@@ -863,6 +865,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           onDragEnter={(e)=>{e.preventDefault()}}
           onDragOver={(e)=>{dragOver(e)}}
           onDrop={(e)=> {drop(e)}}
+          tabIndex={0}
           {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
