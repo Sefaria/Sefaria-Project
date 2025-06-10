@@ -124,18 +124,6 @@ class InfoCard(Sortable):
         help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here.",
         blank=True,
     )
-    video_alt_en = models.CharField(
-        max_length=255,
-        verbose_name="Video Alt Text (EN)",
-        blank=True,
-        help_text="Alternative text for the video in English"
-    )
-    video_alt_he = models.CharField(
-        max_length=255,
-        verbose_name="Video Alt Text (HE)",
-        blank=True,
-        help_text="Alternative text for the video in Hebrew"
-    )
 
     def __str__(self):
         return f"{self.guide.key} - {self.title_en}"

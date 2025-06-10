@@ -8,7 +8,7 @@ class InfoCardInline(admin.StackedInline):
     model = InfoCard
     extra = 0
     can_delete = False
-    fields = (('title_en', 'title_he'), ('text_en', 'text_he'), ('video_en', 'video_he'), ('video_alt_en', 'video_alt_he'), 'order')
+    fields = (('title_en', 'title_he'), ('text_en', 'text_he'), ('video_en', 'video_he'), 'order')
     
     formfield_overrides = {
         models.TextField: {'widget': forms.Textarea(attrs={'rows': 5, 'cols': 50})},
@@ -51,7 +51,7 @@ class InfoCardAdmin(SortableAdmin):
             'fields': (('title_en', 'title_he'), ('text_en', 'text_he'))
         }),
         ('Videos', {
-            'fields': (('video_en', 'video_he'), ('video_alt_en', 'video_alt_he'))
+            'fields': (('video_en', 'video_he'),)
         }),
     )
     

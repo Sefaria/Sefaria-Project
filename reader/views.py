@@ -4804,7 +4804,7 @@ def tips_api(request, guide_key=None):
                     "title": {"en": str, "he": str},
                     "text": {"en": str, "he": str},
                     "videoUrl": {"en": str, "he": str},
-                    "videoAlt": {"en": str, "he": str}
+
                 },
                 ...
             ]
@@ -4837,10 +4837,6 @@ def tips_api(request, guide_key=None):
             "videoUrl": {
                 "en": card.video_en,
                 "he": card.video_he
-            },
-            "videoAlt": {
-                "en": card.video_alt_en,
-                "he": card.video_alt_he
             }
         })
     
