@@ -1894,6 +1894,7 @@ const InterruptingMessage = ({
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
+  const adContext = useContext(AdContext);
 
   const markModalAsHasBeenInteractedWith = (modalName) => {
     localStorage.setItem("modal_" + modalName, "true");
@@ -1907,16 +1908,18 @@ const InterruptingMessage = ({
     gtag("event", "modal_interacted_with_" + eventDescription, {
       campaignID: modalName,
       adType: "modal",
+      ...(adContext.isDebug && { debug_mode: true })
     });
   };
 
-  const trackModalImpression = () => {
+const trackModalImpression = () => {
     console.log("We've got visibility!");
     gtag("event", "modal_viewed", {
       campaignID: strapi.modal.internalModalName,
       adType: "modal",
+      ...(adContext.isDebug && { debug_mode: true })
     });
-  };
+};
 
   const shouldShow = () => {
     if (!strapi.modal) return false;
@@ -2110,6 +2113,8 @@ const Banner = React.memo(({ onClose }) => {
     useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
   const strapi = useContext(StrapiDataContext);
+  const adContext = useContext(AdContext);
+
 
   const markBannerAsHasBeenInteractedWith = (bannerName) => {
     localStorage.setItem("banner_" + bannerName, "true");
@@ -2123,6 +2128,7 @@ const Banner = React.memo(({ onClose }) => {
     gtag("event", "banner_interacted_with_" + eventDescription, {
       campaignID: bannerName,
       adType: "banner",
+      ...(adContext.isDebug && { debug_mode: true })
     });
   };
 
@@ -2130,6 +2136,7 @@ const Banner = React.memo(({ onClose }) => {
     gtag("event", "banner_viewed", {
       campaignID: strapi.banner.internalBannerName,
       adType: "banner",
+      ...(adContext.isDebug && { debug_mode: true })
     });
   };
 
