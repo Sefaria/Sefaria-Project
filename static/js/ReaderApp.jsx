@@ -37,6 +37,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -114,8 +115,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      editorSaveState: 'saved',
     };
   }
+  setEditorSaveState = (nextState) => {
+    this.setState({ editorSaveState: nextState });
+    };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -1014,6 +1019,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       parent = parent.parentNode;
     }
   }
+  alertUnsavedChangesConfirmed() {
+    // If the user has unsaved changes, we want to prevent the default action of the click
+    // and show a confirmation dialog instead.
+    const ok = window.confirm(
+        "You have unsaved changes that may be lost. Continue?"
+    );
+    if (!ok) {
+        return false;
+    }
+    return true;
+  }
   handleInAppClickWithModifiers(e){
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
@@ -1077,6 +1093,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   openURL(href, replace=true, overrideContentLang=false) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
@@ -1662,7 +1683,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
+
+  shouldAlertBeforeCloseEditor() {
+    const sheetId = this.state.panels[0]?.sheetID;
+    return !!(sheetId &&
+        this.state.panels[0].mode === "Sheet" &&
+        this.state.editorSaveState && this.state.editorSaveState !== "saved")
+        && shouldUseEditor(sheetId);
+
+  }
   closePanel(n) {
+    // currently we assume that the editor is always the first panel,
+    // TODO: enforce this assumption
+    if (n===0 && this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return false;
+      }
+    }
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
       this.state.panels = [];
@@ -2231,6 +2268,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      editorSaveState={this.state.editorSaveState}
+                      setEditorSaveState={this.setEditorSaveState}
                     />
                   </div>);
     }

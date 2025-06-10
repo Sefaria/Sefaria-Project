@@ -13,6 +13,7 @@ import {
     SheetTitle,
     InterfaceText,
     Autocompleter,
+    ToolTipped,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 
@@ -718,7 +719,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       () => {
         Transforms.setNodes(parentEditor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(parentEditor, element)});
       },
-      [sourceActive]
+      [sourceActive, sheetHeSourceValue, sheetEnSourceValue]
   );
 
   useEffect(
@@ -2578,18 +2579,222 @@ const BlockButton = ({format, icon}) => {
     )
 }
 
+const EditorSaveStateIndicator = ({ state }) => {
+    const localize = (inputStr) => Sefaria._(inputStr, "EditorSaveIndicator");
+    const stateToIcon = {
+        "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
+        "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
+        "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
+        "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
+        "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
+        };
+    const stateToTooltip = {
+        "saved": "Your sheet is saved to Sefaria",
+        "saving": "We are saving your changes to Sefaria",
+        "connectionLost": "No internet connection detected",
+        "userUnauthenticated": "You are not logged in to Sefaria",
+        "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
+        };
+
+    const path = window.location.pathname + window.location.search;
+    const stateToMessage = {
+        "connectionLost": "Trying to connect…",
+        "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
+        "saving": "Saving...",
+        "saved": "Saved",
+        "unknownError": "Something went wrong. Try refreshing the page."
+        };
+    const loadedIcons = new Set();
+    useEffect(() => {
+      if (state === "connectionLost") {
+        return;
+      }
+      // Preload icons for all states if they are not already loaded.
+      Object.values(stateToIcon).forEach((src) => {
+        if (!loadedIcons.has(src)) {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => loadedIcons.add(src);  // Mark as loaded after successful load
+        }
+      });
+    }, [state]);
+
+    const tooltip = stateToTooltip[state];
+
+    return (
+        <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
+        {<img src={stateToIcon[state]} alt={localize(state)} />}
+        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        </ToolTipped>
+  );
+}
+function useUnsavedChangesWatcher(timeoutSeconds, hasUnsavedChanges, savingState, setSavingState) {
+  const timeoutRef = useRef(null);
+
+  // if failed to save and no reason is given, transition into known error state after a timeout
+  useEffect(() => {
+    if (hasUnsavedChanges && !timeoutRef.current) {
+      // Start a timeout only if none is running
+      timeoutRef.current = setTimeout(() => {
+        savingState === "saving" && setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+        timeoutRef.current = null; // Reset the ref
+      }, timeoutSeconds * 1000);
+    }
+
+    if ((!hasUnsavedChanges)
+        && timeoutRef.current) {
+      // Cancel if unsavedChanges were cleared before timeout ends
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    return () => {
+      // Clean up on unmount or re-run
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [hasUnsavedChanges, savingState]);
+}
+function useBlockEditorInputWhenDisabled(isEditingBlocked, ...elementRefs) {
+  useEffect(() => {
+    elementRefs.forEach(elementRef => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      if (isEditingBlocked) {
+        sheetsUtils.disableUserInput(element);
+      } else {
+        sheetsUtils.enableUserInput(element);
+      }
+    });
+  }, [isEditingBlocked, ...elementRefs]);
+}
+function useBeforeUnloadWarning(savingState) {
+    // alert user before (hard-) leaving the page if there are unsaved changes
+  useEffect(() => {
+    const handler = e => {
+      if (savingState === 'saved') return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => {window.removeEventListener('beforeunload', handler)};
+  }, [savingState]);
+}
+
+function useSavingStateSideEffects(
+  savingState,
+  {
+    setBlockEditing,
+    setConnectionLostPolling,
+    setUserUnauthenticated,
+    setUnknownErrorDetected,
+  }
+) {
+  useEffect(() => {
+    if (savingState === 'saved') {
+      setBlockEditing(false);
+      setConnectionLostPolling(false);
+    } else if (savingState === 'userUnauthenticated') {
+      setUserUnauthenticated(true);
+      setBlockEditing(true);
+    } else if (savingState === 'connectionLost') {
+      setConnectionLostPolling(true);
+      setBlockEditing(true);
+    } else if (savingState === 'unknownError') {
+      setUnknownErrorDetected(true);
+      setBlockEditing(true);
+    }
+  }, [savingState]);
+}
+function useOfflinePollingSave(
+  connectionLostPolling,
+  documentDraft,
+  saveDocument,
+  setHasUnsavedChanges,
+  canUseDOM,
+  intervalMs = 2000,
+  debounceMs = 500
+) {
+  useEffect(() => {
+    if (!canUseDOM || !connectionLostPolling) return;
+    const interval = setInterval(() => {
+      setHasUnsavedChanges(true);
+      const timeout = setTimeout(() => saveDocument(documentDraft), debounceMs);
+      return () => clearTimeout(timeout);
+    }, intervalMs);
+    return () => clearInterval(interval);
+  }, [
+    connectionLostPolling,
+    documentDraft,
+    canUseDOM,
+    intervalMs,
+    debounceMs,
+  ]);
+}
+
+function useSaveStateManagement({
+  hasUnsavedChanges,
+  savingState,
+  setSavingState,
+  blockEditing,
+  setBlockEditing,
+  editorContentContainer,
+  editorTitleContainer,
+  connectionLostPolling,
+  currentDocument,
+  saveDocument,
+  setHasUnsavedChanges,
+  canUseDOM,
+  setConnectionLostPolling,
+  setUserUnauthenticated,
+  setUnknownErrorDetected,
+}) {
+  useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
+  useBlockEditorInputWhenDisabled(blockEditing, editorContentContainer, editorTitleContainer);
+  useBeforeUnloadWarning(savingState);
+  useOfflinePollingSave(connectionLostPolling, currentDocument, saveDocument, setHasUnsavedChanges, canUseDOM);
+  useSavingStateSideEffects(savingState, {
+    setBlockEditing,
+    setConnectionLostPolling,
+    setUserUnauthenticated,
+    setUnknownErrorDetected,
+  });
+}
+
 const SefariaEditor = (props) => {
-    const editorContainer = useRef(null);
+    const editorContainer = useRef();
+    const editorContentContainer = useRef();
+    const editorTitleContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const [status, setStatus] = useState(sheet?.status || "unlisted");
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
-    const [unsavedChanges, setUnsavedChanges] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [blockEditing, setBlockEditing] = useState(false);
+    const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const [connectionLostPolling, setConnectionLostPolling] = useState(false);
+    const [userUnauthenticated, setUserUnauthenticated] = useState(false);
+    const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
+    const savingState = props.editorSaveState;
+    const setSavingState = props.setEditorSaveState;
+    const isMultiPanel = Sefaria.multiPanel;
+    isMultiPanel && useSaveStateManagement({
+      hasUnsavedChanges, savingState, setSavingState,
+      blockEditing, setBlockEditing,
+      editorContentContainer, editorTitleContainer,
+      connectionLostPolling, currentDocument, saveDocument,
+      setHasUnsavedChanges, canUseDOM,
+      setConnectionLostPolling, setUserUnauthenticated, setUnknownErrorDetected
+});
+
     const [summary, setSummary] = useState(sheet.summary || "");
     const [title, setTitle] = useState(sheet.title || "");
 
@@ -2600,7 +2805,7 @@ const SefariaEditor = (props) => {
                 return
             }
 
-            setUnsavedChanges(true);
+            setHasUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout( () => {
                 saveDocument(currentDocument);
@@ -2616,6 +2821,23 @@ const SefariaEditor = (props) => {
         [currentDocument[0].children[0], title, summary] // Only re-call effect if value or delay changes
     );
 
+
+    useEffect(() => {
+        if (!canUseDOM || !connectionLostPolling) return;
+
+        const interval = setInterval(() => {
+            setHasUnsavedChanges(true);
+
+            const handler = setTimeout(() => {
+                saveDocument(currentDocument);
+            }, 500);
+
+            return () => clearTimeout(handler); // cleanup debounce on next tick
+        }, 2000); // polling every 2s
+
+        return () => clearInterval(interval); // cleanup polling
+    }, [connectionLostPolling]);
+
     useEffect(
         () => {
             /* normalize on load */
@@ -2629,7 +2851,6 @@ const SefariaEditor = (props) => {
 
             //TODO: Check that we still need/want this temporary analytics tracking code
             try {hj('event', 'using_new_editor');} catch {console.error('hj failed')}
-
         }, []
     )
 
@@ -2664,7 +2885,7 @@ const SefariaEditor = (props) => {
                 if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
-                        Transforms.insertText(editor, newStr, {at: path})
+                        Transforms.insertText(editor, newStr, { at: path })
                     }
                 }
             }
@@ -2675,8 +2896,8 @@ const SefariaEditor = (props) => {
             const temp_select = editor.selection
 
             Transforms.select(editor, {
-                anchor: {path: [0, 0], offset: 0},
-                focus: {path: [0, 0], offset: 0},
+              anchor: {path: [0, 0], offset: 0},
+              focus: {path: [0, 0], offset: 0},
             });
 
             Transforms.select(editor, temp_select)
@@ -2811,7 +3032,9 @@ const SefariaEditor = (props) => {
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
-        return sheet;
+
+        return JSON.stringify(sheet);
+
     }
 
     function getLastModified() {
@@ -2819,25 +3042,40 @@ const SefariaEditor = (props) => {
     }
     async function saveDocument(doc) {
         const lastModified = getLastModified();
+        // transition into saving state only if previous state is a valid "saved" state
+        savingState === "saved" && setSavingState(sheetsUtils.editorSaveStates.SAVING)
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
-        try {
-            await postSheet(json);
-        } catch(error) {
-            console.log(`Error: ${error.message}`)
-        }
-    }
 
-    const postSheet = async (sheet) => {
-        const data = await Sefaria.apiRequestWithBody("/api/sheets/", null, sheet, "POST");
-        setStatus(data.status);
-        setTitle(data.title);
-        setSummary(data.summary);
-        const updatedSheet = {...Sefaria.sheets._loadSheetByID[props.data.id], ...data};
-        Sefaria.sheets._loadSheetByID[props.data.id] = updatedSheet;
+        function handlePostError(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status === 0) {
+                console.warn("No network connection or request blocked.");
+                setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
+            } else if (jqXHR.status === 401) {
+                setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
+            } else {
+                console.warn("Unknown error:", textStatus, errorThrown);
+                setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+            }
+        }
+        if(Sefaria.testUnkownNewEditorSaveError) {
+            console.log("Simulating unknown error");
+            return;
+        }
+
+        $.post("/api/sheets/", {"json": json}, res => {
+            // console.log("saved at: "+ res.dateModified);
+            setHasUnsavedChanges(false);
+            setSavingState(sheetsUtils.editorSaveStates.SAVED);
+            setStatus(data.status);
+            setTitle(data.title);
+            setSummary(data.summary);
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
+        }).fail(handlePostError);
     }
 
     function onChange(value) {
@@ -2984,6 +3222,9 @@ const SefariaEditor = (props) => {
                                        />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
+              {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
+
+              <span ref={editorTitleContainer}> 
               <SheetMetaDataBox authorStatement={sheet.ownerName}
                             authorUrl={sheet.ownerProfileUrl}
                             authorImage={sheet.ownerImageUrl}
@@ -2993,27 +3234,30 @@ const SefariaEditor = (props) => {
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
                             sheetOptions={sheetOptions}/>
-          {canUseDOM &&
-            <div style={props.style}>
-              <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-                <HoverMenu buttons="all"/>
-                <Editable
-                  renderLeaf={props => <Leaf {...props} />}
-                  renderElement={renderElement}
-                  spellCheck
-                  onKeyDown={onKeyDown}
-                  onCut={onCutorCopy}
-                  onDragOver={onDragCheck}
-                  onDragEnter={onDragCheck}
-                  onDragEnd={onDragEnd}
-                  onCopy={onCutorCopy}
-                  onBlur={onBlur}
-                  onDOMBeforeInput={beforeInput}
-                  autoFocus
-                />
-             </Slate>
-            </div>
-          }
+              </span>
+          <span  ref={editorContentContainer}>
+            {canUseDOM &&
+              <div style={props.style}>
+                <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+                  <HoverMenu buttons="all"/>
+                  <Editable
+                    renderLeaf={props => <Leaf {...props} />}
+                    renderElement={renderElement}
+                    spellCheck
+                    onKeyDown={onKeyDown}
+                    onCut={onCutorCopy}
+                    onDragOver={onDragCheck}
+                    onDragEnter={onDragCheck}
+                    onDragEnd={onDragEnd}
+                    onCopy={onCutorCopy}
+                    onBlur={onBlur}
+                    onDOMBeforeInput={beforeInput}
+                    autoFocus
+                  />
+               </Slate>
+              </div>
+            }
+          </span>
         </div>
     )
 };
