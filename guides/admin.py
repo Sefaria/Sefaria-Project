@@ -1,12 +1,20 @@
 from django.contrib import admin
+from django import forms
+from django.db import models
 from adminsortable.admin import SortableAdmin
 from .models import Guide, InfoCard
 
-class InfoCardInline(admin.TabularInline):
+class InfoCardInline(admin.StackedInline):
     model = InfoCard
     extra = 0
-    fields = ('title_en', 'title_he', 'text_en', 'text_he', 'video_en', 'video_he', 'video_alt_en', 'video_alt_he', 'order')
-    readonly_fields = ()
+    can_delete = False
+    fields = (('title_en', 'title_he'), ('text_en', 'text_he'), ('video_en', 'video_he'), ('video_alt_en', 'video_alt_he'), 'order')
+    
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'rows': 5, 'cols': 50})},
+        models.CharField: {'widget': forms.TextInput(attrs={'size': 40})},
+        models.URLField: {'widget': forms.URLInput(attrs={'size': 30})},
+    }
 
 @admin.register(Guide)
 class GuideAdmin(admin.ModelAdmin):
@@ -17,14 +25,14 @@ class GuideAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('key', 'title_prefix_en', 'title_prefix_he')
+            'fields': (('key',), ('title_prefix_en', 'title_prefix_he'))
         }),
         ('Footer Link 1', {
-            'fields': ('footer_link_1_text_en', 'footer_link_1_text_he', 'footer_link_1_url'),
+            'fields': (('footer_link_1_text_en', 'footer_link_1_text_he'), 'footer_link_1_url'),
             'description': 'First footer link (all fields optional - link will only appear if URL is provided)'
         }),
         ('Footer Link 2', {
-            'fields': ('footer_link_2_text_en', 'footer_link_2_text_he', 'footer_link_2_url'),
+            'fields': (('footer_link_2_text_en', 'footer_link_2_text_he'), 'footer_link_2_url'),
             'description': 'Second footer link (all fields optional - link will only appear if URL is provided)'
         }),
     )
@@ -40,9 +48,13 @@ class InfoCardAdmin(SortableAdmin):
             'fields': ('guide',)
         }),
         ('Content', {
-            'fields': ('title_en', 'title_he', 'text_en', 'text_he')
+            'fields': (('title_en', 'title_he'), ('text_en', 'text_he'))
         }),
         ('Videos', {
-            'fields': ('video_en', 'video_he', 'video_alt_en', 'video_alt_he')
+            'fields': (('video_en', 'video_he'), ('video_alt_en', 'video_alt_he'))
         }),
     )
+    
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'rows': 3, 'cols': 40})},
+    }
