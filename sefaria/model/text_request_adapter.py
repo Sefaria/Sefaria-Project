@@ -196,6 +196,7 @@ class TextRequestAdapter:
             return
 
         # Process each version
+        composed_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string)
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
                 language = 'he' if version['direction'] == 'rtl' else 'en'
@@ -203,8 +204,7 @@ class TextRequestAdapter:
                 ne_by_secs = make_named_entities_dict()
 
             ja = JaggedTextArray(version['text'])
-            composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string)
-            version['text'] = ja.modify_by_function(composite_func)
+            version['text'] = ja.modify_by_function(composed_func)
 
     def get_versions_for_query(self) -> dict:
         self.oref = self.oref.default_child_ref()
