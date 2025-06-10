@@ -18,31 +18,17 @@ export class SourceSheetEditorPage {
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
 
 
-    // Toolbar Buttons (source, text, media, comment)------------
+    // Source Sheet Buttons and Locators (source, text, media, comment)------------
     title = () => this.page.locator('.title');
+    loginLink= () => this.page.getByRole('link', { name: 'Log in' });
+    sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
+
     //addTextButton = () => this.page.getByRole('button', { name: 'Add a source, image, or other media'});
     addSomethingButton = () => this.page.locator('.editorAddLineButton');
     addSourceButton = () => this.page.locator('#addSourceButton');
     addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
     addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
 
-    //Connectivity
-    //USE THESE!!
-    //make variable for texts for hebrew and then do a check if page is hebrew use those, if english then those
-    //didn't end up using these, but they are here for reference
-    // savedIcon = () => this.page.locator('img[alt=saved]');
-    // savingIcon = () => this.page.locator('img[alt=saving]');
-    // connectionLostIcon = () => this.page.locator('img[alt=connectionLost]');
-    // loggedOutIcon = () => this.page.locator('img[alt=userUnauthenticated]'); 
-    savedText = () => this.page.locator('text=Saved');
-    savedTextHebrew = () => this.page.locator('text=נשמר');
-    savingText = () => this.page.locator('text=Saving');
-    savingTextHebrew = () => this.page.locator('text=שומר');
-    loggedOutText = () => this.page.locator('text=User logged out');
-    loggedOutTextHebrew = () => this.page.locator('text=בוצעה התנתקות מהמערכת');
-    tryingToConnectText = () => this.page.locator('text=Trying to connect');
-    tryingToConnectTextHebrew = () => this.page.locator('text=ניסיון התחברות');
-    loginLink= () => this.page.getByRole('link', { name: 'Log in' });
 
     
     // Sheet Body---------------------------------------------
@@ -51,7 +37,18 @@ export class SourceSheetEditorPage {
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
 
     // Sheet Actions--------------------------------------------------
-
+    async editTitle(newTitle: string): Promise<void> {
+        const title = this.title();
+        // Ensure it's visible and interactable
+        await expect(title).toBeVisible();
+      
+        // Focus and clear any existing content
+        await title.click({ clickCount: 3 }); // Triple-click selects all
+        await this.page.keyboard.press('Backspace');
+        // Type new title
+        await this.page.keyboard.type(newTitle);
+      };
+    
     async addText(text: string) {
         await this.focusTextInput(); 
         await this.page.keyboard.type(text);
@@ -73,6 +70,10 @@ export class SourceSheetEditorPage {
     async clickAddMedia() {
         this.clickAddSomething();
         await this.addMediaButton().click();
+    }
+
+    async clickSidebarToggle() {
+        await this.sideBarToggleButton().click();
     }
 
     async focusTextInput() {
