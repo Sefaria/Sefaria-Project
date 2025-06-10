@@ -5801,6 +5801,11 @@ h1.topic-landing-header {
 .rightButtons .guideButton.tooltip-toggle::before {
   top: 47px;
 }
+
+/* Bulb icon alignment adjustments to match SaveButton */
+.rightButtons .guideButton img {
+  margin-top: 5px; 
+}
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
