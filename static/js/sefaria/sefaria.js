@@ -2745,7 +2745,10 @@ _media: {},
         });
   },
   shouldDisplayTopic: function(topic) {
-    // 'topic' is a topic object in this.topicList or this.topic_toc
+    /*
+    Returns true if topic should be displayed in the topic list or TOC.
+    'topic' is a topic object in this.topicList or this.topic_toc
+     */
     const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
     return !!topic.shouldDisplay && inActiveModule;
   },

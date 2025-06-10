@@ -16,7 +16,7 @@ export const TopicTOCCard = ({topic, setTopic, setNavTopic=null, showDescription
   let {en, he} = topic.primaryTitle;
   en = en.replace(/^Parashat /, "");  // Torah Portions have "Parashat" in their titles, which we do want to display on topic pages, but not in the TOC
   he = he.replace(/^פרשת /, "");
-  const href = `/topics/${children ? 'category/' : ''}${slug}`;
+  const href = `/sheets/topics/${children ? 'category/' : ''}${slug}`;
 
   return <Card cardTitleHref={href}
                cardTitle={{en, he}}

@@ -58,7 +58,6 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
 
 
 const fetchBulkSheet = inSheets => {
-  console.log(inSheets);
   const refs = inSheets.map(x => {
     if (isNaN(x.ref)) {
       x.ref = parseInt(x.ref.replace('Sheet ', ''));  // bulk sheets API expects just numbers so we need to remove the "Sheet " string

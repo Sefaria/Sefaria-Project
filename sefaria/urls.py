@@ -106,6 +106,7 @@ urlpatterns += [
 # Topics
 urlpatterns += [
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
+    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
