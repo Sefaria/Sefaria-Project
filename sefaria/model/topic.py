@@ -493,6 +493,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return self.link_set('refTopic', query_kwargs, **kwargs)
 
     def contents(self, **kwargs):
+        """
+        Returns a dictionary of the contents of this topic, including its primary title, description, and other attributes.
+        :param kwargs: optional arguments to control the output.  'minify' will return a minimal version of the contents.
+        When we build the topic TOC on server start, we don't want 'minify' to be True because we need 'slug', 'shouldDisplay', 'pools', and 'displayOrder' to be set.
+        """
         d = {'primaryTitle': {}}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
@@ -509,7 +514,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 'slug': self.slug,
                 "shouldDisplay": True if len(children) > 0 else self.should_display(),
                 "displayOrder": getattr(self, "displayOrder", 10000),
-                "pools": DjangoTopic.objects.slug_to_pools.get(self.slug, [])})
+                "pools": DjangoTopic.objects.get_pools_by_topic_slug(self.slug)})
             if getattr(self, "categoryDescription", False):
                 d['categoryDescription'] = self.categoryDescription
             description = getattr(self, "description", None)
