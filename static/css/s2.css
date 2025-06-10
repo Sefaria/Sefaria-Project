@@ -9341,6 +9341,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   justify-content: space-between;
   top: 80px;
   z-index: 1;
+  pointer-events: none; /* make editor elements covered by the icons horizontal box clickable and interactable  */
+}
+.floatingEditorIcons > * {
+  pointer-events: auto; /* Children (icons) can still be clicked */
 }
 .interface-hebrew .floatingEditorIcons{
     flex-direction: row-reverse;
