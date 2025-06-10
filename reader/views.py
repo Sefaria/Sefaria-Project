@@ -4785,20 +4785,20 @@ def application_health_api(request):
     return http.JsonResponse(resp, status=statusCode)
 
 @catch_error_as_json
-def tips_api(request, guide_key=None):
+def guides_api(request, guide_key=None):
     """
-    API endpoint that returns tips data for a specific guide.
+    API endpoint that returns guide data for a specific guide.
     
     Args:
-        guide_key (str): The guide key to fetch tips for (e.g., 'sheets', 'test_heb')
+        guide_key (str): The guide key to fetch guide for (e.g., 'sheets', 'test_heb')
     
     Returns:
         JSON response with the following structure:
         {
-            "totalTips": int,
+            "totalCards": int,
             "titlePrefix": {"en": str, "he": str},
             "footerLinks": [{"text": {"en": str, "he": str}, "url": str}, ...],
-            "tips": [
+            "cards": [
                 {
                     "id": str,
                     "title": {"en": str, "he": str},
@@ -4821,10 +4821,10 @@ def tips_api(request, guide_key=None):
     # Get all info cards for this guide, ordered by their sort order
     info_cards = guide.info_cards.all().order_by('order')
     
-    # Build the tips array
-    tips = []
+    # Build the cards array
+    cards = []
     for card in info_cards:
-        tips.append({
+        cards.append({
             "id": str(card.id),
             "title": {
                 "en": card.title_en,
@@ -4842,13 +4842,13 @@ def tips_api(request, guide_key=None):
     
     # Build the response
     response_data = {
-        "totalTips": len(tips),
+        "totalCards": len(cards),
         "titlePrefix": {
             "en": guide.title_prefix_en,
             "he": guide.title_prefix_he
         },
         "footerLinks": guide.footer_links,
-        "tips": tips
+        "cards": cards
     }
     
     return jsonResponse(response_data)

@@ -692,12 +692,12 @@ Sefaria = extend(Sefaria, {
       store: this._bulkSheets
     });
   },
-  _tips: {},
-  getTips: function(guideKey = "sheets") {
+  _guides: {},
+  getGuide: function(guideKey = "sheets") {
     return this._cachedApiPromise({
-      url: `${Sefaria.apiHost}/api/tips/${guideKey}`,
-      key: `tips_${guideKey}`,
-      store: this._tips
+      url: `${Sefaria.apiHost}/api/guides/${guideKey}`,
+      key: `guide_${guideKey}`,
+      store: this._guides
     });
   },
   // Putting the localization logic here because I want the component to be language agnostic.

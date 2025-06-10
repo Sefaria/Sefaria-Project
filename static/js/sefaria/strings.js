@@ -685,15 +685,15 @@ const Strings = {
     "WebPageList": {
       'Author': 'מחבר'
     },
-    "Guide": { // Also knows as Tips
-    "Show tips": "הצג טיפים",
-    "Previous tip": "הטיפ הקודם",
-    "Next tip": "הטיפ הבא",
+    "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
     "Previous": "הקודם",
     "Next": "הבא",
     "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
     "of": "מתוך",
-    "Sorry, we couldn't load the guide tips. Please try refreshing the page.": "לצערנו, לא ניתן לטעון את הטיפים. אנא נסו לרענן את הדף.",
+    "Sorry, we couldn't load the guide cards. Please try refreshing the page.": "לצערנו, לא ניתן לטעון את כרטיסי המדריך. אנא נסו לרענן את הדף.",
     "The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.": "המדריך לא נטען בזמן מהיר מספיק והוחסר. אנא נסו לרענן את הדף אם ברצונכם לצפות בו.",
     }
   },

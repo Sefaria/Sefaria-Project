@@ -470,9 +470,9 @@ urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
-# Tips
+# Guides
 urlpatterns += [
-    url(r'^api/tips/(?P<guide_key>[^/]+)$', reader_views.tips_api),
+    url(r'^api/guides/(?P<guide_key>[^/]+)$', reader_views.guides_api),
 ]
 
 # add static files to urls

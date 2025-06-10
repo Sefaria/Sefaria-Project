@@ -1293,17 +1293,17 @@ SaveButton.propTypes = {
 /**
  * A button that shows a guide for the given guide type
  * @param {string} guideType - The guide type to show (e.g. "sheets", "reader")
- * @param {function} onShowTips - A function to call when the button is clicked
+ * @param {function} onShowGuide - A function to call when the button is clicked
  * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
  */
-function GuideButton({onShowTips}) {
+function GuideButton({onShowGuide}) {
   const classes = classNames({guideButton: 1, "tooltip-toggle": true});
-  const altText = Sefaria._("Show tips", "Guide");
+  const altText = Sefaria._("Show guide", "Guide");
 
   function onClick(event) {
     event.preventDefault();
-    if (onShowTips) {
-      onShowTips();
+    if (onShowGuide) {
+      onShowGuide();
     }
   }
 
@@ -1314,7 +1314,7 @@ function GuideButton({onShowTips}) {
   );
 }
 GuideButton.propTypes = {
-  onShowTips: PropTypes.func.isRequired,
+  onShowGuide: PropTypes.func.isRequired,
 };
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {

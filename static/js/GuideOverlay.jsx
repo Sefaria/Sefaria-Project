@@ -11,7 +11,7 @@ const localize = (str) => Sefaria._(str, "Guide");
  */
 const TitleWithPrefix = ({ prefix, title }) => {
   return (
-    <h2 className="tipsOverlayTitle">
+    <h2 className="guideOverlayTitle">
       {prefix && (
         <span className="titlePrefix">
           <InterfaceText text={prefix} />
@@ -32,15 +32,15 @@ TitleWithPrefix.propTypes = {
 /**
  * Footer component with consistent links for the guide type
  */
-const TipsFooter = ({ links }) => {
+const GuideFooter = ({ links }) => {
   if (!links || links.length === 0) return null;
 
   return (
-    <div className="tipsOverlayFooter">
+    <div className="guideOverlayFooter">
       {links.map((link, index) => (
         <React.Fragment key={index}>
           {index > 0 && <span className="footerDivider"> • </span>}
-          <a href={link.url} className="tipsOverlayFooterLink" target="_blank" rel="noopener noreferrer">
+          <a href={link.url} className="guideOverlayFooterLink" target="_blank" rel="noopener noreferrer">
             <InterfaceText text={link.text} />
           </a>
         </React.Fragment>
@@ -49,7 +49,7 @@ const TipsFooter = ({ links }) => {
   );
 };
 
-TipsFooter.propTypes = {
+GuideFooter.propTypes = {
   links: PropTypes.arrayOf(PropTypes.shape({
     text: PropTypes.object.isRequired,
     url: PropTypes.string.isRequired
@@ -57,7 +57,7 @@ TipsFooter.propTypes = {
 };
 
 /**
- * TipsOverlay component displays helpful tips and guides to users
+ * GuideOverlay component displays helpful guides and cards to users
  * Matches Figma design with proper spacing, scrollable content, and consistent layout
  * Only shows on first time user opens sheets, using cookie-based persistence
  * Can be forced to show using the forceShow prop
@@ -68,18 +68,18 @@ TipsFooter.propTypes = {
  * @param {boolean} props.forceShow - Force the overlay to show regardless of cookie state
  * @param {number} props.timeoutLength - Timeout length in seconds - After this time, the overlay will be closed and the user will be alerted that the guide is taking too long to load.
  */
-const TipsOverlay = ({ 
+const GuideOverlay = ({ 
   onClose,
   guideType = "sheets",
   forceShow = false,
   timeoutLength = 7
 }) => {
-  const cookieName = `tips_overlay_seen_${guideType}`;
+  const cookieName = `guide_overlay_seen_${guideType}`;
   const initialShouldShow = forceShow || !$.cookie(cookieName);
   
   const [isOpen, setIsOpen] = useState(false);
-  const [tipData, setTipData] = useState(null);
-  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [guideData, setGuideData] = useState(null);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -87,7 +87,7 @@ const TipsOverlay = ({
     setIsOpen(initialShouldShow);
   }, [initialShouldShow]);
 
-  // Load tips data only when component is actually open/visible
+  // Load guide data only when component is actually open/visible
   useEffect(() => {
     if (!isOpen) return;
     
@@ -99,34 +99,33 @@ const TipsOverlay = ({
     // The guide is meant to clarify the page functionality, if it causes more problems, it isn't worth the hassle
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
-        console.warn(`Tips loading timed out after ${timeoutLength} seconds`);
+        console.warn(`Guide loading timed out after ${timeoutLength} seconds`);
         handleClose();
         // TODO: add an analytics event for this
-        console.log(localize("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.")); //TODO fix - heb isn't showing up
         alert(localize("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it."));
       }
     }, timeoutLength * 1000);
 
-    const loadTips = async () => {
+    const loadGuide = async () => {
       setLoading(true);
 
       try {
         
-        const data = await Sefaria.getTips(guideType);
+        const data = await Sefaria.getGuide(guideType);
 
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if the data is loaded successfully
-          setTipData(data);
-          setCurrentTipIndex(0);
+          setGuideData(data);
+          setCurrentCardIndex(0);
         }
       } catch (error) {
-        console.error("Error loading tips:", error);
+        console.error("Error loading guide:", error);
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
-          console.error("Error loading tips:", error);
+          console.error("Error loading guide:", error);
           handleClose();
           // TODO: add an analytics event for this
-          alert(localize("Sorry, we couldn't load the guide tips. Please try refreshing the page."));
+          alert(localize("Sorry, we couldn't load the guide cards. Please try refreshing the page."));
         }
       } finally {
         if (isComponentMounted) {
@@ -135,7 +134,7 @@ const TipsOverlay = ({
       }
     };
     
-    loadTips();
+    loadGuide();
     
     // Cleanup function
     return () => {
@@ -157,22 +156,22 @@ const TipsOverlay = ({
   };
 
   /**
-   * Navigate to next tip with circular looping
+   * Navigate to next card with circular looping
    */
-  const nextTip = () => {
-    if (!tipData || !tipData.tips.length) return;
-    setCurrentTipIndex((currentIndex) => 
-      currentIndex >= tipData.tips.length - 1 ? 0 : currentIndex + 1
+  const nextCard = () => {
+    if (!guideData || !guideData.cards.length) return;
+    setCurrentCardIndex((currentIndex) => 
+      currentIndex >= guideData.cards.length - 1 ? 0 : currentIndex + 1
     );
   };
 
   /**
-   * Navigate to previous tip with circular looping
+   * Navigate to previous card with circular looping
    */
-  const prevTip = () => {
-    if (!tipData || !tipData.tips.length) return;
-    setCurrentTipIndex((currentIndex) => 
-      currentIndex <= 0 ? tipData.tips.length - 1 : currentIndex - 1
+  const prevCard = () => {
+    if (!guideData || !guideData.cards.length) return;
+    setCurrentCardIndex((currentIndex) => 
+      currentIndex <= 0 ? guideData.cards.length - 1 : currentIndex - 1
     );
   };
 
@@ -180,14 +179,14 @@ const TipsOverlay = ({
   if (!isOpen) return null;
   
   // Show loading state
-  if (loading || !tipData) {
+  if (loading || !guideData) {
     return (
-      <div className="tipsOverlay">
-        <div className="tipsOverlayContent">
+      <div className="guideOverlay">
+        <div className="guideOverlayContent">
           <div className="loadingMessage">
             <InterfaceText>
-              <EnglishText>Loading tips...</EnglishText>
-              <HebrewText>טוען טיפים...</HebrewText>
+              <EnglishText>Loading guide...</EnglishText>
+              <HebrewText>טוען מדריך...</HebrewText>
             </InterfaceText>
           </div>
         </div>
@@ -195,37 +194,37 @@ const TipsOverlay = ({
     );
   }
   
-  const currentTip = tipData.tips[currentTipIndex];
-  const showNavigation = tipData.tips.length > 1;
+  const currentCard = guideData.cards[currentCardIndex];
+  const showNavigation = guideData.cards.length > 1;
   
   return (
-    <div className="tipsOverlay">
-      <div className="tipsOverlayContent">
+    <div className="guideOverlay">
+      <div className="guideOverlayContent">
         {/* Header with title on left, pagination in center, close button on right */}
-        <div className="tipsOverlayHeader">
-          <div className="tipsOverlayTitleSection">
+        <div className="guideOverlayHeader">
+          <div className="guideOverlayTitleSection">
             <TitleWithPrefix 
-              prefix={tipData.titlePrefix} 
-              title={currentTip.title} 
+              prefix={guideData.titlePrefix} 
+              title={currentCard.title} 
             />
           </div>
           
           {showNavigation && (
-            <div className="tipsOverlayPagination">
+            <div className="guideOverlayPagination">
               <button 
-                onClick={prevTip} 
+                onClick={prevCard} 
                 className="paginationArrowButton"
-                aria-label={localize("Previous tip")}
+                aria-label={localize("Previous card")}
               >
                 <img src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-right-bold" : "arrow-left-bold"}.svg`} alt={localize("Previous")} />
               </button>
-              <span className="tipsPaginationNumber">
-                <InterfaceText>{`${currentTipIndex + 1} ${localize("of")} ${tipData.tips.length}`}</InterfaceText>
+              <span className="cardsPaginationNumber">
+                <InterfaceText>{`${currentCardIndex + 1} ${localize("of")} ${guideData.cards.length}`}</InterfaceText>
               </span>
               <button 
-                onClick={nextTip} 
+                onClick={nextCard} 
                 className="paginationArrowButton"
-                aria-label={localize("Next tip")}
+                aria-label={localize("Next card")}
               >
                 <img src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} alt={localize("Next")} />
               </button>
@@ -236,18 +235,18 @@ const TipsOverlay = ({
         </div>
         
         {/* Centered content container */}
-        <div className="tipsOverlayCenteredContent">
+        <div className="guideOverlayCenteredContent">
           {/* Main content area */}
-          <div className="tipsOverlayBody">
+          <div className="guideOverlayBody">
             {/* Video container or placeholder */}
-            <div className="tipsOverlayVideoContainer">
-              {tipData.tips.map((tip, index) => (
+            <div className="guideOverlayVideoContainer">
+              {guideData.cards.map((card, index) => (
                 <video
                   key={index}
-                  src={Sefaria.getLocalizedVideoDataFromCard(tip).videoUrl}
+                  src={Sefaria.getLocalizedVideoDataFromCard(card).videoUrl}
                   preload="auto"
-                  style={{ display: index === currentTipIndex ? 'block' : 'none' }}
-                  className="tipsOverlayVideo" 
+                  style={{ display: index === currentCardIndex ? 'block' : 'none' }}
+                  className="guideOverlayVideo" 
                   controls
                   loop
                   autoPlay
@@ -261,22 +260,22 @@ const TipsOverlay = ({
             </div>
             
             {/* Scrollable text content - narrower width */}
-            <div className="tipsOverlayTextContainer">
-              <div className="tipsOverlayText">
-                <InterfaceText markdown={currentTip.text} />
+            <div className="guideOverlayTextContainer">
+              <div className="guideOverlayText">
+                <InterfaceText markdown={currentCard.text} />
               </div>
             </div>
           </div>
           
           {/* Footer with consistent links */}
-          <TipsFooter links={tipData.footerLinks} />
+          <GuideFooter links={guideData.footerLinks} />
         </div>
       </div>
     </div>
   );
 };
 
-TipsOverlay.propTypes = {
+GuideOverlay.propTypes = {
   onClose: PropTypes.func.isRequired,
   guideType: PropTypes.string,
   forceShow: PropTypes.bool,
@@ -284,13 +283,13 @@ TipsOverlay.propTypes = {
 };
 
 /**
- * Utility function to clear the tips overlay cookie for a given guide type
+ * Utility function to clear the guide overlay cookie for a given guide type
  * Useful for testing and development - allows the overlay to show again
  * @param {string} guideType - The type of guide (e.g., "sheets", "reader")
  */
-export const clearTipsOverlayCookie = (guideType) => {
-  const cookieName = `tips_overlay_seen_${guideType}`;
+export const clearGuideOverlayCookie = (guideType) => {
+  const cookieName = `guide_overlay_seen_${guideType}`;
   $.removeCookie(cookieName, {path: "/"});
 };
 
-export default TipsOverlay; 
+export default GuideOverlay; 

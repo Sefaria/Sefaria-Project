@@ -45,7 +45,7 @@ import {ContentText} from "./ContentText";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
-import TipsOverlay from './TipsOverlay';
+import GuideOverlay from './GuideOverlay';
 
 
 class ReaderPanel extends Component {
@@ -58,7 +58,7 @@ class ReaderPanel extends Component {
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
       data: null,
-      forceTipsOverlay: false, // State to force tips overlay to show
+      forceGuideOverlay: false, // State to force guide overlay to show
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -481,16 +481,16 @@ class ReaderPanel extends Component {
       searchQuery: query
     });
   }
-  showTips() {
-    // Force the tips overlay to show
-    this.setState({forceTipsOverlay: true});
+  showGuide() {
+    // Force the guide overlay to show
+    this.setState({forceGuideOverlay: true});
   }
-  closeTipsOverlay() {
-    // Reset the force tips overlay state when tips are closed
-    this.setState({forceTipsOverlay: false});
+  closeGuideOverlay() {
+    // Reset the force guide overlay state when guide is closed
+    this.setState({forceGuideOverlay: false});
   }
   shouldShowGuides() {
-    // Centralized check for when to show guides (tips button and tips overlay)
+    // Centralized check for when to show guides (guide button and guide overlay)
     // Currently only shows on sheets, but can be extended for other guide types
     // Don't show on mobile (when multiPanel is false)
     return this.props.multiPanel && // Don't show on mobile
@@ -1160,7 +1160,7 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
-              showTips={this.showTips.bind(this)}
+              showGuide={this.showGuide.bind(this)}
               shouldShowGuides={this.shouldShowGuides.bind(this)}
             />}
 
@@ -1170,12 +1170,12 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
-          {/* Tips overlay for guides - currently only shows on sheets but can be extended for other guide types */}
+          {/* Guide overlay - currently only shows on sheets but can be extended for other guide types */}
           {this.shouldShowGuides() && 
-            <TipsOverlay 
-              onClose={this.closeTipsOverlay.bind(this)} 
+            <GuideOverlay 
+              onClose={this.closeGuideOverlay.bind(this)} 
               guideType="sheets" 
-              forceShow={this.state.forceTipsOverlay}
+              forceShow={this.state.forceGuideOverlay}
             />
           }
 
@@ -1412,10 +1412,10 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {/* Tips button for guides - currently only shows on sheets but can be extended for other guide types */}
+          {/* Guide button - currently only shows on sheets but can be extended for other guide types */}
           {this.props.shouldShowGuides && this.props.shouldShowGuides() && 
             <GuideButton
-              onShowTips={this.props.showTips}
+              onShowGuide={this.props.showGuide}
               tooltip={true}
             />
           }
