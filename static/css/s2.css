@@ -9370,10 +9370,52 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.5;
   cursor: auto;
 }
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
+.editorSaveStateIndicator{
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 1;
+  background: white;
+  padding: 3px;
+}
+
+.editorSaveStateIndicator.tooltip-toggle{
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 2px;
+  font-size: 16px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
+  direction: rtl;
+}
+.interface-hebrew .editorSaveStateIndicator {
+  flex-direction: row-reverse;
+}
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+  z-index: 1;
+}
+.interface-hebrew .floatingEditorIcons{
+    flex-direction: row-reverse;
+}
+
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9393,9 +9435,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;

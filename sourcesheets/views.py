@@ -570,10 +570,13 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
+                return jsonResponse(
+                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"},
+                    status=401
+                )
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
+                return jsonResponse({"error": "Unrecognized API key."}, status=401)
         else:
             apikey = None
 
