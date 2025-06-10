@@ -3108,7 +3108,7 @@ def topic_page(request, slug, test_version=None):
     """
     slug = SluggedAbstractMongoRecord.normalize_slug(slug)
     topic_obj = Topic.init(slug)
-    if topic_obj is None or request.active_module not in DjangoTopic.objects.slug_to_pools.get(slug, []):
+    if topic_obj is None or request.active_module not in DjangoTopic.objects.get_pools_by_topic_slug(slug):
         raise Http404
 
     short_lang = get_short_lang(request.interfaceLang)
