@@ -14786,18 +14786,10 @@ span.ref-link-color-3 {color: blue}
   transition: background-color 0.2s ease;
 }
 
-.paginationArrowButton:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
 .paginationArrowButton img {
   width: 16px;
   height: 16px;
   opacity: 0.7;
-}
-
-.paginationArrowButton:hover img {
-  opacity: 1;
 }
 
 .tipsPaginationNumber {
