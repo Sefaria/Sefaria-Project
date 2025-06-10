@@ -9,6 +9,7 @@ let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
+//method to hid modals that interrupt the user experience
 export const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
@@ -17,6 +18,61 @@ export const hideModals = async (page: Page) => {
         document.head.appendChild(style);
     });
 }
+
+export async function dismissNewsletterPopupIfPresent(page: Page) {
+
+     // Wait for up to 5 seconds if it shows up late
+  try {
+    await page.evaluate(() => {
+      const blocker = document.querySelector('.ub-emb-scroll-wrapper');
+      if (blocker) {
+        (blocker as HTMLElement).style.pointerEvents = 'none';
+        (blocker as HTMLElement).style.display = 'none'; // Optional: fully hide it
+      }
+    });
+    console.log('Popup closed successfully.');
+  } catch (err) {
+    console.log('Popup not found or already hidden.');
+  }
+  }
+  
+
+//method to hide the generic banner that appears on the editor page (Welcome to New Editor)
+export const hideGenericBanner = async (page: Page) => {
+  await page.evaluate(() => {
+    const banner = document.querySelector('.genericBanner');
+    if (banner) {
+      (banner as HTMLElement).style.display = 'none';
+    }
+
+    // Fallback style override just in case dynamic styles re-show it
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .genericBanner {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+};
+
+// Method to hide the cookies popup that appears on the site
+export const hideCookiesPopup = async (page: Page) => {
+    await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .cookiesNotification {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+  };
+  
   
 export const hideTopBanner = async (page: Page) => {
     await page.evaluate(() => {
@@ -58,6 +114,8 @@ export const changeLanguageLoggedOut = async (page: Page, language: string) => {
 }
 
 export const changeLanguageLoggedIn = async (page: Page, language: string) => {
+    console.log('Changing language to:', language);
+
     // Open the profile dropdown by clicking the profile icon
     const profileIcon = page.locator('.myProfileBox .profile-pic');
     await profileIcon.click();
@@ -71,8 +129,16 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
       ? page.locator('#select-hebrew-interface-link')
       : page.locator('#select-english-interface-link');
   
+      console.log('Selector being used:', language === LANGUAGES.HE ? '#select-hebrew-interface-link' : '#select-english-interface-link');
+    // await expect(languageLink).toBeVisible();
+    // await languageLink.click();
+
     await expect(languageLink).toBeVisible();
     await languageLink.click();
+  
+    // Wait for the <body> class to reflect the language change
+    const expectedClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+    await expect(page.locator('body')).toHaveClass(new RegExp(`\\b${expectedClass}\\b`));
   };
   
   
@@ -112,9 +178,11 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 
 export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
     // Assume we are already on the login page with the correct `?next=` param
-    await changeLanguageLoggedOut(page, language);
-    await page.getByPlaceholder('Email Address').fill(user.email ?? '');
-    await page.getByPlaceholder('Password').fill(user.password ?? '');
+    //await changeLanguageLoggedOut(page, language);
+    //await page.getByPlaceholder('Email Address').fill(user.email ?? '');
+    await page.getByPlaceholder('Email Address').fill('tzirel@sefaria.org');
+    await page.getByPlaceholder('Password').fill('1234567');
+    //await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
   
     // Wait for navigation to complete — ideally back to the previous page
