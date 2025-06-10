@@ -5784,7 +5784,7 @@ h1.topic-landing-header {
   left: auto;
   right: -50px;
 }
-/* GuideButton styles - based on SaveButton */
+/* GuideButton styles */
 .rightButtons .guideButton {
   display: flex;
   align-items: center;
@@ -5804,7 +5804,8 @@ h1.topic-landing-header {
 
 /* Bulb icon alignment adjustments to match SaveButton */
 .rightButtons .guideButton img {
-  margin-top: 5px; 
+  margin-top: 3px;
+  transform: scale(0.92);
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
