@@ -710,12 +710,10 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
 
   const onHeChange = (value) => {
-    console.log("onHeChange", value);
     sheetHeSourceSetValue(value)
   }
 
   const onEnChange = (value) => {
-    console.log("onEnChange", value);
     sheetEnSourceSetValue(value)
   }
 
@@ -740,7 +738,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   useEffect(() => {setCanUseDOM(true)}, [])
 
   const onMouseDown = (e) => {
-      console.log("onMouseDown", e.target, e.currentTarget, e.target.classList, e.currentTarget.classList);
       //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
       const elementTop = e.currentTarget.offsetTop;
       const divTop = document.querySelector(".sheetsInPanel").offsetTop;
@@ -761,9 +758,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onClick = (e) => {
-    console.log("onClick", e.target, e.currentTarget, e.target.classList, e.currentTarget.classList);
-    if (e.target.closest('.hoverButton')) {
-      console.log("onHover", e.target.closest('.hoverButton'));
+    if (e.target.closest('.hoverButton')) {  // if the click is on a hover button, don't do anything
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -786,7 +781,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onBlur = (e) => {
-    console.log("onBlur", e.target, e.currentTarget);
     if (window.chrome) {suppressParentContentEditable(true)}
     setSourceActive(false)
     setActiveSourceLangContent(null)
@@ -2520,7 +2514,6 @@ const FormatButton = ({format}) => {
     )
 };
 
-
 const HighlightButton = () => {
     const editor = useSlate();
     const ref = useRef();
@@ -2529,17 +2522,15 @@ const HighlightButton = () => {
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
     const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
-    e.preventDefault();
-    console.log("highlight clicked", color);
-    const isActive = isFormatActive(editor, "background-color", color);
-    console.log("isActive", isActive);
-    if (isActive) {
-        Editor.removeMark(editor, "background-color")
-    } else {
-        Editor.addMark(editor, "background-color", color)
-    }
-    }}><div className="highlightDot" style={{"backgroundColor":color}}></div></button>
-    )}</>;
+            e.preventDefault();
+            const isActive = isFormatActive(editor, "background-color", color);
+            if (isActive) {
+                Editor.removeMark(editor, "background-color")
+            } else {
+                Editor.addMark(editor, "background-color", color)
+            }
+            }}><div className="highlightDot" style={{"backgroundColor":color}}></div></button>
+            )}</>;
     const portal = <div className="highlightMenu" ref={ref} contentEditable={false}>
                                   {colorButtons}
                                   <button className="highlightButton" onMouseDown={e => {
@@ -2551,9 +2542,7 @@ const HighlightButton = () => {
         const el = ref.current;
         if (el) {
             const checkIfClickedOutside = e => {
-                console.log("checkIfClickedOutside", showPortal, ref.current, e.target);
                 if (showPortal && ref.current && !ref.current.contains(e.target)) {
-                    console.log("Clicked outside of portal, closing it");
                     setShowPortal(false)
                 }
             }
