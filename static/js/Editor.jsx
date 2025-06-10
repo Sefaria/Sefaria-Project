@@ -3041,43 +3041,47 @@ const SefariaEditor = (props) => {
       return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
     }
     async function saveDocument(doc) {
+        savingState === "saved" && setSavingState(sheetsUtils.editorSaveStates.SAVING)
         const lastModified = getLastModified();
         // transition into saving state only if previous state is a valid "saved" state
-        savingState === "saved" && setSavingState(sheetsUtils.editorSaveStates.SAVING)
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
-
-        function handlePostError(jqXHR, textStatus, errorThrown) {
-            if (jqXHR.status === 0) {
-                console.warn("No network connection or request blocked.");
-                setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
-            } else if (jqXHR.status === 401) {
-                setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
-            } else {
-                console.warn("Unknown error:", textStatus, errorThrown);
-                setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
-            }
-        }
+      
         if(Sefaria.testUnkownNewEditorSaveError) {
             console.log("Simulating unknown error");
             return;
         }
+        postSheet(json);
+    }
+    
+    function handlePostError(jqXHR, textStatus, errorThrown) {
+        if (jqXHR.status === 0) {
+            console.warn("No network connection or request blocked.");
+            setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
+        } else if (jqXHR.status === 401) {
+            setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
+        } else {
+            console.warn("Unknown error:", textStatus, errorThrown);
+            setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+        }
+    }
 
+    function postSheet(json) {
         $.post("/api/sheets/", {"json": json}, res => {
             // console.log("saved at: "+ res.dateModified);
             setHasUnsavedChanges(false);
+            setStatus(res.status);
+            setTitle(res.title);
+            setSummary(res.summary);
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[res.id], ...res};
+            Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
             setSavingState(sheetsUtils.editorSaveStates.SAVED);
-            setStatus(data.status);
-            setTitle(data.title);
-            setSummary(data.summary);
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
-            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         }).fail(handlePostError);
     }
-
+    
     function onChange(value) {
         if (currentDocument !== value) {
             setCurrentDocument(value);

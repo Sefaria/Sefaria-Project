@@ -10,7 +10,7 @@ import {
   LoadingMessage,
 } from '../Misc'; 
 import { SheetContent } from "./SheetContent";
-import {shouldUseEditor} from './sefaria/sheetsUtils';
+import {shouldUseEditor} from '../sefaria/sheetsUtils';
 
 
 class Sheet extends Component {
