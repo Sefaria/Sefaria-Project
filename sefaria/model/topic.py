@@ -1183,7 +1183,7 @@ def process_topic_delete(topic):
     IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]}).delete()
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     try:
         DjangoTopic.objects.get(slug=topic.slug).delete()
     except DjangoTopic.DoesNotExist:

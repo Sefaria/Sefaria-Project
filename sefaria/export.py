@@ -392,11 +392,9 @@ def prepare_merged_text_for_export(title, lang=None):
     }
     text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
-    print("%d versions in %s" % (text_docs.count(), lang))
-
-
     # Exclude copyrighted docs from merging
     text_docs = [text for text in text_docs if not text_is_copyright(text)]
+    print("%d versions in %s" % (len(text_docs), lang))
 
     if len(text_docs) == 0:
         return

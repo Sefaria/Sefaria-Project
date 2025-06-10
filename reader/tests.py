@@ -1114,8 +1114,8 @@ class SheetPostTest(SefariaTestCase):
 
     def tearDown(self):
         if self._sheet_id:
-            db.sheets.remove({"id": self._sheet_id})
-            db.history.remove({"sheet": self._sheet_id})
+            db.sheets.delete_one({"id": self._sheet_id})
+            db.history.delete_many({"sheet": self._sheet_id})
 
     def test_post_sheet(self):
         """
