@@ -741,8 +741,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   const onMouseDown = (e) => {
       console.log("onMouseDown", e.target, e.currentTarget, e.target.classList, e.currentTarget.classList);
-      const elementPath = ReactEditor.findPath(parentEditor, element);
-      Transforms.select(parentEditor, elementPath); // Ensure the element is selected
       //Slate tries to auto position the cursor, but on long boxed sources this leads to jumping. This hack should fix it.
       const elementTop = e.currentTarget.offsetTop;
       const divTop = document.querySelector(".sheetsInPanel").offsetTop;
@@ -764,6 +762,12 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   const onClick = (e) => {
     console.log("onClick", e.target, e.currentTarget, e.target.classList, e.currentTarget.classList);
+    if (e.target.closest('.hoverButton')) {
+      console.log("onHover", e.target.closest('.hoverButton'));
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if ((e.target).closest('.he') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
