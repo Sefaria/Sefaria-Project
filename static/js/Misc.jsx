@@ -1117,16 +1117,28 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    if (this.props.icon == "circledX"){
-      var icon = <img src="/static/icons/circled-x.svg" />;
-    } else if (this.props.icon == "chevron") {
-      var icon = <i className="fa fa-chevron-left"></i>
+    const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
+    
+    if (icon == "circledX"){
+      var iconElement = <img src="/static/icons/circled-x.svg" alt="" />;
+    } else if (icon == "chevron") {
+      var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
-      var icon = "×";
+      var iconElement = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
-    var url = this.props.url || "";
-    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
+    var classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    
+    return (
+      <a 
+        href={url} 
+        className={classes} 
+        onClick={this.onClick}
+        aria-label={altText}
+        title={altText}
+      >
+        {iconElement}
+      </a>
+    );
   }
 }
 
