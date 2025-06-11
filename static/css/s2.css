@@ -14787,6 +14787,14 @@ span.ref-link-color-3 {color: blue}
 .guideOverlayHeader .readerNavMenuCloseButton.circledX {
   flex-shrink: 0;
   order: 3; /* Ensure close button is always on the right */
+  height: 34px; /* Match header height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guideOverlayHeader .readerNavMenuCloseButton.circledX img {
+  display: block; /* Remove a baseline alignment issues where the svg isn't centered in the button */
 }
 
 /* Pagination with arrows around page number */
@@ -14797,18 +14805,23 @@ span.ref-link-color-3 {color: blue}
   gap: 8px;
   flex-shrink: 0;
   order: 2; /* Pagination in the center */
+  height: 34px; /* Match header height */
 }
 
 .cardsPaginationNumber {
   font-family: "Roboto";
   font-weight: 500;
   font-size: 16px;
-  line-height: 100%;
+  line-height: 1;
   letter-spacing: 0%;
   text-align: center;
   color: #666666;
   white-space: nowrap;
   min-width: 40px;
+  height: 34px;  /* Match header height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .interface-hebrew .cardsPaginationNumber {
@@ -14819,15 +14832,18 @@ span.ref-link-color-3 {color: blue}
 .guideOverlayTitleSection {
   flex: 1;
   min-width: 0; /* Allow shrinking for text truncation */
-  order: 1; /* Title on the left */
+  order: 1; /* Title first */
   display: flex;
   align-items: center;
 }
 
 .guideOverlayTitle {
-  margin: 0;
+  margin: 0 !important; /* Remove inherited margin */
+  padding: 0 !important; /* Remove inherited padding */
   display: flex;
   align-items: center;
+  height: 34px; /* Match header height for perfect alignment */
+  line-height: 1;
   /* Text will naturally truncate with ellipsis if it overflows */
   overflow: hidden;
   text-overflow: ellipsis;
@@ -14839,9 +14855,11 @@ span.ref-link-color-3 {color: blue}
 .titleVariable {
   font-family: "Roboto";
   font-size: 22px;
-  line-height: 100%;
+  line-height: 1;
   letter-spacing: 0%;
   color: #333333;
+  display: inline-flex;
+  align-items: center;
 }
 
 .titlePrefix {
@@ -15067,7 +15085,7 @@ span.ref-link-color-3 {color: blue}
   .guideOverlayHeader {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    /* gap: 12px; */
   }
   
   .interface-hebrew .guideOverlayHeader {
