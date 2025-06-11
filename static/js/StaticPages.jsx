@@ -34,6 +34,7 @@ import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
             heImgAlt=""
             heActionURL={null}
             heActionText={null}
+            module="library"
         />
 
         <H2Block
@@ -86,6 +87,7 @@ const ContestLandingPage = () => (
             heImgAlt=""
             heActionURL="#"
             heActionText="הרשמה לתחרות"
+            module="library"
         />
 
         <H2Block en="The Contest" he="התחרות"/>
@@ -266,6 +268,7 @@ const RambanLandingPage = () => {
             heActionText="Read the Text"
             enImg=""
             heImg=""
+            module="library"
         />
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
@@ -381,6 +384,7 @@ const SheetsLandingPage = () => (
             heImgAlt="דפי מקורות"
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
+            module="library"
         />
         <GreyBox light={true}>
             <H2Block
@@ -528,6 +532,7 @@ const RemoteLearningPage = () => (
             heImgAlt="Sefaria on tablet."
             heActionURL={null}
             heActionText={null}
+            module="library"
         />
         <GreyBox>
             <ButtonRow enTitle="Browse our Latest Resources" heTitle="מקורות בספריא">
@@ -1047,6 +1052,7 @@ const PBSC2020LandingPage = () => (
             heText="הכירו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
+            module="library"
         />
 
         <GreyBox>
@@ -1928,6 +1934,7 @@ const PoweredByPage = () => (
             heActionURL="https://developers.sefaria.org/"
             heActionText="Create Something New"
             newTab={true}
+            module="library"
         />
         <GreyBox>
             <H2Block en="Open Source Torah" he="Open Source Torah"/>
@@ -2056,6 +2063,7 @@ const PBSC2021LandingPage = () => (
             heText="גלו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
+            module="library"
         />
 
         <GreyBox>
@@ -2662,7 +2670,7 @@ const partition = (arr, prop) =>
 
 // Defines a comparator to be used for sorting team members
 const byLastName = () => {
-    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    const locale = Sefaria._getShortInterfaceLang();
     return (a, b) => {
         const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
         const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();

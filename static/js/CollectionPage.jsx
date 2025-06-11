@@ -5,7 +5,6 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
 import {
   CategoryColorLine,
   DropdownModal,
@@ -124,7 +123,7 @@ class CollectionPage extends Component {
     filter = n(filter);
     
     //title and each topic in he and en
-    let filterableData  = sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)]).flat();
+    let filterableData  = sheet.topics.map(topic => [n(topic.primaryTitle.en), n(topic.primaryTitle.he), n(topic.asTyped)]).flat();
     filterableData.push(n(sheet.title.stripHtml()));
     
     //this may be confusing- in the exact case, "includes" is an array func and returns if any of the above match filter exactly, 
@@ -296,7 +295,6 @@ class CollectionPage extends Component {
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );

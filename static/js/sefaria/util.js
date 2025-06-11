@@ -116,7 +116,7 @@ class Util {
     static naturalTime(timeStamp, {lang, short}={}) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+      let language = lang ? lang : (Sefaria._getShortInterfaceLang());
       let spacer = " ";
       if(short){
           language = language == "en" ? "shortEn" : "shortHe";

@@ -1,7 +1,6 @@
 import React, { useRef }  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import Footer  from './Footer';
 import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -38,11 +37,6 @@ class NotificationsPanel extends Component {
       this.getMoreNotifications();
     }
   }
-  markAllAsRead() {
-    $.post("/api/notifications/read", {notifications: "all"}, function(data) {
-      this.props.setUnreadNotificationsCount(data.unreadCount);
-    }.bind(this));
-  }
   markAsRead() {
     // Marks each notification that is loaded into the page as read via API call
     var ids = [];
@@ -59,7 +53,8 @@ class NotificationsPanel extends Component {
     }
   }
   getMoreNotifications() {
-    $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
+    const activeModule = Sefaria.activeModule;
+    $.getJSON(`/api/notifications?page=${this.state.page}&scope=${activeModule}`, this.loadMoreNotifications);
     this.setState({loading: true});
   }
   loadMoreNotifications(data) {
@@ -80,19 +75,20 @@ class NotificationsPanel extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-            <div className="notificationsTopContainer">
-              <div className="notificationsHeaderBox"><h1>
-                <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
-                <InterfaceText>Notifications</InterfaceText>
-              </h1></div>{ Sefaria.notificationCount > 0 ? <button className="button small white" onClick={this.markAllAsRead}>Mark all as Read</button> : null}
+              <div className="notificationsTopContainer">
+                <div className="notificationsHeaderBox">
+                  <h1>
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
+                    <InterfaceText>Notifications</InterfaceText>
+                  </h1>
+                </div>
+                {!Sefaria._uid && <LoginPrompt fullPanel={true} />}
               </div>
-              { Sefaria._uid ?
-              notifications :
-              <LoginPrompt fullPanel={true} /> }
+              {Sefaria._uid && notifications.length < 1 && <EmptyNotificationsMessage /> } 
+              {Sefaria._uid && notifications.length > 0 && notifications}
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );
@@ -118,6 +114,21 @@ const Notifications = ({type, props}) => {
   if (!type || !notificationTypes[type]) { return null; }
   const NotificationType = notificationTypes[type];
   return <NotificationType {...props} />
+};
+
+const EmptyNotificationsMessage = () => {
+  return (
+        <div className="emptyNotificationPage">
+          <div className="emptyNotificationsTitle" aria-label="No notifications message title">
+            <InterfaceText en={"Looks like you don’t have any notifications yet."} 
+                           he={"נראה שעדיין אין לך התראות"}/>
+          </div>
+          <div className="emptyNotificationsMessage" aria-label="No notifications message body">
+            <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
+                           he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
+          </div>
+        </div>
+  )
 };
 
 
@@ -154,7 +165,7 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
 const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>published a new sheet</InterfaceText>
     </>
   );
@@ -184,7 +195,7 @@ const SheetPublishNotification = ({date, content}) => {
 const SheetLikeNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>liked your sheet</InterfaceText>
     </>
   );
@@ -210,7 +221,7 @@ const FollowNotification = ({date, content}) => {
 
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>is now following you</InterfaceText>
     </>
   );
