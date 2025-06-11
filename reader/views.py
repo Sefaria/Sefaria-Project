@@ -918,7 +918,8 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
+    return render_template(request, 'edit_collection.html', None, 
+                           {"initialData": collectionData})
 
 
 def groups_redirect(request, group):

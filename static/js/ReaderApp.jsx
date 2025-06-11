@@ -795,6 +795,21 @@ class ReaderApp extends Component {
       currentUrl += window.location.hash;
       hist.url += window.location.hash;
     }
+    
+    // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
+    if (Sefaria.activeModule === "sheets") {
+      if (!hist.url.startsWith("/sheets")) {
+        hist.url = "/sheets" + (hist.url.startsWith("/") ? "" : "/") + hist.url;
+      }
+    } else {
+      if (hist.url.startsWith("/sheets")) {
+        hist.url = hist.url.replace(/^\/sheets/, "");
+        // Ensure we still have a leading slash
+        if (!hist.url.startsWith("/")) {
+          hist.url = "/" + hist.url;
+        }
+      }
+    }
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);

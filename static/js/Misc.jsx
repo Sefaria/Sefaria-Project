@@ -1668,7 +1668,7 @@ const SheetListing = ({
 
 const CollectionListing = ({data}) => {
   const imageUrl = "/static/icons/collection.svg";
-  const collectionUrl = "/collections/" + data.slug;
+  const collectionUrl = "/sheets/collections/" + data.slug;
   return (
     <div className="collectionListing">
       <div className="left-content">
