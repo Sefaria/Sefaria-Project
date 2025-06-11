@@ -14748,7 +14748,7 @@ span.ref-link-color-3 {color: blue}
   position: absolute;
   bottom: 0;
   left: 0;
-  width: calc(100% - 16px); /* Leave space for scrollbar on the right */
+  width: 100%;
   background-color: #fbfbfb;
   box-shadow: 0px -1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
