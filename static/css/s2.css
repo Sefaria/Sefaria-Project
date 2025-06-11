@@ -5807,6 +5807,27 @@ h1.topic-landing-header {
   margin-top: 3px;
   transform: scale(0.92);
 }
+
+/* ArrowButton styles for navigation arrows */
+.arrowButton {
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.arrowButton img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
@@ -14776,26 +14797,6 @@ span.ref-link-color-3 {color: blue}
   gap: 8px;
   flex-shrink: 0;
   order: 2; /* Pagination in the center */
-}
-
-.paginationArrowButton {
-  width: 20px;
-  height: 20px;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: 50%;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.paginationArrowButton img {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
 }
 
 .cardsPaginationNumber {

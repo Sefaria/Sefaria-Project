@@ -1329,6 +1329,63 @@ GuideButton.propTypes = {
   onShowGuide: PropTypes.func.isRequired,
 };
 
+/**
+ * ArrowButton component for navigation buttons (left/right arrows)
+ * @param {string} direction - "left" or "right" 
+ * @param {function} onClick - Function to call when arrow is clicked
+ * @param {string} altText - Alt text for accessibility
+ * @param {boolean} reverseForRTL - Whether to reverse arrow direction for RTL languages (default: false)
+ * @param {string} className - Additional CSS classes
+ */
+function ArrowButton({ direction, onClick, altText = "", reverseForRTL = false, className = "" }) {
+  // Validate required props
+  if (!direction) {
+    console.error("ArrowButton component requires a 'direction' prop");
+    return null;
+  }
+  if (!onClick) {
+    console.error("ArrowButton component requires an 'onClick' prop");
+    return null;
+  }
+  if (!altText) {
+    console.error("ArrowButton component requires an 'altText' prop");
+    return null;
+  }
+
+  // Validate direction value
+  if (direction !== "left" && direction !== "right") {
+    console.error("ArrowButton 'direction' prop must be either 'left' or 'right'");
+    return null;
+  }
+
+  // Determine the actual arrow direction based on interface language and reverseForRTL prop
+  let actualDirection = direction;
+  if (reverseForRTL && Sefaria.interfaceLang === "hebrew") {
+    actualDirection = direction === "left" ? "right" : "left";
+  }
+  
+  const imageSrc = `/static/img/arrow-${actualDirection}-bold.svg`;
+  const buttonClass = className ? `arrowButton ${className}` : "arrowButton";
+  
+  return (
+    <button 
+      onClick={onClick} 
+      className={buttonClass}
+      aria-label={altText}
+      title={altText}
+    >
+      <img src={imageSrc} alt={altText} />
+    </button>
+  );
+}
+ArrowButton.propTypes = {
+  direction: PropTypes.oneOf(["left", "right"]).isRequired,
+  onClick: PropTypes.func.isRequired,
+  altText: PropTypes.string.isRequired,
+  reverseForRTL: PropTypes.bool,
+  className: PropTypes.string,
+};
+
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
   return (
@@ -3344,5 +3401,6 @@ export {
   PencilSourceEditor,
   SmallBlueButton,
   LearnAboutNewEditorBanner,
-  GuideButton
+  GuideButton,
+  ArrowButton as Arrow
 };

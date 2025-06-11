@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { InterfaceText, EnglishText, HebrewText, CloseButton } from './Misc';
+import { InterfaceText, EnglishText, HebrewText, CloseButton, Arrow } from './Misc';
 import Sefaria from './sefaria/sefaria';
 
 const localize = (str) => Sefaria._(str, "Guide");
@@ -211,23 +211,21 @@ const GuideOverlay = ({
           
           {showNavigation && (
             <div className="guideOverlayPagination">
-              <button 
-                onClick={prevCard} 
-                className="paginationArrowButton"
-                aria-label={localize("Previous card")}
-              >
-                <img src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-right-bold" : "arrow-left-bold"}.svg`} alt={localize("Previous")} />
-              </button>
+              <Arrow 
+                direction="left" 
+                onClick={prevCard}
+                altText={localize("Previous card")}
+                reverseForRTL={true}
+              />
               <span className="cardsPaginationNumber">
                 <InterfaceText>{`${currentCardIndex + 1} ${localize("of")} ${guideData.cards.length}`}</InterfaceText>
               </span>
-              <button 
-                onClick={nextCard} 
-                className="paginationArrowButton"
-                aria-label={localize("Next card")}
-              >
-                <img src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} alt={localize("Next")} />
-              </button>
+              <Arrow 
+                direction="right" 
+                onClick={nextCard}
+                altText={localize("Next card")}
+                reverseForRTL={true}
+              />
             </div>
           )}
           
