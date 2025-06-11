@@ -1304,7 +1304,6 @@ SaveButton.propTypes = {
 
 /**
  * A button that shows a guide for the given guide type
- * @param {string} guideType - The guide type to show (e.g. "sheets", "reader")
  * @param {function} onShowGuide - A function to call when the button is clicked
  * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
  */
@@ -1314,6 +1313,12 @@ function GuideButton({onShowGuide}) {
 
   function onClick(event) {
     event.preventDefault();
+    
+    // Track guide button click
+    gtag("event", "guide_button_clicked", {
+      feature_name: "Guide Button"
+    });
+    
     if (onShowGuide) {
       onShowGuide();
     }
