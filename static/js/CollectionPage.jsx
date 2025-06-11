@@ -349,7 +349,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a className="button small white" href={`/collections/${slug}/settings`}>
+  <a className="button small white" href={`/sheets/collections/${slug}/settings`}>
     <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
   </a>
 );

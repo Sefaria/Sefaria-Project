@@ -814,7 +814,8 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
                           {authorIndices}{tabsWithSources}
                         </TabView>;
 
-    return (!topicData.isLoading && displayTabs.length) ? topicTabView : (topicData.isLoading && <LoadingMessage />);
+    // Currently, there are data inconsistencies in the DB, so we should show LoadingMessage if there are no tabs to display.
+    return (!topicData.isLoading && displayTabs.length) ? topicTabView : <LoadingMessage />; 
 }
 
 const TopicPageTab = ({
