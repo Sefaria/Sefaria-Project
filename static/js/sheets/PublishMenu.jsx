@@ -31,7 +31,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       sheet.lastModified = sheet.dateModified;
       delete sheet._id;
       try {
-        await postSheet(sheet);
+        await postSheet(JSON.stringify(sheet));
         setPublishText(publishState.posted);
       } catch (error) {
         setPublishText(`Error: ${error.message}`);
