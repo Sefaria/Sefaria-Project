@@ -14816,7 +14816,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .cardsPaginationNumber {
-  font-family: "Roboto";
+  font-family: var(--english-sans-serif-font-family);
   font-weight: 500;
   font-size: 16px;
   line-height: 1;
@@ -14832,7 +14832,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .interface-hebrew .cardsPaginationNumber {
-  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 
 /* Title section */
@@ -14867,7 +14867,7 @@ span.ref-link-color-3 {color: blue}
 /* Shared title styles */
 .titlePrefix,
 .titleVariable {
-  font-family: "Roboto";
+  font-family: var(--english-sans-serif-font-family);
   font-size: 22px;
   line-height: 1;
   letter-spacing: 0%;
@@ -14917,7 +14917,7 @@ span.ref-link-color-3 {color: blue}
 
 
 .placeholderContent {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--english-sans-serif-font-family);
   font-size: 12px;
   color: #999999;
   text-align: center;
@@ -14925,7 +14925,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .interface-hebrew .placeholderContent {
-  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 
 /* Text container with scrolling - specific dimensions */
@@ -14937,7 +14937,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .guideOverlayText {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--english-sans-serif-font-family);
   font-weight: 400;
   font-size: 16px;
   line-height: 1.4;
@@ -14951,7 +14951,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .interface-hebrew .guideOverlayText {
-  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--hebrew-sans-serif-font-family);
   padding-right: 0;
   padding-left: 8px;
 }
@@ -14989,14 +14989,14 @@ span.ref-link-color-3 {color: blue}
 
 .guideOverlayFooterLink {
   color: #666666;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--english-sans-serif-font-family);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .interface-hebrew .guideOverlayFooterLink {
-  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .guideOverlayFooterLink:hover {
@@ -15015,13 +15015,13 @@ span.ref-link-color-3 {color: blue}
   align-items: center;
   justify-content: center;
   padding: 40px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--english-sans-serif-font-family);
   font-size: 16px;
   color: #666666;
 }
 
 .interface-hebrew .loadingMessage {
-  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 
 /* RTL support */
