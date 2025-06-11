@@ -14781,6 +14781,9 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between;
   margin-bottom: 20px;
   gap: 16px;
+  /* Prevent wrapping on smaller desktop windows */
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 /* Close button using reusable component */
@@ -14788,6 +14791,7 @@ span.ref-link-color-3 {color: blue}
   flex-shrink: 0;
   order: 3; /* Ensure close button is always on the right */
   height: 34px; /* Match header height */
+  width: 34px; /* Fixed width to prevent layout shifts */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14806,6 +14810,9 @@ span.ref-link-color-3 {color: blue}
   flex-shrink: 0;
   order: 2; /* Pagination in the center */
   height: 34px; /* Match header height */
+  /* Prevent pagination elements from wrapping */
+  white-space: nowrap;
+  min-width: 100px; /* Ensure minimum space for pagination */
 }
 
 .cardsPaginationNumber {
@@ -14831,10 +14838,14 @@ span.ref-link-color-3 {color: blue}
 /* Title section */
 .guideOverlayTitleSection {
   flex: 1;
-  min-width: 0; /* Allow shrinking for text truncation */
   order: 1; /* Title first */
   display: flex;
   align-items: center;
+  /* Prevent text from breaking out of container */
+  overflow: hidden;
+  max-width: 100%;
+  /* Allow shrinking for text truncation but maintain minimum readability */
+  min-width: 180px;
 }
 
 .guideOverlayTitle {
@@ -14848,6 +14859,9 @@ span.ref-link-color-3 {color: blue}
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Ensure text doesn't break container bounds */
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Shared title styles */
@@ -14966,10 +14980,11 @@ span.ref-link-color-3 {color: blue}
   height: 19px;
   padding-top: 12px;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Prevent footer links from wrapping */
   align-items: center;
   justify-content: center;
   gap: 4px;
+  overflow: hidden; /* Hide overflow if links are too long */
 }
 
 .guideOverlayFooterLink {
@@ -15062,66 +15077,4 @@ span.ref-link-color-3 {color: blue}
   padding-right: 20px;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .guideOverlayContent {
-    padding: 16px 20px;
-  }
-  
-  .guideOverlayCenteredContent {
-    max-width: 100%;
-  }
-  
-  .guideOverlayHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    /* gap: 12px; */
-  }
-  
-  .interface-hebrew .guideOverlayHeader {
-    align-items: flex-end;
-  }
-  
-  .guideOverlayBody {
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .interface-hebrew .guideOverlayBody {
-    flex-direction: column; /* Override row-reverse for mobile */
-  }
-  
-  .guideOverlayVideoContainer {
-    flex: none;
-    height: 120px;
-    max-width: 300px;
-    align-self: center;
-  }
-  
-  .guideOverlayTextContainer {
-    max-width: 100%;
-  }
-  
-  .guideOverlayText {
-    max-height: 120px;
-  }
-}
-
-@media (max-width: 480px) {
-  .guideOverlayContent {
-    padding: 12px 16px;
-  }
-  
-  .guideOverlayTitle {
-    font-size: 18px;
-  }
-  
-  .guideOverlayText {
-    font-size: 14px;
-  }
-  
-  .guideOverlayVideoContainer {
-    max-width: 250px;
-  }
-}
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
