@@ -2744,6 +2744,14 @@ _media: {},
           return d;
         });
   },
+  shouldDisplayTopic: function(topic) {
+    /*
+    Returns true if topic should be displayed in the topic list or TOC.
+    'topic' is a topic object in this.topicList or this.topic_toc
+     */
+    const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
+    return !!topic.shouldDisplay && inActiveModule;
+  },
   sortTopicsCompareFn: function(a, b) {
     // a compare function that is useful for sorting topics
     // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.
@@ -2754,13 +2762,13 @@ _media: {},
       const stripInitialPunctuation = str => str.replace(/^["#]/, "");
       const [aAlpha, bAlpha] = [a, b].map(x => {
         if (Sefaria.interfaceLang === "hebrew") {
-          return (x.he.length) ?
-            stripInitialPunctuation(x.he) :
-           "תתת" + stripInitialPunctuation(x.en);
+          return (x.primaryTitle.he.length) ?
+            stripInitialPunctuation(x.primaryTitle.he) :
+           "תתת" + stripInitialPunctuation(x.primaryTitle.en);
         } else {
-          return (x.en.length) ?
-            stripInitialPunctuation(x.en) :
-            stripInitialPunctuation(x.he)
+          return (x.primaryTitle.en.length) ?
+            stripInitialPunctuation(x.primaryTitle.en) :
+            stripInitialPunctuation(x.primaryTitle.he)
         }
       });
 
@@ -2907,8 +2915,8 @@ _media: {},
         tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       }
 
-      // set up admin tab which is all 'sources'
-      if (Sefaria.is_moderator) {
+      // set up admin tab which contains all 'sources'
+      if (Sefaria.is_moderator && !!tabs.sources) {
         tabs["admin"] = {...tabs["sources"]};
         tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
       }
@@ -3268,7 +3276,7 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
-    testUnkownNewEditorSaveError: false,
+  testUnknownNewEditorSaveError: false,
   _translations: {},
   getTranslation: function(key) {
     const url = Sefaria.apiHost + "/api/texts/translations/" + key;

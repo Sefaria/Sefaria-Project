@@ -378,7 +378,9 @@ def trending_topics(days=7, ntags=14):
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],
 		"author_count": len(topic['authors']),
-	} for topic in filter(lambda x: len(x["authors"]) > 1, topics_list)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	for i, topic in enumerate(results):
+		results[i]['primaryTitle'] = {'en': topic.pop('en'), 'he': topic.pop('he')}   
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
