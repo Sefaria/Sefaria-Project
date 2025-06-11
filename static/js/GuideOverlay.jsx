@@ -6,6 +6,13 @@ import Sefaria from './sefaria/sefaria';
 const localize = (str) => Sefaria._(str, "Guide");
 
 /**
+ * Analytics helper function for guide overlay events
+ */
+const trackGuideEvent = (eventName, additionalParams = {}) => {
+  gtag("event", eventName, additionalParams);
+};
+
+/**
  * Title component with prefix
  * Text will naturally truncate if it exceeds container width
  */
@@ -35,12 +42,25 @@ TitleWithPrefix.propTypes = {
 const GuideFooter = ({ links }) => {
   if (!links || links.length === 0) return null;
 
+  const handleFooterLinkClick = (link, index) => {
+    trackGuideEvent("guide_footer_link_clicked", {
+      link_text: typeof link.text === 'object' ? link.text.en || link.text.he : link.text,
+      position: index + 1
+    });
+  };
+
   return (
     <div className="guideOverlayFooter">
       {links.map((link, index) => (
         <React.Fragment key={index}>
           {index > 0 && <span className="footerDivider"> • </span>}
-          <a href={link.url} className="guideOverlayFooterLink" target="_blank" rel="noopener noreferrer">
+          <a 
+            href={link.url} 
+            className="guideOverlayFooterLink" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            onClick={() => handleFooterLinkClick(link, index)}
+          >
             <InterfaceText text={link.text} />
           </a>
         </React.Fragment>
@@ -85,6 +105,13 @@ const GuideOverlay = ({
   useEffect(() => {
     // Force rerendering of the component when initially rendered
     setIsOpen(initialShouldShow);
+    
+    // Track guide overlay open event when it opens
+    if (initialShouldShow) {
+      trackGuideEvent("guide_overlay_opened", {
+        guide_type: guideType
+      });
+    }
   }, [initialShouldShow]);
 
   // Load guide data only when component is actually open/visible
@@ -100,8 +127,13 @@ const GuideOverlay = ({
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
         console.warn(`Guide loading timed out after ${timeoutLength} seconds`);
+        
+        // Track timeout event
+        trackGuideEvent("guide_overlay_timeout", {
+          guide_type: guideType
+        });
+        
         handleClose();
-        // TODO: add an analytics event for this
         alert(localize("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it."));
       }
     }, timeoutLength * 1000);
@@ -117,14 +149,24 @@ const GuideOverlay = ({
           clearTimeout(timeoutId); // Clear the timeout if the data is loaded successfully
           setGuideData(data);
           setCurrentCardIndex(0);
+          
+          // Track successful guide load
+          trackGuideEvent("guide_overlay_loaded", {
+            guide_type: guideType
+          });
         }
       } catch (error) {
         console.error("Error loading guide:", error);
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
           console.error("Error loading guide:", error);
+          
+          // Track error event
+          trackGuideEvent("guide_overlay_error", {
+            guide_type: guideType
+          });
+          
           handleClose();
-          // TODO: add an analytics event for this
           alert(localize("Sorry, we couldn't load the guide cards. Please try refreshing the page."));
         }
       } finally {
@@ -150,6 +192,11 @@ const GuideOverlay = ({
   };
 
   const handleClose = () => {
+    // Track close event
+    trackGuideEvent("guide_overlay_closed", {
+      guide_type: guideType
+    });
+    
     setCookie();
     if (onClose) onClose();
     setIsOpen(false);
@@ -160,9 +207,17 @@ const GuideOverlay = ({
    */
   const nextCard = () => {
     if (!guideData || !guideData.cards.length) return;
-    setCurrentCardIndex((currentIndex) => 
-      currentIndex >= guideData.cards.length - 1 ? 0 : currentIndex + 1
-    );
+    
+    const newIndex = currentCardIndex >= guideData.cards.length - 1 ? 0 : currentCardIndex + 1;
+    
+    // Track pagination event
+    trackGuideEvent("guide_overlay_pagination", {
+      new_index: newIndex,
+      guide_type: guideType,
+      direction: "next"
+    });
+    
+    setCurrentCardIndex(newIndex);
   };
 
   /**
@@ -170,9 +225,17 @@ const GuideOverlay = ({
    */
   const prevCard = () => {
     if (!guideData || !guideData.cards.length) return;
-    setCurrentCardIndex((currentIndex) => 
-      currentIndex <= 0 ? guideData.cards.length - 1 : currentIndex - 1
-    );
+    
+    const newIndex = currentCardIndex <= 0 ? guideData.cards.length - 1 : currentCardIndex - 1;
+    
+    // Track pagination event
+    trackGuideEvent("guide_overlay_pagination", {
+      new_index: newIndex,
+      guide_type: guideType,
+      direction: "previous"
+    });
+    
+    setCurrentCardIndex(newIndex);
   };
 
   // Don't render if user has already seen it or if not open
