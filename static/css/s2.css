@@ -14750,8 +14750,8 @@ span.ref-link-color-3 {color: blue}
   left: 0;
   width: 100%;
   background-color: #fbfbfb;
-  box-shadow: 0px -1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0px -1px 3px 0px #00000040;
+  border-top: 0.25px solid #CCCCCC;
   z-index: 1000;
 }
 
