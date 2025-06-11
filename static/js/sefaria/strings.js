@@ -695,6 +695,7 @@ const Strings = {
     "of": "מתוך",
     "Sorry, we couldn't load the guide cards. Please try refreshing the page.": "לצערנו, לא ניתן לטעון את כרטיסי המדריך. אנא נסו לרענן את הדף.",
     "The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it.": "המדריך לא נטען בזמן מהיר מספיק והוחסר. אנא נסו לרענן את הדף אם ברצונכם לצפות בו.",
+    "Loading guide...": "טוען מדריך...",
     }
   },
 };

@@ -247,10 +247,7 @@ const GuideOverlay = ({
       <div className="guideOverlay">
         <div className="guideOverlayContent">
           <div className="loadingMessage">
-            <InterfaceText>
-              <EnglishText>Loading guide...</EnglishText>
-              <HebrewText>טוען מדריך...</HebrewText>
-            </InterfaceText>
+            <InterfaceText>{localize("Loading guide...")}</InterfaceText>
           </div>
         </div>
       </div>
@@ -314,7 +311,6 @@ const GuideOverlay = ({
                   muted // Added to avoid autoplay issues with browsers
                   playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)
                 >
-                  {/* TODO: Add a fallback for browsers that don't support the video tag */}
                   <InterfaceText>{localize("Your browser does not support the video tag.")}</InterfaceText>
                 </video>
               ))}
