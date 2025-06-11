@@ -10,7 +10,6 @@ import {
   ResponsiveNBox,
   InterfaceText,
 } from './Misc';
-import {shouldDisplayTopic} from "./TopicPage";
 import {TopicTOCCard} from "./common/TopicTOCCard";
 
 class TopicPageAll extends Component {
@@ -49,6 +48,9 @@ class TopicPageAll extends Component {
     const isHeInt = Sefaria.interfaceLang == "hebrew";
 
     const topicBlocks = this.state.topicList && this.state.topicList.filter(item => {
+      if (!Sefaria.shouldDisplayTopic(item)) {
+        return false; // Exclude topics that are not valid for the current module
+      }
       if (!hasFilter) {
         const sortTitle = isHeInt ? item.primaryTitle.he : item.primaryTitle.en;
         return sortTitle.toLowerCase().startsWith(this.props.topicLetter);
