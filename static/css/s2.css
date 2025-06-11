@@ -14742,7 +14742,6 @@ span.ref-link-color-3 {color: blue}
 /* end css code for loading bezel */
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - START ========== */
-/* GuideOverlay Component Styles */
 
 .guideOverlay {
   position: absolute;
@@ -14758,18 +14757,16 @@ span.ref-link-color-3 {color: blue}
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
-
 .guideOverlayContent {
   width: 100%;
   padding: 20px 24px;
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 250px;
 }
 
-/* Shared width for all sections */
+/* Shared container width for consistent layout */
 .guideOverlayHeader,
 .guideOverlayCenteredContent,
 .guideOverlayBody,
@@ -14777,7 +14774,7 @@ span.ref-link-color-3 {color: blue}
   width: 800px;
 }
 
-/* Header with title on left, pagination in center, close button on right */
+/* Header layout: title left, pagination center, close right */
 .guideOverlayHeader {
   height: 34px;
   display: flex;
@@ -14785,66 +14782,49 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between;
   margin-bottom: 20px;
   gap: 16px;
-  /* Prevent wrapping on smaller desktop windows */
-  flex-wrap: nowrap;
-  min-width: 0;
 }
 
-/* Close button using reusable component */
+/* Close button styles consolidated */
 .guideOverlayHeader .readerNavMenuCloseButton.circledX {
   flex-shrink: 0;
-  order: 3; /* Ensure close button is always on the right */
-  height: 34px; /* Match header height */
-  width: 34px; /* Fixed width to prevent layout shifts */
+  height: 34px;
+  width: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .guideOverlayHeader .readerNavMenuCloseButton.circledX img {
-  display: block; /* Remove a baseline alignment issues where the svg isn't centered in the button */
+  display: block;
 }
 
-/* Pagination with arrows around page number */
+/* Pagination and number styles */
 .guideOverlayPagination {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   flex-shrink: 0;
-  order: 2; /* Pagination in the center */
-  height: 34px; /* Match header height */
-  /* Prevent pagination elements from wrapping */
-  white-space: nowrap;
-  min-width: 100px; /* Ensure minimum space for pagination */
+  height: 34px;
 }
 
 .cardsPaginationNumber {
   font-weight: 500;
   font-size: 16px;
-  line-height: 1;
-  letter-spacing: 0%;
-  text-align: center;
   color: #666666;
-  white-space: nowrap;
   min-width: 40px;
-  height: 34px;  /* Match header height */
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-
-/* Title section */
+/* Title section and styles */
 .guideOverlayTitleSection {
   flex: 1;
-  order: 1; /* Title first */
   display: flex;
   align-items: center;
-  /* Prevent text from breaking out of container */
   overflow: hidden;
-  max-width: 100%;
-  /* Allow shrinking for text truncation but maintain minimum readability */
   min-width: 180px;
 }
 
@@ -14853,27 +14833,20 @@ span.ref-link-color-3 {color: blue}
   padding: 0 !important; /* Remove inherited padding */
   display: flex;
   align-items: center;
-  height: 34px; /* Match header height for perfect alignment */
-  line-height: 1;
-  /* Text will naturally truncate with ellipsis if it overflows */
+  height: 34px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* Ensure text doesn't break container bounds */
   min-width: 0;
-  max-width: 100%;
 }
 
-/* Shared title styles */
 .titlePrefix,
 .titleVariable {
   font-size: 22px;
-  line-height: 1;
   color: #333333;
   display: inline-flex;
   align-items: center;
 }
-
 
 .titlePrefix {
   font-weight: 500;
@@ -14884,22 +14857,20 @@ span.ref-link-color-3 {color: blue}
   font-weight: 300;
 }
 
-/* Centered content container with specific width */
+/* Main content layout */
 .guideOverlayCenteredContent {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Main content area */
 .guideOverlayBody {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
-  justify-content: flex-start;
 }
 
-/* Video container */
+/* Video and text containers */
 .guideOverlayVideoContainer {
   width: 480px;
   height: 270px;
@@ -14914,8 +14885,6 @@ span.ref-link-color-3 {color: blue}
   object-fit: cover;
 }
 
-
-/* Text container with scrolling - specific dimensions */
 .guideOverlayTextContainer {
   width: 300px;
   height: 270px;
@@ -14927,20 +14896,16 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   font-size: 16px;
   line-height: 1.4;
-  letter-spacing: 0%;
   color: #555555;
   overflow-y: auto;
   height: 100%;
   padding-right: 8px;
+  /* Modern scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
-.interface-hebrew .guideOverlayText {
-  padding-right: 0;
-  padding-left: 8px;
-}
-
+/* Webkit scrollbar styles */
 .guideOverlayText::-webkit-scrollbar {
   width: 6px;
 }
@@ -14958,18 +14923,14 @@ span.ref-link-color-3 {color: blue}
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-
-
-/* Footer styles */
+/* Footer with links */
 .guideOverlayFooter {
   height: 19px;
   padding-top: 12px;
   display: flex;
-  flex-wrap: nowrap; /* Prevent footer links from wrapping */
   align-items: center;
   justify-content: center;
   gap: 4px;
-  overflow: hidden; /* Hide overflow if links are too long */
 }
 
 .guideOverlayFooterLink {
@@ -14977,9 +14938,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   text-decoration: none;
   transition: color 0.2s ease;
-}
-
-.interface-hebrew .guideOverlayFooterLink {
 }
 
 .guideOverlayFooterLink:hover {
@@ -15002,8 +14960,7 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
-
-/* RTL support */
+/* RTL/Hebrew interface support */
 .interface-hebrew .guideOverlayBody {
   flex-direction: row-reverse;
 }
@@ -15016,21 +14973,16 @@ span.ref-link-color-3 {color: blue}
   flex-direction: row-reverse;
 }
 
-/* RTL text alignment and spacing */
-.interface-hebrew .guideOverlayTitle {
-  text-align: start; /* Use logical property - start means right in RTL */
-  direction: rtl;
-  justify-content: flex-start; /* In RTL context, flex-start is the right side */
-  /* For proper RTL text truncation */
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  unicode-bidi: isolate;
-}
-
 .interface-hebrew .guideOverlayTitleSection {
   direction: rtl;
   text-align: right;
+}
+
+.interface-hebrew .guideOverlayTitle {
+  direction: rtl;
+  justify-content: flex-start;
+  text-align: start;
+  unicode-bidi: isolate;
 }
 
 .interface-hebrew .titlePrefix,
@@ -15043,17 +14995,12 @@ span.ref-link-color-3 {color: blue}
 .interface-hebrew .guideOverlayText {
   text-align: right;
   direction: rtl;
+  padding-right: 0;
+  padding-left: 8px;
 }
 
 .interface-hebrew .guideOverlayFooter {
   direction: rtl;
-}
-
-/* RTL list styling */
-.interface-hebrew .guideOverlayText ul,
-.interface-hebrew .guideOverlayText ol {
-  padding-left: 0;
-  padding-right: 20px;
 }
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
