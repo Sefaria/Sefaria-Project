@@ -3049,7 +3049,6 @@ const SefariaEditor = (props) => {
             return
         }
         // console.log('saving...');
-      
         if(Sefaria.testUnkownNewEditorSaveError) {
             console.log("Simulating unknown error");
             return;
