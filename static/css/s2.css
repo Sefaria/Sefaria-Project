@@ -14870,19 +14870,24 @@ span.ref-link-color-3 {color: blue}
   font-family: var(--english-sans-serif-font-family);
   font-size: 22px;
   line-height: 1;
-  letter-spacing: 0%;
   color: #333333;
   display: inline-flex;
   align-items: center;
 }
 
+/* Force GuideOverlay to use sans-serif fonts in the contextual font system */
+.guideOverlay {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
 .titlePrefix {
-  font-weight: 700;
+  font-weight: 500;
   margin-inline-end: 0.5rem;
 }
 
 .titleVariable {
-  font-weight: 400;
+  font-weight: 300;
 }
 
 /* Centered content container with specific width */
