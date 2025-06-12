@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { InterfaceText, EnglishText, HebrewText, CloseButton, Arrow } from './Misc';
+import { InterfaceText, CloseButton, Arrow, LoadingMessage } from './Misc';
 import Sefaria from './sefaria/sefaria';
 
 const localize = (str) => Sefaria._(str, "Guide");
@@ -246,8 +246,8 @@ const GuideOverlay = ({
     return (
       <div className="guideOverlay">
         <div className="guideOverlayContent">
-          <div className="loadingMessage">
-            <InterfaceText>{localize("Loading guide...")}</InterfaceText>
+          <div className="guideOverlayLoadingCenter">
+            <LoadingMessage/>
           </div>
         </div>
       </div>
