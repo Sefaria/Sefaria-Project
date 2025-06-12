@@ -272,8 +272,8 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'https://www.sefaria.org/about'}, 
-                                    {'he': 'עזרה','en':'Help', 'url': 'https://www.sefaria.org/help'}, 
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.apiHost}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.apiHost}/help`}, 
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
                                     {'he': 'ניוזלטר','en':'Newsletter', 'url': 'https://www.sefaria.org/newsletter'},
                                     {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
