@@ -669,10 +669,10 @@ const TopicLandingTopicCatList = () => {
                     <div className="navSidebarLink ref serif" key={i}>
                         <a href={"/topics/category/" + topic.slug}
                             data-anl-link_type="category"
-                            data-anl-text={topic.en}
+                            data-anl-text={topic.primaryTitle.en}
                             data-anl-event="navto_topic:click"
                         >
-                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                            <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
                         </a>
                     </div>
                 )}
@@ -850,7 +850,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="button small" href="/collections/new">
+      <a className="button small" href="/sheets/collections/new">
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -864,7 +864,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/collections">
+      <a className="button small white" href="/sheets/collections">
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>

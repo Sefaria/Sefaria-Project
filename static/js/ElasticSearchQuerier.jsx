@@ -20,7 +20,7 @@ class TopicQuerier {
             analyticCat: "Collection",
             title: d.name,
             heTitle: d.name,
-            url: "/collections/" + collection.key,
+            url: "/sheets/collections/" + collection.key,
             topicCat: "Collections",
             heTopicCat: Sefaria.hebrewTranslation("Collections"),
             enDesc: d.description,

@@ -10,6 +10,8 @@ import {
   LoadingMessage,
 } from '../Misc'; 
 import { SheetContent } from "./SheetContent";
+import {shouldUseEditor} from '../sefaria/sheetsUtils';
+
 
 class Sheet extends Component {
   constructor(props) {
@@ -96,6 +98,8 @@ class Sheet extends Component {
                         historyObject={this.props.historyObject}
                         editable={true}
                         handleCollectionsChange={this.handleCollectionsChange}
+                        editorSaveState={this.props.editorSaveState}
+                        setEditorSaveState={this.props.setEditorSaveState}
                     />
                   </div>
                   {sidebar}
@@ -127,12 +131,10 @@ class Sheet extends Component {
           </div>
       );
     }
+    const usingEditor = shouldUseEditor(sheet?.id);
     return (
       <div className={classes}>
-        { editable && Sefaria._uses_new_editor ?
-        editor
-        :
-        content }
+         { usingEditor ? editor : content }
       </div>
     );
   }

@@ -918,7 +918,8 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
+    # need to pass renderStatic so that s2 shows up in base template
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
 
 
 def groups_redirect(request, group):
@@ -3108,7 +3109,7 @@ def topic_page(request, slug, test_version=None):
     """
     slug = SluggedAbstractMongoRecord.normalize_slug(slug)
     topic_obj = Topic.init(slug)
-    if topic_obj is None or request.active_module not in DjangoTopic.objects.slug_to_pools[slug]:
+    if topic_obj is None or request.active_module not in DjangoTopic.objects.get_pools_by_topic_slug(slug):
         raise Http404
 
     short_lang = get_short_lang(request.interfaceLang)
@@ -3148,12 +3149,16 @@ def topic_page(request, slug, test_version=None):
 @catch_error_as_json
 def topics_list_api(request):
     """
-    API to get data for a particular topic.
+    API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
-    topics = get_all_topics(limit)
-    response = [t.contents() for t in topics]
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    all_topics = get_all_topics(limit, activeModule=request.active_module)
+    all_topics_json = []
+    for topic in all_topics:
+        topic_json = topic.contents(minify=True, with_html=True)
+        topic_json["titles"] = topic.titles
+        all_topics_json.append(topic_json)
+    response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
 

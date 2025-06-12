@@ -2739,7 +2739,7 @@ display: none;
   color: var(--light-grey);
 }
 
-div.sheetsWrapper :nth-child(1 of .card) {
+div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
 .card {
@@ -10951,7 +10951,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -10966,7 +10966,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -14666,13 +14666,16 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+.TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+.TOCCardsWrapper .card:nth-child(odd):last-child {
+  flex: 0 0 45%;
+}
+.sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -14690,7 +14693,7 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetsHomepage .navSidebarModule {
   padding: 0 10%;
 }
-.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+.singlePanel .sheetsHomepage .TOCCardsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
   flex-direction: column;
   margin-bottom: 10px;
 }
