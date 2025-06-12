@@ -4,7 +4,7 @@ import TopicsLaunchBannerMobileGraphics from "./TopicsLaunchBannerMobileGraphics
 import { OnInView } from "./Misc";
 
 const TopicsLaunchBanner = ({ onClose }) => {
-  const bannerName = "2025-topics_launch";
+  const bannerName = "2025-topics_launch-2";
   const bannerKey = `banner_${bannerName}`;
 
   const [bannerVisibility, setBannerVisibility] = useState("hidden");
@@ -23,20 +23,6 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
   const hasBannerBeenInteractedWith = () => {
     return sessionStorage.getItem(bannerKey) === "true";
-  };
-
-  const trackBannerInteraction = (eventDescription) => {
-    gtag("event", `banner_interacted_with_${eventDescription}`, {
-      campaignID: bannerName,
-      adType: "banner",
-    });
-  };
-
-  const trackBannerImpression = () => {
-    gtag("event", "banner_viewed", {
-      campaignID: bannerName,
-      adType: bannerName,
-    });
   };
 
   const shouldShow = () => {
@@ -70,12 +56,8 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
   const closeBanner = (eventDescription) => {
     if (onClose) onClose();
-
     setBannerVisibility("hidden");
-
-    trackBannerInteraction(eventDescription);
   };
-
 
   useEffect(() => {
     const bannerElement = bannerRef.current;
@@ -127,7 +109,9 @@ const TopicsLaunchBanner = ({ onClose }) => {
   }
 
   return (
-    <OnInView onVisible={trackBannerImpression}>
+    <div data-anl-event="banner_view:scrollIntoView"
+         data-anl-promotion_name="2025-topics_launch-2"
+         data-anl-feature_name="Topics Launch Banner">
       <div id="bannerMessage" className={bannerVisibility} ref={bannerRef}>
         <div id="topicsLaunchBanner">
           <TopicsLaunchBannerGraphics
@@ -139,11 +123,16 @@ const TopicsLaunchBanner = ({ onClose }) => {
             buttonRef={mobileButtonRef}
           />
         </div>
-        <div id="topicsLaunchBannerMessageClose" onClick={() => closeBanner("close_clicked")}>
+        <div id="topicsLaunchBannerMessageClose" 
+             onClick={() => closeBanner("close_clicked")}
+             data-anl-event="banner_close_click:click"
+             data-anl-promotion_name="2025-topics_launch-2"
+             data-anl-link_type="banner_close"
+             data-anl-text="close">
           <img src="/static/img/topics-launch-banner-close-button-final.svg" />
         </div>
       </div>
-    </OnInView>
+    </div>
   );
 };
 
