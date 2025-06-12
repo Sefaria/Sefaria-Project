@@ -676,7 +676,15 @@ const TopicsLaunchBannerGraphics = ({ onExploreButtonClick, buttonRef }) => {
           </text>
         </g>
         <g id="button" ref={buttonRef}>
-          <a href="/topics" onClick={onExploreButtonClick} role="link" tabIndex="0" aria-label="Explore Topics">
+          <a href="/topics" 
+             onClick={onExploreButtonClick} 
+             role="link" 
+             tabIndex="0" 
+             aria-label="Explore Topics"
+             data-anl-event="banner_button_click:click"
+             data-anl-promotion_name="2025-topics_launch-2"
+             data-anl-link_type="banner_cta"
+             data-anl-text="EXPLORE BY TOPIC">
             <path
               fill="#fff"
               stroke="#594176"

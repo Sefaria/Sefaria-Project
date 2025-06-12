@@ -50,7 +50,9 @@ class Header extends Component {
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-            <a href="/topics" className="textLink"><InterfaceText context="Header">Explore</InterfaceText></a>
+          <a href="/topics" className="textLink" data-anl-event="topicsClick:click" data-anl-panel_type="header" data-anl-link_type="navigation">
+            <InterfaceText context="Header">Explore</InterfaceText>
+          </a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
@@ -211,7 +213,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <img src="/static/icons/book.svg" />
         <InterfaceText context="Header">Texts</InterfaceText>
       </a>
-      <a href="/topics" onClick={close}>
+      <a href="/topics" onClick={close} data-anl-event="topicsClick:click" data-anl-panel_type="mobile_nav" data-anl-link_type="navigation">
         <img src="/static/icons/topic.svg" />
         <InterfaceText context="Header">Explore</InterfaceText>
       </a>
