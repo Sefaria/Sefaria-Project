@@ -310,7 +310,9 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        // return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        return (`${tagStringObj.preTags}${content.text}${tagStringObj.postTags}`)
+
     }
 
     if (content.type) {
@@ -547,7 +549,7 @@ function parseSheetItemHTML(rawhtml) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
-      .replace(/(\r\n|\n|\r|\t)/gm, " ");
+      // .replace(/(\r\n|\n|\r|\t)/gm, " ");
     preparseHtml = replaceBrWithNewLine(preparseHtml);
     console.log(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
