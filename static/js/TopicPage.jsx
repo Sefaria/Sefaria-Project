@@ -856,21 +856,22 @@ const TopicPageTab = ({
 }
 
 
-const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-    <div data-anl-event="related_click:click" data-anl-batch={
-        JSON.stringify({
-            text: topicTitle.en,
-            feature_name: "related topic",
-        })
-    }>
-        <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
-              onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-              title={topicTitle.en}
-        >
-            <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
-        </Link>
-    </div>
-);
+const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => {
+  const prefix = Sefaria.activeModule === "sheets" ? "/sheets/" : "/";
+  const href = `${prefix}topics/${isCategory ? 'category/' : ''}${topic}`;
+  return <div data-anl-event="related_click:click" data-anl-batch={
+    JSON.stringify({
+      text: topicTitle.en,
+      feature_name: "related topic",
+    })
+  }>
+    <Link className="relatedTopic" href={href}
+          onClick={onClick.bind(null, topic, topicTitle)} key={topic}
+          title={topicTitle.en}>
+      <InterfaceText text={{en: topicTitle.en, he: topicTitle.he}}/>
+    </Link>
+  </div>
+}
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   isTransliteration: PropTypes.object,

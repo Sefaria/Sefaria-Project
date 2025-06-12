@@ -785,6 +785,19 @@ class ReaderApp extends Component {
 
     return hist;
   }
+  
+  modifyURLbasedOnModule(hist) {
+    if (Sefaria.activeModule === "sheets" && (!hist.url.startsWith("/sheets"))) {
+      // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
+      return "/sheets" + hist.url;
+    }
+    else if (Sefaria.activeModule !== "sheets" && hist.url.startsWith("/sheets")) {
+      // If we are not in the sheets module, remove /sheets from the beginning of the URL
+      return hist.url.replace(/^\/sheets/, "");
+    }
+    return hist.url;
+  }
+  
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -796,20 +809,9 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
     
-    // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-    if (Sefaria.activeModule === "sheets") {
-      if (!hist.url.startsWith("/sheets")) {
-        hist.url = "/sheets" + (hist.url.startsWith("/") ? "" : "/") + hist.url;
-      }
-    } else {
-      if (hist.url.startsWith("/sheets")) {
-        hist.url = hist.url.replace(/^\/sheets/, "");
-        // Ensure we still have a leading slash
-        if (!hist.url.startsWith("/")) {
-          hist.url = "/" + hist.url;
-        }
-      }
-    }
+    console.log("Updating History - " + hist.url + " | " + currentUrl);
+    hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
+    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -1196,7 +1198,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
 
     } else if (path.match(/^\/sheets\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(19), params.get("tag"));
+      this.openCollection(path.slice(20), params.get("tag"));
 
     } else if (path.match(/^\/translations\/.+/)) {
       let slug = path.slice(14);

@@ -99,8 +99,27 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+        : markdown ? 
+          <span className={elemclasses}>
+            <ReactMarkdown 
+                  className={'reactMarkdown'} 
+                  unwrapDisallowed={true} 
+                  components={{
+                                a: ({ href, children, ...props }) => (
+                                  <a 
+                                    href={href} 
+                                    target="_blank"  // forcibly open in new tab to avoid cases like /sheets/Isaiah.4.3 due to updateHistoryState modifying URL in sheets module
+                                    rel="noopener noreferrer"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </a>
+                                )
+                              }}
+                  disallowedElements={['p', ...disallowedMarkdownElements]}>
+                {textResponse}
+            </ReactMarkdown>
+          </span> : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
