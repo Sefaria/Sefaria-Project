@@ -1901,7 +1901,6 @@ const InterruptingMessage = ({
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
-  const adContext = useContext(AdContext);
 
   const markModalAsHasBeenInteractedWith = (modalName) => {
     localStorage.setItem("modal_" + modalName, "true");
