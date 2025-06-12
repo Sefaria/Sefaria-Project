@@ -272,18 +272,19 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
-                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
-                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
-                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
-                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
-                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
-                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
-                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
-                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
-                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
-                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.apiHost}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.apiHost}/help`}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'https://www.sefaria.org/newsletter'},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'https://www.sefaria.org/ways-to-give'},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
                                   ];
+
 
 const SidebarFooter = () => {
 
@@ -849,7 +850,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="button small" href="/collections/new">
+      <a className="button small" href="/sheets/collections/new">
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -863,7 +864,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/collections">
+      <a className="button small white" href="/sheets/collections">
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>

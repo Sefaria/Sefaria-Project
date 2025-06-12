@@ -18,7 +18,8 @@ const TopicsPage = ({setNavTopic, multiPanel}) => {
   let categoryListings = Sefaria.topic_toc.map((topic, i) => <TopicTOCCard topic={topic} setNavTopic={setNavTopic} key={i}/>);
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
   const description = {"en": "Browse or search our complete list of topics.", "he": Sefaria._("Browse or search our complete list of topics.")};
-  const topicsA_Z = <Card cardTitleHref={`/topics/all/${letter}`}
+  const prefix = Sefaria.activeModule === "sheets" ? "/sheets/" : "/"
+  const topicsA_Z = <Card cardTitleHref={`${prefix}topics/all/${letter}`}
                                      cardTitle={{"en": "All Topics A-Z", "he": Sefaria._("All Topics A-Z")}}
                                      cardText={description}
                                      analyticsEventName="navto_topic:click"

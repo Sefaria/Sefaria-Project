@@ -87,7 +87,7 @@ function sortByTypeOrder(array) {
 
 const getURLForObject = function(type, key) {
     if (type === "Collection") {
-      return `/collections/${key}`;
+      return `/sheets/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {

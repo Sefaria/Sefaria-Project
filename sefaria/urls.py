@@ -40,10 +40,10 @@ urlpatterns = [
     url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
-    url(r'^collections/?$', reader_views.public_collections),
-    url(r'^collections/new$', reader_views.edit_collection_page),
-    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
-    url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^sheets/collections/?$', reader_views.public_collections),
+    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
@@ -89,7 +89,7 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    url(r'^sheets/profile/(?P<username>[^/]+)?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^settings/account/user$', reader_views.account_user_update),
