@@ -18,6 +18,7 @@ import {
   LearnAboutNewEditorBanner,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 
 class Sheet extends Component {
@@ -136,7 +137,6 @@ class Sheet extends Component {
       <>
         <LearnAboutNewEditorBanner/>
         <div className={classes}>
-          <div className="sheetContent">
             <SefariaEditor
               data={sheet}
               hasSidebar={this.props.hasSidebar}
@@ -147,11 +147,12 @@ class Sheet extends Component {
               highlightedRefsInSheet={this.props.highlightedRefsInSheet}
               setDivineNameReplacement={this.props.setDivineNameReplacement}
               divineNameReplacement={this.props.divineNameReplacement}
+              editorSaveState={this.props.editorSaveState}
+              setEditorSaveState={this.props.setEditorSaveState}
             />
-          </div>
         </div>
        </>);
-    const usingEditor = sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor;
+    const usingEditor = shouldUseEditor(sheet?.id);
     return ( usingEditor ? editor : content )
   }
 }
