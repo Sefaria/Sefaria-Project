@@ -167,7 +167,7 @@ const GuideOverlay = ({
           });
           
           handleClose();
-          alert(localize("Sorry, we couldn't load the guide cards. Please try refreshing the page."));
+          alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
         }
       } finally {
         if (isComponentMounted) {
