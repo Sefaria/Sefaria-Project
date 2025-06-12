@@ -134,7 +134,7 @@ const GuideOverlay = ({
         });
         
         handleClose();
-        alert(localize("The guide is taking too long to load and has been closed. Please try refreshing the page if you'd like to see it."));
+        alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
       }
     }, timeoutLength * 1000);
 
