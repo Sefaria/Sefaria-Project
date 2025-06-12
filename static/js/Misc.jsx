@@ -1920,18 +1920,10 @@ const InterruptingMessage = ({
 
   const trackModalImpression = () => {
     console.log("We've got visibility!");
-    if (!adContext.isDebug) {
-      gtag("event", "modal_viewed", {
-        campaignID: strapi.modal.internalModalName,
-        adType: "modal",
-      });
-    } else {
-      gtag("event", "modal_viewed", {
-        campaignID: strapi.modal.internalModalName,
-        adType: "modal",
-        'debug_mode': true
-      });
-    }
+    gtag("event", "modal_viewed", {
+      campaignID: strapi.modal.internalModalName,
+      adType: "modal",
+    });
   };
 
   const shouldShow = () => {
