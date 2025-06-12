@@ -36,6 +36,7 @@ import {
   MenuButton,
   DisplaySettingsButton,
   SaveButton,
+  GuideButton,
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
@@ -44,6 +45,7 @@ import {ContentText} from "./ContentText";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
+import GuideOverlay from './GuideOverlay';
 
 
 class ReaderPanel extends Component {
@@ -56,6 +58,7 @@ class ReaderPanel extends Component {
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
       data: null,
+      forceGuideOverlay: false, // State to force guide overlay to show
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -477,6 +480,22 @@ class ReaderPanel extends Component {
       menuOpen: "search",
       searchQuery: query
     });
+  }
+  showGuide() {
+    // Force the guide overlay to show
+    this.setState({forceGuideOverlay: true});
+  }
+  closeGuideOverlay() {
+    // Reset the force guide overlay state when guide is closed
+    this.setState({forceGuideOverlay: false});
+  }
+  shouldShowGuides() {
+    // Centralized check for when to show guides (guide button and guide overlay)
+    // Currently only shows on sheets, but can be extended for other guide types
+    // Don't show on mobile (when multiPanel is false)
+    return this.props.multiPanel && // Don't show on mobile
+           this.props.panelPosition === 0 && // Don't show on resources panel
+           (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections");
   }
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
@@ -1141,6 +1160,8 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
+              showGuide={this.showGuide.bind(this)}
+              shouldShowGuides={this.shouldShowGuides.bind(this)}
             />}
 
           {(items.length > 0 && !menu) ?
@@ -1149,6 +1170,14 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
+          {/* Guide overlay - currently only shows on sheets but can be extended for other guide types */}
+          {this.shouldShowGuides() && 
+            <GuideOverlay 
+              onClose={this.closeGuideOverlay.bind(this)} 
+              guideType="sheets" 
+              forceShow={this.state.forceGuideOverlay}
+            />
+          }
 
         </div>
       </ReaderPanelContext.Provider>
@@ -1383,6 +1412,13 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          {/* Guide button - currently only shows on sheets but can be extended for other guide types */}
+          {this.props.shouldShowGuides && this.props.shouldShowGuides() && 
+            <GuideButton
+              onShowGuide={this.props.showGuide}
+              tooltip={true}
+            />
+          }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
@@ -1448,6 +1484,8 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   backButtonSettings:      PropTypes.object,
+  showTips:                PropTypes.func,
+  shouldShowGuides:        PropTypes.func,
 };
 
 

@@ -11,7 +11,7 @@ from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
-import sourcesheets.views as sheets_views
+import guides.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
@@ -468,6 +468,11 @@ urlpatterns += site_urlpatterns
 # Sheets in a reader panel
 urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
+]
+
+# Guides
+urlpatterns += [
+    url(r'^api/guides/(?P<guide_key>[^/]+)$', reader_views.guides_api),
 ]
 
 # add static files to urls
