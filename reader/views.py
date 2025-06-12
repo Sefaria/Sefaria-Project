@@ -918,7 +918,8 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
+    # need to pass renderStatic so that s2 shows up in base template
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
 
 
 def groups_redirect(request, group):
