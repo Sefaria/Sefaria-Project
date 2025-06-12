@@ -6024,9 +6024,9 @@ class Library(object):
             substrings = re.split(html_a_tag_reg, st)
         new_string = ''
         for i, substring in enumerate(substrings):
-            if i // 2 != i / 2:  # An <a> tag
+            if i % 2 == 1:  # An <a> tag
                 new_string += substring
-            elif i // 2 == i / 2 and substring:
+            elif i % 2 == 0 and substring:
                 new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
                                                                        citing_only, reg, title_nodes)
         return new_string
