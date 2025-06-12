@@ -5793,6 +5793,7 @@ h1.topic-landing-header {
   cursor: pointer;
   margin-right: 15px;
   margin-left: 0px;
+  padding-top: 3px;
 }
 .interface-hebrew .rightButtons .guideButton {
   margin-left: 15px;
@@ -5804,8 +5805,7 @@ h1.topic-landing-header {
 
 /* Bulb icon alignment adjustments to match SaveButton */
 .rightButtons .guideButton img {
-  margin-top: 3px;
-  transform: scale(0.92);
+  height: 18px;
 }
 
 /* ArrowButton styles for navigation arrows */
