@@ -275,13 +275,13 @@ const Resources = () => (
 const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.apiHost}/about`}, 
                                     {'he': 'עזרה','en':'Help', 'url': `${Sefaria.apiHost}/help`}, 
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
-                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'https://www.sefaria.org/newsletter'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.apiHost}/newsletter`},
                                     {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
                                     {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
                                     {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
                                     {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
                                     {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
-                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'https://www.sefaria.org/ways-to-give'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.apiHost}/ways-to-give`},
                                     {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
                                   ];
 
