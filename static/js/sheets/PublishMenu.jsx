@@ -67,6 +67,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
           validationMsg: "",
           validationFailed: "none"
       });
+  console.log("sug", suggestions);
   const [tags, setTags] = useState(
       sheet.topics.map((topic, i) => ({
           id: i,
@@ -117,7 +118,6 @@ const PublishMenu = ({sheet, publishCallback}) => {
                 slug: filteredObj.key
             })
             )
-        console.log(topics);
         return topics;
     }).then(topics => setSuggestions(topics))
   }
@@ -131,14 +131,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setTags(newTags);
   }
   const onTagValidate = (tag) => {
-      console.log(tag, tags);
-      // const input = e.target.value.trim();
-      // const matchingSuggestion = suggestions.find(s => s.name.toLowerCase() === input.toLowerCase());
-      // if (matchingSuggestion) {
-      //     onTagAddition(matchingSuggestion);
-      //     e.target.value = '';
-      // }
-      return tags.every((item) => item.name !== tag.name)
+      return tags.every((item) => item.name !== tag.name && !!tag.slug && typeof tag.slug === "string");
   }
   const handleSummaryChange = (event) => {
     const newSummary = event.target.value;
@@ -203,6 +196,22 @@ const PublishMenu = ({sheet, publishCallback}) => {
                     onAddition={onTagAddition}
                     onValidate={onTagValidate}
                     onInput={updateSuggestedTags}
+                    allowDragDrop={false}
+                    autocomplete={false}
+                    shouldRenderSuggestions={() => true}
+                    minQueryLength={0}
+                    classNames={{
+                        root: 'react-tags',
+                        rootFocused: 'is-focused',
+                        selected: 'react-tags__selected',
+                        selectedTag: 'react-tags__selected-tag',
+                        selectedTagName: 'react-tags__selected-tag-name',
+                        search: 'react-tags__search',
+                        searchWrapper: 'react-tags__search-wrapper',
+                        suggestions: 'react-tags__suggestions react-tags__suggestions--persistent',
+                        suggestionActive: 'is-active',
+                        suggestionDisabled: 'is-disabled',
+                    }}
                 />
             </div>
             {validation.validationFailed !== "none" &&

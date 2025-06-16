@@ -619,11 +619,13 @@ def save_sheet_api(request):
 
         rebuild_nodes = request.POST.get('rebuildNodes', False)
         responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
+        responseSheet["topics"] = add_langs_to_topics(responseSheet.get("topics", [])) # add langs to topics for consistency.  GET requests already do this, but POST requests didn't before
         if "rebuild" in responseSheet and responseSheet["rebuild"]:
             # Don't bother adding user links if this data won't be used to rebuild the sheet
             responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
 
         return jsonResponse(responseSheet)
+    return None
 
 
 def bulksheet_api(request, sheet_id_list):
