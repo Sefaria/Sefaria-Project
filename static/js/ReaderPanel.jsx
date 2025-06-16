@@ -1170,7 +1170,7 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
-          {/* Guide overlay - currently only shows on sheets but can be extended for other guide types */}
+          {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
           {this.shouldShowGuides() && 
             <GuideOverlay 
               onClose={this.closeGuideOverlay.bind(this)} 
