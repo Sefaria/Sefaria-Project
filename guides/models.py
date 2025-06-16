@@ -10,7 +10,8 @@ class Guide(models.Model):
         max_length=100, 
         unique=True, 
         verbose_name="Guide Key",
-        help_text="Unique identifier for the guide (e.g., 'sheets', 'topics')"
+        help_text="Unique identifier for the guide (e.g., 'sheets', 'topics')",
+        choices=[('sheets', 'sheets')],  # Closed list, add more as needed
     )
     title_prefix_en = models.CharField(
         max_length=255, 

@@ -16,8 +16,14 @@ class InfoCardInline(admin.StackedInline):
         models.URLField: {'widget': forms.URLInput(attrs={'size': 30})},
     }
 
+class GuideAdminForm(forms.ModelForm):
+    class Meta:
+        model = Guide
+        fields = '__all__'
+
 @admin.register(Guide)
 class GuideAdmin(admin.ModelAdmin):
+    form = GuideAdminForm
     list_display = ('key', 'title_prefix_en', 'title_prefix_he', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('key', 'title_prefix_en', 'title_prefix_he')
