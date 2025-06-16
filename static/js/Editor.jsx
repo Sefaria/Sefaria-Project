@@ -852,9 +852,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         )
     }
 
-    console.log('attributes', attributes)
-
-
   return (
       <div
           draggable={true}
@@ -1442,11 +1439,13 @@ const withSefariaSheet = editor => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
-    editor.deleteForward = () => {
+    editor.deleteForward = (fromOnKeyDown) => {
+        if (fromOnKeyDown !== true) { return; }
         deleteForward(editor);
     }
 
-    editor.deleteBackward = () => {
+    editor.deleteBackward = (fromOnKeyDown) => {
+        if (fromOnKeyDown !== true) { return; }
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
         const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
@@ -3226,12 +3225,11 @@ const SefariaEditor = (props) => {
             getRefInText(editor, false)
         }
 
-        if (event.key === 'Backspace' || event.key === 'Delete') {
-            // Because of the inner editor in boxed sources, sometimes the main editor.deleteBackward() callback doesn't get called.
-            // Detect delete/backspace and call it manually if the source box is the closest selected element.
-            if (sourceBoxIsClosestSelectedElement(editor)) {
-                editor.deleteBackward();
-            }
+        if (event.key === 'Backspace' ) {
+            // TODO add docs
+            editor.deleteBackward(true);
+        } else if (event.key === 'Delete') {
+            editor.deleteForward(true);
         }
     };
 
