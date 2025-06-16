@@ -112,18 +112,20 @@ class InfoCard(Sortable):
     )
     title_en = models.CharField(max_length=255, verbose_name="Title (EN)")
     title_he = models.CharField(max_length=255, verbose_name="Title (HE)")
-    text_en = models.TextField(verbose_name="Text (EN)")
-    text_he = models.TextField(verbose_name="Text (HE)")
+    text_en = models.TextField(verbose_name="Text (EN)",
+        help_text="Text supports markdown.",
+    )
+    text_he = models.TextField(verbose_name="Text (HE)",
+        help_text="Text supports markdown.",
+    )
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
     video_en = models.URLField(
         verbose_name="Video URL (EN)",
-        help_text="Upload the video via Google Cloud to the Bucket 'guides-resources'and provide the URL here.",
-        blank=True,
+        help_text="Upload the video via Google Cloud to the Bucket 'guides-resources'and provide the URL here."
     )
     video_he = models.URLField(
         verbose_name="Video URL (HE)",
-        help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here.",
-        blank=True,
+        help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here."
     )
 
     def __str__(self):
