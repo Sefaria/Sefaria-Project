@@ -9331,7 +9331,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
 
 .publishBox .react-tags__suggestions ul {
   position: absolute;
-  inset-inline-start: 0;
+  inset-inline-start: 0;  /* Note reduntant css rules below `body.interface-[hebrew|english]  .publishBox .react-tags__suggestions ul` */
   top: 100%;
   margin: 4px -1px;
   padding: 0;

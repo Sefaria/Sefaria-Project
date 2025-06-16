@@ -67,7 +67,6 @@ const PublishMenu = ({sheet, publishCallback}) => {
           validationMsg: "",
           validationFailed: "none"
       });
-  console.log("sug", suggestions);
   const [tags, setTags] = useState(
       sheet.topics.map((topic, i) => ({
           id: i,
@@ -131,7 +130,8 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setTags(newTags);
   }
   const onTagValidate = (tag) => {
-      return tags.every((item) => item.name !== tag.name && !!tag.slug && typeof tag.slug === "string");
+    // Validate that the tag is not already in the list and has a slug (if it has a slug, it is a valid topic)
+    return tags.every((item) => item.name !== tag.name && !!tag.slug && typeof tag.slug === "string");
   }
   const handleSummaryChange = (event) => {
     const newSummary = event.target.value;
