@@ -196,22 +196,6 @@ const PublishMenu = ({sheet, publishCallback}) => {
                     onAddition={onTagAddition}
                     onValidate={onTagValidate}
                     onInput={updateSuggestedTags}
-                    allowDragDrop={false}
-                    autocomplete={false}
-                    shouldRenderSuggestions={() => true}
-                    minQueryLength={0}
-                    classNames={{
-                        root: 'react-tags',
-                        rootFocused: 'is-focused',
-                        selected: 'react-tags__selected',
-                        selectedTag: 'react-tags__selected-tag',
-                        selectedTagName: 'react-tags__selected-tag-name',
-                        search: 'react-tags__search',
-                        searchWrapper: 'react-tags__search-wrapper',
-                        suggestions: 'react-tags__suggestions react-tags__suggestions--persistent',
-                        suggestionActive: 'is-active',
-                        suggestionDisabled: 'is-disabled',
-                    }}
                 />
             </div>
             {validation.validationFailed !== "none" &&
