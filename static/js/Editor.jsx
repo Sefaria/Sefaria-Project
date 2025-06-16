@@ -205,13 +205,14 @@ const insertNewLine = (editor) => {
 }
 
 export const deserialize = el => {
-    if (el.nodeType === 3) {
-        return el.textContent
-    } else if (el.nodeType !== 1) {
-        return null
-    } else if (el.nodeName === 'BR') {
-        return null
-    }
+  if (el.nodeType === 3) {
+    const t = el.textContent ?? '';
+    return t.trim() === '' ? null : t;      // ⬅ ignore pure whitespace
+  } else if (el.nodeType !== 1) {
+      return null
+  } else if (el.nodeName === 'BR') {
+      return null
+  }
 
     const checkForStyles = () => {
         if (el.getAttribute("style")) {
@@ -309,7 +310,11 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+        // return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
+
     }
 
     if (content.type) {
@@ -537,17 +542,24 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
+function replaceBrWithNewLine(html) {
+  return html.replace(/<br\s*\/?>\s*/gi, '\n');
+  }
 
 function parseSheetItemHTML(rawhtml) {
+    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml
       .replace(/\u00A0/g, ' ')
-      .replace(/(\r\n|\n|\r|\t)/gm, " ");
+      // .replace(/(\r\n|\n|\r|\t)/gm, " ");
+    preparseHtml = replaceBrWithNewLine(preparseHtml);
+    console.log(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
+    console.log(JSON.stringify(slateJSON, null, 2));
     return slateJSON[0].type === 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
@@ -674,13 +686,38 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
+function removeEmptyTextNodes(nodes) {
+  return nodes
+    .map(node => {
+      // If it's a text node (no `type`), keep only if it contains non-whitespace
+      if (!node.type && typeof node.text === 'string') {
+        return node.text.trim() === '' ? null : node;
+      }
+
+      // // If it's an element node, recurse into children
+      // if (node.children) {
+      //   const cleanedChildren = removeEmptyTextNodes(node.children);
+      //   return {
+      //     ...node,
+      //     children: cleanedChildren
+      //   };
+      // }
+      //  if (node.children.length === 1 && node.children[0].text.trim() === '') {
+      //      return null;
+      // }
+
+      return node; // In case it's an unexpected format, keep it as-is
+    })
+    .filter(Boolean); // Remove nulls
+}
+
 const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
-  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText);
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
@@ -690,23 +727,46 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    useEffect(
-        () => {
-            const replacement = divineName || "noSub"
-            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-            for (const editor of editors) {
-                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-                for (const [node, path] of nodes) {
-                    if (node.text) {
-                        const newStr = replaceDivineNames(node.text, replacement)
-                        if (newStr != node.text) {
-                            Transforms.insertText(editor, newStr, {at: path})
-                        }
-                    }
-                }
+    // useEffect(
+    //     () => {
+    //         const replacement = divineName || "noSub"
+    //         const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
+    //         for (const editor of editors) {
+    //             const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
+    //             for (const [node, path] of nodes) {
+    //                 if (node.text) {
+    //                     const newStr = replaceDivineNames(node.text, replacement)
+    //                     if (newStr != node.text) {
+    //                         Transforms.insertText(editor, newStr, {at: path})
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }, [divineName]
+    // )
+    useEffect(() => {
+      const replacement  = divineName || 'noSub';
+      const editors      = [sheetSourceHeEditor, sheetSourceEnEditor];
+
+      for (const editor of editors) {
+        Editor.withoutNormalizing(editor, () => {
+          for (const [node, path] of Editor.nodes(editor, {
+            at:     [],            // whole document
+            match:  Text.isText,   // only text nodes
+            reverse:true           // iterate bottom-up → paths stay valid
+          })) {
+            const newText = replaceDivineNames(node.text, replacement);
+            if (newText !== node.text) {
+              Transforms.setNodes(
+                editor,
+                { text: newText }, // overwrite the whole text node
+                { at: path }
+              );
             }
-        }, [divineName]
-    )
+          }
+        });
+      }
+    }, [divineName]);
 
 
   const onHeChange = (value) => {
@@ -1205,6 +1265,8 @@ const Element = (props) => {
             );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
+                console.log(element.node);
+                console.log(children)
                 return (
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
