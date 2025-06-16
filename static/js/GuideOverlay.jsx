@@ -124,7 +124,7 @@ const GuideOverlay = ({
     }
   }, [initialShouldShow]);
 
-  // Load guide data only when component is actually open/visible
+  // Load guide data only when component is actually open/visible to avoid unnecessary loading on common scenario where it isn't needed
   useEffect(() => {
     if (!isOpen) return;
     
@@ -133,7 +133,7 @@ const GuideOverlay = ({
 
     // Set up timeout to close component if loading takes too long
     // It's cleared with clearTimeout if the data is loaded successfully
-    // The guide is meant to clarify the page functionality, if it causes more problems, it isn't worth the hassle
+    // Reason for this functionality: The guide is meant to clarify the page, if it causes more problems, it isn't worth the hassle
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
         console.warn(`Guide loading timed out after ${timeoutLength} seconds`);
@@ -188,13 +188,14 @@ const GuideOverlay = ({
     
     loadGuide();
     
-    // Cleanup function
+    // Cleanup on unmount
     return () => {
       isComponentMounted = false;
       clearTimeout(timeoutId);
     };
   }, [isOpen, guideType, timeoutLength]);
   
+  // Set cookie when user dismisses the overlay
   const setCookie = () => {
     // Store the current date when user dismisses the overlay
     const currentDate = new Date().toISOString();
