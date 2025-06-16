@@ -1439,13 +1439,19 @@ const withSefariaSheet = editor => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
-    editor.deleteForward = (fromOnKeyDown) => {
-        if (fromOnKeyDown !== true) { return; }
+    editor.deleteForward = (unit, fromOnKeyDown) => {
+        // Slate doesn't trigger deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteForward()
+        if (!fromOnKeyDown) { return; }
         deleteForward(editor);
     }
 
-    editor.deleteBackward = (fromOnKeyDown) => {
-        if (fromOnKeyDown !== true) { return; }
+    editor.deleteBackward = (unit, fromOnKeyDown) => {
+        // Slate doesn't trigger deleteBackward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteBackward()
+        if (!fromOnKeyDown) { return; }
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
         const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
@@ -1454,7 +1460,7 @@ const withSefariaSheet = editor => {
 
         //if selected element is sheet source, delete it as normal
         if (sourceBoxIsClosestSelectedElement(editor)) {
-            deleteBackward();
+            deleteBackward(unit);
             return;
         } else {
             //check to see if we're in a spacer to apply special delete rules
@@ -1478,7 +1484,7 @@ const withSefariaSheet = editor => {
                             Transforms.move(editor, {reverse: true, distance: 2})
                     }
                     else {
-                        deleteBackward();
+                        deleteBackward(unit);
                     }
                 }
                 return
@@ -3225,11 +3231,12 @@ const SefariaEditor = (props) => {
             getRefInText(editor, false)
         }
 
+        // Slate doesn't trigger deleteBackward() or deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
         if (event.key === 'Backspace' ) {
-            // TODO add docs
-            editor.deleteBackward(true);
+            editor.deleteBackward(undefined, true);
         } else if (event.key === 'Delete') {
-            editor.deleteForward(true);
+            editor.deleteForward(undefined, true);
         }
     };
 
