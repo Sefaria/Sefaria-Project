@@ -78,13 +78,12 @@ GuideFooter.propTypes = {
 
 /**
  * GuideOverlay component displays helpful guides and cards to users
- * Matches Figma design with proper spacing, scrollable content, and consistent layout
- * Only shows on first time user opens sheets, using cookie-based persistence
+ * Only shows on first time user opens the relevant page, using cookie-based persistence
  * Can be forced to show using the forceShow prop
  * 
  * @param {Object} props - Component props
  * @param {function} props.onClose - Function to call when overlay is closed
- * @param {string} props.guideType - Type of guide to display (e.g., "reader", "sheets")
+ * @param {string} props.guideType - Type of guide to display (e.g., "reader", "editor")
  * @param {boolean} props.forceShow - Force the overlay to show regardless of cookie state
  * @param {number} props.timeoutLength - Timeout length in seconds - After this time, the overlay will be closed and the user will be alerted that the guide is taking too long to load.
  */
