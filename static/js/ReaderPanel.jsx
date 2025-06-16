@@ -1174,7 +1174,7 @@ class ReaderPanel extends Component {
           {this.shouldShowGuides() && 
             <GuideOverlay 
               onClose={this.closeGuideOverlay.bind(this)} 
-              guideType="sheets" 
+              guideType="editor" 
               forceShow={this.state.forceGuideOverlay}
             />
           }

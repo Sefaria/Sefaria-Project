@@ -90,7 +90,7 @@ GuideFooter.propTypes = {
  */
 const GuideOverlay = ({ 
   onClose,
-  guideType = "sheets",
+  guideType = "editor",
   forceShow = false,
   timeoutLength = 7
 }) => {
