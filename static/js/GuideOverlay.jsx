@@ -12,16 +12,7 @@ const trackGuideEvent = (eventName, additionalParams = {}) => {
   gtag("event", eventName, additionalParams);
 };
 
-/**
- * Helper function to track pagination events
- */
-const trackPaginationEvent = (newIndex, guideType, direction) => {
-  trackGuideEvent("guide_overlay_pagination", {
-    new_index: newIndex,
-    guide_type: guideType,
-    direction: direction
-  });
-};
+
 
 /**
  * Title component with prefix
@@ -214,32 +205,38 @@ const GuideOverlay = ({
   };
 
   /**
-   * Navigate to next card with circular looping
+   * Navigate to next or previous card with circular looping
+   * @param {string} direction - Either "next" or "previous"
    */
-  const nextCard = () => {
+  const navigateCard = (direction) => {
     if (!guideData || !guideData.cards.length) return;
     
-    const newIndex = currentCardIndex >= guideData.cards.length - 1 ? 0 : currentCardIndex + 1;
+    // Validate direction parameter
+    if (direction !== "next" && direction !== "previous") {
+      console.error(`Invalid direction: ${direction}. Expected "next" or "previous".`);
+      return;
+    }
+    
+    const cardsLength = guideData.cards.length;
+    let newIndex;
+    
+    if (direction === "next") {
+      newIndex = currentCardIndex >= cardsLength - 1 ? 0 : currentCardIndex + 1;
+    } else {
+      newIndex = currentCardIndex <= 0 ? cardsLength - 1 : currentCardIndex - 1;
+    }
     
     // Track pagination event
-    trackPaginationEvent(newIndex, guideType, "next");
+    trackGuideEvent("guide_overlay_pagination", {
+      new_index: newIndex,
+      guide_type: guideType,
+      direction: direction
+    });
     
     setCurrentCardIndex(newIndex);
   };
 
-  /**
-   * Navigate to previous card with circular looping
-   */
-  const prevCard = () => {
-    if (!guideData || !guideData.cards.length) return;
-    
-    const newIndex = currentCardIndex <= 0 ? guideData.cards.length - 1 : currentCardIndex - 1;
-    
-    // Track pagination event
-    trackPaginationEvent(newIndex, guideType, "previous");
-    
-    setCurrentCardIndex(newIndex);
-  };
+
 
   // Don't render if user has already seen it or if not open
   if (!isOpen) return null;
@@ -276,7 +273,7 @@ const GuideOverlay = ({
             <div className="guideOverlayPagination">
               <Arrow 
                 direction="left" 
-                onClick={prevCard}
+                onClick={() => navigateCard("previous")}
                 altText={localize("Previous card")}
                 reverseForRTL={true}
               />
@@ -285,7 +282,7 @@ const GuideOverlay = ({
               </span>
               <Arrow 
                 direction="right" 
-                onClick={nextCard}
+                onClick={() => navigateCard("next")}
                 altText={localize("Next card")}
                 reverseForRTL={true}
               />
