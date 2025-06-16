@@ -310,8 +310,10 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
         // return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
-        return (`${tagStringObj.preTags}${content.text}${tagStringObj.postTags}`)
+        return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
 
     }
 
