@@ -785,6 +785,19 @@ class ReaderApp extends Component {
 
     return hist;
   }
+  
+  modifyURLbasedOnModule(hist) {
+    if (Sefaria.activeModule === "sheets" && (!hist.url.startsWith("/sheets"))) {
+      // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
+      return "/sheets" + hist.url;
+    }
+    else if (Sefaria.activeModule !== "sheets" && hist.url.startsWith("/sheets")) {
+      // If we are not in the sheets module, remove /sheets from the beginning of the URL
+      return hist.url.replace(/^\/sheets/, "");
+    }
+    return hist.url;
+  }
+  
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -795,6 +808,10 @@ class ReaderApp extends Component {
       currentUrl += window.location.hash;
       hist.url += window.location.hash;
     }
+    
+    console.log("Updating History - " + hist.url + " | " + currentUrl);
+    hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
+    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -1144,7 +1161,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
-    } else if (path === "/collections") {
+    } else if (path === "/sheets/collections") {
       this.showCollections();
 
     } else if (path === "/community") {
@@ -1165,23 +1182,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.slice(8));
 
-    } else if (path === "/topics") {
+    } else if (path === "/topics" || path === "/sheets/topics") {
       this.showTopics();
 
-    } else if (path.match(/^\/topics\/category\/[^\/]/)) {
-      this.openTopicCategory(path.slice(17));
-
-    } else if (path.match(/^\/topics\/all\/[^\/]/)) {
-      this.openAllTopics(path.slice(12));
-
-    } else if (path.match(/^\/topics\/[^\/]+/)) {
-      this.openTopic(path.slice(8), params.get("tab"));
-
+    } else if (path.match(/^\/(sheets\/)?topics\/category\/[^\/]/)) {
+      this.openTopicCategory(path.replace(/^\/(sheets\/)?topics\/category\//, ''));
+      
+    } else if (path.match(/^\/(sheets\/)?topics\/all\/[^\/]/)) {
+      this.openAllTopics(path.replace(/^\/(sheets\/)?topics\/all\//, ''));
+      
+    } else if (path.match(/^\/(sheets\/)?topics\/[^\/]+/)) {
+      this.openTopic(path.replace(/^\/(sheets\/)?topics\//, ''), params.get("tab"));
+      
     } else if (path.match(/^\/sheets\/profile\/.+/)) {
       this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
 
-    } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(13), params.get("tag"));
+    } else if (path.match(/^\/sheets\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+      this.openCollection(path.slice(20), params.get("tag"));
 
     } else if (path.match(/^\/translations\/.+/)) {
       let slug = path.slice(14);
