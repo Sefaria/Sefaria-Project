@@ -625,7 +625,6 @@ def save_sheet_api(request):
             responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
 
         return jsonResponse(responseSheet)
-    return None
 
 
 def bulksheet_api(request, sheet_id_list):
