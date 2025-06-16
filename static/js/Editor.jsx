@@ -1439,19 +1439,19 @@ const withSefariaSheet = editor => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
-    editor.deleteForward = (unit, fromOnKeyDown) => {
+    editor.deleteForward = (fromOnKeyDown) => {
         // Slate doesn't trigger deleteForward() in certain cases,
         // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
         // and ignore all other calls to deleteForward()
-        if (!fromOnKeyDown) { return; }
+        if (fromOnKeyDown !== true) { return; }
         deleteForward(editor);
     }
 
-    editor.deleteBackward = (unit, fromOnKeyDown) => {
+    editor.deleteBackward = (fromOnKeyDown) => {
         // Slate doesn't trigger deleteBackward() in certain cases,
         // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
         // and ignore all other calls to deleteBackward()
-        if (!fromOnKeyDown) { return; }
+        if (fromOnKeyDown !== true) { return; }
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
         const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
@@ -1460,7 +1460,7 @@ const withSefariaSheet = editor => {
 
         //if selected element is sheet source, delete it as normal
         if (sourceBoxIsClosestSelectedElement(editor)) {
-            deleteBackward(unit);
+            deleteBackward();
             return;
         } else {
             //check to see if we're in a spacer to apply special delete rules
@@ -1484,7 +1484,7 @@ const withSefariaSheet = editor => {
                             Transforms.move(editor, {reverse: true, distance: 2})
                     }
                     else {
-                        deleteBackward(unit);
+                        deleteBackward();
                     }
                 }
                 return
@@ -3234,9 +3234,9 @@ const SefariaEditor = (props) => {
         // Slate doesn't trigger deleteBackward() or deleteForward() in certain cases,
         // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
         if (event.key === 'Backspace' ) {
-            editor.deleteBackward(undefined, true);
+            editor.deleteBackward(true);
         } else if (event.key === 'Delete') {
-            editor.deleteForward(undefined, true);
+            editor.deleteForward(true);
         }
     };
 
