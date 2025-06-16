@@ -758,9 +758,10 @@ def reset_ref(request, tref):
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
-        vs = model.VersionState(index=oref.index)
+        index = model.library.get_index(tref)  # Get a fresh instance of the index
+        vs = model.VersionState(index=index)
         vs.refresh()
-        model.library.update_index_in_toc(oref.index)
+        model.library.update_index_in_toc(index)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
