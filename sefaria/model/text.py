@@ -6017,7 +6017,7 @@ class Library(object):
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        if '<a' not in st:  # This is 30 times faster than re.split, and applies for most cases
+        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
             substrings = [st]
         else:
             html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
