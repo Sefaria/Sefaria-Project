@@ -109,15 +109,15 @@ const PublishMenu = ({sheet, publishCallback}) => {
     }
     const updateSuggestedTags = (input) => {
     if (input === "") return
-    Sefaria.getName(input, false, 0).then(d => {
+    Sefaria.getName(input, 5, "Topic").then(d => {
         const topics = d.completion_objects
-            .filter(obj => obj.type === "Topic")
             .map((filteredObj, index) => ({
                 id: index,
                 name: filteredObj.title,
                 slug: filteredObj.key
             })
             )
+        console.log(topics);
         return topics;
     }).then(topics => setSuggestions(topics))
   }
@@ -131,6 +131,13 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setTags(newTags);
   }
   const onTagValidate = (tag) => {
+      console.log(tag, tags);
+      // const input = e.target.value.trim();
+      // const matchingSuggestion = suggestions.find(s => s.name.toLowerCase() === input.toLowerCase());
+      // if (matchingSuggestion) {
+      //     onTagAddition(matchingSuggestion);
+      //     e.target.value = '';
+      // }
       return tags.every((item) => item.name !== tag.name)
   }
   const handleSummaryChange = (event) => {
