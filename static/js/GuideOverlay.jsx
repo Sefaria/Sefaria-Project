@@ -13,6 +13,17 @@ const trackGuideEvent = (eventName, additionalParams = {}) => {
 };
 
 /**
+ * Helper function to track pagination events
+ */
+const trackPaginationEvent = (newIndex, guideType, direction) => {
+  trackGuideEvent("guide_overlay_pagination", {
+    new_index: newIndex,
+    guide_type: guideType,
+    direction: direction
+  });
+};
+
+/**
  * Title component with prefix
  * Text will naturally truncate if it exceeds container width
  */
@@ -210,11 +221,7 @@ const GuideOverlay = ({
     const newIndex = currentCardIndex >= guideData.cards.length - 1 ? 0 : currentCardIndex + 1;
     
     // Track pagination event
-    trackGuideEvent("guide_overlay_pagination", {
-      new_index: newIndex,
-      guide_type: guideType,
-      direction: "next"
-    });
+    trackPaginationEvent(newIndex, guideType, "next");
     
     setCurrentCardIndex(newIndex);
   };
@@ -228,11 +235,7 @@ const GuideOverlay = ({
     const newIndex = currentCardIndex <= 0 ? guideData.cards.length - 1 : currentCardIndex - 1;
     
     // Track pagination event
-    trackGuideEvent("guide_overlay_pagination", {
-      new_index: newIndex,
-      guide_type: guideType,
-      direction: "previous"
-    });
+    trackPaginationEvent(newIndex, guideType, "previous");
     
     setCurrentCardIndex(newIndex);
   };
