@@ -209,7 +209,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                             <div className="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                                     {Object.keys(slugsToTitles).map(function (tempSlug, i) {
-                                                        const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
+                                                        const tempTitle = Sefaria._v(slugsToTitles[tempSlug]);
                                                         return <option key={i} value={tempSlug} selected={data.catSlug === tempSlug}>{tempTitle}</option>;
                                                     })}
                                                 </select>

@@ -9,7 +9,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
-    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+    const langKey = Sefaria._getShortInterfaceLang();
     const { title = '', prompt = '', ai_context = '' } = origData?.descriptions?.[langKey] || {};
 
     const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
