@@ -9117,6 +9117,7 @@ a.sheetAuthorName:hover {
   max-width: 540px;
   font-size: 16px;
   color: #666;
+  height: 520px;
 }
 .publishBox .publishLabel {
   --english-font: var(--english-sans-serif-font-family);
@@ -9338,7 +9339,8 @@ body.interface-hebrew .publishBox textarea::placeholder {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
-  min-width: 300px;
+  min-width: 150px;
+  max-width: 100%;
 }
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
