@@ -129,9 +129,11 @@ const PublishMenu = ({sheet, publishCallback}) => {
     const newTags = [].concat(tags, tag);
     setTags(newTags);
   }
-  const onTagValidate = (tag) => {
-    // Validate that the tag is not already in the list and has a slug (if it has a slug, it is a valid topic)
-    return tags.every((item) => item.name !== tag.name && !!tag.slug && typeof tag.slug === "string");
+  const onTagValidate = (newTag) => {
+    // Validate that the new tag is not already in the list and is in the list of autocompleted suggestions
+    const isSuggestion = suggestions.some(suggestion => suggestion.slug === newTag.slug);
+    const isNewTag = tags.every((item) => item.name !== newTag.name);
+    return isNewTag && isSuggestion;
   }
   const handleSummaryChange = (event) => {
     const newSummary = event.target.value;
