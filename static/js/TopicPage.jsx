@@ -880,7 +880,7 @@ TopicLink.propTypes = {
 
 const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
   const category = Sefaria.displayTopicTocCategory(slug);
-  const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
+  const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => Sefaria.shouldDisplayTopic(l)).length > 0) : [];
   if (linkTypeArray.length === 0) {
     linkTypeArray.push({
       title: {
@@ -911,7 +911,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
         return a.title.en.localeCompare(b.title.en);
       })
       .map(({ title, pluralTitle, links }) => {
-        const linksToDisplay = links.filter(l => l.shouldDisplay !== false);
+        const linksToDisplay = links.filter(l => Sefaria.shouldDisplayTopic(l));
         const hasPlural = linksToDisplay.length > 1 && pluralTitle;
         const pluralizedTitle = {
           en: hasPlural ? pluralTitle.en : title.en,
