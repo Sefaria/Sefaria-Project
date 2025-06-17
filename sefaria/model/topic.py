@@ -514,7 +514,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 'slug': self.slug,
                 "shouldDisplay": True if len(children) > 0 else self.should_display(),
                 "displayOrder": getattr(self, "displayOrder", 10000),
-                "pools": DjangoTopic.objects.get_pools_by_topic_slug(self.slug)})
+                "pools": self.get_pools()})
             if getattr(self, "categoryDescription", False):
                 d['categoryDescription'] = self.categoryDescription
             description = getattr(self, "description", None)

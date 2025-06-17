@@ -2746,11 +2746,10 @@ _media: {},
   },
   shouldDisplayTopic: function(topic) {
     /*
-    Returns true if topic should be displayed in the topic list or TOC.
-    'topic' is a topic object in this.topicList or this.topic_toc
+    Returns true if topic should be displayed in the topic list, topic TOC, or topic page side column.
      */
     const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
-    return !!topic.shouldDisplay && inActiveModule;
+    return topic.shouldDisplay !== false && inActiveModule;
   },
   sortTopicsCompareFn: function(a, b) {
     // a compare function that is useful for sorting topics
