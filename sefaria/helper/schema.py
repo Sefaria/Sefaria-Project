@@ -1005,6 +1005,8 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
     :param old_headword: string
     :param new_headword: string
     :return: None
+
+    Example: change_lexicon_headword('Jastrow Dictionary', 'אַפּוּכִי.1', 'אַפּוּכִי 1')
     """
 
     def get_dictionary_node(node):
