@@ -257,7 +257,7 @@ const CollectionAddNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="collectionName" href={"/collections/" + content.collection_slug}>
+      <a className="collectionName" href={"/sheets/collections/" + content.collection_slug}>
         {content.collection_name}
       </a>
     </>

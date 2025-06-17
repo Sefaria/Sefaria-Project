@@ -38,7 +38,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
@@ -135,12 +135,11 @@ def render_react_component(component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.parse.urlencode({
-        "propsJSON": propsJSON,
-    }).encode("utf-8")
+    data = propsJSON.encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        req = urllib.request.Request(url, data=data, headers=headers)
+        response = urllib.request.urlopen(req, timeout=NODE_TIMEOUT)
         html = response.read().decode("utf-8")
         return html
     except Exception as e:
@@ -257,14 +256,18 @@ def user_credentials(request):
 
 def _reader_redirect_add_languages(request, tref):
     versions = Ref(tref).version_list()
-    query_params = QueryDict(mutable=True)
+    query_params = QueryDict(request.GET.urlencode(), mutable=True)
     for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
         version_title = request.GET.get(vlang)
         if version_title:
             version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title))
-            query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
+            if version is not None:
+                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            else:
+                query_params.pop(vlang)
     return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+
 
 
 @ensure_csrf_cookie
@@ -915,7 +918,8 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
+    # need to pass renderStatic so that s2 shows up in base template
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
 
 
 def groups_redirect(request, group):
@@ -3105,7 +3109,7 @@ def topic_page(request, slug, test_version=None):
     """
     slug = SluggedAbstractMongoRecord.normalize_slug(slug)
     topic_obj = Topic.init(slug)
-    if topic_obj is None or request.active_module not in DjangoTopic.objects.slug_to_pools[slug]:
+    if topic_obj is None or request.active_module not in DjangoTopic.objects.get_pools_by_topic_slug(slug):
         raise Http404
 
     short_lang = get_short_lang(request.interfaceLang)
@@ -3145,12 +3149,16 @@ def topic_page(request, slug, test_version=None):
 @catch_error_as_json
 def topics_list_api(request):
     """
-    API to get data for a particular topic.
+    API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
-    topics = get_all_topics(limit)
-    response = [t.contents() for t in topics]
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    all_topics = get_all_topics(limit, activeModule=request.active_module)
+    all_topics_json = []
+    for topic in all_topics:
+        topic_json = topic.contents(minify=True, with_html=True)
+        topic_json["titles"] = topic.titles
+        all_topics_json.append(topic_json)
+    response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
 
