@@ -4,7 +4,7 @@ import TopicsLaunchBannerMobileGraphics from "./TopicsLaunchBannerMobileGraphics
 import { OnInView } from "./Misc";
 
 const TopicsLaunchBanner = ({ onClose }) => {
-  const bannerName = "2025-topics_launch-2";
+  const bannerName = "2025-topics_launch";
   const bannerKey = `banner_${bannerName}`;
 
   const [bannerVisibility, setBannerVisibility] = useState("hidden");
@@ -23,6 +23,20 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
   const hasBannerBeenInteractedWith = () => {
     return sessionStorage.getItem(bannerKey) === "true";
+  };
+
+  const trackBannerInteraction = (eventDescription) => {
+    gtag("event", `banner_interacted_with_${eventDescription}`, {
+      campaignID: bannerName,
+      adType: "banner",
+    });
+  };
+
+  const trackBannerImpression = () => {
+    gtag("event", "banner_viewed", {
+      campaignID: bannerName,
+      adType: bannerName,
+    });
   };
 
   const shouldShow = () => {
@@ -56,8 +70,12 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
   const closeBanner = (eventDescription) => {
     if (onClose) onClose();
+
     setBannerVisibility("hidden");
+
+    trackBannerInteraction(eventDescription);
   };
+
 
   useEffect(() => {
     const bannerElement = bannerRef.current;
@@ -109,12 +127,9 @@ const TopicsLaunchBanner = ({ onClose }) => {
   }
 
   return (
-    <div data-anl-event="banner_view:scrollIntoView"
-        data-anl-promotion_name={bannerName}
-        data-anl-feature_name="Topics Launch Banner"
-    >
+    <OnInView onVisible={trackBannerImpression}>
       <div id="bannerMessage" className={bannerVisibility} ref={bannerRef}>
-        <div id="topicsLaunchBanner" data-anl-link_type="banner_cta" data-anl-text="EXPLORE BY TOPIC">
+        <div id="topicsLaunchBanner">
           <TopicsLaunchBannerGraphics
             onExploreButtonClick={() => closeBanner("banner_button_clicked")}
             buttonRef={desktopButtonRef}
@@ -124,15 +139,11 @@ const TopicsLaunchBanner = ({ onClose }) => {
             buttonRef={mobileButtonRef}
           />
         </div>
-        <div id="topicsLaunchBannerMessageClose" 
-            onClick={() => closeBanner("close_clicked")}
-            data-anl-event="banner_close_click:click"
-            data-anl-link_type="banner_close"
-            data-anl-text="close">
+        <div id="topicsLaunchBannerMessageClose" onClick={() => closeBanner("close_clicked")}>
           <img src="/static/img/topics-launch-banner-close-button-final.svg" />
         </div>
       </div>
-    </div>
+    </OnInView>
   );
 };
 
