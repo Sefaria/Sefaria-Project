@@ -48,7 +48,22 @@ DOMAIN_LANGUAGES = {
 ################ These are things you can change! ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
+ALLOWED_HOSTS = ["*"]
+
+# Make session & CSRF cookies valid for any subdomain of localsefaria.org
+SESSION_COOKIE_DOMAIN = ".localsefaria.org"
+CSRF_COOKIE_DOMAIN    = ".localsefaria.org"
+
+# In local development over HTTP, these must be False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE    = False
+
+# If you run on two hosts, you may need to trust both for CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "http://localsefaria.org",
+    "http://sheets.localsefaria.org",
+]
+
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
