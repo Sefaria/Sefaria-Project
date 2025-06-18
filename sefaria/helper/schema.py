@@ -1070,7 +1070,7 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
         needs_rewrite = lambda x, *args: bool(re.search(old_ref_reg, x))
         cascade(index.title, rewriter, needs_rewrite, True)
 
-    #word forms
+    # word forms
     print('Updating word forms')
     db.word_form.update_many(
         {
