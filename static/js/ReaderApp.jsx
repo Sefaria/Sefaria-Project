@@ -2303,7 +2303,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           <div id="readerAppWrap">
             <InterruptingMessage />
             <TopicsLaunchBanner onClose={this.setContainerMode} />
-            {/* <Banner onClose={this.setContainerMode} /> */}
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}

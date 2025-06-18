@@ -110,10 +110,11 @@ const TopicsLaunchBanner = ({ onClose }) => {
 
   return (
     <div data-anl-event="banner_view:scrollIntoView"
-         data-anl-promotion_name="2025-topics_launch-2"
-         data-anl-feature_name="Topics Launch Banner">
+        data-anl-promotion_name={bannerName}
+        data-anl-feature_name="Topics Launch Banner"
+    >
       <div id="bannerMessage" className={bannerVisibility} ref={bannerRef}>
-        <div id="topicsLaunchBanner">
+        <div id="topicsLaunchBanner" data-anl-link_type="banner_cta" data-anl-text="EXPLORE BY TOPIC">
           <TopicsLaunchBannerGraphics
             onExploreButtonClick={() => closeBanner("banner_button_clicked")}
             buttonRef={desktopButtonRef}
@@ -124,11 +125,10 @@ const TopicsLaunchBanner = ({ onClose }) => {
           />
         </div>
         <div id="topicsLaunchBannerMessageClose" 
-             onClick={() => closeBanner("close_clicked")}
-             data-anl-event="banner_close_click:click"
-             data-anl-promotion_name="2025-topics_launch-2"
-             data-anl-link_type="banner_close"
-             data-anl-text="close">
+            onClick={() => closeBanner("close_clicked")}
+            data-anl-event="banner_close_click:click"
+            data-anl-link_type="banner_close"
+            data-anl-text="close">
           <img src="/static/img/topics-launch-banner-close-button-final.svg" />
         </div>
       </div>

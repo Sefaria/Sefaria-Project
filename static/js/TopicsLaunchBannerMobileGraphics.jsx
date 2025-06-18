@@ -559,9 +559,7 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
              tabIndex="0" 
              aria-label="Explore Topics"
              data-anl-event="banner_button_click:click"
-             data-anl-promotion_name="2025-topics_launch-2"
-             data-anl-link_type="banner_cta"
-             data-anl-text="EXPLORE TOPICS">
+          >
             <path
               d="M140 95a5 5 0 015-5h111a5 5 0 015 5v23a5 5 0 01-5 5H145a5 5 0 01-5-5z"
               fill="#fff"
