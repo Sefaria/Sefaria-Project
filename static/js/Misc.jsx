@@ -1339,10 +1339,9 @@ GuideButton.propTypes = {
  * @param {string} direction - "left" or "right" 
  * @param {function} onClick - Function to call when arrow is clicked
  * @param {string} altText - Alt text for accessibility
- * @param {boolean} reverseForRTL - Whether to reverse arrow direction for RTL languages (default: false)
  * @param {string} className - Additional CSS classes
  */
-function ArrowButton({ direction, onClick, altText = "", reverseForRTL = false, className = "" }) {
+function ArrowButton({ direction, onClick, altText = "", className = "" }) {
   // Validate required props
   if (!direction) {
     console.error("ArrowButton component requires a 'direction' prop");
@@ -1365,7 +1364,7 @@ function ArrowButton({ direction, onClick, altText = "", reverseForRTL = false, 
 
   // Determine the actual arrow direction based on interface language and reverseForRTL prop
   let actualDirection = direction;
-  if (reverseForRTL && Sefaria.interfaceLang === "hebrew") {
+  if (Sefaria.interfaceLang === "hebrew") {
     actualDirection = direction === "left" ? "right" : "left";
   }
   
@@ -1387,7 +1386,6 @@ ArrowButton.propTypes = {
   direction: PropTypes.oneOf(["left", "right"]).isRequired,
   onClick: PropTypes.func.isRequired,
   altText: PropTypes.string.isRequired,
-  reverseForRTL: PropTypes.bool,
   className: PropTypes.string,
 };
 

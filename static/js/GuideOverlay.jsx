@@ -278,7 +278,6 @@ const GuideOverlay = ({
                 direction="left" 
                 onClick={() => navigateCard("previous")}
                 altText={localize("Previous card")}
-                reverseForRTL={true}
               />
               <span className="cardsPaginationNumber">
                 <InterfaceText>{`${currentCardIndex + 1} ${localize("of")} ${guideData.cards.length}`}</InterfaceText>
@@ -287,7 +286,6 @@ const GuideOverlay = ({
                 direction="right" 
                 onClick={() => navigateCard("next")}
                 altText={localize("Next card")}
-                reverseForRTL={true}
               />
             </div>
           )}
