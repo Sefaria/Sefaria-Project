@@ -700,11 +700,6 @@ Sefaria = extend(Sefaria, {
       store: this._guides
     });
   },
-  // Putting the localization logic here because I want the component to be language agnostic.
-  getLocalizedVideoDataFromCard: function(card) {
-    const lang = this.interfaceLang === "hebrew" ? "he" : "en";
-    return {videoUrl: card.videoUrl[lang]};
-  },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }

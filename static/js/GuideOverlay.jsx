@@ -302,7 +302,7 @@ const GuideOverlay = ({
               {guideData.cards.map((card, index) => (
                 <video
                   key={index}
-                  src={Sefaria.getLocalizedVideoDataFromCard(card).videoUrl}
+                  src={Sefaria._v(card.videoUrl)}
                   preload="auto"
                   style={{ display: index === currentCardIndex ? 'block' : 'none' }}
                   className="guideOverlayVideo" 
