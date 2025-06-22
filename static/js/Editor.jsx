@@ -758,12 +758,12 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   const onClick = (e) => {
 
-    if ((e.target).closest('.he') && sourceActive) {
+    if ((e.target).closest('.he .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
 
     }
-    else if ((e.target).closest('.en') && sourceActive) {
+    else if ((e.target).closest('.en .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('en')
         if (window.chrome) {suppressParentContentEditable(false)}
     }
@@ -772,7 +772,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         if (window.chrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
-
   }
 
   const onBlur = (e) => {
@@ -853,7 +852,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         )
     }
 
-
   return (
       <div
           draggable={true}
@@ -864,6 +862,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           onDragEnter={(e)=>{e.preventDefault()}}
           onDragOver={(e)=>{dragOver(e)}}
           onDrop={(e)=> {drop(e)}}
+          tabIndex={0}
           {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
@@ -1349,13 +1348,19 @@ const Element = (props) => {
 }
 
 const getClosestSheetElement = (editor, path, elementType) => {
-    for(const node of Node.ancestors(editor, path)) {
-        if (node[0].type == elementType) {
+    for (const node of Node.ancestors(editor, path)) {
+        if (node[0].type === elementType) {
             return node;
-            break
         }
     }
-    return(null);
+    return null;
+}
+
+const sourceBoxIsClosestSelectedElement = (editor) => {
+    /**
+     * Returns true if BoxedSheetElement is the closest selected element to the cursor.
+     */
+    return getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource");
 }
 
 const activeSheetSources = editor => {
@@ -1434,11 +1439,19 @@ const withSefariaSheet = editor => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
-    editor.deleteForward = () => {
+    editor.deleteForward = (fromOnKeyDown) => {
+        // Slate doesn't trigger deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteForward()
+        if (fromOnKeyDown !== true) { return; }
         deleteForward(editor);
     }
 
-    editor.deleteBackward = () => {
+    editor.deleteBackward = (fromOnKeyDown) => {
+        // Slate doesn't trigger deleteBackward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteBackward()
+        if (fromOnKeyDown !== true) { return; }
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
         const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
@@ -1446,9 +1459,9 @@ const withSefariaSheet = editor => {
         }
 
         //if selected element is sheet source, delete it as normal
-        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+        if (sourceBoxIsClosestSelectedElement(editor)) {
             deleteBackward();
-            return
+            return;
         } else {
             //check to see if we're in a spacer to apply special delete rules
             let inSpacer = false;
@@ -1463,11 +1476,11 @@ const withSefariaSheet = editor => {
 
             //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
-            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            if (sourceBoxIsClosestSelectedElement(editor)) {
                 //deletes the extra spacer space that would otherwise be left behind
                 if (inSpacer) {
                     Transforms.move(editor, {distance: 2});
-                    if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+                    if (sourceBoxIsClosestSelectedElement(editor)) {
                             Transforms.move(editor, {reverse: true, distance: 2})
                     }
                     else {
@@ -3216,6 +3229,14 @@ const SefariaEditor = (props) => {
         // Add or remove ref highlighting
         if (event.key === " " || Node.get(editor, editor.selection.focus.path).isRef) {
             getRefInText(editor, false)
+        }
+
+        // Slate doesn't trigger deleteBackward() or deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        if (event.key === 'Backspace' ) {
+            editor.deleteBackward(true);
+        } else if (event.key === 'Delete') {
+            editor.deleteForward(true);
         }
     };
 
