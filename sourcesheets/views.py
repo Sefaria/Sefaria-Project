@@ -557,6 +557,7 @@ def save_sheet_api(request):
 
     # Save a sheet
     if request.method == "POST":
+        # return jsonResponse({})
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:

@@ -690,23 +690,29 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    useEffect(
-        () => {
-            const replacement = divineName || "noSub"
-            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-            for (const editor of editors) {
-                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-                for (const [node, path] of nodes) {
-                    if (node.text) {
-                        const newStr = replaceDivineNames(node.text, replacement)
-                        if (newStr != node.text) {
-                            Transforms.insertText(editor, newStr, {at: path})
-                        }
-                    }
-                }
+    useEffect(() => {
+      const replacement  = divineName || 'noSub';
+      const editors      = [sheetSourceHeEditor, sheetSourceEnEditor];
+
+      for (const editor of editors) {
+        Editor.withoutNormalizing(editor, () => {
+          for (const [node, path] of Editor.nodes(editor, {
+            at:     [],            // whole document
+            match:  Text.isText,   // only text nodes
+            reverse:true           // iterate bottom-up → paths stay valid
+          })) {
+            const newText = replaceDivineNames(node.text, replacement);
+            if (newText !== node.text) {
+              Transforms.setNodes(
+                editor,
+                { text: newText }, // overwrite the whole text node
+                { at: path }
+              );
             }
-        }, [divineName]
-    )
+          }
+        });
+      }
+    }, [divineName]);
 
 
   const onHeChange = (value) => {
@@ -3128,6 +3134,7 @@ const SefariaEditor = (props) => {
     function onChange(value) {
         if (currentDocument !== value) {
             setCurrentDocument(value);
+            console.log("value", value);
         }
 
         setValue(value)
