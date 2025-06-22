@@ -2986,7 +2986,7 @@ _media: {},
   },
   _initTopicTocSlugToTitleReducer: function(a,c) {
     if (!c.children) { return a; }
-    a[c.slug] = {"en": c.en, "he": c.he};
+    a[c.slug] = {"en": c.primaryTitle.en, "he": c.primaryTitle.he};
     for (let sub_c of c.children) {
       Sefaria._initTopicTocSlugToTitleReducer(a, sub_c);
     }
@@ -3005,7 +3005,7 @@ _media: {},
         c.parents = [];
     }
     for (let sub_c of c.children) {
-        sub_c.parents = c.parents.concat({ en: c.en, he: c.he, slug: c.slug });
+        sub_c.parents = c.parents.concat({ en: c.primaryTitle.en, he: c.primaryTitle.he, slug: c.slug });
         Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;
@@ -3034,7 +3034,7 @@ _media: {},
     if (!c.children) {
       return a;
     }
-    a[c.slug] = {en: c.en, he: c.he};
+    a[c.slug] = {en: c.primaryTitle.en, he: c.primaryTitle.he};
 
     for (let sub_c of c.children) {
       Sefaria._initTopicTocCategoryTitlesReducer(a, sub_c);
