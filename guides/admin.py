@@ -37,11 +37,11 @@ class GuideAdmin(admin.ModelAdmin):
         }),
         ('Footer Link 1', {
             'fields': (('footer_link_1_text_en', 'footer_link_1_text_he'), 'footer_link_1_url'),
-            'description': 'First footer link (all fields optional - link will only appear if URL is provided)'
+            'description': 'First footer link (link will only appear if all fields are provided)'
         }),
         ('Footer Link 2', {
             'fields': (('footer_link_2_text_en', 'footer_link_2_text_he'), 'footer_link_2_url'),
-            'description': 'Second footer link (all fields optional - link will only appear if URL is provided)'
+            'description': 'Second footer link (link will only appear if all fields are provided)'
         }),
     )
 
