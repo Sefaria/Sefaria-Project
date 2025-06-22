@@ -2744,12 +2744,12 @@ _media: {},
           return d;
         });
   },
-  shouldDisplayTopic: function(topic) {
+  shouldDisplayInActiveModule: function(topic) {
     /*
     Returns true if topic should be displayed in the topic list, topic TOC, or topic page side column.
      */
     const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
-    return topic.shouldDisplay !== false && inActiveModule;
+    return !!topic?.shouldDisplay && inActiveModule;
   },
   sortTopicsCompareFn: function(a, b) {
     // a compare function that is useful for sorting topics

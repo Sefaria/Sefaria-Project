@@ -227,8 +227,7 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
         link['description'] = getattr(topic, 'description', {})
     else:
         link['description'] = {}
-    if not topic.should_display():
-        link['shouldDisplay'] = False
+    link['shouldDisplay'] = topic.should_display()
     link['pools'] = topic.get_pools()
     link['order'] = link.get('order', None) or {}
     link['order']['numSources'] = getattr(topic, 'numSources', 0)
