@@ -1126,7 +1126,7 @@ class CloseButton extends Component {
     } else {
       var iconElement = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
     
     return (
       <a 
