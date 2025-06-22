@@ -8694,7 +8694,7 @@ a.button.mini {
 a .button:hover {
   text-decoration: none;
 }
-©arkdown a {
+.reactMarkdown a {
   color: var(--commentary-blue);
 }
 .button.small {
