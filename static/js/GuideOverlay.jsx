@@ -119,6 +119,7 @@ const GuideOverlay = ({
   useEffect(() => {
     if (!isOpen) return;
     
+    // Prevents state updates and alerts after component unmounts to avoid alerts etc' after component is closed
     let isComponentMounted = true;
     let timeoutId;
 
