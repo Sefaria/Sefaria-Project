@@ -342,14 +342,4 @@ GuideOverlay.propTypes = {
   timeoutLength: PropTypes.number
 };
 
-/**
- * Utility function to clear the guide overlay cookie for a given guide type
- * Useful for testing and development - allows the overlay to show again
- * @param {string} guideType - The type of guide (e.g., "sheets", "reader")
- */
-export const clearGuideOverlayCookie = (guideType) => {
-  const cookieName = `guide_overlay_seen_${guideType}`;
-  $.removeCookie(cookieName, {path: "/"});
-};
-
 export default GuideOverlay; 
