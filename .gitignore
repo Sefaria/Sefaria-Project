@@ -139,4 +139,4 @@ dump/*
 /test-results/
 /playwright-report/
 /playwright/.cache/
-/cursor/*
+/.cursor/
