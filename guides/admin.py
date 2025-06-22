@@ -27,6 +27,8 @@ class GuideAdmin(admin.ModelAdmin):
     list_display = ('key', 'title_prefix_en', 'title_prefix_he', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('key', 'title_prefix_en', 'title_prefix_he')
+    # Inlines allow related models to be edited on the same page as the parent model
+    # InfoCardInline enables editing InfoCard objects directly within the Guide admin form
     inlines = [InfoCardInline]
     
     fieldsets = (
