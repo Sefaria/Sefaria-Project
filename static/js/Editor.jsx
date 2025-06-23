@@ -207,7 +207,7 @@ const insertNewLine = (editor) => {
 export const deserialize = el => {
   if (el.nodeType === 3) {
     const t = el.textContent ?? '';
-    return t.trim() === '' ? null : t;      // ⬅ ignore pure whitespace
+    return t.trim() === '' ? null : t;      //ignore pure whitespace
   } else if (el.nodeType !== 1) {
       return null
   } else if (el.nodeName === 'BR') {
@@ -310,9 +310,8 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our representation of new lines
 
-        // return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
         return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
 
     }
@@ -686,31 +685,6 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-function removeEmptyTextNodes(nodes) {
-  return nodes
-    .map(node => {
-      // If it's a text node (no `type`), keep only if it contains non-whitespace
-      if (!node.type && typeof node.text === 'string') {
-        return node.text.trim() === '' ? null : node;
-      }
-
-      // // If it's an element node, recurse into children
-      // if (node.children) {
-      //   const cleanedChildren = removeEmptyTextNodes(node.children);
-      //   return {
-      //     ...node,
-      //     children: cleanedChildren
-      //   };
-      // }
-      //  if (node.children.length === 1 && node.children[0].text.trim() === '') {
-      //      return null;
-      // }
-
-      return node; // In case it's an unexpected format, keep it as-is
-    })
-    .filter(Boolean); // Remove nulls
-}
-
 const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const parentEditor = useSlate();
 
@@ -727,23 +701,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    // useEffect(
-    //     () => {
-    //         const replacement = divineName || "noSub"
-    //         const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-    //         for (const editor of editors) {
-    //             const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-    //             for (const [node, path] of nodes) {
-    //                 if (node.text) {
-    //                     const newStr = replaceDivineNames(node.text, replacement)
-    //                     if (newStr != node.text) {
-    //                         Transforms.insertText(editor, newStr, {at: path})
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }, [divineName]
-    // )
+
     useEffect(() => {
       const replacement  = divineName || 'noSub';
       const editors      = [sheetSourceHeEditor, sheetSourceEnEditor];
@@ -1265,8 +1223,6 @@ const Element = (props) => {
             );
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
-                console.log(element.node);
-                console.log(children)
                 return (
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
