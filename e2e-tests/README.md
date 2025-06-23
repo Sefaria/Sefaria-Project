@@ -22,16 +22,10 @@ LOGIN_USERNAME=your-test-user@example.com \
 LOGIN_PASSWORD=your-password \
 npx playwright test
 
-# For testing against sandbox environment (CURRENT WORKING SETUP)
-BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ \
-LOGIN_USERNAME=danielschreiber@sefaria.org \
-LOGIN_PASSWORD=admin \
-npx playwright test
-
-# For testing against staging
-BASE_URL=https://save-editor.cauldron.sefaria.org/ \
-LOGIN_USERNAME=admin@admin.com \
-LOGIN_PASSWORD=admin \
+# For testing against sandbox/staging environments
+BASE_URL=https://your-environment.cauldron.sefaria.org/ \
+LOGIN_USERNAME=your-test-user@example.com \
+LOGIN_PASSWORD=your-password \
 npx playwright test
 ```
 
@@ -40,10 +34,7 @@ npx playwright test
 # Test existing working functionality first
 npx playwright test banner -g "English" --max-failures=1
 
-# Then test specific features that require login
-BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ \
-LOGIN_USERNAME=danielschreiber@sefaria.org \
-LOGIN_PASSWORD=admin \
+# Then test specific features that require login (set your environment variables)
 npx playwright test guide-overlay --max-failures=1
 ```
 
@@ -684,16 +675,16 @@ const hasHebrewInterface = await page.locator('body.interface-hebrew').isVisible
 
 **Working Test Commands**:
 ```bash
-# Sandbox environment (currently working)
-BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ \
-LOGIN_USERNAME=danielschreiber@sefaria.org \
-LOGIN_PASSWORD=admin \
+# Sandbox/staging environment
+BASE_URL=https://your-environment.cauldron.sefaria.org/ \
+LOGIN_USERNAME=your-test-user@example.com \
+LOGIN_PASSWORD=your-password \
 npx playwright test your-test.spec.ts
 
 # Local development
 BASE_URL=http://localhost:8000 \
-LOGIN_USERNAME=admin@admin.com \
-LOGIN_PASSWORD=admin \
+LOGIN_USERNAME=your-local-user@example.com \
+LOGIN_PASSWORD=your-password \
 npx playwright test your-test.spec.ts
 ```
 
@@ -798,7 +789,7 @@ Reference these files for proven patterns:
 
 ### Current Environment Status
 
-- **✅ Working**: `https://tips-and-tricks.cauldron.sefaria.org/` with `danielschreiber@sefaria.org/admin`
+- **✅ Working**: Sandbox environments with proper credentials
 - **✅ Working Tests**: Banner (English), Guide Overlay (11/14 tests)
 - **❌ Known Issues**: Hebrew interface tests, some autosave test expectations
 - **✅ Infrastructure**: URL handling, login flow, BASE_URL support all working
