@@ -45,8 +45,15 @@ export class LoginPage extends HelperBase{
             await this.page.getByRole('button', { name: 'Login' }).click();
         }
     
-        // Wait for login confirmation
-        await this.page.getByRole('link', { name: 'See My Saved Texts' }).waitFor({ timeout: 10000 });
+        // Wait for login confirmation - try multiple possible indicators
+        try {
+            // Try the "See My Saved Texts" link first (may not exist in all environments)
+            await this.page.getByRole('link', { name: 'See My Saved Texts' }).waitFor({ timeout: 5000 });
+        } catch (e) {
+            // Fallback: wait for navigation away from login page and network idle
+            await this.page.waitForURL(url => !url.toString().includes('/login'), { timeout: 10000 });
+            await this.page.waitForLoadState('networkidle');
+        }
     }
     
 }

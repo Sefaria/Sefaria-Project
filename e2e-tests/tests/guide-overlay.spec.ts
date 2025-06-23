@@ -12,7 +12,7 @@ import {
 } from '../utils';
 import { LANGUAGES, testUser } from '../globals';
 
-// Guide-overlay specific navigation function to avoid modifying shared utils
+// Guide-overlay specific navigation function that skips guide dismissal for testing
 const goToSheetEditorWithUser = async (context: any, user = testUser) => {
     // Use environment variables if available
     const actualUser = {
@@ -20,7 +20,9 @@ const goToSheetEditorWithUser = async (context: any, user = testUser) => {
         password: process.env.LOGIN_PASSWORD || user.password,
     };
     
-    const page = await goToPageWithUser(context, '/sheets/new', actualUser);
+    // Skip guide overlay dismissal for guide tests
+    const page = await goToPageWithUser(context, '/sheets/new', actualUser, { skipGuideOverlay: true });
+    
     // Wait for sheet editor to load - use the correct selector from SourceSheetEditorPage
     await page.waitForSelector('.sheetContent', { timeout: 10000 });
     return page;
@@ -305,6 +307,7 @@ test.describe('Guide Overlay', () => {
 
     test('TC013: Guide only shows in sheet editor', async ({ context }) => {
         // Test that guide button is NOT visible on regular reader pages
+        // Use default behavior (guide dismissal) for reader page since we don't want guide there
         const readerPage = await goToPageWithUser(context, '/Genesis.1.1');
         const readerGuideOverlay = new GuideOverlayPage(readerPage, LANGUAGES.EN);
         

@@ -9,13 +9,20 @@ let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
-export const hideModals = async (page: Page) => {
+export const hideModals = async (page: Page, options: { skipGuideOverlay?: boolean } = {}) => {
+    const { skipGuideOverlay = false } = options;
+    
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
         const style = document.createElement('style');
         style.innerHTML = '#interruptingMessageBox {display: none;}';
         document.head.appendChild(style);
     });
+    
+    // Also dismiss guide overlay by default (unless skipped for guide tests)
+    if (!skipGuideOverlay) {
+        await dismissGuideOverlayIfPresent(page);
+    }
 }
   
 export const hideTopBanner = async (page: Page) => {
@@ -142,7 +149,9 @@ export const loginUser = async (page: Page, user = testUser, language = DEFAULT_
   
 
 
-export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
+export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser, options: { skipGuideOverlay?: boolean } = {}) => {
+    const { skipGuideOverlay = false } = options;
+    
     if (!loginCookies.length) {
         const page: Page = await context.newPage();
         await loginUser(page, user)
@@ -155,7 +164,8 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     // Handle URL properly with BASE_URL
     await newPage.goto(buildFullUrl(url));
     
-    await hideModals(newPage);
+    await hideModals(newPage, { skipGuideOverlay });
+    
     return newPage;
 }
 
@@ -374,4 +384,46 @@ export const waitForGuideOverlay = async (page: Page, timeout: number = 10000) =
  */
 export const waitForGuideOverlayToClose = async (page: Page, timeout: number = 5000) => {
     await page.waitForSelector('.guideOverlay', { state: 'detached', timeout });
+};
+
+/**
+ * Safely dismiss guide overlay if it appears, without breaking if it doesn't exist
+ * This is designed for backwards compatibility in tests that don't specifically test the guide
+ * @param page Page object
+ * @param timeout Timeout in milliseconds (default: 5000)
+ */
+export const dismissGuideOverlayIfPresent = async (page: Page, timeout: number = 5000) => {
+    try {
+        // Give guide overlay a moment to appear if it's going to
+        await page.waitForTimeout(2000);
+        
+        // Use aggressive client-side dismissal to ensure guide doesn't block other tests
+        await page.evaluate(() => {
+            const guideOverlay = document.querySelector('.guideOverlay') as HTMLElement;
+            if (guideOverlay) {
+                // First try to click the close button properly
+                const closeButton = document.querySelector('.guideOverlay .readerNavMenuCloseButton.circledX') as HTMLElement;
+                if (closeButton) {
+                    closeButton.click();
+                }
+                
+                // Aggressively hide the overlay to ensure it doesn't interfere
+                guideOverlay.style.display = 'none';
+                guideOverlay.style.visibility = 'hidden';
+                guideOverlay.style.opacity = '0';
+                guideOverlay.style.pointerEvents = 'none';
+                guideOverlay.style.zIndex = '-9999';
+                
+                // Also remove it from the DOM completely for good measure
+                guideOverlay.remove();
+            }
+        });
+        
+        // Short wait for dismissal to take effect
+        await page.waitForTimeout(500);
+        
+    } catch (e) {
+        // Guide overlay might not exist, that's fine for backwards compatibility
+        console.log('Guide overlay dismissal completed or not needed:', e.message);
+    }
 };

@@ -5,21 +5,44 @@ import {goToPageWithUser, loginUser, hideModals, isClickable, hideTopBanner, cha
 import { LANGUAGES, testUser } from '../globals';
 
 
-const TEST_URL = 'https://save-editor.cauldron.sefaria.org';
+// Support environment variable for cross-environment testing
+const TEST_URL = process.env.BASE_URL?.replace(/\/$/, '') || 'https://save-editor.cauldron.sefaria.org';
 //const TEST_URL = 'http://2415.coolifydev.sefaria.org';
 
 
 test.describe('Source Sheet Editor - Autosave and Session Status', () => {
   
   test.beforeEach(async ({ page }) => {
+    // Support environment variables while maintaining backwards compatibility
+    const user = {
+      email: process.env.LOGIN_USERNAME || testUser.email,
+      password: process.env.LOGIN_PASSWORD || testUser.password,
+    };
+    
     const loginPage = new LoginPage(page, LANGUAGES.EN);
     await page.goto(`${TEST_URL}/login`);
     await loginPage.ensureLanguage(LANGUAGES.EN);  // Switch to English
-    await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
+    await loginPage.loginAs(user.email ?? '', user.password ?? '');
     await hideModals(page);
     // Now navigate to Source Sheet Editor
     await page.goto(`${TEST_URL}/sheets/new`, { waitUntil: 'domcontentloaded' });
     await changeLanguageLoggedIn(page, LANGUAGES.EN);
+    
+    // Wait for sheet content and ensure guide overlay is dismissed
+    await page.waitForSelector('.sheetContent', { timeout: 10000 });
+    
+    // Aggressively dismiss guide overlay to prevent interference with autosave tests
+    await page.waitForTimeout(3000); // Give guide time to load if it's going to
+    await page.evaluate(() => {
+      // Completely remove guide overlay if it exists
+      const guideOverlay = document.querySelector('.guideOverlay') as HTMLElement;
+      if (guideOverlay) {
+        guideOverlay.remove();
+      }
+      
+      // Also disable guide initialization to prevent it from loading again
+      (window as any).disableGuideOverlay = true;
+    });
   });
 
   test('User actively typing, then gets logged out', async ({ page }) => {
