@@ -98,7 +98,9 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
         await context.clearCookies()
     }   
     const page: Page = await context.newPage();
-    await page.goto(url);
+    
+    // Handle URL properly with BASE_URL
+    await page.goto(buildFullUrl(url));
 
     // Only change language if the IP address doesn't match the specified language.
     const inIsrael = await isIsraelIp(page)
@@ -125,7 +127,10 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 // }
 
 export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
-    // Assume we are already on the login page with the correct `?next=` param
+    // First, navigate to the login page
+    await page.goto(buildFullUrl('/login'));
+    await page.waitForLoadState('networkidle');
+    
     await changeLanguage(page, language);
     await page.getByPlaceholder('Email Address').fill(user.email ?? '');
     await page.getByPlaceholder('Password').fill(user.password ?? '');
@@ -146,7 +151,10 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     await context.addCookies(loginCookies);
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
-    await newPage.goto(url);
+    
+    // Handle URL properly with BASE_URL
+    await newPage.goto(buildFullUrl(url));
+    
     await hideModals(newPage);
     return newPage;
 }
@@ -158,6 +166,17 @@ export const goToSourceSheetEditorWithUser = async (context: BrowserContext, url
 export const getPathAndParams = (url: string) => {
     const urlObj = new URL(url);
     return urlObj.pathname + urlObj.search;
+}
+
+/**
+ * Helper to build full URL from relative path using BASE_URL environment variable
+ * @param url Relative or absolute URL
+ * @returns Full URL with proper BASE_URL handling
+ */
+export const buildFullUrl = (url: string): string => {
+    if (url.startsWith('http')) return url;
+    const baseUrl = process.env.BASE_URL || 'http://localhost:8000';
+    return `${baseUrl.replace(/\/$/, '')}${url.startsWith('/') ? url : '/' + url}`;
 }
 
 export const changeLanguageOfText = async (page: Page, sourceLanguage: RegExp) => {

@@ -17,26 +17,34 @@ cd /path/to/Sefaria-Project  # Root where playwright.config.ts is located
 ### 3. Environment Setup
 ```bash
 # For local development testing
-SANDBOX_URL=http://localhost:8000 \
-PLAYWRIGHT_USER_EMAIL=your-test-user@example.com \
-PLAYWRIGHT_USER_PASSWORD=your-password \
+BASE_URL=http://localhost:8000 \
+LOGIN_USERNAME=your-test-user@example.com \
+LOGIN_PASSWORD=your-password \
 npx playwright test
 
-# For testing against specific environment
-SANDBOX_URL=https://save-editor.cauldron.sefaria.org \
-PLAYWRIGHT_USER_EMAIL=admin@admin.com \
-PLAYWRIGHT_USER_PASSWORD=admin \
+# For testing against sandbox environment (CURRENT WORKING SETUP)
+BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ \
+LOGIN_USERNAME=danielschreiber@sefaria.org \
+LOGIN_PASSWORD=admin \
+npx playwright test
+
+# For testing against staging
+BASE_URL=https://save-editor.cauldron.sefaria.org/ \
+LOGIN_USERNAME=admin@admin.com \
+LOGIN_PASSWORD=admin \
 npx playwright test
 ```
 
 ### 4. Basic Test Run
 ```bash
 # Test existing working functionality first
-npx playwright test reader --max-failures=1
+npx playwright test banner -g "English" --max-failures=1
 
-# Then test specific features
+# Then test specific features that require login
+BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ \
+LOGIN_USERNAME=danielschreiber@sefaria.org \
+LOGIN_PASSWORD=admin \
 npx playwright test guide-overlay --max-failures=1
-npx playwright test banner --max-failures=1
 ```
 
 ---
@@ -75,11 +83,15 @@ e2e-tests/
 
 | Variable | Purpose | Example | Required |
 |----------|---------|---------|----------|
-| `SANDBOX_URL` | Base URL for tests | `http://localhost:8000` | Local dev only |
-| `PLAYWRIGHT_USER_EMAIL` | Test user email | `admin@admin.com` | Auth tests only |
-| `PLAYWRIGHT_USER_PASSWORD` | Test user password | `admin` | Auth tests only |
+| `BASE_URL` | Base URL for tests | `http://localhost:8000` | Always (used by utils) |
+| `LOGIN_USERNAME` | Test user email | `admin@admin.com` | Auth tests only |
+| `LOGIN_PASSWORD` | Test user password | `admin` | Auth tests only |
+| `PLAYWRIGHT_USER_EMAIL` | Fallback test user email | `admin@admin.com` | Legacy support |
+| `PLAYWRIGHT_USER_PASSWORD` | Fallback test user password | `admin` | Legacy support |
 | `PLAYWRIGHT_SUPERUSER_EMAIL` | Admin user email | `superuser@admin.com` | Admin tests only |
 | `PLAYWRIGHT_SUPERUSER_PASSWORD` | Admin user password | `superpass` | Admin tests only |
+
+**Note**: The infrastructure now primarily uses `BASE_URL`, `LOGIN_USERNAME`, and `LOGIN_PASSWORD`. The `PLAYWRIGHT_*` variables are maintained for backwards compatibility.
 
 ### Browser Configuration
 - **Default**: Chromium only (see `playwright.config.ts`)
@@ -593,6 +605,203 @@ npx playwright test new-feature
 - **Use overly specific selectors** that break easily
 - **Test internal implementation details** - focus on user behavior
 - **Create tests without page objects** for complex interactions
+
+---
+
+## 🤖 AI Assistant Guide
+
+This section provides specific guidance for AI assistants writing or debugging Playwright tests for the Sefaria project.
+
+### Critical Infrastructure Information
+
+**Always use these utility functions** (from `utils.ts`):
+```typescript
+// For non-authenticated pages (most common)
+const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+
+// For authenticated pages (sheet editor, user features)  
+const page = await goToPageWithUser(context, '/sheets/new', user);
+
+// For source sheet editor specifically
+const page = await goToNewSheetWithUser(context);
+
+// URL building helper (use internally)
+const fullUrl = buildFullUrl('/relative/path'); // Handles BASE_URL automatically
+```
+
+**Environment Variables Pattern**:
+```typescript
+// Always support environment override in test functions
+const user = {
+    email: process.env.LOGIN_USERNAME || testUser.email,
+    password: process.env.LOGIN_PASSWORD || testUser.password,
+};
+```
+
+### Required Test Setup Pattern
+
+**Every test file should follow this structure**:
+```typescript
+import { test, expect } from '@playwright/test';
+import { YourPageClass } from '../pages/yourPage';
+import { goToPageWithUser, goToPageWithLang } from '../utils';
+import { LANGUAGES, testUser } from '../globals';
+
+test.describe('Your Feature', () => {
+    test.beforeEach(async ({ context }) => {
+        await context.clearCookies(); // ALWAYS clear state
+    });
+
+    test('TC001: Descriptive test name', async ({ context }) => {
+        // Use appropriate navigation helper
+        const page = await goToPageWithUser(context, '/feature-url');
+        // Rest of test...
+    });
+});
+```
+
+### Common Selectors and Patterns
+
+**Sheet Editor Detection**:
+```typescript
+await page.waitForSelector('.sheetContent', { timeout: 10000 });
+```
+
+**Login Success Indicators** (environment dependent):
+```typescript
+// Don't rely on "See My Saved Texts" - not universal
+// Instead use:
+await page.waitForLoadState('networkidle');
+// OR check for profile elements:
+const profileVisible = await page.locator('.myProfileBox, .profile-pic').isVisible();
+```
+
+**Language Interface Classes**:
+```typescript
+// Hebrew interface detection
+const hasHebrewInterface = await page.locator('body.interface-hebrew').isVisible();
+```
+
+**Working Test Commands**:
+```bash
+# Sandbox environment (currently working)
+BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ \
+LOGIN_USERNAME=danielschreiber@sefaria.org \
+LOGIN_PASSWORD=admin \
+npx playwright test your-test.spec.ts
+
+# Local development
+BASE_URL=http://localhost:8000 \
+LOGIN_USERNAME=admin@admin.com \
+LOGIN_PASSWORD=admin \
+npx playwright test your-test.spec.ts
+```
+
+### Error Handling Patterns
+
+**Timeout Issues**:
+```typescript
+// GOOD - Wait for specific conditions
+await page.waitForSelector('.content-loaded');
+await element.waitFor({ state: 'visible' });
+
+// AVOID - Fixed timeouts
+await page.waitForTimeout(5000);
+```
+
+**Modal Management**:
+```typescript
+import { hideModals } from '../utils';
+
+// Always hide modals after navigation
+const page = await goToPageWithUser(context, '/sheets/new');
+await hideModals(page); // Essential for consistent testing
+```
+
+**Network Simulation**:
+```typescript
+// Simulate slow API (for testing loading states)
+await page.route('**/api/guides/editor', async (route) => {
+    await new Promise(resolve => setTimeout(resolve, 8000));
+    await route.continue();
+});
+
+// Simulate API errors
+await page.route('**/api/guides/editor', async (route) => {
+    await route.fulfill({ status: 500, body: JSON.stringify({ error: 'Server error' }) });
+});
+```
+
+### Debugging Commands for AI
+
+When debugging failing tests, use these commands:
+```bash
+# Visual debugging
+npx playwright test --headed --debug
+
+# UI mode for step-by-step debugging  
+npx playwright test --ui
+
+# Screenshot on failure (automatic in config)
+# Screenshots saved to test-results/
+
+# Print current state in test
+console.log('Current URL:', page.url());
+console.log('Page content:', await page.content());
+await page.screenshot({ path: 'debug.png' });
+```
+
+### Common Test Patterns for AI
+
+**Feature Guide/Overlay Testing**:
+```typescript
+// Cookie management for guides
+await clearGuideOverlayCookie(page, 'editor');
+await setGuideOverlayCookie(page, 'editor');
+const hasSeen = await hasGuideOverlayCookie(page, 'editor');
+```
+
+**Multi-language Testing**:
+```typescript
+const testConfigs = [
+    { testLanguage: "English", interfaceLanguage: LANGUAGES.EN },
+    { testLanguage: "Hebrew", interfaceLanguage: LANGUAGES.HE }
+];
+
+testConfigs.forEach(({testLanguage, interfaceLanguage}) => {
+    test(`Feature works - ${testLanguage}`, async({ context }) => {
+        const page = await goToPageWithLang(context, '/feature', interfaceLanguage);
+        // Test implementation...
+    });
+});
+```
+
+**Authentication Testing**:
+```typescript
+// Test logged-out state
+const page = await goToPageWithLang(context, '/feature');
+
+// Test logged-in state
+const page = await goToPageWithUser(context, '/feature', user);
+
+// Test logout simulation
+await editor.simulateLogout(page.context());
+```
+
+### Known Working Examples
+
+Reference these files for proven patterns:
+- **`tests/guide-overlay.spec.ts`**: Complete feature with 14 test cases ✅
+- **`tests/banner.spec.ts`**: Multi-language navigation ✅  
+- **`pages/guideOverlayPage.ts`**: Complete page object model ✅
+- **`utils.ts`**: All infrastructure helpers ✅
+
+### Current Environment Status
+
+- **✅ Working**: `https://tips-and-tricks.cauldron.sefaria.org/` with `danielschreiber@sefaria.org/admin`
+- **✅ Working Tests**: Banner (English), Guide Overlay (11/14 tests)
+- **❌ Known Issues**: Hebrew interface tests, some autosave test expectations
+- **✅ Infrastructure**: URL handling, login flow, BASE_URL support all working
 
 ---
 

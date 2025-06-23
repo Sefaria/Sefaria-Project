@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { GuideOverlayPage } from '../pages/guideOverlayPage';
 import {
-    goToNewSheetWithUser,
     goToPageWithUser,
     clearGuideOverlayCookie,
     setGuideOverlayCookie,
@@ -11,7 +10,21 @@ import {
     waitForGuideOverlayToClose,
     changeLanguageLoggedIn
 } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, testUser } from '../globals';
+
+// Guide-overlay specific navigation function to avoid modifying shared utils
+const goToSheetEditorWithUser = async (context: any, user = testUser) => {
+    // Use environment variables if available
+    const actualUser = {
+        email: process.env.LOGIN_USERNAME || user.email,
+        password: process.env.LOGIN_PASSWORD || user.password,
+    };
+    
+    const page = await goToPageWithUser(context, '/sheets/new', actualUser);
+    // Wait for sheet editor to load - use the correct selector from SourceSheetEditorPage
+    await page.waitForSelector('.sheetContent', { timeout: 10000 });
+    return page;
+};
 
 test.describe('Guide Overlay', () => {
     
@@ -21,12 +34,12 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC001: Guide shows on first visit to sheet editor', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         // Guide should appear automatically on first visit
         await guideOverlay.waitForLoaded();
-        await expect(guideOverlay.overlay).toBeVisible();
+        await expect(guideOverlay.overlay()).toBeVisible();
         
         // Should show title and content
         const title = await guideOverlay.getCurrentTitle();
@@ -37,7 +50,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC002: Guide doesn\'t show on repeat visits', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         // First visit - guide should appear
@@ -46,17 +59,17 @@ test.describe('Guide Overlay', () => {
         
         // Refresh the page
         await page.reload();
-        await page.waitForSelector('.editorContent');
+        await page.waitForSelector('.sheetContent');
         
         // Guide should not appear on second visit
-        await expect(guideOverlay.overlay).not.toBeVisible();
+        await expect(guideOverlay.overlay()).not.toBeVisible();
         
         // Cookie should exist
         expect(await hasGuideOverlayCookie(page, 'editor')).toBe(true);
     });
 
     test('TC003: Force show button displays guide', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         // First visit - close the guide
@@ -68,11 +81,11 @@ test.describe('Guide Overlay', () => {
         
         // Guide should reappear
         await guideOverlay.waitForLoaded();
-        await expect(guideOverlay.overlay).toBeVisible();
+        await expect(guideOverlay.overlay()).toBeVisible();
     });
 
     test('TC004: Navigate between guide cards', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         await guideOverlay.waitForLoaded();
@@ -98,7 +111,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC005: Circular navigation works', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         await guideOverlay.waitForLoaded();
@@ -135,7 +148,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC006: Close button dismisses guide', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         await guideOverlay.waitForLoaded();
@@ -144,19 +157,19 @@ test.describe('Guide Overlay', () => {
         await guideOverlay.close();
         
         // Guide should be hidden
-        await expect(guideOverlay.overlay).not.toBeVisible();
+        await expect(guideOverlay.overlay()).not.toBeVisible();
         
         // Cookie should be set
         expect(await hasGuideOverlayCookie(page, 'editor')).toBe(true);
         
         // Refresh page and confirm guide doesn't reappear
         await page.reload();
-        await page.waitForSelector('.editorContent');
-        await expect(guideOverlay.overlay).not.toBeVisible();
+        await page.waitForSelector('.sheetContent');
+        await expect(guideOverlay.overlay()).not.toBeVisible();
     });
 
     test('TC007: Video displays correctly', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         await guideOverlay.waitForLoaded();
@@ -173,7 +186,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC008: Footer links are clickable', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         await guideOverlay.waitForLoaded();
@@ -202,7 +215,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC009: Text content renders properly', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         await guideOverlay.waitForLoaded();
@@ -222,22 +235,22 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC010: Loading state appears', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         // We should see loading state initially
-        await expect(guideOverlay.overlay).toBeVisible();
+        await expect(guideOverlay.overlay()).toBeVisible();
         
         // Wait for loading to complete
         await guideOverlay.waitForLoaded();
         
         // Loading should be gone and content should be visible
         expect(await guideOverlay.isLoading()).toBe(false);
-        await expect(guideOverlay.content).toBeVisible();
+        await expect(guideOverlay.content()).toBeVisible();
     });
 
     test('TC011: Timeout handling works', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         
         // Set up slow loading and clear cookie to force guide to show
         await clearGuideOverlayCookie(page, 'editor');
@@ -252,7 +265,7 @@ test.describe('Guide Overlay', () => {
         
         // Refresh to trigger the guide with slow loading
         await page.reload();
-        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        await page.waitForSelector('.sheetContent', { timeout: 10000 });
         
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
@@ -264,7 +277,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC012: Hebrew content displays correctly', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         
         // Switch to Hebrew interface
         await changeLanguageLoggedIn(page, LANGUAGES.HE);
@@ -273,7 +286,7 @@ test.describe('Guide Overlay', () => {
         await guideOverlay.waitForLoaded();
         
         // Content should be visible
-        await expect(guideOverlay.overlay).toBeVisible();
+        await expect(guideOverlay.overlay()).toBeVisible();
         
         // Should have Hebrew content
         const titleContent = await guideOverlay.getCurrentTitle();
@@ -298,7 +311,7 @@ test.describe('Guide Overlay', () => {
         expect(await readerGuideOverlay.isGuideButtonVisible()).toBe(false);
         
         // Navigate to sheet editor
-        const sheetPage = await goToNewSheetWithUser(context);
+        const sheetPage = await goToSheetEditorWithUser(context);
         const sheetGuideOverlay = new GuideOverlayPage(sheetPage, LANGUAGES.EN);
         
         // Guide button should be visible in sheet editor
@@ -308,7 +321,7 @@ test.describe('Guide Overlay', () => {
     });
 
     test('TC014: Guide button only visible when appropriate', async ({ context }) => {
-        const page = await goToNewSheetWithUser(context);
+        const page = await goToSheetEditorWithUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
         // Guide button should be visible in sheet editor
@@ -316,7 +329,7 @@ test.describe('Guide Overlay', () => {
         
         // Guide overlay should appear on first visit
         await guideOverlay.waitForLoaded();
-        await expect(guideOverlay.overlay).toBeVisible();
+        await expect(guideOverlay.overlay()).toBeVisible();
         
         // Close guide
         await guideOverlay.close();
