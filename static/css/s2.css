@@ -14855,6 +14855,7 @@ span.ref-link-color-3 {color: blue}
   color: #333333;
   display: inline-flex;
   align-items: center;
+  text-transform: none;
 }
 
 .titlePrefix {
