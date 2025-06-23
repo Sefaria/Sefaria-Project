@@ -1038,6 +1038,9 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
             dictionary_node.headwordMap = hw_map
         return dictionary_node
 
+    assert LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': new_headword}) is None, \
+        f'Entry of {parent_lexicon} with headword {new_headword} already exists'
+
     # change entry itself
     print('Updating entry')
     entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
