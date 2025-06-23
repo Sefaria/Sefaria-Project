@@ -399,7 +399,7 @@ class KrupnikEntry(DictionaryEntry):
                               }}}}
     attr_schemas = {
         'headword': {'type': 'string'},
-        'equals': {'type': 'string'},
+        'equals': {'type': 'list', 'schema': {'type': 'string'}},
         **hw_related_schemas,
         'alt_headwords': {
             'type': 'list',
@@ -447,7 +447,7 @@ class KrupnikEntry(DictionaryEntry):
             'no_binyan_kal': lambda _: f'({hw_string})',
             'emendation': lambda x: f'{hw_string} [{x}]',
             'used_in': lambda x: f'{hw_string}; {x}',
-            'equals': lambda x: f'{hw_string} (={x})',
+            'equals': lambda x: f'{hw_string} (={", ".join(x)})',
         }
         for attr, func in attrs_to_funcs_map.items():
             value = getter(hw, attr)
