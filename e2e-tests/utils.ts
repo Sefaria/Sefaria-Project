@@ -74,9 +74,23 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
     await expect(languageLink).toBeVisible();
     await languageLink.click();
   };
-  
-  
-  
+
+/**
+ * General change language function that determines whether user is logged in or out
+ * and calls the appropriate language change function
+ * @param page Page object
+ * @param language Language to change to (from LANGUAGES constants)
+ */
+export const changeLanguage = async (page: Page, language: string) => {
+    // Check if user is logged in by looking for profile icon
+    const isLoggedIn = await page.locator('.myProfileBox .profile-pic').isVisible();
+    
+    if (isLoggedIn) {
+        await changeLanguageLoggedIn(page, language);
+    } else {
+        await changeLanguageLoggedOut(page, language);
+    }
+};
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     // If a cookie already has contents, clear it so that the language cookie can be reset
@@ -90,7 +104,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     const inIsrael = await isIsraelIp(page)
     if( ( inIsrael && language == LANGUAGES.EN) || 
         ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguageLoggedOut(page, language);
+        await changeLanguage(page, language);
     }
 
     langCookies = await context.cookies();
@@ -112,7 +126,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 
 export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
     // Assume we are already on the login page with the correct `?next=` param
-    await changeLanguageLoggedOut(page, language);
+    await changeLanguage(page, language);
     await page.getByPlaceholder('Email Address').fill(user.email ?? '');
     await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();

@@ -1,15 +1,5 @@
 # Sefaria E2E Testing Guide
 
-## ⚠️ Open Questions / Known Issues
-
-Before starting, be aware of these unresolved items:
-
-1. **Login Form Selectors**: The current `loginUser()` function expects placeholder text "Email Address" and "Password", but the actual local dev login form may have different selectors. **TODO**: Verify actual selectors on `http://localhost:8000/login`
-
-2. **Environment Variables**: Tests require `PLAYWRIGHT_USER_EMAIL` and `PLAYWRIGHT_USER_PASSWORD` but there's no documented standard for setting these up (`.env` file vs command line vs CI/CD)
-
----
-
 ## 🚀 Quick Start (Essential Setup)
 
 ### 1. Install Browser Dependencies
@@ -31,6 +21,12 @@ SANDBOX_URL=http://localhost:8000 \
 PLAYWRIGHT_USER_EMAIL=your-test-user@example.com \
 PLAYWRIGHT_USER_PASSWORD=your-password \
 npx playwright test
+
+# For testing against specific environment
+SANDBOX_URL=https://save-editor.cauldron.sefaria.org \
+PLAYWRIGHT_USER_EMAIL=admin@admin.com \
+PLAYWRIGHT_USER_PASSWORD=admin \
+npx playwright test
 ```
 
 ### 4. Basic Test Run
@@ -38,21 +34,32 @@ npx playwright test
 # Test existing working functionality first
 npx playwright test reader --max-failures=1
 
-# Then test your new features
+# Then test specific features
 npx playwright test guide-overlay --max-failures=1
+npx playwright test banner --max-failures=1
 ```
 
 ---
 
-## 📁 Directory Structure
+## 📁 Project Structure
 
 ```
 e2e-tests/
 ├── tests/           # Test specification files (.spec.ts)
+│   ├── reader.spec.ts        # Reader navigation tests
+│   ├── banner.spec.ts        # Header banner functionality 
+│   ├── guide-overlay.spec.ts # Guide overlay feature tests
+│   ├── autosave.spec.ts      # Source sheet autosave tests
+│   └── ...                   # Other feature tests
 ├── pages/           # Page Object Models (.ts)
+│   ├── helperBase.ts         # Base class for all page objects
+│   ├── pageManager.ts        # Central manager for all pages
+│   ├── banner.ts             # Header banner page object
+│   ├── guideOverlayPage.ts   # Guide overlay page object
+│   └── ...                   # Other page objects
 ├── utils.ts         # Shared utilities and helper functions
 ├── globals.ts       # Constants and global configuration
-├── fixtures.ts      # Custom Playwright fixtures (currently empty)
+├── fixtures.ts      # Custom Playwright fixtures
 └── README.md        # This file
 ```
 
@@ -71,20 +78,25 @@ e2e-tests/
 | `SANDBOX_URL` | Base URL for tests | `http://localhost:8000` | Local dev only |
 | `PLAYWRIGHT_USER_EMAIL` | Test user email | `admin@admin.com` | Auth tests only |
 | `PLAYWRIGHT_USER_PASSWORD` | Test user password | `admin` | Auth tests only |
+| `PLAYWRIGHT_SUPERUSER_EMAIL` | Admin user email | `superuser@admin.com` | Admin tests only |
+| `PLAYWRIGHT_SUPERUSER_PASSWORD` | Admin user password | `superpass` | Admin tests only |
 
 ### Browser Configuration
 - **Default**: Chromium only (see `playwright.config.ts`)
-- **Timeout**: 30 seconds per test, 5 seconds per assertion
+- **Timeout**: 70 seconds per test, 10 seconds per assertion
 - **Retries**: 2 retries on CI, 0 locally
 - **Parallel**: Fully parallel by default
 
-### Authentication Pattern
+### Authentication Patterns
 ```typescript
 // Non-authenticated tests (most common)
 const page = await goToPageWithLang(context, '/texts');
 
 // Authenticated tests (sheets, user features)
 const page = await goToPageWithUser(context, '/sheets/new');
+
+// Source sheet editor specifically
+const page = await goToNewSheetWithUser(context);
 ```
 
 ---
@@ -93,17 +105,21 @@ const page = await goToPageWithUser(context, '/sheets/new');
 
 ### 1. Page Object Model (Recommended)
 
-Create a class for each major UI component:
+All page objects extend `HelperBase` and follow a consistent pattern:
 
 ```typescript
 // pages/myFeaturePage.ts
-export class MyFeaturePage {
-    readonly page: Page;
+import { Page, Locator } from '@playwright/test';
+import { HelperBase } from './helperBase';
+
+export class MyFeaturePage extends HelperBase {
     readonly mainButton: Locator;
+    readonly content: Locator;
     
-    constructor(page: Page) {
-        this.page = page;
+    constructor(page: Page, language: string) {
+        super(page, language);
         this.mainButton = page.locator('[data-testid="main-button"]');
+        this.content = page.locator('.content-loaded');
     }
     
     async clickMainButton() {
@@ -111,21 +127,56 @@ export class MyFeaturePage {
     }
     
     async waitForLoaded() {
-        await this.page.waitForSelector('.content-loaded');
+        await this.content.waitFor({ state: 'visible' });
     }
 }
 ```
 
-### 2. Utility Functions
+### 2. Using PageManager for Complex Interactions
 
-Add reusable helpers to `utils.ts`:
+The `PageManager` class centralizes all page objects and provides navigation helpers:
+
+```typescript
+import { PageManager } from '../pages/pageManager';
+import { LANGUAGES } from '../globals';
+
+test('Complex navigation test', async ({ context }) => {
+    const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    
+    // Navigate using banner
+    await pm.navigateFromBannerTo().textsPageFromLogo();
+    await pm.navigateFromBannerTo().topicsPage();
+    
+    // Use specific page objects
+    await pm.onSearchPage().searchFor('Love');
+    
+    // Toggle language
+    await pm.toggleLanguage(LANGUAGES.HE);
+});
+```
+
+### 3. Utility Functions Pattern
+
+Add reusable helpers to `utils.ts` following existing patterns:
 
 ```typescript
 // Navigation helpers
 export const goToMyFeature = async (context: BrowserContext): Promise<Page> => {
     const page = await goToPageWithUser(context, '/my-feature');
     await page.waitForSelector('.feature-loaded');
+    await hideModals(page); // Always hide modals for consistent testing
     return page;
+};
+
+// Language management
+export const changeLanguageLoggedOut = async (page: Page, language: string) => {
+    await page.locator('.interfaceLinks-button').click();
+    if (language === LANGUAGES.EN) {
+        await page.locator('.interfaceLinks-option.int-en').click();
+    } else if (language === LANGUAGES.HE) {
+        await page.locator('.interfaceLinks-option.int-he').click();
+    }
 };
 
 // State management helpers  
@@ -134,58 +185,83 @@ export const clearMyFeatureCookie = async (page: Page) => {
 };
 ```
 
-### 3. Test Structure
+### 4. Test Structure and Organization
 
 ```typescript
 import { test, expect } from '@playwright/test';
 import { MyFeaturePage } from '../pages/myFeaturePage';
 import { goToMyFeature } from '../utils';
+import { LANGUAGES } from '../globals';
 
+// Use describe blocks for logical grouping
 test.describe('My Feature', () => {
     
+    // Clean state setup for each test
     test.beforeEach(async ({ context }) => {
-        // Clean state setup
-        const tempPage = await context.newPage();
-        await clearMyFeatureCookie(tempPage);
-        await tempPage.close();
+        await context.clearCookies(); // Start clean
     });
 
+    // Use descriptive test IDs and names
     test('TC001: Basic functionality works', async ({ context }) => {
         const page = await goToMyFeature(context);
-        const myFeature = new MyFeaturePage(page);
+        const myFeature = new MyFeaturePage(page, LANGUAGES.EN);
         
         await myFeature.waitForLoaded();
         await myFeature.clickMainButton();
         
         await expect(page.locator('.success-message')).toBeVisible();
+    });
+
+    // Test multiple languages when applicable
+    test('TC002: Works in Hebrew interface', async ({ context }) => {
+        const page = await goToPageWithLang(context, '/my-feature', LANGUAGES.HE);
+        const myFeature = new MyFeaturePage(page, LANGUAGES.HE);
         
-        await page.close();
+        await myFeature.waitForLoaded();
+        // Hebrew-specific testing...
     });
 });
 ```
 
-### 4. Selector Strategy (Priority Order)
+### 5. Selector Strategy (Priority Order)
 
-1. **Test IDs**: `[data-testid="submit-button"]` (best)
+1. **Test IDs**: `[data-testid="submit-button"]` (best - future-proof)
 2. **Role + Name**: `page.getByRole('button', { name: 'Submit' })`
 3. **Placeholder**: `page.getByPlaceholder('Email Address')`
 4. **Text Content**: `page.getByText('Click here')`
-5. **CSS Selectors**: `.submit-button` (last resort)
+5. **CSS Classes**: `.submit-button` (last resort - brittle)
+
+**Examples from codebase:**
+```typescript
+// Good - semantic selectors
+await page.getByRole('link', { name: 'Tanakh' }).click();
+await page.getByPlaceholder('Email Address').fill('test@example.com');
+
+// Acceptable - stable CSS classes
+await page.locator('.editorContent').waitFor();
+await page.locator('.guideOverlay').isVisible();
+
+// Avoid - position-dependent selectors
+await page.locator('.arrowButton').first(); // Only if semantic selection impossible
+```
 
 ---
 
 ## 🎯 Testing Best Practices
 
-### Cookie Management
+### Cookie and State Management
 ```typescript
-// Clear specific cookie
-await clearGuideOverlayCookie(page, 'editor');
-
 // Clear all cookies (clean slate)
 await context.clearCookies();
 
-// Set cookie state
+// Clear specific cookie by name
+await page.context().clearCookies({ name: 'guide_overlay_seen_editor' });
+
+// Set specific cookie state
 await setGuideOverlayCookie(page, 'editor');
+
+// Check cookie existence
+const hasSeenGuide = await hasGuideOverlayCookie(page, 'editor');
 ```
 
 ### Waiting Patterns
@@ -195,39 +271,64 @@ await page.waitForSelector('.content');
 
 // Wait for element to disappear (loading states)
 await page.waitForSelector('.loading', { state: 'detached' });
+await page.getByText('Loading...').waitFor({ state: 'detached' });
 
 // Wait for network response
 await page.waitForResponse(resp => resp.url().includes('/api/guides'));
 
 // Wait for page navigation
 await page.waitForURL('**/sheets/**');
+
+// Wait for network idle (use sparingly)
+await page.waitForLoadState('networkidle');
 ```
 
-### Error Simulation
+### Error Simulation and Network Mocking
 ```typescript
 // Simulate slow API responses
-await simulateSlowGuideLoading(page, 8000);
+await page.route('**/api/guides/editor', async (route) => {
+    await new Promise(resolve => setTimeout(resolve, 8000));
+    await route.continue();
+});
 
 // Simulate API errors
-await simulateGuideApiError(page);
+await page.route('**/api/guides/editor', async (route) => {
+    await route.fulfill({ status: 500, body: JSON.stringify({ error: 'Server error' }) });
+});
 
-// Intercept and modify responses
-await page.route('**/api/guides/editor', async route => {
-    await route.fulfill({ status: 404 });
+// Simulate offline mode
+await page.context().setOffline(true);
+```
+
+### Modal and Banner Management
+```typescript
+// Always hide modals for consistent testing
+await hideModals(page);
+
+// Hide top banner if it interferes with tests  
+await hideTopBanner(page);
+
+// Handle unexpected dialogs
+page.on('dialog', async dialog => {
+    console.log(`Dialog appeared: ${dialog.message()}`);
+    await dialog.accept();
 });
 ```
 
 ---
 
-## 🐛 Debugging
+## 🐛 Debugging and Troubleshooting
 
 ### Interactive Debugging
 ```bash
 # Visual debugging with browser UI
 npx playwright test --headed --debug
 
-# Step-by-step debugging
+# Step-by-step debugging with UI mode
 npx playwright test --ui
+
+# Run specific test with debugging
+npx playwright test guide-overlay -g "TC001" --headed --debug
 ```
 
 ### Programmatic Debugging
@@ -235,68 +336,136 @@ npx playwright test --ui
 // Pause execution for manual inspection
 await page.pause();
 
-// Take screenshots
-await page.screenshot({ path: 'debug.png' });
+// Take screenshots at key points
+await page.screenshot({ path: 'debug-step1.png' });
 
 // Print page content for inspection
 console.log(await page.content());
 
-// Check current URL
+// Check current URL and state
 console.log('Current URL:', page.url());
+console.log('Local storage:', await page.evaluate(() => localStorage));
 ```
 
-### Common Issues
+### Common Issues and Solutions
 
-1. **"Invalid URL" errors**: Running from wrong directory (must be project root)
-2. **Element not found**: Wait for loading states to complete first
-3. **Authentication failures**: Check environment variables are set
-4. **Timeout errors**: Increase timeout or wait for specific conditions
+1. **"Invalid URL" errors**: 
+   - Running from wrong directory (must be project root)
+   - Check `SANDBOX_URL` environment variable
+
+2. **Element not found**: 
+   - Wait for loading states to complete first
+   - Use `.waitFor()` before interactions
+   - Check selector specificity
+
+3. **Authentication failures**: 
+   - Verify environment variables are set
+   - Check login flow in `loginUser` function
+   - Ensure test user has proper permissions
+
+4. **Timeout errors**: 
+   - Increase timeout or wait for specific conditions
+   - Check network conditions
+   - Use `.waitFor()` instead of `page.waitForTimeout()`
+
+5. **Flaky tests**:
+   - Add proper waits instead of fixed timeouts
+   - Clear state between tests
+   - Handle loading states properly
 
 ---
 
-## 📝 Style Guidelines
+## 📝 Language and Localization Testing
 
-### Test Naming
-- **Test IDs**: `TC001`, `TC002`, etc. for easy tracking
-- **Descriptions**: Clear, behavior-focused: "Guide shows on first visit"
-- **Groups**: Use `test.describe()` for logical grouping
-
-### Code Organization
-- **One feature per file**: `guide-overlay.spec.ts`, `search.spec.ts`
-- **Page objects in separate files**: `pages/guideOverlayPage.ts`
-- **Shared utilities in utils.ts**: Reusable across features
-- **Constants in globals.ts**: URLs, timeouts, test data
-
-### Documentation
-- **Comment complex selectors**: Why this specific element
-- **Document test purpose**: What behavior is being verified
-- **Include setup requirements**: Dependencies, data, auth state
-
----
-
-## 📚 Examples
-
-### Complete Test Example (Guide Overlay)
-See `tests/guide-overlay.spec.ts` and `pages/guideOverlayPage.ts` for a comprehensive example following all patterns above.
-
-### Simple Feature Test Template
+### Multi-Language Test Pattern
 ```typescript
-import { test, expect } from '@playwright/test';
-import { goToPageWithLang } from '../utils';
+const testLanguageConfigs = [
+    { testLanguage: "English", interfaceLanguage: LANGUAGES.EN },
+    { testLanguage: "Hebrew", interfaceLanguage: LANGUAGES.HE }
+];
 
-test('Simple feature test', async ({ context }) => {
-    const page = await goToPageWithLang(context, '/feature-url');
+testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
+    test(`Feature works - ${testLanguage}`, async({ context }) => {
+        const page = await goToPageWithLang(context, '/feature', interfaceLanguage);
+        // Test implementation...
+    });
+});
+```
+
+### Language Switching
+```typescript
+// For logged out users
+await changeLanguageLoggedOut(page, LANGUAGES.HE);
+
+// For logged in users  
+await changeLanguageLoggedIn(page, LANGUAGES.HE);
+
+// Using PageManager
+const pm = new PageManager(page, LANGUAGES.EN);
+await pm.toggleLanguage(LANGUAGES.HE);
+```
+
+### Geographic Testing
+```typescript
+// Check if running from Israel (affects default language)
+const inIsrael = await isIsraelIp(page);
+if (inIsrael && language === LANGUAGES.EN) {
+    await changeLanguageLoggedOut(page, language);
+}
+```
+
+---
+
+## 📚 Advanced Patterns
+
+### Reusable Test Configurations
+```typescript
+// Define test data
+const TEST_URLS = {
+    LOCAL: 'http://localhost:8000',
+    STAGING: 'https://save-editor.cauldron.sefaria.org',
+    PRODUCTION: 'https://sefaria.org'
+};
+
+// Environment-specific test setup
+test.beforeEach(async ({ page }) => {
+    if (process.env.SANDBOX_URL?.includes('cauldron')) {
+        // Special setup for staging environment
+        await page.goto(`${process.env.SANDBOX_URL}/login`);
+        // Custom login flow for staging
+    }
+});
+```
+
+### Complex User Flows
+```typescript
+test('Complete user journey', async ({ context }) => {
+    // Phase 1: Anonymous browsing
+    const page = await goToPageWithLang(context, '/', LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
     
-    // Wait for page to load
-    await page.waitForSelector('.main-content');
+    // Phase 2: Search and explore
+    await pm.onSearchPage().searchFor('Torah');
+    await pm.navigateFromBannerTo().textsPageFromLink();
     
-    // Interact with feature
-    await page.click('[data-testid="action-button"]');
+    // Phase 3: User authentication
+    await pm.onLoginPage().loginAs('test@example.com', 'password');
     
-    // Verify result
-    await expect(page.locator('.result')).toBeVisible();
+    // Phase 4: Authenticated actions
+    const sheetPage = await goToNewSheetWithUser(context);
+    // Continue with authenticated flow...
+});
+```
+
+### Performance Testing Considerations
+```typescript
+test('Page loads within acceptable time', async ({ context }) => {
+    const startTime = Date.now();
+    const page = await goToPageWithLang(context, '/texts');
+    await page.waitForSelector('.content-loaded');
+    const loadTime = Date.now() - startTime;
     
-    await page.close();
+    expect(loadTime).toBeLessThan(5000); // 5 second max load time
 });
 ```
 
@@ -304,11 +473,143 @@ test('Simple feature test', async ({ context }) => {
 
 ## 🔍 Current Test Coverage
 
-- **Reader functionality**: Navigation, translations, word lookup ✅
-- **Guide overlay**: Complete 14-test suite (authentication pending)
-- **Topics, search, banners**: Basic coverage ✅  
-- **Sheets**: Tests exist but currently commented out
+### ✅ Implemented Features
+- **Reader functionality**: Navigation, translations, word lookup, connections
+- **Banner/Header**: Navigation, search, language switching  
+- **Guide overlay**: Complete 14-test suite covering display, navigation, persistence
+- **Topics and Community**: Basic navigation and functionality
+- **Source sheets**: Autosave, session management, authentication flows
+- **Search**: Auto-complete, virtual keyboard, multi-language
+
+### 🚧 Partially Implemented
+- **Bookmarking**: Tests exist but currently commented out
+- **User profiles**: Basic authentication, needs expansion
+- **Mobile responsive**: Limited coverage
+
+### 📋 Test Coverage Metrics
+- **Total test files**: 9 active spec files
+- **Page objects**: 12 reusable page models
+- **Utility functions**: 25+ helper functions
+- **Language coverage**: English + Hebrew interface testing
 
 ---
 
-**Need Help?** Review this conversation history or the existing working tests in `tests/reader.spec.ts` for patterns. 
+## 🚀 Creating New Tests: Step-by-Step Guide
+
+### 1. Plan Your Test
+- **Identify the feature**: What functionality are you testing?
+- **Define user scenarios**: What are the key user journeys?
+- **Consider edge cases**: Error states, loading, different languages
+- **Check existing coverage**: Avoid duplicate tests
+
+### 2. Create Page Object (if needed)
+```typescript
+// pages/newFeaturePage.ts
+import { Page, Locator } from '@playwright/test';
+import { HelperBase } from './helperBase';
+
+export class NewFeaturePage extends HelperBase {
+    readonly featureButton: Locator;
+    readonly content: Locator;
+    
+    constructor(page: Page, language: string) {
+        super(page, language);
+        this.featureButton = page.getByRole('button', { name: 'Feature Action' });
+        this.content = page.locator('.feature-content');
+    }
+    
+    async performAction() {
+        await this.featureButton.click();
+        await this.content.waitFor({ state: 'visible' });
+    }
+}
+```
+
+### 3. Add Utilities (if needed)
+```typescript
+// Add to utils.ts
+export const goToNewFeature = async (context: BrowserContext): Promise<Page> => {
+    const page = await goToPageWithUser(context, '/new-feature');
+    await page.waitForSelector('.feature-loaded');
+    await hideModals(page);
+    return page;
+};
+```
+
+### 4. Write Test File
+```typescript
+// tests/new-feature.spec.ts
+import { test, expect } from '@playwright/test';
+import { NewFeaturePage } from '../pages/newFeaturePage';
+import { goToNewFeature } from '../utils';
+import { LANGUAGES } from '../globals';
+
+test.describe('New Feature', () => {
+    test.beforeEach(async ({ context }) => {
+        await context.clearCookies();
+    });
+
+    test('TC001: Feature works correctly', async ({ context }) => {
+        const page = await goToNewFeature(context);
+        const feature = new NewFeaturePage(page, LANGUAGES.EN);
+        
+        await feature.performAction();
+        await expect(feature.content).toBeVisible();
+    });
+});
+```
+
+### 5. Test and Iterate
+```bash
+# Run your new test
+npx playwright test new-feature --headed
+
+# Debug if needed
+npx playwright test new-feature --ui
+
+# Add to CI once stable
+npx playwright test new-feature
+```
+
+---
+
+## 🎯 Best Practices Summary
+
+### DO ✅
+- **Use Page Object Model** for reusable components
+- **Wait for elements** before interacting (`waitFor`, `waitForSelector`)
+- **Clear state** between tests (`context.clearCookies()`)
+- **Hide modals** for consistent testing (`hideModals`)
+- **Use semantic selectors** (roles, placeholders, text)
+- **Test multiple languages** when applicable
+- **Handle loading states** properly
+- **Add descriptive test names** with TC IDs
+
+### DON'T ❌
+- **Use fixed timeouts** (`page.waitForTimeout`) - use conditions instead
+- **Rely on element positions** (`.first()`, `.nth()`) when avoidable  
+- **Skip state cleanup** between tests
+- **Ignore loading states** - always wait for completion
+- **Use overly specific selectors** that break easily
+- **Test internal implementation details** - focus on user behavior
+- **Create tests without page objects** for complex interactions
+
+---
+
+## 📖 Reference Examples
+
+For comprehensive examples of each pattern, reference these existing files:
+- **Complete feature test**: `tests/guide-overlay.spec.ts` (14 test cases)
+- **Page object pattern**: `pages/guideOverlayPage.ts` (full component model)
+- **Multi-language testing**: `tests/banner.spec.ts` (language configuration)
+- **Authentication flows**: `tests/autosave.spec.ts` (login/logout scenarios)
+- **Simple navigation**: `tests/reader.spec.ts` (basic user journeys)
+- **Utility functions**: `utils.ts` (helper patterns)
+
+---
+
+**Need Help?** 
+- Review existing test files for patterns
+- Check this README for specific use cases
+- Use Playwright's `--ui` mode for interactive debugging
+- Reference the Playwright documentation for advanced features 
