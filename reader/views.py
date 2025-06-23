@@ -4820,36 +4820,6 @@ def guides_api(request, guide_key=None):
     except Guide.DoesNotExist:
         return jsonResponse({"error": f"Guide '{guide_key}' not found"}, status=404)
     
-    # Get all info cards for this guide, ordered by their sort order
-    info_cards = guide.info_cards.all().order_by('order')
-    
-    # Build the cards array
-    cards = []
-    for card in info_cards:
-        cards.append({
-            "id": str(card.id),
-            "title": {
-                "en": card.title_en,
-                "he": card.title_he
-            },
-            "text": {
-                "en": card.text_en,
-                "he": card.text_he
-            },
-            "videoUrl": {
-                "en": card.video_en,
-                "he": card.video_he
-            }
-        })
-    
-    # Build the response
-    response_data = {
-        "titlePrefix": {
-            "en": guide.title_prefix_en,
-            "he": guide.title_prefix_he
-        },
-        "footerLinks": guide.footer_links,
-        "cards": cards
-    }
+    response_data = guide.contents()
     
     return jsonResponse(response_data)

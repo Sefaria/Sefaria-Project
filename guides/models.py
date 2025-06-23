@@ -83,8 +83,32 @@ class Guide(models.Model):
                 })
         
         return links
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def contents(self, **kwargs):
+        """
+        Returns the complete guide data structure for API responses.
+        
+        Returns:
+            dict: Dictionary containing titlePrefix, footerLinks, and cards
+        """
+        # Get all info cards for this guide, ordered by their sort order
+        info_cards = self.info_cards.all().order_by('order')
+        
+        # Build the cards array
+        cards = [card.contents() for card in info_cards]
+        
+        # Build the response
+        return {
+            "titlePrefix": {
+                "en": self.title_prefix_en,
+                "he": self.title_prefix_he
+            },
+            "footerLinks": self.footer_links,
+            "cards": cards
+        }
 
     def __str__(self):
         return f"{self.key} - {self.title_prefix_en}"
@@ -121,6 +145,29 @@ class InfoCard(Sortable):
         verbose_name="Video URL (HE)",
         help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here."
     )
+
+    def contents(self, **kwargs):
+        """
+        Returns the card data structure for API responses.
+        
+        Returns:
+            dict: Dictionary containing id, title, text, and videoUrl
+        """
+        return {
+            "id": str(self.id),
+            "title": {
+                "en": self.title_en,
+                "he": self.title_he
+            },
+            "text": {
+                "en": self.text_en,
+                "he": self.text_he
+            },
+            "videoUrl": {
+                "en": self.video_en,
+                "he": self.video_he
+            }
+        }
 
     def __str__(self):
         return f"{self.guide.key} - {self.title_en}"
