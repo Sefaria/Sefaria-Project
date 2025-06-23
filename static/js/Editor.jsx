@@ -310,7 +310,7 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our representation of new lines
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
 
         return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
 
