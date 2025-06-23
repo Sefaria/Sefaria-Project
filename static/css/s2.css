@@ -81,7 +81,7 @@ body, .sans-serif {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-body, .en, .int-en {
+body, .en, .int-en, .englishWithinHebrew {
   --is-hebrew: initial; /* false */
 }
 .he, .int-he {
