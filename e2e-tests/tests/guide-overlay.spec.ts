@@ -295,8 +295,11 @@ test.describe('Guide Overlay', () => {
         expect(titleContent).toBeTruthy();
         expect(textContent).toBeTruthy();
         
-        // Check RTL layout by verifying CSS class
-        const hasHebrewInterface = await page.locator('body.interface-hebrew').isVisible();
+        // Check Hebrew interface by verifying the body has the interface-hebrew class
+        // Using .evaluate() instead of .isVisible() since body element may have 0 height
+        const hasHebrewInterface = await page.evaluate(() => {
+            return document.body.classList.contains('interface-hebrew');
+        });
         expect(hasHebrewInterface).toBe(true);
     });
 
