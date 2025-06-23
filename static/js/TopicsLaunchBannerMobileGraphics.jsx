@@ -553,7 +553,13 @@ const TopicsLaunchBannerMobileGraphics = ({ onExploreButtonClick, buttonRef }) =
           />
         </g>
         <g id="button" ref={buttonRef}>
-          <a href="/topics" onClick={onExploreButtonClick} role="link" tabIndex="0" aria-label="Explore Topics">
+          <a href="/topics" 
+             onClick={onExploreButtonClick} 
+             role="link" 
+             tabIndex="0" 
+             aria-label="Explore Topics"
+             data-anl-event="banner_button_click:click"
+          >
             <path
               d="M140 95a5 5 0 015-5h111a5 5 0 015 5v23a5 5 0 01-5 5H145a5 5 0 01-5-5z"
               fill="#fff"
