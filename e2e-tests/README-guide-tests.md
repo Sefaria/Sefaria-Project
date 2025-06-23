@@ -58,15 +58,23 @@ npx playwright test guide-overlay --headed
 
 ## Current Status
 
-✅ **All 14/14 tests are passing** with the updated infrastructure
+✅ **All 14/14 tests are passing** with the backwards-compatible infrastructure
 
-### Infrastructure Improvements
-- Fixed URL handling using `BASE_URL` environment variable
-- Updated login flow to use working `loginUser` utility
-- Fixed Hebrew interface detection for cross-environment compatibility
-- Added guide overlay dismissal in autosave tests to prevent click interception
+### Infrastructure Improvements (Latest)
+- **Backwards-Compatible Guide Dismissal**: Guide overlays are dismissed by default in all tests via `hideModals()`
+- **Cookie-Based Persistence**: Guide dismissal properly sets cookies to prevent reappearance after language changes
+- **Opt-out for Guide Tests**: Guide tests use `skipGuideOverlay: true` to preserve guide functionality when testing it
+- **Environment Variable Support**: Full support for `BASE_URL`, `LOGIN_USERNAME`, `LOGIN_PASSWORD`
+- **Enhanced Login Flow**: Improved `LoginPage` class with fallback detection for better cross-environment compatibility
+- **Robust URL Handling**: Consistent URL building with `buildFullUrl()` utility
+
+### Infrastructure Benefits
+- **Default Guide Dismissal**: Guide overlays no longer interfere with non-guide tests
+- **Extensible**: Works automatically if guides are added to other pages
+- **Cross-Environment**: Works with local development and any cauldron environment
+- **Backwards Compatible**: All existing test functionality preserved
 
 ### Test Environment Requirements
 - Tests require login functionality
-- Guide overlay must be enabled in the target environment
+- Guide overlay must be enabled in the target environment  
 - Sheet editor must be accessible at `/sheets/new` 

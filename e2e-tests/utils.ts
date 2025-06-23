@@ -389,6 +389,7 @@ export const waitForGuideOverlayToClose = async (page: Page, timeout: number = 5
 /**
  * Safely dismiss guide overlay if it appears, without breaking if it doesn't exist
  * This is designed for backwards compatibility in tests that don't specifically test the guide
+ * Properly sets the cookie to prevent guide from reappearing after language changes
  * @param page Page object
  * @param timeout Timeout in milliseconds (default: 5000)
  */
@@ -397,30 +398,43 @@ export const dismissGuideOverlayIfPresent = async (page: Page, timeout: number =
         // Give guide overlay a moment to appear if it's going to
         await page.waitForTimeout(2000);
         
-        // Use aggressive client-side dismissal to ensure guide doesn't block other tests
-        await page.evaluate(() => {
-            const guideOverlay = document.querySelector('.guideOverlay') as HTMLElement;
-            if (guideOverlay) {
-                // First try to click the close button properly
-                const closeButton = document.querySelector('.guideOverlay .readerNavMenuCloseButton.circledX') as HTMLElement;
-                if (closeButton) {
-                    closeButton.click();
-                }
-                
-                // Aggressively hide the overlay to ensure it doesn't interfere
-                guideOverlay.style.display = 'none';
-                guideOverlay.style.visibility = 'hidden';
-                guideOverlay.style.opacity = '0';
-                guideOverlay.style.pointerEvents = 'none';
-                guideOverlay.style.zIndex = '-9999';
-                
-                // Also remove it from the DOM completely for good measure
-                guideOverlay.remove();
-            }
-        });
+        // Check if guide overlay exists
+        const guideExists = await page.locator('.guideOverlay').isVisible().catch(() => false);
         
-        // Short wait for dismissal to take effect
-        await page.waitForTimeout(500);
+        if (guideExists) {
+            // Try to click the close button properly to trigger cookie setting
+            try {
+                await page.locator('.guideOverlay .readerNavMenuCloseButton.circledX').click({ timeout: 3000 });
+                // Wait for close animation/effect
+                await page.waitForTimeout(1000);
+            } catch (closeError) {
+                console.log('Close button click failed, using fallback dismissal');
+                
+                                 // Fallback: Set the cookie manually and hide the overlay
+                 await page.evaluate(() => {
+                     // Set the cookie manually (same logic as GuideOverlay.jsx)
+                     const cookieName = 'guide_overlay_seen_editor';
+                     const currentDate = new Date().toISOString();
+                     // Using jQuery cookie like the original component
+                     const $ = (window as any).$;
+                     if ($ && $.cookie) {
+                         $.cookie(cookieName, currentDate, {path: "/", expires: 20*365});
+                     }
+                    
+                    // Remove the overlay from DOM
+                    const guideOverlay = document.querySelector('.guideOverlay') as HTMLElement;
+                    if (guideOverlay) {
+                        guideOverlay.remove();
+                    }
+                });
+            }
+        }
+        
+        // Ensure any remaining overlay elements are cleaned up
+        await page.evaluate(() => {
+            const allOverlays = document.querySelectorAll('.guideOverlay');
+            allOverlays.forEach(overlay => overlay.remove());
+        });
         
     } catch (e) {
         // Guide overlay might not exist, that's fine for backwards compatibility

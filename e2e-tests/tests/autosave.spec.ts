@@ -28,21 +28,11 @@ test.describe('Source Sheet Editor - Autosave and Session Status', () => {
     await page.goto(`${TEST_URL}/sheets/new`, { waitUntil: 'domcontentloaded' });
     await changeLanguageLoggedIn(page, LANGUAGES.EN);
     
-    // Wait for sheet content and ensure guide overlay is dismissed
+    // Wait for sheet content
     await page.waitForSelector('.sheetContent', { timeout: 10000 });
     
-    // Aggressively dismiss guide overlay to prevent interference with autosave tests
-    await page.waitForTimeout(3000); // Give guide time to load if it's going to
-    await page.evaluate(() => {
-      // Completely remove guide overlay if it exists
-      const guideOverlay = document.querySelector('.guideOverlay') as HTMLElement;
-      if (guideOverlay) {
-        guideOverlay.remove();
-      }
-      
-      // Also disable guide initialization to prevent it from loading again
-      (window as any).disableGuideOverlay = true;
-    });
+    // Additional safety: call hideModals again after language change to ensure guide is dismissed
+    await hideModals(page);
   });
 
   test('User actively typing, then gets logged out', async ({ page }) => {
