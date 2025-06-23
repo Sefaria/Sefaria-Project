@@ -39,21 +39,34 @@ The guide overlay tests (`guide-overlay.spec.ts`) contain 14 test cases that ver
 To run these tests locally:
 
 ```bash
-# Admin credentials
+# Local development
+BASE_URL=http://localhost:8000 \
+LOGIN_USERNAME=your-local-user@example.com \
+LOGIN_PASSWORD=your-password \
 npx playwright test guide-overlay --headed
-
-# Environment variables:
-# PLAYWRIGHT_USER_EMAIL=admin@admin.com
-# PLAYWRIGHT_USER_PASSWORD=admin
 ```
 
-To run on sandbox environment:
+To run on cauldron environments:
 
 ```bash
-# Sandbox credentials  
-SANDBOX_URL=https://tips-and-tricks.cauldron.sefaria.org npx playwright test guide-overlay --headed
+# Cauldron environment (set your specific environment)
+BASE_URL=https://your-environment.cauldron.sefaria.org/ \
+LOGIN_USERNAME=your-test-user@example.com \
+LOGIN_PASSWORD=your-password \
+npx playwright test guide-overlay --headed
+```
 
-# Environment variables:
-# PLAYWRIGHT_USER_EMAIL=danielschreiber@sefaria.org
-# PLAYWRIGHT_USER_PASSWORD=admin
-``` 
+## Current Status
+
+✅ **All 14/14 tests are passing** with the updated infrastructure
+
+### Infrastructure Improvements
+- Fixed URL handling using `BASE_URL` environment variable
+- Updated login flow to use working `loginUser` utility
+- Fixed Hebrew interface detection for cross-environment compatibility
+- Added guide overlay dismissal in autosave tests to prevent click interception
+
+### Test Environment Requirements
+- Tests require login functionality
+- Guide overlay must be enabled in the target environment
+- Sheet editor must be accessible at `/sheets/new` 
