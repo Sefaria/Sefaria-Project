@@ -96,7 +96,6 @@ const GuideOverlay = ({
   timeoutLength = 7
 }) => {
   const cookieName = `guide_overlay_seen_${guideType}`;
-  const shouldShowOverlay = forceShow || !$.cookie(cookieName);
   
   const [isVisible, setIsVisible] = useState(false);
   const [guideData, setGuideData] = useState(null);
@@ -107,15 +106,16 @@ const GuideOverlay = ({
   // This is needed for the GuideButton functionality - when user clicks the button,
   // forceShow changes from false to true, and we need to show the overlay
   useEffect(() => {
-    setIsVisible(shouldShowOverlay);
+    const shouldShow = forceShow || !$.cookie(cookieName);
+    setIsVisible(shouldShow);
     
     // Track when overlay opens (both from cookie state and forced show)
-    if (shouldShowOverlay) {
+    if (shouldShow) {
       trackGuideEvent("guide_overlay_opened", {
         guide_type: guideType
       });
     }
-  }, [shouldShowOverlay]);
+  }, [forceShow]);
 
   // Load guide data only when overlay is visible to avoid unnecessary API calls
   useEffect(() => {
