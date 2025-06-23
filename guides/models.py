@@ -11,7 +11,7 @@ class Guide(models.Model):
         unique=True, 
         verbose_name="Guide Key",
         help_text="Unique identifier for the guide (e.g., 'editor', 'topics')",
-        choices=[('editor', 'editor')],  # Closed list, add more as needed
+        choices=[('editor', 'editor')],  # Closed list, add more as needed. Format: [(key, value), ...]
     )
     title_prefix_en = models.CharField(
         max_length=255, 
@@ -66,26 +66,20 @@ class Guide(models.Model):
         """Generate footer links array from individual fields"""
         links = []
         
-        # Add first link if it has text and URL
-        if self.footer_link_1_text_en or self.footer_link_1_text_he:
-            if self.footer_link_1_url:
+        # Process both footer links
+        for i in [1, 2]: # Currently up to 2 links are supported
+            text_en = getattr(self, f'footer_link_{i}_text_en')
+            text_he = getattr(self, f'footer_link_{i}_text_he')
+            url = getattr(self, f'footer_link_{i}_url')
+            
+            # Add link if it has texts and URL
+            if text_en and text_he and url:
                 links.append({
                     'text': {
-                        'en': self.footer_link_1_text_en,
-                        'he': self.footer_link_1_text_he
+                        'en': text_en,
+                        'he': text_he
                     },
-                    'url': self.footer_link_1_url
-                })
-        
-        # Add second link if it has text and URL
-        if self.footer_link_2_text_en or self.footer_link_2_text_he:
-            if self.footer_link_2_url:
-                links.append({
-                    'text': {
-                        'en': self.footer_link_2_text_en,
-                        'he': self.footer_link_2_text_he
-                    },
-                    'url': self.footer_link_2_url
+                    'url': url
                 })
         
         return links

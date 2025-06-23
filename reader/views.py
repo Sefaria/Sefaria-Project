@@ -4793,12 +4793,11 @@ def guides_api(request, guide_key=None):
     API endpoint that returns guide data for a specific guide.
     
     Args:
-        guide_key (str): The guide key to fetch guide for (e.g., 'sheets', 'test_heb')
+        guide_key (str): The guide key to fetch guide for (e.g., 'editor')
     
     Returns:
         JSON response with the following structure:
         {
-            "totalCards": int,
             "titlePrefix": {"en": str, "he": str},
             "footerLinks": [{"text": {"en": str, "he": str}, "url": str}, ...],
             "cards": [
@@ -4845,7 +4844,6 @@ def guides_api(request, guide_key=None):
     
     # Build the response
     response_data = {
-        "totalCards": len(cards),
         "titlePrefix": {
             "en": guide.title_prefix_en,
             "he": guide.title_prefix_he

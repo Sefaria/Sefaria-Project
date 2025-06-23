@@ -96,29 +96,32 @@ const GuideOverlay = ({
   timeoutLength = 7
 }) => {
   const cookieName = `guide_overlay_seen_${guideType}`;
-  const initialShouldShow = forceShow || !$.cookie(cookieName);
+  const shouldShowOverlay = forceShow || !$.cookie(cookieName);
   
-  const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [guideData, setGuideData] = useState(null);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
+  // Respond to prop changes and initial mount
+  // This is needed for the GuideButton functionality - when user clicks the button,
+  // forceShow changes from false to true, and we need to show the overlay
   useEffect(() => {
-    // Force rerendering of the component when initially rendered
-    setIsOpen(initialShouldShow);
+    setIsVisible(shouldShowOverlay);
     
-    // Track guide overlay open event when it opens
-    if (initialShouldShow) {
+    // Track when overlay opens (both from cookie state and forced show)
+    if (shouldShowOverlay) {
       trackGuideEvent("guide_overlay_opened", {
         guide_type: guideType
       });
     }
-  }, [initialShouldShow]);
+  }, [shouldShowOverlay]);
 
-  // Load guide data only when component is actually open/visible to avoid unnecessary loading on common scenario where it isn't needed
+  // Load guide data only when overlay is visible to avoid unnecessary API calls
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isVisible) return;
     
+    // Prevents state updates and alerts after component unmounts to avoid alerts etc' after component is closed
     let isComponentMounted = true;
     let timeoutId;
 
@@ -184,7 +187,7 @@ const GuideOverlay = ({
       isComponentMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [isOpen, guideType, timeoutLength]);
+  }, [isVisible, guideType, timeoutLength]);
   
   // Set cookie when user dismisses the overlay
   const setCookie = () => {
@@ -201,7 +204,7 @@ const GuideOverlay = ({
     
     setCookie();
     if (onClose) onClose();
-    setIsOpen(false);
+    setIsVisible(false);
   };
 
   /**
@@ -239,7 +242,7 @@ const GuideOverlay = ({
 
 
   // Don't render if user has already seen it or if not open
-  if (!isOpen) return null;
+  if (!isVisible) return null;
   
   // Show loading state
   if (loading || !guideData) {
@@ -275,7 +278,6 @@ const GuideOverlay = ({
                 direction="left" 
                 onClick={() => navigateCard("previous")}
                 altText={localize("Previous card")}
-                reverseForRTL={true}
               />
               <span className="cardsPaginationNumber">
                 <InterfaceText>{`${currentCardIndex + 1} ${localize("of")} ${guideData.cards.length}`}</InterfaceText>
@@ -284,7 +286,6 @@ const GuideOverlay = ({
                 direction="right" 
                 onClick={() => navigateCard("next")}
                 altText={localize("Next card")}
-                reverseForRTL={true}
               />
             </div>
           )}
@@ -301,7 +302,7 @@ const GuideOverlay = ({
               {guideData.cards.map((card, index) => (
                 <video
                   key={index}
-                  src={Sefaria.getLocalizedVideoDataFromCard(card).videoUrl}
+                  src={Sefaria._v(card.videoUrl)}
                   preload="auto"
                   style={{ display: index === currentCardIndex ? 'block' : 'none' }}
                   className="guideOverlayVideo" 
@@ -337,16 +338,6 @@ GuideOverlay.propTypes = {
   guideType: PropTypes.string,
   forceShow: PropTypes.bool,
   timeoutLength: PropTypes.number
-};
-
-/**
- * Utility function to clear the guide overlay cookie for a given guide type
- * Useful for testing and development - allows the overlay to show again
- * @param {string} guideType - The type of guide (e.g., "sheets", "reader")
- */
-export const clearGuideOverlayCookie = (guideType) => {
-  const cookieName = `guide_overlay_seen_${guideType}`;
-  $.removeCookie(cookieName, {path: "/"});
 };
 
 export default GuideOverlay; 

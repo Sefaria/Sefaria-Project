@@ -27,6 +27,8 @@ class GuideAdmin(admin.ModelAdmin):
     list_display = ('key', 'title_prefix_en', 'title_prefix_he', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('key', 'title_prefix_en', 'title_prefix_he')
+    # Inlines allow related models to be edited on the same page as the parent model
+    # InfoCardInline enables editing InfoCard objects directly within the Guide admin form
     inlines = [InfoCardInline]
     
     fieldsets = (
@@ -35,11 +37,11 @@ class GuideAdmin(admin.ModelAdmin):
         }),
         ('Footer Link 1', {
             'fields': (('footer_link_1_text_en', 'footer_link_1_text_he'), 'footer_link_1_url'),
-            'description': 'First footer link (all fields optional - link will only appear if URL is provided)'
+            'description': 'First footer link (link will only appear if all fields are provided)'
         }),
         ('Footer Link 2', {
             'fields': (('footer_link_2_text_en', 'footer_link_2_text_he'), 'footer_link_2_url'),
-            'description': 'Second footer link (all fields optional - link will only appear if URL is provided)'
+            'description': 'Second footer link (link will only appear if all fields are provided)'
         }),
     )
 
