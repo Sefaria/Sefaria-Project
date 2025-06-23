@@ -22,7 +22,7 @@ LOGIN_USERNAME=your-test-user@example.com \
 LOGIN_PASSWORD=your-password \
 npx playwright test
 
-# For testing against sandbox/staging environments
+# For testing against cauldron environments
 BASE_URL=https://your-environment.cauldron.sefaria.org/ \
 LOGIN_USERNAME=your-test-user@example.com \
 LOGIN_PASSWORD=your-password \
