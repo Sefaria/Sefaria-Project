@@ -548,17 +548,13 @@ function replaceBrWithNewLine(html) {
 function parseSheetItemHTML(rawhtml) {
     console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
-    let preparseHtml = rawhtml
-      .replace(/\u00A0/g, ' ')
-      // .replace(/(\r\n|\n|\r|\t)/gm, " ");
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ')
     preparseHtml = replaceBrWithNewLine(preparseHtml);
-    console.log(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
-    console.log(JSON.stringify(slateJSON, null, 2));
     return slateJSON[0].type === 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
@@ -711,7 +707,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           for (const [node, path] of Editor.nodes(editor, {
             at:     [],            // whole document
             match:  Text.isText,   // only text nodes
-            reverse:true           // iterate bottom-up → paths stay valid
+            reverse:true           // iterate bottom-up -> paths stay valid
           })) {
             const newText = replaceDivineNames(node.text, replacement);
             if (newText !== node.text) {
