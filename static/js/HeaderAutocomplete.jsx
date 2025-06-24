@@ -300,7 +300,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
     const _type_component_map = {
         search: {
-            onSuggestionClick: submitSearch,
+            onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
@@ -394,38 +394,43 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const clearSearchBox = function (onChange) {
         onChange({ target: { value: '' } });
   }
-   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion) => {
-      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search')
-       {
+   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion, enforceSearch) => {
+      function search() {
+          Sefaria.track.event("Search", "Search Box Search", query);
+          showSearchWrapper(query);
+          clearSearchBox(onChange);
+      }
+
+      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search') {
               showSearchWrapper(query);
               clearSearchBox(onChange);
               return;
-       }
-      getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
-
-          if (queryType === 'Ref') {
-              let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-              Sefaria.track.event("Search", action, queryId);
-              clearSearchBox(onChange);
-              onRefClick(queryId);
-              onNavigate && onNavigate();
-          }
-          else if (queryType === 'Topic') {
-              Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-              clearSearchBox(onChange);
-              openTopic(queryId);
-              onNavigate && onNavigate();
-          }
-          else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-              redirectToObject(queryType, queryId);
-          }
-          else {
-              Sefaria.track.event("Search", "Search Box Search", queryId);
-              showSearchWrapper(queryId);
-              clearSearchBox(onChange);
-          }
       }
-      )
+
+      if (enforceSearch) {
+          search();
+      }
+      else {
+          getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
+
+              if (queryType === 'Ref') {
+                  let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+                  Sefaria.track.event("Search", action, queryId);
+                  clearSearchBox(onChange);
+                  onRefClick(queryId);
+                  onNavigate && onNavigate();
+              } else if (queryType === 'Topic') {
+                  Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+                  clearSearchBox(onChange);
+                  openTopic(queryId);
+                  onNavigate && onNavigate();
+              } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+                  redirectToObject(queryType, queryId);
+              } else {
+                  search();
+              }
+          })
+      }
     };
 
     const showSearchWrapper = (query) => {
