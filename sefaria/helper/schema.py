@@ -2,6 +2,7 @@
 
 from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.schema import DictionaryNode
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.sheets import save_sheet
@@ -994,3 +995,101 @@ def change_term_hebrew(en_primary, new_he):
     t.add_title(new_he, "he", True, True)
     t.remove_title(old_primary, "he")
     t.save()
+
+
+def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
+    """
+    Changes the headword of an entry.
+    NOTICE: many lexicon has internal references, wrapped with an a tag within the data. This function won't change this.
+    :param parent_lexicon: string
+    :param old_headword: string
+    :param new_headword: string
+    :return: None
+
+    Example: change_lexicon_headword('Jastrow Dictionary', 'אַפּוּכִי.1', 'אַפּוּכִי 1')
+    """
+
+    def get_dictionary_node(node):
+        if isinstance(node, DictionaryNode):
+            return node
+        else:
+            for snode in node.children:
+                result = get_dictionary_node(snode)
+                if result:
+                    return result
+
+    def update_dictionary_node(index_node):
+        dictionary_node = get_dictionary_node(index_node)
+        parent = dictionary_node.parent
+        dictionary_node_index = parent.children.index(dictionary_node)
+        for attr in ('firstWord', 'lastWord'):
+            if getattr(dictionary_node, attr) == old_headword:
+                setattr(dictionary_node, attr, new_headword)
+        parent.children[dictionary_node_index] = update_headwords_map(dictionary_node)
+        return index_node
+
+    def update_headwords_map(dictionary_node):
+        hw_map = getattr(dictionary_node, 'headwordMap', None)
+        node_ref = dictionary_node.ref().normal()
+        if hw_map:
+            for n, node in enumerate(hw_map):
+                if node[1] == f'{node_ref}, {old_headword}':
+                    node[1] = f'{node_ref}, {new_headword}'
+            dictionary_node.headwordMap = hw_map
+        return dictionary_node
+
+    # change entry itself
+    print('Updating entry')
+    entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
+    entry.headword = new_headword
+    entry.save()
+
+    # change prev and next
+    print('Updating previous and next entries')
+    adjacents = ['prev_hw', 'next_hw']
+    for i in [1, -1]:
+        adj_hw = getattr(entry, adjacents[::i][0], None)
+        if adj_hw:
+            adj_entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': adj_hw})
+            setattr(adj_entry, adjacents[::i][1], new_headword)
+            adj_entry.save()
+
+    # change index
+    index = Index().load({'lexiconName': parent_lexicon})
+    if index:
+        print('Updating index')
+        index.nodes = update_dictionary_node(index.nodes)
+        index.save()
+
+        # cascade
+        print('Cascading')
+        node_ref = get_dictionary_node(index.nodes).ref().normal()
+        ref = f'{node_ref}, {old_headword}'
+        old_ref_reg = fr'^{re.escape(ref)} ?\d*$'
+        rewriter = lambda x: x.replace(old_headword, new_headword)
+        needs_rewrite = lambda x, *args: bool(re.search(old_ref_reg, x))
+        cascade(index.title, rewriter, needs_rewrite, True)
+
+    # word forms
+    print('Updating word forms')
+    db.word_form.update_many(
+        {
+            'lookups': {
+                '$elemMatch': {
+                    'parent_lexicon': parent_lexicon,
+                    'headword': old_headword
+                }
+            }
+        },
+        {
+            '$set': {
+                'lookups.$[elem].headword': new_headword
+            }
+        },
+        array_filters=[{
+            'elem.parent_lexicon': parent_lexicon,
+            'elem.headword': old_headword
+        }]
+    )
+
+    library.rebuild()
