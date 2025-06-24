@@ -693,7 +693,7 @@ Sefaria = extend(Sefaria, {
     });
   },
   _guides: {},
-  getGuide: function(guideKey = "sheets") {
+  getGuide: function(guideKey = "editor") {
     return this._cachedApiPromise({
       url: `${Sefaria.apiHost}/api/guides/${guideKey}`,
       key: `guide_${guideKey}`,

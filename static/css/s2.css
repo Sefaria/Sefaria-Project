@@ -5791,13 +5791,8 @@ h1.topic-landing-header {
   justify-content: flex-end;
   height: 56px;
   cursor: pointer;
-  margin-right: 15px;
-  margin-left: 0px;
+  margin-inline-end: 15px;
   padding-top: 3px;
-}
-.interface-hebrew .rightButtons .guideButton {
-  margin-left: 15px;
-  margin-right: 0px;
 }
 .rightButtons .guideButton.tooltip-toggle::before {
   top: 47px;
@@ -5827,6 +5822,11 @@ h1.topic-landing-header {
   width: 16px;
   height: 16px;
   opacity: 0.7;
+}
+
+/* flip both arrows horizontally */
+.interface-hebrew .arrowButton img {
+  transform: scaleX(-1);
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
