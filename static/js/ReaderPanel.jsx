@@ -489,13 +489,48 @@ class ReaderPanel extends Component {
     // Reset the force guide overlay state when guide is closed
     this.setState({forceGuideOverlay: false});
   }
-  shouldShowGuides() {
-    // Centralized check for when to show guides (guide button and guide overlay)
-    // Currently only shows on sheets, but can be extended for other guide types
-    // Don't show on mobile (when multiPanel is false)
-    return this.props.multiPanel && // Don't show on mobile
-           this.props.panelPosition === 0 && // Don't show on resources panel
-           (this.state.mode === "Sheet");
+  getGuideType() {
+    /**
+     * CENTRAL GUIDE MAPPING - This is the one place to update when adding new guides
+     * 
+     * This function determines which guide (if any) should be shown based on current state.
+     * When adding a new guide:
+     * 1. Add a new entry to the GUIDE_MAPPINGS array below
+     * 2. Ensure the guideType matches what you'll use in the guide data/API
+     * 3. Define the condition function that determines when this guide should show
+     * 
+     * @returns {string|null} The guide type to show, or null if no guide should be shown
+     */
+    
+    // Global conditions that apply to ALL guides
+    // Don't show on mobile or in resource panels
+    if (!this.props.multiPanel || this.props.panelPosition !== 0) {
+      return null;
+    }
+    
+    // Define all available guides and their conditions
+    // ORDER MATTERS: First matching condition will be used
+    const GUIDE_MAPPINGS = [
+      {
+        guideType: "editor",
+        condition: (state, props) => state.mode === "Sheet"
+      },
+      // Add new guides here following the same pattern:
+      // {
+      //   guideType: "reader", 
+      //   condition: (state, props) => /* your condition */
+      // },
+    ];
+
+    // Check each guide mapping and return the first match
+    for (const mapping of GUIDE_MAPPINGS) {
+      if (mapping.condition(this.state, this.props)) {
+        return mapping.guideType;
+      }
+    }
+    
+    // No guide should be shown
+    return null;
   }
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
@@ -1161,7 +1196,7 @@ class ReaderPanel extends Component {
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
               showGuide={this.showGuide.bind(this)}
-              shouldShowGuides={this.shouldShowGuides.bind(this)}
+              getGuideType={this.getGuideType.bind(this)}
             />}
 
           {(items.length > 0 && !menu) ?
@@ -1171,13 +1206,16 @@ class ReaderPanel extends Component {
 
           {menu}
           {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
-          {this.shouldShowGuides() && 
-            <GuideOverlay 
-              onClose={this.closeGuideOverlay.bind(this)} 
-              guideType="editor" 
-              forceShow={this.state.forceGuideOverlay}
-            />
-          }
+          {(() => {
+            const guideType = this.getGuideType();
+            return guideType && (
+              <GuideOverlay 
+                onClose={this.closeGuideOverlay.bind(this)} 
+                guideType={guideType}
+                forceShow={this.state.forceGuideOverlay}
+              />
+            );
+          })()}
 
         </div>
       </ReaderPanelContext.Provider>
@@ -1413,7 +1451,7 @@ class ReaderControls extends Component {
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
           {/* Guide button - currently only shows on sheets but can be extended for other guide types */}
-          {this.props.shouldShowGuides && this.props.shouldShowGuides() && 
+          {this.props.getGuideType && this.props.getGuideType() && 
             <GuideButton
               onShowGuide={this.props.showGuide}
               tooltip={true}
@@ -1485,7 +1523,7 @@ ReaderControls.propTypes = {
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   backButtonSettings:      PropTypes.object,
   showTips:                PropTypes.func,
-  shouldShowGuides:        PropTypes.func,
+  getGuideType:            PropTypes.func,
 };
 
 

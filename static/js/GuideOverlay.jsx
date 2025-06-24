@@ -83,6 +83,10 @@ GuideFooter.propTypes = {
  * Only shows on first time user opens the relevant page, using cookie-based persistence
  * Can be forced to show using the forceShow prop
  * 
+ * IMPORTANT: When adding new guides, update the GUIDE_MAPPINGS in ReaderPanel.getGuideType()
+ * That function is the central place that determines which guide type should be shown.
+ * You also have to add the Guide Key in Sefaria-Project/guides/models.py under key/choices
+ * 
  * @param {Object} props - Component props
  * @param {function} props.onClose - Function to call when overlay is closed
  * @param {string} props.guideType - Type of guide to display (e.g., "reader", "editor")
