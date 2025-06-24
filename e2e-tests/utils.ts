@@ -67,8 +67,12 @@ export const changeLanguageLoggedOut = async (page: Page, language: string) => {
                 await page.locator('.interfaceLinks-option.int-he').click();
             }
             
-            // Wait a bit for potential redirect
-            await page.waitForTimeout(2000);
+            // Wait for navigation to complete (or timeout quickly if no redirect)
+            try {
+                await page.waitForURL(url => url !== originalUrl, { timeout: 3000 });
+            } catch {
+                // No redirect happened, which is fine
+            }
             
             const currentUrl = page.url();
             
@@ -149,8 +153,12 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
             // Click the language link
             await languageLink.click();
             
-            // Wait a bit for potential redirect
-            await page.waitForTimeout(2000);
+            // Wait for navigation to complete (or timeout quickly if no redirect)
+            try {
+                await page.waitForURL(url => url !== originalUrl, { timeout: 3000 });
+            } catch {
+                // No redirect happened, which is fine
+            }
             
             const currentUrl = page.url();
             
@@ -206,6 +214,8 @@ export const isLocalDevelopment = (url: string): boolean => {
     return url.includes('localhost') || url.includes('127.0.0.1');
 };
 
+
+
 /**
  * Check if URL appears to be a broken redirect from local language change
  * @param url URL to check
@@ -220,6 +230,11 @@ export const isBrokenLanguageRedirect = (url: string, originalUrl: string): bool
     
     // If URL changed but doesn't look like a proper redirect, it might be broken
     if (url !== originalUrl && url.includes('set-language-cookie')) {
+        return true;
+    }
+    
+    // Check for chrome error pages or other indicators of broken redirects
+    if (url.includes('chrome-error://') || url.includes('about:blank') || url.includes('data:')) {
         return true;
     }
     
