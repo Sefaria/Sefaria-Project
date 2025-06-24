@@ -6,6 +6,7 @@ import {
     setGuideOverlayCookie,
     hasGuideOverlayCookie,
     simulateSlowGuideLoading,
+    simulateGuideApiError,
     waitForGuideOverlay,
     waitForGuideOverlayToClose,
     changeLanguageLoggedIn
@@ -23,8 +24,12 @@ const goToSheetEditorWithUser = async (context: any, user = testUser) => {
     // Skip guide overlay dismissal for guide tests
     const page = await goToPageWithUser(context, '/sheets/new', actualUser, { skipGuideOverlay: true });
     
-    // Wait for sheet editor to load - use the correct selector from SourceSheetEditorPage
-    await page.waitForSelector('.sheetContent', { timeout: 10000 });
+    // Wait for sheet editor to load - use the same selector as goToNewSheetWithUser
+    await page.waitForSelector('.editorContent', { timeout: 10000 });
+    
+    // Also wait for the page to be fully loaded
+    await page.waitForLoadState('networkidle');
+    
     return page;
 };
 
@@ -61,7 +66,7 @@ test.describe('Guide Overlay', () => {
         
         // Refresh the page
         await page.reload();
-        await page.waitForSelector('.sheetContent');
+        await page.waitForSelector('.editorContent');
         
         // Guide should not appear on second visit
         await expect(guideOverlay.overlay()).not.toBeVisible();
@@ -166,7 +171,7 @@ test.describe('Guide Overlay', () => {
         
         // Refresh page and confirm guide doesn't reappear
         await page.reload();
-        await page.waitForSelector('.sheetContent');
+        await page.waitForSelector('.editorContent');
         await expect(guideOverlay.overlay()).not.toBeVisible();
     });
 
@@ -254,28 +259,91 @@ test.describe('Guide Overlay', () => {
     test('TC011: Timeout handling works', async ({ context }) => {
         const page = await goToSheetEditorWithUser(context);
         
-        // Set up slow loading and clear cookie to force guide to show
-        await clearGuideOverlayCookie(page, 'editor');
+        // Set up route interception for slow loading BEFORE clearing cookie
         await simulateSlowGuideLoading(page, 8000); // 8 seconds - longer than default 7s timeout
         
-        // Listen for alert dialog
+        // Clear cookie to force guide to show
+        await clearGuideOverlayCookie(page, 'editor');
+        
+        // Set up dialog handler before refresh
         let alertMessage = '';
-        page.on('dialog', async dialog => {
-            alertMessage = dialog.message();
-            await dialog.accept();
+        let dialogReceived = false;
+        const dialogPromise = new Promise<void>((resolve) => {
+            page.once('dialog', async (dialog) => {
+                alertMessage = dialog.message();
+                dialogReceived = true;
+                await dialog.accept();
+                resolve();
+            });
         });
         
         // Refresh to trigger the guide with slow loading
         await page.reload();
-        await page.waitForSelector('.sheetContent', { timeout: 10000 });
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
         
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
-        // Guide should timeout and close automatically
-        await waitForGuideOverlayToClose(page, 15000); // Wait up to 15 seconds
+        // Guide should initially appear with loading state
+        await expect(guideOverlay.overlay()).toBeVisible();
+        await expect(guideOverlay.loadingCenter()).toBeVisible();
         
-        // Should have shown alert
+        // Wait for both dialog and guide to close (timeout after 8+ seconds)
+        await Promise.all([
+            dialogPromise,
+            waitForGuideOverlayToClose(page, 15000)
+        ]);
+        
+        // Verify timeout alert was shown
+        expect(dialogReceived).toBe(true);
         expect(alertMessage).toContain('Something went wrong');
+        
+        // Guide should be closed
+        await expect(guideOverlay.overlay()).not.toBeVisible();
+    });
+
+    test('TC015: API error handling works', async ({ context }) => {
+        const page = await goToSheetEditorWithUser(context);
+        
+        // Set up route interception for API error BEFORE clearing cookie
+        await simulateGuideApiError(page, 'editor');
+        
+        // Clear cookie to force guide to show
+        await clearGuideOverlayCookie(page, 'editor');
+        
+        // Set up dialog handler before refresh
+        let alertMessage = '';
+        let dialogReceived = false;
+        const dialogPromise = new Promise<void>((resolve) => {
+            page.once('dialog', async (dialog) => {
+                alertMessage = dialog.message();
+                dialogReceived = true;
+                await dialog.accept();
+                resolve();
+            });
+        });
+        
+        // Refresh to trigger the guide with API error
+        await page.reload();
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        
+        const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Guide should initially appear with loading state
+        await expect(guideOverlay.overlay()).toBeVisible();
+        await expect(guideOverlay.loadingCenter()).toBeVisible();
+        
+        // Wait for both dialog and guide to close (should happen quickly due to API error)
+        await Promise.all([
+            dialogPromise,
+            waitForGuideOverlayToClose(page, 10000)
+        ]);
+        
+        // Verify error alert was shown
+        expect(dialogReceived).toBe(true);
+        expect(alertMessage).toContain('Something went wrong');
+        
+        // Guide should be closed
+        await expect(guideOverlay.overlay()).not.toBeVisible();
     });
 
     test('TC012: Hebrew content displays correctly', async ({ context }) => {
