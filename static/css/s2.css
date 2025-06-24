@@ -5823,6 +5823,11 @@ h1.topic-landing-header {
   height: 16px;
   opacity: 0.7;
 }
+
+/* flip both arrows horizontally */
+.interface-hebrew .arrowButton img {
+  transform: scaleX(-1);
+}
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */

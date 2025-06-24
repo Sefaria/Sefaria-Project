@@ -1335,8 +1335,8 @@ GuideButton.propTypes = {
 };
 
 /**
- * ArrowButton component for navigation buttons (left/right arrows)
- * @param {string} direction - "left" or "right" 
+ * ArrowButton component for navigation buttons (next/previous arrows)
+ * @param {string} direction - "next" or "previous" 
  * @param {function} onClick - Function to call when arrow is clicked
  * @param {string} altText - Alt text for accessibility
  * @param {string} className - Additional CSS classes
@@ -1357,19 +1357,16 @@ function ArrowButton({ direction, onClick, altText = "", className = "" }) {
   }
 
   // Validate direction value
-  if (direction !== "left" && direction !== "right") {
-    console.error("ArrowButton 'direction' prop must be either 'left' or 'right'");
+  if (direction !== "next" && direction !== "previous") {
+    console.error("ArrowButton 'direction' prop must be either 'next' or 'previous'");
     return null;
   }
 
-  // Determine the actual arrow direction based on interface language and reverseForRTL prop
-  let actualDirection = direction;
-  if (Sefaria.interfaceLang === "hebrew") {
-    actualDirection = direction === "left" ? "right" : "left";
-  }
-  
-  const imageSrc = `/static/img/arrow-${actualDirection}-bold.svg`;
-  const buttonClass = className ? `arrowButton ${className}` : "arrowButton";
+  // Use appropriate arrow icons for each direction
+  const imageSrc = direction === "next" 
+    ? `/static/img/arrow-right-bold.svg`
+    : `/static/img/arrow-left-bold.svg`;
+  const buttonClass = className ? `arrowButton arrowButton--${direction} ${className}` : `arrowButton arrowButton--${direction}`; // Use CSS transforms to handle RTL direction reversal
   
   return (
     <button 
@@ -1383,7 +1380,7 @@ function ArrowButton({ direction, onClick, altText = "", className = "" }) {
   );
 }
 ArrowButton.propTypes = {
-  direction: PropTypes.oneOf(["left", "right"]).isRequired,
+  direction: PropTypes.oneOf(["next", "previous"]).isRequired,
   onClick: PropTypes.func.isRequired,
   altText: PropTypes.string.isRequired,
   className: PropTypes.string,

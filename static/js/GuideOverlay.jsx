@@ -275,7 +275,7 @@ const GuideOverlay = ({
           {showNavigation && (
             <div className="guideOverlayPagination">
               <Arrow 
-                direction="left" 
+                direction="previous" 
                 onClick={() => navigateCard("previous")}
                 altText={localize("Previous card")}
               />
@@ -283,7 +283,7 @@ const GuideOverlay = ({
                 <InterfaceText>{`${currentCardIndex + 1} ${localize("of")} ${guideData.cards.length}`}</InterfaceText>
               </span>
               <Arrow 
-                direction="right" 
+                direction="next" 
                 onClick={() => navigateCard("next")}
                 altText={localize("Next card")}
               />
