@@ -1096,3 +1096,16 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
     )
 
     library.rebuild()
+
+    # other entries in the same dictionary that includes wrapped ref for the old headword
+    # changing another entry is too complicated, for any lexicon has different entries structure, so it will be only printed
+    if index:
+        quoted = []
+        for entry in LexiconEntrySet({'parent_lexicon': parent_lexicon}):
+            oref = Ref(f'{index.title}, {entry.headword}')
+            entry_text = ' '.join(oref.index_node.get_text())
+            if ref in entry_text:
+                quoted.append(f'"{entry.headword}"')
+        if quoted:
+            print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
+        print('Warning: old ref can appear as wrapped ref in other places in the library.')
