@@ -33,11 +33,11 @@ const sheet_item_els = {
 };
 
 const voidElements = [
-    "ProfilePic",
-    "SheetMedia",
-    "SheetOutsideBiText",
-    "horizontal-line",
-  "SheetSource"
+  "ProfilePic",
+  "SheetMedia",
+  "SheetSource",
+  "SheetOutsideBiText",
+  "horizontal-line"
 ];
 
 
@@ -1436,12 +1436,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.isVoid = element => {
-        if (voidElements.includes(element.type)) {
-            return true;
-        }
-        else {
-            return isVoid(element);
-        }
+      return (voidElements.includes(element.type)) ? true : isVoid(element);
     };
 
     editor.deleteForward = () => {
@@ -2521,23 +2516,26 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
+    const colorButtons = <>{colors.map(color => 
+      <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
             e.preventDefault();
             const isActive = isFormatActive(editor, "background-color", color);
             if (isActive) {
-                Editor.removeMark(editor, "background-color")
+                Editor.removeMark(editor, "background-color");
             } else {
-                Editor.addMark(editor, "background-color", color)
+                Editor.addMark(editor, "background-color", color);
             }
-            }}><div className="highlightDot" style={{"backgroundColor":color}}></div></button>
-            )}</>;
+            }}><div className="highlightDot" style={{"backgroundColor":color}}></div>
+      </button>
+    )}</>;
     const portal = <div className="highlightMenu" ref={ref} contentEditable={false}>
                                   {colorButtons}
                                   <button className="highlightButton" onMouseDown={e => {
                                       Editor.removeMark(editor, "background-color")
                                   }}>
-                                  <i className="fa fa-ban highlightCancel"></i>
-                              </button></div>;
+                                    <i className="fa fa-ban highlightCancel"></i>
+                                  </button
+                    ></div>;
     useEffect(() => {
         const el = ref.current;
         if (el) {
