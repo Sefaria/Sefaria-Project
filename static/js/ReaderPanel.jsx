@@ -495,7 +495,7 @@ class ReaderPanel extends Component {
     // Don't show on mobile (when multiPanel is false)
     return this.props.multiPanel && // Don't show on mobile
            this.props.panelPosition === 0 && // Don't show on resources panel
-           (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections");
+           (this.state.mode === "Sheet");
   }
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
