@@ -64,6 +64,74 @@ export const changeLanguageLoggedOut = async (page: Page, language: string) => {
     }
 }
 
+/**
+ * Language change function for logged out users that handles local development redirect quirks
+ * Always ensures you end up back on the original page with the new language applied
+ * @param page Page object
+ * @param language Language to change to (from LANGUAGES constants)
+ */
+export const changeLanguageLoggedOutWithLocalFix = async (page: Page, language: string) => {
+    const originalUrl = page.url();
+    const isLocal = isLocalDevelopment(originalUrl);
+    
+    if (isLocal) {
+        // For local development, handle potential broken redirects
+        try {
+            await page.locator('.interfaceLinks-button').click()
+            
+            if (language === LANGUAGES.EN) {
+                await page.locator('.interfaceLinks-option.int-en').click();
+            } else if (language === LANGUAGES.HE) {
+                await page.locator('.interfaceLinks-option.int-he').click();
+            }
+            
+            // Wait a bit for potential redirect
+            await page.waitForTimeout(2000);
+            
+            const currentUrl = page.url();
+            
+            // Check if we got redirected to a broken URL or not back to original page
+            if (isBrokenLanguageRedirect(currentUrl, originalUrl) || !currentUrl.includes(new URL(originalUrl).pathname)) {
+                console.log(`Detected broken redirect to: ${currentUrl}, navigating back and refreshing`);
+                
+                // Go back to the original page
+                await page.goBack();
+                
+                // Wait for page to load
+                await page.waitForLoadState('networkidle');
+                
+                // Refresh the page to apply the language change
+                await page.reload();
+                
+                // Wait for the page to load again
+                await page.waitForLoadState('networkidle');
+            } else {
+                // Normal redirect, wait for it to complete
+                await page.waitForLoadState('networkidle');
+            }
+            
+            // Final safety check: ensure we're back on the original page
+            const finalUrl = page.url();
+            if (!finalUrl.includes(new URL(originalUrl).pathname)) {
+                console.log(`Still not on original page (${finalUrl}), navigating back to ${originalUrl}`);
+                await page.goto(originalUrl);
+                await page.waitForLoadState('networkidle');
+            }
+            
+        } catch (error) {
+            console.log(`Language change error: ${error}, attempting fallback approach`);
+            
+            // Fallback: navigate back to original URL and refresh
+            await page.goto(originalUrl);
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+        }
+    } else {
+        // For non-local environments, use the normal approach
+        await changeLanguageLoggedOut(page, language);
+    }
+};
+
 export const changeLanguageLoggedIn = async (page: Page, language: string) => {
     // Open the profile dropdown by clicking the profile icon
     const profileIcon = page.locator('.myProfileBox .profile-pic');
@@ -81,6 +149,114 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
     await expect(languageLink).toBeVisible();
     await languageLink.click();
   };
+
+/**
+ * Check if running in local development environment
+ * @param url URL to check
+ * @returns boolean indicating if this is local development
+ */
+export const isLocalDevelopment = (url: string): boolean => {
+    return url.includes('localhost') || url.includes('127.0.0.1');
+};
+
+/**
+ * Check if URL appears to be a broken redirect from local language change
+ * @param url URL to check
+ * @param originalUrl Original URL before language change
+ * @returns boolean indicating if this looks like a broken redirect
+ */
+export const isBrokenLanguageRedirect = (url: string, originalUrl: string): boolean => {
+    // If we're no longer on localhost but were originally, it's likely a broken redirect
+    if (isLocalDevelopment(originalUrl) && !isLocalDevelopment(url)) {
+        return true;
+    }
+    
+    // If URL changed but doesn't look like a proper redirect, it might be broken
+    if (url !== originalUrl && url.includes('set-language-cookie')) {
+        return true;
+    }
+    
+    return false;
+};
+
+/**
+ * Language change function that handles local development redirect quirks
+ * Always ensures you end up back on the original page with the new language applied
+ * @param page Page object
+ * @param language Language to change to (from LANGUAGES constants)
+ */
+export const changeLanguageLoggedInWithLocalFix = async (page: Page, language: string) => {
+    const originalUrl = page.url();
+    const isLocal = isLocalDevelopment(originalUrl);
+    
+    // Open the profile dropdown by clicking the profile icon
+    const profileIcon = page.locator('.myProfileBox .profile-pic');
+    await profileIcon.click();
+  
+    // Wait for the dropdown to appear
+    const menu = page.locator('.interfaceLinks-menu.profile-menu');
+    await expect(menu).toBeVisible();
+  
+    // Select the correct language link
+    const languageLink = language === LANGUAGES.HE
+      ? page.locator('#select-hebrew-interface-link')
+      : page.locator('#select-english-interface-link');
+  
+    await expect(languageLink).toBeVisible();
+    
+    if (isLocal) {
+        // For local development, handle potential broken redirects
+        try {
+            // Click the language link
+            await languageLink.click();
+            
+            // Wait a bit for potential redirect
+            await page.waitForTimeout(2000);
+            
+            const currentUrl = page.url();
+            
+            // Check if we got redirected to a broken URL or not back to original page
+            if (isBrokenLanguageRedirect(currentUrl, originalUrl) || !currentUrl.includes(new URL(originalUrl).pathname)) {
+                console.log(`Detected broken redirect to: ${currentUrl}, navigating back and refreshing`);
+                
+                // Go back to the original page
+                await page.goBack();
+                
+                // Wait for page to load
+                await page.waitForLoadState('networkidle');
+                
+                // Refresh the page to apply the language change
+                await page.reload();
+                
+                // Wait for the page to load again
+                await page.waitForLoadState('networkidle');
+            } else {
+                // Normal redirect, wait for it to complete
+                await page.waitForLoadState('networkidle');
+            }
+            
+            // Final safety check: ensure we're back on the original page
+            const finalUrl = page.url();
+            if (!finalUrl.includes(new URL(originalUrl).pathname)) {
+                console.log(`Still not on original page (${finalUrl}), navigating back to ${originalUrl}`);
+                await page.goto(originalUrl);
+                await page.waitForLoadState('networkidle');
+            }
+            
+        } catch (error) {
+            console.log(`Language change error: ${error}, attempting fallback approach`);
+            
+            // Fallback: navigate back to original URL and refresh
+            await page.goto(originalUrl);
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+        }
+    } else {
+        // For non-local environments, use the normal approach
+        await languageLink.click();
+        await page.waitForLoadState('networkidle');
+    }
+};
 
 /**
  * General change language function that determines whether user is logged in or out
@@ -138,7 +314,9 @@ export const loginUser = async (page: Page, user = testUser, language = DEFAULT_
     await page.goto(buildFullUrl('/login'));
     await page.waitForLoadState('networkidle');
     
-    await changeLanguage(page, language);
+    // Use the local-development-aware language change for logged out users
+    await changeLanguageLoggedOutWithLocalFix(page, language);
+    
     await page.getByPlaceholder('Email Address').fill(user.email ?? '');
     await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
