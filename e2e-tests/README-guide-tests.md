@@ -33,6 +33,7 @@ The guide overlay tests (`guide-overlay.spec.ts`) contain 14 test cases that ver
 ### Context Awareness (TC013-TC014)
 - **TC013**: Guide only shows in sheet editor
 - **TC014**: Guide button only visible when appropriate
+- **TC015**: Guide API error handled
 
 ## Running the Tests
 
