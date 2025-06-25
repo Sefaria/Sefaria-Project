@@ -394,13 +394,32 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const clearSearchBox = function (onChange) {
         onChange({ target: { value: '' } });
   }
+  const search = (onChange, query) => {
+      Sefaria.track.event("Search", "Search Box Search", query);
+      showSearchWrapper(query);
+      clearSearchBox(onChange);
+  }
+  const redirectOrSearch = (onChange, query) => {
+      getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
+          if (queryType === 'Ref') {
+              let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+              Sefaria.track.event("Search", action, queryId);
+              clearSearchBox(onChange);
+              onRefClick(queryId);
+              onNavigate && onNavigate();
+          } else if (queryType === 'Topic') {
+              Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+              clearSearchBox(onChange);
+              openTopic(queryId);
+              onNavigate && onNavigate();
+          } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+              redirectToObject(queryType, queryId);
+          } else {
+              search(onChange, query);
+          }
+      })
+    }
    const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion, enforceSearch) => {
-      function search() {
-          Sefaria.track.event("Search", "Search Box Search", query);
-          showSearchWrapper(query);
-          clearSearchBox(onChange);
-      }
-
       if (highlightedIndex > -1 && highlightedSuggestion.type === 'search') {
               showSearchWrapper(query);
               clearSearchBox(onChange);
@@ -408,28 +427,10 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       }
 
       if (enforceSearch) {
-          search();
+          search(onChange, query);
       }
       else {
-          getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
-
-              if (queryType === 'Ref') {
-                  let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-                  Sefaria.track.event("Search", action, queryId);
-                  clearSearchBox(onChange);
-                  onRefClick(queryId);
-                  onNavigate && onNavigate();
-              } else if (queryType === 'Topic') {
-                  Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-                  clearSearchBox(onChange);
-                  openTopic(queryId);
-                  onNavigate && onNavigate();
-              } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-                  redirectToObject(queryType, queryId);
-              } else {
-                  search();
-              }
-          })
+          redirectOrSearch(onChange, query)
       }
     };
 
