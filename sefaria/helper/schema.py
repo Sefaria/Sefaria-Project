@@ -284,7 +284,7 @@ def change_parent(node, new_parent, place=0, exact_match=False):
     :param node:
     :param new_parent:
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
-    :param exact_match:  if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
+    :param exact_match: if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
     :return:
     """
     assert isinstance(node, SchemaNode)
