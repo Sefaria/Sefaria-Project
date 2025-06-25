@@ -183,6 +183,13 @@ data:
 
         {{- if .Values.linker.enabled }}
         location /api/find-refs {
+          if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Content-Type" always;
+            add_header Content-Length 0;
+            add_header Content-Type  text/plain;
+            return 204;
+          }
           proxy_send_timeout  300;
           proxy_read_timeout  300;
           proxy_set_header Host $host;
