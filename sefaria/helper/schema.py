@@ -273,8 +273,8 @@ def prepare_ja_for_children(ja):
         if isinstance(content_node, dict):
             print("JA is already prepared for children")
             return
-        
-        assert isinstance(content_node, list) and len(content_node) == 0, "JA's content node must be a list and be empty in order to prepare for children" 
+
+        assert isinstance(content_node, list) and len(content_node) == 0, "JA's content node must be a list and be empty in order to prepare for children"
         # convert content node to dict so it can have children (aka, IVF)
         v.sub_content(ja.version_address(), value={})
         v.save()
