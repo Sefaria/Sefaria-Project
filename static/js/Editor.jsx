@@ -33,11 +33,11 @@ const sheet_item_els = {
 };
 
 const voidElements = [
-    "ProfilePic",
-    "SheetMedia",
-    "SheetSource",
-    "SheetOutsideBiText",
-    "horizontal-line"
+  "ProfilePic",
+  "SheetMedia",
+  "SheetSource",
+  "SheetOutsideBiText",
+  "horizontal-line"
 ];
 
 
@@ -749,6 +749,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       e.currentTarget.querySelector(".boxedSourceChildren").style.top = `${elementRelativeTop + clickOffset}px`;
 
   }
+  
 
   const suppressParentContentEditable = (toggle) => {
       // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
@@ -757,7 +758,11 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onClick = (e) => {
-
+    if (e.target.closest('.hoverButton')) {  // if the click is on a hover button, don't do anything
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if ((e.target).closest('.he') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
@@ -872,7 +877,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -885,7 +890,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -1431,7 +1436,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.isVoid = element => {
-        return (voidElements.includes(element.type)) ? true : isVoid(element)
+      return (voidElements.includes(element.type)) ? true : isVoid(element);
     };
 
     editor.deleteForward = () => {
@@ -2414,18 +2419,15 @@ const HoverMenu = (opt) => {
     useEffect(() => {
         const el = ref.current;
         const {selection} = editor;
-
         if (!el) {
             return
         }
-
-
+        const isNotFocused = !ReactEditor.isFocused(editor);
+        const isCollapsed = selection && Range.isCollapsed(selection);
+        const isEmpty = selection && Editor.string(editor, selection) === '';
+        const isLink = isLinkActive(editor);
         if (
-            !selection ||
-            !ReactEditor.isFocused(editor) ||
-            Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === '' ||
-            isLinkActive(editor)
+            !selection || isNotFocused || isCollapsed || isEmpty || isLink
         ) {
             el.removeAttribute('style');
             return
@@ -2451,8 +2453,8 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <HighlightButton/>
             {buttons == "basic" ? null : <>
-                <HighlightButton/>
                 <AddLinkButton/>
                 <BlockButton editor={editor} format="header" icon="header"/>
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
@@ -2507,7 +2509,6 @@ const FormatButton = ({format}) => {
     )
 };
 
-
 const HighlightButton = () => {
     const editor = useSlate();
     const ref = useRef();
@@ -2515,16 +2516,26 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
-        const isActive = isFormatActive(editor, "background-color", color);
-        if (isActive) {
-            Editor.removeMark(editor, "background-color")
-        } else {
-            Editor.addMark(editor, "background-color", color)
-        }
-  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
-    )}</>
-
+    const colorButtons = <>{colors.map(color => 
+      <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
+            e.preventDefault();
+            const isActive = isFormatActive(editor, "background-color", color);
+            if (isActive) {
+                Editor.removeMark(editor, "background-color");
+            } else {
+                Editor.addMark(editor, "background-color", color);
+            }
+            }}><div className="highlightDot" style={{"backgroundColor":color}}></div>
+      </button>
+    )}</>;
+    const portal = <div className="highlightMenu" ref={ref} contentEditable={false}>
+                                  {colorButtons}
+                                  <button className="highlightButton" onMouseDown={e => {
+                                      Editor.removeMark(editor, "background-color")
+                                  }}>
+                                    <i className="fa fa-ban highlightCancel"></i>
+                                  </button
+                    ></div>;
     useEffect(() => {
         const el = ref.current;
         if (el) {
@@ -2551,13 +2562,7 @@ const HighlightButton = () => {
         >
       <i className={classNames(classes)}/>
     </span>
-    {showPortal ? <div className="highlightMenu" ref={ref}>
-    {colorButtons}
-    <button className="highlightButton" onClick={e => {
-        Editor.removeMark(editor, "background-color")
-    }}>
-    <i className="fa fa-ban highlightCancel"></i>
-  </button></div> : null}
+    {showPortal && portal}
     </>
     )
 };
