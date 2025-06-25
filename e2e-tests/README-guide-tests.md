@@ -1,81 +1,58 @@
 # Guide Overlay Tests
 
-This document describes the guide overlay tests in the Playwright test suite.
+This document lists all guide overlay test cases in the Playwright test suite (`guide-overlay.spec.ts`).
 
-## Test Cases
+## Test Case List
 
-The guide overlay tests (`guide-overlay.spec.ts`) contain 14 test cases that verify the functionality of the guide overlay component in the sheet editor:
+### **Basic Functionality**
+- **TC001**: ✅ Guide shows on authentic first visit to sheet editor
+- **TC001A**: ✅ Guide API endpoint returns valid response structure
+- **TC002**: ✅ Guide doesn't show on repeat visits
+- **TC003**: ✅ Force show button displays guide
 
-### Basic Functionality (TC001-TC003)
-- **TC001**: Guide shows on first visit to sheet editor
-- **TC002**: Guide doesn't show on repeat visits  
-- **TC003**: Force show button displays guide
+### **Navigation & User Interactions**
+- **TC004**: ✅ Navigate between guide cards
+- **TC005**: ✅ Circular navigation works
+- **TC006**: ✅ Close button dismisses guide
 
-### Navigation (TC004-TC005)
-- **TC004**: Navigate between guide cards
-- **TC005**: Circular navigation works
+### **Content Display**
+- **TC007**: ✅ Video displays correctly
+- **TC008**: ✅ Footer links are clickable
+- **TC009**: ✅ Text content renders properly
+- **TC010**: ✅ Loading state appears
 
-### User Interactions (TC006)
-- **TC006**: Close button dismisses guide
+### **Error Handling**
+- **TC011**: ✅ Real timeout handling works
+- **TC015**: ✅ Real API error handling works
 
-### Content Display (TC007-TC009)
-- **TC007**: Video displays correctly
-- **TC008**: Footer links are clickable
-- **TC009**: Text content renders properly
+### **Localization**
+- **TC012**: ✅ Hebrew content displays correctly
 
-### Error Handling (TC010-TC011)
-- **TC010**: Loading state appears
-- **TC011**: Timeout handling works
+### **Context & Authentication**
+- **TC013**: ✅ Guide only shows in sheet editor
+- **TC014**: ✅ Guide button only visible when appropriate
+- **TC016**: ✅ Real user authentication affects guide behavior
 
-### Localization (TC012)
-- **TC012**: Hebrew content displays correctly
+### **Data Persistence**
+- **TC017**: ✅ Guide data persists through normal navigation
 
-### Context Awareness (TC013-TC014)
-- **TC013**: Guide only shows in sheet editor
-- **TC014**: Guide button only visible when appropriate
-- **TC015**: Guide API error handled
+### **Mobile Responsiveness**
+- **TC018**: ✅ Guide does not show on mobile devices (user agent)
+- **TC019**: ✅ Guide shows when changing from mobile to desktop user agent
+- **TC020**: ✅ Guide button behavior with different user agents
+
+**Total Tests:** 21 test cases - All passing ✅
+- **Local:** 21 passed
+- **Cauldron:** Network Issuse
 
 ## Running the Tests
 
-To run these tests locally:
-
+### **Local Development**
 ```bash
-# Local development
-BASE_URL=http://localhost:8000 \
-LOGIN_USERNAME=your-local-user@example.com \
-LOGIN_PASSWORD=your-password \
-npx playwright test guide-overlay --headed
+export PLAYWRIGHT_USER_EMAIL="admin@admin.com" && export PLAYWRIGHT_USER_PASSWORD="your-password" && npx playwright test guide-overlay.spec.ts --reporter=line
 ```
 
-To run on cauldron environments:
-
+### **Cauldron Environment**
 ```bash
-# Cauldron environment (set your specific environment)
-BASE_URL=https://your-environment.cauldron.sefaria.org/ \
-LOGIN_USERNAME=your-test-user@example.com \
-LOGIN_PASSWORD=your-password \
-npx playwright test guide-overlay --headed
+BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ PLAYWRIGHT_USER_EMAIL="your-cauldron-email@example.com" PLAYWRIGHT_USER_PASSWORD="your-cauldron-password" npx playwright test guide-overlay --headed
 ```
-
-## Current Status
-
-✅ **All 14/14 tests are passing** with the backwards-compatible infrastructure
-
-### Infrastructure Improvements (Latest)
-- **Backwards-Compatible Guide Dismissal**: Guide overlays are dismissed by default in all tests via `hideModals()`
-- **Cookie-Based Persistence**: Guide dismissal properly sets cookies to prevent reappearance after language changes
-- **Opt-out for Guide Tests**: Guide tests use `skipGuideOverlay: true` to preserve guide functionality when testing it
-- **Environment Variable Support**: Full support for `BASE_URL`, `LOGIN_USERNAME`, `LOGIN_PASSWORD`
-- **Enhanced Login Flow**: Improved `LoginPage` class with fallback detection for better cross-environment compatibility
-- **Robust URL Handling**: Consistent URL building with `buildFullUrl()` utility
-
-### Infrastructure Benefits
-- **Default Guide Dismissal**: Guide overlays no longer interfere with non-guide tests
-- **Extensible**: Works automatically if guides are added to other pages
-- **Cross-Environment**: Works with local development and any cauldron environment
-- **Backwards Compatible**: All existing test functionality preserved
-
-### Test Environment Requirements
-- Tests require login functionality
-- Guide overlay must be enabled in the target environment  
-- Sheet editor must be accessible at `/sheets/new` 

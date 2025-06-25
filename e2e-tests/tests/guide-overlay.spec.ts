@@ -8,20 +8,34 @@ import {
     hasGuideOverlayCookie,
     waitForGuideOverlay,
     waitForGuideOverlayToClose,
-    changeLanguageLoggedIn
+    changeLanguageLoggedIn,
+    simulateSlowGuideLoading,
+    simulateGuideApiError,
+    loginUser,
+    buildFullUrl
 } from '../utils';
 import { LANGUAGES, testUser } from '../globals';
 
-// Guide-overlay specific navigation function that skips guide dismissal for testing
+// Authentic navigation function that tests real first-time user experience
+const goToSheetEditorWithFreshUser = async (context: any, user = testUser) => {
+    // Clear ALL cookies to simulate completely new user
+    await context.clearCookies();
+    
+    // Navigate to sheet editor preserving guides for testing
+    const page = await goToPageWithUser(context, '/sheets/new', user, { preserveGuideOverlay: true });
+    await page.waitForSelector('.editorContent', { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    
+    return page;
+};
+
+// Guide-overlay specific navigation function that preserves guide overlay for testing
 const goToSheetEditorWithUser = async (context: any, user = testUser) => {
-    // Use the working utility, then manually clear guide overlay state
-    const page = await goToNewSheetWithUser(context, user);
+    // Clear guide overlay cookie to ensure it shows for our tests
+    await context.clearCookies({ name: 'guide_overlay_seen_editor' });
     
-    // Clear any guide overlay cookie to ensure it shows for our tests
-    await page.context().clearCookies({ name: 'guide_overlay_seen_editor' });
-    
-    // Refresh the page to trigger guide on first visit
-    await page.reload();
+    // Navigate to sheet editor preserving guides for testing
+    const page = await goToPageWithUser(context, '/sheets/new', user, { preserveGuideOverlay: true });
     await page.waitForSelector('.editorContent', { timeout: 10000 });
     await page.waitForLoadState('networkidle');
     
@@ -35,11 +49,11 @@ test.describe('Guide Overlay', () => {
         await context.clearCookies();
     });
 
-    test('TC001: Guide shows on first visit to sheet editor', async ({ context }) => {
-        const page = await goToSheetEditorWithUser(context);
+    test('TC001: Guide shows on authentic first visit to sheet editor', async ({ context }) => {
+        const page = await goToSheetEditorWithFreshUser(context);
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
-        // Guide should appear automatically on first visit
+        // Guide should appear automatically on genuine first visit
         await guideOverlay.waitForLoaded();
         await expect(guideOverlay.overlay()).toBeVisible();
         
@@ -49,6 +63,49 @@ test.describe('Guide Overlay', () => {
         
         const text = await guideOverlay.getCurrentText();
         expect(text).toBeTruthy();
+        
+        // Verify no guide cookie exists initially
+        expect(await hasGuideOverlayCookie(page, 'editor')).toBe(false);
+    });
+
+    test('TC001A: Guide API endpoint returns valid response structure', async ({ request }) => {
+        // Test the guide API endpoint directly - this API MUST exist for guides to work
+        const response = await request.get(buildFullUrl('/api/guides/editor'));
+        
+        // API endpoint must exist and return valid data
+        expect(response.ok()).toBe(true);
+        
+        const data = await response.json();
+        
+        // Validate API response structure matches expected format from guides/models.py
+        expect(data).toBeTruthy();
+        expect(typeof data).toBe('object');
+        
+        // Must have the exact structure defined in Guide.contents() method
+        expect(data.titlePrefix).toBeTruthy();
+        expect(typeof data.titlePrefix).toBe('object');
+        expect(data.titlePrefix.en).toBeTruthy();
+        expect(data.titlePrefix.he).toBeTruthy();
+        
+        expect(Array.isArray(data.cards)).toBe(true);
+        expect(data.cards.length).toBeGreaterThan(0);
+        
+        // Each card must have the structure defined in InfoCard.contents() method
+        const firstCard = data.cards[0];
+        expect(typeof firstCard).toBe('object');
+        expect(firstCard.id).toBeTruthy();
+        expect(typeof firstCard.title).toBe('object');
+        expect(firstCard.title.en).toBeTruthy();
+        expect(firstCard.title.he).toBeTruthy();
+        expect(typeof firstCard.text).toBe('object');
+        expect(firstCard.text.en).toBeTruthy();
+        expect(firstCard.text.he).toBeTruthy();
+        expect(typeof firstCard.videoUrl).toBe('object');
+        
+        // Footer links should be an array (may be empty)
+        expect(Array.isArray(data.footerLinks)).toBe(true);
+        
+        console.log('✅ Guide API Response valid:', JSON.stringify(data, null, 2));
     });
 
     test('TC002: Guide doesn\'t show on repeat visits', async ({ context }) => {
@@ -251,30 +308,17 @@ test.describe('Guide Overlay', () => {
         await expect(guideOverlay.content()).toBeVisible();
     });
 
-    test('TC011: Timeout handling works', async ({ page }) => {
-        // Go directly to a page and simulate the guide scenario
-        await page.goto('/');
+    test('TC011: Real timeout handling works', async ({ context }) => {
+        // Set up a fresh page and simulate slow API response
+        await context.clearCookies();
+        const page = await context.newPage();
         
-        // Inject a test guide overlay directly to test timeout functionality
-        await page.evaluate(() => {
-            // Create test div structure
-            const overlay = document.createElement('div');
-            overlay.className = 'guideOverlay';
-            overlay.innerHTML = `
-                <div class="guideOverlayContent">
-                    <div class="guideOverlayLoadingCenter">Loading...</div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        });
+        // Simulate slow API response to trigger timeout (8 seconds > 7 second default timeout)
+        await simulateSlowGuideLoading(page, 8000, 'editor');
         
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
-        // Verify guide is visible with loading state
-        await expect(guideOverlay.overlay()).toBeVisible();
-        await expect(guideOverlay.loadingCenter()).toBeVisible();
-        
-        // Set up dialog handler
+        // Set up dialog handler to catch timeout alert
         let alertMessage = '';
         let dialogReceived = false;
         const dialogPromise = new Promise<void>((resolve) => {
@@ -286,56 +330,33 @@ test.describe('Guide Overlay', () => {
             });
         });
         
-        // Simulate timeout by running timeout logic
-        await page.evaluate((timeoutSeconds) => {
-            setTimeout(() => {
-                // Remove overlay
-                const overlay = document.querySelector('.guideOverlay');
-                if (overlay) overlay.remove();
-                
-                // Show alert - this simulates the timeout behavior
-                alert('Something went wrong. Try refreshing the page');
-            }, timeoutSeconds * 1000);
-        }, 2); // 2 second timeout for test speed
+        // Navigate and login to trigger guide loading
+        await loginUser(page, testUser);
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent');
         
-        // Wait for dialog and guide to close
-        await Promise.all([
-            dialogPromise,
-            page.waitForSelector('.guideOverlay', { state: 'detached', timeout: 5000 })
-        ]);
+        // Wait for timeout to occur
+        await dialogPromise;
         
         // Verify timeout alert was shown
         expect(dialogReceived).toBe(true);
         expect(alertMessage).toContain('Something went wrong');
         
-        // Guide should be closed
+        // Guide should be closed due to timeout
         await expect(guideOverlay.overlay()).not.toBeVisible();
     });
 
-    test('TC015: API error handling works', async ({ page }) => {
-        // Go directly to a page and simulate the guide scenario
-        await page.goto('/');
+    test('TC015: Real API error handling works', async ({ context }) => {
+        // Set up a fresh page and simulate API error
+        await context.clearCookies();
+        const page = await context.newPage();
         
-        // Inject a test guide overlay directly to test error functionality
-        await page.evaluate(() => {
-            // Create test div structure
-            const overlay = document.createElement('div');
-            overlay.className = 'guideOverlay';
-            overlay.innerHTML = `
-                <div class="guideOverlayContent">
-                    <div class="guideOverlayLoadingCenter">Loading...</div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        });
+        // Simulate API error response
+        await simulateGuideApiError(page, 'editor');
         
         const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
         
-        // Verify guide is visible with loading state
-        await expect(guideOverlay.overlay()).toBeVisible();
-        await expect(guideOverlay.loadingCenter()).toBeVisible();
-        
-        // Set up dialog handler
+        // Set up dialog handler to catch error alert
         let alertMessage = '';
         let dialogReceived = false;
         const dialogPromise = new Promise<void>((resolve) => {
@@ -347,29 +368,19 @@ test.describe('Guide Overlay', () => {
             });
         });
         
-        // Simulate API error by running error logic quickly
-        await page.evaluate(() => {
-            setTimeout(() => {
-                // Remove overlay
-                const overlay = document.querySelector('.guideOverlay');
-                if (overlay) overlay.remove();
-                
-                // Show alert - this simulates the API error behavior
-                alert('Something went wrong. Try refreshing the page');
-            }, 500); // Quick error response
-        });
+        // Navigate and login to trigger guide loading
+        await loginUser(page, testUser);
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent');
         
-        // Wait for dialog and guide to close (should happen quickly due to API error)
-        await Promise.all([
-            dialogPromise,
-            page.waitForSelector('.guideOverlay', { state: 'detached', timeout: 5000 })
-        ]);
+        // Wait for error to occur
+        await dialogPromise;
         
         // Verify error alert was shown
         expect(dialogReceived).toBe(true);
         expect(alertMessage).toContain('Something went wrong');
         
-        // Guide should be closed
+        // Guide should be closed due to error
         await expect(guideOverlay.overlay()).not.toBeVisible();
     });
 
@@ -437,5 +448,192 @@ test.describe('Guide Overlay', () => {
         
         // Guide button should still be visible after closing guide
         expect(await guideOverlay.isGuideButtonVisible()).toBe(true);
+    });
+
+    test('TC016: Real user authentication affects guide behavior', async ({ context }) => {
+        // Test with fresh context (no authentication)
+        await context.clearCookies();
+        
+        // Try to access sheet editor without authentication
+        const page = await context.newPage();
+        await page.goto(buildFullUrl('/sheets/new'));
+        
+        // Should redirect to login or show login prompt
+        // Guide should not appear for unauthenticated users
+        const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Wait a moment to see if guide appears
+        await page.waitForTimeout(2000);
+        expect(await guideOverlay.overlay().isVisible().catch(() => false)).toBe(false);
+        
+        // Now test with authenticated user
+        const authenticatedPage = await goToSheetEditorWithFreshUser(context);
+        const authenticatedGuideOverlay = new GuideOverlayPage(authenticatedPage, LANGUAGES.EN);
+        
+        // Guide should appear for authenticated user
+        await authenticatedGuideOverlay.waitForLoaded();
+        await expect(authenticatedGuideOverlay.overlay()).toBeVisible();
+    });
+
+    test('TC017: Guide data persists through normal navigation', async ({ context }) => {
+        const page = await goToSheetEditorWithUser(context);
+        const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Wait for guide to load and get initial data
+        await guideOverlay.waitForLoaded();
+        const initialTitle = await guideOverlay.getCurrentTitle();
+        const initialText = await guideOverlay.getCurrentText();
+        
+        // Navigate to different card if available
+        if (await guideOverlay.isNavigationVisible()) {
+            await guideOverlay.navigateNext();
+            const secondCardTitle = await guideOverlay.getCurrentTitle();
+            
+            // Navigate back to first card
+            await guideOverlay.navigatePrevious();
+            const backToFirstTitle = await guideOverlay.getCurrentTitle();
+            
+            // Data should persist correctly
+            expect(backToFirstTitle).toBe(initialTitle);
+        }
+        
+        // Close and reopen guide to verify data persistence
+        await guideOverlay.close();
+        await guideOverlay.clickGuideButton();
+        await guideOverlay.waitForLoaded();
+        
+        // Content should be the same
+        const reopenedTitle = await guideOverlay.getCurrentTitle();
+        expect(reopenedTitle).toBe(initialTitle);
+    });
+
+    test('TC018: Guide does not show on mobile devices (user agent)', async ({ context }) => {
+        // Clear cookies to ensure fresh user state
+        await context.clearCookies();
+        
+        // Create a new context with mobile user agent 
+        const mobileContext = await context.browser()!.newContext({
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1'
+        });
+        const page = await mobileContext.newPage();
+        
+        // Login user on mobile device
+        await loginUser(page, testUser);
+        
+        // Navigate to sheet editor
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        
+        // Check that app is in mobile mode
+        const isMobileMode = await page.evaluate(() => {
+            return document.querySelector('.readerApp.singlePanel') !== null;
+        });
+        expect(isMobileMode).toBe(true);
+        
+        const guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Wait a moment to see if guide appears
+        await page.waitForTimeout(3000);
+        
+        // Guide should NOT appear on mobile devices
+        const guideVisibleOnMobile = await guideOverlay.overlay().isVisible().catch(() => false);
+        expect(guideVisibleOnMobile).toBe(false);
+        
+        // Guide button should also NOT be visible on mobile devices
+        const buttonVisible = await guideOverlay.isGuideButtonVisible();
+        expect(buttonVisible).toBe(false);
+    });
+
+    test('TC019: Guide shows when changing from mobile to desktop user agent', async ({ context }) => {
+        // Clear cookies to ensure fresh user state
+        await context.clearCookies();
+        
+        // Start with mobile user agent
+        const mobileContext = await context.browser()!.newContext({
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1'
+        });
+        let page = await mobileContext.newPage();
+        
+        // Login and navigate on mobile
+        await loginUser(page, testUser);
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        
+        let guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Guide should not appear on mobile
+        await page.waitForTimeout(2000);
+        const guideVisibleOnMobile = await guideOverlay.overlay().isVisible().catch(() => false);
+        expect(guideVisibleOnMobile).toBe(false);
+        
+        // Close mobile context and create desktop context
+        await mobileContext.close();
+        
+        const desktopContext = await context.browser()!.newContext({
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        });
+        page = await desktopContext.newPage();
+        
+        // Login and navigate on desktop
+        await loginUser(page, testUser);
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        
+        guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Guide should appear on desktop for fresh user
+        await guideOverlay.waitForLoaded();
+        await expect(guideOverlay.overlay()).toBeVisible();
+        
+        await desktopContext.close();
+    });
+
+    test('TC020: Guide button behavior with different user agents', async ({ context }) => {
+        // Clear cookies to ensure fresh state
+        await context.clearCookies();
+        
+        // Test with desktop user agent
+        const desktopContext = await context.browser()!.newContext({
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        });
+        let page = await desktopContext.newPage();
+        
+        // Login and navigate on desktop
+        await loginUser(page, testUser);
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        
+        let guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Desktop should have guide and button visible
+        await guideOverlay.waitForLoaded();
+        await guideOverlay.close();
+        expect(await guideOverlay.isGuideButtonVisible()).toBe(true);
+        
+        await desktopContext.close();
+        
+        // Test with mobile user agent
+        const mobileContext = await context.browser()!.newContext({
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1'
+        });
+        page = await mobileContext.newPage();
+        
+        // Login and navigate on mobile
+        await loginUser(page, testUser);
+        await page.goto(buildFullUrl('/sheets/new'));
+        await page.waitForSelector('.editorContent', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        
+        guideOverlay = new GuideOverlayPage(page, LANGUAGES.EN);
+        
+        // Mobile should NOT have guide button visible
+        await page.waitForTimeout(2000);
+        expect(await guideOverlay.isGuideButtonVisible()).toBe(false);
+        
+        await mobileContext.close();
     });
 }); 

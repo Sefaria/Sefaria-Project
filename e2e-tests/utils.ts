@@ -9,8 +9,8 @@ let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
-export const hideModals = async (page: Page, options: { skipGuideOverlay?: boolean } = {}) => {
-    const { skipGuideOverlay = false } = options;
+export const hideModals = async (page: Page, options: { preserveGuideOverlay?: boolean } = {}) => {
+    const { preserveGuideOverlay = false } = options;
     
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
@@ -19,8 +19,8 @@ export const hideModals = async (page: Page, options: { skipGuideOverlay?: boole
         document.head.appendChild(style);
     });
     
-    // Also dismiss guide overlay by default (unless skipped for guide tests)
-    if (!skipGuideOverlay) {
+    // Also dismiss guide overlay by default (unless preserved for guide tests)
+    if (!preserveGuideOverlay) {
         await dismissGuideOverlayIfPresent(page);
     }
 }
@@ -312,8 +312,8 @@ export const loginUser = async (page: Page, user = testUser, language = DEFAULT_
   
 
 
-export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser, options: { skipGuideOverlay?: boolean } = {}) => {
-    const { skipGuideOverlay = false } = options;
+export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser, options: { preserveGuideOverlay?: boolean } = {}) => {
+    const { preserveGuideOverlay = false } = options;
     
     if (!loginCookies.length) {
         const page: Page = await context.newPage();
@@ -327,7 +327,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     // Handle URL properly with BASE_URL
     await newPage.goto(buildFullUrl(url));
     
-    await hideModals(newPage, { skipGuideOverlay });
+    await hideModals(newPage, { preserveGuideOverlay });
     
     return newPage;
 }
@@ -516,7 +516,7 @@ export const simulateSlowGuideLoading = async (page: Page, delayMs: number = 800
 };
 
 /**
- * Simulate guide API error
+ * Simulate guide API error by intercepting the guide API call and returning an error response
  * @param page Page object
  * @param guideType Guide type to intercept (default: "editor")
  */
