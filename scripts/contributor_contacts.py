@@ -25,6 +25,5 @@ for uid in users:
 
 print(out)
 
-f = open('../tmp/contacts.csv', 'w+')
-f.write(out)
-f.close()
+with open('../tmp/contacts.csv', 'w+') as f:
+    f.write(out)
