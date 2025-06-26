@@ -428,8 +428,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
       if (enforceSearch) {
           search(onChange, query);
-      }
-      else {
+      } else {
           redirectOrSearch(onChange, query)
       }
     };
