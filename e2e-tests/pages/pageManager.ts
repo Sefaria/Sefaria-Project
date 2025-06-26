@@ -1,5 +1,5 @@
 import { Page } from "@playwright/test"
-import {changeLanguage} from "../utils"
+import {changeLanguageLoggedIn, changeLanguageLoggedOut} from "../utils"
 import {LANGUAGES} from '../globals'
 import { Banner } from "./banner"
 import { TextsPage } from "./textsPage"
@@ -41,7 +41,7 @@ export class PageManager{
     }
 
     async toggleLanguage(newLanguage: any){
-        await changeLanguage(this.page, newLanguage)
+        await changeLanguageLoggedOut(this.page, newLanguage)
         this.banner.toggleLanguage(newLanguage)
         this.textsPage.toggleLanguage(newLanguage)
     }

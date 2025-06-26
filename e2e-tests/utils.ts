@@ -19,23 +19,74 @@ export const hideModals = async (page: Page) => {
     });
 }
 
-export async function dismissNewsletterPopupIfPresent(page: Page) {
+// export async function dismissNewsletterPopupIfPresent(page: Page) {
 
-     // Wait for up to 5 seconds if it shows up late
+//      // Wait for up to 5 seconds if it shows up late
+//   try {
+//     await page.evaluate(() => {
+//       const blocker = document.querySelector('.ub-emb-scroll-wrapper');
+//       if (blocker) {
+//         (blocker as HTMLElement).style.pointerEvents = 'none';
+//         (blocker as HTMLElement).style.display = 'none'; // Optional: fully hide it
+//       }
+//     });
+//     console.log('Popup closed successfully.');
+//   } catch (err) {
+//     console.log('Popup not found or already hidden.');
+//   }
+//   }
+
+export async function dismissNewsletterPopupIfPresent(page: Page) {
   try {
     await page.evaluate(() => {
-      const blocker = document.querySelector('.ub-emb-scroll-wrapper');
-      if (blocker) {
-        (blocker as HTMLElement).style.pointerEvents = 'none';
-        (blocker as HTMLElement).style.display = 'none'; // Optional: fully hide it
-      }
+      const selectors = [
+        '.ub-emb-scroll-wrapper',                 // gray overlay
+        '.ub-emb-iframe-wrapper',                 // wrapper with iframe
+        '.ub-emb-iframe',                         // the iframe itself
+        'iframe[src*="ubembed.com"]',             // backup match
+        '.ub-emb-close',                          // close button
+        'div[class*="ub-emb"]',                   // catch any class that starts with ub-emb
+      ];
+
+      let removedCount = 0;
+      selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.remove();
+          removedCount++;
+        });
+      });
+
+      // Also clean up any <body> modifications
+      document.body.style.overflow = 'auto';
+      document.body.style.pointerEvents = 'auto';
+
+      console.log(`Popup and overlay successfully removed. Elements removed: ${removedCount}`);
     });
-    console.log('Popup closed successfully.');
+
+    console.log('✅ Unbounce newsletter popup removed from DOM.');
   } catch (err) {
-    console.log('Popup not found or already hidden.');
+    console.warn('⚠️ Failed to remove newsletter popup:', err);
   }
-  }
+}
+
+  // export async function dismissNewsletterPopupIfPresent(page: Page) {
+  //   try {
+  //     const popupWrapper = page.locator('.ub-emb-iframe-wrapper.ub-emb-visible');
+  //     const closeButton = popupWrapper.locator('button.ub-emb-close');
   
+  //     if (await popupWrapper.isVisible({ timeout: 5000 })) {
+  //       console.log('Newsletter popup detected.');
+  //       await closeButton.click();
+  //       // Optional: wait for it to be removed
+  //       await expect(popupWrapper).toHaveCount(0, { timeout: 3000 });
+  //       console.log('Newsletter popup closed successfully.');
+  //     } else {
+  //       console.log('Newsletter popup not visible.');
+  //     }
+  //   } catch (err) {
+  //     console.log('No newsletter popup found or already dismissed.');
+  //   }
+  // }  
 
 //method to hide the generic banner that appears on the editor page (Welcome to New Editor)
 export const hideGenericBanner = async (page: Page) => {
@@ -135,7 +186,7 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
 
     await expect(languageLink).toBeVisible();
     await languageLink.click();
-  
+    await page.waitForTimeout(5000); // Wait for the language change to take effect
     // Wait for the <body> class to reflect the language change
     const expectedClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
     await expect(page.locator('body')).toHaveClass(new RegExp(`\\b${expectedClass}\\b`));
