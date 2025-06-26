@@ -701,7 +701,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
     useEffect(() => {
       const replacement = divineName || "noSub";
       const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
-      console.log("Replacing divine names with:", replacement);
 
       for (const editor of editors) {
         Editor.withoutNormalizing(editor, () => {
