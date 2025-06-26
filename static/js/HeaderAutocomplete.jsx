@@ -395,11 +395,13 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         onChange({ target: { value: '' } });
   }
   const search = (onChange, query) => {
+      //   Execute the actions for searching the query string
       Sefaria.track.event("Search", "Search Box Search", query);
       showSearchWrapper(query);
       clearSearchBox(onChange);
   }
   const redirectOrSearch = (onChange, query) => {
+      //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
           if (queryType === 'Ref') {
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
