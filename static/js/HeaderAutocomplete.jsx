@@ -429,7 +429,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       if (enforceSearch) {
           search(onChange, query);
       } else {
-          redirectOrSearch(onChange, query)
+          redirectOrSearch(onChange, query);
       }
     };
 
