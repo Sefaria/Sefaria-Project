@@ -1,4 +1,4 @@
-import { Cookie, ElementHandle, Page } from 'playwright-core';
+import { Cookie, ElementHandle, Locator, Page } from 'playwright-core';
 import { expect } from 'playwright/test';
 import {isClickable} from "../utils";
 
@@ -54,6 +54,39 @@ export class SourceSheetEditorPage {
         await this.page.keyboard.type(text);
     }
 
+    async alignTextWithStatusIndicator(text: string) {
+      const indicatorBox = await this.statusIndicator().boundingBox();
+      if (!indicatorBox) throw new Error('Save State Indicator not found');
+      const indicatorTopY = indicatorBox.y;
+    
+      await this.page.evaluate(({ text, indicatorTopY }) => {
+        const el = Array.from(document.querySelectorAll('span[data-slate-string="true"]'))
+          .find(e => e.textContent === text);
+        if (!el) return;
+    
+        const rect = el.getBoundingClientRect();
+        const elTopY = rect.top + window.scrollY;
+    
+        const scrollDelta = elTopY - indicatorTopY;
+        const newScrollY = window.scrollY - scrollDelta;
+    
+        window.scrollTo({ top: newScrollY });
+      }, { text, indicatorTopY });
+    }
+    
+    
+    
+
+    async setAsHeader(text: string) {
+      const textLocator = this.page.locator(`text=${text}`);
+      await textLocator.scrollIntoViewIfNeeded();
+      await textLocator.dblclick(); // Triggers the hoverMenu
+      const headerButton = this.page.locator('.hoverMenu .hoverButton:has(i.fa-header)');
+      await headerButton.waitFor({ state: 'visible' });
+      await headerButton.click();
+    }
+    
+
     async clickAddSomething() {
         await this.addSomethingButton().click();
     }
@@ -89,6 +122,10 @@ export class SourceSheetEditorPage {
 
     async getTooltipText() {
         return await this.statusTooltip().getAttribute('aria-label');
+    }
+
+    async getTextLocator(text: string): Promise<Locator> {
+      return this.page.locator('span[data-slate-string="true"]', { hasText: text });
     }
 
     /*function to add a sample source, but there are issues with locators/differences in element names,

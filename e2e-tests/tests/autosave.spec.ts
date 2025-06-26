@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Locator } from '@playwright/test';
 import { SourceSheetEditorPage } from '../pages/sourceSheetEditor.page';
 import { LoginPage } from '../pages/loginPage';
 import {goToPageWithUser, loginUser, hideModals, isClickable, hideTopBanner, changeLanguageLoggedOut, changeLanguageLoggedIn, hideCookiesPopup, hideGenericBanner} from "../utils";
@@ -6,8 +6,10 @@ import { LANGUAGES, testUser } from '../globals';
 import { SaveStates } from '../contants';
 
 
-const TEST_URL = 'https://save-editor.cauldron.sefaria.org';
+//const TEST_URL = 'https://save-editor.cauldron.sefaria.org';
+const TEST_URL = 'https://make-editor-editable-again.cauldron.sefaria.org'
 //const TEST_URL = 'http://2415.coolifydev.sefaria.org';
+//const TEST_URL = 'https://textpreview.cauldron.sefaria.org'
 
 
 test.describe('Test Saved/Saving Without Pop-ups: English', () => {
@@ -25,6 +27,44 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await hideCookiesPopup(page);
     await hideGenericBanner(page);
   });
+
+  // test('Text aligned with Save State Indicator is editable', async ({ page }) => {
+  //   const editor = new SourceSheetEditorPage(page);
+  //   const originalText = 'test';
+  //   const editedText = 'edited';
+  //   await editor.focusTextInput();
+  //   for (let i = 0; i < 15; i++) {
+  //     await editor.page.keyboard.press('Enter');
+  //   }
+  //   await page.keyboard.type(originalText);
+  //   //await editor.addText(originalText);
+  //   // Add padding lines to enable scrolling
+  //   await editor.alignTextWithStatusIndicator(originalText);
+  //   const textLocator = editor.getTextLocator(originalText);
+  //   await (await textLocator).dblclick();
+  //   await page.keyboard.type('edited');
+  //   // Use new locator that reflects updated text
+  //   const updatedLocator = editor.getTextLocator(editedText);
+  //   await expect(await updatedLocator).toHaveText(editedText);
+  // });
+
+  test('Text box aligned with save indicator is clickable', async ({ page }) => {
+    const editor = new SourceSheetEditorPage(page);
+  
+    const uniqueText = 'ClickTarget123';
+    await editor.addText(uniqueText);
+  
+    await editor.alignTextWithStatusIndicator(uniqueText);
+    await page.waitForTimeout(500); // allow scroll to settle
+  
+    const textLocator = page.locator('span[data-slate-string="true"]', { hasText: uniqueText });
+    await textLocator.dblclick();
+    await page.keyboard.type('✅');
+    //await expect(textLocator).toHaveText(uniqueText + '✅');
+  });
+  
+  
+  
 
   test('User actively typing, then gets logged out', async ({ page }) => {
     const editor = new SourceSheetEditorPage(page);
@@ -244,9 +284,9 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
 test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
 
   test.beforeEach(async ({ page }) => {
-    const loginPage = new LoginPage(page, LANGUAGES.HE);
+    const loginPage = new LoginPage(page, LANGUAGES.EN);
     await page.goto(`${TEST_URL}/login`);
-    await loginPage.ensureLanguage(LANGUAGES.HE);  // Switch to English
+    await loginPage.ensureLanguage(LANGUAGES.EN);  // Switch to Hebrew
     //await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
     await loginPage.loginAs('tzirel@sefaria.org', '1234567');
     await hideModals(page);
@@ -262,12 +302,13 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
     await hideTopBanner(page); //currently does not work without this
     await changeLanguageLoggedIn(page, LANGUAGES.HE);
     // Ensure interfaceLang is stored correctly (optional, but helpful)
-    await page.waitForFunction(() => {
-      return localStorage.getItem('interfaceLang') === 'he';
-    });
+    // await page.waitForFunction(() => {
+    //   return localStorage.getItem('interfaceLang') === 'he';
+    // });
 
     // Now reload the page
-    await page.reload();
+    //await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     //check that saving and saved are accurate in Hebrew
     await editor.addText('test saving saved hebrew');
     await editor.assertSaveStateIndicatorIsOnTop();
@@ -276,12 +317,17 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
     await expect(editor.statusMessage()).toHaveText(SaveStates.saved.textHebrew); 
     await expect(editor.statusIndicator()).toHaveAttribute('aria-label', SaveStates.saved.tooltipHebrew, { timeout: 2000 });
     await hideTopBanner(page); 
-    await page.reload();
+    //await page.reload();
     //simulate logout
     //check that logout is accurate in Hebrew
-    await editor.simulateLogout(page.context());
+     //simulate logout
+     const originalValue = await editor.simulateLogout(page.context());
+     await page.waitForTimeout(500);
+     if (originalValue === null) {
+         throw new Error("originalValue cannot be null");
+     }
     await editor.addText('trigger logout');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
     await expect(editor.statusMessage()).toHaveText(SaveStates.loggedOut.textHebrew, { timeout: 1000 });
     await expect(editor.statusIndicator()).toHaveAttribute('aria-label', SaveStates.loggedOut.tooltipHebrew, { timeout: 2000 });
     //simulate login
