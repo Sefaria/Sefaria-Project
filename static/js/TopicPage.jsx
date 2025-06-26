@@ -584,7 +584,7 @@ const TopicPage = ({
                     <TopicSideColumn
                         key={topic}
                         slug={topic}
-                        links={topicData.links}
+                        linksByType={topicData.links}
                         clearAndSetTopic={clearAndSetTopic}
                         setNavTopic={setNavTopic}
                         parashaData={parashaData}
@@ -647,7 +647,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
-    const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference, versionPref);
+    const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
 
     const getCurrentLang = (langPref) => {
@@ -878,11 +878,41 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
+function buildLinkTypeArray(linksByType, slug) {
+  
+  function getPluralizedTitle(title, pluralTitle, links) {
+    if (links.length > 1 && pluralTitle) {
+      return { en: pluralTitle.en, he: pluralTitle.he };
+    }
+    return title;
+  }
+
+  const filterAndSortLinks = (links) => {
+    return links.filter(Sefaria.shouldDisplayInActiveModule).slice().sort((a, b) => {
+      const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
+      if (!!a.title[shortLang] !== !!b.title[shortLang]) {
+        return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
+      }
+      if (!a.order && !b.order) { return 0; }
+      if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+      return b.order?.tfidf - a.order?.tfidf;
+    });
+  }
+
   const category = Sefaria.displayTopicTocCategory(slug);
-  const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType?.shouldDisplay && linkType.links.filter(l => Sefaria.shouldDisplayInActiveModule(l)).length > 0) : [];
-  if (linkTypeArray.length === 0) {
-    linkTypeArray.push({
+  let arr = [];
+  if (!!linksByType) {
+    arr = Object.values(linksByType)
+      .filter(type => !!type?.shouldDisplay && type.links.some(Sefaria.shouldDisplayInActiveModule))
+      .map(type => ({
+        title: type.title,
+        pluralTitle: type.pluralTitle,
+        links: filterAndSortLinks(type.links),
+      }))
+  }
+
+  if (arr.length === 0) {  // if no links, show this category's subtopics in the sidebar (the subtopics can be derived from the topic TOC)
+    arr.push({
       title: {
         en: !category ? 'Explore Topics' : category.en,
         he: !category ?  'נושאים כלליים' : category.he,
@@ -892,60 +922,67 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
         title: {en, he},
         isCategory: !category,
       })),
-    })
+    });
   }
+  
+  arr = arr.slice().sort((a, b) => { // show Related links first, then show by alphabetical order
+    const aInd = a.title.en.indexOf('Related');
+    const bInd = b.title.en.indexOf('Related');
+    if (aInd > -1 && bInd > -1) { return 0; }
+    if (aInd > -1) { return -1; }
+    if (bInd > -1) { return 1; }
+    return a.title.en.localeCompare(b.title.en);
+  });
+
+  return arr.map(({ title, pluralTitle, links }) => {
+    const pluralizedTitle = getPluralizedTitle(title, pluralTitle, links);
+    const hasMore = links.length > 10;
+    return (
+      <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
+        {
+          sortedLinks.map(l => (
+            <TopicLink
+              key={l.topic}
+              topic={l.topic} topicTitle={l.title}
+              onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
+              isTransliteration={l.titleIsTransliteration}
+              isCategory={l.isCategory}
+            />
+          ))
+        }
+      </TopicSideSection>
+    );
+  });
+}
+
+const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
   const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>;
-  const linksComponent = (
-    links ?
-        linkTypeArray.sort((a, b) => {
-        const aInd = a.title.en.indexOf('Related');
-        const bInd = b.title.en.indexOf('Related');
-        if (aInd > -1 && bInd > -1) { return 0; }
-        if (aInd > -1) { return -1; }
-        if (bInd > -1) { return 1; }
-        //alphabetical by en just to keep order consistent
-        return a.title.en.localeCompare(b.title.en);
-      })
-      .map(({ title, pluralTitle, links }) => {
-        const linksToDisplay = links.filter(l => Sefaria.shouldDisplayInActiveModule(l));
-        const hasPlural = linksToDisplay.length > 1 && pluralTitle;
-        const pluralizedTitle = {
-          en: hasPlural ? pluralTitle.en : title.en,
-          he: hasPlural ? pluralTitle.he : title.he,
-        };
-        const hasMore = linksToDisplay.length > 10;
-        return (
-          <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
-            {
-              linksToDisplay
-              .sort((a, b) => {
-                const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
-                if (!!a.title[shortLang] !== !!b.title[shortLang]) {
-                  return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
-                }
-                if (!a.order && !b.order) { return 0; }
-                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                return b.order.tfidf - a.order.tfidf;
-              })
-              .map(l =>
-                  (<TopicLink
-                      key={l.topic}
-                      topic={l.topic} topicTitle={l.title}
-                      onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
-                      isTransliteration={l.titleIsTransliteration}
-                      isCategory={l.isCategory}
-                  />)
-              )
-            }
-          </TopicSideSection>
-        );
-      })
-    : null
-  );
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>; 
+  const linkTypeArray = buildLinkTypeArray(linksByType, slug);
+
+  const linksComponent = linkTypeArray.map(({ title, pluralTitle, links }) => {
+    const sortedLinks = sortLinks(links);
+    const pluralizedTitle = getPluralizedTitle(title, pluralTitle, sortedLinks);
+    const hasMore = sortedLinks.length > 10;
+    return (
+      <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
+        {
+          sortedLinks.map(l => (
+            <TopicLink
+              key={l.topic}
+              topic={l.topic} topicTitle={l.title}
+              onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
+              isTransliteration={l.titleIsTransliteration}
+              isCategory={l.isCategory}
+            />
+          ))
+        }
+      </TopicSideSection>
+    );
+  });
 
   return (
     <div className={"topicSideColumn"}>
@@ -953,7 +990,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       { readingsComponent }
       { linksComponent }
     </div>
-  )
+  );
 }
 TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
