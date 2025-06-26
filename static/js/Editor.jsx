@@ -699,21 +699,29 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
 
     useEffect(() => {
-      const replacement  = divineName || 'noSub';
-      const editors      = [sheetSourceHeEditor, sheetSourceEnEditor];
+      const replacement = divineName || "noSub";
+      const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
+      console.log("Replacing divine names with:", replacement);
 
       for (const editor of editors) {
         Editor.withoutNormalizing(editor, () => {
           for (const [node, path] of Editor.nodes(editor, {
-            at:     [],            // whole document
-            match:  Text.isText,   // only text nodes
-            reverse:true           // iterate bottom-up -> paths stay valid
+            at: [],                 // whole document
+            match: Text.isText,     // only text nodes
+            reverse: true           // bottom-up keeps paths stable
           })) {
             const newText = replaceDivineNames(node.text, replacement);
             if (newText !== node.text) {
-              Transforms.setNodes(
+              // Split out any existing marks (bold/italic/…)
+              const { text: _old, ...marks } = node;
+
+              // Remove the old leaf node
+              Transforms.removeNodes(editor, { at: path });
+
+              // Insert a new leaf with updated text + same marks
+              Transforms.insertNodes(
                 editor,
-                { text: newText }, // overwrite the whole text node
+                { text: newText, ...marks },
                 { at: path }
               );
             }
@@ -721,6 +729,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         });
       }
     }, [divineName]);
+
 
 
   const onHeChange = (value) => {
