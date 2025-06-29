@@ -619,6 +619,19 @@ const Strings = {
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
     },
+    "EditorSaveIndicator": {
+      "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
+      "Saving…": "שומר...",
+      "Saved": "נשמר",
+      "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+      "Trying to connect…": "ניסיון התחברות...",
+      "No internet connection detected": "לא זוהה חיבור לאינטרנט",
+      "User Logged out": "בוצעה התנתקות מהמערכת",
+      "Log in": "התחברות",
+      "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
+      "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
+      "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
+    },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
     },

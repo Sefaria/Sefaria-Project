@@ -31,7 +31,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       sheet.lastModified = sheet.dateModified;
       delete sheet._id;
       try {
-        await postSheet(sheet);
+        await postSheet(JSON.stringify(sheet));
         setPublishText(publishState.posted);
       } catch (error) {
         setPublishText(`Error: ${error.message}`);
@@ -109,9 +109,8 @@ const PublishMenu = ({sheet, publishCallback}) => {
     }
     const updateSuggestedTags = (input) => {
     if (input === "") return
-    Sefaria.getName(input, false, 0).then(d => {
+    Sefaria.getName(input, 5, "Topic").then(d => {
         const topics = d.completion_objects
-            .filter(obj => obj.type === "Topic")
             .map((filteredObj, index) => ({
                 id: index,
                 name: filteredObj.title,
@@ -130,8 +129,11 @@ const PublishMenu = ({sheet, publishCallback}) => {
     const newTags = [].concat(tags, tag);
     setTags(newTags);
   }
-  const onTagValidate = (tag) => {
-      return tags.every((item) => item.name !== tag.name)
+  const onTagValidate = (newTag) => {
+    // Validate that the new tag is not already in the list and is in the list of autocompleted suggestions
+    const isSuggestion = suggestions.some(suggestion => suggestion.slug === newTag.slug);
+    const isNewTag = tags.every((item) => item.name !== newTag.name);
+    return isNewTag && isSuggestion;
   }
   const handleSummaryChange = (event) => {
     const newSummary = event.target.value;

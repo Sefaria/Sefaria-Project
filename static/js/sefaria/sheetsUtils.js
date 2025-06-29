@@ -67,3 +67,64 @@ function shouldBeSegmented(ref){
     const categories =  Sefaria.refCategories(ref);
     return !(categories[0] in {"Tanakh": 1, "Talmud": 1});
 }
+
+export const editorSaveStates = {
+  SAVED: 'saved',
+  SAVING: 'saving',
+  UNSAVED: 'unsaved',
+  CONNECTION_LOST: 'connectionLost',
+  USER_UNAUTHENTICATED: 'userUnauthenticated',
+  UNKNOWN_ERROR: 'unknownError',
+};
+    /*
+    Temporarily disables all user interactions (e.g. mouse, touch, keyboard, clipboard, form input) on a given DOM element and its children.
+    */
+export const disableUserInput = (root) => {
+      if (!root) { return; }
+
+      const blockEvent = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      // Store references so we can later remove them
+      root._blockEventHandler = blockEvent;
+      root._blockedEvents = [
+        'click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'contextmenu',
+        'touchstart', 'touchend', 'touchmove', 'touchcancel',
+        'keydown', 'keypress', 'keyup',
+        'drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop',
+        'focus', 'blur', 'focusin', 'focusout',
+        'copy', 'cut', 'paste',
+        // 'wheel', 'scroll',
+        'submit', 'change', 'input'
+      ];
+
+      root._blockedEvents.forEach(event => {
+        root.addEventListener(event, blockEvent, { capture: true });
+      });
+
+      root.style.pointerEvents = 'none';
+      root.style.userSelect = 'none';
+}
+
+    /*
+     re-enables all user interactions on a given DOM element and its children that were previously disabled.
+    */
+export const enableUserInput = (root) => {
+  if (!root || !root._blockEventHandler || !root._blockedEvents) {return;}
+
+  root._blockedEvents.forEach(event => {
+    root.removeEventListener(event, root._blockEventHandler, { capture: true });
+  });
+
+  delete root._blockEventHandler;
+  delete root._blockedEvents;
+
+  root.style.pointerEvents = '';
+  root.style.userSelect = '';
+}
+export const shouldUseEditor = (sheetID) => {
+    const owner = Sefaria.sheets.loadSheetByID(sheetID)?.owner;
+    return Sefaria._uid === owner;
+}
