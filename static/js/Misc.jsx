@@ -1117,16 +1117,28 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    if (this.props.icon == "circledX"){
-      var icon = <img src="/static/icons/circled-x.svg" />;
-    } else if (this.props.icon == "chevron") {
-      var icon = <i className="fa fa-chevron-left"></i>
+    const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
+    
+    if (icon == "circledX"){
+      var iconElement = <img src="/static/icons/circled-x.svg" alt="" />;
+    } else if (icon == "chevron") {
+      var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
-      var icon = "×";
+      var iconElement = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
-    var url = this.props.url || "";
-    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
+    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    
+    return (
+      <a 
+        href={url} 
+        className={classes} 
+        onClick={this.onClick}
+        aria-label={altText}
+        title={altText}
+      >
+        {iconElement}
+      </a>
+    );
   }
 }
 
@@ -1290,6 +1302,89 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+/**
+ * A button that shows a guide for the given guide type
+ * @param {function} onShowGuide - A function to call when the button is clicked
+ * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
+ */
+function GuideButton({onShowGuide}) {
+  const classes = classNames({guideButton: 1, "tooltip-toggle": true});
+  const altText = Sefaria._("Show guide", "Guide");
+
+  function onClick(event) {
+    event.preventDefault();
+    
+    // Track guide button click
+    gtag("event", "guide_button_clicked", {
+      feature_name: "Guide Button"
+    });
+    
+    if (onShowGuide) {
+      onShowGuide();
+    }
+  }
+
+  return (
+    <ToolTipped {...{ altText, classes, onClick }}>
+      <img src="/static/img/bulb.svg" alt={altText}/>
+    </ToolTipped>
+  );
+}
+GuideButton.propTypes = {
+  onShowGuide: PropTypes.func.isRequired,
+};
+
+/**
+ * ArrowButton component for navigation buttons (next/previous arrows)
+ * @param {string} direction - "next" or "previous" 
+ * @param {function} onClick - Function to call when arrow is clicked
+ * @param {string} altText - Alt text for accessibility
+ * @param {string} className - Additional CSS classes
+ */
+function ArrowButton({ direction, onClick, altText = "", className = "" }) {
+  // Validate required props
+  if (!direction) {
+    console.error("ArrowButton component requires a 'direction' prop");
+    return null;
+  }
+  if (!onClick) {
+    console.error("ArrowButton component requires an 'onClick' prop");
+    return null;
+  }
+  if (!altText) {
+    console.error("ArrowButton component requires an 'altText' prop");
+    return null;
+  }
+
+  // Validate direction value
+  if (direction !== "next" && direction !== "previous") {
+    console.error("ArrowButton 'direction' prop must be either 'next' or 'previous'");
+    return null;
+  }
+
+  // Use appropriate arrow icons for each direction
+  const imageSrc = direction === "next" 
+    ? `/static/img/arrow-right-bold.svg`
+    : `/static/img/arrow-left-bold.svg`;
+  const buttonClass = className ? `arrowButton arrowButton--${direction} ${className}` : `arrowButton arrowButton--${direction}`; // Use CSS transforms to handle RTL direction reversal
+  
+  return (
+    <button 
+      onClick={onClick} 
+      className={buttonClass}
+      aria-label={altText}
+      title={altText}
+    >
+      <img src={imageSrc} alt={altText} />
+    </button>
+  );
+}
+ArrowButton.propTypes = {
+  direction: PropTypes.oneOf(["next", "previous"]).isRequired,
+  onClick: PropTypes.func.isRequired,
+  altText: PropTypes.string.isRequired,
+  className: PropTypes.string,
+};
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
@@ -3305,5 +3400,7 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner
+  LearnAboutNewEditorBanner,
+  GuideButton,
+  ArrowButton as Arrow
 };
