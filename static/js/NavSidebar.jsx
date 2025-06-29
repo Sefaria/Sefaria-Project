@@ -272,18 +272,19 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
-                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
-                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
-                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
-                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
-                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
-                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
-                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
-                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
-                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
-                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.apiHost}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.apiHost}/help`}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.apiHost}/newsletter`},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.apiHost}/ways-to-give`},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
                                   ];
+
 
 const SidebarFooter = () => {
 
