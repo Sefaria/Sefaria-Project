@@ -1,6 +1,8 @@
-import { Cookie, ElementHandle, Locator, Page } from 'playwright-core';
+import { BrowserContext, Cookie, ElementHandle, Locator, Page } from 'playwright-core';
 import { expect } from 'playwright/test';
 import {isClickable} from "../utils";
+import { SaveStates } from '../constants';
+import { LANGUAGES } from '../globals';
 
 
 export class SourceSheetEditorPage {
@@ -16,6 +18,17 @@ export class SourceSheetEditorPage {
     statusIndicator = () => this.page.locator('.editorSaveStateIndicator');
     statusMessage = () => this.page.locator('.saveStateMessage');
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
+
+    //helper function to validate text for the save state
+    async assertSaveState(state: any, language = LANGUAGES.EN) {
+      const text = language === LANGUAGES.HE ? state.textHebrew : state.text;
+      const tooltip = language === LANGUAGES.HE ? state.tooltipHebrew : state.tooltip;
+      await expect(this.statusMessage()).toHaveText(text, { timeout: 5000 });
+      await this.statusIndicator().hover();
+      await expect(this.statusIndicator()).toHaveAttribute('aria-label', tooltip, { timeout: 2000 });
+      await this.assertSaveStateIndicatorIsOnTop();
+    }
+    
 
 
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
@@ -73,9 +86,7 @@ export class SourceSheetEditorPage {
         window.scrollTo({ top: newScrollY });
       }, { text, indicatorTopY });
     }
-    
-    
-    
+
 
     async setAsHeader(text: string) {
       const textLocator = this.page.locator(`text=${text}`);
@@ -198,7 +209,6 @@ export class SourceSheetEditorPage {
     async simulateOnlineMode() {
         await this.page.context().setOffline(false);
     }
-
 
     async simulateLogout(context) {
         const cookies = await context.cookies();
