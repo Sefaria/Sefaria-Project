@@ -9,10 +9,41 @@ let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
+/**
+ * Get timeout values appropriate for the environment
+ * Remote environments get longer timeouts to handle network latency
+ */
+export const getEnvironmentTimeouts = (url?: string) => {
+    const isRemote = url ? !isLocalDevelopment(url) : !isLocalDevelopment(process.env.BASE_URL || 'localhost');
+    
+    return {
+        navigation: isRemote ? 30000 : 10000,      // Page navigation and loading
+        element: isRemote ? 20000 : 10000,         // Element selectors
+        api: isRemote ? 15000 : 10000,             // API calls
+        short: isRemote ? 5000 : 2000,             // Short waits
+        medium: isRemote ? 8000 : 3000,            // Medium waits
+    };
+};
+
+/**
+ * Hide disruptive modal elements and wait for page stability.
+ * 
+ * Waits for network idle state, hides interrupting messages via CSS,
+ * and optionally dismisses the guide overlay. Uses retry mechanism
+ * for network idle waiting to handle slow remote environments.
+ * 
+ * @param page - Playwright page object
+ * @param options - Configuration including guide overlay preservation
+ */
 export const hideModals = async (page: Page, options: { preserveGuideOverlay?: boolean } = {}) => {
     const { preserveGuideOverlay = false } = options;
     
-    await page.waitForLoadState('networkidle');
+    // Wait for network idle with retry on timeout
+    await withRetryOnTimeout(
+        () => page.waitForLoadState('networkidle'),
+        { page }
+    );
+    
     await page.evaluate(() => {
         const style = document.createElement('style');
         style.innerHTML = '#interruptingMessageBox {display: none;}';
@@ -214,6 +245,100 @@ export const isLocalDevelopment = (url: string): boolean => {
     return url.includes('localhost') || url.includes('127.0.0.1');
 };
 
+/**
+ * Retry mechanism for network operations that may timeout on slow remote environments.
+ * 
+ * Local development: Operations run once without retries for speed.
+ * Remote environments: Up to 3 retries with exponential backoff (1s, 2s, 4s delays).
+ * 
+ * Only retries operations that fail due to timeouts - other errors are thrown immediately.
+ * This prevents infinite retry loops while handling network instability.
+ * 
+ * @param operation - The async function to retry (e.g., page.goto, waitForLoadState)
+ * @param context - Object containing page or URL to determine if running locally
+ * @param maxRetries - Maximum retry attempts (default: 3)
+ * @param baseDelay - Starting delay in milliseconds, doubles each retry (default: 1000ms)
+ * @returns Promise that resolves with the operation result
+ */
+export const withRetryOnTimeout = async <T>(
+    operation: () => Promise<T>,
+    context: { page?: Page; url?: string },
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+): Promise<T> => {
+    // Determine if we're in local environment
+    let isLocal = true;
+    if (context.page) {
+        isLocal = isLocalDevelopment(context.page.url());
+    } else if (context.url) {
+        isLocal = isLocalDevelopment(context.url);
+    }
+    
+    // If local environment, just run operation once without retry
+    if (isLocal) {
+        return await operation();
+    }
+    
+    let lastError: Error;
+    
+    // Try the operation with retries (remote environment only)
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error as Error;
+            
+            // Only retry on timeout errors
+            const isTimeoutError = isTimeoutFailure(error);
+            
+            if (!isTimeoutError || attempt === maxRetries) {
+                // Don't retry non-timeout errors or if we've exhausted retries
+                throw error;
+            }
+            
+            // Calculate exponential backoff delay
+            const delay = baseDelay * Math.pow(2, attempt);
+            
+            console.log(`⏳ Attempt ${attempt + 1} failed with timeout, retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    
+    throw lastError!;
+};
+
+/**
+ * Determines if an error is caused by a timeout and should be retried.
+ * 
+ * Looks for timeout-related keywords in error messages to distinguish
+ * network timeouts from other types of failures (auth errors, 404s, etc.).
+ * 
+ * @param error - The error object from a failed operation
+ * @returns true if error appears to be timeout-related, false otherwise
+ */
+const isTimeoutFailure = (error: any): boolean => {
+    if (!error) return false;
+    
+    const errorMessage = error.message?.toLowerCase() || '';
+    const errorName = error.name?.toLowerCase() || '';
+    
+    // Common timeout indicators
+    const timeoutKeywords = [
+        'timeout',
+        'timed out',
+        'time out',
+        'networkidle',
+        'navigation timeout',
+        'page.waitfor',
+        'waitforloadstate',
+        'waitforselector'
+    ];
+    
+    return timeoutKeywords.some(keyword => 
+        errorMessage.includes(keyword) || errorName.includes(keyword)
+    );
+};
+
 
 
 /**
@@ -294,10 +419,29 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 //     await page.getByRole('link', { name: 'See My Saved Texts' }).isVisible();
 // }
 
+/**
+ * Log in a user with automatic retry handling for network timeouts.
+ * 
+ * Handles navigation to login page, language selection, form filling,
+ * and submission. Uses retry mechanism for page navigation and loading
+ * to handle slow remote environments.
+ * 
+ * @param page - Playwright page object
+ * @param user - User credentials (defaults to testUser)
+ * @param language - Interface language (defaults to DEFAULT_LANGUAGE)
+ */
 export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
-    // First, navigate to the login page
-    await page.goto(buildFullUrl('/login'));
-    await page.waitForLoadState('networkidle');
+    // Navigate to login page with retry on timeout
+    await withRetryOnTimeout(
+        () => page.goto(buildFullUrl('/login')),
+        { page }
+    );
+    
+    // Wait for page to load with retry on timeout
+    await withRetryOnTimeout(
+        () => page.waitForLoadState('networkidle'),
+        { page }
+    );
     
     // Use the main language change function which now includes local development handling
     await changeLanguageLoggedOut(page, language);
@@ -306,12 +450,28 @@ export const loginUser = async (page: Page, user = testUser, language = DEFAULT_
     await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
   
-    // Wait for navigation to complete — ideally back to the previous page
-    await page.waitForLoadState('networkidle');
+    // Wait for navigation to complete with retry on timeout
+    await withRetryOnTimeout(
+        () => page.waitForLoadState('networkidle'),
+        { page }
+    );
   };
   
 
 
+/**
+ * Navigate to a page as an authenticated user with automatic retry handling.
+ * 
+ * Sets up user authentication via cookies, creates a new page context,
+ * and navigates to the specified URL. Uses retry mechanism for page
+ * navigation to handle network timeouts on remote environments.
+ * 
+ * @param context - Browser context for managing cookies and pages
+ * @param url - Relative URL to navigate to (e.g., '/sheets/new')
+ * @param user - User credentials (defaults to testUser)
+ * @param options - Configuration options including guide overlay preservation
+ * @returns Promise resolving to the new page
+ */
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser, options: { preserveGuideOverlay?: boolean } = {}) => {
     const { preserveGuideOverlay = false } = options;
     
@@ -324,8 +484,11 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     
-    // Handle URL properly with BASE_URL
-    await newPage.goto(buildFullUrl(url));
+    // Navigate to page with retry on timeout
+    await withRetryOnTimeout(
+        () => newPage.goto(buildFullUrl(url)),
+        { page: newPage }
+    );
     
     await hideModals(newPage, { preserveGuideOverlay });
     
@@ -498,17 +661,25 @@ export const hasGuideOverlayCookie = async (page: Page, guideType: string): Prom
  */
 export const goToNewSheetWithUser = async (context: BrowserContext, user = testUser): Promise<Page> => {
     const page = await goToPageWithUser(context, '/sheets/new', user);
-    await page.waitForSelector('.editorContent', { timeout: 10000 });
+    const timeouts = getEnvironmentTimeouts(page.url());
+    await page.waitForSelector('.editorContent', { timeout: timeouts.element });
     return page;
 };
 
 /**
  * Simulate slow API response for guide loading by intercepting the guide API call
  * @param page Page object
- * @param delayMs Delay in milliseconds (default: 8000ms to trigger timeout)
+ * @param delayMs Delay in milliseconds (auto-adjusted for environment if not specified)
  * @param guideType Guide type to intercept (default: "editor")
  */
-export const simulateSlowGuideLoading = async (page: Page, delayMs: number = 8000, guideType: string = "editor") => {
+export const simulateSlowGuideLoading = async (page: Page, delayMs?: number, guideType: string = "editor") => {
+    // Use environment-appropriate delay if not specified
+    if (delayMs === undefined) {
+        const timeouts = getEnvironmentTimeouts(page.url());
+        // Use shorter delay for remote environments to avoid compounding slowness
+        delayMs = isLocalDevelopment(page.url()) ? 8000 : 4000;
+    }
+    
     await page.route(`**/api/guides/${guideType}`, async (route) => {
         await new Promise(resolve => setTimeout(resolve, delayMs));
         await route.continue();

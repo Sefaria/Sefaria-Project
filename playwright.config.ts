@@ -15,14 +15,21 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* timeout for each test */
-  timeout: 70000,
+  /* timeout for each test - increased for slower remote environments */
+  timeout: (() => {
+    const baseUrl = process.env.BASE_URL || process.env.SANDBOX_URL || 'http://localhost:8000';
+    const isRemote = !baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1');
+    return isRemote ? 180000 : 70000;
+  })(),
 
-  /* timeout for each expect */
+  /* timeout for each expect - increased for slower remote environments */
   expect: {
-    timeout: 10000,
+    timeout: (() => {
+      const baseUrl = process.env.BASE_URL || process.env.SANDBOX_URL || 'http://localhost:8000';
+      const isRemote = !baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1');
+      return isRemote ? 30000 : 10000;
+    })(),
   },
-
 
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,

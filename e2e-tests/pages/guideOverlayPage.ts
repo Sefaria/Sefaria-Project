@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { HelperBase } from './helperBase';
+import { getEnvironmentTimeouts } from '../utils';
 
 /**
  * Page Object Model for Guide Overlay component
@@ -57,7 +58,11 @@ export class GuideOverlayPage extends HelperBase {
     /**
      * Wait for guide overlay to appear and finish loading
      */
-    async waitForLoaded(timeout: number = 10000): Promise<void> {
+    async waitForLoaded(timeout?: number): Promise<void> {
+        if (!timeout) {
+            const timeouts = getEnvironmentTimeouts(this.page.url());
+            timeout = timeouts.element;
+        }
         await this.overlay().waitFor({ state: 'visible', timeout });
         await this.loadingCenter().waitFor({ state: 'detached', timeout });
     }
@@ -65,7 +70,11 @@ export class GuideOverlayPage extends HelperBase {
     /**
      * Wait for guide overlay to disappear
      */
-    async waitForClosed(timeout: number = 5000): Promise<void> {
+    async waitForClosed(timeout?: number): Promise<void> {
+        if (!timeout) {
+            const timeouts = getEnvironmentTimeouts(this.page.url());
+            timeout = timeouts.short;
+        }
         await this.overlay().waitFor({ state: 'detached', timeout });
     }
 

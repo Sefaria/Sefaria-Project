@@ -49,10 +49,10 @@ This document lists all guide overlay test cases in the Playwright test suite (`
 
 ### **Local Development**
 ```bash
-export PLAYWRIGHT_USER_EMAIL="admin@admin.com" && export PLAYWRIGHT_USER_PASSWORD="your-password" && npx playwright test guide-overlay.spec.ts --reporter=line
+export PLAYWRIGHT_USER_EMAIL="admin@admin.com" && export PLAYWRIGHT_USER_PASSWORD="admin" && npx playwright test guide-overlay.spec.ts --reporter=line
 ```
 
 ### **Cauldron Environment**
 ```bash
-BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ PLAYWRIGHT_USER_EMAIL="your-cauldron-email@example.com" PLAYWRIGHT_USER_PASSWORD="your-cauldron-password" npx playwright test guide-overlay --headed
+BASE_URL=https://tips-and-tricks.cauldron.sefaria.org/ PLAYWRIGHT_USER_EMAIL="danielschreiber@sefaria.org" PLAYWRIGHT_USER_PASSWORD="admin" npx playwright test guide-overlay --headed
 ```
