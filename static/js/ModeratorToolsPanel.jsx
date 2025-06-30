@@ -39,11 +39,6 @@ const BulkIndexEditor = () => {
       data.forEach(cat => extractCategories(cat));
       setCategories(cats.sort());
     });
-    
-    // Get all titles for dependence
-    $.getJSON('/api/index/titles', data => {
-      setAllTitles(data.books ? data.books.sort() : []);
-    });
   }, []);
 
   const load = () => {
@@ -121,7 +116,6 @@ const BulkIndexEditor = () => {
       "pubDate": "Publication Date",
       "pubPlace": "Publication Place",
       "hePubPlace": "Hebrew Publication Place",
-      "dependence.baseTextTitles": "Base Text Titles"
     };
 
     const label = fieldLabels[fieldName] || fieldName;
@@ -331,7 +325,7 @@ const BulkIndexEditor = () => {
 const INDEX_FIELDS = [
   "enDesc", "shortDesc", "heDesc", "heShortDesc", "category",
   "authors", "altTitles", "heAltTitles", "compDate", "compPlace", "heCompPlace",
-  "pubDate", "pubPlace", "hePubPlace", "dependence.baseTextTitles"
+  "pubDate", "pubPlace", "hePubPlace",
 ];
 
 class ModeratorToolsPanel extends Component {

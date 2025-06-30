@@ -1513,6 +1513,7 @@ def index_bulk_edit_api(request):
                     v = [x.strip() for x in v.split(",") if x.strip()]
                 setattr(idx, k, v)
         idx.save()
+        return jsonResponse({"status": "ok", "count": len(titles)})
 # ───────────────────────────────────────────────────────────────────────────
 
 
