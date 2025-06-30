@@ -489,16 +489,16 @@ class ModeratorToolsPanel extends Component {
              <RemoveLinksFromCsv/>
          </div>
      );
-     const bulkVersionEditor = (
-       <div className="modToolsSection">
-         <BulkVersionEditor />
-       </div>
-     );
      const workflowyPanel  = (
        <div className="modToolsSection"><WorkflowyBulkPanel /></div>
      );
      const bulkIndexEditor = (
       <div className="modToolsSection"><BulkIndexEditor /></div>
+     );
+     const bulkVersionEditor = (
+       <div className="modToolsSection">
+         <BulkVersionEditor />
+       </div>
      );
           return Sefaria.is_moderator ? (
        <div className="modTools">
