@@ -660,7 +660,7 @@ const BulkVersionEditor = () => {
               value={vtitle} onChange={e=>setVtitle(e.target.value)} />
       <select className="dlVersionSelect"
               value={lang} onChange={e=>setLang(e.target.value)}>
-        <option value="">lang</option><option>he</option><option>en</option><option>fr</option>
+        <option value="">lang</option><option>he</option><option>en</option>
       </select>
       <button className="modtoolsButton" onClick={load}>Load</button>
 
