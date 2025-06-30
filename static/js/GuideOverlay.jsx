@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText, CloseButton, Arrow, LoadingMessage } from './Misc';
 import Sefaria from './sefaria/sefaria';
@@ -121,6 +121,9 @@ const GuideOverlay = ({
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
+  // Track when overlay becomes visible to calculate duration on close
+  const overlayStartTimeRef = useRef(null);
+  
   // Respond to prop changes and initial mount
   // This is needed for the GuideButton functionality - when user clicks the button,
   // forceShow changes from false to true, and we need to show the overlay
@@ -129,6 +132,9 @@ const GuideOverlay = ({
     setIsVisible(shouldShow);
     
     if (shouldShow) {
+      // Start tracking duration when overlay becomes visible
+      overlayStartTimeRef.current = Date.now();
+      
       if (forceShow) {
         trackGuideEvent("guide_view_manual", guideType);
       } else {
@@ -201,8 +207,13 @@ const GuideOverlay = ({
   };
 
   const handleClose = () => {
+    // Calculate duration in seconds (how long overlay was open)
+    const durationMs = overlayStartTimeRef.current ? Date.now() - overlayStartTimeRef.current : 0;
+    const durationSeconds = Math.floor(durationMs / 1000); // Round down to the second
+    
     trackGuideEvent("guide_close", guideType, {
-      ...getCurrentCardParams(guideData, currentCardIndex)
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      length: durationSeconds
     });
     
     setCookie();
