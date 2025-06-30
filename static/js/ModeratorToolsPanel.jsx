@@ -158,29 +158,30 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <GetLinks/>
       </div>);
-    const removeLinksFromCsv = (
-        <div className='modToolsSection'>
-            <RemoveLinksFromCsv/>
-        </div>
-    );
-      const bulkVersionEditor = (
-        <div className="modToolsSection">
-          <BulkVersionEditor />
-        </div>
-      );
+     const removeLinksFromCsv = (
+         <div className='modToolsSection'>
+             <RemoveLinksFromCsv/>
+         </div>
+     );
+     const bulkVersionEditor = (
+       <div className="modToolsSection">
+         <BulkVersionEditor />
+       </div>
+     );
       return Sefaria.is_moderator ? (
-        <div className="modTools">
-          {downloadSection}{uploadForm}{wflowyUpl}
-          {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
-          {bulkVersionEditor}
-        </div>
-      ) : (
-        <div className="modTools">
-          Tools are only available to logged-in moderators.
-        </div>
-      );
-  }
-}
+       <div className="modTools">
+         {downloadSection}{uploadForm}{wflowyUpl}
+         {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
+         {bulkVersionEditor}
+       </div>
+     ) : (
+       <div className="modTools">
+         Tools are only available to logged-in moderators.
+       </div>
+     );
+   }
+ }
+
 ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
@@ -606,85 +607,109 @@ function GetLinks() {
   );
 }
 
+/*****************************************************************
+ *  B U L K   V E R S I O N   E D I T O R   (full field list)
+ *****************************************************************/
+const ALL_FIELDS = [
+  "versionTitle", "versionTitleInHebrew",
+  "versionSource", "license", "status",        // locked = status:"locked"
+  "priority", "digitizedBySefaria",
+  "isPrimary", "isSource",
+  "versionNotes", "versionNotesInHebrew",
+  "purchaseInformationURL", "purchaseInformationImage",
+  "direction"         // ltr / rtl  – rarely needed, but allowed
+];
 
-/* -----  BulkVersionEditor  --------------------------------------------- */
 const BulkVersionEditor = () => {
-  const [vtitle,  setVtitle]  = useState("");
-  const [lang,    setLang]    = useState("");
-  const [indices, setIndices] = useState([]);           // list of all matches
-  const [chosen,  setChosen]  = useState(new Set());    // user selection
-  const [updates, setUpdates] = useState({});           // keyed form fields
-  const [msg,     setMsg]     = useState(null);
+  const [vtitle, setVtitle]   = useState("");
+  const [lang,   setLang]     = useState("");
+  const [indices, setIndices] = useState([]);
+  const [pick,    setPick]    = useState(new Set());
+  const [updates, setUpdates] = useState({});
+  const [msg,     setMsg]     = useState("");
 
-  /* 1. fetch indices ---------------------------------------------------- */
-  const loadIndices = () => {
-    if (!vtitle) return;
+  /* ── helpers ──────────────────────────────────────────────── */
+  const load = () =>
     $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`,
-      d => setIndices(d.indices),
-      xhr => setMsg(`Error: ${xhr.responseText}`)
-    );
-  };
+      d => { setIndices(d.indices); setPick(new Set(d.indices)); }, // pre-select all
+      xhr => setMsg(xhr.responseText));
 
-  /* 2. push bulk update ------------------------------------------------- */
-  const saveUpdates = () => {
-    const body = JSON.stringify({
-      versionTitle: vtitle,
-      language:     lang,
-      indices: Array.from(chosen),
-      updates
-    });
+  const toggleAll = () =>
+    setPick(pick.size === indices.length ? new Set() : new Set(indices));
+
+  const save = () =>
     $.ajax({
-      url:  '/api/version-bulk-edit',
-      type: 'POST',
-      data: body,
-      contentType: 'application/json',
-      success: d => setMsg(`Updated ${d.count} versions ✅`),
-      error:   xhr => setMsg(`Error: ${xhr.responseText}`)
+      url: "/api/version-bulk-edit",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        versionTitle: vtitle, language: lang,
+        indices: Array.from(pick), updates
+      }),
+      success: d => setMsg(`✅ Updated ${d.count} versions`),
+      error:   x => setMsg(`❌ ${x.responseText}`)
     });
-  };
 
+  /* ── UI ───────────────────────────────────────────────────── */
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Edit Version Metadata</div>
 
-      {/* step 0 – basic query */}
-      <input className="dlVersionSelect" placeholder="Version Title"
-             value={vtitle} onChange={e=>setVtitle(e.target.value)} />
+      {/* search bar */}
+      <input  className="dlVersionSelect" placeholder="Version title"
+              value={vtitle} onChange={e=>setVtitle(e.target.value)} />
       <select className="dlVersionSelect"
               value={lang} onChange={e=>setLang(e.target.value)}>
-        <option value="">Language…</option><option value="he">he</option><option value="en">en</option>
+        <option value="">lang</option><option>he</option><option>en</option><option>fr</option>
       </select>
-      <button className="modtoolsButton" onClick={loadIndices}>Load</button>
+      <button className="modtoolsButton" onClick={load}>Load</button>
 
-      {/* step 1 – choose indices */}
-      {indices.length ?
-        <div className="indicesList">
-          {indices.map(t =>
-            <label key={t}>
-              <input type="checkbox"
-                     checked={chosen.has(t)}
-                     onChange={e=>{
-                       const s=new Set(chosen);
-                       e.target.checked? s.add(t):s.delete(t);
-                       setChosen(s);
-                     }}/>
-              {t}
-            </label>)}
-        </div> : null}
+      {/* index checklist */}
+      {indices.length > 0 && (
+        <>
+          <label style={{display:"block",marginTop:"6px"}}>
+            <input type="checkbox"
+                   checked={pick.size===indices.length}
+                   onChange={toggleAll}/> Select all
+          </label>
+          <div className="indicesList">
+            {indices.map(t =>
+              <label key={t}>
+                <input type="checkbox"
+                       checked={pick.has(t)}
+                       onChange={e=>{
+                         const s=new Set(pick);
+                         e.target.checked ? s.add(t) : s.delete(t);
+                         setPick(s);
+                       }}/> {t}
+              </label>)}
+          </div>
+        </>
+      )}
 
-      {/* step 2 – provide updates */}
-      {chosen.size ?
-        <div className="updatesForm">
-          {["versionSource","versionNotes","license","status"].map(f =>
+      {/* field inputs */}
+      {pick.size > 0 && (
+        <>
+          <div style={{marginTop:"8px"}}>Fields to change:</div>
+          {ALL_FIELDS.map(f =>
             <input key={f} className="dlVersionSelect"
                    placeholder={f}
-                   onChange={e=>setUpdates({...updates,[f]:e.target.value})} />)}
-          <button className="modtoolsButton" onClick={saveUpdates}>Save</button>
-        </div> : null}
+                   onChange={e=>{
+                     const v=e.target.value;
+                     setUpdates(u=>{
+                       const n={...u}; v?n[f]=v:delete n[f]; return n;
+                     });
+                   }} />)}
+          <button className="modtoolsButton"
+                  disabled={!Object.keys(updates).length}
+                  onClick={save}>Save</button>
+        </>
+      )}
 
       {msg && <div className="message">{msg}</div>}
-    </div>);
+    </div>
+  );
 };
-/* ----------------------------------------------------------------------- */
+
 
 export default ModeratorToolsPanel;
