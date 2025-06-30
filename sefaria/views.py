@@ -1344,21 +1344,33 @@ def text_upload_api(request):
 def upload_workflowy_multi_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "POST required"})
-    files = request.FILES.getlist("workflowys[]")
-    from sefaria.helper.text import WorkflowyParser # Use the more capable parser
 
+    from sefaria.helper.text import WorkflowyParser
+
+    # Get configuration from the form, just like the single-file uploader
+    files = request.FILES.getlist("workflowys[]")
+    c_index = request.POST.get("c_index") == 'true'
+    c_version = request.POST.get("c_version") == 'true'
+    delims = request.POST.get("delims") or None
+    term_scheme = request.POST.get("term_scheme") or None
+    uid = request.user.id
+    
     msg = []
     for f in files:
         try:
-            # Forcibly create index and version, as this is the user's expectation for a bulk import tool.
-            wfparser = WorkflowyParser(f, request.user.id, c_index=True, c_version=True)
-            wfparser.parse()
+            # Pass all the necessary parameters to the parser
+            wfparser = WorkflowyParser(f, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                # If the parser returns a specific error, report it
+                raise InputError(f"Error in {f.name}: {res['error']}")
             msg.append(f"Imported {f.name}")
+
         except Exception as e:
-            # Add filename to error for better debugging
-            error_message = f"Error processing {f.name}: {e}"
+            error_message = f"Failed to process {f.name}: {e}"
             # Stop on first error, but report what was done so far.
             return jsonResponse({"error": error_message, "message": ' • '.join(msg)})
+
     return jsonResponse({"status": "ok", "message": ' • '.join(msg)})
 
 

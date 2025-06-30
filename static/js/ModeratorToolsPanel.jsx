@@ -948,11 +948,17 @@ function GetLinks() {
 const WorkflowyBulkPanel = () => {
   const [files, setFiles] = React.useState([]);
   const [src, setSrc] = React.useState("");
-  const [baseTitles, setBaseTitles] = React.useState([]); // FIXED: was setBase
   const [targets, setTargets] = React.useState(new Set());
   const [msg, setMsg] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
   const [duplicating, setDuplicating] = React.useState(false);
+
+  // State for new form controls, matching the single uploader
+  const [c_index, setCreateIndex] = React.useState(true);
+  const [c_version, setCreateVersion] = React.useState(false);
+  const [delims, setDelims] = React.useState("");
+  const [term_scheme, setTermScheme] = React.useState("");
+
 
   // Define all books/tractates
   const BIBLE_BOOKS = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
@@ -1074,6 +1080,12 @@ const WorkflowyBulkPanel = () => {
     const fd = new FormData();
     files.forEach(f => fd.append("workflowys[]", f));
     
+    // Append the new form data
+    fd.append("c_index", c_index);
+    fd.append("c_version", c_version);
+    fd.append("delims", delims);
+    fd.append("term_scheme", term_scheme);
+
     $.ajax({
       url: '/api/upload-workflowy-multi',
       type: 'POST', 
@@ -1136,6 +1148,27 @@ const WorkflowyBulkPanel = () => {
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Workflowy Import</div>
+      
+      {/* Configuration options for the uploader */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
+          <label>
+              <input type="checkbox" checked={c_index} onChange={e => setCreateIndex(e.target.checked)} />
+              Create Index Record
+          </label>
+          <label>
+              <input type="checkbox" checked={c_version} onChange={e => setCreateVersion(e.target.checked)} />
+              Create Version From Notes on Outline
+          </label>
+          <label>
+              Custom Delimiters (Title Lang | Alt Titles | Categories):
+              <input type="text" className="dlVersionSelect" value={delims} onChange={e => setDelims(e.target.value)} style={{ width: '100%' }} />
+          </label>
+          <label>
+              Optional Term Scheme Name:
+              <input type="text" className="dlVersionSelect" value={term_scheme} onChange={e => setTermScheme(e.target.value)} style={{ width: '100%' }} />
+          </label>
+      </div>
+
       <input 
         type="file" 
         multiple 
