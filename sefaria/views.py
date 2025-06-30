@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -1395,12 +1394,22 @@ def duplicate_index_api(request):
         return jsonResponse({"error": f'No Index titled "{src_title}"'})
 
     # --- Find the dynamic part of the title (the tractate) ---
-    # This regex is tailored for the "Commentary on Book" pattern.
     match = re.search(r'on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)', src_title)
     if not match:
         return jsonResponse({"error": f"Could not determine the base text from source title: {src_title}"})
     src_base_text = match.group(1)
     
+    # Determine base category from the index's categories
+    if not src_idx.categories:
+        return jsonResponse({"error": f"Source index '{src_title}' has no categories."})
+    base_text_category = src_idx.categories[0]
+
+    src_base_idx_title = f"{base_text_category} {src_base_text}"
+    src_base_idx = Index().load({"title": src_base_idx_title})
+    if not src_base_idx:
+        return jsonResponse({"error": f"Could not load base index for source: '{src_base_idx_title}'"})
+    he_src_base_title = src_base_idx.get_title('he')
+
     src_contents = src_idx.contents()
     if "_id" in src_contents:
         del src_contents["_id"]
@@ -1409,6 +1418,7 @@ def duplicate_index_api(request):
     
     # --- Helper function to recursively update titles ---
     def update_node_titles(node, old_text, new_text):
+        if not old_text or not new_text: return
         if "key" in node:
             node["key"] = node["key"].replace(old_text, new_text)
         if "title" in node:
@@ -1427,18 +1437,28 @@ def duplicate_index_api(request):
         # --- Find the corresponding part of the target title ---
         target_match = re.search(r'on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)', target_title)
         if not target_match:
-            # Could log a warning, but for now we'll just skip if the pattern doesn't match
             continue
         target_base_text = target_match.group(1)
 
+        target_base_idx_title = f"{base_text_category} {target_base_text}"
+        target_base_idx = Index().load({"title": target_base_idx_title})
+        if not target_base_idx:
+            # Log a warning or skip
+            continue
+        he_target_base_title = target_base_idx.get_title('he')
+
         new_contents = deepcopy(src_contents)
         
-        # Update top-level and all nested titles
+        # Update top-level title
         new_contents["title"] = target_title
-        if "heTitle" in new_contents:
-            new_contents["heTitle"] = new_contents["heTitle"].replace(src_base_text, target_base_text) # Simple replace for Hebrew
+        # Update top-level hebrew title
+        if "heTitle" in new_contents and new_contents["heTitle"]:
+            new_contents["heTitle"] = new_contents["heTitle"].replace(he_src_base_title, he_target_base_title)
 
-        update_node_titles(new_contents.get("nodes", {}), src_base_text, target_base_text)
+        # Recursively update titles in nodes for both English and Hebrew
+        for node in new_contents.get("nodes", []):
+            update_node_titles(node, src_base_text, target_base_text)
+            update_node_titles(node, he_src_base_title, he_target_base_title)
 
         try:
             dup = Index(new_contents)
@@ -1451,10 +1471,7 @@ def duplicate_index_api(request):
                 "created_so_far": created
             })
 
-    return jsonResponse({"status": "ok", "created": created})
-
-
-@staff_member_required
+    return jsonResponse({"status": "ok", "created": created})@staff_member_required
 def indices_by_version_api(request):
     if request.method != "GET":
         return jsonResponse({"error": "GET required"})
