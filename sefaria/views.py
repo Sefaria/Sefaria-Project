@@ -1375,17 +1375,21 @@ def upload_workflowy_multi_api(request):
 
 @staff_member_required
 def duplicate_index_api(request):
+    """Improved version of the Duplicate‑Index endpoint.
+    • Ignores meta categories like "Commentary" when looking for the base text’s top‑level category.
+    • Returns a detailed list of skipped targets with reasons (instead of silently dropping them).
+    • Keeps the rest of the original logic unchanged.
+    """
     if request.method != "POST":
         return jsonResponse({"error": "POST required"})
-        
+
     from sefaria.model import Index
     from copy import deepcopy
-    import re
+    import re, json
 
     data = json.loads(request.body)
-    src_title = data.get("src")
-    target_titles = data.get("targets", [])
-
+    src_title      = data.get("src")
+    target_titles  = data.get("targets", [])
     if not src_title or not target_titles:
         return jsonResponse({"error": "src and targets required"})
 
@@ -1393,85 +1397,79 @@ def duplicate_index_api(request):
     if not src_idx:
         return jsonResponse({"error": f'No Index titled "{src_title}"'})
 
-    # --- Find the dynamic part of the title (the tractate) ---
-    match = re.search(r'on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)', src_title)
-    if not match:
-        return jsonResponse({"error": f"Could not determine the base text from source title: {src_title}"})
-    src_base_text = match.group(1)
-    
-    # Determine base category from the index's categories
-    if not src_idx.categories:
-        return jsonResponse({"error": f"Source index '{src_title}' has no categories."})
-    base_text_category = src_idx.categories[0]
+    # ── find the tractate name inside the source title ───────────────────────────
+    m = re.search(r"on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)", src_title)
+    if not m:
+        return jsonResponse({"error": f"Could not determine the base text from '{src_title}'"})
+    src_base_text = m.group(1)
 
+    # ── work out the base‑text category more robustly ────────────────────────────
+    base_text_category = next((c for c in src_idx.categories
+                               if c not in {"Commentary", "Parshanut", "Midrash"}), None)
+    if not base_text_category:
+        return jsonResponse({"error": f"Cannot infer base category from categories {src_idx.categories}"})
+
+    # load the base index of the source so we can translate titles later
     src_base_idx_title = f"{base_text_category} {src_base_text}"
     src_base_idx = Index().load({"title": src_base_idx_title})
     if not src_base_idx:
-        return jsonResponse({"error": f"Could not load base index for source: '{src_base_idx_title}'"})
+        return jsonResponse({"error": f"Base index '{src_base_idx_title}' not found"})
     he_src_base_title = src_base_idx.get_title('he')
 
+    # clean copy of the Mongo document
     src_contents = src_idx.contents()
-    if "_id" in src_contents:
-        del src_contents["_id"]
-    
-    created = []
-    
-    # --- Helper function to recursively update titles ---
-    def update_node_titles(node, old_text, new_text):
-        if not old_text or not new_text: return
-        if "key" in node:
-            node["key"] = node["key"].replace(old_text, new_text)
-        if "title" in node:
-            node["title"] = node["title"].replace(old_text, new_text)
-        if "titles" in node:
-            for t in node["titles"]:
-                t["text"] = t["text"].replace(old_text, new_text)
-        if "nodes" in node:
+    src_contents.pop("_id", None)
+
+    created, skipped = [], []
+
+    def update_node_titles(node, old, new):
+        if not old or not new: return
+        if isinstance(node, dict):
+            if "key" in node:   node["key"]   = node["key"].replace(old, new)
+            if "title" in node: node["title"] = node["title"].replace(old, new)
+            for t in node.get("titles", []):
+                t["text"] = t["text"].replace(old, new)
             for child in node.get("nodes", []):
-                update_node_titles(child, old_text, new_text)
+                update_node_titles(child, old, new)
 
-    for target_title in target_titles:
-        if Index().load({"title": target_title}):
-            continue  # Skip if it already exists
-
-        # --- Find the corresponding part of the target title ---
-        target_match = re.search(r'on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)', target_title)
-        if not target_match:
+    # ── build each target ────────────────────────────────────────────────────────
+    for tgt in target_titles:
+        if Index().load({"title": tgt}):
+            skipped.append({"title": tgt, "reason": "already exists"})
             continue
-        target_base_text = target_match.group(1)
 
-        target_base_idx_title = f"{base_text_category} {target_base_text}"
-        target_base_idx = Index().load({"title": target_base_idx_title})
-        if not target_base_idx:
-            # Log a warning or skip
+        tm = re.search(r"on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)", tgt)
+        if not tm:
+            skipped.append({"title": tgt, "reason": "title pattern not recognised"})
             continue
-        he_target_base_title = target_base_idx.get_title('he')
+        tgt_base_text         = tm.group(1)
+        tgt_base_idx_title    = f"{base_text_category} {tgt_base_text}"
+        tgt_base_idx          = Index().load({"title": tgt_base_idx_title})
+        if not tgt_base_idx:
+            skipped.append({"title": tgt, "reason": "base index not found"})
+            continue
+        he_tgt_base_title     = tgt_base_idx.get_title('he')
 
-        new_contents = deepcopy(src_contents)
-        
-        # Update top-level title
-        new_contents["title"] = target_title
-        # Update top-level hebrew title
-        if "heTitle" in new_contents and new_contents["heTitle"]:
-            new_contents["heTitle"] = new_contents["heTitle"].replace(he_src_base_title, he_target_base_title)
+        # deep copy and retitle
+        new_doc               = deepcopy(src_contents)
+        new_doc["title"]      = tgt
+        if new_doc.get("heTitle"):
+            new_doc["heTitle"] = new_doc["heTitle"].replace(he_src_base_title, he_tgt_base_title)
 
-        # Recursively update titles in nodes for both English and Hebrew
-        for node in new_contents.get("nodes", []):
-            update_node_titles(node, src_base_text, target_base_text)
-            update_node_titles(node, he_src_base_title, he_target_base_title)
+        for node in new_doc.get("nodes", []):
+            update_node_titles(node, src_base_text, tgt_base_text)
+            update_node_titles(node, he_src_base_title, he_tgt_base_title)
 
         try:
-            dup = Index(new_contents)
-            dup.save()
-            created.append(target_title)
+            Index(new_doc).save()
+            created.append(tgt)
         except Exception as e:
-            # Provide a more informative error if a specific duplication fails
-            return jsonResponse({
-                "error": f"An error occurred while creating '{target_title}': {e}",
-                "created_so_far": created
-            })
+            skipped.append({"title": tgt, "reason": str(e)})
 
-    return jsonResponse({"status": "ok", "created": created})@staff_member_required
+    return jsonResponse({"status": "ok", "created": created, "skipped": skipped})
+
+
+@staff_member_required
 def indices_by_version_api(request):
     if request.method != "GET":
         return jsonResponse({"error": "GET required"})
