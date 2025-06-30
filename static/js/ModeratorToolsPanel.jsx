@@ -623,8 +623,11 @@ const WorkflowyBulkPanel = () => {
 
   /* load bible/mishnah/talmud titles once */
   React.useEffect(()=> {
-    $.getJSON('/api/index/titles', t=>setBase(t));
-  },[]);
+  $.getJSON('/api/index/titles', data => {
+    const flat = Object.values(data).flat();
+    setBase(flat);
+  });
+}, []);  
 
   const upload = () => {
     const fd = new FormData();
