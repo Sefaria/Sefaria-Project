@@ -151,6 +151,8 @@ urlpatterns += [
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
     url(r'^api/versions/?$', reader_views.complete_version_api),
+    url(r'^api/version-indices$',     reader_views.version_indices_api),
+    url(r'^api/version-bulk-edit$',   reader_views.version_bulk_edit_api),
     url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),

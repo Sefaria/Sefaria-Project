@@ -1341,6 +1341,58 @@ def text_upload_api(request):
 
 
 @staff_member_required
+def version_indices_api(request):
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+    """
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...]}
+    """
+    from sefaria.model import Version
+    vtitle  = request.GET.get("versionTitle")
+    lang    = request.GET.get("language")
+    if not vtitle:
+        raise InputError("versionTitle is required")
+
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)          # 4–5 ms
+    return jsonResponse({"indices": sorted(indices)})
+
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    """
+    Body JSON:
+      {"versionTitle":"Example 2025",
+       "language":"he",
+       "indices":["Genesis","Exodus"],
+       "updates":{"license":"CC-BY","versionNotes":"Second draft"}}
+    """
+    from sefaria.model import Version
+    data = json.loads(request.body)
+    vtitle, lang, indices, updates = (
+        data["versionTitle"], data["language"],
+        data["indices"],       data["updates"]
+    )
+    if not indices:
+        raise InputError("indices may not be empty")
+
+    for t in indices:
+        v = Version().load({"title": t,
+                            "versionTitle": vtitle,
+                            "language": lang})
+        if not v:
+            raise InputError(f'No Version "{vtitle}" in "{t}"')
+        for k, val in updates.items():
+            setattr(v, k, val)
+        v.save()                                # retains full history / cache hooks
+    return jsonResponse({"status":"ok","count":len(indices)})
+
+
+@staff_member_required
 def update_authors_from_sheet(request):
     from sefaria.helper.descriptions import update_authors_data
     res_text = update_authors_data()

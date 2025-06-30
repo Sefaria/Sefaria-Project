@@ -162,10 +162,20 @@ class ModeratorToolsPanel extends Component {
         <div className='modToolsSection'>
             <RemoveLinksFromCsv/>
         </div>
-    );
-    return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks}{removeLinksFromCsv} </div> :
-        <div className="modTools"> Tools are only available to logged in moderators.</div>;
+    )
+    const bulkVersionEditor = (
+        <div className="modToolsSection">
+          <BulkVersionEditor />
+        </div>
+      );
+      …
+      return (Sefaria.is_moderator) ?
+        <div className="modTools">
+          {downloadSection}{uploadForm}{wflowyUpl}
+          {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
+      +   {bulkVersionEditor}
+        </div> :
+        <div className="modTools">Tools are only available to logged-in moderators.</div>;
   }
 }
 ModeratorToolsPanel.propTypes = {
@@ -592,5 +602,86 @@ function GetLinks() {
     </div>
   );
 }
+
+
+/* -----  BulkVersionEditor  --------------------------------------------- */
+const BulkVersionEditor = () => {
+  const [vtitle,  setVtitle]  = useState("");
+  const [lang,    setLang]    = useState("");
+  const [indices, setIndices] = useState([]);           // list of all matches
+  const [chosen,  setChosen]  = useState(new Set());    // user selection
+  const [updates, setUpdates] = useState({});           // keyed form fields
+  const [msg,     setMsg]     = useState(null);
+
+  /* 1. fetch indices ---------------------------------------------------- */
+  const loadIndices = () => {
+    if (!vtitle) return;
+    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`,
+      d => setIndices(d.indices),
+      xhr => setMsg(`Error: ${xhr.responseText}`)
+    );
+  };
+
+  /* 2. push bulk update ------------------------------------------------- */
+  const saveUpdates = () => {
+    const body = JSON.stringify({
+      versionTitle: vtitle,
+      language:     lang,
+      indices: Array.from(chosen),
+      updates
+    });
+    $.ajax({
+      url:  '/api/version-bulk-edit',
+      type: 'POST',
+      data: body,
+      contentType: 'application/json',
+      success: d => setMsg(`Updated ${d.count} versions ✅`),
+      error:   xhr => setMsg(`Error: ${xhr.responseText}`)
+    });
+  };
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Edit Version Metadata</div>
+
+      {/* step 0 – basic query */}
+      <input className="dlVersionSelect" placeholder="Version Title"
+             value={vtitle} onChange={e=>setVtitle(e.target.value)} />
+      <select className="dlVersionSelect"
+              value={lang} onChange={e=>setLang(e.target.value)}>
+        <option value="">Language…</option><option value="he">he</option><option value="en">en</option>
+      </select>
+      <button className="modtoolsButton" onClick={loadIndices}>Load</button>
+
+      {/* step 1 – choose indices */}
+      {indices.length ?
+        <div className="indicesList">
+          {indices.map(t =>
+            <label key={t}>
+              <input type="checkbox"
+                     checked={chosen.has(t)}
+                     onChange={e=>{
+                       const s=new Set(chosen);
+                       e.target.checked? s.add(t):s.delete(t);
+                       setChosen(s);
+                     }}/>
+              {t}
+            </label>)}
+        </div> : null}
+
+      {/* step 2 – provide updates */}
+      {chosen.size ?
+        <div className="updatesForm">
+          {["versionSource","versionNotes","license","status"].map(f =>
+            <input key={f} className="dlVersionSelect"
+                   placeholder={f}
+                   onChange={e=>setUpdates({...updates,[f]:e.target.value})} />)}
+          <button className="modtoolsButton" onClick={saveUpdates}>Save</button>
+        </div> : null}
+
+      {msg && <div className="message">{msg}</div>}
+    </div>);
+};
+/* ----------------------------------------------------------------------- */
 
 export default ModeratorToolsPanel;
