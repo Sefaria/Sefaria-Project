@@ -162,20 +162,23 @@ class ModeratorToolsPanel extends Component {
         <div className='modToolsSection'>
             <RemoveLinksFromCsv/>
         </div>
-    )
-    const bulkVersionEditor = (
+    );
+      const bulkVersionEditor = (
         <div className="modToolsSection">
           <BulkVersionEditor />
         </div>
       );
-      …
-      return (Sefaria.is_moderator) ?
+      return Sefaria.is_moderator ? (
         <div className="modTools">
           {downloadSection}{uploadForm}{wflowyUpl}
           {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
-      +   {bulkVersionEditor}
-        </div> :
-        <div className="modTools">Tools are only available to logged-in moderators.</div>;
+          {bulkVersionEditor}
+        </div>
+      ) : (
+        <div className="modTools">
+          Tools are only available to logged-in moderators.
+        </div>
+      );
   }
 }
 ModeratorToolsPanel.propTypes = {
