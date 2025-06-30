@@ -816,3 +816,15 @@ def _import_versions_from_csv(rows, columns, user_id):
             }).save()
 
         modify_bulk_text(user_id, v, text_map, type=action)
+
+
+# ── Workflowy helper for the mod-tools bulk uploader ──────────────────────
+def upload_workflowy_from_stream(stream, user_id):
+    """
+    Accept an OPML / Workflowy export *file-like* object, build an Index
+    skeleton (nodes + jagged-array) and save it.  No versions are created.
+    """
+    from sefaria.helper.workflowy import WFImporter
+    opml_bytes = stream.read()
+    wf_tree = WFImporter.from_opml_bytes(opml_bytes)
+    wf_tree.save_to_db(uploader=user_id)

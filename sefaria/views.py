@@ -1345,7 +1345,11 @@ def upload_workflowy_multi_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "POST required"})
     files = request.FILES.getlist("workflowys[]")
-    from sefaria.export import upload_workflowy_from_stream   # ← existing helper
+    try:
+        from sefaria.export import upload_workflowy_from_stream
+    except ImportError:
+        def upload_workflowy_from_stream(*a, **k):
+            raise InputError("Server missing upload_workflowy_from_stream helper")
     msg = []
     for f in files:
         try:
@@ -1409,14 +1413,20 @@ def index_bulk_edit_api(request):
         if not idx:
             return jsonResponse({"error": f'No Index "{t}"'})
         for k, v in updates.items():
-            # support nested keys like dependence.baseTextTitles
-            d, *path = k.split('.')
-            obj = idx
-            for attr in [d] + path[:-1]:
-                obj = getattr(obj, attr)
-            setattr(obj, path[-1] if path else d, v)
+            # nested keys allowed only under dependence.*
+            if "." in k:
+                parent, child = k.split(".", 1)
+                if parent != "dependence":
+                    return jsonResponse({"error": f'Nested key not allowed: {k}'})
+                if not isinstance(idx.dependence, dict):
+                    idx.dependence = {}
+                idx.dependence[child] = v
+            else:
+                cur = getattr(idx, k, None)
+                if isinstance(cur, list) and isinstance(v, str):
+                    v = [x.strip() for x in v.split(",") if x.strip()]
+                setattr(idx, k, v)
         idx.save()
-    return jsonResponse({"status": "ok", "count": len(titles)})
 # ───────────────────────────────────────────────────────────────────────────
 
 

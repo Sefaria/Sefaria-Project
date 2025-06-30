@@ -620,14 +620,16 @@ const WorkflowyBulkPanel = () => {
   const [baseTitles, setBase] = React.useState([]);      // autocomplete list
   const [targets, setTargets] = React.useState(new Set());
   const [msg, setMsg] = React.useState("");
+  
 
   /* load bible/mishnah/talmud titles once */
-  React.useEffect(()=> {
-  $.getJSON('/api/index/titles', data => {
-    const flat = Object.values(data).flat();
+React.useEffect(() => {
+  $.getJSON('/api/index/titles?restricted=core', data => {
+    const flat = Object.values(data).flat();     // flatten buckets to 1-D array
     setBase(flat);
   });
-}, []);  
+}, []);
+
 
   const upload = () => {
     const fd = new FormData();
