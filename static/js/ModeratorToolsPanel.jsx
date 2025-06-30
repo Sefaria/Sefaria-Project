@@ -8,6 +8,332 @@ import { saveAs } from 'file-saver';
 import qs from 'qs';
 import { useState } from 'react';
 
+const BulkIndexEditor = () => {
+  const [vtitle, setVtitle] = React.useState("");
+  const [lang, setLang] = React.useState("");
+  const [indices, setIndices] = React.useState([]);
+  const [pick, setPick] = React.useState(new Set());
+  const [updates, setUpdates] = React.useState({});
+  const [msg, setMsg] = React.useState("");
+  const [categories, setCategories] = React.useState([]);
+  const [allTitles, setAllTitles] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  // Load categories and titles on mount
+  React.useEffect(() => {
+    // Get categories
+    $.getJSON('/api/index', data => {
+      const cats = [];
+      const extractCategories = (node, path = []) => {
+        if (node.category) {
+          const fullPath = [...path, node.category].join(", ");
+          cats.push(fullPath);
+        }
+        if (node.contents) {
+          node.contents.forEach(item => {
+            extractCategories(item, node.category ? [...path, node.category] : path);
+          });
+        }
+      };
+      data.forEach(cat => extractCategories(cat));
+      setCategories(cats.sort());
+    });
+    
+    // Get all titles for dependence
+    $.getJSON('/api/index/titles', data => {
+      setAllTitles(data.books ? data.books.sort() : []);
+    });
+  }, []);
+
+  const load = () => {
+    if (!vtitle) {
+      setMsg("❌ Please enter a version title");
+      return;
+    }
+    
+    setLoading(true);
+    setMsg("Loading indices...");
+    
+    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+      .done(d => {
+        setIndices(d.indices);
+        setPick(new Set(d.indices));
+        setMsg(`Found ${d.indices.length} indices`);
+      })
+      .fail(xhr => {
+        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
+        setMsg(`❌ Error: ${errorMsg}`);
+        setIndices([]);
+        setPick(new Set());
+      })
+      .always(() => setLoading(false));
+  };
+
+  const save = () => {
+    if (!pick.size || !Object.keys(updates).length) return;
+    
+    setSaving(true);
+    setMsg("Saving changes...");
+    
+    $.ajax({
+      url: '/api/index-bulk-edit',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({indices: [...pick], updates}),
+      success: d => {
+        setMsg(`✅ Successfully updated ${d.count} indices`);
+        setUpdates({}); // Clear updates after success
+      },
+      error: xhr => {
+        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to save";
+        setMsg(`❌ Error: ${errorMsg}`);
+      },
+      complete: () => setSaving(false)
+    });
+  };
+
+  const handleFieldChange = (fieldName, value) => {
+    setUpdates(u => {
+      const newUpdates = {...u};
+      if (value) {
+        newUpdates[fieldName] = value;
+      } else {
+        delete newUpdates[fieldName];
+      }
+      return newUpdates;
+    });
+  };
+
+  const renderField = (fieldName) => {
+    const fieldLabels = {
+      "enDesc": "English Description",
+      "shortDesc": "Short Description",
+      "heDesc": "Hebrew Description",
+      "heShortDesc": "Hebrew Short Description",
+      "category": "Category",
+      "authors": "Authors (comma-separated)",
+      "altTitles": "Alternative Titles (comma-separated)",
+      "heAltTitles": "Hebrew Alternative Titles (comma-separated)",
+      "compDate": "Composition Date",
+      "compPlace": "Composition Place",
+      "heCompPlace": "Hebrew Composition Place",
+      "pubDate": "Publication Date",
+      "pubPlace": "Publication Place",
+      "hePubPlace": "Hebrew Publication Place",
+      "dependence.baseTextTitles": "Base Text Titles"
+    };
+
+    const label = fieldLabels[fieldName] || fieldName;
+    const currentValue = updates[fieldName] || "";
+
+    if (fieldName === "category" && categories.length > 0) {
+      return (
+        <div key={fieldName} style={{marginBottom: "8px"}}>
+          <label style={{display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500"}}>
+            {label}:
+          </label>
+          <select 
+            className="dlVersionSelect"
+            value={currentValue}
+            onChange={e => handleFieldChange(fieldName, e.target.value)}
+            style={{width: "100%"}}
+          >
+            <option value="">Select category...</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+      );
+    } else if (fieldName === "dependence.baseTextTitles" && allTitles.length > 0) {
+      return (
+        <div key={fieldName} style={{marginBottom: "8px"}}>
+          <label style={{display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500"}}>
+            {label}:
+          </label>
+          <div style={{fontSize: "12px", color: "#666", marginBottom: "4px"}}>
+            Hold Ctrl/Cmd to select multiple. Selected values will be comma-separated.
+          </div>
+          <select 
+            className="dlVersionSelect" 
+            multiple 
+            size="6"
+            value={currentValue.split(",").map(v => v.trim()).filter(v => v)}
+            onChange={e => {
+              const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+              handleFieldChange(fieldName, selected.join(", "));
+            }}
+            style={{width: "100%"}}
+          >
+            {allTitles.map(title => (
+              <option key={title} value={title}>{title}</option>
+            ))}
+          </select>
+          {currentValue && (
+            <div style={{fontSize: "12px", color: "#666", marginTop: "4px"}}>
+              Current: {currentValue}
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      // Text input for other fields
+      const isTextArea = fieldName.includes("Desc");
+      const InputComponent = isTextArea ? "textarea" : "input";
+      
+      return (
+        <div key={fieldName} style={{marginBottom: "8px"}}>
+          <label style={{display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500"}}>
+            {label}:
+          </label>
+          <InputComponent 
+            className="dlVersionSelect"
+            placeholder={`Enter ${label.toLowerCase()}`}
+            value={currentValue}
+            onChange={e => handleFieldChange(fieldName, e.target.value)}
+            style={{width: "100%"}}
+            rows={isTextArea ? 3 : undefined}
+          />
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Edit Index Metadata</div>
+      
+      <div style={{display: "flex", gap: "8px", marginBottom: "16px"}}>
+        <input 
+          className="dlVersionSelect" 
+          placeholder="Version title"
+          value={vtitle} 
+          onChange={e => setVtitle(e.target.value)}
+          style={{flex: 1}}
+        />
+        <select 
+          className="dlVersionSelect"
+          value={lang} 
+          onChange={e => setLang(e.target.value)}
+          style={{width: "100px"}}
+        >
+          <option value="">All langs</option>
+          <option value="he">Hebrew</option>
+          <option value="en">English</option>
+        </select>
+        <button 
+          className="modtoolsButton" 
+          onClick={load}
+          disabled={loading || !vtitle}
+        >
+          {loading ? "Loading..." : "Find Indices"}
+        </button>
+      </div>
+
+      {indices.length > 0 && (
+        <>
+          <div style={{marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px"}}>
+            <label style={{display: "flex", alignItems: "center", gap: "8px"}}>
+              <input 
+                type="checkbox"
+                checked={pick.size === indices.length}
+                onChange={() => setPick(pick.size === indices.length ? new Set() : new Set(indices))}
+              />
+              <span style={{fontWeight: "500"}}>
+                Select all ({indices.length} indices)
+              </span>
+            </label>
+          </div>
+          
+          <div 
+            className="indicesList" 
+            style={{
+              maxHeight: "200px", 
+              overflow: "auto", 
+              border: "1px solid #ddd", 
+              padding: "8px",
+              marginBottom: "16px",
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            {indices.map(t => (
+              <label key={t} style={{display: "block", padding: "4px", cursor: "pointer"}}>
+                <input 
+                  type="checkbox" 
+                  checked={pick.has(t)}
+                  onChange={e => {
+                    const s = new Set(pick);
+                    e.target.checked ? s.add(t) : s.delete(t);
+                    setPick(s);
+                  }}
+                /> {t}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+
+      {pick.size > 0 && (
+        <>
+          <div style={{marginBottom: "12px", fontWeight: "500"}}>
+            Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
+          </div>
+          
+          <div style={{marginBottom: "16px"}}>
+            {INDEX_FIELDS.map(f => renderField(f))}
+          </div>
+
+          {Object.keys(updates).length > 0 && (
+            <div style={{marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px"}}>
+              <strong>Changes to apply:</strong>
+              <ul style={{margin: "4px 0 0 20px", padding: 0}}>
+                {Object.entries(updates).map(([k, v]) => (
+                  <li key={k} style={{fontSize: "14px"}}>
+                    {k}: "{v}"
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <button 
+            className="modtoolsButton"
+            disabled={!Object.keys(updates).length || saving}
+            onClick={save}
+          >
+            {saving ? "Saving..." : `Save Changes to ${pick.size} Indices`}
+          </button>
+        </>
+      )}
+
+      {msg && (
+        <div 
+          className="message" 
+          style={{
+            marginTop: "12px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" : 
+                           msg.includes("❌") ? "#f8d7da" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" : 
+                   msg.includes("❌") ? "#721c24" : "#0c5460"
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Field list for the component
+const INDEX_FIELDS = [
+  "enDesc", "shortDesc", "heDesc", "heShortDesc", "category",
+  "authors", "altTitles", "heAltTitles", "compDate", "compPlace", "heCompPlace",
+  "pubDate", "pubPlace", "hePubPlace", "dependence.baseTextTitles"
+];
+
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
@@ -171,20 +497,23 @@ class ModeratorToolsPanel extends Component {
      const workflowyPanel  = (
        <div className="modToolsSection"><WorkflowyBulkPanel /></div>
      );
-     const bulkIndexEditor = (
-       <div className="modToolsSection"><BulkIndexEditor /></div>
+          return Sefaria.is_moderator ? (
+       <div className="modTools">
+         {downloadSection}
+         {uploadForm}
+         {wflowyUpl}
+         {uploadLinksFromCSV}
+         {getLinks}
+         {removeLinksFromCsv}
+         {workflowyPanel}
+         {bulkIndexEditor}
+         {bulkVersionEditor}
+       </div>
+     ) : (
+       <div className="modTools">
+         Tools are only available to logged-in moderators.
+       </div>
      );
-      return Sefaria.is_moderator ? (
-        <div className="modTools">
-          {downloadSection}{uploadForm}{wflowyUpl}
-          {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
-          {workflowyPanel}{bulkIndexEditor}{bulkVersionEditor}
-        </div>
-      ) : (
-        <div className="modTools">
-          Tools are only available to logged-in moderators.
-        </div>
-      );
    }
  }
 
@@ -613,15 +942,14 @@ function GetLinks() {
   );
 }
 
-/* ----------  WorkflowyBulkPanel  --------------------------------------- */
 const WorkflowyBulkPanel = () => {
   const [files, setFiles] = React.useState([]);
-  const [src, setSrc]     = React.useState("");
-  const [baseTitles, setBaseTitles] = React.useState([]);
+  const [src, setSrc] = React.useState("");
+  const [baseTitles, setBaseTitles] = React.useState([]); // FIXED: was setBase
   const [targets, setTargets] = React.useState(new Set());
   const [msg, setMsg] = React.useState("");
-  const [category, setCategory] = React.useState("");
-  
+  const [uploading, setUploading] = React.useState(false);
+  const [duplicating, setDuplicating] = React.useState(false);
 
   // Define all books/tractates
   const BIBLE_BOOKS = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
@@ -645,6 +973,22 @@ const WorkflowyBulkPanel = () => {
     "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
     "Avodah Zarah", "Horayot", "Zevachim", "Menachot", "Chullin", "Bekhorot",
     "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid", "Niddah"
+  ];
+
+  const JERUSALEM_TALMUD_TRACTATES = [
+    // Seder Zeraim (included in Jerusalem Talmud)
+    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", 
+    "Maaser Sheni", "Challah", "Orlah", "Bikkurim",
+    // Seder Moed
+    "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Rosh Hashanah", "Yoma", "Sukkah",
+    "Ta'anit", "Megillah", "Moed Katan", "Chagigah", "Shekalim",
+    // Seder Nashim
+    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+    // Seder Nezikin
+    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
+    "Avodah Zarah", "Horayot",
+    // Seder Toharot (only Niddah)
+    "Niddah"
   ];
 
   // Extract the base text from the source commentary
@@ -682,6 +1026,18 @@ const WorkflowyBulkPanel = () => {
       }
     }
     
+    // Check if it's Jerusalem Talmud
+    if (baseText.includes("Jerusalem Talmud") || baseText.includes("Talmud Yerushalmi")) {
+      for (let tractate of JERUSALEM_TALMUD_TRACTATES) {
+        if (baseText.includes(tractate)) {
+          const targets = JERUSALEM_TALMUD_TRACTATES
+            .filter(t => t !== tractate)
+            .map(t => src.replace(tractate, t));
+          return { category: "Jerusalem Talmud", baseBook: tractate, availableTargets: targets };
+        }
+      }
+    }
+    
     // Check if it's Mishnah
     if (baseText.includes("Mishnah")) {
       for (let tractate of MISHNAH_TRACTATES) {
@@ -690,18 +1046,6 @@ const WorkflowyBulkPanel = () => {
             .filter(t => t !== tractate)
             .map(t => src.replace(tractate, t));
           return { category: "Mishnah", baseBook: tractate, availableTargets: targets };
-        }
-      }
-    }
-    
-    // Check if it's Jerusalem Talmud
-    if (baseText.includes("Jerusalem Talmud")) {
-      for (let tractate of TALMUD_TRACTATES) {
-        if (baseText.includes(tractate)) {
-          const targets = TALMUD_TRACTATES
-            .filter(t => t !== tractate)
-            .map(t => src.replace(tractate, t));
-          return { category: "Jerusalem Talmud", baseBook: tractate, availableTargets: targets };
         }
       }
     }
@@ -720,19 +1064,58 @@ const WorkflowyBulkPanel = () => {
   };
 
   const upload = () => {
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    setMsg("Uploading files...");
     const fd = new FormData();
-    files.forEach(f=>fd.append("workflowys[]", f));
-    $.ajax({url:'/api/upload-workflowy-multi',
-            type:'POST', data:fd, processData:false, contentType:false,
-            success:d=>setMsg(d.message), error:x=>setMsg(x.responseText)});
+    files.forEach(f => fd.append("workflowys[]", f));
+    
+    $.ajax({
+      url: '/api/upload-workflowy-multi',
+      type: 'POST', 
+      data: fd, 
+      processData: false, 
+      contentType: false,
+      success: d => {
+        setMsg(`✅ ${d.message}`);
+        setFiles([]); // Clear files after success
+        // Reset file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) fileInput.value = '';
+      },
+      error: x => {
+        const errorMsg = x.responseJSON?.error || x.responseText || "Upload failed";
+        setMsg(`❌ Error: ${errorMsg}`);
+      },
+      complete: () => setUploading(false)
+    });
   };
 
   const duplicate = () => {
+    if (!src || targets.size === 0) return;
+    
+    setDuplicating(true);
+    setMsg(`Creating ${targets.size} indices...`);
+    
     $.ajax({
-      url:'/api/duplicate-index', type:'POST', contentType:'application/json',
-      data: JSON.stringify({src, targets:[...targets]}),
-      success:d=>setMsg(`Created: ${d.created.join(', ')}`),
-      error:x=>setMsg(x.responseText)
+      url: '/api/duplicate-index', 
+      type: 'POST', 
+      contentType: 'application/json',
+      data: JSON.stringify({src, targets: [...targets]}),
+      success: d => {
+        if (d.created && d.created.length > 0) {
+          setMsg(`✅ Successfully created: ${d.created.join(', ')}`);
+          setTargets(new Set()); // Clear selection after success
+        } else {
+          setMsg(`⚠️ No indices were created (they may already exist)`);
+        }
+      },
+      error: x => {
+        const errorMsg = x.responseJSON?.error || x.responseText || "Unknown error";
+        setMsg(`❌ Error: ${errorMsg}`);
+      },
+      complete: () => setDuplicating(false)
     });
   };
 
@@ -750,190 +1133,121 @@ const WorkflowyBulkPanel = () => {
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Workflowy Import</div>
-      <input type="file" multiple onChange={e=>setFiles([...e.target.files])}/>
-      <button className="modtoolsButton" disabled={!files.length} onClick={upload}>Upload All</button>
+      <input 
+        type="file" 
+        multiple 
+        onChange={e => setFiles([...e.target.files])}
+        accept=".opml"
+      />
+      <button 
+        className="modtoolsButton" 
+        disabled={!files.length || uploading} 
+        onClick={upload}
+      >
+        {uploading ? "Uploading..." : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}
+      </button>
 
-      <div className="dlSectionTitle" style={{marginTop:"8px"}}>Duplicate Index</div>
-      <input className="dlVersionSelect" placeholder="Source index (e.g., Rashi on Genesis)"
-             value={src} onChange={e=>setSrc(e.target.value)}/>
+      <div className="dlSectionTitle" style={{marginTop: "16px"}}>Duplicate Index</div>
+      <input 
+        className="dlVersionSelect" 
+        placeholder="Source index (e.g., Rashi on Genesis, Kehati on Mishnah Berakhot)"
+        value={src} 
+        onChange={e => setSrc(e.target.value)}
+      />
       
       {src && detectedCategory && (
         <>
-          <div style={{margin:"8px 0", fontSize:"14px", color:"#666"}}>
+          <div style={{margin: "8px 0", fontSize: "14px", color: "#666"}}>
             Detected: <strong>{detectedCategory}</strong> commentary on <strong>{baseBook}</strong>
           </div>
           
-          <div style={{margin:"8px 0"}}>
-            <button className="modtoolsButton" onClick={selectAll} style={{marginRight:"5px"}}>
-              Select All
+          <div style={{margin: "8px 0"}}>
+            <button 
+              className="modtoolsButton" 
+              onClick={selectAll} 
+              style={{marginRight: "5px"}}
+            >
+              Select All ({availableTargets.length})
             </button>
             <button className="modtoolsButton" onClick={selectNone}>
               Select None
             </button>
           </div>
           
-          <div className="indicesList" style={{maxHeight:"400px", overflow:"auto", border:"1px solid #ddd", padding:"10px"}}>
+          <div 
+            className="indicesList" 
+            style={{
+              maxHeight: "400px", 
+              overflow: "auto", 
+              border: "1px solid #ddd", 
+              padding: "10px",
+              backgroundColor: "#f9f9f9"
+            }}
+          >
             {availableTargets.map(t =>
-              <label key={t} style={{display:"block", padding:"3px"}}>
-                <input type="checkbox"
+              <label key={t} style={{display: "block", padding: "3px", cursor: "pointer"}}>
+                <input 
+                  type="checkbox"
                   checked={targets.has(t)}
-                  onChange={e=>{
+                  onChange={e => {
                     const s = new Set(targets);
                     e.target.checked ? s.add(t) : s.delete(t);
                     setTargets(s);
-                  }}/> {t}
-              </label>)}
+                  }}
+                /> {t}
+              </label>
+            )}
           </div>
           
           {targets.size > 0 && (
-            <div style={{margin:"8px 0", fontSize:"14px", color:"#666"}}>
-              Selected: {targets.size} indices
+            <div style={{margin: "8px 0", fontSize: "14px", color: "#666"}}>
+              Selected: {targets.size} of {availableTargets.length} indices
             </div>
           )}
         </>
       )}
       
       {src && !detectedCategory && (
-        <div style={{margin:"8px 0", color:"red", fontSize:"14px"}}>
+        <div style={{margin: "8px 0", color: "#d9534f", fontSize: "14px"}}>
           Could not detect commentary type. Please ensure the source follows patterns like:
-          <ul style={{marginTop:"5px"}}>
+          <ul style={{marginTop: "5px", marginBottom: "0"}}>
             <li>"Rashi on Genesis"</li>
             <li>"Kehati on Mishnah Bekhorot"</li>
             <li>"Steinsaltz on Talmud Berakhot"</li>
+            <li>"Meiri on Jerusalem Talmud Berakhot"</li>
           </ul>
         </div>
       )}
       
-      <button className="modtoolsButton"
-              disabled={!src || !targets.size} onClick={duplicate}>
-        Duplicate to {targets.size} indices
+      <button 
+        className="modtoolsButton"
+        disabled={!src || !targets.size || duplicating} 
+        onClick={duplicate}
+        style={{marginTop: "8px"}}
+      >
+        {duplicating ? "Creating..." : `Duplicate to ${targets.size} indices`}
       </button>
-      {msg && <div className="message">{msg}</div>}
-    </div>);
-};
-
-/* ----------  BulkIndexEditor  ------------------------------------------ */
-const INDEX_FIELDS = [
- "enDesc","shortDesc","heDesc","heShortDesc","category",
- "authors","altTitles","heAltTitles","compDate","compPlace","heCompPlace",
- "pubDate","pubPlace","hePubPlace","dependence.baseTextTitles"
-];
-
-const BulkIndexEditor = () => {
-  const [vtitle,setV] = React.useState("");
-  const [lang,setLang]= React.useState("");
-  const [indices,setI]= React.useState([]);
-  const [pick,setPick]= React.useState(new Set());
-  const [upd,setUpd]  = React.useState({});
-  const [msg,setMsg]  = React.useState("");
-  const [categories, setCategories] = React.useState([]);
-  const [allTitles, setAllTitles] = React.useState([]);
-
-  // Load categories and titles on mount
-  React.useEffect(() => {
-    // Get categories
-    $.getJSON('/api/index', data => {
-      const cats = [];
-      const extractCategories = (node, path = []) => {
-        if (node.category) {
-          cats.push([...path, node.category].join(", "));
-        }
-        if (node.contents) {
-          node.contents.forEach(item => {
-            extractCategories(item, node.category ? [...path, node.category] : path);
-          });
-        }
-      };
-      data.forEach(cat => extractCategories(cat));
-      setCategories(cats.sort());
-    });
-    
-    // Get all titles for dependence
-    $.getJSON('/api/index/titles', data => {
-      setAllTitles(data.books.sort());
-    });
-  }, []);
-
-  const load = () =>
-    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`,
-      d=>{setI(d.indices);setPick(new Set(d.indices));},
-      x=>setMsg(x.responseText));
-
-  const save = () =>
-    $.ajax({url:'/api/index-bulk-edit',type:'POST',contentType:'application/json',
-            data:JSON.stringify({indices:[...pick],updates:upd}),
-            success:d=>setMsg(`Updated ${d.count}`),error:x=>setMsg(x.responseText)});
-
-  const renderField = (fieldName) => {
-    if (fieldName === "category" && categories.length > 0) {
-      return (
-        <select key={fieldName} className="dlVersionSelect" 
-          onChange={e => {
-            const v = e.target.value;
-            setUpd(u => {const n = {...u}; v ? n[fieldName] = v : delete n[fieldName]; return n;});
-          }}>
-          <option value="">Select category...</option>
-          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-        </select>
-      );
-    } else if (fieldName === "dependence.baseTextTitles" && allTitles.length > 0) {
-      return (
-        <div key={fieldName}>
-          <label>Base Text Titles (comma-separated or select multiple):</label>
-          <select className="dlVersionSelect" multiple size="5"
-            onChange={e => {
-              const selected = Array.from(e.target.selectedOptions).map(o => o.value);
-              const v = selected.join(", ");
-              setUpd(u => {const n = {...u}; v ? n[fieldName] = v : delete n[fieldName]; return n;});
-            }}>
-            {allTitles.map(title => <option key={title} value={title}>{title}</option>)}
-          </select>
+      
+      {msg && (
+        <div 
+          className="message" 
+          style={{
+            marginTop: "8px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" : 
+                           msg.includes("❌") ? "#f8d7da" : 
+                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" : 
+                   msg.includes("❌") ? "#721c24" : 
+                   msg.includes("⚠️") ? "#856404" : "#0c5460"
+          }}
+        >
+          {msg}
         </div>
-      );
-    } else {
-      return (
-        <input key={fieldName} className="dlVersionSelect" placeholder={fieldName}
-          onChange={e => {
-            const v = e.target.value;
-            setUpd(u => {const n = {...u}; v ? n[fieldName] = v : delete n[fieldName]; return n;});
-          }}/>
-      );
-    }
-  };
-
-  return (
-    <div className="modToolsSection">
-      <div className="dlSectionTitle">Bulk Edit Indices</div>
-      <input className="dlVersionSelect" placeholder="Version title"
-             value={vtitle} onChange={e=>setV(e.target.value)}/>
-      <select value={lang} onChange={e=>setLang(e.target.value)}>
-        <option value="">lang</option><option>he</option><option>en</option>
-      </select>
-      <button className="modtoolsButton" onClick={load}>Find</button>
-
-      {indices.length>0 && (
-        <>
-         <label><input type="checkbox"
-           checked={pick.size===indices.length}
-           onChange={()=>setPick(pick.size===indices.length?new Set():new Set(indices))}/>
-           Select all</label>
-         <div className="indicesList">
-           {indices.map(t=><label key={t}>
-             <input type="checkbox" checked={pick.has(t)}
-               onChange={e=>{
-                 const s=new Set(pick);
-                 e.target.checked?s.add(t):s.delete(t); setPick(s);}}/> {t}
-           </label>)}
-         </div>
-        </>
       )}
-
-      {pick.size>0 && INDEX_FIELDS.map(f => renderField(f))}
-
-      <button className="modtoolsButton" disabled={!pick.size||!Object.keys(upd).length}
-              onClick={save}>Save</button>
-      {msg && <div className="message">{msg}</div>}
-    </div>);
+    </div>
+  );
 };
 
 /*****************************************************************
