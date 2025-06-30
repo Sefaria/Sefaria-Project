@@ -33,11 +33,11 @@ const sheet_item_els = {
 };
 
 const voidElements = [
-    "ProfilePic",
-    "SheetMedia",
-    "SheetSource",
-    "SheetOutsideBiText",
-    "horizontal-line"
+  "ProfilePic",
+  "SheetMedia",
+  "SheetSource",
+  "SheetOutsideBiText",
+  "horizontal-line"
 ];
 
 
@@ -205,13 +205,14 @@ const insertNewLine = (editor) => {
 }
 
 export const deserialize = el => {
-    if (el.nodeType === 3) {
-        return el.textContent
-    } else if (el.nodeType !== 1) {
-        return null
-    } else if (el.nodeName === 'BR') {
-        return null
-    }
+  if (el.nodeType === 3) {
+    const t = el.textContent ?? '';
+    return t.trim() === '' ? null : t;      //ignore pure whitespace
+  } else if (el.nodeType !== 1) {
+      return null
+  } else if (el.nodeName === 'BR') {
+      return null
+  }
 
     const checkForStyles = () => {
         if (el.getAttribute("style")) {
@@ -309,7 +310,10 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
+
+        return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
+
     }
 
     if (content.type) {
@@ -537,12 +541,15 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
+function replaceBrWithNewLine(html) {
+  return html.replace(/<br\s*\/?>\s*/gi, '\n');
+  }
 
 function parseSheetItemHTML(rawhtml) {
+    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
-    let preparseHtml = rawhtml
-      .replace(/\u00A0/g, ' ')
-      .replace(/(\r\n|\n|\r|\t)/gm, " ");
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ')
+    preparseHtml = replaceBrWithNewLine(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
@@ -680,7 +687,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
-  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText);
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
@@ -690,23 +697,38 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    useEffect(
-        () => {
-            const replacement = divineName || "noSub"
-            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-            for (const editor of editors) {
-                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-                for (const [node, path] of nodes) {
-                    if (node.text) {
-                        const newStr = replaceDivineNames(node.text, replacement)
-                        if (newStr != node.text) {
-                            Transforms.insertText(editor, newStr, {at: path})
-                        }
-                    }
-                }
+
+    useEffect(() => {
+      const replacement = divineName || "noSub";
+      const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
+
+      for (const editor of editors) {
+        Editor.withoutNormalizing(editor, () => {
+          for (const [node, path] of Editor.nodes(editor, {
+            at: [],                 // whole document
+            match: Text.isText,     // only text nodes
+            reverse: true           // bottom-up keeps paths stable
+          })) {
+            const newText = replaceDivineNames(node.text, replacement);
+            if (newText !== node.text) {
+              // Split out any existing marks (bold/italic/…)
+              const { text: _old, ...marks } = node;
+
+              // Remove the old leaf node
+              Transforms.removeNodes(editor, { at: path });
+
+              // Insert a new leaf with updated text + same marks
+              Transforms.insertNodes(
+                editor,
+                { text: newText, ...marks },
+                { at: path }
+              );
             }
-        }, [divineName]
-    )
+          }
+        });
+      }
+    }, [divineName]);
+
 
 
   const onHeChange = (value) => {
@@ -750,6 +772,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   }
 
+
   const suppressParentContentEditable = (toggle) => {
       // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
       // Don't work as expected -- this hack fixes that
@@ -757,7 +780,11 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onClick = (e) => {
-
+    if (e.target.closest('.hoverButton')) {  // if the click is on a hover button, don't do anything
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if ((e.target).closest('.he .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
@@ -871,7 +898,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -884,7 +911,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -1436,7 +1463,7 @@ const withSefariaSheet = editor => {
     };
 
     editor.isVoid = element => {
-        return (voidElements.includes(element.type)) ? true : isVoid(element)
+      return (voidElements.includes(element.type)) ? true : isVoid(element);
     };
 
     editor.deleteForward = (fromOnKeyDown) => {
@@ -2427,18 +2454,15 @@ const HoverMenu = (opt) => {
     useEffect(() => {
         const el = ref.current;
         const {selection} = editor;
-
         if (!el) {
             return
         }
-
-
+        const isNotFocused = !ReactEditor.isFocused(editor);
+        const isCollapsed = selection && Range.isCollapsed(selection);
+        const isEmpty = selection && Editor.string(editor, selection) === '';
+        const isLink = isLinkActive(editor);
         if (
-            !selection ||
-            !ReactEditor.isFocused(editor) ||
-            Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === '' ||
-            isLinkActive(editor)
+            !selection || isNotFocused || isCollapsed || isEmpty || isLink
         ) {
             el.removeAttribute('style');
             return
@@ -2464,8 +2488,8 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <HighlightButton/>
             {buttons == "basic" ? null : <>
-                <HighlightButton/>
                 <AddLinkButton/>
                 <BlockButton editor={editor} format="header" icon="header"/>
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
@@ -2520,7 +2544,6 @@ const FormatButton = ({format}) => {
     )
 };
 
-
 const HighlightButton = () => {
     const editor = useSlate();
     const ref = useRef();
@@ -2528,16 +2551,26 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
-        const isActive = isFormatActive(editor, "background-color", color);
-        if (isActive) {
-            Editor.removeMark(editor, "background-color")
-        } else {
-            Editor.addMark(editor, "background-color", color)
-        }
-  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
-    )}</>
-
+    const colorButtons = <>{colors.map(color =>
+      <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
+            e.preventDefault();
+            const isActive = isFormatActive(editor, "background-color", color);
+            if (isActive) {
+                Editor.removeMark(editor, "background-color");
+            } else {
+                Editor.addMark(editor, "background-color", color);
+            }
+            }}><div className="highlightDot" style={{"backgroundColor":color}}></div>
+      </button>
+    )}</>;
+    const portal = <div className="highlightMenu" ref={ref} contentEditable={false}>
+                                  {colorButtons}
+                                  <button className="highlightButton" onMouseDown={e => {
+                                      Editor.removeMark(editor, "background-color")
+                                  }}>
+                                    <i className="fa fa-ban highlightCancel"></i>
+                                  </button
+                    ></div>;
     useEffect(() => {
         const el = ref.current;
         if (el) {
@@ -2564,13 +2597,7 @@ const HighlightButton = () => {
         >
       <i className={classNames(classes)}/>
     </span>
-    {showPortal ? <div className="highlightMenu" ref={ref}>
-    {colorButtons}
-    <button className="highlightButton" onClick={e => {
-        Editor.removeMark(editor, "background-color")
-    }}>
-    <i className="fa fa-ban highlightCancel"></i>
-  </button></div> : null}
+    {showPortal && portal}
     </>
     )
 };
