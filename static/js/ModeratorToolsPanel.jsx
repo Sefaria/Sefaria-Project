@@ -617,19 +617,107 @@ function GetLinks() {
 const WorkflowyBulkPanel = () => {
   const [files, setFiles] = React.useState([]);
   const [src, setSrc]     = React.useState("");
-  const [baseTitles, setBase] = React.useState([]);      // autocomplete list
+  const [baseTitles, setBaseTitles] = React.useState([]);
   const [targets, setTargets] = React.useState(new Set());
   const [msg, setMsg] = React.useState("");
+  const [category, setCategory] = React.useState("");
   
 
-  /* load bible/mishnah/talmud titles once */
-React.useEffect(() => {
-  $.getJSON('/api/index/titles?restricted=core', data => {
-    const flat = Object.values(data).flat();     // flatten buckets to 1-D array
-    setBase(flat);
-  });
-}, []);
+  // Define all books/tractates
+  const BIBLE_BOOKS = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
+  
+  const MISHNAH_TRACTATES = [
+    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", "Maaser Sheni",
+    "Challah", "Orlah", "Bikkurim", "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma",
+    "Sukkah", "Beitzah", "Rosh Hashanah", "Ta'anit", "Megillah", "Moed Katan", "Chagigah",
+    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
+    "Eduyot", "Avodah Zarah", "Pirkei Avot", "Horayot", "Zevachim", "Menachot",
+    "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid",
+    "Middot", "Kinnim", "Kelim", "Oholot", "Negaim", "Parah", "Tahorot",
+    "Mikvaot", "Niddah", "Makhshirin", "Zavim", "Tevul Yom", "Yadayim", "Oktzin"
+  ];
+  
+  const TALMUD_TRACTATES = [
+    "Berakhot", "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah",
+    "Beitzah", "Rosh Hashanah", "Ta'anit", "Megillah", "Moed Katan", "Chagigah",
+    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
+    "Avodah Zarah", "Horayot", "Zevachim", "Menachot", "Chullin", "Bekhorot",
+    "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid", "Niddah"
+  ];
 
+  // Extract the base text from the source commentary
+  const getBaseText = (sourceTitle) => {
+    // Handle patterns like "Rashi on Genesis", "Kehati on Mishnah Bekhorot", etc.
+    const patterns = [
+      /on\s+(.+)$/,                    // "X on Y"
+      /to\s+(.+)$/,                    // "X to Y"
+      /,\s+(.+)$/,                     // "X, Y"
+    ];
+    
+    for (let pattern of patterns) {
+      const match = sourceTitle.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    return null;
+  };
+
+  // Determine which category and base book/tractate from the source
+  const analyzeSource = () => {
+    if (!src) return { category: null, baseBook: null, availableTargets: [] };
+    
+    const baseText = getBaseText(src);
+    if (!baseText) return { category: null, baseBook: null, availableTargets: [] };
+    
+    // Check if it's Bible
+    for (let book of BIBLE_BOOKS) {
+      if (baseText.includes(book)) {
+        const targets = BIBLE_BOOKS
+          .filter(b => b !== book)
+          .map(b => src.replace(book, b));
+        return { category: "Bible", baseBook: book, availableTargets: targets };
+      }
+    }
+    
+    // Check if it's Mishnah
+    if (baseText.includes("Mishnah")) {
+      for (let tractate of MISHNAH_TRACTATES) {
+        if (baseText.includes(tractate)) {
+          const targets = MISHNAH_TRACTATES
+            .filter(t => t !== tractate)
+            .map(t => src.replace(tractate, t));
+          return { category: "Mishnah", baseBook: tractate, availableTargets: targets };
+        }
+      }
+    }
+    
+    // Check if it's Jerusalem Talmud
+    if (baseText.includes("Jerusalem Talmud")) {
+      for (let tractate of TALMUD_TRACTATES) {
+        if (baseText.includes(tractate)) {
+          const targets = TALMUD_TRACTATES
+            .filter(t => t !== tractate)
+            .map(t => src.replace(tractate, t));
+          return { category: "Jerusalem Talmud", baseBook: tractate, availableTargets: targets };
+        }
+      }
+    }
+    
+    // Check if it's Talmud (Bavli)
+    for (let tractate of TALMUD_TRACTATES) {
+      if (baseText.includes(tractate)) {
+        const targets = TALMUD_TRACTATES
+          .filter(t => t !== tractate)
+          .map(t => src.replace(tractate, t));
+        return { category: "Talmud", baseBook: tractate, availableTargets: targets };
+      }
+    }
+    
+    return { category: null, baseBook: null, availableTargets: [] };
+  };
 
   const upload = () => {
     const fd = new FormData();
@@ -648,6 +736,17 @@ React.useEffect(() => {
     });
   };
 
+  const selectAll = () => {
+    const { availableTargets } = analyzeSource();
+    setTargets(new Set(availableTargets));
+  };
+
+  const selectNone = () => {
+    setTargets(new Set());
+  };
+
+  const { category: detectedCategory, baseBook, availableTargets } = analyzeSource();
+
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Workflowy Import</div>
@@ -655,22 +754,60 @@ React.useEffect(() => {
       <button className="modtoolsButton" disabled={!files.length} onClick={upload}>Upload All</button>
 
       <div className="dlSectionTitle" style={{marginTop:"8px"}}>Duplicate Index</div>
-      <input className="dlVersionSelect" placeholder="Source index"
+      <input className="dlVersionSelect" placeholder="Source index (e.g., Rashi on Genesis)"
              value={src} onChange={e=>setSrc(e.target.value)}/>
-      <div className="indicesList">
-        {baseTitles.map(t=>
-          <label key={t}>
-            <input type="checkbox"
-              checked={targets.has(t)}
-              onChange={e=>{
-                const s=new Set(targets);
-                e.target.checked ? s.add(t):s.delete(t);
-                setTargets(s);
-              }}/> {t}
-          </label>)}
-      </div>
+      
+      {src && detectedCategory && (
+        <>
+          <div style={{margin:"8px 0", fontSize:"14px", color:"#666"}}>
+            Detected: <strong>{detectedCategory}</strong> commentary on <strong>{baseBook}</strong>
+          </div>
+          
+          <div style={{margin:"8px 0"}}>
+            <button className="modtoolsButton" onClick={selectAll} style={{marginRight:"5px"}}>
+              Select All
+            </button>
+            <button className="modtoolsButton" onClick={selectNone}>
+              Select None
+            </button>
+          </div>
+          
+          <div className="indicesList" style={{maxHeight:"400px", overflow:"auto", border:"1px solid #ddd", padding:"10px"}}>
+            {availableTargets.map(t =>
+              <label key={t} style={{display:"block", padding:"3px"}}>
+                <input type="checkbox"
+                  checked={targets.has(t)}
+                  onChange={e=>{
+                    const s = new Set(targets);
+                    e.target.checked ? s.add(t) : s.delete(t);
+                    setTargets(s);
+                  }}/> {t}
+              </label>)}
+          </div>
+          
+          {targets.size > 0 && (
+            <div style={{margin:"8px 0", fontSize:"14px", color:"#666"}}>
+              Selected: {targets.size} indices
+            </div>
+          )}
+        </>
+      )}
+      
+      {src && !detectedCategory && (
+        <div style={{margin:"8px 0", color:"red", fontSize:"14px"}}>
+          Could not detect commentary type. Please ensure the source follows patterns like:
+          <ul style={{marginTop:"5px"}}>
+            <li>"Rashi on Genesis"</li>
+            <li>"Kehati on Mishnah Bekhorot"</li>
+            <li>"Steinsaltz on Talmud Berakhot"</li>
+          </ul>
+        </div>
+      )}
+      
       <button className="modtoolsButton"
-              disabled={!src || !targets.size} onClick={duplicate}>Duplicate</button>
+              disabled={!src || !targets.size} onClick={duplicate}>
+        Duplicate to {targets.size} indices
+      </button>
       {msg && <div className="message">{msg}</div>}
     </div>);
 };
@@ -683,12 +820,39 @@ const INDEX_FIELDS = [
 ];
 
 const BulkIndexEditor = () => {
-  const [vtitle,setV] = React.useState("");   // which version to search by
+  const [vtitle,setV] = React.useState("");
   const [lang,setLang]= React.useState("");
   const [indices,setI]= React.useState([]);
   const [pick,setPick]= React.useState(new Set());
   const [upd,setUpd]  = React.useState({});
   const [msg,setMsg]  = React.useState("");
+  const [categories, setCategories] = React.useState([]);
+  const [allTitles, setAllTitles] = React.useState([]);
+
+  // Load categories and titles on mount
+  React.useEffect(() => {
+    // Get categories
+    $.getJSON('/api/index', data => {
+      const cats = [];
+      const extractCategories = (node, path = []) => {
+        if (node.category) {
+          cats.push([...path, node.category].join(", "));
+        }
+        if (node.contents) {
+          node.contents.forEach(item => {
+            extractCategories(item, node.category ? [...path, node.category] : path);
+          });
+        }
+      };
+      data.forEach(cat => extractCategories(cat));
+      setCategories(cats.sort());
+    });
+    
+    // Get all titles for dependence
+    $.getJSON('/api/index/titles', data => {
+      setAllTitles(data.books.sort());
+    });
+  }, []);
 
   const load = () =>
     $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`,
@@ -699,6 +863,43 @@ const BulkIndexEditor = () => {
     $.ajax({url:'/api/index-bulk-edit',type:'POST',contentType:'application/json',
             data:JSON.stringify({indices:[...pick],updates:upd}),
             success:d=>setMsg(`Updated ${d.count}`),error:x=>setMsg(x.responseText)});
+
+  const renderField = (fieldName) => {
+    if (fieldName === "category" && categories.length > 0) {
+      return (
+        <select key={fieldName} className="dlVersionSelect" 
+          onChange={e => {
+            const v = e.target.value;
+            setUpd(u => {const n = {...u}; v ? n[fieldName] = v : delete n[fieldName]; return n;});
+          }}>
+          <option value="">Select category...</option>
+          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+        </select>
+      );
+    } else if (fieldName === "dependence.baseTextTitles" && allTitles.length > 0) {
+      return (
+        <div key={fieldName}>
+          <label>Base Text Titles (comma-separated or select multiple):</label>
+          <select className="dlVersionSelect" multiple size="5"
+            onChange={e => {
+              const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+              const v = selected.join(", ");
+              setUpd(u => {const n = {...u}; v ? n[fieldName] = v : delete n[fieldName]; return n;});
+            }}>
+            {allTitles.map(title => <option key={title} value={title}>{title}</option>)}
+          </select>
+        </div>
+      );
+    } else {
+      return (
+        <input key={fieldName} className="dlVersionSelect" placeholder={fieldName}
+          onChange={e => {
+            const v = e.target.value;
+            setUpd(u => {const n = {...u}; v ? n[fieldName] = v : delete n[fieldName]; return n;});
+          }}/>
+      );
+    }
+  };
 
   return (
     <div className="modToolsSection">
@@ -727,12 +928,7 @@ const BulkIndexEditor = () => {
         </>
       )}
 
-      {pick.size>0 && INDEX_FIELDS.map(f=>
-        <input key={f} className="dlVersionSelect" placeholder={f}
-          onChange={e=>{
-            const v=e.target.value;
-            setUpd(u=>{const n={...u}; v?n[f]=v:delete n[f]; return n;});
-          }}/>)}
+      {pick.size>0 && INDEX_FIELDS.map(f => renderField(f))}
 
       <button className="modtoolsButton" disabled={!pick.size||!Object.keys(upd).length}
               onClick={save}>Save</button>
