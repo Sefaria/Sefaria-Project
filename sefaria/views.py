@@ -1378,33 +1378,79 @@ def upload_workflowy_multi_api(request):
 def duplicate_index_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "POST required"})
-    data = json.loads(request.body)
-    src     = data.get("src")
-    targets = data.get("targets", [])
-    if not src or not targets:
-        return jsonResponse({"error": "src and targets required"})
+        
     from sefaria.model import Index
-    src_idx = Index().load({"title": src})
-    if not src_idx:
-        return jsonResponse({"error": f'No Index titled "{src}"'})
+    from copy import deepcopy
+    import re
 
+    data = json.loads(request.body)
+    src_title = data.get("src")
+    target_titles = data.get("targets", [])
+
+    if not src_title or not target_titles:
+        return jsonResponse({"error": "src and targets required"})
+
+    src_idx = Index().load({"title": src_title})
+    if not src_idx:
+        return jsonResponse({"error": f'No Index titled "{src_title}"'})
+
+    # --- Find the dynamic part of the title (the tractate) ---
+    # This regex is tailored for the "Commentary on Book" pattern.
+    match = re.search(r'on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)', src_title)
+    if not match:
+        return jsonResponse({"error": f"Could not determine the base text from source title: {src_title}"})
+    src_base_text = match.group(1)
+    
     src_contents = src_idx.contents()
     if "_id" in src_contents:
         del src_contents["_id"]
-
+    
     created = []
-    for t in targets:
-        if Index().load({"title": t}):
-            continue                             # skip existing
+    
+    # --- Helper function to recursively update titles ---
+    def update_node_titles(node, old_text, new_text):
+        if "key" in node:
+            node["key"] = node["key"].replace(old_text, new_text)
+        if "title" in node:
+            node["title"] = node["title"].replace(old_text, new_text)
+        if "titles" in node:
+            for t in node["titles"]:
+                t["text"] = t["text"].replace(old_text, new_text)
+        if "nodes" in node:
+            for child in node.get("nodes", []):
+                update_node_titles(child, old_text, new_text)
 
-        new_contents = src_contents.copy()
-        new_contents["title"] = t
-        if "nodes" in new_contents:
-            new_contents["nodes"]["key"] = t
+    for target_title in target_titles:
+        if Index().load({"title": target_title}):
+            continue  # Skip if it already exists
 
-        dup = Index(new_contents)
-        dup.save()
-        created.append(t)
+        # --- Find the corresponding part of the target title ---
+        target_match = re.search(r'on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)', target_title)
+        if not target_match:
+            # Could log a warning, but for now we'll just skip if the pattern doesn't match
+            continue
+        target_base_text = target_match.group(1)
+
+        new_contents = deepcopy(src_contents)
+        
+        # Update top-level and all nested titles
+        new_contents["title"] = target_title
+        if "heTitle" in new_contents:
+            new_contents["heTitle"] = new_contents["heTitle"].replace(src_base_text, target_base_text) # Simple replace for Hebrew
+
+        update_node_titles(new_contents.get("nodes", {}), src_base_text, target_base_text)
+
+        try:
+            dup = Index(new_contents)
+            dup.save()
+            created.append(target_title)
+        except Exception as e:
+            # Provide a more informative error if a specific duplication fails
+            return jsonResponse({
+                "error": f"An error occurred while creating '{target_title}': {e}",
+                "created_so_far": created
+            })
+
     return jsonResponse({"status": "ok", "created": created})
 
 
