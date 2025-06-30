@@ -5,12 +5,7 @@ import Sefaria from './sefaria/sefaria';
 
 const localize = (str) => Sefaria._(str, "Guide");
 
-/**
- * Analytics helper function for guide overlay events
- */
-const trackGuideEvent = (eventName, additionalParams = {}) => {
-  gtag("event", eventName, additionalParams);
-};
+
 
 
 
@@ -45,10 +40,7 @@ const GuideFooter = ({ links }) => {
   if (!links || links.length === 0) return null;
 
   const handleFooterLinkClick = (link, index) => {
-    trackGuideEvent("guide_footer_link_clicked", {
-      link_text: typeof link.text === 'object' ? link.text.en || link.text.he : link.text,
-      position: index + 1
-    });
+    // Footer link click handler
   };
 
   return (
@@ -112,13 +104,6 @@ const GuideOverlay = ({
   useEffect(() => {
     const shouldShow = forceShow || !$.cookie(cookieName);
     setIsVisible(shouldShow);
-    
-    // Track when overlay opens (both from cookie state and forced show)
-    if (shouldShow) {
-      trackGuideEvent("guide_overlay_opened", {
-        guide_type: guideType
-      });
-    }
   }, [forceShow]);
 
   // Load guide data only when overlay is visible to avoid unnecessary API calls
@@ -135,12 +120,6 @@ const GuideOverlay = ({
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
         console.warn(`Guide loading timed out after ${timeoutLength} seconds`);
-        
-        // Track timeout event
-        trackGuideEvent("guide_overlay_timeout", {
-          guide_type: guideType
-        });
-        
         handleClose();
         alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
       }
@@ -157,23 +136,12 @@ const GuideOverlay = ({
           clearTimeout(timeoutId); // Clear the timeout if the data is loaded successfully
           setGuideData(data);
           setCurrentCardIndex(0);
-          
-          // Track successful guide load
-          trackGuideEvent("guide_overlay_loaded", {
-            guide_type: guideType
-          });
         }
       } catch (error) {
         console.error("Error loading guide:", error);
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
           console.error("Error loading guide:", error);
-          
-          // Track error event
-          trackGuideEvent("guide_overlay_error", {
-            guide_type: guideType
-          });
-          
           handleClose();
           alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
         }
@@ -201,11 +169,6 @@ const GuideOverlay = ({
   };
 
   const handleClose = () => {
-    // Track close event
-    trackGuideEvent("guide_overlay_closed", {
-      guide_type: guideType
-    });
-    
     setCookie();
     if (onClose) onClose();
     setIsVisible(false);
@@ -232,13 +195,6 @@ const GuideOverlay = ({
     } else {
       newIndex = currentCardIndex <= 0 ? cardsLength - 1 : currentCardIndex - 1;
     }
-    
-    // Track pagination event
-    trackGuideEvent("guide_overlay_pagination", {
-      new_index: newIndex,
-      guide_type: guideType,
-      direction: direction
-    });
     
     setCurrentCardIndex(newIndex);
   };
