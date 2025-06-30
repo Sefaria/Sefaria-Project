@@ -497,6 +497,9 @@ class ModeratorToolsPanel extends Component {
      const workflowyPanel  = (
        <div className="modToolsSection"><WorkflowyBulkPanel /></div>
      );
+     const bulkIndexEditor = (
+      <div className="modToolsSection"><BulkIndexEditor /></div>
+     );
           return Sefaria.is_moderator ? (
        <div className="modTools">
          {downloadSection}
