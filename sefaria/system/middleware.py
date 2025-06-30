@@ -15,7 +15,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-
+from urllib.parse import quote
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -146,12 +146,13 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
+            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
+            path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
-            response = redirect(domain + request.path + params_string)
+            response = redirect(domain + path + params_string)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
