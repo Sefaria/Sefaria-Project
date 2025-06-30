@@ -1345,18 +1345,20 @@ def upload_workflowy_multi_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "POST required"})
     files = request.FILES.getlist("workflowys[]")
-    try:
-        from sefaria.export import upload_workflowy_from_stream
-    except ImportError:
-        def upload_workflowy_from_stream(*a, **k):
-            raise InputError("Server missing upload_workflowy_from_stream helper")
+    from sefaria.helper.text import WorkflowyParser # Use the more capable parser
+
     msg = []
     for f in files:
         try:
-            upload_workflowy_from_stream(f, request.user.id)
+            # Forcibly create index and version, as this is the user's expectation for a bulk import tool.
+            wfparser = WorkflowyParser(f, request.user.id, c_index=True, c_version=True)
+            wfparser.parse()
             msg.append(f"Imported {f.name}")
         except Exception as e:
-            return jsonResponse({"error": str(e), "message": ' • '.join(msg)})
+            # Add filename to error for better debugging
+            error_message = f"Error processing {f.name}: {e}"
+            # Stop on first error, but report what was done so far.
+            return jsonResponse({"error": error_message, "message": ' • '.join(msg)})
     return jsonResponse({"status": "ok", "message": ' • '.join(msg)})
 
 
@@ -1373,11 +1375,22 @@ def duplicate_index_api(request):
     src_idx = Index().load({"title": src})
     if not src_idx:
         return jsonResponse({"error": f'No Index titled "{src}"'})
+
+    src_contents = src_idx.contents()
+    if "_id" in src_contents:
+        del src_contents["_id"]
+
     created = []
     for t in targets:
         if Index().load({"title": t}):
             continue                             # skip existing
-        dup = src_idx.duplicate(t)               # copies nodes/JA only
+
+        new_contents = src_contents.copy()
+        new_contents["title"] = t
+        if "nodes" in new_contents:
+            new_contents["nodes"]["key"] = t
+
+        dup = Index(new_contents)
         dup.save()
         created.append(t)
     return jsonResponse({"status": "ok", "created": created})

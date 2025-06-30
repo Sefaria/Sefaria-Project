@@ -519,7 +519,7 @@ class ModeratorToolsPanel extends Component {
      );
    }
  }
-
+ 
 ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
