@@ -1339,6 +1339,86 @@ def text_upload_api(request):
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
 
+# ─────────────────────────  BULK WORKFLOWY + INDEX ADMIN  ──────────────────
+@staff_member_required
+def upload_workflowy_multi_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "POST required"})
+    files = request.FILES.getlist("workflowys[]")
+    from sefaria.export import upload_workflowy_from_stream   # ← existing helper
+    msg = []
+    for f in files:
+        try:
+            upload_workflowy_from_stream(f, request.user.id)
+            msg.append(f"Imported {f.name}")
+        except Exception as e:
+            return jsonResponse({"error": str(e), "message": ' • '.join(msg)})
+    return jsonResponse({"status": "ok", "message": ' • '.join(msg)})
+
+
+@staff_member_required
+def duplicate_index_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "POST required"})
+    data = json.loads(request.body)
+    src     = data.get("src")
+    targets = data.get("targets", [])
+    if not src or not targets:
+        return jsonResponse({"error": "src and targets required"})
+    from sefaria.model import Index
+    src_idx = Index().load({"title": src})
+    if not src_idx:
+        return jsonResponse({"error": f'No Index titled "{src}"'})
+    created = []
+    for t in targets:
+        if Index().load({"title": t}):
+            continue                             # skip existing
+        dup = src_idx.duplicate(t)               # copies nodes/JA only
+        dup.save()
+        created.append(t)
+    return jsonResponse({"status": "ok", "created": created})
+
+
+@staff_member_required
+def indices_by_version_api(request):
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+    vtitle = request.GET.get("versionTitle")
+    lang   = request.GET.get("language")
+    if not vtitle:
+        return jsonResponse({"error": "versionTitle param required"})
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)      # same query as bulk-version tool
+    return jsonResponse({"indices": sorted(indices)})
+
+
+@staff_member_required
+def index_bulk_edit_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "POST required"})
+    data = json.loads(request.body)
+    titles  = data.get("indices", [])
+    updates = data.get("updates", {})
+    if not titles or not updates:
+        return jsonResponse({"error": "indices and updates required"})
+    from sefaria.model import Index
+    for t in titles:
+        idx = Index().load({"title": t})
+        if not idx:
+            return jsonResponse({"error": f'No Index "{t}"'})
+        for k, v in updates.items():
+            # support nested keys like dependence.baseTextTitles
+            d, *path = k.split('.')
+            obj = idx
+            for attr in [d] + path[:-1]:
+                obj = getattr(obj, attr)
+            setattr(obj, path[-1] if path else d, v)
+        idx.save()
+    return jsonResponse({"status": "ok", "count": len(titles)})
+# ───────────────────────────────────────────────────────────────────────────
+
 
 @staff_member_required
 def version_indices_api(request):

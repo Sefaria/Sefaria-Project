@@ -168,17 +168,23 @@ class ModeratorToolsPanel extends Component {
          <BulkVersionEditor />
        </div>
      );
-      return Sefaria.is_moderator ? (
-       <div className="modTools">
-         {downloadSection}{uploadForm}{wflowyUpl}
-         {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
-         {bulkVersionEditor}
-       </div>
-     ) : (
-       <div className="modTools">
-         Tools are only available to logged-in moderators.
-       </div>
+     const workflowyPanel  = (
+       <div className="modToolsSection"><WorkflowyBulkPanel /></div>
      );
+     const bulkIndexEditor = (
+       <div className="modToolsSection"><BulkIndexEditor /></div>
+     );
+      return Sefaria.is_moderator ? (
+        <div className="modTools">
+          {downloadSection}{uploadForm}{wflowyUpl}
+          {uploadLinksFromCSV}{getLinks}{removeLinksFromCsv}
+          {workflowyPanel}{bulkIndexEditor}{bulkVersionEditor}
+        </div>
+      ) : (
+        <div className="modTools">
+          Tools are only available to logged-in moderators.
+        </div>
+      );
    }
  }
 
@@ -312,7 +318,7 @@ class WorkflowyModeratorTool extends Component{
         { (this.state.error && this.state.errorIsHTML) ?
               <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
               <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
-        </div>);
+        </div>);        
   }
 }
 
@@ -606,6 +612,128 @@ function GetLinks() {
     </div>
   );
 }
+
+/* ----------  WorkflowyBulkPanel  --------------------------------------- */
+const WorkflowyBulkPanel = () => {
+  const [files, setFiles] = React.useState([]);
+  const [src, setSrc]     = React.useState("");
+  const [baseTitles, setBase] = React.useState([]);      // autocomplete list
+  const [targets, setTargets] = React.useState(new Set());
+  const [msg, setMsg] = React.useState("");
+
+  /* load bible/mishnah/talmud titles once */
+  React.useEffect(()=> {
+    $.getJSON('/api/index/titles', t=>setBase(t));
+  },[]);
+
+  const upload = () => {
+    const fd = new FormData();
+    files.forEach(f=>fd.append("workflowys[]", f));
+    $.ajax({url:'/api/upload-workflowy-multi',
+            type:'POST', data:fd, processData:false, contentType:false,
+            success:d=>setMsg(d.message), error:x=>setMsg(x.responseText)});
+  };
+
+  const duplicate = () => {
+    $.ajax({
+      url:'/api/duplicate-index', type:'POST', contentType:'application/json',
+      data: JSON.stringify({src, targets:[...targets]}),
+      success:d=>setMsg(`Created: ${d.created.join(', ')}`),
+      error:x=>setMsg(x.responseText)
+    });
+  };
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Workflowy Import</div>
+      <input type="file" multiple onChange={e=>setFiles([...e.target.files])}/>
+      <button className="modtoolsButton" disabled={!files.length} onClick={upload}>Upload All</button>
+
+      <div className="dlSectionTitle" style={{marginTop:"8px"}}>Duplicate Index</div>
+      <input className="dlVersionSelect" placeholder="Source index"
+             value={src} onChange={e=>setSrc(e.target.value)}/>
+      <div className="indicesList">
+        {baseTitles.map(t=>
+          <label key={t}>
+            <input type="checkbox"
+              checked={targets.has(t)}
+              onChange={e=>{
+                const s=new Set(targets);
+                e.target.checked ? s.add(t):s.delete(t);
+                setTargets(s);
+              }}/> {t}
+          </label>)}
+      </div>
+      <button className="modtoolsButton"
+              disabled={!src || !targets.size} onClick={duplicate}>Duplicate</button>
+      {msg && <div className="message">{msg}</div>}
+    </div>);
+};
+
+/* ----------  BulkIndexEditor  ------------------------------------------ */
+const INDEX_FIELDS = [
+ "enDesc","shortDesc","heDesc","heShortDesc","category",
+ "authors","altTitles","heAltTitles","compDate","compPlace","heCompPlace",
+ "pubDate","pubPlace","hePubPlace","dependence.baseTextTitles"
+];
+
+const BulkIndexEditor = () => {
+  const [vtitle,setV] = React.useState("");   // which version to search by
+  const [lang,setLang]= React.useState("");
+  const [indices,setI]= React.useState([]);
+  const [pick,setPick]= React.useState(new Set());
+  const [upd,setUpd]  = React.useState({});
+  const [msg,setMsg]  = React.useState("");
+
+  const load = () =>
+    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`,
+      d=>{setI(d.indices);setPick(new Set(d.indices));},
+      x=>setMsg(x.responseText));
+
+  const save = () =>
+    $.ajax({url:'/api/index-bulk-edit',type:'POST',contentType:'application/json',
+            data:JSON.stringify({indices:[...pick],updates:upd}),
+            success:d=>setMsg(`Updated ${d.count}`),error:x=>setMsg(x.responseText)});
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Edit Indices</div>
+      <input className="dlVersionSelect" placeholder="Version title"
+             value={vtitle} onChange={e=>setV(e.target.value)}/>
+      <select value={lang} onChange={e=>setLang(e.target.value)}>
+        <option value="">lang</option><option>he</option><option>en</option>
+      </select>
+      <button className="modtoolsButton" onClick={load}>Find</button>
+
+      {indices.length>0 && (
+        <>
+         <label><input type="checkbox"
+           checked={pick.size===indices.length}
+           onChange={()=>setPick(pick.size===indices.length?new Set():new Set(indices))}/>
+           Select all</label>
+         <div className="indicesList">
+           {indices.map(t=><label key={t}>
+             <input type="checkbox" checked={pick.has(t)}
+               onChange={e=>{
+                 const s=new Set(pick);
+                 e.target.checked?s.add(t):s.delete(t); setPick(s);}}/> {t}
+           </label>)}
+         </div>
+        </>
+      )}
+
+      {pick.size>0 && INDEX_FIELDS.map(f=>
+        <input key={f} className="dlVersionSelect" placeholder={f}
+          onChange={e=>{
+            const v=e.target.value;
+            setUpd(u=>{const n={...u}; v?n[f]=v:delete n[f]; return n;});
+          }}/>)}
+
+      <button className="modtoolsButton" disabled={!pick.size||!Object.keys(upd).length}
+              onClick={save}>Save</button>
+      {msg && <div className="message">{msg}</div>}
+    </div>);
+};
 
 /*****************************************************************
  *  B U L K   V E R S I O N   E D I T O R   (full field list)
