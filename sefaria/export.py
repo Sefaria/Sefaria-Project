@@ -720,42 +720,99 @@ def import_versions_from_file(csv_filename, columns):
     return _import_versions_from_csv(rows, columns)
 
 
+from collections import defaultdict
+from sefaria.model import Ref, Index, Version      # new import ✔
+
 def _import_versions_from_csv(rows, columns, user_id):
-    from sefaria.tracker import modify_bulk_text
+    """
+    Now accepts two layouts transparently.
 
-    index_title = rows[0][columns[0]]  # assume the same index title for all
-    index = Index().load({'title': index_title})
+    ─ Legacy (unchanged) ─────────────────────────────
+        Row-0  :  index title
+        Row-1+ :  per-column version metadata
+        Row-5+ :  refs + text (one index only)
+
+    ─ New compact layout ────────────────────────────
+        Row-0  :  Version Title
+        Row-1  :  Language (2-letter)
+        Row-2  :  Version Source
+        Row-3  :  Version Notes
+        Row-4+ :  ref , text               ← may mix refs from many indices
+
+        All metadata go in whichever column number is passed in *columns*,
+        exactly as before (typically column 1).
+    """
+    from sefaria.tracker import modify_bulk_text      # existing import ✔
+
+    col = columns[0]                                  # only one column is ever used
+    first_cell = rows[0][col]
+
+    # ── 1.  Try legacy path ─────────────────────────
+    index = Index().load({'title': first_cell})
     if index:
+        # 100 % of the old logic, completely unchanged
         index_node = index.nodes
-    else:
-        raise InputError(f'No book with primary title "{index_title}"')
+        action = "edit"
+        for column in columns:
+            version_title, version_lang = rows[1][column], rows[2][column]
+            v = Version().load({
+                "title": first_cell,
+                "versionTitle": version_title,
+                "language": version_lang
+            })
+            if v is None:
+                action = "add"
+                v = Version({
+                    "chapter": index_node.create_skeleton(),
+                    "title": first_cell,
+                    "versionTitle": version_title,
+                    "language": version_lang,
+                    "versionSource": rows[3][column],
+                    "versionNotes":  rows[4][column],
+                }).save()
 
+            text_map = {row[0]: row[column] for row in rows[5:]}
+            modify_bulk_text(user_id, v, text_map, type=action)
+        return                                     #  ← finished legacy import
 
-    action = "edit"
-    for column in columns:
-        # Create version
-        version_title = rows[1][column]
-        version_lang = rows[2][column]
+    # ── 2.  New multi-index path ───────────────────
+    version_title  = rows[0][col]
+    version_lang   = rows[1][col]
+    version_source = rows[2][col]
+    version_notes  = rows[3][col]
+
+    # Build one text-map per Index
+    book_maps = defaultdict(dict)
+    for row in rows[4:]:
+        ref, text = row[0], row[col]
+        try:
+            idx_title = Ref(ref).index.title       # deduce book name
+        except Exception as e:
+            raise InputError(f'"{ref}" is not a valid ref: {e}')
+        book_maps[idx_title][ref] = text
+
+    # Create / update that version for *every* book touched
+    for idx_title, text_map in book_maps.items():
+        index = Index().load({'title': idx_title})
+        if not index:
+            raise InputError(f'No book with primary title "{idx_title}"')
+        index_node = index.nodes
 
         v = Version().load({
-            "title": index_title,
+            "title": idx_title,
             "versionTitle": version_title,
             "language": version_lang
         })
-
+        action = "edit"
         if v is None:
             action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
-                "title": index_title,
+                "title": idx_title,
                 "versionTitle": version_title,
-                "language": version_lang,            # Language
-                "versionSource": rows[3][column],       # Version Source
-                "versionNotes": rows[4][column],        # Version Notes
+                "language": version_lang,
+                "versionSource": version_source,
+                "versionNotes":  version_notes,
             }).save()
 
-        # Populate it
-        text_map = {}
-        for row in rows[5:]:
-            text_map[row[0]] = row[column]
         modify_bulk_text(user_id, v, text_map, type=action)
