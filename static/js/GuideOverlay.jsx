@@ -5,9 +5,35 @@ import Sefaria from './sefaria/sefaria';
 
 const localize = (str) => Sefaria._(str, "Guide");
 
+/**
+ * Analytics helper functions for guide overlay events
+ */
+const getBaseAnalyticsParams = (guideType) => {
+  return {
+    project: "Quick Start Guide",
+    feature_name: `Quick Start Guide - ${guideType}`
+  };
+};
 
+const getCurrentCardParams = (guideData, currentCardIndex) => {
+  if (!guideData || !guideData.cards || !guideData.cards[currentCardIndex]) {
+    return {};
+  }
+  
+  const currentCard = guideData.cards[currentCardIndex];
+  const cardTitle = typeof currentCard.title === 'object' ? currentCard.title.en : currentCard.title; // Always use English for analytics consistency
+  
+  return {
+    panel_name: cardTitle,
+    panel_number: currentCardIndex + 1 // 1-based
+  };
+};
 
-
+const trackGuideEvent = (eventName, guideType, additionalParams = {}) => {
+  const baseParams = getBaseAnalyticsParams(guideType);
+  const allParams = { ...baseParams, ...additionalParams };
+  gtag("event", eventName, allParams);
+};
 
 /**
  * Title component with prefix
@@ -36,12 +62,8 @@ TitleWithPrefix.propTypes = {
 /**
  * Footer component with consistent links for the guide type
  */
-const GuideFooter = ({ links }) => {
+const GuideFooter = ({ links, onLinkClick }) => {
   if (!links || links.length === 0) return null;
-
-  const handleFooterLinkClick = (link, index) => {
-    // Footer link click handler
-  };
 
   return (
     <div className="guideOverlayFooter">
@@ -53,7 +75,7 @@ const GuideFooter = ({ links }) => {
             className="guideOverlayFooterLink" 
             target="_blank" 
             rel="noopener noreferrer"
-            onClick={() => handleFooterLinkClick(link, index)}
+            onClick={() => onLinkClick(link, index)}
           >
             <InterfaceText text={link.text} />
           </a>
@@ -67,7 +89,8 @@ GuideFooter.propTypes = {
   links: PropTypes.arrayOf(PropTypes.shape({
     text: PropTypes.object.isRequired,
     url: PropTypes.string.isRequired
-  }))
+  })),
+  onLinkClick: PropTypes.func.isRequired
 };
 
 /**
@@ -104,6 +127,15 @@ const GuideOverlay = ({
   useEffect(() => {
     const shouldShow = forceShow || !$.cookie(cookieName);
     setIsVisible(shouldShow);
+    
+    if (shouldShow) {
+      if (forceShow) {
+        trackGuideEvent("guide_view_manual", guideType);
+      } else {
+        // Auto view fires when guide shows without being forced (no cookie exists)
+        trackGuideEvent("guide_view_auto", guideType);
+      }
+    }
   }, [forceShow]);
 
   // Load guide data only when overlay is visible to avoid unnecessary API calls
@@ -169,10 +201,33 @@ const GuideOverlay = ({
   };
 
   const handleClose = () => {
+    trackGuideEvent("guide_close", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex)
+    });
+    
     setCookie();
     if (onClose) onClose();
     setIsVisible(false);
   };
+
+  const handleFooterLinkClick = (link, index) => {
+    const linkText = typeof link.text === 'object' ? link.text.en : link.text; // Always use English for analytics consistency
+    trackGuideEvent("guide_click", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      text: linkText
+    });
+  };
+
+  const handleTextContentClick = (event) => {
+    const link = event.target.closest('a');
+    if (!link) return;
+    
+    trackGuideEvent("guide_click", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      text: link.textContent || ''
+    });
+  };
+
 
   /**
    * Navigate to next or previous card with circular looping
@@ -196,10 +251,13 @@ const GuideOverlay = ({
       newIndex = currentCardIndex <= 0 ? cardsLength - 1 : currentCardIndex - 1;
     }
     
+    trackGuideEvent("guide_nav", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      text: direction
+    });
+    
     setCurrentCardIndex(newIndex);
   };
-
-
 
   // Don't render if user has already seen it or if not open
   if (!isVisible) return null;
@@ -279,14 +337,14 @@ const GuideOverlay = ({
             
             {/* Scrollable text content - narrower width */}
             <div className="guideOverlayTextContainer">
-              <div className="guideOverlayText">
+              <div className="guideOverlayText" onClick={handleTextContentClick}>
                 <InterfaceText markdown={currentCard.text} />
               </div>
             </div>
           </div>
           
           {/* Footer with consistent links */}
-          <GuideFooter links={guideData.footerLinks} />
+          <GuideFooter links={guideData.footerLinks} onLinkClick={handleFooterLinkClick} />
         </div>
       </div>
     </div>
