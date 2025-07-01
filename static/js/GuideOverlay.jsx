@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText, CloseButton, Arrow, LoadingMessage } from './Misc';
 import Sefaria from './sefaria/sefaria';
@@ -6,13 +6,34 @@ import Sefaria from './sefaria/sefaria';
 const localize = (str) => Sefaria._(str, "Guide");
 
 /**
- * Analytics helper function for guide overlay events
+ * Analytics helper functions for guide overlay events
  */
-const trackGuideEvent = (eventName, additionalParams = {}) => {
-  gtag("event", eventName, additionalParams);
+const getBaseAnalyticsParams = (guideType) => {
+  return {
+    project: "Quick Start Guide",
+    feature_name: `Quick Start Guide - ${guideType}`
+  };
 };
 
+const getCurrentCardParams = (guideData, currentCardIndex) => {
+  if (!guideData || !guideData.cards || !guideData.cards[currentCardIndex]) {
+    return {};
+  }
+  
+  const currentCard = guideData.cards[currentCardIndex];
+  const cardTitle = typeof currentCard.title === 'object' ? currentCard.title.en : currentCard.title; // Always use English for analytics consistency
+  
+  return {
+    panel_name: cardTitle,
+    panel_number: currentCardIndex + 1 // 1-based
+  };
+};
 
+const trackGuideEvent = (eventName, guideType, additionalParams = {}) => {
+  const baseParams = getBaseAnalyticsParams(guideType);
+  const allParams = { ...baseParams, ...additionalParams };
+  gtag("event", eventName, allParams);
+};
 
 /**
  * Title component with prefix
@@ -41,15 +62,8 @@ TitleWithPrefix.propTypes = {
 /**
  * Footer component with consistent links for the guide type
  */
-const GuideFooter = ({ links }) => {
+const GuideFooter = ({ links, onLinkClick }) => {
   if (!links || links.length === 0) return null;
-
-  const handleFooterLinkClick = (link, index) => {
-    trackGuideEvent("guide_footer_link_clicked", {
-      link_text: typeof link.text === 'object' ? link.text.en || link.text.he : link.text,
-      position: index + 1
-    });
-  };
 
   return (
     <div className="guideOverlayFooter">
@@ -61,7 +75,7 @@ const GuideFooter = ({ links }) => {
             className="guideOverlayFooterLink" 
             target="_blank" 
             rel="noopener noreferrer"
-            onClick={() => handleFooterLinkClick(link, index)}
+            onClick={() => onLinkClick(link, index)}
           >
             <InterfaceText text={link.text} />
           </a>
@@ -75,7 +89,8 @@ GuideFooter.propTypes = {
   links: PropTypes.arrayOf(PropTypes.shape({
     text: PropTypes.object.isRequired,
     url: PropTypes.string.isRequired
-  }))
+  })),
+  onLinkClick: PropTypes.func.isRequired
 };
 
 /**
@@ -106,6 +121,9 @@ const GuideOverlay = ({
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   
+  // Track when overlay becomes visible to calculate duration on close
+  const overlayStartTimeRef = useRef(null);
+  
   // Respond to prop changes and initial mount
   // This is needed for the GuideButton functionality - when user clicks the button,
   // forceShow changes from false to true, and we need to show the overlay
@@ -113,11 +131,16 @@ const GuideOverlay = ({
     const shouldShow = forceShow || !$.cookie(cookieName);
     setIsVisible(shouldShow);
     
-    // Track when overlay opens (both from cookie state and forced show)
     if (shouldShow) {
-      trackGuideEvent("guide_overlay_opened", {
-        guide_type: guideType
-      });
+      // Start tracking duration when overlay becomes visible
+      overlayStartTimeRef.current = Date.now();
+      
+      if (forceShow) {
+        trackGuideEvent("guide_view_manual", guideType);
+      } else {
+        // Auto view fires when guide shows without being forced (no cookie exists)
+        trackGuideEvent("guide_view_auto", guideType);
+      }
     }
   }, [forceShow]);
 
@@ -135,12 +158,6 @@ const GuideOverlay = ({
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
         console.warn(`Guide loading timed out after ${timeoutLength} seconds`);
-        
-        // Track timeout event
-        trackGuideEvent("guide_overlay_timeout", {
-          guide_type: guideType
-        });
-        
         handleClose();
         alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
       }
@@ -157,23 +174,12 @@ const GuideOverlay = ({
           clearTimeout(timeoutId); // Clear the timeout if the data is loaded successfully
           setGuideData(data);
           setCurrentCardIndex(0);
-          
-          // Track successful guide load
-          trackGuideEvent("guide_overlay_loaded", {
-            guide_type: guideType
-          });
         }
       } catch (error) {
         console.error("Error loading guide:", error);
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
           console.error("Error loading guide:", error);
-          
-          // Track error event
-          trackGuideEvent("guide_overlay_error", {
-            guide_type: guideType
-          });
-          
           handleClose();
           alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
         }
@@ -201,15 +207,38 @@ const GuideOverlay = ({
   };
 
   const handleClose = () => {
-    // Track close event
-    trackGuideEvent("guide_overlay_closed", {
-      guide_type: guideType
+    // Calculate duration in seconds (how long overlay was open)
+    const durationMs = overlayStartTimeRef.current ? Date.now() - overlayStartTimeRef.current : 0;
+    const durationSeconds = Math.floor(durationMs / 1000); // Round down to the second
+    
+    trackGuideEvent("guide_close", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      length: durationSeconds
     });
     
     setCookie();
     if (onClose) onClose();
     setIsVisible(false);
   };
+
+  const handleFooterLinkClick = (link, index) => {
+    const linkText = typeof link.text === 'object' ? link.text.en : link.text; // Always use English for analytics consistency
+    trackGuideEvent("guide_click", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      text: linkText
+    });
+  };
+
+  const handleTextContentClick = (event) => {
+    const link = event.target.closest('a');
+    if (!link) return;
+    
+    trackGuideEvent("guide_click", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      text: link.textContent || ''
+    });
+  };
+
 
   /**
    * Navigate to next or previous card with circular looping
@@ -233,17 +262,13 @@ const GuideOverlay = ({
       newIndex = currentCardIndex <= 0 ? cardsLength - 1 : currentCardIndex - 1;
     }
     
-    // Track pagination event
-    trackGuideEvent("guide_overlay_pagination", {
-      new_index: newIndex,
-      guide_type: guideType,
-      direction: direction
+    trackGuideEvent("guide_nav", guideType, {
+      ...getCurrentCardParams(guideData, currentCardIndex),
+      text: direction
     });
     
     setCurrentCardIndex(newIndex);
   };
-
-
 
   // Don't render if user has already seen it or if not open
   if (!isVisible) return null;
@@ -323,14 +348,14 @@ const GuideOverlay = ({
             
             {/* Scrollable text content - narrower width */}
             <div className="guideOverlayTextContainer">
-              <div className="guideOverlayText">
+              <div className="guideOverlayText" onClick={handleTextContentClick}>
                 <InterfaceText markdown={currentCard.text} />
               </div>
             </div>
           </div>
           
           {/* Footer with consistent links */}
-          <GuideFooter links={guideData.footerLinks} />
+          <GuideFooter links={guideData.footerLinks} onLinkClick={handleFooterLinkClick} />
         </div>
       </div>
     </div>

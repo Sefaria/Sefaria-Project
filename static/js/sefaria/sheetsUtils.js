@@ -32,7 +32,7 @@ function placedSegmentMapper(lang, segmented, includeNumbers, s) {
         const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
         numStr = "<small>(" + num + ")</small> ";
     }
-    let str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    let str = "<span class='segment'>" + numStr + s[lang] + " </span> ";
     if (segmented) {
         str = "<p>" + str + "</p>";
     }

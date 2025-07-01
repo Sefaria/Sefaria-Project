@@ -1195,8 +1195,7 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
-              showGuide={this.showGuide.bind(this)}
-              getGuideType={this.getGuideType.bind(this)}
+              showGuide={this.getGuideType() && this.showGuide.bind(this)}
             />}
 
           {(items.length > 0 && !menu) ?
@@ -1450,8 +1449,7 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {/* Guide button - currently only shows on sheets but can be extended for other guide types */}
-          {this.props.getGuideType && this.props.getGuideType() && 
+          {this.props.showGuide && 
             <GuideButton
               onShowGuide={this.props.showGuide}
               tooltip={true}
@@ -1523,7 +1521,6 @@ ReaderControls.propTypes = {
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   backButtonSettings:      PropTypes.object,
   showTips:                PropTypes.func,
-  getGuideType:            PropTypes.func,
 };
 
 

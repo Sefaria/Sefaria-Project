@@ -1314,11 +1314,6 @@ function GuideButton({onShowGuide}) {
   function onClick(event) {
     event.preventDefault();
     
-    // Track guide button click
-    gtag("event", "guide_button_clicked", {
-      feature_name: "Guide Button"
-    });
-    
     if (onShowGuide) {
       onShowGuide();
     }

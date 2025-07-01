@@ -4,6 +4,8 @@ from django.db import models
 from adminsortable.admin import SortableAdmin
 from .models import Guide, InfoCard
 
+# InfoCardInline is a nested inline for the Guide model
+# It allows editing InfoCard objects directly within the Guide admin form
 class InfoCardInline(admin.StackedInline):
     model = InfoCard
     extra = 0
