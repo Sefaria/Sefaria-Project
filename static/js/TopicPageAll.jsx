@@ -48,7 +48,7 @@ class TopicPageAll extends Component {
     const isHeInt = Sefaria.interfaceLang == "hebrew";
 
     const topicBlocks = this.state.topicList && this.state.topicList.filter(item => {
-      if (!Sefaria.shouldDisplayTopic(item)) {
+      if (!Sefaria.shouldDisplayInActiveModule(item)) {
         return false; // Exclude topics that are not valid for the current module
       }
       if (!hasFilter) {
