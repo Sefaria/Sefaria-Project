@@ -8,6 +8,90 @@ import { saveAs } from 'file-saver';
 import qs from 'qs';
 import { useState } from 'react';
 
+// Define field metadata for proper handling
+const INDEX_FIELD_METADATA = {
+  "enDesc": { 
+    label: "English Description", 
+    type: "textarea",
+    placeholder: "A description of the text in English"
+  },
+  "shortDesc": { 
+    label: "Short Description", 
+    type: "textarea",
+    placeholder: "Brief description (1-2 sentences)"
+  },
+  "heDesc": { 
+    label: "Hebrew Description", 
+    type: "textarea",
+    placeholder: "תיאור הטקסט בעברית",
+    dir: "rtl"
+  },
+  "heShortDesc": { 
+    label: "Hebrew Short Description", 
+    type: "textarea",
+    placeholder: "תיאור קצר (משפט או שניים)",
+    dir: "rtl"
+  },
+  "category": { 
+    label: "Category", 
+    type: "select",
+    placeholder: "Select category..."
+  },
+  "authors": { 
+    label: "Authors", 
+    type: "array",
+    placeholder: "Comma-separated list of author names",
+    help: "Enter author names separated by commas (e.g., 'Rashi, Rabbi Shlomo Yitzchaki')"
+  },
+  "altTitles": { 
+    label: "Alternative Titles", 
+    type: "array",
+    placeholder: "Comma-separated alternative titles",
+    help: "English alternative titles for this text"
+  },
+  "heAltTitles": { 
+    label: "Hebrew Alternative Titles", 
+    type: "array",
+    placeholder: "כותרות חלופיות מופרדות בפסיקים",
+    help: "כותרות חלופיות בעברית",
+    dir: "rtl"
+  },
+  "compDate": { 
+    label: "Composition Date", 
+    type: "daterange",
+    placeholder: "[1040, 1105] or 1105 or -500",
+    help: "Year or range [start, end]. Negative for BCE. Arrays auto-convert to single year if identical."
+  },
+  "compPlace": { 
+    label: "Composition Place", 
+    type: "text",
+    placeholder: "e.g., 'Troyes, France'"
+  },
+  "heCompPlace": { 
+    label: "Hebrew Composition Place", 
+    type: "text",
+    placeholder: "למשל: 'טרואה, צרפת'",
+    dir: "rtl"
+  },
+  "pubDate": { 
+    label: "Publication Date", 
+    type: "daterange",
+    placeholder: "[1475, 1475] or 1475",
+    help: "First publication year or range"
+  },
+  "pubPlace": { 
+    label: "Publication Place", 
+    type: "text",
+    placeholder: "e.g., 'Venice, Italy'"
+  },
+  "hePubPlace": { 
+    label: "Hebrew Publication Place", 
+    type: "text",
+    placeholder: "למשל: 'ונציה, איטליה'",
+    dir: "rtl"
+  },
+};
+
 const BulkIndexEditor = () => {
   const [vtitle, setVtitle] = React.useState("");
   const [lang, setLang] = React.useState("");
@@ -16,13 +100,11 @@ const BulkIndexEditor = () => {
   const [updates, setUpdates] = React.useState({});
   const [msg, setMsg] = React.useState("");
   const [categories, setCategories] = React.useState([]);
-  const [allTitles, setAllTitles] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
-  // Load categories and titles on mount
+  // Load categories on mount
   React.useEffect(() => {
-    // Get categories
     $.getJSON('/api/index', data => {
       const cats = [];
       const extractCategories = (node, path = []) => {
@@ -71,14 +153,65 @@ const BulkIndexEditor = () => {
     setSaving(true);
     setMsg("Saving changes...");
     
+    // Process updates to ensure correct data types
+    const processedUpdates = {};
+    for (const [field, value] of Object.entries(updates)) {
+      const fieldMeta = INDEX_FIELD_METADATA[field];
+      if (!fieldMeta) {
+        processedUpdates[field] = value;
+        continue;
+      }
+
+      switch (fieldMeta.type) {
+        case 'array':
+          // Convert comma-separated string to array
+          processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+          break;
+        case 'daterange':
+          // Handle date input - could be single year or range
+          if (value.startsWith('[') && value.endsWith(']')) {
+            try {
+              processedUpdates[field] = JSON.parse(value);
+            } catch (e) {
+              setMsg(`❌ Invalid date format for ${field}`);
+              setSaving(false);
+              return;
+            }
+          } else {
+            const year = parseInt(value);
+            if (!isNaN(year)) {
+              processedUpdates[field] = year;
+            } else {
+              setMsg(`❌ Invalid date format for ${field}`);
+              setSaving(false);
+              return;
+            }
+          }
+          break;
+        default:
+          processedUpdates[field] = value;
+      }
+    }
+    
     $.ajax({
       url: '/api/index-bulk-edit',
       type: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({indices: [...pick], updates}),
+      data: JSON.stringify({
+        indices: [...pick], 
+        updates: processedUpdates
+      }),
       success: d => {
         setMsg(`✅ Successfully updated ${d.count} indices`);
         setUpdates({}); // Clear updates after success
+        // Clear form inputs
+        document.querySelectorAll('.field-input').forEach(input => {
+          if (input.tagName === 'SELECT') {
+            input.value = '';
+          } else {
+            input.value = '';
+          }
+        });
       },
       error: xhr => {
         const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to save";
@@ -101,116 +234,62 @@ const BulkIndexEditor = () => {
   };
 
   const renderField = (fieldName) => {
-    const fieldLabels = {
-      "enDesc": "English Description",
-      "shortDesc": "Short Description",
-      "heDesc": "Hebrew Description",
-      "heShortDesc": "Hebrew Short Description",
-      "category": "Category",
-      "authors": "Authors (comma-separated)",
-      "altTitles": "Alternative Titles (comma-separated)",
-      "heAltTitles": "Hebrew Alternative Titles (comma-separated)",
-      "compDate": "Composition Date",
-      "compPlace": "Composition Place",
-      "heCompPlace": "Hebrew Composition Place",
-      "pubDate": "Publication Date",
-      "pubPlace": "Publication Place",
-      "hePubPlace": "Hebrew Publication Place",
-    };
-
-    const label = fieldLabels[fieldName] || fieldName;
+    const fieldMeta = INDEX_FIELD_METADATA[fieldName];
     const currentValue = updates[fieldName] || "";
 
-    if (fieldName === "category" && categories.length > 0) {
-      return (
-        <div key={fieldName} style={{marginBottom: "8px"}}>
-          <label style={{display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500"}}>
-            {label}:
-          </label>
-          <select 
-            className="dlVersionSelect"
-            value={currentValue}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
-            style={{width: "100%"}}
-          >
+    const commonProps = {
+      className: "dlVersionSelect field-input",
+      placeholder: fieldMeta.placeholder,
+      value: currentValue,
+      onChange: e => handleFieldChange(fieldName, e.target.value),
+      style: { width: "100%", direction: fieldMeta.dir || "ltr" }
+    };
+
+    return (
+      <div key={fieldName} style={{ marginBottom: "12px" }}>
+        <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>
+          {fieldMeta.label}:
+        </label>
+        
+        {fieldMeta.help && (
+          <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
+            {fieldMeta.help}
+          </div>
+        )}
+
+        {fieldMeta.type === "select" && fieldName === "category" ? (
+          <select {...commonProps}>
             <option value="">Select category...</option>
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-        </div>
-      );
-    } else if (fieldName === "dependence.baseTextTitles" && allTitles.length > 0) {
-      return (
-        <div key={fieldName} style={{marginBottom: "8px"}}>
-          <label style={{display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500"}}>
-            {label}:
-          </label>
-          <div style={{fontSize: "12px", color: "#666", marginBottom: "4px"}}>
-            Hold Ctrl/Cmd to select multiple. Selected values will be comma-separated.
-          </div>
-          <select 
-            className="dlVersionSelect" 
-            multiple 
-            size="6"
-            value={currentValue.split(",").map(v => v.trim()).filter(v => v)}
-            onChange={e => {
-              const selected = Array.from(e.target.selectedOptions).map(o => o.value);
-              handleFieldChange(fieldName, selected.join(", "));
-            }}
-            style={{width: "100%"}}
-          >
-            {allTitles.map(title => (
-              <option key={title} value={title}>{title}</option>
-            ))}
-          </select>
-          {currentValue && (
-            <div style={{fontSize: "12px", color: "#666", marginTop: "4px"}}>
-              Current: {currentValue}
-            </div>
-          )}
-        </div>
-      );
-    } else {
-      // Text input for other fields
-      const isTextArea = fieldName.includes("Desc");
-      const InputComponent = isTextArea ? "textarea" : "input";
-      
-      return (
-        <div key={fieldName} style={{marginBottom: "8px"}}>
-          <label style={{display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500"}}>
-            {label}:
-          </label>
-          <InputComponent 
-            className="dlVersionSelect"
-            placeholder={`Enter ${label.toLowerCase()}`}
-            value={currentValue}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
-            style={{width: "100%"}}
-            rows={isTextArea ? 3 : undefined}
-          />
-        </div>
-      );
-    }
+        ) : fieldMeta.type === "textarea" ? (
+          <textarea {...commonProps} rows={3} />
+        ) : (
+          <input {...commonProps} type="text" />
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Edit Index Metadata</div>
       
-      <div style={{display: "flex", gap: "8px", marginBottom: "16px"}}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         <input 
           className="dlVersionSelect" 
           placeholder="Version title"
           value={vtitle} 
           onChange={e => setVtitle(e.target.value)}
-          style={{flex: 1}}
+          style={{ flex: 1 }}
         />
         <select 
           className="dlVersionSelect"
           value={lang} 
           onChange={e => setLang(e.target.value)}
-          style={{width: "100px"}}
+          style={{ width: "100px" }}
         >
           <option value="">All langs</option>
           <option value="he">Hebrew</option>
@@ -227,14 +306,14 @@ const BulkIndexEditor = () => {
 
       {indices.length > 0 && (
         <>
-          <div style={{marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px"}}>
-            <label style={{display: "flex", alignItems: "center", gap: "8px"}}>
+          <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <input 
                 type="checkbox"
                 checked={pick.size === indices.length}
                 onChange={() => setPick(pick.size === indices.length ? new Set() : new Set(indices))}
               />
-              <span style={{fontWeight: "500"}}>
+              <span style={{ fontWeight: "500" }}>
                 Select all ({indices.length} indices)
               </span>
             </label>
@@ -252,7 +331,7 @@ const BulkIndexEditor = () => {
             }}
           >
             {indices.map(t => (
-              <label key={t} style={{display: "block", padding: "4px", cursor: "pointer"}}>
+              <label key={t} style={{ display: "block", padding: "4px", cursor: "pointer" }}>
                 <input 
                   type="checkbox" 
                   checked={pick.has(t)}
@@ -270,21 +349,21 @@ const BulkIndexEditor = () => {
 
       {pick.size > 0 && (
         <>
-          <div style={{marginBottom: "12px", fontWeight: "500"}}>
+          <div style={{ marginBottom: "12px", fontWeight: "500" }}>
             Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
           </div>
           
-          <div style={{marginBottom: "16px"}}>
-            {INDEX_FIELDS.map(f => renderField(f))}
+          <div style={{ marginBottom: "16px" }}>
+            {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
           </div>
 
           {Object.keys(updates).length > 0 && (
-            <div style={{marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px"}}>
+            <div style={{ marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
               <strong>Changes to apply:</strong>
-              <ul style={{margin: "4px 0 0 20px", padding: 0}}>
+              <ul style={{ margin: "4px 0 0 20px", padding: 0 }}>
                 {Object.entries(updates).map(([k, v]) => (
-                  <li key={k} style={{fontSize: "14px"}}>
-                    {k}: "{v}"
+                  <li key={k} style={{ fontSize: "14px" }}>
+                    {INDEX_FIELD_METADATA[k]?.label || k}: "{v}"
                   </li>
                 ))}
               </ul>
@@ -321,13 +400,7 @@ const BulkIndexEditor = () => {
   );
 };
 
-// Field list for the component
-const INDEX_FIELDS = [
-  "enDesc", "shortDesc", "heDesc", "heShortDesc", "category",
-  "authors", "altTitles", "heAltTitles", "compDate", "compPlace", "heCompPlace",
-  "pubDate", "pubPlace", "hePubPlace",
-];
-
+// Rest of the component remains the same...
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
