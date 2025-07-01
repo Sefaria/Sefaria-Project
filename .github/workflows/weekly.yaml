@@ -2,7 +2,7 @@
 name: Weekly Tasks
 on:
   schedule:
-    - cron: '0 0 * 6 *'
+    - cron: '0 0 * * 6'
   workflow_dispatch:
 
 jobs:
@@ -54,7 +54,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-mongo
             us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/sefaria-public/sefaria-mongo
           # generate Docker tags based on the following events/attributes
           tags: |
