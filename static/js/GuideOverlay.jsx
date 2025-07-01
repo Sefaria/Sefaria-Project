@@ -213,7 +213,7 @@ const GuideOverlay = ({
     
     trackGuideEvent("guide_close", guideType, {
       ...getCurrentCardParams(guideData, currentCardIndex),
-      length: durationSeconds
+      duration: durationSeconds
     });
     
     setCookie();
