@@ -581,7 +581,7 @@ const TopicPage = ({
         } else {
            sidebar = (
                <div className="sideColumn" data-anl-panel_type="topics" data-anl-panel_number={0}>
-                    <TopicSideColumn
+                    {!topicData.isLoading && <TopicSideColumn
                         key={topic}
                         slug={topic}
                         linksByType={topicData.links}
@@ -594,7 +594,7 @@ const TopicPage = ({
                         topicTitle={topicTitle}
                         multiPanel={multiPanel}
                         topicImage={topicImage}
-                    />
+                    />}
                     {!topicData.isLoading && <Promotions/>}
                 </div>
             );
@@ -878,16 +878,24 @@ TopicLink.propTypes = {
 };
 
 
-function buildLinkTypeArray(linksByType, slug) {
-  
-  function getPluralizedTitle(title, pluralTitle, links) {
-    if (links.length > 1 && pluralTitle) {
-      return { en: pluralTitle.en, he: pluralTitle.he };
-    }
-    return title;
-  }
+const preprocessLinksByType = (linksByType, slug) => {
+  // Helper function for TopicSideColumn component.
+  // Each group of links in the sidebar corresponds to a link type.  `linksByType` is an object with the following structure:
+  // {
+  //   linkType1: {
+  //     title: {en: "Link Type 1", he: "סוג קישור 1"},
+  //     pluralTitle: {en: "Link Types 1", he: "סוגי קישורים 1"},
+  //     links: [link1, link2, ...],
+  //     shouldDisplay: boolean,
+  //   },
+  // This function preprocesses the links to be displayed in the sidebar so that the group of links is only displayed
+  // if the link type is supposed to be displayed in the active module and if there are any links to display.
+  // Moreover, it preprocesses the links themselves so that they are sorted and filtered according to the active module
+  // and the title is pluralized if there are multiple links.
+  // If there are no links to display, the sidebar should show the category's subtopics in the sidebar (the subtopics can be derived from the topic TOC).
+  // Finally, it sorts the link types by alphabetical order and shows the link type "Related" first.
 
-  const filterAndSortLinks = (links) => {
+  const preprocessLinks = (links) => {
     return links.filter(Sefaria.shouldDisplayInActiveModule).slice().sort((a, b) => {
       const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
       if (!!a.title[shortLang] !== !!b.title[shortLang]) {
@@ -899,32 +907,46 @@ function buildLinkTypeArray(linksByType, slug) {
     });
   }
 
-  const category = Sefaria.displayTopicTocCategory(slug);
-  let arr = [];
-  if (!!linksByType) {
-    arr = Object.values(linksByType)
-      .filter(type => !!type?.shouldDisplay && type.links.some(Sefaria.shouldDisplayInActiveModule))
-      .map(type => ({
-        title: type.title,
-        pluralTitle: type.pluralTitle,
-        links: filterAndSortLinks(type.links),
-      }))
+  const getPluralizedTitle = (title, pluralTitle, links) => {
+    if (links.length > 1 && pluralTitle) {
+      return { en: pluralTitle.en, he: pluralTitle.he };
+    }
+    return title;
   }
 
-  if (arr.length === 0) {  // if no links, show this category's subtopics in the sidebar (the subtopics can be derived from the topic TOC)
+  let arr = [];
+  arr = Object.values(linksByType)
+      .filter(type => !!type?.shouldDisplay && type.links.some(Sefaria.shouldDisplayInActiveModule))
+      .map(type => {
+        const links = preprocessLinks(type.links)
+        const pluralTitle = getPluralizedTitle(type.title, type.pluralTitle, links);
+        return {
+          title: type.title,
+          pluralTitle: pluralTitle,
+          links: links
+        }
+      });
+
+  if (arr.length === 0) {  
+    // if no links, show this category's subtopics in the sidebar (the subtopics can be derived from the topic TOC)
+    const category = Sefaria.displayTopicTocCategory(slug);
+    let defaultLinks = Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
+      topic: slug,
+      title: {en, he},
+      isCategory: !category,
+    }));
+    defaultLinks = preprocessLinks(defaultLinks);
+    const title = {
+      en: !category ? 'Explore Topics' : category.en,
+      he: !category ?  'נושאים כלליים' : category.he,
+    };
     arr.push({
-      title: {
-        en: !category ? 'Explore Topics' : category.en,
-        he: !category ?  'נושאים כלליים' : category.he,
-      },
-      links: Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
-        topic: slug,
-        title: {en, he},
-        isCategory: !category,
-      })),
+      title: title,
+      links: preprocessLinks(defaultLinks),
+      pluralTitle: title
     });
   }
-  
+
   arr = arr.slice().sort((a, b) => { // show Related links first, then show by alphabetical order
     const aInd = a.title.en.indexOf('Related');
     const bInd = b.title.en.indexOf('Related');
@@ -934,25 +956,7 @@ function buildLinkTypeArray(linksByType, slug) {
     return a.title.en.localeCompare(b.title.en);
   });
 
-  return arr.map(({ title, pluralTitle, links }) => {
-    const pluralizedTitle = getPluralizedTitle(title, pluralTitle, links);
-    const hasMore = links.length > 10;
-    return (
-      <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
-        {
-          sortedLinks.map(l => (
-            <TopicLink
-              key={l.topic}
-              topic={l.topic} topicTitle={l.title}
-              onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
-              isTransliteration={l.titleIsTransliteration}
-              isCategory={l.isCategory}
-            />
-          ))
-        }
-      </TopicSideSection>
-    );
-  });
+  return arr;
 }
 
 const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
@@ -961,16 +965,14 @@ const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tre
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
   const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>; 
-  const linkTypeArray = buildLinkTypeArray(linksByType, slug);
+  const linksByTypeArray = preprocessLinksByType(linksByType, slug);
 
-  const linksComponent = linkTypeArray.map(({ title, pluralTitle, links }) => {
-    const sortedLinks = sortLinks(links);
-    const pluralizedTitle = getPluralizedTitle(title, pluralTitle, sortedLinks);
-    const hasMore = sortedLinks.length > 10;
+  const linksComponent = linksByTypeArray.map(({ title, pluralTitle, links }) => {
+    const hasMore = links.length > 10;
     return (
-      <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
+      <TopicSideSection key={title.en+title.he} title={pluralTitle} hasMore={hasMore}>
         {
-          sortedLinks.map(l => (
+          links.map(l => (
             <TopicLink
               key={l.topic}
               topic={l.topic} topicTitle={l.title}
