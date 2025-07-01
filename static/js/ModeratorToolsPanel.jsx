@@ -232,6 +232,11 @@ const BulkIndexEditor = () => {
     let errors = [];
 
     for (const indexTitle of pick) {
+         const postData = { ...processedUpdates, title: indexTitle };
+         let   url      = `/api/v2/raw/index/${indexTitle.replace(/ /g, "_")}`;   // send a diff
+         await $.ajax({ url, type:'POST', data:{ json: JSON.stringify(postData) } });
+         // clear every cache layer just like BookPage.jsx does
+         await $.get(`/admin/reset/${indexTitle.replace(/ /g, "_")}`);
       try {
         const postData = {
           ...processedUpdates,
