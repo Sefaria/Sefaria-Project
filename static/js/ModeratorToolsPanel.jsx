@@ -10,83 +10,83 @@ import { useState } from 'react';
 
 // Define field metadata for proper handling
 const INDEX_FIELD_METADATA = {
-  "enDesc": { 
-    label: "English Description", 
+  "enDesc": {
+    label: "English Description",
     type: "textarea",
     placeholder: "A description of the text in English"
   },
-  "shortDesc": { 
-    label: "Short Description", 
+  "enShortDesc": {
+    label: "Short English Description",
     type: "textarea",
     placeholder: "Brief description (1-2 sentences)"
   },
-  "heDesc": { 
-    label: "Hebrew Description", 
+  "heDesc": {
+    label: "Hebrew Description",
     type: "textarea",
     placeholder: "תיאור הטקסט בעברית",
     dir: "rtl"
   },
-  "heShortDesc": { 
-    label: "Hebrew Short Description", 
+  "heShortDesc": {
+    label: "Hebrew Short Description",
     type: "textarea",
     placeholder: "תיאור קצר (משפט או שניים)",
     dir: "rtl"
   },
-  "category": { 
-    label: "Category", 
-    type: "select",
+  "categories": {
+    label: "Category",
+    type: "array",
     placeholder: "Select category...",
     help: "The category path determines where this text appears in the library"
   },
-  "authors": { 
-    label: "Authors", 
+  "authors": {
+    label: "Authors",
     type: "array",
     placeholder: "Comma-separated list of author names",
     help: "Enter author names separated by commas (e.g., 'Rashi, Rabbi Shlomo Yitzchaki')"
   },
-  "altTitles": { 
-    label: "Alternative Titles", 
+  "titleVariants": {
+    label: "Alternative English Titles",
     type: "array",
     placeholder: "Comma-separated alternative titles",
     help: "English alternative titles for this text"
   },
-  "heAltTitles": { 
-    label: "Hebrew Alternative Titles", 
+  "heTitleVariants": {
+    label: "Hebrew Alternative Titles",
     type: "array",
     placeholder: "כותרות חלופיות מופרדות בפסיקים",
     help: "כותרות חלופיות בעברית",
     dir: "rtl"
   },
-  "compDate": { 
-    label: "Composition Date", 
+  "compDate": {
+    label: "Composition Date",
     type: "daterange",
     placeholder: "[1040, 1105] or 1105 or -500",
     help: "Year or range [start, end]. Negative for BCE. Arrays auto-convert to single year if identical."
   },
-  "compPlace": { 
-    label: "Composition Place", 
+  "compPlace": {
+    label: "Composition Place",
     type: "text",
     placeholder: "e.g., 'Troyes, France'"
   },
-  "heCompPlace": { 
-    label: "Hebrew Composition Place", 
+  "heCompPlace": {
+    label: "Hebrew Composition Place",
     type: "text",
     placeholder: "למשל: 'טרואה, צרפת'",
     dir: "rtl"
   },
-  "pubDate": { 
-    label: "Publication Date", 
+  "pubDate": {
+    label: "Publication Date",
     type: "daterange",
     placeholder: "[1475, 1475] or 1475",
     help: "First publication year or range"
   },
-  "pubPlace": { 
-    label: "Publication Place", 
+  "pubPlace": {
+    label: "Publication Place",
     type: "text",
     placeholder: "e.g., 'Venice, Italy'"
   },
-  "hePubPlace": { 
-    label: "Hebrew Publication Place", 
+  "hePubPlace": {
+    label: "Hebrew Publication Place",
     type: "text",
     placeholder: "למשל: 'ונציה, איטליה'",
     dir: "rtl"
@@ -129,10 +129,10 @@ const BulkIndexEditor = () => {
       setMsg("❌ Please enter a version title");
       return;
     }
-    
+
     setLoading(true);
     setMsg("Loading indices...");
-    
+
     $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
       .done(d => {
         setIndices(d.indices);
@@ -150,13 +150,13 @@ const BulkIndexEditor = () => {
 
   const save = async () => {
     if (!pick.size || !Object.keys(updates).length) return;
-    
+
     setSaving(true);
     setMsg("Saving changes...");
-    
+
     // Process updates to ensure correct data types
     const processedUpdates = {};
-    
+
     for (const [field, value] of Object.entries(updates)) {
       const fieldMeta = INDEX_FIELD_METADATA[field];
       if (!fieldMeta) {
@@ -194,7 +194,7 @@ const BulkIndexEditor = () => {
           processedUpdates[field] = value;
       }
     }
-    
+
     // Special handling for authors field - need to validate and get slugs
     if (processedUpdates.authors) {
       try {
@@ -204,14 +204,14 @@ const BulkIndexEditor = () => {
             url: `/api/name/${authorName}`,
             method: 'GET'
           });
-          
+
           const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
           const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
-          
+
           if (!exactMatch) {
             const closestMatches = matches.map(t => t.title).slice(0, 3);
-            const msg = matches.length > 0 
-              ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?` 
+            const msg = matches.length > 0
+              ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
               : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
             setMsg(`❌ ${msg}`);
             setSaving(false);
@@ -226,32 +226,32 @@ const BulkIndexEditor = () => {
         return;
       }
     }
-    
+
     // Save to each index individually using the proper API
     let successCount = 0;
     let errors = [];
-    
+
     for (const indexTitle of pick) {
       try {
         const postData = {
           ...processedUpdates,
           title: indexTitle
         };
-        
+
         const url = `/api/v2/raw/index/${indexTitle.replace(/ /g, "_")}?update=1`;
-        
+
         await $.ajax({
           url: url,
           type: 'POST',
           data: { json: JSON.stringify(postData) }
         });
-        
+
         successCount++;
       } catch (e) {
         errors.push(`${indexTitle}: ${e.responseJSON?.error || e.statusText || 'Unknown error'}`);
       }
     }
-    
+
     if (errors.length > 0) {
       setMsg(`⚠️ Updated ${successCount} indices. Errors: ${errors.join('; ')}`);
     } else {
@@ -266,7 +266,7 @@ const BulkIndexEditor = () => {
         }
       });
     }
-    
+
     setSaving(false);
   };
 
@@ -299,14 +299,14 @@ const BulkIndexEditor = () => {
         <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>
           {fieldMeta.label}:
         </label>
-        
+
         {fieldMeta.help && (
           <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
             {fieldMeta.help}
           </div>
         )}
 
-        {fieldMeta.type === "select" && fieldName === "category" ? (
+        {fieldName === "categories" ? (
           <select {...commonProps}>
             <option value="">Select category...</option>
             {categories.map(cat => (
@@ -325,18 +325,18 @@ const BulkIndexEditor = () => {
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Edit Index Metadata</div>
-      
+
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        <input 
-          className="dlVersionSelect" 
+        <input
+          className="dlVersionSelect"
           placeholder="Version title"
-          value={vtitle} 
+          value={vtitle}
           onChange={e => setVtitle(e.target.value)}
           style={{ flex: 1 }}
         />
-        <select 
+        <select
           className="dlVersionSelect"
-          value={lang} 
+          value={lang}
           onChange={e => setLang(e.target.value)}
           style={{ width: "100px" }}
         >
@@ -344,8 +344,8 @@ const BulkIndexEditor = () => {
           <option value="he">Hebrew</option>
           <option value="en">English</option>
         </select>
-        <button 
-          className="modtoolsButton" 
+        <button
+          className="modtoolsButton"
           onClick={load}
           disabled={loading || !vtitle}
         >
@@ -357,7 +357,7 @@ const BulkIndexEditor = () => {
         <>
           <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
             <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <input 
+              <input
                 type="checkbox"
                 checked={pick.size === indices.length}
                 onChange={() => setPick(pick.size === indices.length ? new Set() : new Set(indices))}
@@ -367,13 +367,13 @@ const BulkIndexEditor = () => {
               </span>
             </label>
           </div>
-          
-          <div 
-            className="indicesList" 
+
+          <div
+            className="indicesList"
             style={{
-              maxHeight: "200px", 
-              overflow: "auto", 
-              border: "1px solid #ddd", 
+              maxHeight: "200px",
+              overflow: "auto",
+              border: "1px solid #ddd",
               padding: "8px",
               marginBottom: "16px",
               backgroundColor: "#f9f9f9"
@@ -381,8 +381,8 @@ const BulkIndexEditor = () => {
           >
             {indices.map(t => (
               <label key={t} style={{ display: "block", padding: "4px", cursor: "pointer" }}>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={pick.has(t)}
                   onChange={e => {
                     const s = new Set(pick);
@@ -401,7 +401,7 @@ const BulkIndexEditor = () => {
           <div style={{ marginBottom: "12px", fontWeight: "500" }}>
             Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
           </div>
-          
+
           <div style={{ marginBottom: "16px" }}>
             {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
           </div>
@@ -419,7 +419,7 @@ const BulkIndexEditor = () => {
             </div>
           )}
 
-          <button 
+          <button
             className="modtoolsButton"
             disabled={!Object.keys(updates).length || saving}
             onClick={save}
@@ -430,15 +430,15 @@ const BulkIndexEditor = () => {
       )}
 
       {msg && (
-        <div 
-          className="message" 
+        <div
+          className="message"
           style={{
             marginTop: "12px",
             padding: "8px",
             borderRadius: "4px",
-            backgroundColor: msg.includes("✅") ? "#d4edda" : 
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
                            msg.includes("❌") ? "#f8d7da" : "#d1ecf1",
-            color: msg.includes("✅") ? "#155724" : 
+            color: msg.includes("✅") ? "#155724" :
                    msg.includes("❌") ? "#721c24" : "#0c5460"
           }}
         >
@@ -766,7 +766,7 @@ class WorkflowyModeratorTool extends Component{
         { (this.state.error && this.state.errorIsHTML) ?
               <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
               <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
-        </div>);        
+        </div>);
   }
 }
 
@@ -1102,7 +1102,7 @@ const WorkflowyBulkPanel = () => {
 
   const JERUSALEM_TALMUD_TRACTATES = [
     // Seder Zeraim (included in Jerusalem Talmud)
-    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", 
+    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot",
     "Maaser Sheni", "Challah", "Orlah", "Bikkurim",
     // Seder Moed
     "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Rosh Hashanah", "Yoma", "Sukkah",
@@ -1204,9 +1204,9 @@ const WorkflowyBulkPanel = () => {
 
     $.ajax({
       url: '/api/upload-workflowy-multi',
-      type: 'POST', 
-      data: fd, 
-      processData: false, 
+      type: 'POST',
+      data: fd,
+      processData: false,
       contentType: false,
       success: d => {
         setMsg(`✅ ${d.message}`);
@@ -1230,8 +1230,8 @@ const WorkflowyBulkPanel = () => {
     setMsg(`Creating ${targets.size} indices...`);
     
     $.ajax({
-      url: '/api/duplicate-index', 
-      type: 'POST', 
+      url: '/api/duplicate-index',
+      type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify({src, targets: [...targets]}),
       success: d => {
@@ -1285,25 +1285,25 @@ const WorkflowyBulkPanel = () => {
           </label>
       </div>
 
-      <input 
-        type="file" 
-        multiple 
+      <input
+        type="file"
+        multiple
         onChange={e => setFiles([...e.target.files])}
         accept=".opml"
       />
-      <button 
-        className="modtoolsButton" 
-        disabled={!files.length || uploading} 
+      <button
+        className="modtoolsButton"
+        disabled={!files.length || uploading}
         onClick={upload}
       >
         {uploading ? "Uploading..." : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}
       </button>
 
       <div className="dlSectionTitle" style={{marginTop: "16px"}}>Duplicate Index</div>
-      <input 
-        className="dlVersionSelect" 
+      <input
+        className="dlVersionSelect"
         placeholder="Source index (e.g., Rashi on Genesis, Kehati on Mishnah Berakhot)"
-        value={src} 
+        value={src}
         onChange={e => setSrc(e.target.value)}
       />
       
@@ -1314,9 +1314,9 @@ const WorkflowyBulkPanel = () => {
           </div>
           
           <div style={{margin: "8px 0"}}>
-            <button 
-              className="modtoolsButton" 
-              onClick={selectAll} 
+            <button
+              className="modtoolsButton"
+              onClick={selectAll}
               style={{marginRight: "5px"}}
             >
               Select All ({availableTargets.length})
@@ -1326,19 +1326,19 @@ const WorkflowyBulkPanel = () => {
             </button>
           </div>
           
-          <div 
-            className="indicesList" 
+          <div
+            className="indicesList"
             style={{
-              maxHeight: "400px", 
-              overflow: "auto", 
-              border: "1px solid #ddd", 
+              maxHeight: "400px",
+              overflow: "auto",
+              border: "1px solid #ddd",
               padding: "10px",
               backgroundColor: "#f9f9f9"
             }}
           >
             {availableTargets.map(t =>
               <label key={t} style={{display: "block", padding: "3px", cursor: "pointer"}}>
-                <input 
+                <input
                   type="checkbox"
                   checked={targets.has(t)}
                   onChange={e => {
@@ -1371,9 +1371,9 @@ const WorkflowyBulkPanel = () => {
         </div>
       )}
       
-      <button 
+      <button
         className="modtoolsButton"
-        disabled={!src || !targets.size || duplicating} 
+        disabled={!src || !targets.size || duplicating}
         onClick={duplicate}
         style={{marginTop: "8px"}}
       >
@@ -1381,17 +1381,17 @@ const WorkflowyBulkPanel = () => {
       </button>
       
       {msg && (
-        <div 
-          className="message" 
+        <div
+          className="message"
           style={{
             marginTop: "8px",
             padding: "8px",
             borderRadius: "4px",
-            backgroundColor: msg.includes("✅") ? "#d4edda" : 
-                           msg.includes("❌") ? "#f8d7da" : 
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
+                           msg.includes("❌") ? "#f8d7da" :
                            msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
-            color: msg.includes("✅") ? "#155724" : 
-                   msg.includes("❌") ? "#721c24" : 
+            color: msg.includes("✅") ? "#155724" :
+                   msg.includes("❌") ? "#721c24" :
                    msg.includes("⚠️") ? "#856404" : "#0c5460"
           }}
         >
