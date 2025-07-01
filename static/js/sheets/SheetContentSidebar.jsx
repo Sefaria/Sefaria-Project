@@ -3,8 +3,9 @@ import { ProfilePic } from "../ProfilePic";
 import Sefaria from "../sefaria/sefaria";
 import React, { useEffect, useState } from "react";
 import { UserBackground } from "../UserProfile";
+import { EditorSaveStateIndicator } from "../Editor";
 
-const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics}) => {
+const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics, editorSaveState}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
@@ -17,6 +18,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
                                     {Sefaria._(authorStatement)}
                                 </a>;
     return <div className="sheetContentSidebar">
+            {Sefaria.multiPanel && <EditorSaveStateIndicator state={editorSaveState}/>}
             <ProfilePic
                 url={authorImage}
                 len={100}

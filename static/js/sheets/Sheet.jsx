@@ -4,7 +4,7 @@ import classNames  from 'classnames';
 import Component from 'react-class'
 import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
-import SefariaEditor from '../Editor';
+import { SefariaEditor } from '../Editor';
 import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
@@ -81,6 +81,7 @@ class Sheet extends Component {
                                   collections={sheet.collections}
                                   toggleSignUpModal={this.props.toggleSignUpModal}
                                   topics={sheet.topics}
+                                  editorSaveState={this.props.editorSaveState}
                               />;
         editor = <div className="sidebarLayout">
                   <div className="sheetContent">
