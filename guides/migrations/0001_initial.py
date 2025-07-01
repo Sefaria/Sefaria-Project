@@ -45,8 +45,8 @@ class Migration(migrations.Migration):
                 ('title_he', models.CharField(max_length=255, verbose_name='Title (HE)')),
                 ('text_en', models.TextField(verbose_name='Text (EN)')),
                 ('text_he', models.TextField(verbose_name='Text (HE)')),
-                ('video_en', models.URLField(blank=True, help_text="Upload the video via Google Cloud to the Bucket 'guides-resources'and provide the URL here.", verbose_name='Video URL (EN)')),
-                ('video_he', models.URLField(blank=True, help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here.", verbose_name='Video URL (HE)')),
+                ('video_en', models.URLField(help_text="Upload the video via Google Cloud to the Bucket 'guides-resources'and provide the URL here.", verbose_name='Video URL (EN)')),
+                ('video_he', models.URLField(help_text="Upload the video via Google Cloud to the Bucket 'guides-resources' and provide the URL here.", verbose_name='Video URL (HE)')),
                 ('guide', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='info_cards', to='guides.Guide', verbose_name='Guide')),
             ],
             options={
