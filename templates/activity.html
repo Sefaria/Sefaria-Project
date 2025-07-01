@@ -106,8 +106,8 @@
 			});
 		</script>
 	{% endif %}
-	<script src="{% static 'js/lib/jquery.raty.js' %}"></script>
-    {% static "img/raty/" as path %}
+	<script src="{% full_static 'js/lib/jquery.raty.js' %}"></script>
+    {% full_static "img/raty/" as path %}
 	<script>
 	    var ratySettings = { // for text review ratings
 	        path: {{path}},

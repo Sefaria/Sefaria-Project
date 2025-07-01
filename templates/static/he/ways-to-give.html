@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load full_static %}
 
 {% block title %}{% trans "Donate to Sefaria" %}{% endblock %}
 
@@ -150,12 +151,12 @@
             </header>
             <section>
                 <span class="int-he">
-                    <a target="_blank" href="{% static "files/Sefaria_2023_990_Public.pdf" %}">דוח 990</a>
+                    <a target="_blank" href="{% full_static "files/Sefaria_2023_990_Public.pdf" %}">דוח 990</a>
                 </span>
             </section>
             <section>
                 <span class="int-he">
-                    <a target="_blank" href="{% static "files/Sefaria_Strategic_Plan.pdf" %}">התוכנית האסטרטגית של ספריא</a>
+                    <a target="_blank" href="{% full_static "files/Sefaria_Strategic_Plan.pdf" %}">התוכנית האסטרטגית של ספריא</a>
                 </span>
             </section>
             <section>
