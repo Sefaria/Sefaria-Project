@@ -14786,6 +14786,7 @@ span.ref-link-color-3 {color: blue}
 
 /* Main content layout */
 .guideOverlayCenteredContent {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -14794,7 +14795,6 @@ span.ref-link-color-3 {color: blue}
 .guideOverlayBody {
   display: flex;
   gap: 20px;
-  margin-bottom: 20px;
 }
 
 /* Video and text containers */
@@ -14821,7 +14821,7 @@ span.ref-link-color-3 {color: blue}
 
 .guideOverlayText {
   font-weight: 400;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.4;
   color: #555555;
   overflow-y: auto;
@@ -14850,14 +14850,33 @@ span.ref-link-color-3 {color: blue}
   background-color: rgba(0, 0, 0, 0.3);
 }
 
+/* Main text content styling */
+.guideOverlayText ul {
+  padding-inline-start: 18px;
+}
+
+.guideOverlayText li {
+  margin-bottom: 5px;
+}
+
+.guideOverlayText a {
+  color: #666666;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.guideOverlayText a:hover {
+  text-decoration: underline;
+}
+
 /* Footer with links */
 .guideOverlayFooter {
-  height: 19px;
-  padding-top: 12px;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  padding-bottom: 18px;
 }
 
 .guideOverlayFooterLink {
@@ -14868,12 +14887,10 @@ span.ref-link-color-3 {color: blue}
 }
 
 .guideOverlayFooterLink:hover {
-  color: #4472C4;
   text-decoration: underline;
 }
 
 .footerDivider {
-  color: #cccccc;
   font-size: 12px;
 }
 
