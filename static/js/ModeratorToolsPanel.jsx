@@ -231,61 +231,41 @@ const BulkIndexEditor = () => {
     let successCount = 0;
     let errors = [];
 
-    for (const indexTitle of pick) {
-         const postData = { ...processedUpdates, title: indexTitle };
-         let   url      = `/api/v2/raw/index/${indexTitle.replace(/ /g, "_")}`;   // send a diff
-         await $.ajax({ url, type:'POST', data:{ json: JSON.stringify(postData) } });
-         // clear every cache layer just like BookPage.jsx does
-         await $.get(`/admin/reset/${indexTitle.replace(/ /g, "_")}`);
-      try {
-        const postData = {
-          ...processedUpdates,
-          title: indexTitle
-        };
 
-        const url = `/api/v2/raw/index/${indexTitle.replace(/ /g, "_")}?update=1`;
+for (const indexTitle of pick) {
+  try {
+    /* 1️⃣ Build the payload */
+    const postData = { ...processedUpdates, title: indexTitle };
 
-        await $.ajax({
-          url: url,
-          type: 'POST',
-          data: { json: JSON.stringify(postData) }
-        });
+    /* 2️⃣ Decide whether we’re sending a diff (= need ?update=1)          */
+    /*    If you ever add *title-rename* use ?update=1 for that case only */
+    const isFullDoc = Object.keys(processedUpdates).length === 0;
+    const baseUrl   = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`;
+    const url       = isFullDoc ? baseUrl : `${baseUrl}?update=1`;
 
-        successCount++;
-      } catch (e) {
-        errors.push(`${indexTitle}: ${e.responseJSON?.error || e.statusText || 'Unknown error'}`);
-      }
-    }
+    /* 3️⃣ Save – wait for completion so the toast matches reality        */
+    await $.ajax({ url, type:'POST', data:{ json: JSON.stringify(postData) } });
 
-    if (errors.length > 0) {
-      setMsg(`⚠️ Updated ${successCount} indices. Errors: ${errors.join('; ')}`);
-    } else {
-      setMsg(`✅ Successfully updated ${successCount} indices`);
-      setUpdates({});
-      // Clear form inputs
-      document.querySelectorAll('.field-input').forEach(input => {
-        if (input.tagName === 'SELECT') {
-          input.value = '';
-        } else {
-          input.value = '';
-        }
-      });
-    }
+    /* 4️⃣ Purge every cache layer (same helper BookPage.jsx uses)        */
+    await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
 
-    setSaving(false);
-  };
+    successCount++;
+  } catch (e) {
+    errors.push(`${indexTitle}: ${e.responseJSON?.error || e.statusText || 'Unknown error'}`);
+  }
+}
 
-  const handleFieldChange = (fieldName, value) => {
-    setUpdates(u => {
-      const newUpdates = {...u};
-      if (value) {
-        newUpdates[fieldName] = value;
-      } else {
-        delete newUpdates[fieldName];
-      }
-      return newUpdates;
-    });
-  };
+/* 5️⃣ UI feedback */
+if (errors.length) {
+  setMsg(`⚠️ Updated ${successCount} indices. Errors: ${errors.join('; ')}`);
+} else {
+  setMsg(`✅ Successfully updated ${successCount} indices`);
+  setUpdates({});
+  // clear form inputs
+  document.querySelectorAll('.field-input').forEach(el => el.value = '');
+}
+setSaving(false);
+
 
   const renderField = (fieldName) => {
     const fieldMeta = INDEX_FIELD_METADATA[fieldName];
