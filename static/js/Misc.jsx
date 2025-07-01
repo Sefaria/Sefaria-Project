@@ -3119,7 +3119,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       }
 
       {previewText ?
-          <div className="textPreviewContainer">
+          <div className="textPreviewContainer" onMouseDown={(e) => e.preventDefault()}>
             <div className="textPreview">
               <div className="inner">{previewText}</div>
             </div>

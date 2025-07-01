@@ -5995,14 +5995,27 @@ class Library(object):
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
-        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags,
+        excluding refs that are already wrapped in the data
 
         :param string st: the input string
         :param lang: "he" or "en"
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
+            substrings = [st]
+        else:
+            html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
+            substrings = re.split(html_a_tag_reg, st)
+        new_string = ''
+        for i, substring in enumerate(substrings):
+            if i % 2 == 1:  # An <a> tag
+                new_string += substring
+            elif i % 2 == 0 and substring:
+                new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
+                                                                       citing_only, reg, title_nodes)
+        return new_string
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
         """
