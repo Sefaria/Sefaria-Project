@@ -14878,7 +14878,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* Loading state */
-.loadingMessage {
+.guideOverlay .loadingMessage {
   display: flex;
   align-items: center;
   justify-content: center;
