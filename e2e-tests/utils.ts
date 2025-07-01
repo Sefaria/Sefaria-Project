@@ -9,6 +9,7 @@ let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
+//method to hid modals that interrupt the user experience
 /**
  * Get timeout values appropriate for the environment
  * Remote environments get longer timeouts to handle network latency
@@ -49,12 +50,77 @@ export const hideModals = async (page: Page, options: { preserveGuideOverlay?: b
         style.innerHTML = '#interruptingMessageBox {display: none;}';
         document.head.appendChild(style);
     });
-    
-    // Also dismiss guide overlay by default (unless preserved for guide tests)
-    if (!preserveGuideOverlay) {
-        await dismissGuideOverlayIfPresent(page);
-    }
 }
+
+export async function dismissNewsletterPopupIfPresent(page: Page) {
+  try {
+    await page.evaluate(() => {
+      const selectors = [
+        '.ub-emb-scroll-wrapper',                 // gray overlay
+        '.ub-emb-iframe-wrapper',                 // wrapper with iframe
+        '.ub-emb-iframe',                         // the iframe itself
+        'iframe[src*="ubembed.com"]',             // backup match
+        '.ub-emb-close',                          // close button
+        'div[class*="ub-emb"]',                   // catch any class that starts with ub-emb
+      ];
+
+      let removedCount = 0;
+      selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.remove();
+          removedCount++;
+        });
+      });
+
+      // Also clean up any <body> modifications
+      document.body.style.overflow = 'auto';
+      document.body.style.pointerEvents = 'auto';
+
+      console.log(`Popup and overlay successfully removed. Elements removed: ${removedCount}`);
+    });
+
+    console.log('✅ Unbounce newsletter popup removed from DOM.');
+  } catch (err) {
+    console.warn('⚠️ Failed to remove newsletter popup:', err);
+  }
+}
+
+//method to hide the generic banner that appears on the editor page (Welcome to New Editor)
+export const hideGenericBanner = async (page: Page) => {
+  await page.evaluate(() => {
+    const banner = document.querySelector('.genericBanner');
+    if (banner) {
+      (banner as HTMLElement).style.display = 'none';
+    }
+
+    // Fallback style override just in case dynamic styles re-show it
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .genericBanner {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+};
+
+// Method to hide the cookies popup that appears on the site
+export const hideCookiesPopup = async (page: Page) => {
+    await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .cookiesNotification {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+  };
+  
   
 export const hideTopBanner = async (page: Page) => {
     await page.evaluate(() => {
@@ -160,9 +226,6 @@ export const changeLanguageLoggedOut = async (page: Page, language: string) => {
 
 
 export const changeLanguageLoggedIn = async (page: Page, language: string) => {
-    const originalUrl = page.url();
-    const isLocal = isLocalDevelopment(originalUrl);
-    
     // Open the profile dropdown by clicking the profile icon
     const profileIcon = page.locator('.myProfileBox .profile-pic');
     await profileIcon.click();
@@ -176,8 +239,10 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
       ? page.locator('#select-hebrew-interface-link')
       : page.locator('#select-english-interface-link');
   
-    await expect(languageLink).toBeVisible();
-    
+      console.log('Selector being used:', language === LANGUAGES.HE ? '#select-hebrew-interface-link' : '#select-english-interface-link');
+
+      await expect(languageLink).toBeVisible();
+      
     if (isLocal) {
         // For local development, handle potential broken redirects
         try {
@@ -232,7 +297,11 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
     } else {
         // For non-local environments, use the normal approach
         await languageLink.click();
-        await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(5000); // Wait for the language change to take effect
+      // Wait for the <body> class to reflect the language change
+      const expectedClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+      await expect(page.locator('body')).toHaveClass(new RegExp(`\\b${expectedClass}\\b`));
+          await page.waitForLoadState('networkidle');
     }
   };
 
@@ -444,37 +513,19 @@ export const loginUser = async (page: Page, user = testUser, language = DEFAULT_
     );
     
     // Use the main language change function which now includes local development handling
-    await changeLanguageLoggedOut(page, language);
+    //await changeLanguageLoggedOut(page, language);
     
     await page.getByPlaceholder('Email Address').fill(user.email ?? '');
     await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
   
-    // Wait for navigation to complete with retry on timeout
-    await withRetryOnTimeout(
-        () => page.waitForLoadState('networkidle'),
-        { page }
-    );
+    // Wait for navigation to complete — ideally back to the previous page
+    await page.waitForLoadState('networkidle');
   };
   
 
 
-/**
- * Navigate to a page as an authenticated user with automatic retry handling.
- * 
- * Sets up user authentication via cookies, creates a new page context,
- * and navigates to the specified URL. Uses retry mechanism for page
- * navigation to handle network timeouts on remote environments.
- * 
- * @param context - Browser context for managing cookies and pages
- * @param url - Relative URL to navigate to (e.g., '/sheets/new')
- * @param user - User credentials (defaults to testUser)
- * @param options - Configuration options including guide overlay preservation
- * @returns Promise resolving to the new page
- */
-export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser, options: { preserveGuideOverlay?: boolean } = {}) => {
-    const { preserveGuideOverlay = false } = options;
-    
+export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
     if (!loginCookies.length) {
         const page: Page = await context.newPage();
         await loginUser(page, user)

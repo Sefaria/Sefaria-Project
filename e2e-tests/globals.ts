@@ -24,6 +24,7 @@ export const testUser = {
 }
 
 export const testAdminUser = {
+    // These environment variables should be set in your local .env file
     email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL,
     password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD,
 };

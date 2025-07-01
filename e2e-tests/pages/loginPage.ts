@@ -12,6 +12,7 @@ export class LoginPage extends HelperBase{
         const langMenuButton = this.page.locator('a.interfaceLinks-button >> img[alt*="שפת ממשק"]');
     
         if (await langMenuButton.isVisible()) {
+            console.log(`Language menu button is visible: ${await langMenuButton.isVisible()}`);
             await langMenuButton.click();
     
             const englishOption = this.page.locator('a.interfaceLinks-option.int-en');
@@ -19,22 +20,24 @@ export class LoginPage extends HelperBase{
     
             if (language === LANGUAGES.EN && await englishOption.isVisible()) {
                 await englishOption.click();
+                console.log("Switched to English language");
             } else if (language === LANGUAGES.HE && await hebrewOption.isVisible()) {
                 await hebrewOption.click();
+                console.log("Switched to Hebrew language");
             }
     
             // Wait for redirection and page load
             await this.page.waitForURL(/sefaria\.org.*login.*/);
-            //await this.page.waitForLoadState('networkidle');
+            await this.page.waitForLoadState('networkidle');
         }
     }
     
 
     async loginAs(email: string, password: string) {
         if (this.language === LANGUAGES.HE) {
-            await this.page.waitForSelector('[placeholder="כתובת"]');
+            //await this.page.waitForSelector('[placeholder="כתובת"]');
             await this.page.getByPlaceholder('כתובת').fill(email);
-            await this.page.waitForSelector('[placeholder="סיסמא"]');
+            //await this.page.waitForSelector('[placeholder="סיסמא"]');
             await this.page.getByPlaceholder('סיסמא').fill(password);
             await this.page.getByRole('button', { name: 'התחברות' }).click();
         } else {
