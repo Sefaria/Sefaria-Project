@@ -158,6 +158,7 @@ const BulkIndexEditor = () => {
     const processedUpdates = {};
 
     for (const [field, value] of Object.entries(updates)) {
+      if (!value) continue; // Skip empty fields
       const fieldMeta = INDEX_FIELD_METADATA[field];
       if (!fieldMeta) {
         processedUpdates[field] = value;
@@ -166,11 +167,9 @@ const BulkIndexEditor = () => {
 
       switch (fieldMeta.type) {
         case 'array':
-          // Convert comma-separated string to array
           processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
           break;
         case 'daterange':
-          // Handle date input - could be single year or range
           if (value.startsWith('[') && value.endsWith(']')) {
             try {
               processedUpdates[field] = JSON.parse(value);
@@ -195,7 +194,6 @@ const BulkIndexEditor = () => {
       }
     }
 
-    // Special handling for authors field - need to validate and get slugs
     if (processedUpdates.authors) {
       try {
         const authorSlugs = [];
@@ -227,45 +225,55 @@ const BulkIndexEditor = () => {
       }
     }
 
-    // Save to each index individually using the proper API
     let successCount = 0;
     let errors = [];
 
+    for (const indexTitle of pick) {
+        try {
+            setMsg(`Fetching data for ${indexTitle}...`);
+            const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+            if (!existingIndexData) {
+                errors.push(`${indexTitle}: Could not fetch existing index data.`);
+                continue;
+            }
 
-for (const indexTitle of pick) {
-  try {
-    /* 1️⃣ Build the payload */
-    const postData = { ...processedUpdates, title: indexTitle };
+            setMsg(`Updating ${indexTitle}...`);
 
-    /* 2️⃣ Decide whether we’re sending a diff (= need ?update=1)          */
-    /*    If you ever add *title-rename* use ?update=1 for that case only */
-    const isFullDoc = Object.keys(processedUpdates).length === 0;
-    const baseUrl   = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`;
-    const url       = isFullDoc ? baseUrl : `${baseUrl}?update=1`;
+            const postData = { ...existingIndexData, ...processedUpdates, title: indexTitle };
+            delete postData._id; // Not needed for update payload
 
-    /* 3️⃣ Save – wait for completion so the toast matches reality        */
-    await $.ajax({ url, type:'POST', data:{ json: JSON.stringify(postData) } });
+            const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
+            const url = `${baseUrl}?update=1`;
 
-    /* 4️⃣ Purge every cache layer (same helper BookPage.jsx uses)        */
-    await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
+            await $.ajax({
+                url,
+                type: 'POST',
+                data: { json: JSON.stringify(postData) }
+            });
 
-    successCount++;
-  } catch (e) {
-    errors.push(`${indexTitle}: ${e.responseJSON?.error || e.statusText || 'Unknown error'}`);
-  }
-}
+            await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+            successCount++;
 
-/* 5️⃣ UI feedback */
-if (errors.length) {
-  setMsg(`⚠️ Updated ${successCount} indices. Errors: ${errors.join('; ')}`);
-} else {
-  setMsg(`✅ Successfully updated ${successCount} indices`);
-  setUpdates({});
-  // clear form inputs
-  document.querySelectorAll('.field-input').forEach(el => el.value = '');
-}
-setSaving(false);
+        } catch (e) {
+            const errorMsg = e.responseJSON?.error || e.statusText || 'Unknown error';
+            errors.push(`${indexTitle}: ${errorMsg}`);
+            setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
+        }
+    }
 
+    if (errors.length) {
+      setMsg(`⚠️ Finished. Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+    } else {
+      setMsg(`✅ Successfully updated ${successCount} indices`);
+      setUpdates({});
+      document.querySelectorAll('.field-input').forEach(el => el.value = '');
+    }
+    setSaving(false);
+  };
+    
+  const handleFieldChange = (fieldName, value) => {
+    setUpdates(prev => ({...prev, [fieldName]: value}));
+  };
 
   const renderField = (fieldName) => {
     const fieldMeta = INDEX_FIELD_METADATA[fieldName];
@@ -391,11 +399,11 @@ setSaving(false);
             {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
           </div>
 
-          {Object.keys(updates).length > 0 && (
+          {Object.keys(updates).filter(k => updates[k]).length > 0 && (
             <div style={{ marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
               <strong>Changes to apply:</strong>
               <ul style={{ margin: "4px 0 0 20px", padding: 0 }}>
-                {Object.entries(updates).map(([k, v]) => (
+                {Object.entries(updates).filter(([k,v]) => v).map(([k, v]) => (
                   <li key={k} style={{ fontSize: "14px" }}>
                     {INDEX_FIELD_METADATA[k]?.label || k}: "{v}"
                   </li>
@@ -406,7 +414,7 @@ setSaving(false);
 
           <button
             className="modtoolsButton"
-            disabled={!Object.keys(updates).length || saving}
+            disabled={Object.keys(updates).filter(k=>updates[k]).length === 0 || saving}
             onClick={save}
           >
             {saving ? "Saving..." : `Save Changes to ${pick.size} Indices`}
@@ -422,9 +430,11 @@ setSaving(false);
             padding: "8px",
             borderRadius: "4px",
             backgroundColor: msg.includes("✅") ? "#d4edda" :
-                           msg.includes("❌") ? "#f8d7da" : "#d1ecf1",
+                           msg.includes("❌") ? "#f8d7da" : 
+                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
             color: msg.includes("✅") ? "#155724" :
-                   msg.includes("❌") ? "#721c24" : "#0c5460"
+                   msg.includes("❌") ? "#721c24" : 
+                   msg.includes("⚠️") ? "#856404" : "#0c5460"
           }}
         >
           {msg}
@@ -434,7 +444,7 @@ setSaving(false);
   );
 };
 
-// Rest of the component remains the same...
+
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
