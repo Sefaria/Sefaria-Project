@@ -4,7 +4,7 @@ import json
 
 class Guide(models.Model):
     """
-    Guide model for organizing InfoCards by guide type (e.g., 'sheets', 'topics')
+    Guide model for organizing InfoCards by guide type (e.g., 'editor', 'topics')
     """
     key = models.CharField(
         max_length=100, 
