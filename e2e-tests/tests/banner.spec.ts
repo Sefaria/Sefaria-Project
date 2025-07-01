@@ -83,8 +83,8 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     await page.getByPlaceholder('חיפוש').fill('love');
     await page.getByPlaceholder('חיפוש').press('Enter');
     await page.getByText('תוצאות עבור').click();
-    await page.getByRole('heading', { name: 'תוצאות עבור ״Love״' }).click();
-    expect(getPathAndParams(page.url())).toBe('/search?q=Love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
+    await page.getByRole('heading', { name: 'תוצאות עבור ״love״' }).click();
+    expect(getPathAndParams(page.url())).toBe('/search?q=love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
     
     // Testing Login
     const page2 = await goToPageWithLang(context, '/', LANGUAGES.HE);
