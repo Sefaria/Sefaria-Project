@@ -59,8 +59,13 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
 
 const fetchBulkSheet = inSheets => {
   const refs = inSheets.map(x => {
-    x.ref = parseInt(x.ref.replace('Sheet ', ''));  // bulk sheets API expects just numbers so we need to remove the "Sheet " string
-    return x.ref;
+    if (isNaN(x.ref)) {
+      x.ref = parseInt(x.ref.replace('Sheet ', ''));  // bulk sheets API expects just numbers so we need to remove the "Sheet " string
+      return x.ref;
+    }
+    else {
+      return x.ref;
+    }
   });
   return Sefaria.getBulkSheets(refs).then(outSheets => {
     for (let tempSheet of inSheets) {
@@ -217,8 +222,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
-  openSearch}) => {
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -230,13 +234,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
         setSubtopics(Sefaria.topicTocPage(topic));
     }, [topic]);
 
-    const shouldDisplay = (t) => {
-      const inActiveModule = t.pools.includes(Sefaria.activeModule);
-      return t.shouldDisplay !== false && inActiveModule;
-    }
-
     let topicBlocks = subtopics
-      .filter(shouldDisplay)
+      .filter(Sefaria.shouldDisplayInActiveModule)
       .sort(Sefaria.sortTopicsCompareFn)
       .map((topic, i) => <TopicTOCCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
 
@@ -264,9 +263,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, initialWidth,
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
-                      <div className="readerNavCategories">
-                        <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
-                      </div>
+                    <div className="TOCCardsWrapper table">{topicBlocks}</div>
                   </div>
                   <NavSidebar sidebarModules={sidebarModules} />
                 </div>
@@ -584,10 +581,10 @@ const TopicPage = ({
         } else {
            sidebar = (
                <div className="sideColumn" data-anl-panel_type="topics" data-anl-panel_number={0}>
-                    <TopicSideColumn
+                    {!topicData.isLoading && <TopicSideColumn
                         key={topic}
                         slug={topic}
-                        links={topicData.links}
+                        linksByType={topicData.links}
                         clearAndSetTopic={clearAndSetTopic}
                         setNavTopic={setNavTopic}
                         parashaData={parashaData}
@@ -597,7 +594,7 @@ const TopicPage = ({
                         topicTitle={topicTitle}
                         multiPanel={multiPanel}
                         topicImage={topicImage}
-                    />
+                    />}
                     {!topicData.isLoading && <Promotions/>}
                 </div>
             );
@@ -650,7 +647,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
-    const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference, versionPref);
+    const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
 
     const getCurrentLang = (langPref) => {
@@ -817,7 +814,8 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
                           {authorIndices}{tabsWithSources}
                         </TabView>;
 
-    return (!topicData.isLoading && displayTabs.length) ? topicTabView : (topicData.isLoading && <LoadingMessage />);
+    // Currently, there are data inconsistencies in the DB, so we should show LoadingMessage if there are no tabs to display.
+    return (!topicData.isLoading && displayTabs.length) ? topicTabView : <LoadingMessage />; 
 }
 
 const TopicPageTab = ({
@@ -858,95 +856,135 @@ const TopicPageTab = ({
 }
 
 
-const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-    <div data-anl-event="related_click:click" data-anl-batch={
-        JSON.stringify({
-            text: topicTitle.en,
-            feature_name: "related topic",
-        })
-    }>
-        <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
-              onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-              title={topicTitle.en}
-        >
-            <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
-        </Link>
-    </div>
-);
+const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => {
+  const prefix = Sefaria.activeModule === "sheets" ? "/sheets/" : "/";
+  const href = `${prefix}topics/${isCategory ? 'category/' : ''}${topic}`;
+  return <div data-anl-event="related_click:click" data-anl-batch={
+    JSON.stringify({
+      text: topicTitle.en,
+      feature_name: "related topic",
+    })
+  }>
+    <Link className="relatedTopic" href={href}
+          onClick={onClick.bind(null, topic, topicTitle)} key={topic}
+          title={topicTitle.en}>
+      <InterfaceText text={{en: topicTitle.en, he: topicTitle.he}}/>
+    </Link>
+  </div>
+}
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   isTransliteration: PropTypes.object,
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
-  const category = Sefaria.displayTopicTocCategory(slug);
-  const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
-  if (linkTypeArray.length === 0) {
-    linkTypeArray.push({
-      title: {
-        en: !category ? 'Explore Topics' : category.en,
-        he: !category ?  'נושאים כלליים' : category.he,
-      },
-      links: Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
-        topic: slug,
-        title: {en, he},
-        isCategory: !category,
-      })),
-    })
+const preprocessLinksByType = (linksByType, slug) => {
+  // Helper function for TopicSideColumn component.
+  // Each group of links in the sidebar corresponds to a link type.  `linksByType` is an object with the following structure:
+  // {
+  //   linkType1: {
+  //     title: {en: "Link Type 1", he: "סוג קישור 1"},
+  //     pluralTitle: {en: "Link Types 1", he: "סוגי קישורים 1"},
+  //     links: [link1, link2, ...],
+  //     shouldDisplay: boolean,
+  //   },
+  // This function preprocesses the links to be displayed in the sidebar so that the group of links is only displayed
+  // if the link type is supposed to be displayed in the active module and if there are any links to display.
+  // Moreover, it preprocesses the links themselves so that they are sorted and filtered according to the active module
+  // and the title is pluralized if there are multiple links.
+  // If there are no links to display, the sidebar should show the category's subtopics in the sidebar (the subtopics can be derived from the topic TOC).
+  // Finally, it sorts the link types by alphabetical order and shows the link type "Related" first.
+
+  const preprocessLinks = (links) => {
+    return links.filter(Sefaria.shouldDisplayInActiveModule).slice().sort((a, b) => {
+      const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
+      if (!!a.title[shortLang] !== !!b.title[shortLang]) {
+        return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
+      }
+      if (!a.order && !b.order) { return 0; }
+      if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+      return b.order?.tfidf - a.order?.tfidf;
+    });
   }
+
+  const getPluralizedTitle = (title, pluralTitle, links) => {
+    if (links.length > 1 && pluralTitle) {
+      return { en: pluralTitle.en, he: pluralTitle.he };
+    }
+    return title;
+  }
+
+  let arr = [];
+  arr = Object.values(linksByType)
+      .filter(type => !!type?.shouldDisplay && type.links.some(Sefaria.shouldDisplayInActiveModule))
+      .map(type => {
+        const links = preprocessLinks(type.links)
+        const pluralTitle = getPluralizedTitle(type.title, type.pluralTitle, links);
+        return {
+          title: type.title,
+          pluralTitle: pluralTitle,
+          links: links
+        }
+      });
+
+  if (arr.length === 0) {  
+    // if no links, show this category's subtopics in the sidebar (the subtopics can be derived from the topic TOC)
+    const category = Sefaria.displayTopicTocCategory(slug);
+    let defaultLinks = Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
+      topic: slug,
+      title: {en, he},
+      isCategory: !category,
+    }));
+    defaultLinks = preprocessLinks(defaultLinks);
+    const title = {
+      en: !category ? 'Explore Topics' : category.en,
+      he: !category ?  'נושאים כלליים' : category.he,
+    };
+    arr.push({
+      title: title,
+      links: preprocessLinks(defaultLinks),
+      pluralTitle: title
+    });
+  }
+
+  arr = arr.slice().sort((a, b) => { // show Related links first, then show by alphabetical order
+    const aInd = a.title.en.indexOf('Related');
+    const bInd = b.title.en.indexOf('Related');
+    if (aInd > -1 && bInd > -1) { return 0; }
+    if (aInd > -1) { return -1; }
+    if (bInd > -1) { return 1; }
+    return a.title.en.localeCompare(b.title.en);
+  });
+
+  return arr;
+}
+
+const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
   const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>;
-  const linksComponent = (
-    links ?
-        linkTypeArray.sort((a, b) => {
-        const aInd = a.title.en.indexOf('Related');
-        const bInd = b.title.en.indexOf('Related');
-        if (aInd > -1 && bInd > -1) { return 0; }
-        if (aInd > -1) { return -1; }
-        if (bInd > -1) { return 1; }
-        //alphabetical by en just to keep order consistent
-        return a.title.en.localeCompare(b.title.en);
-      })
-      .map(({ title, pluralTitle, links }) => {
-        const linksToDisplay = links.filter(l => l.shouldDisplay !== false);
-        const hasPlural = linksToDisplay.length > 1 && pluralTitle;
-        const pluralizedTitle = {
-          en: hasPlural ? pluralTitle.en : title.en,
-          he: hasPlural ? pluralTitle.he : title.he,
-        };
-        const hasMore = linksToDisplay.length > 10;
-        return (
-          <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
-            {
-              linksToDisplay
-              .sort((a, b) => {
-                const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
-                if (!!a.title[shortLang] !== !!b.title[shortLang]) {
-                  return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
-                }
-                if (!a.order && !b.order) { return 0; }
-                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                return b.order.tfidf - a.order.tfidf;
-              })
-              .map(l =>
-                  (<TopicLink
-                      key={l.topic}
-                      topic={l.topic} topicTitle={l.title}
-                      onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
-                      isTransliteration={l.titleIsTransliteration}
-                      isCategory={l.isCategory}
-                  />)
-              )
-            }
-          </TopicSideSection>
-        );
-      })
-    : null
-  );
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>; 
+  const linksByTypeArray = preprocessLinksByType(linksByType, slug);
+
+  const linksComponent = linksByTypeArray.map(({ title, pluralTitle, links }) => {
+    const hasMore = links.length > 10;
+    return (
+      <TopicSideSection key={title.en+title.he} title={pluralTitle} hasMore={hasMore}>
+        {
+          links.map(l => (
+            <TopicLink
+              key={l.topic}
+              topic={l.topic} topicTitle={l.title}
+              onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
+              isTransliteration={l.titleIsTransliteration}
+              isCategory={l.isCategory}
+            />
+          ))
+        }
+      </TopicSideSection>
+    );
+  });
 
   return (
     <div className={"topicSideColumn"}>
@@ -954,7 +992,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       { readingsComponent }
       { linksComponent }
     </div>
-  )
+  );
 }
 TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
