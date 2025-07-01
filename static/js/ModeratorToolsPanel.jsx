@@ -35,7 +35,8 @@ const INDEX_FIELD_METADATA = {
   "category": { 
     label: "Category", 
     type: "select",
-    placeholder: "Select category..."
+    placeholder: "Select category...",
+    help: "The category path determines where this text appears in the library"
   },
   "authors": { 
     label: "Authors", 
@@ -147,7 +148,7 @@ const BulkIndexEditor = () => {
       .always(() => setLoading(false));
   };
 
-  const save = () => {
+  const save = async () => {
     if (!pick.size || !Object.keys(updates).length) return;
     
     setSaving(true);
@@ -155,6 +156,7 @@ const BulkIndexEditor = () => {
     
     // Process updates to ensure correct data types
     const processedUpdates = {};
+    
     for (const [field, value] of Object.entries(updates)) {
       const fieldMeta = INDEX_FIELD_METADATA[field];
       if (!fieldMeta) {
@@ -193,32 +195,79 @@ const BulkIndexEditor = () => {
       }
     }
     
-    $.ajax({
-      url: '/api/index-bulk-edit',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({
-        indices: [...pick], 
-        updates: processedUpdates
-      }),
-      success: d => {
-        setMsg(`✅ Successfully updated ${d.count} indices`);
-        setUpdates({}); // Clear updates after success
-        // Clear form inputs
-        document.querySelectorAll('.field-input').forEach(input => {
-          if (input.tagName === 'SELECT') {
-            input.value = '';
-          } else {
-            input.value = '';
+    // Special handling for authors field - need to validate and get slugs
+    if (processedUpdates.authors) {
+      try {
+        const authorSlugs = [];
+        for (const authorName of processedUpdates.authors) {
+          const response = await $.ajax({
+            url: `/api/name/${authorName}`,
+            method: 'GET'
+          });
+          
+          const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+          const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
+          
+          if (!exactMatch) {
+            const closestMatches = matches.map(t => t.title).slice(0, 3);
+            const msg = matches.length > 0 
+              ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?` 
+              : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
+            setMsg(`❌ ${msg}`);
+            setSaving(false);
+            return;
           }
+          authorSlugs.push(exactMatch.key);
+        }
+        processedUpdates.authors = authorSlugs;
+      } catch (e) {
+        setMsg(`❌ Error validating authors`);
+        setSaving(false);
+        return;
+      }
+    }
+    
+    // Save to each index individually using the proper API
+    let successCount = 0;
+    let errors = [];
+    
+    for (const indexTitle of pick) {
+      try {
+        const postData = {
+          ...processedUpdates,
+          title: indexTitle
+        };
+        
+        const url = `/api/v2/raw/index/${indexTitle.replace(/ /g, "_")}?update=1`;
+        
+        await $.ajax({
+          url: url,
+          type: 'POST',
+          data: { json: JSON.stringify(postData) }
         });
-      },
-      error: xhr => {
-        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to save";
-        setMsg(`❌ Error: ${errorMsg}`);
-      },
-      complete: () => setSaving(false)
-    });
+        
+        successCount++;
+      } catch (e) {
+        errors.push(`${indexTitle}: ${e.responseJSON?.error || e.statusText || 'Unknown error'}`);
+      }
+    }
+    
+    if (errors.length > 0) {
+      setMsg(`⚠️ Updated ${successCount} indices. Errors: ${errors.join('; ')}`);
+    } else {
+      setMsg(`✅ Successfully updated ${successCount} indices`);
+      setUpdates({});
+      // Clear form inputs
+      document.querySelectorAll('.field-input').forEach(input => {
+        if (input.tagName === 'SELECT') {
+          input.value = '';
+        } else {
+          input.value = '';
+        }
+      });
+    }
+    
+    setSaving(false);
   };
 
   const handleFieldChange = (fieldName, value) => {
