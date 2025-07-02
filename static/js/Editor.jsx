@@ -1061,7 +1061,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 getSuggestions={getSuggestions}
                 inputValue={inputValue}
                 changeInputValue={setInputValue}
-                inputPlaceholder="Search for a Text or Commentator."
+                inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
                 showSuggestionsOnSelect={true}

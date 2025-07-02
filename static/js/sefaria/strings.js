@@ -157,6 +157,7 @@ const Strings = {
     "About this Sheet": "אודות דף המקורות",
     "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
+    "Search for a Text or Commentator.": "חפש מקור או פרשן",
     "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
     "Add media": "הוסף מדיה",
     "Add an image": "הוסף תמונה",

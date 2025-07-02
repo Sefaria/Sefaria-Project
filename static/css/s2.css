@@ -9155,6 +9155,9 @@ a.sheetAuthorName:hover {
   pointer-events: none;
   width: auto;
 }
+.interface-hebrew .sheetMetaDataBox .summary:empty:before {
+  content: "הוסף תיאור";
+}
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
 }
