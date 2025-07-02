@@ -1289,7 +1289,11 @@ class SchemaNode(TitledTreeNode):
             dict = {}
             for node in self.concrete_children():
                 # todo: abstract out or put in helper the below reduce
-                c = [tree[node.key] for tree in contents]
+                try:
+                    c = [tree[node.key] for tree in contents]
+                except KeyError:
+                    print("node.key", node.key)
+                    print("trees", contents)
                 dict[node.key] = node.visit_content(callback, *c, **kwargs)
             return dict
         else:
