@@ -2757,17 +2757,9 @@ def updates_api(request, gid=None):
                             })
 
     elif request.method == "POST":
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
-
+        if not not request.user.is_staff:
+            return notStaffOrApiResponse()
+        elif request.is_api_authenticated:
             payload = json.loads(request.POST.get("json"))
             try:
                 GlobalNotification(payload).save()
@@ -2775,7 +2767,7 @@ def updates_api(request, gid=None):
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
 
-        elif request.user.is_staff:
+        else:
             @csrf_protect
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
@@ -2786,8 +2778,6 @@ def updates_api(request, gid=None):
                     return jsonResponse({"error": str(e)})
 
             return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
 
     elif request.method == "DELETE":
         if not gid:
