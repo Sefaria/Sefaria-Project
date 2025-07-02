@@ -783,19 +783,30 @@ class ModeratorToolsPanel extends Component {
          <BulkVersionEditor />
        </div>
      );
-          return Sefaria.is_moderator ? (
-       <div className="modTools">
-         {downloadSection}
-         {uploadForm}
-         {wflowyUpl}
-         {uploadLinksFromCSV}
-         {getLinks}
-         {removeLinksFromCsv}
-         {workflowyPanel}
-         {bulkIndexEditor}
-         {bulkVersionEditor}
-       </div>
-     ) : (
+    const autoLinkCommentaryTool = (
+      <div className="modToolsSection"><AutoLinkCommentaryTool /></div>
+    );
+
+    const nodeTitleEditor = (
+      <div className="modToolsSection"><NodeTitleEditor /></div>
+    );
+
+    // Add to the return statement:
+    return Sefaria.is_moderator ? (
+      <div className="modTools">
+        {downloadSection}
+        {uploadForm}
+        {wflowyUpl}
+        {uploadLinksFromCSV}
+        {getLinks}
+        {removeLinksFromCsv}
+        {workflowyPanel}
+        {bulkIndexEditor}
+        {bulkVersionEditor}
+        {autoLinkCommentaryTool}
+        {nodeTitleEditor}
+      </div>
+    ) : (
        <div className="modTools">
          Tools are only available to logged-in moderators.
        </div>
@@ -1673,5 +1684,469 @@ const BulkVersionEditor = () => {
   );
 };
 
+const AutoLinkCommentaryTool = () => {
+  const [vtitle, setVtitle] = React.useState("");
+  const [lang, setLang] = React.useState("");
+  const [indices, setIndices] = React.useState([]);
+  const [pick, setPick] = React.useState(new Set());
+  const [msg, setMsg] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [linking, setLinking] = React.useState(false);
+
+  const load = () => {
+    if (!vtitle) {
+      setMsg("❌ Please enter a version title");
+      return;
+    }
+
+    setLoading(true);
+    setMsg("Loading indices...");
+
+    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+      .done(d => {
+        // Filter only commentary indices
+        const commentaryIndices = d.indices.filter(title => {
+          // Simple check - if title contains "on" it's likely a commentary
+          return title.includes(" on ");
+        });
+        setIndices(commentaryIndices);
+        setPick(new Set(commentaryIndices));
+        setMsg(`Found ${commentaryIndices.length} commentary indices`);
+      })
+      .fail(xhr => {
+        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
+        setMsg(`❌ Error: ${errorMsg}`);
+        setIndices([]);
+        setPick(new Set());
+      })
+      .always(() => setLoading(false));
+  };
+
+  const createLinks = async () => {
+    if (!pick.size) return;
+
+    setLinking(true);
+    setMsg("Creating links...");
+
+    let successCount = 0;
+    let errors = [];
+
+    for (const indexTitle of pick) {
+      try {
+        setMsg(`Creating links for ${indexTitle}...`);
+        
+        // Call the rebuild links endpoint
+        await $.ajax({
+          url: `/admin/rebuild-auto-links/${encodeURIComponent(indexTitle)}`,
+          type: 'GET'
+        });
+        
+        successCount++;
+      } catch (e) {
+        const errorMsg = e.responseText || e.statusText || 'Unknown error';
+        errors.push(`${indexTitle}: ${errorMsg}`);
+      }
+    }
+
+    if (errors.length) {
+      setMsg(`⚠️ Finished. Created links for ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+    } else {
+      setMsg(`✅ Successfully created links for ${successCount} indices`);
+    }
+    setLinking(false);
+  };
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Auto-Link Commentaries</div>
+      
+      <div style={{ marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
+        <strong>How it works:</strong> This tool automatically creates links between commentaries and their base texts.
+        For example, "Rashi on Genesis 1:1:1" will be linked to "Genesis 1:1". Links update dynamically when text changes.
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <input
+          className="dlVersionSelect"
+          placeholder="Version title"
+          value={vtitle}
+          onChange={e => setVtitle(e.target.value)}
+          style={{ flex: 1 }}
+        />
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+          style={{ width: "100px" }}
+        >
+          <option value="">All langs</option>
+          <option value="he">Hebrew</option>
+          <option value="en">English</option>
+        </select>
+        <button
+          className="modtoolsButton"
+          onClick={load}
+          disabled={loading || !vtitle}
+        >
+          {loading ? "Loading..." : "Find Commentaries"}
+        </button>
+      </div>
+
+      {indices.length > 0 && (
+        <>
+          <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                checked={pick.size === indices.length}
+                onChange={() => setPick(pick.size === indices.length ? new Set() : new Set(indices))}
+              />
+              <span style={{ fontWeight: "500" }}>
+                Select all ({indices.length} commentaries)
+              </span>
+            </label>
+          </div>
+
+          <div
+            className="indicesList"
+            style={{
+              maxHeight: "200px",
+              overflow: "auto",
+              border: "1px solid #ddd",
+              padding: "8px",
+              marginBottom: "16px",
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            {indices.map(t => (
+              <label key={t} style={{ display: "block", padding: "4px", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={pick.has(t)}
+                  onChange={e => {
+                    const s = new Set(pick);
+                    e.target.checked ? s.add(t) : s.delete(t);
+                    setPick(s);
+                  }}
+                /> {t}
+              </label>
+            ))}
+          </div>
+
+          <button
+            className="modtoolsButton"
+            disabled={!pick.size || linking}
+            onClick={createLinks}
+          >
+            {linking ? "Creating Links..." : `Create Links for ${pick.size} Commentaries`}
+          </button>
+        </>
+      )}
+
+      {msg && (
+        <div
+          className="message"
+          style={{
+            marginTop: "12px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
+                           msg.includes("❌") ? "#f8d7da" : 
+                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" :
+                   msg.includes("❌") ? "#721c24" : 
+                   msg.includes("⚠️") ? "#856404" : "#0c5460"
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const NodeTitleEditor = () => {
+  const [indexTitle, setIndexTitle] = React.useState("");
+  const [indexData, setIndexData] = React.useState(null);
+  const [editingNodes, setEditingNodes] = React.useState({});
+  const [msg, setMsg] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  const load = async () => {
+    if (!indexTitle) {
+      setMsg("❌ Please enter an index title");
+      return;
+    }
+
+    setLoading(true);
+    setMsg("Loading index...");
+
+    try {
+      const data = await Sefaria.getIndexDetails(indexTitle);
+      setIndexData(data);
+      setEditingNodes({});
+      setMsg(`✅ Loaded ${indexTitle}`);
+    } catch (e) {
+      setMsg(`❌ Error: Could not load index "${indexTitle}"`);
+      setIndexData(null);
+    }
+    setLoading(false);
+  };
+
+  const extractNodes = (schema, path = []) => {
+    let nodes = [];
+    
+    if (schema.nodes) {
+      schema.nodes.forEach((node, index) => {
+        const nodePath = [...path, index];
+        nodes.push({
+          path: nodePath,
+          pathStr: nodePath.join('.'),
+          node: node,
+          titles: node.titles || [],
+          sharedTitle: node.sharedTitle,
+          title: node.title,
+          heTitle: node.heTitle
+        });
+        
+        // Recursively get child nodes
+        if (node.nodes) {
+          nodes = nodes.concat(extractNodes(node, nodePath));
+        }
+      });
+    }
+    
+    return nodes;
+  };
+
+  const handleNodeEdit = (pathStr, field, value) => {
+    setEditingNodes(prev => ({
+      ...prev,
+      [pathStr]: {
+        ...prev[pathStr],
+        [field]: value
+      }
+    }));
+  };
+
+  const save = async () => {
+    if (Object.keys(editingNodes).length === 0) {
+      setMsg("❌ No changes to save");
+      return;
+    }
+
+    setSaving(true);
+    setMsg("Saving changes...");
+
+    try {
+      // Create a deep copy of the index data
+      const updatedIndex = JSON.parse(JSON.stringify(indexData));
+      
+      // Apply edits to the nodes
+      Object.entries(editingNodes).forEach(([pathStr, edits]) => {
+        const path = pathStr.split('.').map(Number);
+        let node = updatedIndex.schema || updatedIndex;
+        
+        // Navigate to the correct node
+        for (let i = 0; i < path.length; i++) {
+          if (i === path.length - 1) {
+            // Last step - this is our target node
+            const targetNode = node.nodes[path[i]];
+            
+            // Apply edits
+            if (edits.removeSharedTitle) {
+              delete targetNode.sharedTitle;
+            }
+            
+            if (edits.title !== undefined) {
+              targetNode.title = edits.title;
+              
+              // Update or add English title in titles array
+              const enTitleIndex = targetNode.titles?.findIndex(t => t.lang === "en" && t.primary);
+              if (enTitleIndex >= 0) {
+                targetNode.titles[enTitleIndex].text = edits.title;
+              } else {
+                if (!targetNode.titles) targetNode.titles = [];
+                targetNode.titles.push({
+                  text: edits.title,
+                  lang: "en",
+                  primary: true
+                });
+              }
+            }
+            
+            if (edits.heTitle !== undefined) {
+              targetNode.heTitle = edits.heTitle;
+              
+              // Update or add Hebrew title in titles array
+              const heTitleIndex = targetNode.titles?.findIndex(t => t.lang === "he" && t.primary);
+              if (heTitleIndex >= 0) {
+                targetNode.titles[heTitleIndex].text = edits.heTitle;
+              } else {
+                if (!targetNode.titles) targetNode.titles = [];
+                targetNode.titles.push({
+                  text: edits.heTitle,
+                  lang: "he",
+                  primary: true
+                });
+              }
+            }
+          } else {
+            node = node.nodes[path[i]];
+          }
+        }
+      });
+
+      // Save the updated index
+      const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
+      
+      await $.ajax({
+        url,
+        type: 'POST',
+        data: { json: JSON.stringify(updatedIndex) }
+      });
+
+      // Reset cache
+      await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+      
+      setMsg(`✅ Successfully updated node titles`);
+      setEditingNodes({});
+      
+      // Reload to show changes
+      setTimeout(() => load(), 1000);
+      
+    } catch (e) {
+      console.error('Save error:', e);
+      const errorMsg = e.responseJSON?.error || e.responseText || 'Unknown error';
+      setMsg(`❌ Error: ${errorMsg}`);
+    }
+    
+    setSaving(false);
+  };
+
+  const nodes = indexData ? extractNodes(indexData.schema || indexData) : [];
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Edit Node Titles</div>
+      
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <input
+          className="dlVersionSelect"
+          placeholder="Index title (e.g., 'Binyan Olam')"
+          value={indexTitle}
+          onChange={e => setIndexTitle(e.target.value)}
+          onKeyPress={e => e.key === 'Enter' && load()}
+          style={{ flex: 1 }}
+        />
+        <button
+          className="modtoolsButton"
+          onClick={load}
+          disabled={loading || !indexTitle}
+        >
+          {loading ? "Loading..." : "Load Index"}
+        </button>
+      </div>
+
+      {nodes.length > 0 && (
+        <>
+          <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
+            Found {nodes.length} nodes. Edit titles below:
+          </div>
+
+          <div style={{ maxHeight: "400px", overflow: "auto", border: "1px solid #ddd", padding: "12px" }}>
+            {nodes.map(({ path, pathStr, node, sharedTitle, title, heTitle }) => {
+              const edits = editingNodes[pathStr] || {};
+              const hasChanges = edits.title !== undefined || edits.heTitle !== undefined || edits.removeSharedTitle;
+              
+              return (
+                <div 
+                  key={pathStr} 
+                  style={{ 
+                    marginBottom: "16px", 
+                    padding: "12px", 
+                    backgroundColor: hasChanges ? "#fffbf0" : "#f9f9f9",
+                    borderRadius: "4px",
+                    border: hasChanges ? "1px solid #ffa500" : "1px solid #eee"
+                  }}
+                >
+                  {sharedTitle && (
+                    <div style={{ marginBottom: "8px", fontSize: "12px", color: "#666" }}>
+                      Shared Title: "{sharedTitle}"
+                      <label style={{ marginLeft: "12px" }}>
+                        <input
+                          type="checkbox"
+                          checked={edits.removeSharedTitle || false}
+                          onChange={e => handleNodeEdit(pathStr, 'removeSharedTitle', e.target.checked)}
+                        />
+                        Remove shared title
+                      </label>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div>
+                      <label style={{ fontSize: "12px", color: "#666" }}>English Title:</label>
+                      <input
+                        className="dlVersionSelect"
+                        value={edits.title !== undefined ? edits.title : title}
+                        onChange={e => handleNodeEdit(pathStr, 'title', e.target.value)}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "12px", color: "#666" }}>Hebrew Title:</label>
+                      <input
+                        className="dlVersionSelect"
+                        value={edits.heTitle !== undefined ? edits.heTitle : heTitle}
+                        onChange={e => handleNodeEdit(pathStr, 'heTitle', e.target.value)}
+                        style={{ width: "100%", direction: "rtl" }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {node.nodeType && (
+                    <div style={{ marginTop: "4px", fontSize: "11px", color: "#999" }}>
+                      Type: {node.nodeType} | Path: nodes[{path.join('][')}]
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {Object.keys(editingNodes).length > 0 && (
+            <button
+              className="modtoolsButton"
+              onClick={save}
+              disabled={saving}
+              style={{ marginTop: "12px" }}
+            >
+              {saving ? "Saving..." : `Save Changes to ${Object.keys(editingNodes).length} Nodes`}
+            </button>
+          )}
+        </>
+      )}
+
+      {msg && (
+        <div
+          className="message"
+          style={{
+            marginTop: "12px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
+                           msg.includes("❌") ? "#f8d7da" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" :
+                   msg.includes("❌") ? "#721c24" : "#0c5460"
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default ModeratorToolsPanel;
