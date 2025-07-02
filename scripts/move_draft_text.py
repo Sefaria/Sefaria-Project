@@ -142,9 +142,10 @@ class ServerTextCopier(object):
         params = params or {}
         full_url = f"{self._dest_server}/{url}?{urllib.parse.urlencode(params)}"
         jpayload = json.dumps(payload)
-        values = {'json': jpayload, 'apikey': self._apikey}
-        data = urllib.parse.urlencode(values).encode('utf-8')
+        data = urllib.parse.urlencode({'json': jpayload}).encode('utf-8')
         req = urllib.request.Request(full_url, data)
+        req.add_header("X-APIKEY", self._apikey)
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
         try:
             response = urllib.request.urlopen(req)
             if 'prof' in full_url:

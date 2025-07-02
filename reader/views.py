@@ -1525,14 +1525,10 @@ def complete_version_api(request):
     except BookNameError:
         return jsonResponse({"error": f"No index named: {title}"})
 
-    if not request.user.is_authenticated:
-        key = body_data.get('apikey')[0]
-        if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
-        apikey = db.apikeys.find_one({"key": key})
+    if not request.user.is_staff:
+        return notStaffOrApiResponse()
+    if request.is_api_authenticated:
         method = 'API'
-        if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."})
     else:
         method = None
         internal_do_post = csrf_protect(internal_do_post())
