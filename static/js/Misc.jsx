@@ -2903,7 +2903,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
 
   const checkSpaceBelow = useCallback(() => {
-    console.log(0, popsEl)
     const input = inputEl.current;
     const pops = popsEl.current;
     if (!input || !pops) return;
@@ -2913,8 +2912,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     const popsTop = Math.min(...Array.from(pops.children).map(c => c.getBoundingClientRect().top))
     const popsBottom = Math.max(...Array.from(pops.children).map(c => c.getBoundingClientRect().bottom))
     const popsHeight = popsBottom - popsTop;
-    console.log(10, popsTop, popsBottom)
-    console.log(11, spaceBelow , popsHeight , spaceAbove )
     setShouldShowAbove(spaceBelow < popsHeight && spaceAbove >= popsHeight);
   }, []);
   useEffect(() => {
