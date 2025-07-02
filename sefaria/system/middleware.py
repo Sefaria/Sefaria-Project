@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.contrib.auth import get_user_model
 
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -18,6 +19,8 @@ from django.utils.deprecation import MiddlewareMixin
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+User = get_user_model()
 
 
 class SharedCacheMiddleware(MiddlewareMixin):
@@ -217,4 +220,21 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class ApiKeyAuthenticationMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if not request.user.is_authenticated:
+            apikey = request.META.get("HTTP_X_APIKEY") or request.POST.get("apikey")
+            if apikey:
+                try:
+                    user = User.objects.get(api_key=apikey)  # Adjust to your logic
+                    request.user = user
+                except User.DoesNotExist:
+                    pass
+        response = self.get_response(request)
         return response
