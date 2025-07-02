@@ -123,6 +123,7 @@ const BulkIndexEditor = () => {
   const [lang, setLang] = React.useState("");
   const [indices, setIndices] = React.useState([]);
   const [pick, setPick] = React.useState(new Set());
+  const [mapping, setMapping] = React.useState("many_to_one_default_only");
   const [updates, setUpdates] = React.useState({});
   const [msg, setMsg] = React.useState("");
   const [categories, setCategories] = React.useState([]);
@@ -1733,28 +1734,44 @@ const AutoLinkCommentaryTool = () => {
 
     for (const indexTitle of pick) {
       try {
-        setMsg(`Creating links for ${indexTitle}...`);
-        
-        // Call the rebuild links endpoint
-        await $.ajax({
-          url: `/admin/rebuild/auto-links/${encodeURIComponent(indexTitle)}`,
-          type: 'GET'
-        });
-        
-        successCount++;
-      } catch (e) {
-        const errorMsg = e.responseText || e.statusText || 'Unknown error';
-        errors.push(`${indexTitle}: ${errorMsg}`);
-      }
-    }
+         /* 1️⃣  fetch raw record */
+         const raw = await Sefaria.getIndexDetails(indexTitle);
+         if (!raw) throw new Error("couldn’t fetch index JSON");
+ 
+         /* 2️⃣  guess base text */
+         const guess = (indexTitle.match(/ on (.+)$/) || [])[1];
+         if (!guess) throw new Error("title pattern didn’t reveal base text");
+ 
+         /* 3️⃣  add missing commentary fields */
+         const needsPatch = !raw.base_text_titles || !raw.base_text_mapping;
+         if (needsPatch) {
+           const patched = {
+             ...raw,
+             dependence: "Commentary",
+             base_text_titles: raw.base_text_titles || [guess],
+             base_text_mapping: mapping
+           };
+           delete patched._id;
+           const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}?update=1`;
+           await $.post(url, { json: JSON.stringify(patched) });
+         }
+ 
+         /* 4️⃣  build the links */
+         await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle)}`);
+         ok++;
+       }
+       catch(e){
+         const m = e.responseJSON?.error || e.statusText || e.message;
+         errs.push(`${indexTitle}: ${m}`);
+       }
+     }
 
     if (errors.length) {
-      setMsg(`⚠️ Finished. Created links for ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
-    } else {
-      setMsg(`✅ Successfully created links for ${successCount} indices`);
-    }
-    setLinking(false);
-  };
+     setMsg(errs.length
+       ? `⚠️ Finished. Linked ${ok} / ${pick.size}. Errors: ${errs.join("; ")}`
+       : `✅ Links built for all ${ok} indices`);
+     setLinking(false);
+   };
 
   return (
     <div className="modToolsSection">
@@ -1831,7 +1848,21 @@ const AutoLinkCommentaryTool = () => {
                 /> {t}
               </label>
             ))}
-          </div>
+           </div>
+ 
+           <div style={{ marginBottom:"12px" }}>
+             <label style={{ fontWeight:500 }}>base_text_mapping:&nbsp;</label>
+             <select
+               className="dlVersionSelect"
+               value={mapping}
+               onChange={e=>setMapping(e.target.value)}
+             >
+               <option value="many_to_one_default_only">many_to_one_default_only (✓ Mishnah / Tanakh)</option>
+               <option value="many_to_one">many_to_one</option>
+               <option value="one_to_one_default_only">one_to_one_default_only</option>
+               <option value="one_to_one">one_to_one</option>
+             </select>
+           </div>
 
           <button
             className="modtoolsButton"
