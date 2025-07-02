@@ -1737,7 +1737,7 @@ const AutoLinkCommentaryTool = () => {
         
         // Call the rebuild links endpoint
         await $.ajax({
-          url: `/admin/rebuild-auto-links/${encodeURIComponent(indexTitle)}`,
+          url: `/admin/rebuild/auto-links/${encodeURIComponent(indexTitle)}`,
           type: 'GET'
         });
         
