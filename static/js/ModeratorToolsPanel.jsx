@@ -91,6 +91,31 @@ const INDEX_FIELD_METADATA = {
     placeholder: "למשל: 'ונציה, איטליה'",
     dir: "rtl"
   },
+  // New fields:
+  "toc_zoom": {
+    label: "TOC Zoom Level",
+    type: "number",
+    placeholder: "0-10",
+    help: "Controls how deep the table of contents displays by default (0=fully expanded)"
+  },
+  "dependence": {
+    label: "Dependence Type",
+    type: "select",
+    placeholder: "Select dependence type",
+    help: "Is this text dependent on another text? (e.g., Commentary on a base text)"
+  },
+  "base_text_titles": {
+    label: "Base Text Titles",
+    type: "array",
+    placeholder: "Base text names or 'auto' for auto-detection",
+    help: "Enter base text names separated by commas, or type 'auto' to detect from title (e.g., 'Genesis' for 'Rashi on Genesis')"
+  },
+  "collective_title": {
+    label: "English Collective Title",
+    type: "text",
+    placeholder: "Collective title or 'auto' for auto-detection",
+    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis')"
+  }
 };
 
 const BulkIndexEditor = () => {
@@ -148,6 +173,26 @@ const BulkIndexEditor = () => {
       .always(() => setLoading(false));
   };
 
+  // Smart detection for commentary patterns
+  const detectCommentaryPattern = (title) => {
+    // Common patterns: "X on Y", "X to Y", etc.
+    const patterns = [
+      /^(.+?)\s+on\s+(.+)$/,  // "Rashi on Genesis"
+      /^(.+?)\s+to\s+(.+)$/,  // "Commentary to Text"
+    ];
+    
+    for (let pattern of patterns) {
+      const match = title.match(pattern);
+      if (match) {
+        return {
+          commentaryName: match[1].trim(),
+          baseText: match[2].trim()
+        };
+      }
+    }
+    return null;
+  };
+
   const save = async () => {
     if (!pick.size || !Object.keys(updates).length) return;
 
@@ -158,7 +203,7 @@ const BulkIndexEditor = () => {
     const processedUpdates = {};
 
     for (const [field, value] of Object.entries(updates)) {
-      if (!value) continue; // Skip empty fields
+      if (!value && field !== "toc_zoom") continue; // Skip empty fields except toc_zoom which can be 0
       const fieldMeta = INDEX_FIELD_METADATA[field];
       if (!fieldMeta) {
         processedUpdates[field] = value;
@@ -188,6 +233,9 @@ const BulkIndexEditor = () => {
               return;
             }
           }
+          break;
+        case 'number':
+          processedUpdates[field] = parseInt(value);
           break;
         default:
           processedUpdates[field] = value;
@@ -233,7 +281,7 @@ const BulkIndexEditor = () => {
       try {
         setMsg(`Fetching data for ${indexTitle}...`);
         
-        // CRITICAL: Fetch existing index data first (like the working version does)
+        // Fetch existing index data first
         const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
         if (!existingIndexData) {
           errors.push(`${indexTitle}: Could not fetch existing index data.`);
@@ -242,9 +290,44 @@ const BulkIndexEditor = () => {
 
         setMsg(`Updating ${indexTitle}...`);
 
-        // Merge updates with existing data (crucial!)
-        const postData = { ...existingIndexData, ...processedUpdates, title: indexTitle };
-        delete postData._id; // Not needed for update payload
+        // Create a copy of updates for this specific index
+        let indexSpecificUpdates = { ...processedUpdates };
+
+        // Handle smart base text detection if dependence is set
+        if (indexSpecificUpdates.dependence && indexSpecificUpdates.dependence !== "") {
+          const pattern = detectCommentaryPattern(indexTitle);
+          if (pattern && updates.base_text_titles === "auto") {
+            // Auto-detect base text from title
+            indexSpecificUpdates.base_text_titles = [pattern.baseText];
+          }
+          if (pattern && updates.collective_title === "auto") {
+            // Auto-detect collective title from title
+            indexSpecificUpdates.collective_title = pattern.commentaryName;
+          }
+        }
+
+        // Handle TOC zoom - needs special processing
+        if ('toc_zoom' in indexSpecificUpdates) {
+          const tocZoomValue = indexSpecificUpdates.toc_zoom;
+          delete indexSpecificUpdates.toc_zoom; // Remove from regular updates
+          
+          // We'll need to update the schema nodes
+          if (existingIndexData.nodes && existingIndexData.nodes.nodes) {
+            // For complex texts with multiple nodes
+            existingIndexData.nodes.nodes.forEach(node => {
+              if (node.nodeType === "JaggedArrayNode") {
+                node.toc_zoom = tocZoomValue;
+              }
+            });
+          } else if (existingIndexData.schema && existingIndexData.schema.nodeType === "JaggedArrayNode") {
+            // For simple texts
+            existingIndexData.schema.toc_zoom = tocZoomValue;
+          }
+        }
+
+        // Merge updates with existing data
+        const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
+        delete postData._id;
 
         // Use the same API format as the working version
         const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
@@ -253,10 +336,10 @@ const BulkIndexEditor = () => {
         await $.ajax({
           url,
           type: 'POST',
-          data: { json: JSON.stringify(postData) } // Send as form-encoded like the working version
+          data: { json: JSON.stringify(postData) }
         });
 
-        // CRITICAL: Reset cache for this index (this is what makes changes visible!)
+        // Reset cache for this index
         await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
         
         successCount++;
@@ -313,8 +396,18 @@ const BulkIndexEditor = () => {
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
+        ) : fieldName === "dependence" ? (
+          <select {...commonProps}>
+            <option value="">--Not a dependent text--</option>
+            <option value="Commentary">Commentary</option>
+            <option value="Targum">Targum</option>
+            <option value="Midrash">Midrash</option>
+            <option value="Guides">Guides</option>
+          </select>
         ) : fieldMeta.type === "textarea" ? (
           <textarea {...commonProps} rows={3} />
+        ) : fieldMeta.type === "number" ? (
+          <input {...commonProps} type="number" min="0" max="10" />
         ) : (
           <input {...commonProps} type="text" />
         )}
@@ -410,7 +503,7 @@ const BulkIndexEditor = () => {
             <div style={{ marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
               <strong>Changes to apply:</strong>
               <ul style={{ margin: "4px 0 0 20px", padding: 0 }}>
-                {Object.entries(updates).filter(([k,v]) => v).map(([k, v]) => (
+                {Object.entries(updates).filter(([k,v]) => v || k === 'toc_zoom').map(([k, v]) => (
                   <li key={k} style={{ fontSize: "14px" }}>
                     {INDEX_FIELD_METADATA[k]?.label || k}: "{v}"
                   </li>
@@ -421,7 +514,7 @@ const BulkIndexEditor = () => {
 
           <button
             className="modtoolsButton"
-            disabled={Object.keys(updates).filter(k=>updates[k]).length === 0 || saving}
+            disabled={Object.keys(updates).filter(k=>updates[k] || k === 'toc_zoom').length === 0 || saving}
             onClick={save}
           >
             {saving ? "Saving..." : `Save Changes to ${pick.size} Indices`}
