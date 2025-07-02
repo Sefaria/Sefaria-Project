@@ -337,9 +337,26 @@ const save = async () => {
         }
       }
 
-      // Merge updates with existing data
-      const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
-      delete postData._id;
+      // Start with minimal required fields
+      const postData = {
+        title: indexTitle,
+        heTitle: existingIndexData.heTitle,
+        categories: existingIndexData.categories,
+        schema: existingIndexData.schema,
+        ...indexSpecificUpdates  // Only our updates
+      };
+
+      // Don't include the corrupted authors field unless we're explicitly updating it
+      if (!('authors' in indexSpecificUpdates)) {
+        // Don't include authors at all
+      } else {
+        // Make sure authors is in the correct format (array of slugs)
+        if (Array.isArray(postData.authors) && postData.authors.length > 0) {
+          if (typeof postData.authors[0] === 'object') {
+            postData.authors = postData.authors.map(a => a.slug || a);
+          }
+        }
+      }
 
       // Debug logging
       console.log(`Sending update for ${indexTitle}:`, indexSpecificUpdates);
