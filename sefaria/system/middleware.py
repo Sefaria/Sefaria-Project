@@ -228,6 +228,7 @@ class ApiKeyAuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        request.is_api_authenticated = False
         if not request.user.is_authenticated:
             apikey = request.META.get("HTTP_X_APIKEY") or request.POST.get("apikey")
             if apikey:
