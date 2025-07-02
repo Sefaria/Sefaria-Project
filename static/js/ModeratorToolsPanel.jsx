@@ -173,185 +173,195 @@ const BulkIndexEditor = () => {
       .always(() => setLoading(false));
   };
 
-  // Smart detection for commentary patterns
-  const detectCommentaryPattern = (title) => {
-    // Common patterns: "X on Y", "X to Y", etc.
-    const patterns = [
-      /^(.+?)\s+on\s+(.+)$/,  // "Rashi on Genesis"
-      /^(.+?)\s+to\s+(.+)$/,  // "Commentary to Text"
-    ];
-    
-    for (let pattern of patterns) {
-      const match = title.match(pattern);
-      if (match) {
-        return {
-          commentaryName: match[1].trim(),
-          baseText: match[2].trim()
-        };
-      }
-    }
-    return null;
-  };
+// Better pattern detection that handles multi-word base texts
+const detectCommentaryPattern = (title) => {
+  // Match "X on Y" where Y can be multiple words
+  const match = title.match(/^(.+?)\s+on\s+(.+)$/);
+  if (match) {
+    return {
+      commentaryName: match[1].trim(),
+      baseText: match[2].trim()  // This will be "Mishnah Bikkurim" not just "Bikkurim"
+    };
+  }
+  return null;
+};
 
 const save = async () => {
-    if (!pick.size || !Object.keys(updates).length) return;
+  if (!pick.size || !Object.keys(updates).length) return;
 
-    setSaving(true);
-    setMsg("Saving changes...");
+  setSaving(true);
+  setMsg("Saving changes...");
 
-    // Process updates to ensure correct data types
-    const processedUpdates = {};
+  // Process updates to ensure correct data types
+  const processedUpdates = {};
 
-    for (const [field, value] of Object.entries(updates)) {
-      if (!value && field !== "toc_zoom") continue; // Skip empty fields except toc_zoom which can be 0
-      const fieldMeta = INDEX_FIELD_METADATA[field];
-      if (!fieldMeta) {
-        processedUpdates[field] = value;
-        continue;
-      }
-
-      switch (fieldMeta.type) {
-        case 'array':
-          // Special handling for base_text_titles with auto-detection
-          if (field === 'base_text_titles' && value === 'auto') {
-            processedUpdates[field] = value; // Keep as 'auto' for now
-          } else {
-            processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
-          }
-          break;
-        case 'daterange':
-          if (value.startsWith('[') && value.endsWith(']')) {
-            try {
-              processedUpdates[field] = JSON.parse(value);
-            } catch (e) {
-              setMsg(`❌ Invalid date format for ${field}`);
-              setSaving(false);
-              return;
-            }
-          } else {
-            const year = parseInt(value);
-            if (!isNaN(year)) {
-              processedUpdates[field] = year;
-            } else {
-              setMsg(`❌ Invalid date format for ${field}`);
-              setSaving(false);
-              return;
-            }
-          }
-          break;
-        case 'number':
-          processedUpdates[field] = parseInt(value);
-          break;
-        default:
-          processedUpdates[field] = value;
-      }
+  for (const [field, value] of Object.entries(updates)) {
+    if (!value && field !== "toc_zoom") continue;
+    const fieldMeta = INDEX_FIELD_METADATA[field];
+    if (!fieldMeta) {
+      processedUpdates[field] = value;
+      continue;
     }
 
-    // Handle authors validation if present
-    if (processedUpdates.authors) {
-      try {
-        const authorSlugs = [];
-        for (const authorName of processedUpdates.authors) {
-          const response = await $.ajax({
-            url: `/api/name/${authorName}`,
-            method: 'GET'
-          });
-
-          const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
-          const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
-
-          if (!exactMatch) {
-            const closestMatches = matches.map(t => t.title).slice(0, 3);
-            const msg = matches.length > 0
-              ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
-              : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
-            setMsg(`❌ ${msg}`);
+    switch (fieldMeta.type) {
+      case 'array':
+        if (field === 'base_text_titles' && value === 'auto') {
+          processedUpdates[field] = 'auto'; // Keep as marker
+        } else {
+          processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+        }
+        break;
+      case 'daterange':
+        if (value.startsWith('[') && value.endsWith(']')) {
+          try {
+            processedUpdates[field] = JSON.parse(value);
+          } catch (e) {
+            setMsg(`❌ Invalid date format for ${field}`);
             setSaving(false);
             return;
           }
-          authorSlugs.push(exactMatch.key);
+        } else {
+          const year = parseInt(value);
+          if (!isNaN(year)) {
+            processedUpdates[field] = year;
+          } else {
+            setMsg(`❌ Invalid date format for ${field}`);
+            setSaving(false);
+            return;
+          }
         }
-        processedUpdates.authors = authorSlugs;
-      } catch (e) {
-        setMsg(`❌ Error validating authors`);
-        setSaving(false);
-        return;
-      }
+        break;
+      case 'number':
+        processedUpdates[field] = parseInt(value);
+        break;
+      default:
+        processedUpdates[field] = value;
     }
+  }
 
-    let successCount = 0;
-    let errors = [];
-
-    for (const indexTitle of pick) {
-      try {
-        setMsg(`Fetching data for ${indexTitle}...`);
-        
-        // Fetch existing index data first
-        const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
-        if (!existingIndexData) {
-          errors.push(`${indexTitle}: Could not fetch existing index data.`);
-          continue;
-        }
-
-        setMsg(`Updating ${indexTitle}...`);
-
-        // Create a copy of updates for this specific index
-        let indexSpecificUpdates = { ...processedUpdates };
-
-        // Handle smart base text detection if dependence is set
-        if (indexSpecificUpdates.dependence && indexSpecificUpdates.dependence !== "") {
-          const pattern = detectCommentaryPattern(indexTitle);
-          
-          // Handle auto-detection for base_text_titles
-          if (indexSpecificUpdates.base_text_titles === "auto") {
-            if (pattern) {
-              indexSpecificUpdates.base_text_titles = [pattern.baseText];
-            } else {
-              // If we can't detect, remove it and warn
-              delete indexSpecificUpdates.base_text_titles;
-              errors.push(`${indexTitle}: Could not auto-detect base text`);
-            }
-          }
-          
-          // Handle auto-detection for collective_title
-          if (indexSpecificUpdates.collective_title === "auto") {
-            if (pattern) {
-              indexSpecificUpdates.collective_title = pattern.commentaryName;
-            } else {
-              // If we can't detect, remove it and warn
-              delete indexSpecificUpdates.collective_title;
-              errors.push(`${indexTitle}: Could not auto-detect collective title`);
-            }
-          }
-        }
-
-        // Don't do special handling for toc_zoom - just pass it through
-        // The API should handle updating the schema nodes
-
-        // Merge updates with existing data
-        const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
-        delete postData._id;
-
-        // Use the same API format as the working version
-        const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
-        const url = `${baseUrl}?update=1`;
-
-        console.log(`Sending update for ${indexTitle}:`, indexSpecificUpdates);
-        console.log('Full postData:', postData);
-
-        await $.ajax({
-          url,
-          type: 'POST',
-          data: { json: JSON.stringify(postData) }
+  // Handle authors validation if present
+  if (processedUpdates.authors) {
+    try {
+      const authorSlugs = [];
+      for (const authorName of processedUpdates.authors) {
+        const response = await $.ajax({
+          url: `/api/name/${authorName}`,
+          method: 'GET'
         });
 
-        // Reset cache for this index
-        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+        const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+        const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
+
+        if (!exactMatch) {
+          const closestMatches = matches.map(t => t.title).slice(0, 3);
+          const msg = matches.length > 0
+            ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
+            : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
+          setMsg(`❌ ${msg}`);
+          setSaving(false);
+          return;
+        }
+        authorSlugs.push(exactMatch.key);
+      }
+      processedUpdates.authors = authorSlugs;
+    } catch (e) {
+      setMsg(`❌ Error validating authors`);
+      setSaving(false);
+      return;
+    }
+  }
+
+  let successCount = 0;
+  let errors = [];
+
+  for (const indexTitle of pick) {
+    try {
+      setMsg(`Fetching data for ${indexTitle}...`);
+      
+      const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+      if (!existingIndexData) {
+        errors.push(`${indexTitle}: Could not fetch existing index data.`);
+        continue;
+      }
+
+      setMsg(`Updating ${indexTitle}...`);
+
+      // Create a copy of updates for this specific index
+      let indexSpecificUpdates = { ...processedUpdates };
+
+      // Handle TOC zoom specially - it needs to be set on nodes
+      let tocZoomValue = null;
+      if ('toc_zoom' in indexSpecificUpdates) {
+        tocZoomValue = indexSpecificUpdates.toc_zoom;
+        delete indexSpecificUpdates.toc_zoom; // Don't include in regular updates
+      }
+
+      // Handle smart detection
+      if (indexSpecificUpdates.dependence) {
+        const pattern = detectCommentaryPattern(indexTitle);
         
-        successCount++;
+        if (indexSpecificUpdates.base_text_titles === 'auto') {
+          if (pattern && pattern.baseText) {
+            // For "Kehati on Mishnah Bikkurim", this will be ["Mishnah Bikkurim"]
+            indexSpecificUpdates.base_text_titles = [pattern.baseText];
+          } else {
+            delete indexSpecificUpdates.base_text_titles;
+            console.warn(`Could not auto-detect base text for ${indexTitle}`);
+          }
+        }
+        
+        if (indexSpecificUpdates.collective_title === 'auto') {
+          if (pattern && pattern.commentaryName) {
+            // For "Kehati on Mishnah Bikkurim", this will be "Kehati"
+            indexSpecificUpdates.collective_title = pattern.commentaryName;
+          } else {
+            delete indexSpecificUpdates.collective_title;
+            console.warn(`Could not auto-detect collective title for ${indexTitle}`);
+          }
+        }
+      }
+
+      // Apply TOC zoom to nodes if specified
+      if (tocZoomValue !== null) {
+        // Handle complex texts with nodes
+        if (existingIndexData.nodes && existingIndexData.nodes.nodes) {
+          existingIndexData.nodes.nodes.forEach(node => {
+            if (node.nodeType === "JaggedArrayNode") {
+              node.toc_zoom = tocZoomValue;
+            }
+          });
+        }
+        // Handle simple texts
+        else if (existingIndexData.schema && existingIndexData.schema.nodeType === "JaggedArrayNode") {
+          existingIndexData.schema.toc_zoom = tocZoomValue;
+        }
+      }
+
+      // Merge updates with existing data
+      const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
+      delete postData._id;
+
+      // Debug logging
+      console.log(`Sending update for ${indexTitle}:`, indexSpecificUpdates);
+      if (tocZoomValue !== null) {
+        console.log(`TOC zoom set to ${tocZoomValue}`);
+      }
+
+      const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
+      const url = `${baseUrl}?update=1`;
+
+      await $.ajax({
+        url,
+        type: 'POST',
+        data: { json: JSON.stringify(postData) }
+      });
+
+      // Reset cache for this index
+      await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+      
+      successCount++;
 
     } catch (e) {
-      // Better error logging
       console.error(`Error updating ${indexTitle}:`, e);
       
       let errorMsg = 'Unknown error';
@@ -362,132 +372,25 @@ const save = async () => {
           const parsed = JSON.parse(e.responseText);
           errorMsg = parsed.error || e.responseText;
         } catch {
-          errorMsg = e.responseText;
+          errorMsg = e.responseText || 'Server error';
         }
       } else if (e.statusText) {
         errorMsg = e.statusText;
-      } else if (e.message) {
-        errorMsg = e.message;
       }
       
       errors.push(`${indexTitle}: ${errorMsg}`);
-      setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
     }
+  }
 
-    if (errors.length) {
-      setMsg(`⚠️ Finished. Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
-    } else {
-      setMsg(`✅ Successfully updated ${successCount} indices`);
-      setUpdates({});
-      document.querySelectorAll('.field-input').forEach(el => el.value = '');
-    }
-    setSaving(false);
-  };
-
-    let successCount = 0;
-    let errors = [];
-
-    for (const indexTitle of pick) {
-      try {
-        setMsg(`Fetching data for ${indexTitle}...`);
-        
-        // Fetch existing index data first
-        const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
-        if (!existingIndexData) {
-          errors.push(`${indexTitle}: Could not fetch existing index data.`);
-          continue;
-        }
-
-        setMsg(`Updating ${indexTitle}...`);
-
-        // Create a copy of updates for this specific index
-        let indexSpecificUpdates = { ...processedUpdates };
-
-        // Handle smart base text detection if dependence is set
-        if (indexSpecificUpdates.dependence && indexSpecificUpdates.dependence !== "") {
-          const pattern = detectCommentaryPattern(indexTitle);
-          if (pattern && updates.base_text_titles === "auto") {
-            // Auto-detect base text from title
-            indexSpecificUpdates.base_text_titles = [pattern.baseText];
-          }
-          if (pattern && updates.collective_title === "auto") {
-            // Auto-detect collective title from title
-            indexSpecificUpdates.collective_title = pattern.commentaryName;
-          }
-        }
-
-        // Handle TOC zoom - needs special processing
-        if ('toc_zoom' in indexSpecificUpdates) {
-          const tocZoomValue = indexSpecificUpdates.toc_zoom;
-          delete indexSpecificUpdates.toc_zoom; // Remove from regular updates
-          
-          // We'll need to update the schema nodes
-          if (existingIndexData.nodes && existingIndexData.nodes.nodes) {
-            // For complex texts with multiple nodes
-            existingIndexData.nodes.nodes.forEach(node => {
-              if (node.nodeType === "JaggedArrayNode") {
-                node.toc_zoom = tocZoomValue;
-              }
-            });
-          } else if (existingIndexData.schema && existingIndexData.schema.nodeType === "JaggedArrayNode") {
-            // For simple texts
-            existingIndexData.schema.toc_zoom = tocZoomValue;
-          }
-        }
-
-        // Merge updates with existing data
-        const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
-        delete postData._id;
-
-        // Use the same API format as the working version
-        const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
-        const url = `${baseUrl}?update=1`;
-
-        await $.ajax({
-          url,
-          type: 'POST',
-          data: { json: JSON.stringify(postData) }
-        });
-
-        // Reset cache for this index
-        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
-        
-        successCount++;
-
-      } catch (e) {
-        // Better error logging
-        console.error(`Error updating ${indexTitle}:`, e);
-        
-        let errorMsg = 'Unknown error';
-        if (e.responseJSON?.error) {
-          errorMsg = e.responseJSON.error;
-        } else if (e.responseText) {
-          try {
-            const parsed = JSON.parse(e.responseText);
-            errorMsg = parsed.error || e.responseText;
-          } catch {
-            errorMsg = e.responseText;
-          }
-        } else if (e.statusText) {
-          errorMsg = e.statusText;
-        } else if (e.message) {
-          errorMsg = e.message;
-        }
-        
-        errors.push(`${indexTitle}: ${errorMsg}`);
-        setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
-      }
-    }
-
-    if (errors.length) {
-      setMsg(`⚠️ Finished. Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
-    } else {
-      setMsg(`✅ Successfully updated ${successCount} indices`);
-      setUpdates({});
-      document.querySelectorAll('.field-input').forEach(el => el.value = '');
-    }
-    setSaving(false);
-  };
+  if (errors.length) {
+    setMsg(`⚠️ Finished. Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+  } else {
+    setMsg(`✅ Successfully updated ${successCount} indices`);
+    setUpdates({});
+    document.querySelectorAll('.field-input').forEach(el => el.value = '');
+  }
+  setSaving(false);
+};
     
   const handleFieldChange = (fieldName, value) => {
     setUpdates(prev => ({...prev, [fieldName]: value}));
