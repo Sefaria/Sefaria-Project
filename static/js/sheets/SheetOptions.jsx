@@ -95,7 +95,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
+  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
