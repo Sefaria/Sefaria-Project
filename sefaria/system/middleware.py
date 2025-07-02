@@ -234,6 +234,7 @@ class ApiKeyAuthenticationMiddleware:
                 try:
                     user = User.objects.get(api_key=apikey)  # Adjust to your logic
                     request.user = user
+                    request.is_api_authenticated = True
                 except User.DoesNotExist:
                     pass
         response = self.get_response(request)
