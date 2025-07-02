@@ -1,12 +1,16 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
+import { expect, Locator } from '@playwright/test';
+
+import { SourceSheetEditorPage } from './pages/sourceSheetEditor.page';
 
 let langCookies: any = [];
 let loginCookies: any = [];
 let currentLocation: string = ''; 
 
-const hideModals = async (page: Page) => {
+//method to hid modals that interrupt the user experience
+export const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => {
         const style = document.createElement('style');
@@ -15,14 +19,143 @@ const hideModals = async (page: Page) => {
     });
 }
 
-export const changeLanguage = async (page: Page, language: string) => {
+export async function dismissNewsletterPopupIfPresent(page: Page) {
+  try {
+    await page.evaluate(() => {
+      const selectors = [
+        '.ub-emb-scroll-wrapper',                 // gray overlay
+        '.ub-emb-iframe-wrapper',                 // wrapper with iframe
+        '.ub-emb-iframe',                         // the iframe itself
+        'iframe[src*="ubembed.com"]',             // backup match
+        '.ub-emb-close',                          // close button
+        'div[class*="ub-emb"]',                   // catch any class that starts with ub-emb
+      ];
+
+      let removedCount = 0;
+      selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.remove();
+          removedCount++;
+        });
+      });
+
+      // Also clean up any <body> modifications
+      document.body.style.overflow = 'auto';
+      document.body.style.pointerEvents = 'auto';
+
+      console.log(`Popup and overlay successfully removed. Elements removed: ${removedCount}`);
+    });
+
+    console.log('✅ Unbounce newsletter popup removed from DOM.');
+  } catch (err) {
+    console.warn('⚠️ Failed to remove newsletter popup:', err);
+  }
+}
+
+//method to hide the generic banner that appears on the editor page (Welcome to New Editor)
+export const hideGenericBanner = async (page: Page) => {
+  await page.evaluate(() => {
+    const banner = document.querySelector('.genericBanner');
+    if (banner) {
+      (banner as HTMLElement).style.display = 'none';
+    }
+
+    // Fallback style override just in case dynamic styles re-show it
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .genericBanner {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+};
+
+// Method to hide the cookies popup that appears on the site
+export const hideCookiesPopup = async (page: Page) => {
+    await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .cookiesNotification {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+  };
+  
+  
+export const hideTopBanner = async (page: Page) => {
+    await page.evaluate(() => {
+      // Remove the top banner directly
+      const banner = document.querySelector('header.readerControls.fullPanel.sheetReaderControls');
+      if (banner && banner.parentElement) {
+        banner.parentElement.removeChild(banner);
+      }
+      // Also remove its container (if it's wrapping/intercepting events)
+      const outer = document.querySelector('.readerControlsOuter');
+      if (outer && outer.parentElement) {
+        outer.parentElement.removeChild(outer);
+      }
+      // Just in case, remove any z-index overlays or leftover styles
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .readerControlsOuter, header.readerControls.fullPanel.sheetReaderControls {
+          display: none !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+          z-index: -9999 !important;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+  };
+  
+
+export const changeLanguageLoggedOut = async (page: Page, language: string) => {
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
-        await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        //await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        await page.locator('.interfaceLinks-option.int-en').click();
     } else if (language === LANGUAGES.HE) {
-        await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        //await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        await page.locator('.interfaceLinks-option.int-he').click();
+
     }
 }
+
+export const changeLanguageLoggedIn = async (page: Page, language: string) => {
+    console.log('Changing language to:', language);
+
+    // Open the profile dropdown by clicking the profile icon
+    const profileIcon = page.locator('.myProfileBox .profile-pic');
+    await profileIcon.click();
+  
+    // Wait for the dropdown to appear
+    const menu = page.locator('.interfaceLinks-menu.profile-menu');
+    await expect(menu).toBeVisible();
+  
+    // Select the correct language link
+    const languageLink = language === LANGUAGES.HE
+      ? page.locator('#select-hebrew-interface-link')
+      : page.locator('#select-english-interface-link');
+  
+      console.log('Selector being used:', language === LANGUAGES.HE ? '#select-hebrew-interface-link' : '#select-english-interface-link');
+
+      await expect(languageLink).toBeVisible();
+      await languageLink.click();
+      await page.waitForTimeout(5000); // Wait for the language change to take effect
+      // Wait for the <body> class to reflect the language change
+      const expectedClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+      await expect(page.locator('body')).toHaveClass(new RegExp(`\\b${expectedClass}\\b`));
+    };
+  
+  
+  
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     // If a cookie already has contents, clear it so that the language cookie can be reset
@@ -36,7 +169,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     const inIsrael = await isIsraelIp(page)
     if( ( inIsrael && language == LANGUAGES.EN) || 
         ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguage(page, language);
+        await changeLanguageLoggedOut(page, language);
     }
 
     langCookies = await context.cookies();
@@ -47,21 +180,16 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 
 }
 
-export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
-    await page.goto('/login');
-
-    // Only change language if we need to
-    const inIsrael = await isIsraelIp(page)
-    if( ( inIsrael && language == LANGUAGES.EN) || 
-        ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguage(page, language);
-    }
-
-    await page.getByPlaceholder('Email Address').fill(user.email);
-    await page.getByPlaceholder('Password').fill(user.password);
+export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
+    // Assume we are already on the login page with the correct `?next=` param
+    //await changeLanguageLoggedOut(page, language);
+    await page.getByPlaceholder('Email Address').fill(user.email ?? '');
+    await page.getByPlaceholder('Password').fill(user.password ?? '');
     await page.getByRole('button', { name: 'Login' }).click();
-    await page.getByRole('link', { name: 'See My Saved Texts' }).isVisible();
-}
+    // Wait for navigation to complete — ideally back to the previous page
+    await page.waitForLoadState('networkidle');
+  };
+  
 
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
@@ -76,6 +204,10 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     await newPage.goto(url);
     await hideModals(newPage);
     return newPage;
+}
+
+export const goToSourceSheetEditorWithUser = async (context: BrowserContext, url: string, user=testUser) => {
+    return await goToPageWithUser(context, '/sheets/new', user);
 }
 
 export const getPathAndParams = (url: string) => {
@@ -127,3 +259,32 @@ export const isIsraelIp = async (page: Page) => {
     }
     return currentLocation === "IL";
 }
+
+
+/**
+ * Checks whether an element is visible, has pointer events,
+ * and is not obscured by another element.
+ */
+export const isClickable = async (locator: Locator): Promise<boolean> => {
+  try {
+    // Check visibility
+    const visible = await locator.isVisible();
+    if (!visible) return false;
+
+    // Check computed style: pointer-events
+    const pointerEvents = await locator.evaluate(el =>
+      window.getComputedStyle(el).pointerEvents
+    );
+    if (pointerEvents === 'none') return false;
+
+    // Check if the element could be clicked (no overlays etc.)
+    await locator.click({ trial: true });
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+

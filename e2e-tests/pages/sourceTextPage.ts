@@ -16,6 +16,13 @@ export class SourceTextPage extends HelperBase{
         await this.page.locator('div').filter({ hasText: sourceLanguage }).click()
     }
 
+    async setContentLanguage(mode: "Source" | "Translation" | "Source with Translation") {
+        await this.page.getByAltText('Toggle Reader Menu Display Settings').click()
+        await this.page.getByRole('radio', { name: mode, exact: true }).click();
+       // await this.page.locator('.show-source-translation-buttons').getByLabel(mode).click();
+      }
+      
+
     async goToTranslations(){
         const sheetTitle = this.page.locator('h1')
         await sheetTitle.click()
@@ -57,7 +64,26 @@ export class SourceTextPage extends HelperBase{
         await expect(translationNameInSourceSheetTitle).toHaveText(translation)
 
     }
-
+    
+    // Opens the ToC sidebar
+    async openTableOfContents() {
+        await this.page.getByRole('link', { name: 'Table of Contents' }).click();
+    }
+    
+    async getTOCTitles(): Promise<string[]> {
+        const tocNodes = this.page.locator('.schema-node-toc');
+        return await tocNodes.evaluateAll(nodes =>
+          nodes
+            .map(node => {
+              const title = node.querySelector('.schema-node-title .contentSpan.en')?.textContent?.trim() || '';
+              // Ignore titles that are just digits (e.g., "1", "2", "3") unless meaningful
+              return /^\d+$/.test(title) ? '' : title;
+            })
+            .filter(Boolean) // remove empty strings
+        );
+      }
+      
+      
     async validateFirstLineOfContent(text: string){
         const firstLineInSourceSheet = this.page.locator('div.segmentNumber').first().locator('..').locator('p')
         await expect(firstLineInSourceSheet).toContainText(text)
@@ -66,4 +92,25 @@ export class SourceTextPage extends HelperBase{
     async validateLinkExistsInBanner(text: string){
         await expect(this.page.getByRole('banner')).toContainText(text)
     }
+
+    async clickSegment(ref: string) {
+        const segment = this.page.locator(`div.segment[data-ref="${ref}"]`);
+        await expect(segment).toBeVisible();
+        await segment.click();
+      }
+      
+    
+    async clickFilterCategory(categoryName: string) {
+        await this.page.getByRole("button", { name: categoryName }).click();
+    }
+    
+    async clickTextFilter(textFilter: string) {
+        await this.page.getByRole("button", { name: textFilter }).click();
+    }
+    
+    async expectResourcePanelToContain(text: string) {
+        const panel = this.page.locator(".resource-panel");
+        await expect(panel.getByText(text)).toBeVisible();
+    }
+    
 }
