@@ -152,16 +152,19 @@ const Strings = {
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
 
+    "Close menu": "סגירת תפריט",
+    "Add a source, image, or other media": "הוספת מקור, תמונה או מדיה אחרת",
+    "Add source": "הוספת מקור",
+    "Add image": "הוספת תמונה",
+    "Add media": "הוספת מדיה",
+
     // Sheets
     "Sheet": "דף מקורות",
     "About this Sheet": "אודות דף המקורות",
     "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
-    "Search for a Text or Commentator.": "חפש מקור או פרשן",
+    "Search for a Text or Commentator.": "לחיפוש מקור",
     "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
-    "Add media": "הוסף מדיה",
-    "Add an image": "הוסף תמונה",
-    "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Sheets": "דפי מקורות",
