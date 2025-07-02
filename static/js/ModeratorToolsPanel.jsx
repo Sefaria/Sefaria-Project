@@ -336,6 +336,9 @@ const save = async () => {
         const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
         const url = `${baseUrl}?update=1`;
 
+        console.log(`Sending update for ${indexTitle}:`, indexSpecificUpdates);
+        console.log('Full postData:', postData);
+
         await $.ajax({
           url,
           type: 'POST',
@@ -347,11 +350,28 @@ const save = async () => {
         
         successCount++;
 
-      } catch (e) {
-        const errorMsg = e.responseJSON?.error || e.statusText || 'Unknown error';
-        errors.push(`${indexTitle}: ${errorMsg}`);
-        setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
+    } catch (e) {
+      // Better error logging
+      console.error(`Error updating ${indexTitle}:`, e);
+      
+      let errorMsg = 'Unknown error';
+      if (e.responseJSON?.error) {
+        errorMsg = e.responseJSON.error;
+      } else if (e.responseText) {
+        try {
+          const parsed = JSON.parse(e.responseText);
+          errorMsg = parsed.error || e.responseText;
+        } catch {
+          errorMsg = e.responseText;
+        }
+      } else if (e.statusText) {
+        errorMsg = e.statusText;
+      } else if (e.message) {
+        errorMsg = e.message;
       }
+      
+      errors.push(`${indexTitle}: ${errorMsg}`);
+      setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
     }
 
     if (errors.length) {
@@ -435,7 +455,25 @@ const save = async () => {
         successCount++;
 
       } catch (e) {
-        const errorMsg = e.responseJSON?.error || e.statusText || 'Unknown error';
+        // Better error logging
+        console.error(`Error updating ${indexTitle}:`, e);
+        
+        let errorMsg = 'Unknown error';
+        if (e.responseJSON?.error) {
+          errorMsg = e.responseJSON.error;
+        } else if (e.responseText) {
+          try {
+            const parsed = JSON.parse(e.responseText);
+            errorMsg = parsed.error || e.responseText;
+          } catch {
+            errorMsg = e.responseText;
+          }
+        } else if (e.statusText) {
+          errorMsg = e.statusText;
+        } else if (e.message) {
+          errorMsg = e.message;
+        }
+        
         errors.push(`${indexTitle}: ${errorMsg}`);
         setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
       }
