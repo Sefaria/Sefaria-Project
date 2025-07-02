@@ -194,6 +194,7 @@ const BulkIndexEditor = () => {
       }
     }
 
+    // Handle authors validation if present
     if (processedUpdates.authors) {
       try {
         const authorSlugs = [];
@@ -229,36 +230,42 @@ const BulkIndexEditor = () => {
     let errors = [];
 
     for (const indexTitle of pick) {
-        try {
-            setMsg(`Fetching data for ${indexTitle}...`);
-            const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
-            if (!existingIndexData) {
-                errors.push(`${indexTitle}: Could not fetch existing index data.`);
-                continue;
-            }
-
-            setMsg(`Updating ${indexTitle}...`);
-
-            const postData = { ...existingIndexData, ...processedUpdates, title: indexTitle };
-            delete postData._id; // Not needed for update payload
-
-            const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
-            const url = `${baseUrl}?update=1`;
-
-            await $.ajax({
-                url,
-                type: 'POST',
-                data: { json: JSON.stringify(postData) }
-            });
-
-            await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
-            successCount++;
-
-        } catch (e) {
-            const errorMsg = e.responseJSON?.error || e.statusText || 'Unknown error';
-            errors.push(`${indexTitle}: ${errorMsg}`);
-            setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
+      try {
+        setMsg(`Fetching data for ${indexTitle}...`);
+        
+        // CRITICAL: Fetch existing index data first (like the working version does)
+        const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+        if (!existingIndexData) {
+          errors.push(`${indexTitle}: Could not fetch existing index data.`);
+          continue;
         }
+
+        setMsg(`Updating ${indexTitle}...`);
+
+        // Merge updates with existing data (crucial!)
+        const postData = { ...existingIndexData, ...processedUpdates, title: indexTitle };
+        delete postData._id; // Not needed for update payload
+
+        // Use the same API format as the working version
+        const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
+        const url = `${baseUrl}?update=1`;
+
+        await $.ajax({
+          url,
+          type: 'POST',
+          data: { json: JSON.stringify(postData) } // Send as form-encoded like the working version
+        });
+
+        // CRITICAL: Reset cache for this index (this is what makes changes visible!)
+        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+        
+        successCount++;
+
+      } catch (e) {
+        const errorMsg = e.responseJSON?.error || e.statusText || 'Unknown error';
+        errors.push(`${indexTitle}: ${errorMsg}`);
+        setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
+      }
     }
 
     if (errors.length) {
@@ -443,7 +450,6 @@ const BulkIndexEditor = () => {
     </div>
   );
 };
-
 
 class ModeratorToolsPanel extends Component {
   constructor(props) {
