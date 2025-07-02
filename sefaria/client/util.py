@@ -2,7 +2,7 @@
 import json
 from datetime import datetime
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.core.mail import EmailMultiAlternatives
 from webpack_loader import utils as webpack_utils
 
@@ -44,6 +44,17 @@ def celeryResponse(task_id: str, sub_task_ids: list[str] = None):
     if sub_task_ids:
         data['sub_task_ids'] = sub_task_ids
     return jsonResponse(data, status=202)
+
+
+def authenticationRequiredResponse(data=None):
+    if data is None:
+        data = {}
+    return JsonResponse({"error": "Authentication required", **data}, status=401)
+
+
+def notStaffOrApiResponse():
+    return HttpResponseForbidden("Authentication failed. Must be staff or provide a valid API key.")
+
 
 def send_email(subject, message_html, from_email, to_email):
     msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])
