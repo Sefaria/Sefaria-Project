@@ -11069,10 +11069,22 @@ background-color: white;
   position: relative;
 }
 
+.connectionsPanel .autocompleterPopups {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
 .addInterfaceInput .suggestionBoxContainer,
 .addInterfaceInput .textPreviewContainer {
   position: absolute;
   z-index: 1;
+}
+
+.editorContent .show-above .suggestionBoxContainer,
+.editorContent .show-above .autocompleterPopups {
+  top: auto;
+  bottom: 100%;
 }
 
 .addInterfaceInput .suggestionBox,
