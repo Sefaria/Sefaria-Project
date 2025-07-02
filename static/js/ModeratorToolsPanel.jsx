@@ -193,7 +193,7 @@ const BulkIndexEditor = () => {
     return null;
   };
 
-  const save = async () => {
+const save = async () => {
     if (!pick.size || !Object.keys(updates).length) return;
 
     setSaving(true);
@@ -212,7 +212,12 @@ const BulkIndexEditor = () => {
 
       switch (fieldMeta.type) {
         case 'array':
-          processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+          // Special handling for base_text_titles with auto-detection
+          if (field === 'base_text_titles' && value === 'auto') {
+            processedUpdates[field] = value; // Keep as 'auto' for now
+          } else {
+            processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+          }
           break;
         case 'daterange':
           if (value.startsWith('[') && value.endsWith(']')) {
@@ -273,6 +278,91 @@ const BulkIndexEditor = () => {
         return;
       }
     }
+
+    let successCount = 0;
+    let errors = [];
+
+    for (const indexTitle of pick) {
+      try {
+        setMsg(`Fetching data for ${indexTitle}...`);
+        
+        // Fetch existing index data first
+        const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+        if (!existingIndexData) {
+          errors.push(`${indexTitle}: Could not fetch existing index data.`);
+          continue;
+        }
+
+        setMsg(`Updating ${indexTitle}...`);
+
+        // Create a copy of updates for this specific index
+        let indexSpecificUpdates = { ...processedUpdates };
+
+        // Handle smart base text detection if dependence is set
+        if (indexSpecificUpdates.dependence && indexSpecificUpdates.dependence !== "") {
+          const pattern = detectCommentaryPattern(indexTitle);
+          
+          // Handle auto-detection for base_text_titles
+          if (indexSpecificUpdates.base_text_titles === "auto") {
+            if (pattern) {
+              indexSpecificUpdates.base_text_titles = [pattern.baseText];
+            } else {
+              // If we can't detect, remove it and warn
+              delete indexSpecificUpdates.base_text_titles;
+              errors.push(`${indexTitle}: Could not auto-detect base text`);
+            }
+          }
+          
+          // Handle auto-detection for collective_title
+          if (indexSpecificUpdates.collective_title === "auto") {
+            if (pattern) {
+              indexSpecificUpdates.collective_title = pattern.commentaryName;
+            } else {
+              // If we can't detect, remove it and warn
+              delete indexSpecificUpdates.collective_title;
+              errors.push(`${indexTitle}: Could not auto-detect collective title`);
+            }
+          }
+        }
+
+        // Don't do special handling for toc_zoom - just pass it through
+        // The API should handle updating the schema nodes
+
+        // Merge updates with existing data
+        const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
+        delete postData._id;
+
+        // Use the same API format as the working version
+        const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
+        const url = `${baseUrl}?update=1`;
+
+        await $.ajax({
+          url,
+          type: 'POST',
+          data: { json: JSON.stringify(postData) }
+        });
+
+        // Reset cache for this index
+        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+        
+        successCount++;
+
+      } catch (e) {
+        const errorMsg = e.responseJSON?.error || e.statusText || 'Unknown error';
+        errors.push(`${indexTitle}: ${errorMsg}`);
+        setMsg(`❌ Error updating ${indexTitle}: ${errorMsg}`);
+      }
+    }
+
+    if (errors.length) {
+      setMsg(`⚠️ Finished. Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+    } else {
+      setMsg(`✅ Successfully updated ${successCount} indices`);
+      setUpdates({});
+      document.querySelectorAll('.field-input').forEach(el => el.value = '');
+    }
+    setSaving(false);
+  };
 
     let successCount = 0;
     let errors = [];
