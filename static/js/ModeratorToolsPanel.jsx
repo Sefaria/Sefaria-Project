@@ -323,29 +323,54 @@ const save = async () => {
 
       // Apply TOC zoom to nodes if specified
       if (tocZoomValue !== null) {
-        // Handle complex texts with nodes
-        if (existingIndexData.nodes && existingIndexData.nodes.nodes) {
-          existingIndexData.nodes.nodes.forEach(node => {
+        // The structure in the API response might be different from the Python object
+        // Let's check multiple possible structures
+        
+        // First, let's see what structure we have
+        console.log(`TOC zoom structure for ${indexTitle}:`, {
+          hasNodes: !!existingIndexData.nodes,
+          hasSchema: !!existingIndexData.schema,
+          schemaNodes: existingIndexData.schema?.nodes,
+          nodesType: typeof existingIndexData.nodes
+        });
+
+        // Try different ways to find the nodes
+        let nodesToUpdate = [];
+        
+        // Method 1: If there's a schema with nodes array (like in your CLI: index.nodes.children)
+        if (existingIndexData.schema?.nodes && Array.isArray(existingIndexData.schema.nodes)) {
+          nodesToUpdate = existingIndexData.schema.nodes;
+        }
+        // Method 2: If nodes is at the top level
+        else if (existingIndexData.nodes && Array.isArray(existingIndexData.nodes)) {
+          nodesToUpdate = existingIndexData.nodes;
+        }
+        // Method 3: Check if it's a simple schema
+        else if (existingIndexData.schema && !existingIndexData.schema.nodes) {
+          // Simple text, set on schema itself
+          existingIndexData.schema.toc_zoom = tocZoomValue;
+          console.log(`Set toc_zoom=${tocZoomValue} on schema directly`);
+        }
+
+        // Update all nodes found
+        if (nodesToUpdate.length > 0) {
+          nodesToUpdate.forEach((node, index) => {
             if (node.nodeType === "JaggedArrayNode") {
               node.toc_zoom = tocZoomValue;
+              console.log(`Set toc_zoom=${tocZoomValue} on node ${index}: ${node.title || 'default'}`);
             }
           });
         }
-        // Handle simple texts
-        else if (existingIndexData.schema && existingIndexData.schema.nodeType === "JaggedArrayNode") {
-          existingIndexData.schema.toc_zoom = tocZoomValue;
-        }
       }
 
-      // Merge updates with existing data
-      const postData = { ...existingIndexData, ...indexSpecificUpdates, title: indexTitle };
-      delete postData._id;
-
-      // Debug logging
-      console.log(`Sending update for ${indexTitle}:`, indexSpecificUpdates);
-      if (tocZoomValue !== null) {
-        console.log(`TOC zoom set to ${tocZoomValue}`);
-      }
+      // Create postData with all the fields including modified schema
+      const postData = {
+        title: indexTitle,
+        heTitle: existingIndexData.heTitle,
+        categories: existingIndexData.categories,
+        schema: existingIndexData.schema,  // This now includes our toc_zoom changes
+        ...indexSpecificUpdates
+      };
 
       const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
       const url = `${baseUrl}?update=1`;
@@ -356,8 +381,25 @@ const save = async () => {
         data: { json: JSON.stringify(postData) }
       });
 
-      // Reset cache for this index
+      // After the cache reset, add a verification step
       await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+
+      // Verify the change (optional - for debugging)
+      if (tocZoomValue !== null) {
+        setTimeout(async () => {
+          try {
+            const updatedData = await Sefaria.getIndexDetails(indexTitle);
+            console.log(`Verification for ${indexTitle} toc_zoom:`, {
+              nodes: updatedData.schema?.nodes?.map(n => ({
+                title: n.title || 'default',
+                toc_zoom: n.toc_zoom
+              }))
+            });
+          } catch (e) {
+            console.error('Could not verify toc_zoom update');
+          }
+        }, 2000); // Wait 2 seconds for cache to clear
+      }
       
       successCount++;
 
