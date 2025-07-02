@@ -470,6 +470,11 @@ urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
+# Guides
+urlpatterns += [
+    url(r'^api/guides/(?P<guide_key>[^/]+)$', reader_views.guides_api),
+]
+
 # add static files to urls
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns += staticfiles_urlpatterns()
