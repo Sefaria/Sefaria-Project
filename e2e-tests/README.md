@@ -24,16 +24,33 @@ await pm.onSearchPage().searchFor('query');
 await pm.toggleLanguage(LANGUAGES.HE);
 ```
 
-### Universal Entry Point: `goToPageWithLang`
+### Universal Entry Point: `goToPage*` Functions
 
-**Every test must start with `goToPageWithLang`** - handles:
-- Language cookie setup
+> **📋 Future State**: These functions will be consolidated into a single `goToPage()` function with parameters for language, user authentication, modal hiding, etc.
+
+**Current State**: Every test must start with one of the available `goToPage*` functions:
+
+#### Available Functions:
+- **`goToPageWithLang(context, path, language)`** - Sets up language and handles geo-location
+- **`goToPageWithUser(context, path)`** - Handles authentication and login flow
+
+#### Current Limitations:
+- ⚠️ **Cannot combine functions**: You cannot use both `goToPageWithLang` and `goToPageWithUser` together
+- Must choose either language setup OR user authentication, not both simultaneously
+
+#### What They Handle:
+- Language cookie setup (when using `goToPageWithLang`)
 - Geo-location detection (Israel vs. non-Israel IPs)  
 - Automatic language switching when needed
 - Modal hiding (for authenticated users)
+- User authentication flow (when using `goToPageWithUser`)
 
 ```typescript
+// Language-aware navigation
 const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+
+// Authenticated user navigation
+const page = await goToPageWithUser(context, '/profile');
 ```
 
 ### Language-Aware Page Objects
@@ -62,6 +79,7 @@ import { LANGUAGES } from '../globals';
 import { PageManager } from '../pages/pageManager';
 
 test('Your new page functionality', async ({ context }) => {
+  // Current: Choose appropriate goToPage* function based on needs
   const page = await goToPageWithLang(context, '/your-path', LANGUAGES.EN);
   const pm = new PageManager(page, LANGUAGES.EN);
   
@@ -150,8 +168,9 @@ import { LANGUAGES } from '../globals';
 import { PageManager } from '../pages/pageManager';
 
 test('Descriptive test name', async ({ context }) => {
-  // 1. Setup - Always start with goToPageWithLang
+  // 1. Setup - Always start with appropriate goToPage* function
   const page = await goToPageWithLang(context, '/path', LANGUAGES.EN);
+  // Note: Use goToPageWithUser() for authenticated tests (no language control)
   
   // 2. Create PageManager instance
   const pm = new PageManager(page, LANGUAGES.EN);
@@ -261,7 +280,7 @@ await pm.onUserMenu().clickNewFeature();
 
 ### Authentication
 ```typescript
-// For authenticated user tests
+// For authenticated user tests (current limitation: no language control)
 import { goToPageWithUser } from '../utils';
 
 const page = await goToPageWithUser(context, '/profile');
@@ -271,12 +290,15 @@ const page = await goToPageWithUser(context, '/profile');
 ### Common Utilities
 ```typescript
 import { 
-  goToPageWithLang,      // Universal entry point
-  goToPageWithUser,      // Authenticated user entry  
+  goToPageWithLang,      // Language-aware entry point
+  goToPageWithUser,      // Authenticated user entry
   changeLanguage,        // Manual language switching
   getPathAndParams,      // URL validation helper
   isIsraelIp            // Geo-location detection
 } from '../utils';
+
+// Future: Single consolidated function will replace the above two
+// goToPage(context, path, { language?, authenticated?, hideModals? })
 ```
 
 ### Best Practices
