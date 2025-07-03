@@ -15,6 +15,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
+from sefaria.system.database import db
 from django.utils.deprecation import MiddlewareMixin
 
 import structlog
@@ -233,10 +234,11 @@ class ApiKeyAuthenticationMiddleware:
             apikey = request.META.get("HTTP_X_APIKEY") or request.POST.get("apikey")
             if apikey:
                 try:
-                    user = User.objects.get(api_key=apikey)  # Adjust to your logic
+                    apikey = db.apikeys.find_one({"key": apikey})
+                    user = User.objects.get(id=apikey['uid'])
                     request.user = user
                     request.is_api_authenticated = True
-                except User.DoesNotExist:
+                except (User.DoesNotExist, KeyError):
                     pass
         response = self.get_response(request)
         return response
