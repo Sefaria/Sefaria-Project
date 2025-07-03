@@ -140,6 +140,7 @@ dump/*
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/playwright-profile/
 
 
 # Cursor Config Files #
