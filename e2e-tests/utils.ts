@@ -19,8 +19,12 @@ export const changeLanguage = async (page: Page, language: string) => {
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
         await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        // Wait for the language change to complete by checking for English interface text
+        await page.getByRole('banner').getByRole('link', { name: 'Texts' }).waitFor({ state: 'visible' });
     } else if (language === LANGUAGES.HE) {
         await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        // Wait for the language change to complete by checking for Hebrew interface text
+        await page.getByRole('banner').getByRole('link', { name: 'מקורות' }).waitFor({ state: 'visible' });
     }
 }
 
