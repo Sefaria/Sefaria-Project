@@ -68,6 +68,7 @@ node_modules
 # Sefaria Local Settings files #
 ################################
 /sefaria/local_settings.py
+.env
 
 # Site specific templates and urls #
 ####################################
@@ -141,7 +142,7 @@ dump/*
 /playwright/.cache/
 
 
-# AI Config Files #
+# Cursor Config Files #
 ##################
 .cursor/
 .cursorignore
