@@ -48,6 +48,9 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 }
 
 export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
+    if (!user.email || !user.password) {
+        throw new Error('Missing login credentials. Please set PLAYWRIGHT_USER_EMAIL and PLAYWRIGHT_USER_PASSWORD in your .env file at the project root.');
+    }
     await page.goto('/login');
 
     // Only change language if we need to
