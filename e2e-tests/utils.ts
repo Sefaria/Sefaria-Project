@@ -4,6 +4,7 @@ import type { Page } from 'playwright-core';
 
 let langCookies: any = [];
 let loginCookies: any = [];
+let currentLocation: string = ''; 
 
 const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle');
@@ -29,22 +30,33 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
         await context.clearCookies()
     }   
     const page: Page = await context.newPage();
-    await page.goto('');
-    await changeLanguage(page, language);
-    langCookies = await context.cookies();
-    await context.addCookies(langCookies);
-    
-    // this is a hack to get the cookie to work
-    const newPage: Page = await context.newPage();
-    await newPage.goto(url);
-    await hideModals(newPage);
-    return newPage;
-}
+    await page.goto(url);
 
+    // Only change language if the IP address doesn't match the specified language.
+    const inIsrael = await isIsraelIp(page)
+    if( ( inIsrael && language == LANGUAGES.EN) || 
+        ( !inIsrael && language == LANGUAGES.HE)){
+        await changeLanguage(page, language);
+    }
+
+    langCookies = await context.cookies();
+
+    await context.addCookies(langCookies);
+    await page.reload()
+    return page
+
+}
 
 export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
     await page.goto('/login');
-    await changeLanguage(page, language);
+
+    // Only change language if we need to
+    const inIsrael = await isIsraelIp(page)
+    if( ( inIsrael && language == LANGUAGES.EN) || 
+        ( !inIsrael && language == LANGUAGES.HE)){
+        await changeLanguage(page, language);
+    }
+
     await page.getByPlaceholder('Email Address').fill(user.email);
     await page.getByPlaceholder('Password').fill(user.password);
     await page.getByRole('button', { name: 'Login' }).click();
@@ -80,15 +92,38 @@ export const changeLanguageOfText = async (page: Page, sourceLanguage: RegExp) =
 }
 
 export const getCountryByIp = async (page: Page) => {
-    const data = await page.evaluate(() => {
-        return fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => data)
-    })
-    return data.country;
+    const services = [
+        {
+            url: 'https://ipapi.co/json/',
+            extract: (data: any) => data.country
+        },
+        {
+            url: 'https://api.ipbase.com/v1/json/',
+            extract: (data: any) => data.country_code
+        }
+    ];
+
+    for (const service of services) {
+        try {
+            const data = await page.evaluate(async (url) => {
+                const response = await fetch(url);
+                return await response.json();
+            }, service.url);
+            
+            if (data) {
+                return service.extract(data);
+            }
+        } catch (e) {
+            console.log(`Failed to get country from ${service.url}`, e);
+            continue;
+        }
+    }
+    return null;
 }
 
 export const isIsraelIp = async (page: Page) => {
-    const country = await getCountryByIp(page);
-    return country === "IL";
+    if (!currentLocation) {
+        currentLocation = await getCountryByIp(page);
+    }
+    return currentLocation === "IL";
 }
