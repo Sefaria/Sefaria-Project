@@ -1,9 +1,7 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
-import {BrowserContext}  from 'playwright-core';
-import type { Page } from 'playwright-core';
+import {BrowserContext}  from '@playwright/test';
+import type { Page } from '@playwright/test';
 
-let langCookies: any = [];
-let loginCookies: any = [];
 let currentLocation: string = ''; 
 
 const hideModals = async (page: Page) => {
@@ -15,7 +13,25 @@ const hideModals = async (page: Page) => {
     });
 }
 
-export const changeLanguage = async (page: Page, language: string) => {
+
+/**
+ * Changes the interface language by clicking through the language menu.
+ * Checks if the language is already correct before making changes.
+ * 
+ * @param page - The Playwright page object
+ * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
+ */
+export const changeLanguageIfNeeded = async (page: Page, language: string) => {
+    // Check if we're already in the correct language
+    const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
+    const isAlreadyCorrectLanguage = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible();
+    
+    if (isAlreadyCorrectLanguage) {
+        // Already in the correct language, no need to change
+        return;
+    }
+    
+    // Language change needed - click through the UI
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
         await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
@@ -29,26 +45,12 @@ export const changeLanguage = async (page: Page, language: string) => {
 }
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    // If a cookie already has contents, clear it so that the language cookie can be reset
-    if (langCookies.length) {
-        await context.clearCookies()
-    }   
     const page: Page = await context.newPage();
     await page.goto(url);
 
-    // Only change language if the IP address doesn't match the specified language.
-    const inIsrael = await isIsraelIp(page)
-    if( ( inIsrael && language == LANGUAGES.EN) || 
-        ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguage(page, language);
-    }
+    await changeLanguageIfNeeded(page, language);
 
-    langCookies = await context.cookies();
-
-    await context.addCookies(langCookies);
-    await page.reload()
     return page
-
 }
 
 export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
@@ -57,12 +59,7 @@ export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANG
     }
     await page.goto('/login');
 
-    // Only change language if we need to
-    const inIsrael = await isIsraelIp(page)
-    if( ( inIsrael && language == LANGUAGES.EN) || 
-        ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguage(page, language);
-    }
+    await changeLanguageIfNeeded(page, language);
 
     await page.getByPlaceholder('Email Address').fill(user.email);
     await page.getByPlaceholder('Password').fill(user.password);
@@ -72,17 +69,15 @@ export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANG
 
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
-    if (!loginCookies.length) {
-        const page: Page = await context.newPage();
-        await loginUser(page, user)
-        loginCookies = await context.cookies();
-    }
-    await context.addCookies(loginCookies);
-    // this is a hack to get the cookie to work
-    const newPage: Page = await context.newPage();
-    await newPage.goto(url);
-    await hideModals(newPage);
-    return newPage;
+    const page: Page = await context.newPage();
+    await loginUser(page, user)
+    await changeLanguageIfNeeded(page, DEFAULT_LANGUAGE);
+
+    await page.goto(url);
+
+    await hideModals(page);
+    
+    return page;
 }
 
 export const getPathAndParams = (url: string) => {
