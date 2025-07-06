@@ -1320,26 +1320,42 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
 import csv, io, logging
 from itertools import islice
-from sefaria.export import import_versions_from_stream
 
 logger = logging.getLogger(__name__)
 
-def _safe_import_versions(uploaded_file, user_id,
-                          min_cols=5, batch_size=1000):
+def _safe_import_versions(uploaded_file, user_id, batch_size=1000):
     """
-    Stream-parse the CSV, skip blank / short rows and bulk-insert every
-    `batch_size` rows.  Falls back to Sefaria’s own importer, so nothing
-    else in the codebase changes.
+    Stream-parse any valid Sefaria CSV *without assuming a minimum
+    column count*:
+      • classic 5-row header  ➜ still works
+      • compact 4-row header ➜ still works
+    We now:
+      1. read the *widest* header line → `required`
+      2. right-pad every later row to `required`
+      3. skip only lines where **every** cell is blank
     """
-    reader = csv.reader(io.TextIOWrapper(uploaded_file, encoding="utf-8"))
-    batch = []
-    for lineno, row in enumerate(reader, start=1):
-        if not row or all(cell.strip() == "" for cell in row):
-            continue                       # ignore blank lines
-        if len(row) < min_cols:
-            logger.warning("Row %s too short (%s cols) – skipped",
-                           lineno, len(row))
+    reader      = csv.reader(io.TextIOWrapper(uploaded_file, encoding="utf-8"))
+    header      = []
+    required    = 0            # widest header row
+    batch       = []
+
+    # ── capture the first non-empty rows as header ─────────────────
+    for row in reader:
+        if not row or all(c.strip() == "" for c in row):
+            continue           # ignore stray blank lines
+        header.append(row)
+        required = max(required, len(row))
+        if len(header) == 4 or len(header) == 5:   # both layouts covered
+            break
+
+    # replay header  the rest of the stream
+    header_reader = iter(header)
+    for lineno, row in enumerate(
+            (*header_reader, *reader), start=1):
+        if not row or all(c.strip() == "" for c in row):
             continue
+        if len(row) < required:
+            row.extend([""] * (required - len(row)))   # right-pad
         batch.append(row)
         if len(batch) == batch_size:
             _flush_batch(batch, user_id)
@@ -1347,11 +1363,6 @@ def _safe_import_versions(uploaded_file, user_id,
     if batch:
         _flush_batch(batch, user_id)
 
-def _flush_batch(rows, user_id):
-    csv_buf = io.StringIO()
-    csv.writer(csv_buf).writerows(rows)
-    csv_buf.seek(0)
-    import_versions_from_stream(csv_buf, [1], user_id)
 
 
 @staff_member_required
