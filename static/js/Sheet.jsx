@@ -629,7 +629,12 @@ class SheetMedia extends Component {
 
     else if (parsedUrl.hostname.includes("spotify.com")) {
       const [,, type] = parsedUrl.pathname.split("/");
-      const height = type === "episode" ? 152 : 80;
+
+      // Spotify embed heights are fixed by Spotify's player design.
+      // DO NOT change these values — reducing them will cut off content.
+      const SPOTIFY_IFRAME_HEIGHT_WITH_METADATA = 152; // episode
+      const SPOTIFY_IFRAME_HEIGHT_COMPACT = 80; // music tracks
+      const height = type === "episode" ? SPOTIFY_IFRAME_HEIGHT_WITH_METADATA : SPOTIFY_IFRAME_HEIGHT_COMPACT;
       return `<iframe 
         src=${mediaURL}
         width="100%"
