@@ -161,9 +161,8 @@ class SefariaSiteMapGenerator(object):
                '</urlset>'.format(content))
 
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/" + filename
-        f = open(out, 'w')
-        f.write(xml)
-        f.close()
+        with open(out, 'w') as f:
+            f.write(xml)
         self.sitemaps.append(filename)
 
     def generate_sitemap_index(self):
@@ -181,9 +180,8 @@ class SefariaSiteMapGenerator(object):
             '</sitemapindex>'.format(xml))
 
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
-        f = open(out, 'w')
-        f.write(sitemapindex)
-        f.close()
+        with open(out, 'w') as f:
+            f.write(sitemapindex)
 
     def generate_sitemaps(self):
         """
