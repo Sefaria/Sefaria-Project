@@ -1318,6 +1318,40 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
     return content
 
+import csv, io, logging
+from itertools import islice
+from sefaria.export import import_versions_from_stream
+
+logger = logging.getLogger(__name__)
+
+def _safe_import_versions(uploaded_file, user_id,
+                          min_cols=5, batch_size=1000):
+    """
+    Stream-parse the CSV, skip blank / short rows and bulk-insert every
+    `batch_size` rows.  Falls back to Sefaria’s own importer, so nothing
+    else in the codebase changes.
+    """
+    reader = csv.reader(io.TextIOWrapper(uploaded_file, encoding="utf-8"))
+    batch = []
+    for lineno, row in enumerate(reader, start=1):
+        if not row or all(cell.strip() == "" for cell in row):
+            continue                       # ignore blank lines
+        if len(row) < min_cols:
+            logger.warning("Row %s too short (%s cols) – skipped",
+                           lineno, len(row))
+            continue
+        batch.append(row)
+        if len(batch) == batch_size:
+            _flush_batch(batch, user_id)
+            batch.clear()
+    if batch:
+        _flush_batch(batch, user_id)
+
+def _flush_batch(rows, user_id):
+    csv_buf = io.StringIO()
+    csv.writer(csv_buf).writerows(rows)
+    csv_buf.seek(0)
+    import_versions_from_stream(csv_buf, [1], user_id)
 
 
 @staff_member_required
@@ -1325,12 +1359,12 @@ def text_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    from sefaria.export import import_versions_from_stream
+    from .views import _safe_import_versions
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
-            import_versions_from_stream(f, [1], request.user.id)
+            _safe_import_versions(f, request.user.id)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
             return jsonResponse({"error": str(e), "message": message})
