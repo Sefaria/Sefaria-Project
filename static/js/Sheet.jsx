@@ -607,6 +607,10 @@ class SheetMedia extends Component {
     var mediaClass = "media fullWidth";
     var mediaURL = this.props.source.media;
     var caption  = this.props.source.caption;
+    let parsedUrl
+    if (mediaURL) {
+      parsedUrl = new URL(mediaURL);
+    }
 
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
@@ -621,6 +625,19 @@ class SheetMedia extends Component {
 
     else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
+    }
+
+    else if (parsedUrl.hostname.includes("spotify.com")) {
+      const [,, type] = parsedUrl.pathname.split("/");
+      const height = type === "episode" ? 152 : 80;
+      return `<iframe 
+        src=${mediaURL}
+        width="100%"
+        height="${height}"
+        frameborder="0"
+        allow="autoplay; encrypted-media" 
+        loading="lazy">
+      </iframe>`;
     }
 
     else if (mediaURL.match(/\.(mp3)$/i) != null) {
