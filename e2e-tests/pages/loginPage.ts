@@ -47,9 +47,8 @@ export class LoginPage extends HelperBase{
             await this.page.getByPlaceholder('Password').fill(password);
             await this.page.getByRole('button', { name: 'Login' }).click();
         }
-    
         // Wait for login confirmation
-        await this.page.getByRole('link', { name: 'See My Saved Texts' }).waitFor({ timeout: 10000 });
+        await expect(this.page.getByRole('link', { name: 'See My Saved Texts' })).toBeVisible();
     }
     
 }
