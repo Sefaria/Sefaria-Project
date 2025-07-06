@@ -323,6 +323,19 @@ await expect(page.locator('.content')).toContainText('expected');
 expect(await page.getByText('welcome').isVisible()).toBe(true);
 ```
 
+**Avoid Manual Waits**: Playwright has built-in auto-waiting and retries
+```typescript
+// Avoid - Manual waits are unreliable and slow tests
+await page.waitForTimeout(2000);
+
+// Good - Use Playwright's built-in waiting
+await page.getByText('Loading...').waitFor({ state: 'detached' });
+await expect(page.locator('.content')).toBeVisible();
+
+// Good - Wait for specific conditions
+await page.waitForResponse(resp => resp.url().includes('/api/data'));
+```
+
 **URL Validation**:
 ```typescript
 import { getPathAndParams } from '../utils';
