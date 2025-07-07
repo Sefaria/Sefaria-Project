@@ -1079,7 +1079,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
                     <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-                    <a href={'/' + h.url} target="_blank" className="contentText" key={h.url}>
+                    <a href={'/' + h.url} target="_blank" rel="noopener noreferrer" className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
                 </div>
