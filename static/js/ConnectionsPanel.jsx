@@ -1518,7 +1518,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
