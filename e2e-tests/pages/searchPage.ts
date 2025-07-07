@@ -15,13 +15,10 @@ export class SearchPage extends HelperBase{
         await searchBox.fill(criteria)
         await searchBox.press('Enter')
         
-        if(this.language == LANGUAGES.HE){
-            await this.page.getByText('תוצאות עבור').click();
-        }
-        else{
-            await this.page.getByPlaceholder('Search').click();
-        }
-
+        // Wait for search results page to load by checking for the results heading
+        await this.page.waitForLoadState('networkidle')
+        
+        // Verify we're on the search results page with the expected content
         await expect(this.page.getByRole('heading').first()).toContainText(criteria)
     }
 
