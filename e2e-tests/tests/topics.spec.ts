@@ -5,6 +5,7 @@ import {LANGUAGES, testAdminUser} from "../globals";
 
 test('Go to topic page', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics');
+  console.log('Page URL:', page.url());
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Rosh Hashanah' }).first().isVisible();
 });
@@ -18,10 +19,7 @@ test('Check source', async ({ context }) => {
 });
 
 test('Check admin tab', async ({ context }) => {
-  if (!testAdminUser.email || !testAdminUser.password) {
-    throw new Error("testAdminUser must have defined email and password");
-  }
-  const page = await goToPageWithUser(context, '/topics', { email: testAdminUser.email, password: testAdminUser.password });
+  const page = await goToPageWithUser(context, '/topics', testAdminUser);
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();

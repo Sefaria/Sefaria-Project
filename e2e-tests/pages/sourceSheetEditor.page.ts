@@ -1,17 +1,14 @@
 import { BrowserContext, Cookie, ElementHandle, Locator, Page } from 'playwright-core';
 import { expect } from 'playwright/test';
 import {isClickable} from "../utils";
-import { SaveStates } from '../constants';
-import { LANGUAGES } from '../globals';
+import { SaveStates, SaveState } from '../constants';
+import { LANGUAGES, testUser } from '../globals';
+import { HelperBase } from "./helperBase";
+import { LoginPage } from './loginPage';
 
-
-export class SourceSheetEditorPage {
-    readonly page: Page;
-    savedSessionCookie: Cookie | null = null;
-
-
-    constructor(page: Page) {
-        this.page = page;
+export class SourceSheetEditorPage extends HelperBase {
+    constructor(page: Page, language: string) {
+        super(page, language);
     }
 
     // Status Indicator Components----------------------------
@@ -19,8 +16,8 @@ export class SourceSheetEditorPage {
     statusMessage = () => this.page.locator('.saveStateMessage');
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
 
-    //helper function to validate text for the save state
-    async assertSaveState(state: any, language = LANGUAGES.EN) {
+
+    async assertSaveState(state: SaveState, language = LANGUAGES.EN) {
       const text = language === LANGUAGES.HE ? state.textHebrew : state.text;
       const tooltip = language === LANGUAGES.HE ? state.tooltipHebrew : state.tooltip;
       await expect(this.statusMessage()).toHaveText(text, { timeout: 5000 });
@@ -29,36 +26,27 @@ export class SourceSheetEditorPage {
       await this.assertSaveStateIndicatorIsOnTop();
     }
     
-
-
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
     sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
 
-    //addTextButton = () => this.page.getByRole('button', { name: 'Add a source, image, or other media'});
+
     addSomethingButton = () => this.page.locator('.editorAddLineButton');
     addSourceButton = () => this.page.locator('#addSourceButton');
     addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
     addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
-
-
     
     // Sheet Body---------------------------------------------
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
-    //editable text area
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
 
     // Sheet Actions--------------------------------------------------
     async editTitle(newTitle: string): Promise<void> {
         const title = this.title();
-        // Ensure it's visible and interactable
         await expect(title).toBeVisible();
-      
-        // Focus and clear any existing content
-        await title.click({ clickCount: 3 }); // Triple-click selects all
+        await title.click({ clickCount: 3 });
         await this.page.keyboard.press('Backspace');
-        // Type new title
         await this.page.keyboard.type(newTitle);
       };
     
@@ -139,55 +127,40 @@ export class SourceSheetEditorPage {
       return this.page.locator('span[data-slate-string="true"]', { hasText: text });
     }
 
-    /*function to add a sample source, but there are issues with locators/differences in element names,
-    so it is currently commented out in the tests*/
-    
-    // async addSampleSource(){
-    //     await this.clickAddSource();
-    //     await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
-    //     await this.page.getByRole('button', { name: 'Add Source' }).click();
-    // }
 
     async addSampleSource() {
         console.log(await this.page.content());
         await this.addSomethingButton().scrollIntoViewIfNeeded();
         await expect(this.addSomethingButton()).toBeVisible();
-        await this.addSomethingButton().first().click({ force: true }); // Use force if anything overlays
-        await this.addSomethingButton().first().click({ force: true }); // Use force if anything overlays
+        await this.addSomethingButton().first().click({ force: true });
+        await this.addSomethingButton().first().click({ force: true });
         await expect(this.addSourceButton()).toBeVisible();
-        //main logic
         await this.addSourceButton().click();
         await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
         await this.page.getByRole('button', { name: 'Add Source' }).click();
       };
     
     async sampleSourceNotEditable() {
-        // Locate the most recently added source
         const sourceBox = this.page.locator('.sourceBox').last();
         await sourceBox.click();
-        // Find the editable content area within the source
         const contentEditable = sourceBox.locator('[contenteditable="true"]');
-        // Save original content to compare later
         const originalText = await contentEditable.innerText();
-        // Try to type dummy text (this won't be added if editing is blocked)
         await contentEditable.click({ trial: true }).catch(() => {});
         await this.page.keyboard.type('Dummy text to test editability', { delay: 30 });
-        // Wait briefly for any potential text update
-        // Re-read the content to compare
         const newText = await contentEditable.innerText();
         expect(newText).toBe(originalText);
     }
 
     async waitForAutosave() {
-        // Wait at least 3 seconds to allow autosave to trigger
-        await this.page.waitForTimeout(3000);
-        // Then wait until the save state shows "Saved"
-        await this.page.waitForFunction(() => {
-          const el = document.querySelector('.editorSaveStateIndicator .saveStateMessage');
-          return el && el.textContent?.trim() === 'Saved';
-        }, null, { timeout: 5000 }); // optional timeout
-      }
-      
+      await expect(this.statusMessage()).toHaveText('Saved', { timeout: 4000 });
+    }
+
+    async setupWithContent(content: string) {
+      await this.addText(content);
+      await this.waitForAutosave();
+      return this;
+    }
+
       //Connectivity/Login Functions--------------------------------------------
       async waitForConnectionState(expectedState: 'online' | 'offline') {
         const expectedText = expectedState === 'online' ? 'Saved' : 'Trying to Connect';
@@ -201,63 +174,7 @@ export class SourceSheetEditorPage {
           { timeout: 10000 }
         );
       }
-
-    async simulateOfflineMode() {
-        await this.page.context().setOffline(true);
-    }
-
-    async simulateOnlineMode() {
-        await this.page.context().setOffline(false);
-    }
-
-    async simulateLogout(context) {
-        const cookies = await context.cookies();
-        const sessionCookie = cookies.find(c => c.name === 'sessionid');
-
-        if (sessionCookie) {
-            this.savedSessionCookie = sessionCookie;
-            // Remove just the sessionid by clearing all and re-adding the rest
-            const otherCookies = cookies.filter(c => c.name !== 'sessionid');
-            await context.clearCookies();
-            await context.addCookies(otherCookies);
-        }
-    }
-
-    async simulateLogin(context) {
-        if (this.savedSessionCookie) {
-        await context.addCookies([this.savedSessionCookie]);
-        }
-    }
-     
-    // Checks whether a DOM element is functionally clickable or editable.
-    async isElementInteractable(el: ElementHandle<HTMLElement>): Promise<{
-        className: string;
-        pointerEvents: string;
-        tabIndex: string | null;
-        ariaDisabled: string | null;
-        clickable: boolean;
-      }> {
-        return await el.evaluate(element => {
-          const style = window.getComputedStyle(element);
-          const pointerEvents = style.pointerEvents;
-          const className = element.className;
-          const tabIndex = element.getAttribute('tabindex');
-          const ariaDisabled = element.getAttribute('aria-disabled');
-          const clickable =
-            pointerEvents !== 'none' &&
-            !element.hasAttribute('disabled') &&
-            ariaDisabled !== 'true';
-      
-          return {
-            className,
-            pointerEvents,
-            tabIndex,
-            ariaDisabled,
-            clickable,
-          };
-        });
-      }
-      
+         
      async assertSaveStateIndicatorIsOnTop(){
       const target = this.page.locator('.editorSaveStateIndicator');
       await expect(target).toBeVisible();

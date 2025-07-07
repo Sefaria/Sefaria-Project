@@ -2,9 +2,17 @@
  * Constant variables for E2E tests
  */
 
+// Interface for save state objects
+export interface SaveState {
+  text: RegExp;
+  textHebrew: RegExp;
+  tooltip: RegExp;
+  tooltipHebrew: RegExp;
+}
+
 //Strings for testing save state indicators, currently only in use for the source sheet editor page
 
-export const SaveStates = {
+export const SaveStates: Record<string, SaveState> = {
     saved: {
       text: /Saved/i,
       textHebrew: /נשמר/i,
@@ -36,4 +44,5 @@ export const SaveStates = {
       tooltipHebrew: /אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org/i,
     },
   };
+  
   

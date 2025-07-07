@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test"
-import { LANGUAGES } from "../globals"
+import { LANGUAGES, SOURCE_LANGUAGES } from "../globals"
 import { HelperBase } from "./helperBase"
 
 export class SourceTextPage extends HelperBase{
@@ -7,21 +7,10 @@ export class SourceTextPage extends HelperBase{
         super(page, language)
     }
 
-    // Refactored from utils.ts: changeLanguageOfText
-    async changeTextLanguage(sourceLanguage: RegExp){
-        // Clicking on the Source Language toggle
-        await this.page.getByAltText('Toggle Reader Menu Display Settings').click()
-    
-        // Selecting Source Language
-        await this.page.locator('div').filter({ hasText: sourceLanguage }).click()
+    async setContentLanguage(mode: RegExp) {
+        await this.page.getByRole('button', { name: 'Toggle Reader Menu Display Settings' }).click();
+        await this.page.getByRole('radio', { name: mode }).click();
     }
-
-    async setContentLanguage(mode: "Source" | "Translation" | "Source with Translation") {
-        await this.page.getByAltText('Toggle Reader Menu Display Settings').click()
-        await this.page.getByRole('radio', { name: mode, exact: true }).click();
-       // await this.page.locator('.show-source-translation-buttons').getByLabel(mode).click();
-      }
-      
 
     async goToTranslations(){
         const sheetTitle = this.page.locator('h1')
@@ -69,20 +58,6 @@ export class SourceTextPage extends HelperBase{
     async openTableOfContents() {
         await this.page.getByRole('link', { name: 'Table of Contents' }).click();
     }
-    
-    async getTOCTitles(): Promise<string[]> {
-        const tocNodes = this.page.locator('.schema-node-toc');
-        return await tocNodes.evaluateAll(nodes =>
-          nodes
-            .map(node => {
-              const title = node.querySelector('.schema-node-title .contentSpan.en')?.textContent?.trim() || '';
-              // Ignore titles that are just digits (e.g., "1", "2", "3") unless meaningful
-              return /^\d+$/.test(title) ? '' : title;
-            })
-            .filter(Boolean) // remove empty strings
-        );
-      }
-      
       
     async validateFirstLineOfContent(text: string){
         const firstLineInSourceSheet = this.page.locator('div.segmentNumber').first().locator('..').locator('p')
