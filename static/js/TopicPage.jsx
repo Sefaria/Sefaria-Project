@@ -1054,7 +1054,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
             <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={'/' + tref.url} target="_blank" className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+            <a href={'/' + tref.url} target="_blank" rel="noopener noreferrer" className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
         {
