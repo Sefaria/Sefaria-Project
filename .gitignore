@@ -59,6 +59,10 @@ node_modules
 /.vscode
 *.code-workspace
 
+# Cursor #
+##########
+.cursor/
+
 # pystest cache #
 #####################
 /.pytest_cache
@@ -141,7 +145,3 @@ dump/*
 /playwright/.cache/
 /playwright-profile/
 .env
-
-# Cursor #
-##########
-.cursor/
