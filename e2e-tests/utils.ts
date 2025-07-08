@@ -1,6 +1,7 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
-import {BrowserContext, expect}  from '@playwright/test';
-import type { Locator, Page } from '@playwright/test';
+import {BrowserContext}  from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
 
 let currentLocation: string = ''; 
@@ -16,85 +17,6 @@ export const hideModals = async (page: Page) => {
         document.head.appendChild(style);
     });
 }
-
-export const dismissNewsletterPopupIfPresent = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .ub-emb-scroll-wrapper,
-      .ub-emb-iframe-wrapper,
-      .ub-emb-iframe,
-      iframe[src*="ubembed.com"],
-      .ub-emb-close,
-      div[class*="ub-emb"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-      body {
-        overflow: auto !important;
-        pointer-events: auto !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-export const hideGenericBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .genericBanner {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-export const hideCookiesPopup = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .cookiesNotification {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-export const hideTopBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .readerControlsOuter,
-      header.readerControls.fullPanel.sheetReaderControls {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-        z-index: -9999 !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-/**
- * Hides all common popups, modals, and banners that might interfere with tests
- * This is called automatically by navigation functions but can also be called manually
- */
-export const hideAllModalsAndPopups = async (page: Page) => {
-  await hideModals(page);
-  await dismissNewsletterPopupIfPresent(page);
-  await hideGenericBanner(page);
-  await hideCookiesPopup(page);
-  await hideTopBanner(page);
-};
 
 /**
  * Changes the interface language by clicking through the language menu.
@@ -151,13 +73,6 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
     };
 
 /*LOGIN/LOGOUT RELATED METHODS */
-
-    export const loginUser = async (page: Page, user = testUser, language = DEFAULT_LANGUAGE) => {
-      await page.getByPlaceholder('Email Address').fill(user.email ?? '');
-      await page.getByPlaceholder('Password').fill(user.password ?? '');
-      await page.getByRole('button', { name: 'Login' }).click();
-      await page.waitForLoadState('networkidle');
-    };
 
     export const simulateLogout = async (context) => {
       const cookies = await context.cookies();
@@ -219,7 +134,8 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
 
     await page.goto(url);
 
-    await hideAllModalsAndPopups(page);
+    await hideModals(page);
+    
     return page;
 }
 
