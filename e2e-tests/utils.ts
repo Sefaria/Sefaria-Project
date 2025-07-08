@@ -32,10 +32,6 @@ export const dismissNewsletterPopupIfPresent = async (page: Page) => {
         visibility: hidden !important;
         pointer-events: none !important;
       }
-      body {
-        overflow: auto !important;
-        pointer-events: auto !important;
-      }
     `;
     document.head.appendChild(style);
   });
@@ -80,7 +76,6 @@ export const hideTopBanner = async (page: Page) => {
         display: none !important;
         pointer-events: none !important;
         visibility: hidden !important;
-        z-index: -9999 !important;
       }
     `;
     document.head.appendChild(style);
@@ -107,6 +102,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
 export const changeLanguageIfNeeded = async (page: Page, language: string) => {
+    await page.waitForLoadState('domcontentloaded'); // or 'networkidle' if you want to be extra sure
     // Check if we're already in the correct language
     const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
     const isAlreadyCorrectLanguage = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible();
@@ -115,23 +111,21 @@ export const changeLanguageIfNeeded = async (page: Page, language: string) => {
         // Already in the correct language, no need to change
         return;
     }
-    
+
     // Language change needed - click through the UI
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
         await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
         // Wait for the language change to complete by checking for English interface text
-        await page.getByRole('banner').getByRole('link', { name: 'Texts' }).waitFor({ state: 'visible' });
+        await page.getByRole('banner').getByRole('link', { name: 'Texts', exact: true }).waitFor({ state: 'visible' });
     } else if (language === LANGUAGES.HE) {
         await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
         // Wait for the language change to complete by checking for Hebrew interface text
-        await page.getByRole('banner').getByRole('link', { name: 'מקורות' }).waitFor({ state: 'visible' });
+        await page.getByRole('banner').getByRole('link', { name: 'מקורות', exact: true }).waitFor({ state: 'visible' });
     }
 }
 
 export const changeLanguageLoggedIn = async (page: Page, language: string) => {
-    console.log('Changing language to:', language);
-
     // Open the profile dropdown by clicking the profile icon
     const profileIcon = page.locator('.myProfileBox .profile-pic');
     await profileIcon.click();
@@ -144,11 +138,8 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
       ? page.locator('#select-hebrew-interface-link')
       : page.locator('#select-english-interface-link');
   
-      console.log('Selector being used:', language === LANGUAGES.HE ? '#select-hebrew-interface-link' : '#select-english-interface-link');
-
       await expect(languageLink).toBeVisible();
       await languageLink.click();
-      await page.waitForTimeout(5000);
       const expectedClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
       await expect(page.locator('body')).toHaveClass(new RegExp(`\\b${expectedClass}\\b`));
     };
@@ -166,7 +157,6 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
         await context.addCookies(otherCookies);
         return true;
       } else {
-        console.warn('No session cookie found - user may already be logged out');
         return false;
       }
     };    
@@ -181,17 +171,16 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
       await page.reload();
       await page.getByRole('link', { name: 'Log in' }).click();
       const loginPage = new LoginPage(page, language);
-      await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
+      await loginPage.loginAs(testUser);
     };
     
     export const loginViaTooltip = async (page: Page, language = LANGUAGES.EN) => {
       page.once('dialog', async dialog => {
-        console.log(`Dialog message: ${dialog.message()}`);
         await dialog.accept();
       });
       await page.getByRole('link', { name: 'Log in' }).click();
       const loginPage = new LoginPage(page, language);
-      await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
+      await loginPage.loginAs(testUser);
     };
 
       
@@ -204,19 +193,20 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 
     await changeLanguageIfNeeded(page, language);
 
-    await hideAllModalsAndPopups(page);
+    //await hideAllModalsAndPopups(page);
+    await hideModals(page);
     return page
 }
 
-export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
+export const goToPageWithUser = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE, user = testUser) => {
     const page: Page = await context.newPage();
-    await loginUser(page, user)
-    await changeLanguageIfNeeded(page, DEFAULT_LANGUAGE);
-
-    await page.goto(url);
-
+    await page.goto('/login', {waitUntil: 'domcontentloaded'});
+    await changeLanguageIfNeeded(page, language);
+    const loginPage = new LoginPage(page, language);
+    await loginPage.loginAs(user);
+    await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await changeLanguageIfNeeded(page, language);
     await hideModals(page);
-    
     return page;
 }
 

@@ -5,7 +5,6 @@ import {LANGUAGES, testAdminUser} from "../globals";
 
 test('Go to topic page', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics');
-  console.log('Page URL:', page.url());
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Rosh Hashanah' }).first().isVisible();
 });
@@ -19,7 +18,7 @@ test('Check source', async ({ context }) => {
 });
 
 test('Check admin tab', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics', testAdminUser);
+  const page = await goToPageWithUser(context, '/topics', LANGUAGES.EN, testAdminUser);
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
@@ -47,7 +46,7 @@ test('Check redirection for sourceless topic', async ({ context }) => {
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics/Monkey', testAdminUser);
+  const page = await goToPageWithUser(context, '/topics/Monkey', LANGUAGES.EN, testAdminUser);
   await page.waitForSelector('span:has-text("Admin")')
 
 });

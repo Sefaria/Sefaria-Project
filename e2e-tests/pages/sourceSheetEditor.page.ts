@@ -161,118 +161,118 @@ export class SourceSheetEditorPage extends HelperBase {
       return this;
     }
 
-      //Connectivity/Login Functions--------------------------------------------
-      async waitForConnectionState(expectedState: 'online' | 'offline') {
-        const expectedText = expectedState === 'online' ? 'Saved' : 'Trying to Connect';
-      
-        await this.page.waitForFunction(
-          (text) => {
-            const el = document.querySelector('.editorSaveStateIndicator .saveStateMessage');
-            return el && el.textContent?.trim() === text;
-          },
-          expectedText,
-          { timeout: 10000 }
-        );
-      }
-         
-     async assertSaveStateIndicatorIsOnTop(){
-      const target = this.page.locator('.editorSaveStateIndicator');
-      await expect(target).toBeVisible();
+    //Connectivity/Login Functions--------------------------------------------
+    async waitForConnectionState(expectedState: 'online' | 'offline') {
+      const expectedText = expectedState === 'online' ? 'Saved' : 'Trying to Connect';
     
-      const isOnTop = await this.page.evaluate(() => {
-        const target = document.querySelector('.editorSaveStateIndicator');
-        if (!target) return false;
-    
-        const targetRect = target.getBoundingClientRect();
-        const targetZ = parseInt(getComputedStyle(target).zIndex || '0', 10);
-    
-        let overlappingElements: Element[] = [];
-    
-        // Check points within the target's rectangle (e.g. center)
-        const pointsToCheck = [
-          [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2],
-          [targetRect.left + 1, targetRect.top + 1], // top-left
-          [targetRect.right - 1, targetRect.bottom - 1], // bottom-right
-        ];
-    
-        for (const [x, y] of pointsToCheck) {
-          const el = document.elementFromPoint(x, y);
-          if (el && el !== target && !target.contains(el)) {
-            overlappingElements.push(el);
-          }
+      await this.page.waitForFunction(
+        (text) => {
+          const el = document.querySelector('.editorSaveStateIndicator .saveStateMessage');
+          return el && el.textContent?.trim() === text;
+        },
+        expectedText,
+        { timeout: 10000 }
+      );
+    }
+        
+    async assertSaveStateIndicatorIsOnTop(){
+    const target = this.page.locator('.editorSaveStateIndicator');
+    await expect(target).toBeVisible();
+  
+    const isOnTop = await this.page.evaluate(() => {
+      const target = document.querySelector('.editorSaveStateIndicator');
+      if (!target) return false;
+  
+      const targetRect = target.getBoundingClientRect();
+      const targetZ = parseInt(getComputedStyle(target).zIndex || '0', 10);
+  
+      let overlappingElements: Element[] = [];
+  
+      // Check points within the target's rectangle (e.g. center)
+      const pointsToCheck = [
+        [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2],
+        [targetRect.left + 1, targetRect.top + 1], // top-left
+        [targetRect.right - 1, targetRect.bottom - 1], // bottom-right
+      ];
+  
+      for (const [x, y] of pointsToCheck) {
+        const el = document.elementFromPoint(x, y);
+        if (el && el !== target && !target.contains(el)) {
+          overlappingElements.push(el);
         }
+      }
+  
+      for (const el of overlappingElements) {
+        const style = window.getComputedStyle(el);
+        const z = parseInt(style.zIndex || '0', 10);
+        const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        if (visible && z >= targetZ) {
+          console.warn('Overlapping element with higher or equal z-index:', el);
+          return false;
+        }
+      }
+  
+      return true;
+    });
+  
+    expect(isOnTop).toBe(true);
+  };
+  
     
-        for (const el of overlappingElements) {
+    async validateEditingIsBlocked() {
+
+      // 1. Title should not be editable
+        expect(await isClickable(this.title())).toBe(false);
+
+      // 2. Common add buttons should not be interactable
+      const addButtons = [
+        '#addSourceButton',
+        '#addImageButton',
+        '#addMediaButton',
+        '.editorAddLineButton',
+      ];
+    
+      for (const selector of addButtons) {
+        const btn = this.page.locator(selector);
+        if (await btn.count()) {
+          expect(await isClickable(btn)).toBe(false);
+        }
+      }
+    
+      // 3. Plain text editor should not be interactable
+      const textEditor = this.page.locator('[data-slate-editor="true"][contenteditable="true"]');
+      if (await textEditor.count()) {
+        expect(await isClickable(textEditor)).toBe(false);
+      }
+    
+      // 4. Source boxes should not be editable
+      //await this.sampleSourceNotEditable();
+
+    
+      // 5. Drag-and-drop handles should not be interactable
+      const dragHandles = this.page.locator('.segment .sourceDraggable');
+      if (await dragHandles.count()) {
+        const isDraggable = await dragHandles.first().evaluate(el => {
           const style = window.getComputedStyle(el);
-          const z = parseInt(style.zIndex || '0', 10);
-          const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-          if (visible && z >= targetZ) {
-            console.warn('Overlapping element with higher or equal z-index:', el);
-            return false;
-          }
-        }
-    
-        return true;
-      });
-    
-      expect(isOnTop).toBe(true);
-    };
-    
-      
-      async validateEditingIsBlocked() {
-
-        // 1. Title should not be editable
-         expect(await isClickable(this.title())).toBe(false);
-
-        // 2. Common add buttons should not be interactable
-        const addButtons = [
-          '#addSourceButton',
-          '#addImageButton',
-          '#addMediaButton',
-          '.editorAddLineButton',
-        ];
-      
-        for (const selector of addButtons) {
-          const btn = this.page.locator(selector);
-          if (await btn.count()) {
-            expect(await isClickable(btn)).toBe(false);
-          }
-        }
-      
-        // 3. Plain text editor should not be interactable
-        const textEditor = this.page.locator('[data-slate-editor="true"][contenteditable="true"]');
-        if (await textEditor.count()) {
-          expect(await isClickable(textEditor)).toBe(false);
-        }
-      
-        // 4. Source boxes should not be editable
-        //await this.sampleSourceNotEditable();
-
-      
-        // 5. Drag-and-drop handles should not be interactable
-        const dragHandles = this.page.locator('.segment .sourceDraggable');
-        if (await dragHandles.count()) {
-          const isDraggable = await dragHandles.first().evaluate(el => {
-            const style = window.getComputedStyle(el);
-            return style.pointerEvents !== 'none';
-          });
-          expect(isDraggable).toBe(false);
-        }
-      
-        // 6. Hover formatting menu should not appear
-        const hoverMenu = this.page.locator('.hoverMenu');
-        if (await hoverMenu.count()) {
-        const isVisible = await hoverMenu.evaluate(el => {
-            const style = window.getComputedStyle(el);
-            return style.visibility !== 'hidden' && style.display !== 'none' && style.opacity !== '0';
+          return style.pointerEvents !== 'none';
         });
-
-        // In blocked state, it should not be both visible and interactive
-        expect(isVisible && await isClickable(hoverMenu)).toBe(false);
-        }
+        expect(isDraggable).toBe(false);
       }
+    
+      // 6. Hover formatting menu should not appear
+      const hoverMenu = this.page.locator('.hoverMenu');
+      if (await hoverMenu.count()) {
+      const isVisible = await hoverMenu.evaluate(el => {
+          const style = window.getComputedStyle(el);
+          return style.visibility !== 'hidden' && style.display !== 'none' && style.opacity !== '0';
+      });
 
-      
+      // In blocked state, it should not be both visible and interactive
+      expect(isVisible && await isClickable(hoverMenu)).toBe(false);
+      }
+    }
+
+    
 }
 
 

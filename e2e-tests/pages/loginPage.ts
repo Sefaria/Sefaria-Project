@@ -1,51 +1,28 @@
 import { Page, expect } from "@playwright/test";
-import { LANGUAGES } from "../globals";
+import { LANGUAGES, testUser } from "../globals";
 import { HelperBase } from "./helperBase";
+import { changeLanguageIfNeeded } from "../utils";
 
 export class LoginPage extends HelperBase{
     constructor(page: Page, language: string){
         super(page, language)
     }
 
-    public async ensureLanguage(language: string) {
-        const currentURL = this.page.url();
-        const langMenuButton = this.page.locator('a.interfaceLinks-button >> img[alt*="שפת ממשק"]');
-    
-        if (await langMenuButton.isVisible()) {
-            console.log(`Language menu button is visible: ${await langMenuButton.isVisible()}`);
-            await langMenuButton.click();
-    
-            const englishOption = this.page.locator('a.interfaceLinks-option.int-en');
-            const hebrewOption = this.page.locator('a.interfaceLinks-option.int-he');
-    
-            if (language === LANGUAGES.EN && await englishOption.isVisible()) {
-                await englishOption.click();
-                console.log("Switched to English language");
-            } else if (language === LANGUAGES.HE && await hebrewOption.isVisible()) {
-                await hebrewOption.click();
-                console.log("Switched to Hebrew language");
-            }
-    
-            // Wait for redirection and page load
-            await this.page.waitForURL(/sefaria\.org.*login.*/);
-            await this.page.waitForLoadState('networkidle');
-        }
-    }
-    
 
-    async loginAs(email: string, password: string) {
+
+    async loginAs( user: { email: string; password: string }) {
         if (this.language === LANGUAGES.HE) {
-            //await this.page.waitForSelector('[placeholder="כתובת"]');
-            await this.page.getByPlaceholder('כתובת').fill(email);
-            //await this.page.waitForSelector('[placeholder="סיסמא"]');
-            await this.page.getByPlaceholder('סיסמא').fill(password);
+            await this.page.getByPlaceholder('כתובת').fill(user.email);
+            await this.page.getByPlaceholder('סיסמא').fill(user.password);
             await this.page.getByRole('button', { name: 'התחברות' }).click();
+            await changeLanguageIfNeeded(this.page, LANGUAGES.HE);
+
         } else {
-            await this.page.waitForSelector('[placeholder="Email Address"]');
-            await this.page.getByPlaceholder('Email Address').fill(email);
-            await this.page.waitForSelector('[placeholder="Password"]');
-            await this.page.getByPlaceholder('Password').fill(password);
+            await this.page.getByPlaceholder('Email Address').fill(user.email);
+            await this.page.getByPlaceholder('Password').fill(user.password);
             await this.page.getByRole('button', { name: 'Login' }).click();
+            await changeLanguageIfNeeded(this.page, LANGUAGES.EN);
+
         }
         // Wait for login confirmation
         await expect(this.page.getByRole('link', { name: 'See My Saved Texts' })).toBeVisible();

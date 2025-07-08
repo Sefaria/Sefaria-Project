@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
 import { LoginPage } from '../pages/loginPage';
-import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, simulateLogout, simulateLogin, loginViaNavbar, loginViaTooltip} from "../utils";
+import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, simulateLogout, simulateLogin, loginViaNavbar, loginViaTooltip, goToPageWithUser, changeLanguageIfNeeded} from "../utils";
 import { LANGUAGES, testUser } from '../globals';
 import { SaveStates } from '../constants';
 
@@ -11,12 +11,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   let pageManager: PageManager;
   
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, '/login');
-    const loginPage = new LoginPage(page, LANGUAGES.EN);
-    await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
-    await page.goto(`/sheets/new`, { waitUntil: 'domcontentloaded' });
-    await changeLanguageLoggedIn(page, LANGUAGES.EN);
-    
+    page = await goToPageWithUser(context, '/sheets/new');
     pageManager = new PageManager(page, LANGUAGES.EN);
   });
 
@@ -165,12 +160,7 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
   let pageManager: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, '/login', LANGUAGES.HE);
-    const loginPage = new LoginPage(page, LANGUAGES.HE);
-    await loginPage.loginAs(testUser.email ?? '', testUser.password ?? '');
-    await page.goto(`/sheets/new`, { waitUntil: 'domcontentloaded' });
-    await changeLanguageLoggedIn(page, LANGUAGES.HE);
-    
+    page = await goToPageWithUser(context, '/sheets/new',LANGUAGES.HE);    
     pageManager = new PageManager(page, LANGUAGES.HE);
   });
 
