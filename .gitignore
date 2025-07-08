@@ -145,8 +145,3 @@ dump/*
 /playwright/.cache/
 /playwright-profile/
 .env
-
-# Cursor Config Files #
-##################
-.cursor/
-.cursorignore
