@@ -350,10 +350,13 @@ def make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFil
     else:
         section_ref = oref.first_available_section_ref()
         oref = section_ref if section_ref else oref
+        refs = oref.split_spanning_ref()  # Split the ref if spanning across sections, if not inserts it to a list
+        if mode == 'Text':  # In text mode refs should be section refs
+            refs = [r.section_ref() for r in refs]
         panel = {
             "mode": mode,
             "ref": oref.normal(),
-            "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
+            "refs": [r.normal() for r in refs],
             "currVersions": {"en": translationVersion, "he": primaryVersion},
             "filter": filter,
             "versionFilter": versionFilter,
