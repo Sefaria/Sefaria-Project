@@ -12,6 +12,15 @@ export class SourceTextPage extends HelperBase{
         await this.page.getByRole('radio', { name: mode }).click();
     }
 
+    // Refactored from utils.ts: changeLanguageOfText
+    async changeTextLanguage(sourceLanguage: RegExp){
+        // Clicking on the Source Language toggle
+        await this.page.getByAltText('Toggle Reader Menu Display Settings').click()
+
+        // Selecting Source Language
+        await this.page.locator('div').filter({ hasText: sourceLanguage }).click()
+    }
+
     async goToTranslations(){
         const sheetTitle = this.page.locator('h1')
         await sheetTitle.click()
