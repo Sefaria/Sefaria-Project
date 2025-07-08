@@ -200,7 +200,7 @@ class TextRequestAdapter:
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
                 language = 'he' if version['direction'] == 'rtl' else 'en'
-                version_title = version['version_title']
+                version_title = version['versionTitle']
                 ne_by_secs = make_named_entities_dict()
 
             ja = JaggedTextArray(version['text'])
