@@ -133,6 +133,9 @@ export SANDBOX_URL=https://your-cauldron.cauldron.sefaria.org // For local testi
 export PLAYWRIGHT_USER_EMAIL=your-email@sefaria.org  
 export PLAYWRIGHT_USER_PASSWORD=your-password
 
+PLAYWRIGHT_SUPERUSER_EMAIL=your-admin-email@sefaria.org
+PLAYWRIGHT_SUPERUSER_PASSWORD=your-password
+
 # Run tests
 npx playwright test
 ```
@@ -142,6 +145,9 @@ npx playwright test
 ```bash
 # All tests
 npx playwright test
+
+# All tests with the results inline in the terminal
+npx playwright test --reporter=list
 
 # Specific test file
 npx playwright test tests/banner.spec.ts

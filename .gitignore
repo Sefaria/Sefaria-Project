@@ -59,6 +59,10 @@ node_modules
 /.vscode
 *.code-workspace
 
+# Cursor #
+##########
+.cursor/
+
 # pystest cache #
 #####################
 /.pytest_cache
@@ -68,7 +72,6 @@ node_modules
 # Sefaria Local Settings files #
 ################################
 /sefaria/local_settings.py
-.env
 
 # Site specific templates and urls #
 ####################################
@@ -141,9 +144,4 @@ dump/*
 /playwright-report/
 /playwright/.cache/
 /playwright-profile/
-
-
-# Cursor Config Files #
-##################
-.cursor/
-.cursorignore
+.env
