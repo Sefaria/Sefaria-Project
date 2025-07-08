@@ -364,7 +364,7 @@ def export_texts():
     """
     clear_exports()
 
-    texts = db.texts.find()
+    texts = list(db.texts.find({"title": "Berakhot"}))
 
     for text in texts:
         if text_is_copyright(text):

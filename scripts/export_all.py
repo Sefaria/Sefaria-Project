@@ -6,6 +6,7 @@ import os
 import csv
 
 import sefaria.export as export
+export.export_texts()
 
-export.export_all()
+# export.export_all()
 
