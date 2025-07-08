@@ -47,7 +47,7 @@ import { PageManager } from '../pages/pageManager';
 
         const pm = new PageManager(page, interfaceLanguageToggle)
 
-        await pm.toggleLanguage(sourceLanguageToggle)
+        await pm.onSourceTextPage().changeTextLanguage(sourceLanguageToggle)
 
         await pm.onSourceTextPage().goToTranslations()
         

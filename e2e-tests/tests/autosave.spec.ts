@@ -25,7 +25,6 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     const uniqueText = 'ClickTarget123';
     await editor.addText(uniqueText);
     await editor.alignTextWithStatusIndicator(uniqueText);
-    await page.waitForTimeout(500);
     const textLocator = page.locator('span[data-slate-string="true"]', { hasText: uniqueText });
     await textLocator.dblclick();
     await page.keyboard.type('✅');
@@ -101,9 +100,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.addText('Testing connection loss');
     
     await simulateOfflineMode(page);
-    await editor.addText('trigger connection loss');
-    await page.waitForTimeout(500);
-    
+    await editor.addText('trigger connection loss');    
     await editor.assertSaveState(SaveStates.tryingToConnect);
     await editor.validateEditingIsBlocked();
   });
@@ -114,13 +111,10 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     
     await simulateOfflineMode(page);
     await editor.addText('trigger connection loss');
-    await page.waitForTimeout(500);
     await editor.assertSaveState(SaveStates.tryingToConnect);
     await editor.validateEditingIsBlocked();
     
     await simulateOnlineMode(page);
-    await simulateOnlineMode(page);
-    await page.waitForTimeout(2000);
     await editor.waitForConnectionState('online');
     await editor.assertSaveState(SaveStates.saved || SaveStates.saving);
     await expect(editor.sourceSheetBody()).toBeEnabled();
@@ -194,7 +188,6 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
     expect(logoutResult).toBe(true);
     
     await editor.addText('trigger logout');
-    await page.waitForTimeout(1000);
     await editor.assertSaveState(SaveStates.loggedOut, LANGUAGES.HE);
     await editor.validateEditingIsBlocked();
   });

@@ -1,14 +1,8 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
-import {BrowserContext}  from 'playwright-core';
-import type { Page } from 'playwright-core';
-import { expect, Locator } from '@playwright/test';
-import { SaveStates } from './constants';
+import {BrowserContext, expect}  from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
 
-import { SourceSheetEditorPage } from './pages/sourceSheetEditor.page';
-
-let langCookies: any = [];
-let loginCookies: any = [];
 let currentLocation: string = ''; 
 let savedSessionCookie = null;
 
@@ -46,7 +40,6 @@ export const dismissNewsletterPopupIfPresent = async (page: Page) => {
   });
 };
 
-//method to hide Welcome to New Editor banner
 export const hideGenericBanner = async (page: Page) => {
   await page.evaluate(() => {
     const style = document.createElement('style');
@@ -62,20 +55,19 @@ export const hideGenericBanner = async (page: Page) => {
 };
 
 export const hideCookiesPopup = async (page: Page) => {
-    await page.evaluate(() => {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        .cookiesNotification {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-        }
-      `;
-      document.head.appendChild(style);
-    });
-  };
-  
-  
+  await page.evaluate(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .cookiesNotification {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+};
+
 export const hideTopBanner = async (page: Page) => {
   await page.evaluate(() => {
     const style = document.createElement('style');
@@ -103,19 +95,34 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await hideCookiesPopup(page);
   await hideTopBanner(page);
 };
-  
 
-/*METHODS TO CHANGE LANGUAGE*/
-
-export const changeLanguageLoggedOut = async (page: Page, language: string) => {
+/**
+ * Changes the interface language by clicking through the language menu.
+ * Checks if the language is already correct before making changes.
+ * 
+ * @param page - The Playwright page object
+ * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
+ */
+export const changeLanguageIfNeeded = async (page: Page, language: string) => {
+    // Check if we're already in the correct language
+    const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
+    const isAlreadyCorrectLanguage = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible();
+    
+    if (isAlreadyCorrectLanguage) {
+        // Already in the correct language, no need to change
+        return;
+    }
+    
+    // Language change needed - click through the UI
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
-        //await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
-        await page.locator('.interfaceLinks-option.int-en').click();
+        await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        // Wait for the language change to complete by checking for English interface text
+        await page.getByRole('banner').getByRole('link', { name: 'Texts' }).waitFor({ state: 'visible' });
     } else if (language === LANGUAGES.HE) {
-        //await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
-        await page.locator('.interfaceLinks-option.int-he').click();
-
+        await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        // Wait for the language change to complete by checking for Hebrew interface text
+        await page.getByRole('banner').getByRole('link', { name: 'מקורות' }).waitFor({ state: 'visible' });
     }
 }
 
@@ -196,43 +203,25 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
 /*METHODS TO NAVIGATE TO A PAGE */
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    // If a cookie already has contents, clear it so that the language cookie can be reset
-    if (langCookies.length) {
-        await context.clearCookies()
-    }   
     const page: Page = await context.newPage();
     await page.goto(url);
 
-    // Only change language if the IP address doesn't match the specified language.
-    const inIsrael = await isIsraelIp(page)
-    if( ( inIsrael && language == LANGUAGES.EN) || 
-        ( !inIsrael && language == LANGUAGES.HE)){
-        await changeLanguageLoggedOut(page, language);
-    }
+    await changeLanguageIfNeeded(page, language);
 
-    langCookies = await context.cookies();
-
-    await context.addCookies(langCookies);
-    await page.reload();
-    
     await hideAllModalsAndPopups(page);
-    
-    return page;
+    return page
 }
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
-  if (!loginCookies.length) {
-      const page: Page = await context.newPage();
-      await loginUser(page, user)
-      loginCookies = await context.cookies();
-  }
-  await context.addCookies(loginCookies);
-  const newPage: Page = await context.newPage();
-  await newPage.goto(url);
-  await hideAllModalsAndPopups(newPage);
-  return newPage;
-}    
+    const page: Page = await context.newPage();
+    await loginUser(page, user)
+    await changeLanguageIfNeeded(page, DEFAULT_LANGUAGE);
 
+    await page.goto(url);
+
+    await hideAllModalsAndPopups(page);
+    return page;
+}
 
 export const getPathAndParams = (url: string) => {
     const urlObj = new URL(url);

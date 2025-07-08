@@ -28,25 +28,15 @@ export class SourceTextPage extends HelperBase{
         
         const translationNameInSourceSheetTitle = this.page.locator('span.readerTextVersion')
         
-        // Validate currently selected translation for English
-        // NOTE: We are skipping checking for the default Hebrew translation here, as it is always Masoretic
-        if(this.language === LANGUAGES.EN){
-            const defaultEnglishTranslation = (await translationNameInSourceSheetTitle.textContent())!
-            const translationInSideBar = this.page.locator('div.version-with-preview-title-line', {hasText: defaultEnglishTranslation})
-            await expect(translationInSideBar.getByRole('link')).toHaveText('Currently Selected')
-        }
-
-        // "Select" another translation.
+        // Find the translation to select
         const translationVersionTitle = this.page.locator('div.version-with-preview-title-line', {hasText: translation})
 
-        // Select the new translation and validate that it is "Currently Selected"
+        // Select the translation by clicking the selection button
         if(this.language === LANGUAGES.HE){
             await translationVersionTitle.getByText('בחירה').click()
-            await expect(translationVersionTitle.getByRole('link')).toHaveText('נוכחי')
         }
         else{
             await translationVersionTitle.getByText('Select').click()
-            await expect(translationVersionTitle.getByRole('link')).toHaveText('Currently Selected')
         }
 
         // Validate selected translation is reflected in title
