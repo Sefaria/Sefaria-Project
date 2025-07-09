@@ -1525,8 +1525,8 @@ def complete_version_api(request):
     except BookNameError:
         return jsonResponse({"error": f"No index named: {title}"})
 
-    if not request.user.is_staff:
-        return notStaffOrApiResponse()
+    if not request.user.is_authenticated:
+        return authenticationRequiredResponse()
     if request.is_api_authenticated:
         method = 'API'
     else:
