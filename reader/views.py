@@ -2753,7 +2753,7 @@ def updates_api(request, gid=None):
                             })
 
     elif request.method == "POST":
-        if not not request.user.is_staff:
+        if not request.user.is_staff:
             return notStaffOrApiResponse()
         elif request.is_api_authenticated:
             payload = json.loads(request.POST.get("json"))
