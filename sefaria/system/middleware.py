@@ -239,6 +239,6 @@ class ApiKeyAuthenticationMiddleware:
                     request.user = user
                     request.is_api_authenticated = True
                 except (User.DoesNotExist, KeyError):
-                    pass
+                    pass  # Invalid API key: no matching user or missing uid — treat as unauthenticated
         response = self.get_response(request)
         return response
