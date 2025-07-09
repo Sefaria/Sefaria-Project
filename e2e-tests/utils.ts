@@ -1,9 +1,8 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
-import {BrowserContext}  from 'playwright-core';
-import type { Page } from 'playwright-core';
+import {BrowserContext}  from '@playwright/test';
+import type { Page } from '@playwright/test';
 
-let langCookies: any = [];
-let loginCookies: any = [];
+let currentLocation: string = ''; 
 
 const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle');
@@ -14,37 +13,54 @@ const hideModals = async (page: Page) => {
     });
 }
 
-export const changeLanguage = async (page: Page, language: string) => {
+
+/**
+ * Changes the interface language by clicking through the language menu.
+ * Checks if the language is already correct before making changes.
+ * 
+ * @param page - The Playwright page object
+ * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
+ */
+export const changeLanguageIfNeeded = async (page: Page, language: string) => {
+    // Check if we're already in the correct language
+    const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
+    const isAlreadyCorrectLanguage = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible();
+    
+    if (isAlreadyCorrectLanguage) {
+        // Already in the correct language, no need to change
+        return;
+    }
+    
+    // Language change needed - click through the UI
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
         await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        // Wait for the language change to complete by checking for English interface text
+        await page.getByRole('banner').getByRole('link', { name: 'Texts' }).waitFor({ state: 'visible' });
     } else if (language === LANGUAGES.HE) {
         await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
+        // Wait for the language change to complete by checking for Hebrew interface text
+        await page.getByRole('banner').getByRole('link', { name: 'מקורות' }).waitFor({ state: 'visible' });
     }
 }
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    // If a cookie already has contents, clear it so that the language cookie can be reset
-    if (langCookies.length) {
-        await context.clearCookies()
-    }   
     const page: Page = await context.newPage();
-    await page.goto('');
-    await changeLanguage(page, language);
-    langCookies = await context.cookies();
-    await context.addCookies(langCookies);
-    
-    // this is a hack to get the cookie to work
-    const newPage: Page = await context.newPage();
-    await newPage.goto(url);
-    await hideModals(newPage);
-    return newPage;
+    await page.goto(url);
+
+    await changeLanguageIfNeeded(page, language);
+
+    return page
 }
 
-
 export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANGUAGE) => {
+    if (!user.email || !user.password) {
+        throw new Error('Missing login credentials. Please set PLAYWRIGHT_USER_EMAIL and PLAYWRIGHT_USER_PASSWORD in your .env file at the project root.');
+    }
     await page.goto('/login');
-    await changeLanguage(page, language);
+
+    await changeLanguageIfNeeded(page, language);
+
     await page.getByPlaceholder('Email Address').fill(user.email);
     await page.getByPlaceholder('Password').fill(user.password);
     await page.getByRole('button', { name: 'Login' }).click();
@@ -53,17 +69,15 @@ export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANG
 
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
-    if (!loginCookies.length) {
-        const page: Page = await context.newPage();
-        await loginUser(page, user)
-        loginCookies = await context.cookies();
-    }
-    await context.addCookies(loginCookies);
-    // this is a hack to get the cookie to work
-    const newPage: Page = await context.newPage();
-    await newPage.goto(url);
-    await hideModals(newPage);
-    return newPage;
+    const page: Page = await context.newPage();
+    await loginUser(page, user)
+    await changeLanguageIfNeeded(page, DEFAULT_LANGUAGE);
+
+    await page.goto(url);
+
+    await hideModals(page);
+    
+    return page;
 }
 
 export const getPathAndParams = (url: string) => {
@@ -80,15 +94,38 @@ export const changeLanguageOfText = async (page: Page, sourceLanguage: RegExp) =
 }
 
 export const getCountryByIp = async (page: Page) => {
-    const data = await page.evaluate(() => {
-        return fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => data)
-    })
-    return data.country;
+    const services = [
+        {
+            url: 'https://ipapi.co/json/',
+            extract: (data: any) => data.country
+        },
+        {
+            url: 'https://api.ipbase.com/v1/json/',
+            extract: (data: any) => data.country_code
+        }
+    ];
+
+    for (const service of services) {
+        try {
+            const data = await page.evaluate(async (url) => {
+                const response = await fetch(url);
+                return await response.json();
+            }, service.url);
+            
+            if (data) {
+                return service.extract(data);
+            }
+        } catch (e) {
+            console.log(`Failed to get country from ${service.url}`, e);
+            continue;
+        }
+    }
+    return null;
 }
 
 export const isIsraelIp = async (page: Page) => {
-    const country = await getCountryByIp(page);
-    return country === "IL";
+    if (!currentLocation) {
+        currentLocation = await getCountryByIp(page);
+    }
+    return currentLocation === "IL";
 }

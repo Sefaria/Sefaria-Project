@@ -1,7 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {goToPageWithLang, goToPageWithUser} from '../utils';
 import {LANGUAGES, testAdminUser} from "../globals";
-import * as assert from "node:assert";
 
 
 test('Go to topic page', async ({ context }) => {
@@ -66,6 +65,3 @@ test('Filter topics', async ({ context }) => {
   await page.getByRole('link', { name: 'Kiddush', exact: true }).isVisible();
 });
  
-test('Toggle sources and sheets', async ({ context }) => {
-  // fill in test
-})
