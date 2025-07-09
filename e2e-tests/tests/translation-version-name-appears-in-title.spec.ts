@@ -1,5 +1,5 @@
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, changeLanguageOfText} from "../utils";
+import {goToPageWithLang} from "../utils";
 import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
 import { PageManager } from '../pages/pageManager';
 
