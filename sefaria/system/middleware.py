@@ -231,7 +231,7 @@ class ApiKeyAuthenticationMiddleware:
     def __call__(self, request):
         request.is_api_authenticated = False
         if not request.user.is_authenticated:
-            apikey = request.META.get("HTTP_X_APIKEY") or request.POST.get("apikey")
+            apikey = request.META.get("HTTP_X_APIKEY") or request.POST.get("apikey") or request.GET.get("apikey")
             if apikey:
                 try:
                     apikey = db.apikeys.find_one({"key": apikey})
