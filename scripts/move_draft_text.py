@@ -182,12 +182,3 @@ if __name__ == '__main__':
             args.versionlist = version_arr
     copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links, args.step)
     copier.do_copy()
-
-    try:
-        url = os.environ["SLACK_URL"]
-        message = json.dumps({'text': 'Upload Complete'})
-        request = urllib.request.Request(url, message.encode('utf-8'))
-        urllib.request.urlopen(request)
-
-    except KeyError:
-        pass
