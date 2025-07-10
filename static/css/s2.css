@@ -11082,7 +11082,7 @@ background-color: white;
 }
 
 .editorContent .show-above .suggestionBoxContainer,
-.editorContent .show-above .autocompleterPopups {
+.editorContent .show-above .textPreviewContainer {
   top: auto;
   bottom: 100%;
 }
