@@ -1054,7 +1054,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
             <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={'/' + tref.url} target="_blank" rel="noopener noreferrer" className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+            <a href={'/' + tref.url} target="_blank" className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
         {
@@ -1063,7 +1063,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
                let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
                let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
                return (
-                  <a className="sectionLink" target="_blank" rel="noopener noreferrer" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                  <a className="sectionLink" target="_blank" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
                     <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
                   </a>
                 );
@@ -1079,7 +1079,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
                     <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-                    <a href={'/' + h.url} target="_blank" rel="noopener noreferrer" className="contentText" key={h.url}>
+                    <a href={'/' + h.url} target="_blank" className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
                 </div>
