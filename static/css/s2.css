@@ -714,6 +714,16 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   height: 100%;
   margin-top: 4px;
 }
+.header .interfaceLinks.languageHeader {
+  padding-inline: 15px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--medium-grey);
+  padding-block-start: 5px;
+  padding-block-end: 2px;
+}
+
 .header .interfaceLinks {
   display: flex;
   justify-content: center;
@@ -818,6 +828,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header .interfaceLinks .interfaceLinks-option:hover {
   background-color: var(--lighter-grey);
 }
+.header .languageFlex .interfaceLinks-option:hover {
+  background-color: var(--lighter-grey);
+  text-decoration: none;
+}
 .header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
@@ -894,9 +908,19 @@ div.interfaceLinks-row a {
 .header  .interfaceLinks-option.active {
   order: -1;
 }
+a.interfaceLinks-option.int-bi.inactive {
+  display: flex;
+}
+a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
+  padding: 7px;
+}
 .header .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
+}
+.header .interfaceLinks-option.inactive::before {
+  content: "";
+  padding: 0 15px;
 }
 @media screen and (max-width: 910px) {
   .header .headerInner {
@@ -15289,16 +15313,6 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
-.languageHeader {
-  padding-inline: 15px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  color: var(--medium-grey);
-  padding-block-start: 5px;
-  padding-block-end: 2px;
-}
-
 .dropdownLanguageToggle{
   display: flex;
   flex-direction: row;
@@ -15428,8 +15442,6 @@ span.ref-link-color-3 {color: blue}
 .languageFlex {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
   direction:ltr;
 }
 
