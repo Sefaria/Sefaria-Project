@@ -424,7 +424,7 @@ return (
        {tpTopImg}
        {topicData && topicData.ref &&
            <div>
-               <a href={`/${topicData.ref.url}`} target="_blank" rel="noopener noreferrer" className="resourcesLink button blue">
+               <a href={`/${topicData.ref.url}`} target="_blank" className="resourcesLink button blue">
                    <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
                    <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
                    <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
