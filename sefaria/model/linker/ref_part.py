@@ -40,6 +40,8 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
 LABEL_TO_NAMED_ENTITY_TYPE_ATTR = {
     # HE
     "מקור": "CITATION",
+    "בן-אדם": "PERSON",
+    "קבוצה": "GROUP",
     # EN
     "Person": "PERSON",
     "Group": "GROUP",

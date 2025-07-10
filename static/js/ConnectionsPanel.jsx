@@ -294,7 +294,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
               {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
-          }
+        
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary

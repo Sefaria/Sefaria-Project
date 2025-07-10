@@ -19,6 +19,54 @@ a, a:hover {
   color: inherit;
 }
 
+:root {
+  /* font stacks */
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
+  --serif-small-font-size: 14px;
+
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
+
+  /* colors */
+  --inline-link-blue: #4871bf;
+  --sefaria-blue: #18345D;
+  --highlight-blue: #DDEEFF;
+  --highlight-blue-light: #F0F7FF;
+  --beit-midrash-grey: #333333;
+  --darkest-grey: #333333;
+  --dark-grey: #666666;
+  --medium-grey: #999999;
+  --light-grey: #CCCCCC;
+  --lighter-grey: #EDEDEC;
+  --lightest-grey: #FBFBFA;
+  --commentary-blue: #4B71B7;
+  --essay-links-green: #3B5849;
+  --tanakh-teal: #004E5F;
+  --mishnah-blue: #5A99B7;
+  --talmud-gold: #CCB479;
+  --midrash-green: #5D956F;
+  --halakhah-red: #802F3E;
+  --kabbalah-purple: #594176;
+  --liturgy-rose: #AB4E66;
+  --philosophy-purple: #7F85A9;
+  --taanitic-green: #00827F;
+  --chasidut-green: #97B386;
+  --mussar-purple: #7C416F;
+  --responsa-red: #CB6158;
+  --apocrypha-pink: #C6A7B4;
+  --modern-works-blue: #B8D4D3;
+  --grammar-green: #B2B272;
+  --reference-orange: #D4896C;
+  --miscelaneous-green: #3B5849;
+  --selected-option: #000000;
+  --select-blue: #0B71E7;
+}
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -34,7 +82,7 @@ body, .sans-serif {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-body, .en, .int-en {
+body, .en, .int-en, .englishWithinHebrew {
   --is-hebrew: initial; /* false */
 }
 .he, .int-he {
@@ -2739,7 +2787,7 @@ display: none;
   color: var(--light-grey);
 }
 
-div.sheetsWrapper :nth-child(1 of .card) {
+div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
 .card {
@@ -3242,6 +3290,7 @@ a.cardTitle:hover {
   display: flex;
 }
 .sheetContentSidebar {
+  margin: 30px 0;
   width: 33%;
 }
 .bookPage .currentSection,
@@ -9117,6 +9166,7 @@ a.sheetAuthorName:hover {
   max-width: 540px;
   font-size: 16px;
   color: #666;
+  height: 520px;
 }
 .publishBox .publishLabel {
   --english-font: var(--english-sans-serif-font-family);
@@ -9338,7 +9388,8 @@ body.interface-hebrew .publishBox textarea::placeholder {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
-  min-width: 300px;
+  min-width: 150px;
+  max-width: 100%;
 }
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
@@ -9370,10 +9421,52 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.5;
   cursor: auto;
 }
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
+.editorSaveStateIndicator{
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 1;
+  background: white;
+  padding: 3px;
+}
+
+.editorSaveStateIndicator.tooltip-toggle{
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 2px;
+  font-size: 16px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
+  direction: rtl;
+}
+.interface-hebrew .editorSaveStateIndicator {
+  flex-direction: row-reverse;
+}
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+  z-index: 1;
+}
+.interface-hebrew .floatingEditorIcons{
+    flex-direction: row-reverse;
+}
+
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9393,9 +9486,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;
@@ -10910,7 +11002,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -10925,7 +11017,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -14625,13 +14717,16 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+.TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+.TOCCardsWrapper .card:nth-child(odd):last-child {
+  flex: 0 0 45%;
+}
+.sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -14649,7 +14744,7 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetsHomepage .navSidebarModule {
   padding: 0 10%;
 }
-.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+.singlePanel .sheetsHomepage .TOCCardsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
   flex-direction: column;
   margin-bottom: 10px;
 }
@@ -15299,13 +15394,6 @@ span.ref-link-color-3 {color: blue}
 .emptyNotificationPage{
   display: flex;
   flex-direction: column;
-}
-
-<<<<<<< HEAD
-.mobileProfileFlexContainer {
-  display: flex;
-  flex-direction: row;
-  align-items: end;
 }
 
 .mobileProfileFlexContainer {
