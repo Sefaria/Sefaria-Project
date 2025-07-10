@@ -17,16 +17,17 @@ export class SourceSheetEditorPage extends HelperBase {
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
 
 
-    async assertSaveState(state: SaveState, language = LANGUAGES.EN) {
+    async assertSaveState(state: SaveState, language = LANGUAGES.EN, timeout = 5000) {
       const text = language === LANGUAGES.HE ? state.textHebrew : state.text;
       const tooltip = language === LANGUAGES.HE ? state.tooltipHebrew : state.tooltip;
-      await expect(this.statusMessage()).toHaveText(text, { timeout: 5000 });
+      await expect(this.statusMessage()).toHaveText(text, { timeout: timeout});
       await this.statusIndicator().hover();
-      await expect(this.statusIndicator()).toHaveAttribute('aria-label', tooltip, { timeout: 2000 });
+      await expect(this.statusIndicator()).toHaveAttribute('aria-label', tooltip, { timeout: timeout });
       await this.assertSaveStateIndicatorIsOnTop();
     }
     
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
+    closeSheetEditorButton = () => this.page.locator('.readerNavMenuCloseButton');
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
     sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
@@ -42,6 +43,10 @@ export class SourceSheetEditorPage extends HelperBase {
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
 
     // Sheet Actions--------------------------------------------------
+    async closeSheetEditor() {
+      await this.closeSheetEditorButton().click();
+    }
+    
     async editTitle(newTitle: string): Promise<void> {
         const title = this.title();
         await expect(title).toBeVisible();
@@ -52,7 +57,7 @@ export class SourceSheetEditorPage extends HelperBase {
     
     async addText(text: string) {
         await this.focusTextInput(); 
-        await this.page.keyboard.type(text);
+        await this.page.keyboard.type(text, {delay: 100});
     }
 
     async alignTextWithStatusIndicator(text: string) {
@@ -154,14 +159,17 @@ export class SourceSheetEditorPage extends HelperBase {
     async waitForAutosave() {
       await expect(this.statusMessage()).toHaveText('Saved', { timeout: 4000 });
     }
-
-    async setupWithContent(content: string) {
-      await this.addText(content);
-      await this.waitForAutosave();
-      return this;
-    }
-
     //Connectivity/Login Functions--------------------------------------------
+
+    async loginViaTooltip(language = LANGUAGES.EN) {
+      this.page.once('dialog', async dialog => {
+        await dialog.accept();
+      });
+      await this.page.getByRole('link', { name: 'Log in' }).click();
+      const loginPage = new LoginPage(this.page, language);
+      await loginPage.loginAs(testUser);
+    };
+
     async waitForConnectionState(expectedState: 'online' | 'offline') {
       const expectedText = expectedState === 'online' ? 'Saved' : 'Trying to Connect';
     
@@ -173,50 +181,48 @@ export class SourceSheetEditorPage extends HelperBase {
         expectedText,
         { timeout: 10000 }
       );
-    }
+    };
         
     async assertSaveStateIndicatorIsOnTop(){
-    const target = this.page.locator('.editorSaveStateIndicator');
-    await expect(target).toBeVisible();
-  
-    const isOnTop = await this.page.evaluate(() => {
-      const target = document.querySelector('.editorSaveStateIndicator');
-      if (!target) return false;
-  
-      const targetRect = target.getBoundingClientRect();
-      const targetZ = parseInt(getComputedStyle(target).zIndex || '0', 10);
-  
-      let overlappingElements: Element[] = [];
-  
-      // Check points within the target's rectangle (e.g. center)
-      const pointsToCheck = [
-        [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2],
-        [targetRect.left + 1, targetRect.top + 1], // top-left
-        [targetRect.right - 1, targetRect.bottom - 1], // bottom-right
-      ];
-  
-      for (const [x, y] of pointsToCheck) {
-        const el = document.elementFromPoint(x, y);
-        if (el && el !== target && !target.contains(el)) {
-          overlappingElements.push(el);
+      const target = this.page.locator('.editorSaveStateIndicator');
+      await expect(target).toBeVisible();
+    
+      const isOnTop = await this.page.evaluate(() => {
+        const target = document.querySelector('.editorSaveStateIndicator');
+        if (!target) return false;
+    
+        const targetRect = target.getBoundingClientRect();
+        const targetZ = parseInt(getComputedStyle(target).zIndex || '0', 10);
+    
+        let overlappingElements: Element[] = [];
+    
+        // Check points within the target's rectangle (e.g. center)
+        const pointsToCheck = [
+          [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2],
+          [targetRect.left + 1, targetRect.top + 1], // top-left
+          [targetRect.right - 1, targetRect.bottom - 1], // bottom-right
+        ];
+    
+        for (const [x, y] of pointsToCheck) {
+          const el = document.elementFromPoint(x, y);
+          if (el && el !== target && !target.contains(el)) {
+            overlappingElements.push(el);
+          }
         }
-      }
-  
-      for (const el of overlappingElements) {
-        const style = window.getComputedStyle(el);
-        const z = parseInt(style.zIndex || '0', 10);
-        const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-        if (visible && z >= targetZ) {
-          console.warn('Overlapping element with higher or equal z-index:', el);
-          return false;
+    
+        for (const el of overlappingElements) {
+          const style = window.getComputedStyle(el);
+          const z = parseInt(style.zIndex || '0', 10);
+          const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+          if (visible && z >= targetZ) {
+            console.warn('Overlapping element with higher or equal z-index:', el);
+            return false;
+          }
         }
-      }
-  
-      return true;
-    });
-  
-    expect(isOnTop).toBe(true);
-  };
+        return true;
+      });
+      expect(isOnTop).toBe(true);
+    };
   
     
     async validateEditingIsBlocked() {

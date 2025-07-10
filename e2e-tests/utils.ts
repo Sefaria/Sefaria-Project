@@ -9,18 +9,26 @@ let savedSessionCookie = null;
 
 /*METHODS TO HIDE MODALS/POPUPS THAT INTERRUPT THE USER EXPERIENCE */
 
+/**Note, for all of these miding/dismiss methods, we currently use CSS to hide them
+ * We may want to opt for a more robust solution in the future, or something user-realistic such as 
+ * clicking an "x" or "okay" button,but this is a workaround for now.
+*/
+
+// Dismisses the main modal interrupting message by injecting CSS to hide it.
 export const hideModals = async (page: Page) => {
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle'); // Wait for all network requests to finish to ensure modals are present
     await page.evaluate(() => {
         const style = document.createElement('style');
-        style.innerHTML = '#interruptingMessageBox {display: none;}';
-        document.head.appendChild(style);
+        // Use !important to override any inline or external styles
+        style.innerHTML = '#interruptingMessageBox {display: none !important;}';
+        document.head.appendChild(style); // Inject style into the page
     });
 }
 
 export const dismissNewsletterPopupIfPresent = async (page: Page) => {
   await page.evaluate(() => {
     const style = document.createElement('style');
+    // Hide all known newsletter popup elements and overlays; !important ensures they are not shown
     style.innerHTML = `
       .ub-emb-scroll-wrapper,
       .ub-emb-iframe-wrapper,
@@ -30,7 +38,7 @@ export const dismissNewsletterPopupIfPresent = async (page: Page) => {
       div[class*="ub-emb"] {
         display: none !important;
         visibility: hidden !important;
-        pointer-events: none !important;
+        pointer-events: none !important; // Prevents interaction with hidden elements
       }
     `;
     document.head.appendChild(style);
@@ -65,7 +73,6 @@ export const hideCookiesPopup = async (page: Page) => {
       document.head.appendChild(style);
     });
   };
-  
   
 export const hideTopBanner = async (page: Page) => {
   await page.evaluate(() => {
@@ -102,16 +109,14 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
 export const changeLanguageIfNeeded = async (page: Page, language: string) => {
-    await page.waitForLoadState('domcontentloaded'); // or 'networkidle' if you want to be extra sure
+    await page.waitForLoadState('domcontentloaded'); 
     // Check if we're already in the correct language
     const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
     const isAlreadyCorrectLanguage = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible();
     
     if (isAlreadyCorrectLanguage) {
-        // Already in the correct language, no need to change
         return;
     }
-
     // Language change needed - click through the UI
     await page.locator('.interfaceLinks-button').click()
     if (language === LANGUAGES.EN) {
@@ -146,45 +151,49 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
 
 /*LOGIN/LOGOUT RELATED METHODS */
 
-    export const simulateLogout = async (context) => {
-      const cookies = await context.cookies();
-      const sessionCookie = cookies.find(c => c.name === 'sessionid');
-
-      if (sessionCookie) {
-        savedSessionCookie = sessionCookie;
-        const otherCookies = cookies.filter(c => c.name !== 'sessionid');
-        await context.clearCookies();
-        await context.addCookies(otherCookies);
-        return true;
-      } else {
-        return false;
+//located in utils rather than loginPage because it is used in multiple places;
+//it involves removing authentication (cookies) rather than logging out    
+export const simulateLogout = async (context) => {
+  const cookies = await context.cookies();
+  const sessionCookie = cookies.find(c => c.name === 'sessionid');
+  if (sessionCookie) {
+    savedSessionCookie = sessionCookie;
+    // Overwrite the sessionid cookie with an expired one to remove it
+    await context.addCookies([
+      {
+        name: 'sessionid',
+        value: '',
+        domain: sessionCookie.domain,
+        path: sessionCookie.path,
+        expires: Math.floor(Date.now() / 1000) - 1000, // Expired in the past
+        httpOnly: sessionCookie.httpOnly,
+        secure: sessionCookie.secure,
+        sameSite: sessionCookie.sameSite,
       }
-    };    
+    ]);
+    return true;
+  } else {
+    return false;
+  }
+};
 
-    export const simulateLogin = async (context) => {
-      if (savedSessionCookie) {
-        await context.addCookies([savedSessionCookie]);
-      }
-    };
+export const simulateLogin = async (context) => {
+  if (savedSessionCookie) {
+    // Restore the saved sessionid cookie
+    await context.addCookies([savedSessionCookie]);
+  } else {
+    throw new Error('No saved session cookie.');
+  }
+};
 
-    export const loginViaNavbar = async (page: Page, language = LANGUAGES.EN) => {
-      await page.reload();
-      await page.getByRole('link', { name: 'Log in' }).click();
-      const loginPage = new LoginPage(page, language);
-      await loginPage.loginAs(testUser);
-    };
-    
-    export const loginViaTooltip = async (page: Page, language = LANGUAGES.EN) => {
-      page.once('dialog', async dialog => {
-        await dialog.accept();
-      });
-      await page.getByRole('link', { name: 'Log in' }).click();
-      const loginPage = new LoginPage(page, language);
-      await loginPage.loginAs(testUser);
-    };
-
-      
-  
+//keeping this here because it can be used across the site
+export const loginViaNavbar = async (page: Page, language = LANGUAGES.EN) => {
+  await page.reload();
+  await page.getByRole('link', { name: 'Log in' }).click();
+  const loginPage = new LoginPage(page, language);
+  await loginPage.loginAs(testUser);
+};
+        
 /*METHODS TO NAVIGATE TO A PAGE */
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {

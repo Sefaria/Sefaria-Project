@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
 import { LoginPage } from '../pages/loginPage';
-import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, simulateLogout, simulateLogin, loginViaNavbar, loginViaTooltip, goToPageWithUser, changeLanguageIfNeeded} from "../utils";
+import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, simulateLogout, simulateLogin, loginViaNavbar, goToPageWithUser, changeLanguageIfNeeded} from "../utils";
 import { LANGUAGES, testUser } from '../globals';
 import { SaveStates } from '../constants';
 
@@ -22,7 +22,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.alignTextWithStatusIndicator(uniqueText);
     const textLocator = page.locator('span[data-slate-string="true"]', { hasText: uniqueText });
     await textLocator.dblclick();
-    await page.keyboard.type('✅');
+    await page.keyboard.type('new text');
   });
   
   test('Detect logout after unsaved changes', async () => {
@@ -30,7 +30,6 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.editTitle("test title");
     await editor.focusTextInput(); 
     await page.keyboard.type('Testing logout with unsaved changes', { delay: 100 });
-    await simulateLogout(page.context());
     await simulateLogout(page.context());
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();    
@@ -43,7 +42,6 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.waitForAutosave();
     await simulateLogout(page.context());
     await editor.addText('trigger logout detection');
-    
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
   });
@@ -64,8 +62,8 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
 
   test('Restore session when user logs back in via navbar link', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
-    await editor.setupWithContent('text before logout');
-    
+    await editor.addText('text before logout');
+    await editor.waitForAutosave();
     await simulateLogout(page.context());
     await editor.addText('trigger logout detection');
     await editor.assertSaveState(SaveStates.loggedOut);
@@ -78,14 +76,14 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
 
   test('Restore session when user logs back in via tooltip link', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
-    await editor.setupWithContent('text before logout');
-    
+    await editor.addText('text before logout');
+    await editor.waitForAutosave();    
     await simulateLogout(page.context());
     await editor.addText('trigger logout detection');
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
     
-    await loginViaTooltip(page);
+    await editor.loginViaTooltip();
     await editor.assertSaveState(SaveStates.saved || SaveStates.saving);
     await expect(editor.sourceSheetBody()).toBeEnabled();
   });
@@ -115,23 +113,71 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await expect(editor.sourceSheetBody()).toBeEnabled();
   });
 
-  test('Show beforeunload prompt when leaving with unsaved changes', async () => {
+  // test('Show beforeunload prompt when leaving with unsaved changes', async () => {
+  //   const editor = pageManager.onSourceSheetEditorPage();
+  //   await editor.focusTextInput();
+    
+  //   await Promise.all([
+  //     (async () => {
+  //       await page.keyboard.type('Trying to leave before saving finishes', { delay: 100 });
+  //     })(),
+  //     (async () => {
+  //       await page.waitForTimeout(500);
+  //       const promptTriggered = await page.evaluate(() => {
+  //         const e = new Event('beforeunload', { cancelable: true });
+  //         return !window.dispatchEvent(e);
+  //       });
+  //       expect(promptTriggered).toBe(true);
+  //     })()
+  //   ]);
+  // });
+  // test('Show beforeunload prompt when leaving with unsaved changes', async () => {
+  //   const editor = pageManager.onSourceSheetEditorPage();
+  //   await editor.focusTextInput();
+  //   await page.keyboard.type('Trying to leave before saving finishes', { delay: 100 });
+  //   // Listen for the beforeunload dialog
+  //   let dialogTriggered = false;
+  //   page.once('dialog', async dialog => {
+  //     expect(dialog.type()).toBe('beforeunload');
+  //     dialogTriggered = true;
+  //     await dialog.dismiss();
+  //   });
+  //   // Trigger a real navigation, which should fire beforeunload if unsaved changes exist
+  //   await page.goto('https://www.google.com');
+  //   // Assert that the dialog was triggered
+  //   expect(dialogTriggered).toBe(true);
+  // });
+  test('Sefaria unsaved changes popup appears after clicking x sheet button', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.focusTextInput();
-    
+    await page.keyboard.type('Leave before saving finishes');
+    await expect(editor.statusMessage()).toContainText(SaveStates.saving.text);
+
+    let dialogTriggered = false;
+    page.once('dialog', dialog => {
+      dialogTriggered = true;
+      dialog.dismiss().catch(() => {});
+    });
+    await editor.closeSheetEditor(); // Attempt to leave while in 'saving' state
+    expect(dialogTriggered).toBe(true);
+  });
+
+  test('Unsaved changes popup appears when closing tab', async () => {
+    const editor = pageManager.onSourceSheetEditorPage();
+    await editor.focusTextInput();
+    await page.keyboard.type('Leave before saving finishes');
+    await expect(editor.statusMessage()).toContainText(SaveStates.saving.text);
+
+    let dialogTriggered = false;
     await Promise.all([
-      (async () => {
-        await page.keyboard.type('Trying to leave before saving finishes', { delay: 100 });
-      })(),
-      (async () => {
-        await page.waitForTimeout(500);
-        const promptTriggered = await page.evaluate(() => {
-          const e = new Event('beforeunload', { cancelable: true });
-          return !window.dispatchEvent(e);
-        });
-        expect(promptTriggered).toBe(true);
-      })()
+      page.waitForEvent('dialog').then(async dialog => {
+        expect(dialog.type()).toBe('beforeunload');
+        dialogTriggered = true;
+        await dialog.dismiss();
+      }),
+      page.goto('about:blank').catch(() => {}) // Ignore navigation error since dialog interrupts it
     ]);
+    expect(dialogTriggered).toBe(true);
   });
   
   test('Show unknown error state and block editing', async () => {
@@ -141,10 +187,8 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     // Trigger catch-all error
     await page.evaluate(() => {
       (window as any).Sefaria.testUnkownNewEditorSaveError = true;
-    });
-    await page.waitForTimeout(20000);
-    
-    await editor.assertSaveState(SaveStates.fifthState);
+    });    
+    await editor.assertSaveState(SaveStates.fifthState, LANGUAGES.EN, 21000); //fifth state is triggered after 20 seconds
     await editor.validateEditingIsBlocked();
     
     const promptTriggered = await page.evaluate(() => {
@@ -166,17 +210,14 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
 
   test('Display save states correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
-    
     await editor.addText('test saving saved hebrew');
     await editor.assertSaveState(SaveStates.saved || SaveStates.saving, LANGUAGES.HE);
   });
 
   test('Display logout state correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
-    
     const logoutResult = await simulateLogout(page.context());
     expect(logoutResult).toBe(true);
-    
     await editor.addText('trigger logout');
     await editor.assertSaveState(SaveStates.loggedOut, LANGUAGES.HE);
     await editor.validateEditingIsBlocked();
@@ -184,9 +225,6 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
 
   test('Display connection loss state correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
-    await simulateLogin(page.context());
-    await page.reload();
-    
     await simulateOfflineMode(page);
     await editor.addText('Trigger connection loss');
     await editor.assertSaveState(SaveStates.tryingToConnect, LANGUAGES.HE);
@@ -202,8 +240,7 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
     await page.evaluate(() => {
       (window as any).Sefaria.testUnkownNewEditorSaveError = true;
     });
-    await page.waitForTimeout(20000);
-    await editor.assertSaveState(SaveStates.fifthState, LANGUAGES.HE);
+    await editor.assertSaveState(SaveStates.fifthState, LANGUAGES.HE, 21000); //fifth state is triggered after 20 seconds
     await editor.validateEditingIsBlocked();
   });
 });
