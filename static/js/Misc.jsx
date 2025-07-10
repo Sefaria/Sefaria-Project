@@ -2889,18 +2889,10 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
   const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
+
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
   const popupsEl = useRef(null);
-  const buttonClassNames = classNames({button: 1, small: 1});
-
-  useEffect(
-    () => {
-         const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
-    }, [previewText]
-  )
-
 
   const checkSpaceBelow = useCallback(() => {
     const input = inputEl.current;
@@ -2914,6 +2906,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     const popsHeight = popsBottom - popsTop;
     setShouldShowAbove(spaceBelow < popsHeight && spaceAbove >= popsHeight);
   }, []);
+
+  useEffect(
+    () => {
+         const element = document.querySelector('.textPreviewSegment.highlight');
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+    }, [previewText]
+  )
   useEffect(() => {
     window.addEventListener('resize', checkSpaceBelow);
     window.addEventListener('scroll', checkSpaceBelow, true);
@@ -2925,6 +2924,9 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   useEffect(() => {
     checkSpaceBelow()
   }, [currentSuggestions, showCurrentSuggestions, previewText]);
+
+
+  const buttonClassNames = classNames({button: 1, small: 1});
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
