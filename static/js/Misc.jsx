@@ -2898,6 +2898,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     const input = inputEl.current;
     const pops = popupsEl.current;
     if (!input || !pops) return;
+
+    // Calculate the visible space
     const inputRect = input.getBoundingClientRect();
     const spaceBelow = window.innerHeight - inputRect.bottom
     const spaceAbove = inputRect.top;
