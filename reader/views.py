@@ -1692,6 +1692,8 @@ def index_api(request, title, raw=False):
         if request.user.is_staff:
             admin_post = csrf_protect(index_post)
             return admin_post(request, request.user.id, j, None, raw)
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
         return notStaffOrApiResponse()
 
     def index_post(request, uid, j, method, raw):
@@ -2308,6 +2310,8 @@ def flag_text_api(request, title, lang, version):
 
     _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
 
+    if not request.user.is_authenticated:
+        return authenticationRequiredResponse()
     if not request.user.is_staff:
         return notStaffOrApiResponse()
     if request.is_api_authenticated:
@@ -2380,6 +2384,8 @@ def category_api(request, path=None):
             func = tracker.update if update else tracker.add
             return func(uid, Category, cat, **kwargs).contents()
 
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
         if not request.user.is_staff:
             return notStaffOrApiResponse()
         if request.is_api_authenticated:
@@ -2534,6 +2540,8 @@ def terms_api(request, name):
                     return {"error": 'Term "%s" does not exist.' % name}
                 return tracker.delete(uid, Term, t._id)
 
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
         if not request.user.is_staff:
             return notStaffOrApiResponse()
         if request.is_api_authenticated:
@@ -2753,6 +2761,8 @@ def updates_api(request, gid=None):
                             })
 
     elif request.method == "POST":
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
         if not request.user.is_staff:
             return notStaffOrApiResponse()
         elif request.is_api_authenticated:
@@ -3123,6 +3133,8 @@ def topics_api(request, topic, v2=False):
         response = get_topic(v2, topic, request.interfaceLang, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
         if not request.user.is_staff:
             return notStaffOrApiResponse()
         topic_data = json.loads(request.POST["json"])
