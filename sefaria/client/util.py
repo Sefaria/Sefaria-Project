@@ -8,6 +8,7 @@ from webpack_loader import utils as webpack_utils
 
 from sefaria import settings as sls
 # from sefaria.model.user_profile import UserProfile
+from typing import Optional
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -46,7 +47,7 @@ def celeryResponse(task_id: str, sub_task_ids: list[str] = None):
     return jsonResponse(data, status=202)
 
 
-def authenticationRequiredResponse(data=None):
+def authenticationRequiredResponse(data: Optional[dict] = None) -> JsonResponse:
     if data is None:
         data = {}
     return JsonResponse({"error": "Authentication required", **data}, status=401)
