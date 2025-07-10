@@ -2891,7 +2891,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
-  const popsEl = useRef(null);
+  const popupsEl = useRef(null);
   const buttonClassNames = classNames({button: 1, small: 1});
 
   useEffect(
@@ -2904,7 +2904,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   const checkSpaceBelow = useCallback(() => {
     const input = inputEl.current;
-    const pops = popsEl.current;
+    const pops = popupsEl.current;
     if (!input || !pops) return;
     const inputRect = input.getBoundingClientRect();
     const spaceBelow = window.innerHeight - inputRect.bottom
@@ -3087,7 +3087,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                     handleSelection(inputValue, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 
-      <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popsEl}>
+      <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popupsEl}>
         {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
           <select
