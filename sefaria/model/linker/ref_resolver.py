@@ -70,11 +70,8 @@ class ResolvedRef(abst.Cloneable):
         - adds extra DH words that were matched but aren't in span
         @return:
         """
-        print('raw', self.raw_entity.span.text)
         new_raw_ref_span = self._get_pretty_dh_span(self.raw_entity.span)
-        print('dh', new_raw_ref_span.text)
         new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
-        print('paren', new_raw_ref_span.text)
         return new_raw_ref_span.text
 
     def _get_pretty_dh_span(self, curr_span: NESpan) -> NESpan:
