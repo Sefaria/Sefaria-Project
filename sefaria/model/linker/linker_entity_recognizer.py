@@ -3,7 +3,7 @@ from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, RawNamedEntity, NamedEntityType
 from sefaria.helper.normalization import NormalizerComposer
-from sefaria.model.linker.named_entity_recognizer_new import AbstractNER
+from sefaria.model.linker.named_entity_recognizer import AbstractNER
 from sefaria.model.linker.ne_span import NESpan, NEDoc
 
 
