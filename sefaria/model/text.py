@@ -5723,7 +5723,7 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_recognizer import LinkerEntityRecognizer
+        from .linker.linker_entity_recognizer import LinkerEntityRecognizer
         from .linker.named_entity_recognizer_new import NERFactory
 
         return LinkerEntityRecognizer(

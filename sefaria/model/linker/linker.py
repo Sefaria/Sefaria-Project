@@ -6,7 +6,7 @@ from sefaria.model.text import Ref
 from sefaria.model.linker.ref_part import RawRef, RawNamedEntity
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef, ResolvedRef
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
-from sefaria.model.linker.named_entity_recognizer import LinkerEntityRecognizer
+from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from sefaria.model.linker.category_resolver import CategoryResolver, ResolvedCategory
 
 
