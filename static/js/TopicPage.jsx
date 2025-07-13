@@ -393,7 +393,6 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
   const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
 
-
 return (
     <div>
         <div className="navTitle tight">
@@ -423,9 +422,9 @@ return (
             </div>
        : null}
        {tpTopImg}
-       {topicData && topicData.ref ?
+       {topicData && topicData.ref &&
            <div>
-               <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
+               <a href={`/${topicData.ref.url}`} target="_blank" className="resourcesLink button blue">
                    <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
                    <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
                    <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
@@ -433,14 +432,14 @@ return (
                {Sefaria.interfaceLang === "english" &&
                <a className="resourcesLink button blue studyCompanion"
                   href="https://learn.sefaria.org/weekly-parashah/"
+                  target="_blank"
                   data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
                   data-anl-promotion_name="Parashah Email Signup - Parashah Page"
                >
                   <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
                   <InterfaceText>Get the Free Study Companion</InterfaceText>
                </a>}
-           </div>
-           : null}
+           </div>}
     </div>
 );
 }
@@ -450,7 +449,7 @@ const AuthorIndexItem = ({
 }) => {
     return (
         <div className="authorIndex">
-            <a href={url} className="navBlockTitle">
+            <a href={url} target="_blank" className="navBlockTitle">
                 <InterfaceText text={title} defaultToInterfaceOnBilingual/>
             </a>
             <div className="navBlockDescription">
@@ -1055,7 +1054,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
             <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+            <a href={'/' + tref.url} target="_blank" className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
         {
@@ -1064,7 +1063,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
                let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
                let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
                return (
-                  <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                  <a className="sectionLink" target="_blank" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
                     <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
                   </a>
                 );
@@ -1080,7 +1079,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
                     <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-                    <a href={'/' + h.url} className="contentText" key={h.url}>
+                    <a href={'/' + h.url} target="_blank" className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
                 </div>

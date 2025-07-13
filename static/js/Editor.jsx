@@ -3273,8 +3273,6 @@ const SefariaEditor = (props) => {
                                        />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
-              {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
-
               <span ref={editorTitleContainer}> 
               <SheetMetaDataBox authorStatement={sheet.ownerName}
                             authorUrl={sheet.ownerProfileUrl}
@@ -3313,4 +3311,4 @@ const SefariaEditor = (props) => {
     )
 };
 
-export default SefariaEditor;
+export { EditorSaveStateIndicator, SefariaEditor };

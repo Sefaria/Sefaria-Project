@@ -3290,6 +3290,7 @@ a.cardTitle:hover {
   display: flex;
 }
 .sheetContentSidebar {
+  margin: 30px 0;
   width: 33%;
 }
 .bookPage .currentSection,
