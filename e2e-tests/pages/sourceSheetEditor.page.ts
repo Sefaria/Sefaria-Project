@@ -11,53 +11,78 @@ export class SourceSheetEditorPage extends HelperBase {
         super(page, language);
     }
 
-    // Status Indicator Components----------------------------
+    // Status Indicator Components/Methods----------------------------
     statusIndicator = () => this.page.locator('.editorSaveStateIndicator');
     statusMessage = () => this.page.locator('.saveStateMessage');
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
+    maxSaveStateTimeout = 5000; //used in assertSaveState and a few other functions to allow for save state detection/update
 
+    async getHoverStatus() {
+      await this.statusIndicator().hover();
+    }
 
-    async assertSaveState(state: SaveState, language = LANGUAGES.EN, timeout = 5000) {
-      const text = language === LANGUAGES.HE ? state.textHebrew : state.text;
-      const tooltip = language === LANGUAGES.HE ? state.tooltipHebrew : state.tooltip;
+    async getStatusText() {
+        return await this.statusIndicator().innerText();
+    }
+
+    async getTooltipText() {
+        return await this.statusTooltip().getAttribute('aria-label');
+    }
+
+    /**
+     * Asserts the save state of the editor
+     * @param saveState - the save state to assert
+     * @param language - the language of the save state
+     * @param timeout - the timeout for the save state assertion
+     */
+    async assertSaveState(saveState: SaveState, language = LANGUAGES.EN, timeout = this.maxSaveStateTimeout) {
+      const text = language === LANGUAGES.HE ? saveState.textHebrew : saveState.text;
+      const tooltip = language === LANGUAGES.HE ? saveState.tooltipHebrew : saveState.tooltip;
       await expect(this.statusMessage()).toHaveText(text, { timeout: timeout});
       await this.statusIndicator().hover();
       await expect(this.statusIndicator()).toHaveAttribute('aria-label', tooltip, { timeout: timeout });
       await this.assertSaveStateIndicatorIsOnTop();
     }
-    
-    // Source Sheet Buttons and Locators (source, text, media, comment)------------
-    closeSheetEditorButton = () => this.page.locator('.readerNavMenuCloseButton');
-    title = () => this.page.locator('.title');
-    loginLink= () => this.page.getByRole('link', { name: 'Log in' });
-    sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
-
-
-    addSomethingButton = () => this.page.locator('.editorAddLineButton');
-    addSourceButton = () => this.page.locator('#addSourceButton');
-    addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
-    addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
-    
-    // Sheet Body---------------------------------------------
-    sourceSheetBody = () => this.page.locator('.sheetContent'); 
-    editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
-
-    // Sheet Actions--------------------------------------------------
-    async closeSheetEditor() {
-      await this.closeSheetEditorButton().click();
+    async waitForAutosave() {
+      await expect(this.statusMessage()).toHaveText('Saved', { timeout: this.maxSaveStateTimeout });
     }
+
+    //check that no other elements are on top of the save state indicator (indicator has highest z-index)
+    async assertSaveStateIndicatorIsOnTop() {
+      const target = this.page.locator('.editorSaveStateIndicator');
+      await expect(target).toBeVisible();
     
-    async editTitle(newTitle: string): Promise<void> {
-        const title = this.title();
-        await expect(title).toBeVisible();
-        await title.click({ clickCount: 3 });
-        await this.page.keyboard.press('Backspace');
-        await this.page.keyboard.type(newTitle);
-      };
+      const isOnTop = await target.evaluate((targetEl) => {
+        const targetRect = targetEl.getBoundingClientRect();
+        const targetZ = parseInt(getComputedStyle(targetEl).zIndex || '0', 10);
     
-    async addText(text: string) {
-        await this.focusTextInput(); 
-        await this.page.keyboard.type(text, {delay: 100});
+        // Test multiple points to ensure comprehensive coverage
+        const testPoints = [
+          [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2], 
+          [targetRect.left + 5, targetRect.top + 5],
+          [targetRect.right - 5, targetRect.top + 5],
+          [targetRect.left + 5, targetRect.bottom - 5],
+          [targetRect.right - 5, targetRect.bottom - 5], 
+        ];
+    
+        for (const [x, y] of testPoints) {
+          const topElement = document.elementFromPoint(x, y);
+          
+          // If the top element isn't our target or contained within it, check z-index
+          if (topElement && topElement !== targetEl && !targetEl.contains(topElement)) {
+            const topElZ = parseInt(getComputedStyle(topElement).zIndex || '0', 10);
+            
+            if (topElZ >= targetZ) {
+              console.warn('Element with higher z-index found:', topElement, `z-index: ${topElZ} vs ${targetZ}`);
+              return false;
+            }
+          }
+        }
+        
+        return true;
+      });
+    
+      expect(isOnTop).toBe(true);
     }
 
     async alignTextWithStatusIndicator(text: string) {
@@ -79,17 +104,39 @@ export class SourceSheetEditorPage extends HelperBase {
         window.scrollTo({ top: newScrollY });
       }, { text, indicatorTopY });
     }
-
-
-    async setAsHeader(text: string) {
-      const textLocator = this.page.locator(`text=${text}`);
-      await textLocator.scrollIntoViewIfNeeded();
-      await textLocator.dblclick(); // Triggers the hoverMenu
-      const headerButton = this.page.locator('.hoverMenu .hoverButton:has(i.fa-header)');
-      await headerButton.waitFor({ state: 'visible' });
-      await headerButton.click();
-    }
     
+    // Source Sheet Buttons and Locators (source, text, media, comment)------------
+    closeSheetEditorButton = () => this.page.locator('.readerNavMenuCloseButton');
+    title = () => this.page.locator('.title');
+    loginLink= () => this.page.getByRole('link', { name: 'Log in' });
+    sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
+    addSomethingButton = () => this.page.locator('.editorAddLineButton');
+    addSourceButton = () => this.page.locator('#addSourceButton');
+    addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
+    addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
+    
+    // Sheet Body---------------------------------------------
+    sourceSheetBody = () => this.page.locator('.sheetContent'); 
+    editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
+
+    // Sheet Actions--------------------------------------------------
+    async closeSheetEditor() {
+      await this.closeSheetEditorButton().click();
+    }
+
+    async editTitle(newTitle: string): Promise<void> {
+        const title = this.title();
+        await expect(title).toBeVisible();
+        await title.click({ clickCount: 3 });
+        await this.page.keyboard.press('Backspace');
+        await this.page.keyboard.type(newTitle);
+      };
+    
+    async addText(text: string) {
+        await this.focusTextInput(); 
+        //delay is used to simulate user typing and ensure the save state is detected/updated
+        await this.page.keyboard.type(text, {delay: 100});
+    }
 
     async clickAddSomething() {
         await this.addSomethingButton().click();
@@ -116,17 +163,6 @@ export class SourceSheetEditorPage extends HelperBase {
     async focusTextInput() {
         await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
       }
-    async getHoverStatus() {
-        await this.statusIndicator().hover();
-    }
-
-    async getStatusText() {
-        return await this.statusIndicator().innerText();
-    }
-
-    async getTooltipText() {
-        return await this.statusTooltip().getAttribute('aria-label');
-    }
 
     async getTextLocator(text: string): Promise<Locator> {
       return this.page.locator('span[data-slate-string="true"]', { hasText: text });
@@ -151,14 +187,12 @@ export class SourceSheetEditorPage extends HelperBase {
         const contentEditable = sourceBox.locator('[contenteditable="true"]');
         const originalText = await contentEditable.innerText();
         await contentEditable.click({ trial: true }).catch(() => {});
+        //delay to simulate user typing and detect/update save state if necessary
         await this.page.keyboard.type('Dummy text to test editability', { delay: 30 });
         const newText = await contentEditable.innerText();
         expect(newText).toBe(originalText);
     }
 
-    async waitForAutosave() {
-      await expect(this.statusMessage()).toHaveText('Saved', { timeout: 4000 });
-    }
     //Connectivity/Login Functions--------------------------------------------
 
     async loginViaTooltip(language = LANGUAGES.EN) {
@@ -179,52 +213,10 @@ export class SourceSheetEditorPage extends HelperBase {
           return el && el.textContent?.trim() === text;
         },
         expectedText,
-        { timeout: 10000 }
+        { timeout: this.maxSaveStateTimeout }
       );
     };
         
-    async assertSaveStateIndicatorIsOnTop(){
-      const target = this.page.locator('.editorSaveStateIndicator');
-      await expect(target).toBeVisible();
-    
-      const isOnTop = await this.page.evaluate(() => {
-        const target = document.querySelector('.editorSaveStateIndicator');
-        if (!target) return false;
-    
-        const targetRect = target.getBoundingClientRect();
-        const targetZ = parseInt(getComputedStyle(target).zIndex || '0', 10);
-    
-        let overlappingElements: Element[] = [];
-    
-        // Check points within the target's rectangle (e.g. center)
-        const pointsToCheck = [
-          [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2],
-          [targetRect.left + 1, targetRect.top + 1], // top-left
-          [targetRect.right - 1, targetRect.bottom - 1], // bottom-right
-        ];
-    
-        for (const [x, y] of pointsToCheck) {
-          const el = document.elementFromPoint(x, y);
-          if (el && el !== target && !target.contains(el)) {
-            overlappingElements.push(el);
-          }
-        }
-    
-        for (const el of overlappingElements) {
-          const style = window.getComputedStyle(el);
-          const z = parseInt(style.zIndex || '0', 10);
-          const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-          if (visible && z >= targetZ) {
-            console.warn('Overlapping element with higher or equal z-index:', el);
-            return false;
-          }
-        }
-        return true;
-      });
-      expect(isOnTop).toBe(true);
-    };
-  
-    
     async validateEditingIsBlocked() {
 
       // 1. Title should not be editable

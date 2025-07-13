@@ -1,6 +1,7 @@
 import { Page, expect } from "@playwright/test"
-import { LANGUAGES } from '../globals'
+import { LANGUAGES, testUser } from '../globals'
 import { getPathAndParams } from "../utils"
+import { LoginPage } from "./loginPage"
 
 export class Banner{
     private page: Page
@@ -82,9 +83,17 @@ export class Banner{
         expect(getPathAndParams(this.page.url())).toContain("/collections/")
     }
 
-    async loginPage(){
-        
-    }
+    //keeping this here because it can be used across the site
+    async loginThroughBanner(){
+        if(this.language == LANGUAGES.EN){
+            await this.page.getByRole('banner').getByRole('link', { name: 'Log in' }).click();
+        }
+        else{
+            await this.page.getByRole('banner').getByRole('link', { name: 'התחברות' }).click();
+        }
+        const loginPage = new LoginPage(this.page, this.language);
+        await loginPage.loginAs(testUser);
+    };
 
     
 }

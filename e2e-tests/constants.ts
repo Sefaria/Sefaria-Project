@@ -37,7 +37,7 @@ export const SaveStates: Record<string, SaveState> = {
       tooltip: /No internet connection detected/i,
       tooltipHebrew: /לא זוהה חיבור לאינטרנט/i,
     },
-    fifthState: {
+    catchAllFifthState: {
       text: /Something went wrong. Try refreshing the page./i,
       textHebrew: /משהו השתבש. יש לנסות לרענן את העמוד/i,
       tooltip: /If this problem persists, please try again later and contact us at hello@sefaria.org/i,

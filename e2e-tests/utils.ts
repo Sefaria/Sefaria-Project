@@ -12,6 +12,9 @@ let savedSessionCookie = null;
 /**Note, for all of these miding/dismiss methods, we currently use CSS to hide them
  * We may want to opt for a more robust solution in the future, or something user-realistic such as 
  * clicking an "x" or "okay" button,but this is a workaround for now.
+ * 
+ * They are all exports in the case that they will be used individually in tests outside this file, 
+ * rather than only calling hideAllModalsAndPopups()
 */
 
 // Dismisses the main modal interrupting message by injecting CSS to hide it.
@@ -153,6 +156,11 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
 
 //located in utils rather than loginPage because it is used in multiple places;
 //it involves removing authentication (cookies) rather than logging out    
+/**
+ * Simulates a logout by removing the sessionid cookie
+ * @param context - The Playwright browser context
+ * @returns true if a sessionid cookie was found and removed, false otherwise
+ */
 export const simulateLogout = async (context) => {
   const cookies = await context.cookies();
   const sessionCookie = cookies.find(c => c.name === 'sessionid');
@@ -184,14 +192,6 @@ export const simulateLogin = async (context) => {
   } else {
     throw new Error('No saved session cookie.');
   }
-};
-
-//keeping this here because it can be used across the site
-export const loginViaNavbar = async (page: Page, language = LANGUAGES.EN) => {
-  await page.reload();
-  await page.getByRole('link', { name: 'Log in' }).click();
-  const loginPage = new LoginPage(page, language);
-  await loginPage.loginAs(testUser);
 };
         
 /*METHODS TO NAVIGATE TO A PAGE */
