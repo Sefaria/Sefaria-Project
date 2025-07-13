@@ -2843,22 +2843,25 @@ _media: {},
      In the sheets module, every source is under the "Sheets" tab.
      */
     let tabKey, title;
-    if (refObj.is_sheet && Sefaria.activeModule === 'sheets') {
+    if (Sefaria.activeModule === 'sheets' && refObj.is_sheet) {
       tabKey = 'sheets';
       title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
-    } else if (linkType === 'popular-writing-of' && Sefaria.activeModule === 'library') {
-      tabKey = linkType;
-      title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
-    } else if (linkType === 'about' && Sefaria.activeModule === 'library') {
-      const lang = Sefaria._getShortInterfaceLang();
-      const desc = refObj.descriptions?.[lang];
-      const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
-      if (isNotableSource) {
-        tabKey = 'notable-sources';
-        title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
-      } else {
-        tabKey = 'sources';
-        title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+    } 
+    else if (Sefaria.activeModule === 'library' && !refObj?.is_sheet) {
+      if (linkType === 'popular-writing-of') {
+        tabKey = linkType;
+        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
+      } else if (linkType === 'about') {
+        const lang = Sefaria._getShortInterfaceLang();
+        const desc = refObj.descriptions?.[lang];
+        const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
+        if (isNotableSource) {
+          tabKey = 'notable-sources';
+          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
+        } else {
+          tabKey = 'sources';
+          title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+        }
       }
     }
     return {tabKey, title};

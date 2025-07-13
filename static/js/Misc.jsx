@@ -1217,10 +1217,10 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
         </div>
         <DropdownMenuSeparator />
         <div className='languageFlex'>
-          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':''}`}>
+          <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':'inactive'}`}>
             עברית
           </DropdownMenuItem>
-          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : ''}`}>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : 'inactive'}`}>
             English
           </DropdownMenuItem>
         </div>
