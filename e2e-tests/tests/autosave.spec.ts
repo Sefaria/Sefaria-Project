@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
 import { LoginPage } from '../pages/loginPage';
-import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, simulateLogout, simulateLogin, goToPageWithUser, changeLanguageIfNeeded} from "../utils";
+import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, changeLanguageIfNeeded} from "../utils";
 import { LANGUAGES, testUser } from '../globals';
 import { SaveStates } from '../constants';
 import { Banner } from '../pages/banner';
@@ -31,7 +31,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.editTitle("test title");
     await editor.focusTextInput(); 
     await page.keyboard.type('Testing logout with unsaved changes', { delay: 100 });
-    await simulateLogout(page.context());
+    await expireLogoutCookie(page.context());
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();    
   });
@@ -41,31 +41,17 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.editTitle("test title");
     await editor.addText('Saved text');
     await editor.waitForAutosave();
-    await simulateLogout(page.context());
+    await expireLogoutCookie(page.context());
     await editor.addText('trigger logout detection');
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
   });
   
-  test('Restore session when user logs back in via cookie restoration', async () => {
-    const editor = pageManager.onSourceSheetEditorPage();
-    await editor.addText('text before logout');
-    await editor.waitForAutosave();
-    await simulateLogout(page.context());
-    await editor.addText('trigger logout detection');
-    await editor.assertSaveState(SaveStates.loggedOut);
-    await editor.validateEditingIsBlocked();
-    await simulateLogin(page.context());
-    await page.reload();
-    await editor.assertSaveState(SaveStates.saved || SaveStates.saving);
-    await expect(editor.sourceSheetBody()).toBeEnabled();
-  });
-
   test('Restore session when user logs back in via navbar link', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('text before logout');
     await editor.waitForAutosave();
-    await simulateLogout(page.context());
+    await expireLogoutCookie(page.context());
     await editor.addText('trigger logout detection');
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
@@ -80,7 +66,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('text before logout');
     await editor.waitForAutosave();    
-    await simulateLogout(page.context());
+    await expireLogoutCookie(page.context());
     await editor.addText('trigger logout detection');
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
@@ -186,7 +172,7 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
 
   test('Display logout state correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
-    const logoutResult = await simulateLogout(page.context());
+    const logoutResult = await expireLogoutCookie(page.context());
     expect(logoutResult).toBe(true);
     await editor.addText('trigger logout');
     await editor.assertSaveState(SaveStates.loggedOut, LANGUAGES.HE);

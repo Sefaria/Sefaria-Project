@@ -3,9 +3,27 @@ import {BrowserContext}  from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
+import path from 'path';
 
 let currentLocation: string = ''; 
-let savedSessionCookie = null;
+
+/**
+ * Gets the path to a test fixture file
+ * @param fixtureName - Name of the fixture file (e.g., 'test-image.jpg')
+ * @returns Absolute path to the fixture file
+ */
+export const getFixturePath = (fixtureName: string): string => {
+  return path.join(__dirname, 'fixtures', fixtureName);
+};
+
+/**
+ * Gets the path to a test image for upload testing
+ * @param imageName - Name of the image file (defaults to 'test-image.jpg')
+ * @returns Absolute path to the test image
+ */
+export const getTestImagePath = (imageName: string = 'test-image.jpg'): string => {
+  return getFixturePath(imageName);
+};
 
 /*METHODS TO HIDE MODALS/POPUPS THAT INTERRUPT THE USER EXPERIENCE */
 
@@ -158,15 +176,14 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
 //it involves removing authentication (cookies) rather than logging out    
 /**
  * Simulates a logout by removing the sessionid cookie
+ * note that you still need to trigger logout by typing, refreshing, etc on the test itself
  * @param context - The Playwright browser context
  * @returns true if a sessionid cookie was found and removed, false otherwise
  */
-export const simulateLogout = async (context) => {
+export const expireLogoutCookie = async (context) => {
   const cookies = await context.cookies();
   const sessionCookie = cookies.find(c => c.name === 'sessionid');
-  if (sessionCookie) {
-    savedSessionCookie = sessionCookie;
-    // Overwrite the sessionid cookie with an expired one to remove it
+  if (sessionCookie) {    // Overwrite the sessionid cookie with an expired one to remove it
     await context.addCookies([
       {
         name: 'sessionid',
@@ -182,15 +199,6 @@ export const simulateLogout = async (context) => {
     return true;
   } else {
     return false;
-  }
-};
-
-export const simulateLogin = async (context) => {
-  if (savedSessionCookie) {
-    // Restore the saved sessionid cookie
-    await context.addCookies([savedSessionCookie]);
-  } else {
-    throw new Error('No saved session cookie.');
   }
 };
         

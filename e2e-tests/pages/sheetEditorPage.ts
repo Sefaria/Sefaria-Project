@@ -6,7 +6,7 @@ import { LANGUAGES, testUser } from '../globals';
 import { HelperBase } from "./helperBase";
 import { LoginPage } from './loginPage';
 
-export class SourceSheetEditorPage extends HelperBase {
+export class SheetEditorPage extends HelperBase {
     constructor(page: Page, language: string) {
         super(page, language);
     }
