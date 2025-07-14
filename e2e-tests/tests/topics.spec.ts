@@ -65,6 +65,3 @@ test('Filter topics', async ({ context }) => {
   await page.getByRole('link', { name: 'Kiddush', exact: true }).isVisible();
 });
  
-test('Toggle sources and sheets', async ({ context }) => {
-  // fill in test
-})
