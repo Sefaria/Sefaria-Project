@@ -552,6 +552,9 @@ const Strings = {
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
+    "Export to Google Docs": "ייצוא לגוגל דוקס",
+    "Delete Sheet": "מחיקת דף מקורות",
+    "Share": "שיתוף",
 
     //TextTableofContents
     "Contents": "תוכן",
@@ -687,12 +690,8 @@ const Strings = {
       "Tanakh": "",
       "Talmud": ""
     },
-    "Share": "שיתוף",
     "Library": "ספריה",
-    "Delete Sheet": "מחיקת דף מקורות",
     "Developers": "מפתחים",
-    "Export to Google Docs": "ייצוא לגוגל דוקס",
-
     "Sheet Share": {
       "View": "לצפות",
       "Add": "להוסיף",
