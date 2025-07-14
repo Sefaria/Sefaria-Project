@@ -1061,7 +1061,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 getSuggestions={getSuggestions}
                 inputValue={inputValue}
                 changeInputValue={setInputValue}
-                inputPlaceholder="Search for a Text or Commentator."
+                inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
                 showSuggestionsOnSelect={true}
@@ -1162,10 +1162,10 @@ const AddInterface = ({ attributes, children, element }) => {
     }
 
     return (
-      <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
+      <div role="button" title={active ? Sefaria._("Close menu") : Sefaria._("Add a source, image, or other media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+              <div role="button" title={Sefaria._("Add source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title={Sefaria._("Add image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
@@ -1324,7 +1324,7 @@ const Element = (props) => {
 
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning
+                <div role="button" ontentEditable suppressContentEditableWarning
                      aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
                      onClick={(event) => handleClick(event, editor)}
                 >
