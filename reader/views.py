@@ -2390,7 +2390,7 @@ def category_api(request, path=None):
             return notStaffOrApiResponse()
         if request.is_api_authenticated:
             kwargs = {"method": "API"}
-        else:
+        else:  # a logged-in staff member
             kwargs = {}
             _internal_do_post = csrf_protect(_internal_do_post)
         uid = request.user.id
@@ -2546,7 +2546,7 @@ def terms_api(request, name):
             return notStaffOrApiResponse()
         if request.is_api_authenticated:
             kwargs = {"method": "API"}
-        else:
+        else:  # a logged-in staff member
             kwargs = {}
             _internal_do_post = csrf_protect(_internal_do_post)
         uid = request.user.id
@@ -2773,7 +2773,7 @@ def updates_api(request, gid=None):
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
 
-        else:
+        else:  # a logged-in staff member
             @csrf_protect
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
