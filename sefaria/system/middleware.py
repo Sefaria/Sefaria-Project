@@ -225,6 +225,16 @@ class ProfileMiddleware(MiddlewareMixin):
 
 
 class ApiKeyAuthenticationMiddleware:
+    """
+    Middleware that authenticates API requests using an API key.
+
+    If the request is not made by an already authenticated user,
+    this middleware checks for an API key in the `HTTP_X_APIKEY` header,
+    `POST` data, or `GET` parameters. If a valid API key is found and
+    associated with a user, the middleware sets `request.user` to that user
+    and adds an `is_api_authenticated` attribute to the request.
+    """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
