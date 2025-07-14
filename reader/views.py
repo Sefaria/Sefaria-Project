@@ -2070,7 +2070,7 @@ def notes_api(request, note_id_or_ref):
             note["_id"] = ObjectId(note["_id"])
         if not request.user.is_authenticated:
             return authenticationRequiredResponse()
-        uid = note["owner"]=  request.user.id
+        uid = note["owner"] = request.user.id
         if request.is_api_authenticated:
             response = format_object_for_client(
                 func(uid, Note, note, method="API")
