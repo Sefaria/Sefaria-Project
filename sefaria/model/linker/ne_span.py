@@ -85,7 +85,6 @@ class NEDoc(_Subspannable):
         return 0
 
 
-@dataclass
 class NESpan(_Subspannable):
     """
     Span of text which represents a named entity before it has been identified with an object in Sefaria's DB
