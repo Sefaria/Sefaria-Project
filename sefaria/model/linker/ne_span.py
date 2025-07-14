@@ -34,7 +34,7 @@ class _Subspannable(ABC):
 
     def subspan(self, item: slice, span_label: str = None) -> 'NESpan':
         if isinstance(item, slice):
-            start = item.start if item.start is not None else 0
+            start = item.start or 0
             end = item.stop
         else:
             raise TypeError("Item must be a slice")
@@ -98,7 +98,7 @@ class NESpan(_Subspannable):
         :param label
         """
         self.__doc = doc
-        self.__start = start
+        self.__start = start or 0
         self.__end = end if end is not None else len(doc.text)
         self.__label = label
 
