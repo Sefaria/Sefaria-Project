@@ -106,7 +106,7 @@ class SpacyNER(AbstractNER):
 
     def bulk_predict_as_tuples(self, text__context: list[tuple[str, Any]], batch_size: int) -> tuple[list[list[NESpan]], Any]:
         ret = []
-        for doc__context in self.__ner.pipe(text__context, batch_size=batch_size, as_tuple=True):
+        for doc__context in self.__ner.pipe(text__context, batch_size=batch_size, as_tuples=True):
             doc, context = doc__context
             ret.append((self.__doc_to_ne_spans(doc), context))
         return ret
