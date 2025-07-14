@@ -56,11 +56,10 @@ class _Subspannable(ABC):
         are runs of non-whitespace. 0-based, end_word is exclusive.
         """
         spans = self.__word_spans
-        try:
-            word_span_slice = spans[word_slice]
-        except IndexError:
-            raise IndexError(f"Word indices out of range: {word_slice}. Document has {len(self.__word_spans)} words.")
+        word_span_slice = spans[word_slice]
         if not word_span_slice:
+            if word_slice.start is not None and word_slice.start > len(spans):
+                raise IndexError(f"Word indices out of range: {word_slice}. Document has {len(self.__word_spans)} words.")
             # slice is empty, return a span of zero length
             start_char = end_char = 0
         else:
