@@ -11,7 +11,7 @@ import { SignUpPage } from "./signupPage"
 import { SearchPage } from "./searchPage"
 import { UserMenu } from "./userMenu"
 import { SourceTextPage } from "./sourceTextPage"
-import { SourceSheetEditorPage } from "./sourceSheetEditor.page"
+import { SheetEditorPage } from "./sheetEditorPage"
 
 export class PageManager{
     private readonly page: Page
@@ -25,7 +25,7 @@ export class PageManager{
     private readonly searchPage: SearchPage
     private readonly userMenu: UserMenu
     private readonly sourceTextPage: SourceTextPage
-    private readonly sourceSheetEditorPage: SourceSheetEditorPage
+    private readonly sheetEditorPage: SheetEditorPage
     
 
     constructor(page: Page, language: string){
@@ -40,7 +40,7 @@ export class PageManager{
         this.searchPage = new SearchPage(page, language)
         this.userMenu = new UserMenu(page, language)
         this.sourceTextPage = new SourceTextPage(page, language)
-        this.sourceSheetEditorPage = new SourceSheetEditorPage(page, language)
+        this.sheetEditorPage = new SheetEditorPage(page, language)
     }
 
     async toggleLanguage(newLanguage: any){
@@ -91,6 +91,6 @@ export class PageManager{
     }
 
     onSourceSheetEditorPage(){
-        return this.sourceSheetEditorPage
+        return this.sheetEditorPage
     }
 }
