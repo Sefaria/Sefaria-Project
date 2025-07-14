@@ -56,7 +56,7 @@ linker:
           memory: "3Gi"
           cpu: "600m"
         limits:
-          memory: "8Gi"
+          memory: "6.3Gi"
           cpu: "2000m"
   enabled: true
   containerImage:
