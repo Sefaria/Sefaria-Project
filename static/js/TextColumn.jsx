@@ -252,7 +252,7 @@ class TextColumn extends Component {
 
     let refs         = this.props.srefs.slice();
     const $lastText    = $node.find(".textRange.basetext").last();
-    if (!$lastText.length) { console.log("no last basetext"); return; }
+    if (!$lastText.length) { return; }
     const lastTop      = $lastText.position().top;
     const lastBottom   = lastTop + $lastText.outerHeight();
     const windowHeight = $node.outerHeight();
