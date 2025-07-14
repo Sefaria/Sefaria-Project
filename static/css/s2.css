@@ -18,91 +18,8 @@ body:not(.user-is-tabbing) *:focus {
 a, a:hover {
   color: inherit;
 }
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf'), local(Georgia), local(serif);
-  font-weight: bold;
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf'), local(Georgia), local(serif);
-  font-style: italic;
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed Hebrew - English serif text*/
-  font-family: 'HebrewInEnglish Serif Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf'), local(Georgia), local(serif);
-  font-weight: bold;
-  font-style: italic;
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/2011b6/00000000000000003b9b00c1/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n4&v=3");
-  font-weight: normal;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/af619f/00000000000000003b9b00c5/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=n7&v=3");
-  font-weight: bold;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/5cace6/00000000000000003b9b00c2/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i4&v=3");
-  font-style: italic;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  /*Mixed English - Hebrew serif text*/
-  font-family: 'EnglishInHebrew Serif Font';
-  src: url("https://use.typekit.net/af/6c275f/00000000000000003b9b00c6/27/l?primer=7fa3915bdafdf03041871920a205bef951d72bf64dd4c4460fb992e3ecc3a862&fvd=i7&v=3");
-  font-style: italic;
-  font-weight: bold;
-  unicode-range: U+0041-007A;
-}
-@font-face {
-  font-family: 'Noto Color Emoji';
-  src: url('/static/fonts/NotoColorEmoji.ttf');
-  unicode-range: U+1F1E6-1F1FF;
-}
-@font-face {
-  font-family: 'Meltho';
-  src: url('/static/fonts/SyrCOMBatnan.otf');
-  unicode-range: U+0700-074F;
-}
-@font-face {
-  font-family: 'Noto Sans Samaritan';
-  unicode-range: U+0800-083F;
-}
-@font-face {
-  /*Greek*/
-  font-family: 'Cardo';
-    src: url('/static/fonts/Cardo-Regular.ttf');
-  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
-}
 :root {
   /* font stacks */
-  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
-
-  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
-
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
   --serif-h3-font-size: 24px;
@@ -164,7 +81,7 @@ body, .sans-serif {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-body, .en, .int-en {
+body, .en, .int-en, .englishWithinHebrew {
   --is-hebrew: initial; /* false */
 }
 .he, .int-he {
@@ -3445,6 +3362,9 @@ a.cardTitle:hover {
 .bookPage .versionEditForm label#versionNotes_label {
   display: block;
 }
+.bookPage .versionEditForm label + input {
+  margin-inline-end: 30px;
+}
 .bookPage .versionEditForm #versionTitle,
 .bookPage .versionEditForm #versionSource,
 .bookPage .versionEditForm #versionNotes,
@@ -3458,9 +3378,6 @@ a.cardTitle:hover {
 }
 .bookPage .versionEditForm #priority {
   width: 25px;
-}
-.bookPage .versionEditForm #digitzedBySefaria {
-  margin-right: 10px;
 }
 .bookPage .versionEditForm #save_button,
 .bookPage .versionEditForm #delete_button {
@@ -3767,6 +3684,10 @@ a.cardTitle:hover {
   justify-content: start;
   align-items: flex-start;
   margin-bottom: 10px;
+}
+.versionBlock .error {
+  font-size: xx-large;
+  color: var(--halakhah-red);
 }
 .versionBlock .versionTitle {
   font-size: 18px;
@@ -7554,6 +7475,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
@@ -9037,6 +8959,8 @@ a .button:hover {
 }
 .sheetMetaDataBox .title {
   display: block;
+  position: relative;
+  z-index: 2;
 }
 .sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
     display: none;
@@ -9297,10 +9221,49 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.editorSaveStateIndicator{
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 1;
+  background: white;
+  padding: 3px;
+}
+
+.editorSaveStateIndicator.tooltip-toggle{
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 2px;
+  font-size: 16px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
+  direction: rtl;
+}
+.interface-hebrew .editorSaveStateIndicator {
+  flex-direction: row-reverse;
+}
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+  z-index: 1;
+}
+.interface-hebrew .floatingEditorIcons{
+    flex-direction: row-reverse;
+}
+
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9320,9 +9283,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;

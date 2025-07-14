@@ -1,5 +1,5 @@
 from sefaria.model import *
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
 from django.views import View
