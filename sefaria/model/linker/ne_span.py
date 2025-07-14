@@ -99,7 +99,7 @@ class NESpan(_Subspannable):
         """
         self.__doc = doc
         self.__start = start
-        self.__end = end
+        self.__end = end if end is not None else len(doc.text)
         self.__label = label
 
     def __str__(self):
