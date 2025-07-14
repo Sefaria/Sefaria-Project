@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test"
-import { LANGUAGES } from "../globals"
+import { LANGUAGES, SOURCE_LANGUAGES } from "../globals"
 import { HelperBase } from "./helperBase"
 
 export class SourceTextPage extends HelperBase{
@@ -7,11 +7,16 @@ export class SourceTextPage extends HelperBase{
         super(page, language)
     }
 
+    async setContentLanguage(mode: RegExp) {
+        await this.page.getByRole('button', { name: 'Toggle Reader Menu Display Settings' }).click();
+        await this.page.getByRole('radio', { name: mode }).click();
+    }
+
     // Refactored from utils.ts: changeLanguageOfText
     async changeTextLanguage(sourceLanguage: RegExp){
         // Clicking on the Source Language toggle
         await this.page.getByAltText('Toggle Reader Menu Display Settings').click()
-    
+
         // Selecting Source Language
         await this.page.locator('div').filter({ hasText: sourceLanguage }).click()
     }
@@ -47,7 +52,12 @@ export class SourceTextPage extends HelperBase{
         await expect(translationNameInSourceSheetTitle).toHaveText(translation)
 
     }
-
+    
+    // Opens the ToC sidebar
+    async openTableOfContents() {
+        await this.page.getByRole('link', { name: 'Table of Contents' }).click();
+    }
+      
     async validateFirstLineOfContent(text: string){
         const firstLineInSourceSheet = this.page.locator('div.segmentNumber').first().locator('..').locator('p')
         await expect(firstLineInSourceSheet).toContainText(text)
@@ -56,4 +66,25 @@ export class SourceTextPage extends HelperBase{
     async validateLinkExistsInBanner(text: string){
         await expect(this.page.getByRole('banner')).toContainText(text)
     }
+
+    async clickSegment(ref: string) {
+        const segment = this.page.locator(`div.segment[data-ref="${ref}"]`);
+        await expect(segment).toBeVisible();
+        await segment.click();
+      }
+      
+    
+    async clickFilterCategory(categoryName: string) {
+        await this.page.getByRole("button", { name: categoryName }).click();
+    }
+    
+    async clickTextFilter(textFilter: string) {
+        await this.page.getByRole("button", { name: textFilter }).click();
+    }
+    
+    async expectResourcePanelToContain(text: string) {
+        const panel = this.page.locator(".resource-panel");
+        await expect(panel.getByText(text)).toBeVisible();
+    }
+    
 }

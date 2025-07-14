@@ -18,11 +18,13 @@ export const cookieObject = {
 }
 
 export const testUser = {
-    email: process.env.PLAYWRIGHT_USER_EMAIL,
-    password: process.env.PLAYWRIGHT_USER_PASSWORD,
+    // These environment variables should be set in your local .env file
+     email: process.env.PLAYWRIGHT_USER_EMAIL ?? '',
+     password: process.env.PLAYWRIGHT_USER_PASSWORD ?? '',
 }
 
 export const testAdminUser = {
-    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL,
-    password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD,
+    // These environment variables should be set in your local .env file
+    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD ?? '',
 };

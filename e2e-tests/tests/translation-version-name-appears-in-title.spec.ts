@@ -1,5 +1,5 @@
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, changeLanguageOfText} from "../utils";
+import {goToPageWithLang} from "../utils";
 import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
 import { PageManager } from '../pages/pageManager';
 
@@ -14,7 +14,7 @@ import { PageManager } from '../pages/pageManager';
     {
         interfaceLanguage: 'Hebrew', interfaceLanguageToggle: LANGUAGES.HE, 
         sourceLanguage: 'Bilingual', sourceLanguageToggle: SOURCE_LANGUAGES.BI,
-    }, 
+    },  
     
     // Hebrew Interface and English Source
     {
@@ -30,7 +30,7 @@ import { PageManager } from '../pages/pageManager';
 
     // English Interface and Bilingual Source
     {
-        interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN, 
+        interfaceLanguage: 'English', interfaceLanguageToggle: LANGUAGES.EN,        
         sourceLanguage: 'Bilingual', sourceLanguageToggle: SOURCE_LANGUAGES.BI,
     },
     
@@ -58,4 +58,5 @@ import { PageManager } from '../pages/pageManager';
             await pm.onSourceTextPage().selectTranslation(translationNames[i])
         }
     })
-});
+})
+
