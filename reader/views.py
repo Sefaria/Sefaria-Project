@@ -2124,7 +2124,7 @@ def all_notes_api(request):
         else:
             res = [note.contents(with_string_id=True) for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
     else:
-        resr = {"error": "Not implemented."}
+        res = {"error": "Not implemented."}
     return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
