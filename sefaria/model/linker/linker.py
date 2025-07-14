@@ -101,6 +101,7 @@ class Linker:
         for start, end in paragraph_break_spans:
             inputs.append(input_str[offset:start])
             offset = end
+        inputs.append(input_str[offset:])
         return inputs, paragraph_break_spans
 
     def link_by_paragraph(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
