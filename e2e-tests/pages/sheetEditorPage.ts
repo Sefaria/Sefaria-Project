@@ -110,10 +110,17 @@ export class SheetEditorPage extends HelperBase {
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
     sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
-    addSomethingButton = () => this.page.locator('.editorAddLineButton');
+    //addSomethingButton = () => this.page.locator('.editorAddInterface');
+    // addSomethingButton= () => this.page.locator('.editorAddLineButton');
+    // //addSomethingButton = () => this.page.getByRole('button', { name: 'Add a source, image, or other media' });
+    // addSourceButton = () => this.page.getByRole('button', { name: 'Add a source' });
+    // addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
+    // addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
+    //addSomethingButton = () => this.page.locator('.editorAddInterface:not(.active)');
+    addSomethingButton = () => this.page.locator('div[role="button"][aria-label="Add new line"]');    
     addSourceButton = () => this.page.locator('#addSourceButton');
-    addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
-    addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
+    addImageButton = () => this.page.locator('#addImageButton');
+    addMediaButton = () => this.page.locator('#addMediaButton');
     
     // Sheet Body---------------------------------------------
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
@@ -171,10 +178,10 @@ export class SheetEditorPage extends HelperBase {
 
     async addSampleSource() {
         console.log(await this.page.content());
-        await this.addSomethingButton().scrollIntoViewIfNeeded();
+        //await this.addSomethingButton().scrollIntoViewIfNeeded();
         await expect(this.addSomethingButton()).toBeVisible();
-        await this.addSomethingButton().first().click({ force: true });
-        await this.addSomethingButton().first().click({ force: true });
+        await this.addSomethingButton().click({ force: true });
+       // await this.addSomethingButton().first().click({ force: true });
         await expect(this.addSourceButton()).toBeVisible();
         await this.addSourceButton().click();
         await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');

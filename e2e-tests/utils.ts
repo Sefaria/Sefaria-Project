@@ -45,6 +45,31 @@ export const hideModals = async (page: Page) => {
         document.head.appendChild(style); // Inject style into the page
     });
 }
+//try clicking the close button, else hide the modal and overlay forcibly
+export const hideExploreTopicsModal = async (page: Page) => {
+  await page.evaluate(() => {
+    // Try to click the close button if it exists
+    const closeBtn = document.querySelector('.ub-emb-close');
+    if (closeBtn) {
+      (closeBtn as HTMLElement).click();
+    } else {
+      // Fallback: hide the modal and overlay forcibly
+      const modal = document.querySelector('.ub-emb-iframe-wrapper');
+      if (modal) {
+        (modal as HTMLElement).style.display = 'none';
+        (modal as HTMLElement).style.visibility = 'hidden';
+        (modal as HTMLElement).style.pointerEvents = 'none';
+      }
+      // Also hide the iframe just in case
+      const iframe = document.querySelector('.ub-emb-iframe');
+      if (iframe) {
+        (iframe as HTMLElement).style.display = 'none';
+        (iframe as HTMLElement).style.visibility = 'hidden';
+        (iframe as HTMLElement).style.pointerEvents = 'none';
+      }
+    }
+  });
+}
 
 export const dismissNewsletterPopupIfPresent = async (page: Page) => {
   await page.evaluate(() => {
@@ -120,6 +145,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await hideGenericBanner(page);
   await hideCookiesPopup(page);
   await hideTopBanner(page);
+  await hideExploreTopicsModal(page); 
 };
 
 /**
@@ -223,7 +249,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, lan
     await loginPage.loginAs(user);
     await page.goto(url, {waitUntil: 'domcontentloaded'});
     await changeLanguageIfNeeded(page, language);
-    await hideModals(page);
+    await hideAllModalsAndPopups(page);
     return page;
 }
 
