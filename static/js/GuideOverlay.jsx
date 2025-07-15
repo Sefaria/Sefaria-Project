@@ -157,8 +157,8 @@ const GuideOverlay = ({
     // Reason for this functionality: The guide is meant to clarify the page, if it causes more problems, it isn't worth the hassle
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
-        console.warn(`Guide loading timed out after ${timeoutLength} seconds`);
         handleClose();
+        // It would be great to also trigger some sort of analytics here. It wasn't in the current spec.
         alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
       }
     }, timeoutLength * 1000);
