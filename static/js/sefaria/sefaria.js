@@ -3115,14 +3115,11 @@ _media: {},
           }
         });
         // sheets anchored to spanning refs may cause duplicates
-        var seen = {};
-        var deduped = [];
-        sheets.map(sheet => {
-          if (!seen[sheet.id]) { deduped.push(sheet); }
-          seen[sheet.id] = true;
-        });
-        sheets = deduped;
-      }
+        const byId = Object.create(null);
+        for (const sheet of sheets) {
+           byId[sheet.id] = sheet;
+        }
+        sheets = Object.values(byId);}
       if (sheets) {
         if (cb) { cb(sheets); }
       } else {
@@ -3133,8 +3130,16 @@ _media: {},
       return sheets;
     },
     _saveSheetsByRefData: function(ref, data) {
-      this._sheetsByRef[ref] = data;
-      return Sefaria._saveItemsByRef(data, this._sheetsByRef);
+      const cloned = data.map(s => ({ ...s }));
+      this._sheetsByRef[ref] = cloned;
+
+      cloned.forEach(sheet => {
+        if (!this._loadSheetByID[sheet.id]) {
+          this._loadSheetByID[sheet.id] = sheet;
+        }
+      });
+
+      return Sefaria._saveItemsByRef(cloned, this._sheetsByRef);
     },
     _userSheetsByRef: {},
     userSheetsByRef: function(ref, cb) {
