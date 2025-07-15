@@ -1337,25 +1337,6 @@ GuideButton.propTypes = {
  * @param {string} className - Additional CSS classes
  */
 function ArrowButton({ direction, onClick, altText = "", className = "" }) {
-  // Validate required props
-  if (!direction) {
-    console.error("ArrowButton component requires a 'direction' prop");
-    return null;
-  }
-  if (!onClick) {
-    console.error("ArrowButton component requires an 'onClick' prop");
-    return null;
-  }
-  if (!altText) {
-    console.error("ArrowButton component requires an 'altText' prop");
-    return null;
-  }
-
-  // Validate direction value
-  if (direction !== "next" && direction !== "previous") {
-    console.error("ArrowButton 'direction' prop must be either 'next' or 'previous'");
-    return null;
-  }
 
   // Use appropriate arrow icons for each direction
   const imageSrc = direction === "next" 
