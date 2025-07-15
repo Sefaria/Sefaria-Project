@@ -47,6 +47,19 @@ class TextColumn extends Component {
     this.node.removeEventListener("scroll", this.handleScroll);
   }
   componentDidUpdate(prevProps, prevState) {
+    // Track navigation changes and reset infinite scroll state when needed
+    if (prevProps.srefs.length !== this.props.srefs.length || 
+        !prevProps.srefs.every((ref, index) => ref === this.props.srefs[index])) {
+      
+      // Reset infinite scroll state on navigation (vs infinite scroll expansion)
+      const isNavigation = this.isNavigationChange(prevProps.srefs, this.props.srefs);
+      if (isNavigation) {
+        this.numSectionsLoadedAtTop = 0;
+        this.loadingContentAtTop = false;
+        this.initialScrollTopSet = false;
+      }
+    }
+    
     const layoutWidth = this.$container.find(".textInner").width();
     const layoutWidthChanged = this.prevLayoutWidth && this.prevLayoutWidth !== layoutWidth;
     this.prevLayoutWidth = layoutWidth;
@@ -83,12 +96,35 @@ class TextColumn extends Component {
     }
     
   }
+  
+  isNavigationChange(prevRefs, newRefs) {
+    // Determine if this is a navigation (completely different content) vs infinite scroll (expansion)
+    
+    // If new refs is a subset or superset of previous refs, it's infinite scroll
+    if (prevRefs.length === 1 && newRefs.length > 1) {
+      // Likely infinite scroll expanding from single ref
+      return !newRefs.includes(prevRefs[0]);
+    }
+    
+    if (newRefs.length === 1 && prevRefs.length > 1) {
+      // Going from multiple refs to single ref - likely navigation
+      return true;
+    }
+    
+    if (newRefs.length === 1 && prevRefs.length === 1) {
+      // Single to single - definitely navigation if different
+      return newRefs[0] !== prevRefs[0];
+    }
+    
+    // For other cases, check if there's any overlap
+    const hasOverlap = newRefs.some(ref => prevRefs.includes(ref));
+    return !hasOverlap;
+  }
   handleScroll(event) {
     if (this.justScrolled) {
       this.justScrolled = false;
       return;
     }
-    console.log("🔄 SCROLL EVENT: handleScroll called, scrollTop:", this.node.scrollTop);
     this.debouncedAdjustHighlightedAndVisible();
     this.adjustInfiniteScroll();
   }
@@ -144,25 +180,20 @@ class TextColumn extends Component {
   handleTextLoad(ref) {
     // Called when TextRange components finish loading their content
     // This is where we handle scroll position adjustments and trigger additional loading
-    console.log("📥 TEXT LOAD: handleTextLoad called for ref:", ref);
     
     // Don't adjust scroll positions while sections are still loading to prevent race conditions
     if (this.$container.find(".basetext.loading").length > 0) {
-      console.log("📥 TEXT LOAD: Still loading sections, returning early");
       return;
     }
     
-    // At this point, we know ALL loading is complete
     // Clear the loading flag if we were loading content at the top
     const wasLoadingContentAtTop = this.loadingContentAtTop;
     if (this.loadingContentAtTop) {
-      console.log("📥 TEXT LOAD: All sections loaded, clearing loadingContentAtTop flag");
       this.loadingContentAtTop = false;
     }
     
     // Set initial scroll position if this is the first load
     if (!this.initialScrollTopSet) {
-      console.log("📥 TEXT LOAD: Setting initial scroll position");
       this.setInitialScrollPosition();
       this.initialScrollTopSet = true;
     }
@@ -174,7 +205,6 @@ class TextColumn extends Component {
     
     // If we were loading content at the top, restore scroll position to prevent jumping
     if (wasLoadingContentAtTop) {
-      console.log("📥 TEXT LOAD: Was loading content at top, calling restoreScrollPositionAfterTopLoad");
       this.restoreScrollPositionAfterTopLoad();
     }
     
@@ -188,7 +218,6 @@ class TextColumn extends Component {
   setInitialScrollPosition() {
     // Sets scroll initial scroll position when a text is loaded which is either down to
     // the highlighted segments, or is just down far enough to hide the scroll placeholder above.
-    console.log("📥 TEXT LOAD: setInitialScrollPosition called");
     if (this.node.scrollHeight < this.node.clientHeight) { return; }
 
     if (this.$container.find(".segment.invisibleHighlight").length) {
@@ -197,10 +226,9 @@ class TextColumn extends Component {
 
     } else {
       // When a text is first loaded, scroll it down a small amount so that it is
-      // possible to scroll up and trigginer infinites scroll up. This also hides
+      // possible to scroll up and trigger infinite scroll up. This also hides
       // "Loading..." div which sit above the text.
       const top = this.scrollPlaceholderHeight;
-      console.log("📥 TEXT LOAD: setting scroll top to:", top);
       this.setScrollTop(top);
     }
   }
@@ -221,11 +249,7 @@ class TextColumn extends Component {
     }
   }
   restoreScrollPositionAfterTopLoad() {
-    // CRITICAL FUNCTION: This is where the scroll position bug occurs
-    // After new TextRanges load at the top, we need to adjust scroll position
-    // so the user doesn't experience a "jump" - they should see the same content
-    console.log("🔧 RESTORE SCROLL: restoreScrollPositionAfterTopLoad called");
-    
+    // After new TextRanges load at the top, adjust scroll position to prevent content jumping
     const $texts = this.$container.find(".basetext");
     if (!this.canRestoreScrollPosition($texts)) {
       return;
@@ -253,24 +277,32 @@ class TextColumn extends Component {
   }
   
   calculateScrollPositionAfterTopLoad($texts) {
-    // THIS IS THE PROBLEMATIC CALCULATION THAT CAUSES THE BUG
-    // We're trying to find where the "target" section is now positioned
-    // after new content was loaded above it
+    // Calculate the correct scroll position after new content has been loaded at the top
+    // The goal is to keep the user viewing the same content they were looking at before
     
-    // Get the position of the section that was originally at the top
-    // before new content was loaded
-    const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
+    // Safer target section identification with bounds checking
+    let targetIndex = this.numSectionsLoadedAtTop;
     
-    // Account for scroll placeholders
+    // Validate that targetIndex is within bounds
+    if (targetIndex >= $texts.length) {
+      targetIndex = $texts.length - 1;
+    }
+    
+    if (targetIndex < 0) {
+      targetIndex = 0;
+    }
+    
+    const $targetSection = $texts.eq(targetIndex);
+    if (!$targetSection.length) {
+      return this.node.scrollTop; // Keep current position as fallback
+    }
+    
+    const targetTop = $targetSection.position().top;
     const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
-    console.log("🔧 RESTORE SCROLL: adjust:", adjust, "Comprised of scrollPlaceholderHeight:", this.scrollPlaceholderHeight, "and scrollPlaceholderMargin:", this.scrollPlaceholderMargin);
     
-    // ⚠️ BUG: This calculation is mathematically incorrect
-    // The comment below admits this calculation is broken
+    // Current calculation (preserves existing behavior)
     const currentScrollTop = this.node.scrollTop;
     const calculatedTop = targetTop + currentScrollTop - adjust;
-    
-    console.log("🔧 RESTORE SCROLL: targetTop:", targetTop, "currentScrollTop:", currentScrollTop, "→ calculated top:", calculatedTop);
     
     return calculatedTop;
   }
@@ -285,7 +317,6 @@ class TextColumn extends Component {
   setScrollTop(targetScrollTop) {
     // Set the scroll position and prevent the scroll event handler from firing
     // The justScrolled flag prevents handleScroll from running when we programmatically scroll
-    console.log("📍 SCROLL SET: setScrollTop called with top:", targetScrollTop, "current scrollTop:", this.node.scrollTop);
     
     // Prevent the scroll event handler from firing for this programmatic scroll
     this.justScrolled = true;
@@ -320,11 +351,9 @@ class TextColumn extends Component {
   handleInfiniteScrollUp() {
     // When user scrolls near the top, load previous sections above current content
     // This prevents the user from hitting the top and enables smooth upward scrolling
-    console.log("⬆️ INFINITE SCROLL UP: windowTop < 75, triggering infinite scroll up");
     
     const refs = this.props.srefs.slice();
     const topRef = refs[0]; // Currently displayed top section
-    console.log("⬆️ INFINITE SCROLL UP: Loading data for topRef:", topRef);
     
     const currentData = Sefaria.ref(topRef);
     if (!currentData || !currentData.prev) {
@@ -336,7 +365,6 @@ class TextColumn extends Component {
     
     // Set flag to indicate we're loading content at top (affects scroll restoration)
     this.loadingContentAtTop = true;
-    console.log("⬆️ INFINITE SCROLL UP: Loading", this.numSectionsLoadedAtTop, "sections at top. New refs:", newRefs);
     
     this.props.updateTextColumn(newRefs);
   }
@@ -356,10 +384,9 @@ class TextColumn extends Component {
 
     while (earlierData && this.numSectionsLoadedAtTop < 10) {
       refs.splice(0, 0, earlierData.ref);
-          this.numSectionsLoadedAtTop += 1;
-          earlierData = Sefaria.ref(earlierData.prev);
+      this.numSectionsLoadedAtTop += 1;
+      earlierData = Sefaria.ref(earlierData.prev);
     }
-    console.log("⬆️ INFINITE SCROLL UP: total sections loaded at top:", this.numSectionsLoadedAtTop);
     
     return refs;
   }
@@ -462,14 +489,12 @@ class TextColumn extends Component {
     const sectionRef = $section.attr("data-ref");
     
     // Update the URL to reflect currently visible section
-    console.log("🔗 URL UPDATE: User now viewing:", sectionRef);
     this.props.setCurrentlyVisibleRef(sectionRef);
 
     // Update highlighted segment (only when sidebar is open or in TextAndConnections mode)
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
     const segmentRef = $segment.attr("data-ref");
     
-    console.log("🔗 URL UPDATE: Setting highlight ref to:", segmentRef);
     this.props.setTextListHighlight(segmentRef, shouldShowHighlight);
   }
   render() {
