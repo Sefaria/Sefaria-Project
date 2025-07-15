@@ -58,9 +58,11 @@ def load_spacy_model(path: str) -> spacy.Language:
     from tempfile import TemporaryDirectory
     from sefaria.google_storage_manager import GoogleStorageManager
     from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
+    from thinc.api import get_current_ops
 
     using_gpu = spacy.prefer_gpu()
     logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
+    logger.info(f"Spacy using ops: {get_current_ops().xp.__name__}")
 
     if path.startswith("gs://"):
         # file is located in Google Cloud
