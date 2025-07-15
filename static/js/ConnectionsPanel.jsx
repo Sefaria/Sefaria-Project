@@ -122,6 +122,14 @@ class ConnectionsPanel extends Component {
     if (this.$scrollView[0]) {
       this.$scrollView[0].addEventListener("scroll", this.handleScroll);
     }
+
+    const connectionsPanelCitataions = document.querySelectorAll(`[data-ref="${this.props.currentlyVisibleRef}"]`);
+    if (connectionsPanelCitataions.length > 0) {
+      for (let citation of connectionsPanelCitataions) {
+        citation.classList.add('highlightedCitation');
+      }
+      connectionsPanelCitataions[0].scrollIntoView();
+    }
   }
   removeScrollListener() {
     if (!!this.$scrollView && this.$scrollView[0]) {
