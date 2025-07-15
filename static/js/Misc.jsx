@@ -3378,5 +3378,6 @@ export {
   SmallBlueButton,
   LearnAboutNewEditorBanner,
   GuideButton,
-  ArrowButton as Arrow
+  ArrowButton as Arrow,
+  replaceNewLinesWithLinebreaks
 };

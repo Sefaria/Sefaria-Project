@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { InterfaceText, CloseButton, Arrow, LoadingMessage } from './Misc';
+import { InterfaceText, CloseButton, Arrow, LoadingMessage, replaceNewLinesWithLinebreaks } from './Misc';
 import Sefaria from './sefaria/sefaria';
 
 const localize = (str) => Sefaria._(str, "Guide");
@@ -348,8 +348,8 @@ const GuideOverlay = ({
             
             {/* Scrollable text content - narrower width */}
             <div className="guideOverlayTextContainer">
-              <div className="guideOverlayText" onClick={handleTextContentClick}>
-                <InterfaceText markdown={currentCard.text} />
+              <div className="guideOverlayText line-break" onClick={handleTextContentClick}>
+                <InterfaceText markdown={replaceNewLinesWithLinebreaks(currentCard.text)} />
               </div>
             </div>
           </div>
