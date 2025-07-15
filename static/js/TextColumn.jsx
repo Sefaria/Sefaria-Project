@@ -84,13 +84,11 @@ class TextColumn extends Component {
     
   }
   handleScroll(event) {
-    // console.log("scroll");
     if (this.justScrolled) {
-      // console.log("passed scroll");
       this.justScrolled = false;
       return;
     }
-    // console.log("handled Scroll");
+    console.log("🔄 SCROLL EVENT: handleScroll called, scrollTop:", this.node.scrollTop);
     this.debouncedAdjustHighlightedAndVisible();
     this.adjustInfiniteScroll();
   }
@@ -120,7 +118,6 @@ class TextColumn extends Component {
     const selection = window.getSelection();
     let refs = [];
     if (selection.type === "Range") {
-      //console.log("handling range");
       const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
       const $end    = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
       let $segments = this.$container.find(".segment");
@@ -135,56 +132,63 @@ class TextColumn extends Component {
         refs.push($(this).attr("data-ref"));
       });
 
-      //console.log("Setting highlights by Text Selection");
-      //console.log(refs);
       if (refs.length > 0) {
         this.props.setTextListHighlight(refs);
       }
     }
-    //const selectedWords = selection.toString(); //this doesnt work in Chrome, as it does not skip elements marked with css `user-select: none` as it should.
     const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
     if (selectedWords !== this.props.selectedWords) {
-      //console.log("setting selecting words")
       this.props.setSelectedWords(selectedWords);
     }
   }
   handleTextLoad(ref) {
-
-    // TextRanges in the column may be initial rendered in "loading" state without data.
-    // When the data loads we may need to change scroll position or render addition ranges.
-    if (this.$container.find(".basetext.loading").length) {
-      // Don't mess with scroll positions until all sections of text have loaded,
-      // prevent race conditions when mutliple section may load out of order.
+    // Called when TextRange components finish loading their content
+    // This is where we handle scroll position adjustments and trigger additional loading
+    console.log("📥 TEXT LOAD: handleTextLoad called for ref:", ref);
+    
+    // Don't adjust scroll positions while sections are still loading to prevent race conditions
+    if (this.$container.find(".basetext.loading").length > 0) {
+      console.log("📥 TEXT LOAD: Still loading sections, returning early");
       return;
     }
-
+    
+    // At this point, we know ALL loading is complete
+    // Clear the loading flag if we were loading content at the top
+    const wasLoadingContentAtTop = this.loadingContentAtTop;
+    if (this.loadingContentAtTop) {
+      console.log("📥 TEXT LOAD: All sections loaded, clearing loadingContentAtTop flag");
+      this.loadingContentAtTop = false;
+    }
+    
+    // Set initial scroll position if this is the first load
     if (!this.initialScrollTopSet) {
+      console.log("📥 TEXT LOAD: Setting initial scroll position");
       this.setInitialScrollPosition();
       this.initialScrollTopSet = true;
     }
-
-    // When content loads check if we already need to load another section below, which
-    // occurs when the loaded section is very short and whitespace is already visible below it.
-    // Only check down, a text load should never trigger an infinite scroll up
+    
+    // When content loads, check if we need to load another section below
+    // This occurs when the loaded section is very short and whitespace is visible below it
+    // Only check down - text load should never trigger infinite scroll up
     this.adjustInfiniteScroll(true);
-
-    if (this.loadingContentAtTop) {
-      // If the text that was just loaded was at the top of the page, restore the scroll
-      // position to keep what the user was looking at in place.
+    
+    // If we were loading content at the top, restore scroll position to prevent jumping
+    if (wasLoadingContentAtTop) {
+      console.log("📥 TEXT LOAD: Was loading content at top, calling restoreScrollPositionAfterTopLoad");
       this.restoreScrollPositionAfterTopLoad();
     }
-
-    const $texts  = this.$container.find(".basetext")
-
-    if ($texts.length == 1) {
+    
+    // Special case: if only one text section is loaded, scroll to highlighted segment
+    const $texts = this.$container.find(".basetext");
+    if ($texts.length === 1) {
       this.scrollToHighlighted();
     }
-
   }
+  
   setInitialScrollPosition() {
     // Sets scroll initial scroll position when a text is loaded which is either down to
     // the highlighted segments, or is just down far enough to hide the scroll placeholder above.
-
+    console.log("📥 TEXT LOAD: setInitialScrollPosition called");
     if (this.node.scrollHeight < this.node.clientHeight) { return; }
 
     if (this.$container.find(".segment.invisibleHighlight").length) {
@@ -196,7 +200,7 @@ class TextColumn extends Component {
       // possible to scroll up and trigginer infinites scroll up. This also hides
       // "Loading..." div which sit above the text.
       const top = this.scrollPlaceholderHeight;
-      // console.log("set Initial Scroll Postion: ", top);
+      console.log("📥 TEXT LOAD: setting scroll top to:", top);
       this.setScrollTop(top);
     }
   }
@@ -211,23 +215,64 @@ class TextColumn extends Component {
       let top = $highlighted.position().top + adjust - this.highlightThreshhold;
       top = top > this.scrollPlaceholderHeight ? top : this.scrollPlaceholderHeight;
       this.setScrollTop(top);
-      // console.log("scroll to highlighted: ", top);
       if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
         $highlighted.focus();
       }
     }
   }
   restoreScrollPositionAfterTopLoad() {
-    // After one or more new TextRanges have just loaded in the first position, scroll
-    // down to the TextRange that was visible before, so the TextColumn doesn't jump.
-    const $texts  = this.$container.find(".basetext");
-    if ($texts.length < 2 || $texts.eq(0).hasClass("loading") ) { return; }
-
-    this.loadingContentAtTop = false;
+    // CRITICAL FUNCTION: This is where the scroll position bug occurs
+    // After new TextRanges load at the top, we need to adjust scroll position
+    // so the user doesn't experience a "jump" - they should see the same content
+    console.log("🔧 RESTORE SCROLL: restoreScrollPositionAfterTopLoad called");
+    
+    const $texts = this.$container.find(".basetext");
+    if (!this.canRestoreScrollPosition($texts)) {
+      return;
+    }
+    
+    // Calculate the new scroll position
+    const newScrollTop = this.calculateScrollPositionAfterTopLoad($texts);
+    
+    // Apply the new scroll position
+    this.setScrollTop(newScrollTop);
+  }
+  
+  canRestoreScrollPosition($texts) {
+    // Check if we can safely restore scroll position
+    // Need at least 2 text sections and first one should be loaded
+    if ($texts.length < 2) {
+      return false;
+    }
+    
+    if ($texts.eq(0).hasClass("loading")) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  calculateScrollPositionAfterTopLoad($texts) {
+    // THIS IS THE PROBLEMATIC CALCULATION THAT CAUSES THE BUG
+    // We're trying to find where the "target" section is now positioned
+    // after new content was loaded above it
+    
+    // Get the position of the section that was originally at the top
+    // before new content was loaded
     const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
+    
+    // Account for scroll placeholders
     const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
-    const top = targetTop + (2*this.node.scrollTop) - adjust;
-    this.setScrollTop(top);
+    console.log("🔧 RESTORE SCROLL: adjust:", adjust, "Comprised of scrollPlaceholderHeight:", this.scrollPlaceholderHeight, "and scrollPlaceholderMargin:", this.scrollPlaceholderMargin);
+    
+    // ⚠️ BUG: This calculation is mathematically incorrect
+    // The comment below admits this calculation is broken
+    const currentScrollTop = this.node.scrollTop;
+    const calculatedTop = targetTop + currentScrollTop - adjust;
+    
+    console.log("🔧 RESTORE SCROLL: targetTop:", targetTop, "currentScrollTop:", currentScrollTop, "→ calculated top:", calculatedTop);
+    
+    return calculatedTop;
   }
   restoreScrollPositionByPercentage() {
     // After the layout width of the column changes, restore the scroll to the same percentage
@@ -237,118 +282,195 @@ class TextColumn extends Component {
     const target = this.node.scrollHeight * this.prevScrollPercentage;
     this.setScrollTop(target);
   }
-  setScrollTop(top) {
-    // Set the scroll top of the column, including the flag to prevent extra handling
-    // of scroll event.
+  setScrollTop(targetScrollTop) {
+    // Set the scroll position and prevent the scroll event handler from firing
+    // The justScrolled flag prevents handleScroll from running when we programmatically scroll
+    console.log("📍 SCROLL SET: setScrollTop called with top:", targetScrollTop, "current scrollTop:", this.node.scrollTop);
+    
+    // Prevent the scroll event handler from firing for this programmatic scroll
     this.justScrolled = true;
-    this.node.scrollTop = top;
+    
+    // Apply the new scroll position
+    this.node.scrollTop = targetScrollTop;
   }
   adjustInfiniteScroll(downOnly=false) {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
-    // console.log("adjust Infinite Scroll");
     if (!this._isMounted) { return; }
     if (this.node.scrollHeight <= this.node.clientHeight) { return; }
-    const $node        = this.$container;
 
-    let refs         = this.props.srefs.slice();
-    const $lastText    = $node.find(".textRange.basetext").last();
+    const $node = this.$container;
+    const $lastText = $node.find(".textRange.basetext").last();
     if (!$lastText.length) { return; }
-    const lastTop      = $lastText.position().top;
-    const lastBottom   = lastTop + $lastText.outerHeight();
+    
+    const windowTop = this.node.scrollTop;
     const windowHeight = $node.outerHeight();
-    const windowTop    = this.node.scrollTop;
-    let data;
+    const lastTop = $lastText.position().top;
+    const lastBottom = lastTop + $lastText.outerHeight();
+    
+    // Check if we need to load content above (user scrolled near top)
     if (windowTop < 75 && !this.loadingContentAtTop && !downOnly) {
-      // UP: add the previous section above then adjust scroll position so page doesn't jump
-      // console.log("Inifite Scroll UP");
-      let topRef = refs[0];
-      data   = Sefaria.ref(topRef);   // data for current ref
-      if (data && data.prev) {
-        refs.splice(refs, 0, data.prev);  // Splice in at least the previous one (-1)
-        this.numSectionsLoadedAtTop = 1;
+      this.handleInfiniteScrollUp();
+    } 
+    // Check if we need to load content below (user scrolled near bottom)
+    else if (lastBottom < windowHeight + 80) {
+      this.handleInfiniteScrollDown();
+    }
+  }
 
-        let prevData, earlierData;
+  handleInfiniteScrollUp() {
+    // When user scrolls near the top, load previous sections above current content
+    // This prevents the user from hitting the top and enables smooth upward scrolling
+    console.log("⬆️ INFINITE SCROLL UP: windowTop < 75, triggering infinite scroll up");
+    
+    const refs = this.props.srefs.slice();
+    const topRef = refs[0]; // Currently displayed top section
+    console.log("⬆️ INFINITE SCROLL UP: Loading data for topRef:", topRef);
+    
+    const currentData = Sefaria.ref(topRef);
+    if (!currentData || !currentData.prev) {
+      return; // No previous content available
+    }
+    
+    // Build list of previous sections to load
+    const newRefs = this.buildPreviousRefs(currentData, refs);
+    
+    // Set flag to indicate we're loading content at top (affects scroll restoration)
+    this.loadingContentAtTop = true;
+    console.log("⬆️ INFINITE SCROLL UP: Loading", this.numSectionsLoadedAtTop, "sections at top. New refs:", newRefs);
+    
+    this.props.updateTextColumn(newRefs);
+  }
 
-        // Now, only add sources if we have data for them
-        if(prevData = Sefaria.ref(data.prev)) {
-          earlierData = Sefaria.ref(prevData.prev);
-        }
+  buildPreviousRefs(currentData, existingRefs) {
+    // Build a list of previous sections to load, starting from the current top section
+    // We load multiple sections at once for better performance
+    const refs = existingRefs.slice();
+    
+    // Add the immediate previous section
+    refs.splice(0, 0, currentData.prev);
+    this.numSectionsLoadedAtTop = 1;
+    
+    // Try to load additional previous sections (up to 10 total)
+    let prevData = Sefaria.ref(currentData.prev);
+    let earlierData = prevData ? Sefaria.ref(prevData.prev) : null;
 
-        while(earlierData && this.numSectionsLoadedAtTop < 10) {
-          refs.splice(refs, 0, earlierData.ref);
+    while (earlierData && this.numSectionsLoadedAtTop < 10) {
+      refs.splice(0, 0, earlierData.ref);
           this.numSectionsLoadedAtTop += 1;
           earlierData = Sefaria.ref(earlierData.prev);
-        }
+    }
+    console.log("⬆️ INFINITE SCROLL UP: total sections loaded at top:", this.numSectionsLoadedAtTop);
+    
+    return refs;
+  }
 
-        //console.log("Up! Add previous section. Windowtop is: " + windowTop);
-        this.loadingContentAtTop = true;
-        this.props.updateTextColumn(refs);
-      }
-    } else if ( lastBottom < windowHeight + 80 ) {
-      // DOWN: add the next section to bottom
+  handleInfiniteScrollDown() {
+    // When user scrolls near the bottom, load next sections below current content
+    // This enables smooth downward scrolling
+    const $lastText = this.$container.find(".textRange.basetext").last();
       if ($lastText.hasClass("loading")) {
-        //console.log("last text is loading - don't add next section");
-        return;
+      return; // Don't load more while already loading
       }
-      //console.log("Down! Add next section");
-      let currentRef = refs.slice(-1)[0];
-      data       = Sefaria.ref(currentRef);
-      if (data && data.next) {
-        refs.push(data.next); // Append at least the next one
-        let numSectionsAddToBottom = 1;
-        let nextData, laterData;
+    
+    const refs = this.props.srefs.slice();
+    const currentRef = refs.slice(-1)[0]; // Currently displayed bottom section
+    const currentData = Sefaria.ref(currentRef);
+    
+    if (!currentData || !currentData.next) {
+      return; // No next content available
+    }
+    
+    // Build list of next sections to load
+    const newRefs = this.buildNextRefs(currentData, refs);
+    this.props.updateTextColumn(newRefs);
+  }
 
-        // Now, only add sources if we have data for them
-        if(nextData = Sefaria.ref(data.next)) {
-          laterData = Sefaria.ref(nextData.next);
-        }
+  buildNextRefs(currentData, existingRefs) {
+    // Build a list of next sections to load, starting from the current bottom section
+    // We load multiple sections at once for better performance
+    const refs = existingRefs.slice();
+    
+    // Add the immediate next section
+    refs.push(currentData.next);
+    let numSectionsAddToBottom = 1;
 
-        while(laterData && numSectionsAddToBottom < 10) {
+    // Try to load additional next sections (up to 10 total)
+    let nextData = Sefaria.ref(currentData.next);
+    let laterData = nextData ? Sefaria.ref(nextData.next) : null;
+
+         while (laterData && numSectionsAddToBottom < 10) {
           refs.push(laterData.ref);
           laterData = Sefaria.ref(laterData.next);
           numSectionsAddToBottom += 1;
         }
 
-        this.props.updateTextColumn(refs);
-      }
-    }
+    return refs;
   }
   adjustHighlightedAndVisible() {
-    //console.log("adjustHighlightedAndVisible");
-    // Adjust which ref is currently consider visible for header and URL,
-    // and while the TextList is open, update which segment should be highlighted.
-    // Keeping the highlightedRefs value in the panel ensures it will return
-    // to the right location after closing other panels.
+    // This function determines which text section is currently "visible" to the user
+    // and updates the URL and highlighted segments accordingly
+    // This is called during scroll events (debounced)
     if (!this._isMounted) { return; }
-
+    
+    // Store the current scroll percentage for use in layout width changes
     this.prevScrollPercentage = this.node.scrollTop / this.node.scrollHeight;
-
-    // When using tab to navigate (i.e. a11y) set ref to currently focused ref
-    let $segment = null;
+    
+    // Find the segment that should be considered "currently visible"
+    const $currentSegment = this.findCurrentlyVisibleSegment();
+    if (!$currentSegment) { return; }
+    
+    // Update the URL and highlighted segments based on the visible segment
+    this.updateVisibleStateFromSegment($currentSegment);
+  }
+  
+  findCurrentlyVisibleSegment() {
+    // Find which segment should be considered "currently visible" based on scroll position
+    // Priority: 1) Focused segment (accessibility), 2) First segment past middle threshold
+    
+    // When using tab navigation, prioritize focused segment
     if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
-      $segment = $(".segment:focus").eq(0);
-    } else {
+      return $(".segment:focus").eq(0);
+    }
+    
+    // Otherwise, find the first segment that crosses the visibility threshold
+    return this.findSegmentByScrollPosition();
+  }
+  
+  findSegmentByScrollPosition() {
+    // Find the first segment that crosses the middle threshold or highlight threshold
       const $container = this.$container;
+    let $foundSegment = null;
+    
       $container.find(".basetext .segment").each(function(i, segment) {
-        const top = $(segment).offset().top - $container.offset().top;
-        const bottom = $(segment).outerHeight() + top;
+      const $segment = $(segment);
+      const top = $segment.offset().top - $container.offset().top;
+      const bottom = $segment.outerHeight() + top;
+      
+      // If segment bottom is past the middle, or top is past highlight threshold
         if (bottom > this.windowMiddle || top >= this.highlightThreshhold) {
-          $segment = $(segment);
-          return false;
+        $foundSegment = $segment;
+        return false; // Break out of each loop
         }
       }.bind(this));
+    
+    return $foundSegment;
     }
 
-    if (!$segment) { return; }
-
+  updateVisibleStateFromSegment($segment) {
+    // Update the URL and highlighted segments based on the currently visible segment
     const $section = $segment.closest(".textRange");
     const sectionRef = $section.attr("data-ref");
+    
+    // Update the URL to reflect currently visible section
+    console.log("🔗 URL UPDATE: User now viewing:", sectionRef);
     this.props.setCurrentlyVisibleRef(sectionRef);
 
-    // don't move around highlighted segment when scrolling a single panel,
+    // Update highlighted segment (only when sidebar is open or in TextAndConnections mode)
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
-    const ref = $segment.attr("data-ref");
-    this.props.setTextListHighlight(ref, shouldShowHighlight);
+    const segmentRef = $segment.attr("data-ref");
+    
+    console.log("🔗 URL UPDATE: Setting highlight ref to:", segmentRef);
+    this.props.setTextListHighlight(segmentRef, shouldShowHighlight);
   }
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
