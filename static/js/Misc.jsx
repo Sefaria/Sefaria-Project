@@ -27,7 +27,7 @@ import { ReaderApp } from './ReaderApp';
 import { ToolsButton } from "./ConnectionsPanel";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
-
+import Button from "./common/Button";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -99,8 +99,27 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+        : markdown ? 
+          <span className={elemclasses}>
+            <ReactMarkdown 
+                  className={'reactMarkdown'} 
+                  unwrapDisallowed={true} 
+                  components={{
+                                a: ({ href, children, ...props }) => (
+                                  <a 
+                                    href={href} 
+                                    target="_blank"  // forcibly open in new tab to avoid cases like /sheets/Isaiah.4.3 due to updateHistoryState modifying URL in sheets module
+                                    rel="noopener noreferrer"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </a>
+                                )
+                              }}
+                  disallowedElements={['p', ...disallowedMarkdownElements]}>
+                {textResponse}
+            </ReactMarkdown>
+          </span> : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -1575,7 +1594,7 @@ const SheetListing = ({
   const collections = collectionsList.map((collection, i) => {
     const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
     return (
-      <a href={`/collections/${collection.slug}`}
+      <a href={`/sheets/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
@@ -1668,7 +1687,7 @@ const SheetListing = ({
 
 const CollectionListing = ({data}) => {
   const imageUrl = "/static/icons/collection.svg";
-  const collectionUrl = "/collections/" + data.slug;
+  const collectionUrl = "/sheets/collections/" + data.slug;
   return (
     <div className="collectionListing">
       <div className="left-content">
@@ -2723,11 +2742,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/collections/" + slug}>
+        <a href={"/sheets/collections/" + slug}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/collections/" + slug}>{children ? children : name}</a>
+      <a href={"/sheets/collections/" + slug}>{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
@@ -3080,9 +3099,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           className={inputClassNames}
 
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+      {showAddButton && <Button className={buttonClassNames} onClick={(e) => {handleSelection(inputValue, currentSuggestions)
+                }}><InterfaceText>{buttonTitle}</InterfaceText></Button>}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
@@ -3100,7 +3118,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       }
 
       {previewText ?
-          <div className="textPreviewContainer">
+          <div className="textPreviewContainer" onMouseDown={(e) => e.preventDefault()}>
             <div className="textPreview">
               <div className="inner">{previewText}</div>
             </div>

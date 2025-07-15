@@ -2744,6 +2744,13 @@ _media: {},
           return d;
         });
   },
+  shouldDisplayInActiveModule: function(topic) {
+    /*
+    Returns true if topic should be displayed in the topic list, topic TOC, or topic page side column.
+     */
+    const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
+    return !!topic?.shouldDisplay && inActiveModule;
+  },
   sortTopicsCompareFn: function(a, b) {
     // a compare function that is useful for sorting topics
     // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.
@@ -2754,13 +2761,13 @@ _media: {},
       const stripInitialPunctuation = str => str.replace(/^["#]/, "");
       const [aAlpha, bAlpha] = [a, b].map(x => {
         if (Sefaria.interfaceLang === "hebrew") {
-          return (x.he.length) ?
-            stripInitialPunctuation(x.he) :
-           "תתת" + stripInitialPunctuation(x.en);
+          return (x.primaryTitle.he.length) ?
+            stripInitialPunctuation(x.primaryTitle.he) :
+           "תתת" + stripInitialPunctuation(x.primaryTitle.en);
         } else {
-          return (x.en.length) ?
-            stripInitialPunctuation(x.en) :
-            stripInitialPunctuation(x.he)
+          return (x.primaryTitle.en.length) ?
+            stripInitialPunctuation(x.primaryTitle.en) :
+            stripInitialPunctuation(x.primaryTitle.he)
         }
       });
 
@@ -2836,22 +2843,25 @@ _media: {},
      In the sheets module, every source is under the "Sheets" tab.
      */
     let tabKey, title;
-    if (refObj.is_sheet && Sefaria.activeModule === 'sheets') {
+    if (Sefaria.activeModule === 'sheets' && refObj.is_sheet) {
       tabKey = 'sheets';
       title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
-    } else if (linkType === 'popular-writing-of' && Sefaria.activeModule === 'library') {
-      tabKey = linkType;
-      title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
-    } else if (linkType === 'about' && Sefaria.activeModule === 'library') {
-      const lang = Sefaria._getShortInterfaceLang();
-      const desc = refObj.descriptions?.[lang];
-      const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
-      if (isNotableSource) {
-        tabKey = 'notable-sources';
-        title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
-      } else {
-        tabKey = 'sources';
-        title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+    } 
+    else if (Sefaria.activeModule === 'library' && !refObj?.is_sheet) {
+      if (linkType === 'popular-writing-of') {
+        tabKey = linkType;
+        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
+      } else if (linkType === 'about') {
+        const lang = Sefaria._getShortInterfaceLang();
+        const desc = refObj.descriptions?.[lang];
+        const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
+        if (isNotableSource) {
+          tabKey = 'notable-sources';
+          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
+        } else {
+          tabKey = 'sources';
+          title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+        }
       }
     }
     return {tabKey, title};
@@ -2907,8 +2917,8 @@ _media: {},
         tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
       }
 
-      // set up admin tab which is all 'sources'
-      if (Sefaria.is_moderator) {
+      // set up admin tab which contains all 'sources'
+      if (Sefaria.is_moderator && !!tabs.sources) {
         tabs["admin"] = {...tabs["sources"]};
         tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
       }
@@ -2979,7 +2989,7 @@ _media: {},
   },
   _initTopicTocSlugToTitleReducer: function(a,c) {
     if (!c.children) { return a; }
-    a[c.slug] = {"en": c.en, "he": c.he};
+    a[c.slug] = {"en": c.primaryTitle.en, "he": c.primaryTitle.he};
     for (let sub_c of c.children) {
       Sefaria._initTopicTocSlugToTitleReducer(a, sub_c);
     }
@@ -2998,7 +3008,7 @@ _media: {},
         c.parents = [];
     }
     for (let sub_c of c.children) {
-        sub_c.parents = c.parents.concat({ en: c.en, he: c.he, slug: c.slug });
+        sub_c.parents = c.parents.concat({ en: c.primaryTitle.en, he: c.primaryTitle.he, slug: c.slug });
         Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;
@@ -3027,7 +3037,7 @@ _media: {},
     if (!c.children) {
       return a;
     }
-    a[c.slug] = {en: c.en, he: c.he};
+    a[c.slug] = {en: c.primaryTitle.en, he: c.primaryTitle.he};
 
     for (let sub_c of c.children) {
       Sefaria._initTopicTocCategoryTitlesReducer(a, sub_c);
@@ -3268,6 +3278,7 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
+  testUnknownNewEditorSaveError: false,
   _translations: {},
   getTranslation: function(key) {
     const url = Sefaria.apiHost + "/api/texts/translations/" + key;

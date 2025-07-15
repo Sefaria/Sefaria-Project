@@ -738,6 +738,8 @@ class ReaderPanel extends Component {
           style={style}
           historyObject={this.props.getHistoryObject(this.state, false)}
           toggleSignUpModal={this.props.toggleSignUpModal}
+          editorSaveState={this.props.editorSaveState}
+          setEditorSaveState={this.props.setEditorSaveState}
         />;
     }
 

@@ -614,7 +614,7 @@ const ProfileSummary = ({
       );
 
   const tempCollectionButton = (
-          <a href="/collections/new" className="resourcesLink sans-serif">
+          <a href="/sheets/collections/new" className="resourcesLink sans-serif">
               <InterfaceText>Create Collection</InterfaceText>
           </a>
       );
