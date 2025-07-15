@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
 import { LoginPage } from '../pages/loginPage';
-import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, changeLanguageIfNeeded} from "../utils";
+import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, changeLanguageIfNeeded, hideAllModalsAndPopups} from "../utils";
 import { LANGUAGES, testUser } from '../globals';
 import { SaveStates } from '../constants';
 import { Banner } from '../pages/banner';
@@ -13,6 +13,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithUser(context, '/sheets/new');
+    await hideAllModalsAndPopups(page);
     pageManager = new PageManager(page, LANGUAGES.EN);
   });
 
