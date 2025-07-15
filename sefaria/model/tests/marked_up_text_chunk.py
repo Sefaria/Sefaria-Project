@@ -1,0 +1,204 @@
+"""
+Tests for sefaria.model.marked_up_text.MarkedUpTextChunk
+
+We  ▸ load a clean set of dummy records
+    ▸ run assertions on validation, normalisation & PK-uniqueness
+    ▸ remove every record we created – no residue in the DB
+"""
+from __future__ import annotations
+from copy import deepcopy
+from collections import defaultdict
+
+import pytest
+from sefaria.system.database import db as mongo_db
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.model.text import Ref
+pytestmark = pytest.mark.django_db
+
+
+# ---------------------------------------------------------------------------#
+# Test data (as supplied by the user)                                        #
+# ---------------------------------------------------------------------------#
+DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
+    {
+        "ref": "Rashi on Genesis 1:6:1",
+        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+        "language": "en",
+        "spans": [
+            {
+                "charRange": [1, 25],
+                "text": "Let there be a firmament",
+                "type": "quote",
+                "ref": "Job 26:11",
+            },
+            {
+                "charRange": [100, 110],
+                "text": "Iyov 26:11",
+                "type": "citation",
+                "ref": "Job 26:11",
+            },
+        ],
+    },
+    {
+        "ref": "Rashi on Genesis 1:1:1",
+        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+        "language": "en",
+        "spans": [
+            {
+                "charRange": [156, 168],
+                "text": "Exodus 12:2",
+                "type": "citation",
+                "ref": "Exodus 12:2",
+            }
+        ],
+    },
+    {
+        "ref": "Rashi on Genesis 1:1:1",
+        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+        "language": "en",
+        "spans": [
+            {
+                "charRange": [378, 390],
+                "text": "Psalms 111:6",
+                "type": "citation",
+                "ref": "Psalms 111:6",
+            }
+        ],
+    },
+    {
+        "ref": "Rashi on Genesis 1:1:1",
+        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+        "language": "en",
+        "spans": [
+            {
+                "charRange": [888, 918],
+                "text": "Yalkut Shimoni on Torah 187",
+                "type": "citation",
+                "ref": "Yalkut Shimoni on Torah 187",
+            }
+        ],
+    },
+    {
+        "ref": "Rashi on Genesis 2:7:1",
+        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+        "language": "en",
+        "spans": [
+            {
+                "charRange": [356, 383],
+                "text": "Midrash Tanchuma, Tazria 1",
+                "type": "citation",
+                "ref": "Midrash Tanchuma, Tazria 1",
+            }
+        ],
+    },
+]
+
+
+# ---------------------------------------------------------------------------#
+# Helper:  merge duplicate (ref, versionTitle, language) into one payload    #
+# ---------------------------------------------------------------------------#
+def _aggregate_chunks(chunks: list[dict]) -> list[dict]:
+    """
+    MarkedUpTextChunk enforces a PK of (ref, versionTitle).
+    The dummy payloads contain three distinct entries for the
+    same PK.  We merge their ``spans`` before inserting.
+    """
+    merged: dict[tuple[str, str, str], dict] = {}
+
+    for chunk in chunks:
+        key = (chunk["ref"], chunk["versionTitle"], chunk["language"])
+        if key not in merged:
+            merged[key] = deepcopy(chunk)
+        else:
+            merged[key]["spans"].extend(deepcopy(chunk["spans"]))
+
+    return list(merged.values())
+
+
+# ---------------------------------------------------------------------------#
+# Fixture: load → yield → cleanup (identical pattern to Topic graph tests)   #
+# ---------------------------------------------------------------------------#
+@pytest.fixture(scope="module")
+def marked_up_chunks(django_db_setup, django_db_blocker):
+    """
+    Prepare a clean set of MarkedUpTextChunk records in Mongo,
+    then yield them for the tests, then delete them afterwards.
+    """
+    with django_db_blocker.unblock():
+        # 1) Start with a clean slate for the PKs we care about
+        for c in DUMMY_MARKED_UP_TEXT_CHUNKS:
+            mongo_db.marked_up_text_chunks.delete_many(
+                {"ref": c["ref"], "versionTitle": c["versionTitle"], "language": c["language"]}
+            )
+
+        # 2) Insert merged (PK-unique) payloads
+        objs, payloads = [], _aggregate_chunks(DUMMY_MARKED_UP_TEXT_CHUNKS)
+        for data in payloads:
+            obj = MarkedUpTextChunk(data)
+            obj.save()  # validation & normalisation happen inside .save()
+            objs.append(obj)
+
+        yield {
+            "objects": objs,     # the live objects we saved
+            "payloads": payloads # the canonical input they were built from
+        }
+
+        # 3) Tear-down – remove every object we created
+        for o in objs:
+            o.delete()
+
+
+# ---------------------------------------------------------------------------#
+# Tests                                                                      #
+# ---------------------------------------------------------------------------#
+class TestMarkedUpTextChunk:
+    """
+    Mirrors the style of the Topic tests:
+      * One class, several logically-separate test methods.
+    """
+
+    def test_inserted_records_match_input(self, marked_up_chunks):
+        objs  = marked_up_chunks["objects"]
+        input = { (p["ref"], p["versionTitle"], p["language"]): p for p in marked_up_chunks["payloads"] }
+
+        for obj in objs:
+            k = (obj.ref, obj.versionTitle, obj.language)
+            p = input[k]
+
+            assert obj.ref == p["ref"]
+            assert obj.versionTitle == p["versionTitle"]
+            assert obj.language == p["language"]
+            # normalisation: .ref and every span['ref'] are .normal()’d
+            assert obj.ref == Ref(p["ref"]).normal()
+            assert {s["ref"] for s in obj.spans} == {Ref(s["ref"]).normal() for s in p["spans"]}
+            # spans preserved (order-agnostic)
+            assert len(obj.spans) == len(p["spans"])
+
+    def test_primary_key_uniqueness(self, marked_up_chunks):
+        """
+        Saving another record with the same (ref, versionTitle) should fail.
+        """
+        dup_payload = deepcopy(marked_up_chunks["payloads"][0])
+        with pytest.raises(DuplicateRecordError):
+            MarkedUpTextChunk(dup_payload).save()
+
+    def test_validation_failure(self):
+        """
+        Invalid language → InputError
+        """
+        bad_payload = {
+            "ref": "Rashi on Genesis 1:1:1",
+            "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+            "language": "fr",  # not allowed
+            "spans": [
+                {
+                    "charRange": [0, 5],
+                    "text": "foo",
+                    "type": "citation",
+                    "ref": "Genesis 1:1",
+                }
+            ],
+        }
+        with pytest.raises(InputError):
+            MarkedUpTextChunk(bad_payload).save()
