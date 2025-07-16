@@ -100,7 +100,7 @@ const getURLForObject = function(type, key) {
 };
 
 const getQueryObj = (query) => {
-  return Sefaria.getName(query, undefined, undefined, Sefaria.activeModule)
+  return Sefaria.getName(query)
     .then(d => {
       const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
       if (repairedCaseVariant !== query) {
@@ -362,7 +362,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           return[];
         }
         try {
-        const d = await Sefaria.getName(inputValue, undefined, undefined, Sefaria.activeModule);
+        const d = await Sefaria.getName(inputValue);
 
         let comps = d["completion_objects"].map(o => {
           const c = {...o};
