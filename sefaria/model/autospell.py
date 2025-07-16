@@ -257,8 +257,8 @@ class Completions(object):
         "ref": "ref",
         "Term": "Term",
         "User": "User"}
-    _library_types = ['ref', 'Term', 'TocCategory']
-    _sheet_types = ['User', 'Collection']
+    _library_types = ['ref', 'Term', 'TocCategory']   # these should only show in library module
+    _sheet_types = ['User', 'Collection']            # these should only show in sheets module
 
     def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
         """
