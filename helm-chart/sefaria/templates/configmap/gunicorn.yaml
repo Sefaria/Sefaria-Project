@@ -35,11 +35,12 @@ data:
     {{- end }}
 
     def on_starting(server):
-        from reader.startup import init_library_cache
-        init_library_cache()
+        pass
 
     def post_worker_init(worker):
+        from reader.startup import init_library_cache
         from reader.startup import init_linker
+        init_library_cache()
         init_linker()
 
     def combined_logformat(logger, name, event_dict):
