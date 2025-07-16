@@ -39,7 +39,8 @@ data:
         init_library_cache()
 
     def post_worker_init(worker):
-        pass
+        from reader.startup import init_linker
+        init_linker()
 
     def combined_logformat(logger, name, event_dict):
         if event_dict.get('logger') == "gunicorn.access":

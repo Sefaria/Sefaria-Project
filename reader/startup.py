@@ -36,17 +36,16 @@ def init_library_cache():
 
 
 def init_linker():
-    pass
-    # import django
-    # django.setup()
-    # import structlog
-    # logger = structlog.get_logger(__name__)
-    #
-    # from sefaria.model.text import library
-    # from django.conf import settings
-    # if settings.ENABLE_LINKER:
-    #     logger.info("NOT Initializing Linker")
-    #     # library.build_linker('he')
-    #     # library.build_linker('en')
+    import django
+    django.setup()
+    import structlog
+    logger = structlog.get_logger(__name__)
+
+    from sefaria.model.text import library
+    from django.conf import settings
+    if settings.ENABLE_LINKER:
+        logger.info("Initializing Linker")
+        library.build_linker('he')
+        library.build_linker('en')
 
 
