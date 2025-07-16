@@ -201,11 +201,6 @@
         </div>
     </div>
 
-    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-            <div id="footerContainer">{% include "elements/footer.html" %}</div>
-        {% endif %}
-    {% endblock %}
     {% endif %}
 
     <div id="overlay"></div>
