@@ -18,6 +18,8 @@ function StrapiDataProvider({ children }) {
   const [strapiData, setStrapiData] = useState(null);
   const [modal, setModal] = useState(null);
   const [banner, setBanner] = useState(null);
+  const adContext = useContext(AdContext);
+
   useEffect(() => {
     if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
       const getStrapiData = async () => {
@@ -58,6 +60,7 @@ function StrapiDataProvider({ children }) {
                 showDelay
                 bannerBackgroundColor
                 createdAt
+                debug
                 locale
                 localizations {
                   data {
@@ -94,6 +97,7 @@ function StrapiDataProvider({ children }) {
                 buttonURL
                 showDelay
                 createdAt
+                debug
                 locale
                 localizations {
                   data {
@@ -227,7 +231,8 @@ function StrapiDataProvider({ children }) {
               let modal = modals.find(
                 (modal) =>
                   currentDate >= new Date(modal.attributes.modalStartDate) &&
-                  currentDate <= new Date(modal.attributes.modalEndDate)
+                  currentDate <= new Date(modal.attributes.modalEndDate) &&
+                  adContext.isDebug === modal.attributes.debug
               );
               if (modal) {
                 // Remove any other previous modals since there is potentially new modal to replace it
@@ -272,10 +277,13 @@ function StrapiDataProvider({ children }) {
 
             if (banners?.length) {
               // Only one banner can be displayed currently. The first one that matches will be the one shown
+              console.log(banners);
+              console.log(adContext.isDebug);
               let banner = banners.find(
                 (b) =>
                   currentDate >= new Date(b.attributes.bannerStartDate) &&
-                  currentDate <= new Date(b.attributes.bannerEndDate)
+                  currentDate <= new Date(b.attributes.bannerEndDate) &&
+                  adContext.isDebug === b.attributes.debug
               );
 
               if (banner) {
@@ -323,7 +331,7 @@ function StrapiDataProvider({ children }) {
       };
       getStrapiData();
     }
-  }, []);
+  }, [adContext]);
 
   return (
     <StrapiDataContext.Provider
