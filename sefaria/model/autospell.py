@@ -335,35 +335,30 @@ class Completions(object):
         else:
             return c[1]["order"] * 100
 
-    def _filter_completions_by_type(self, completion_strings, completion_objects):
-        filtered_completions = [
-            (cs, co)
-            for cs, co in zip(completion_strings, completion_objects)
-            if self._has_required_type(co)
-        ]
+    def _filter_completions(self, completion_strings, completion_objects):
+        """
+        Filters out completion objects based on whether each object satisfies the type and topic pool constraints of this Completions instance.
+        Completion objects are filtered out if:
+          - The object is a topic but the Completions' `topic_pool` is not found in the particular topic's `topic_pools` list
+          - A type is specified for this Completions instance, but the object's normalized type does not match it.
+        """
+        filtered_completions = []
+        for cs, co in zip(completion_strings, completion_objects):
+            co_type = co["type"]
+            normalized_type = self._type_norm_map[co_type]
+            if normalized_type == 'Topic' and self.topic_pool and self.topic_pool not in co["topic_pools"]:
+                continue
+            elif self.type and normalized_type != self.type:
+                continue
+            filtered_completions.append((cs, co))
+
         list1, list2 = zip(*filtered_completions) if filtered_completions else ([], [])
         return list(list1), list(list2)
-
-    def _has_required_type(self, completion_object):
-        if not self.type:
-            return True
-
-        co_type = completion_object["type"]
-        normalized_type = self._type_norm_map[co_type]
-
-        if normalized_type != self.type:
-            return False
-
-        if normalized_type == 'Topic' and self.topic_pool:
-            return self.topic_pool in completion_object["topic_pools"]
-
-        return True
-
 
     def _collect_candidates(self):
         # Match titles that begin exactly this way
         cs, co = self.get_new_continuations_from_string(self.normal_string)
-        cs, co = self._filter_completions_by_type(cs, co)
+        cs, co = self._filter_completions(cs, co)
 
         joined = list(zip(cs, co))
         if len(joined):
@@ -388,7 +383,7 @@ class Completions(object):
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
             cs, co =  self.get_new_continuations_from_string(edit)
-            cs, co = self._filter_completions_by_type(cs, co)
+            cs, co = self._filter_completions(cs, co)
 
             self._raw_completion_strings += cs
             self._completion_objects += co
@@ -414,7 +409,7 @@ class Completions(object):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
-                    _, all_v = self._filter_completions_by_type(all_v, all_v)
+                    _, all_v = self._filter_completions(all_v, all_v)
                 except KeyError:
                     all_v = []
                 for v in all_v:
