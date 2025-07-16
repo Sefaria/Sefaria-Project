@@ -1,6 +1,6 @@
 from . import abstract as abst
 from sefaria.model.text import TextChunk, Ref
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 
 class MarkedUpTextChunk(abst.AbstractMongoRecord):
     """
@@ -55,6 +55,15 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
 
         if not tc.text:
             raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")
+
+        # Enforce uniqueness of (ref, versionTitle)
+        existing = self.load({
+        "ref": self.ref,
+        "versionTitle": self.versionTitle,
+        "language": self.language
+    })
+        if existing and str(existing._id) != str(getattr(self, "_id", None)):
+            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, versionTitle)")
         return True
 
     def _normalize(self):
