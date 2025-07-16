@@ -65,7 +65,7 @@ spec:
       - name: linker
         image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
         imagePullPolicy: Always
-        args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.linker.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+        args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.linker.resources.web.gunicornThreadCount }} --workers 1 --worker-class sync --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
         env:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
