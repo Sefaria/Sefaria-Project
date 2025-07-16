@@ -168,6 +168,7 @@ class TextList extends Component {
                                       textHighlights={link.highlightedWords || null}
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
+                                      onTextLoad={this.props.onTextLoad}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
                                       filterRef={this.props.filterRef}
                                     />
@@ -208,6 +209,7 @@ TextList.propTypes = {
   setFilter:               PropTypes.func,
   setConnectionsMode:      PropTypes.func,
   onTextClick:             PropTypes.func,
+  onTextLoad:              PropTypes.func,
   onCitationClick:         PropTypes.func,
   onDataChange:            PropTypes.func,
   handleSheetClick:        PropTypes.func,
