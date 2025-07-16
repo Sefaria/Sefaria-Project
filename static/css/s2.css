@@ -14868,6 +14868,15 @@ span.ref-link-color-3 {color: blue}
   text-decoration: underline;
 }
 
+/* Paragraph spacing for markdown content */
+.guideOverlayText p {
+  margin: 0 0 16px 0;
+}
+
+.guideOverlayText p:last-child {
+  margin-bottom: 0;
+}
+
 /* Footer with links */
 .guideOverlayFooter {
   flex: 1;
