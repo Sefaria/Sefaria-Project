@@ -349,7 +349,7 @@ const GuideOverlay = ({
             {/* Scrollable text content - narrower width */}
             <div className="guideOverlayTextContainer">
               <div className="guideOverlayText" onClick={handleTextContentClick}>
-                <InterfaceText markdown={transformValues(currentCard.text, text => text.replace(/\n(?!\n)/g, '  \n'))} allowParagraphs={true} />
+                <InterfaceText markdown={transformValues(currentCard.text, text => text.replace(/\n(?!\n)/g, '  \n'))} disallowedMarkdownElements={[]} />
               </div>
             </div>
           </div>

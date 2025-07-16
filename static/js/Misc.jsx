@@ -64,14 +64,18 @@ const __filterChildrenByLanguage = (children, language) => {
 };
 
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[], allowParagraphs=false}) => {
+const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=['p']}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
-   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
-   *  Otherwise:
+   * If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   * Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
-   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragraphs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
+   * `disallowedMarkdownElements` is an array of HTML element names to disallow when rendering markdown.
+   *   - Defaults to ['p'] to prevent paragraph tags (preserves inline-only behavior)
+   *   - Pass [] to allow all elements including paragraphs
+   *   - Pass ['p', 'a'] to disallow both paragraphs and links, etc.
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
@@ -96,7 +100,7 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={allowParagraphs ? disallowedMarkdownElements : ['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={disallowedMarkdownElements}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
@@ -110,7 +114,7 @@ InterfaceText.propTypes = {
   html: PropTypes.object,
   context: PropTypes.string,
   className: PropTypes.string,
-  allowParagraphs: PropTypes.bool
+  disallowedMarkdownElements: PropTypes.array
 };
 
 const LoadingRing = () => (

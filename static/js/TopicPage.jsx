@@ -253,7 +253,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
+                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['p', 'a']}/>
               </div>
               : null }
             </div>
