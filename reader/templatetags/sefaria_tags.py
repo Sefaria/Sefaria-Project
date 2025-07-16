@@ -17,8 +17,7 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
-from sefaria.sheets import get_sheet
-from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
+from sefaria.model.user_profile import user_link as ulink, user_name as uname
 from sefaria.model.text import Version
 from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags as strip_tags_func
@@ -265,6 +264,7 @@ def sheet_link(value):
 	"""
 	Returns a link to sheet with id value.
 	"""
+	from sefaria.sheets import get_sheet
 	value = int(value)
 	sheet = get_sheet(value)
 	if "error" in sheet:
