@@ -300,7 +300,6 @@ class TextColumn extends Component {
     const targetTop = $targetSection.position().top;
     const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
     
-    // Current calculation (preserves existing behavior)
     const currentScrollTop = this.node.scrollTop;
     const calculatedTop = targetTop + currentScrollTop - adjust;
     
