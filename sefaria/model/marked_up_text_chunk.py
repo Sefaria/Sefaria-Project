@@ -63,7 +63,7 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         "language": self.language
     })
         if existing and str(existing._id) != str(getattr(self, "_id", None)):
-            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, versionTitle)")
+            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, language, versionTitle)")
         return True
 
     def _normalize(self):
