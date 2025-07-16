@@ -52,6 +52,8 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
     def _validate(self):
         super()._validate()
         oref = Ref(self.ref)
+        if not oref.is_segment_level():
+            raise InputError(type(self).__name__ + "._validate(): Ref must be at segment level: " + str(oref))
         tc = TextChunk(oref, lang=self.language, vtitle=self.versionTitle)
 
         if not tc.text:
@@ -68,6 +70,12 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         existing = self.load(pkey_query)
         if existing:
             raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, language, versionTitle)")
+
+        # for span in self.spans:
+        #     text = Ref(span['ref']).text(lang=self.language, vtitle=self.versionTitle).text
+        #     if text[span['charRange'][0]:span['charRange'][1]] != span['text']:
+        #         raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}")
+
         return True
 
     def _normalize(self):

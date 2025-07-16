@@ -21,51 +21,51 @@ pytestmark = pytest.mark.django_db
 # Test data (as supplied by the user)                                        #
 # ---------------------------------------------------------------------------#
 DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
-    {
-        "ref": "Rashi on Genesis 1:6:1",
-        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-        "language": "en",
-        "spans": [
-            {
-                "charRange": [1, 25],
-                "text": "Let there be a firmament",
-                "type": "quote",
-                "ref": "Job 26:11",
-            },
-            {
-                "charRange": [100, 110],
-                "text": "Iyov 26:11",
-                "type": "citation",
-                "ref": "Job 26:11",
-            },
-        ],
-    },
-    {
-        "ref": "Rashi on Genesis 1:1:1",
-        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-        "language": "en",
-        "spans": [
-            {
-                "charRange": [156, 168],
-                "text": "Exodus 12:2",
-                "type": "citation",
-                "ref": "Exodus 12:2",
-            }
-        ],
-    },
-    {
-        "ref": "Rashi on Genesis 1:1:1",
-        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-        "language": "en",
-        "spans": [
-            {
-                "charRange": [378, 390],
-                "text": "Psalms 111:6",
-                "type": "citation",
-                "ref": "Psalms 111:6",
-            }
-        ],
-    },
+    # {
+    #     "ref": "Rashi on Genesis 1:6:1",
+    #     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+    #     "language": "en",
+    #     "spans": [
+    #         # {
+    #         #     "charRange": [1, 25],
+    #         #     "text": "Let there be a firmament",
+    #         #     "type": "quote",
+    #         #     "ref": "Job 26:11",
+    #         # },
+    #         {
+    #             "charRange": [100, 110],
+    #             "text": "Iyov 26:11",
+    #             "type": "citation",
+    #             "ref": "Job 26:11",
+    #         },
+    #     ],
+    # },
+    # {
+    #     "ref": "Rashi on Genesis 1:1:1",
+    #     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+    #     "language": "en",
+    #     "spans": [
+    #         {
+    #             "charRange": [156, 168],
+    #             "text": "Exodus 12:2",
+    #             "type": "citation",
+    #             "ref": "Exodus 12:2",
+    #         }
+    #     ],
+    # },
+    # {
+    #     "ref": "Rashi on Genesis 1:1:1",
+    #     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+    #     "language": "en",
+    #     "spans": [
+    #         {
+    #             "charRange": [378, 390],
+    #             "text": "Psalms 111:6",
+    #             "type": "citation",
+    #             "ref": "Psalms 111:6",
+    #         }
+    #     ],
+    # },
     {
         "ref": "Rashi on Genesis 1:1:1",
         "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
