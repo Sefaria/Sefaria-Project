@@ -44,8 +44,8 @@ def init_linker():
     from sefaria.model.text import library
     from django.conf import settings
     if settings.ENABLE_LINKER:
-        logger.info("Initializing Linker")
-        library.build_linker('he')
-        library.build_linker('en')
+        logger.info("NOT Initializing Linker")
+        # library.build_linker('he')
+        # library.build_linker('en')
 
 
