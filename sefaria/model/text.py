@@ -1359,7 +1359,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
         assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
-
+        if getattr(self, "direction", None) not in ["rtl", "ltr"]:
+            raise InputError("Version direction must be either 'rtl' or 'ltr'")
+        assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
+        assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
+        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
+        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+            raise InputError("There must be at least one version that is primary.")
         return True
 
     def _check_arrays_lengths(self, array1, array2):
@@ -4716,21 +4722,27 @@ class Ref(object, metaclass=RefCacheType):
         """
         return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
-    def url(self):
+    def url(self, encode_html=True):
         """
+        :param encode_html: boolean - True for encoding also HTML chars, or only our own things (like space to underscore)
         :return string: normal url form
         """
-        if not self._url:
-            self._url = self.normal().replace(" ", "_").replace(":", ".")
+        if not self._url or not encode_html:
+            url = self.normal()
+
+            html_encoding_map = {'?': '%3F'}
+            pretty_url_map = {' ': '_', ':': '.'}
+            replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
+            for key, value in replace_map.items():
+                url = url.replace(key, value)
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                last = self._url.rfind("_")
-                if last == -1:
-                    return self._url
-                lref = list(self._url)
-                lref[last] = "."
-                self._url = "".join(lref)
+                url = '.'.join(url.rsplit('_', 1))
+
+            if not encode_html:
+                return url
+            self._url = url
         return self._url
 
     def noteset(self, public=True, uid=None):
@@ -4951,10 +4963,8 @@ class Library(object):
 
         # Spell Checking and Autocompleting
         self._full_auto_completer = {}
-        self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
         self._cross_lexicon_auto_completer = None
-        self._topic_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4972,7 +4982,6 @@ class Library(object):
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
         self._full_auto_completer_is_ready = False
-        self._ref_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
         self._topic_auto_completer_is_ready = False
@@ -5308,20 +5317,6 @@ class Library(object):
             self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
         self._full_auto_completer_is_ready = True
 
-    def build_ref_auto_completer(self):
-        """
-        Builds the autocomplete for Refs across the languages in the library
-        Sets internal boolean to True upon successful completion to indicate Ref auto completer is ready.
-        """
-        from .autospell import AutoCompleter
-        self._ref_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
-        }
-
-        for lang in self.langs:
-            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
-        self._ref_auto_completer_is_ready = True
-
     def build_lexicon_auto_completers(self):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
@@ -5344,24 +5339,6 @@ class Library(object):
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
 
-    def build_topic_auto_completer(self):
-        """
-        Builds the topic auto complete including topics with no sources
-        """
-        from .autospell import AutoCompleter
-        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, include_titles=False, min_topics=0)
-        self._topic_auto_completer_is_ready = True
-
-    def topic_auto_completer(self):
-        """
-        Returns the topic auto completer. If the auto completer was not initially loaded,
-        it rebuilds before returning, emitting warnings to the logger.
-        """
-        if self._topic_auto_completer is None:
-            logger.warning("Failed to load topic auto completer. rebuilding")
-            self.build_topic_auto_completer()
-            logger.warning("Built topic auto completer")
-        return self._topic_auto_completer
 
     def cross_lexicon_auto_completer(self):
         """
@@ -5398,15 +5375,6 @@ class Library(object):
             self.build_full_auto_completer()  # I worry that these could pile up.
             logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
-
-    def ref_auto_completer(self, lang):
-        try:
-            return self._ref_auto_completer[lang]
-        except KeyError:
-            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
-            self.build_ref_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built {} ref auto completer.".format(lang))
-            return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         # This is used in the case of a remotely triggered multiserver update
@@ -5924,7 +5892,7 @@ class Library(object):
         q = {'corpora': corpus}
         if not include_dependant:
             q['dependence'] = {'$in': [False, None]}
-        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+        return IndexSet(q, sort="order.0") if full_records else IndexSet(q, sort="order.0").distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
@@ -6041,14 +6009,27 @@ class Library(object):
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
-        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags,
+        excluding refs that are already wrapped in the data
 
         :param string st: the input string
         :param lang: "he" or "en"
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
+            substrings = [st]
+        else:
+            html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
+            substrings = re.split(html_a_tag_reg, st)
+        new_string = ''
+        for i, substring in enumerate(substrings):
+            if i % 2 == 1:  # An <a> tag
+                new_string += substring
+            elif i % 2 == 0 and substring:
+                new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
+                                                                       citing_only, reg, title_nodes)
+        return new_string
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
         """
@@ -6390,7 +6371,6 @@ class Library(object):
         Returns True if the following fields are initialized
             * self._toc_tree
             * self._full_auto_completer
-            * self._ref_auto_completer
             * self._lexicon_auto_completer
             * self._cross_lexicon_auto_completer
         """
@@ -6399,13 +6379,12 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
             logger.warning({"message": "Application not fully initialized", "Current State": {
                 "toc_tree_is_ready": self._toc_tree_is_ready,
                 "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
-                "ref_auto_completer_is_ready": self._ref_auto_completer_is_ready,
                 "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
                 "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
             }})
@@ -6467,7 +6446,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
 
 
 def process_index_delete_in_versions(indx, **kwargs):

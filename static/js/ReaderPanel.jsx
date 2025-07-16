@@ -41,6 +41,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
 
@@ -697,6 +698,7 @@ class ReaderPanel extends Component {
       vowelsAndCantillationState: this.state.settings.vowels,
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
+      panelPosition: this.props.panelPosition,
     };
     const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
@@ -765,6 +767,8 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          editorSaveState={this.props.editorSaveState}
+          setEditorSaveState={this.props.setEditorSaveState}
         />
       );
     }
@@ -821,6 +825,7 @@ class ReaderPanel extends Component {
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+          masterPanelLayout={this.props.masterPanelLayout}
           masterPanelLanguage={this.props.masterPanelLanguage}
           masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
           masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
@@ -968,14 +973,7 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        menu = (
-          <TopicsPage
-            key={"TopicsPage"}
-            setNavTopic={this.setNavigationTopic}
-            multiPanel={this.props.multiPanel}
-            initialWidth={this.state.width}
-          />
-        );
+        menu = <TopicsLandingPage openTopic={this.props.openTopic}/>
       }
 
     } else if (this.state.menuOpen === "allTopics") {
@@ -1189,6 +1187,7 @@ ReaderPanel.propTypes = {
   highlightedRefs:             PropTypes.array,
   multiPanel:                  PropTypes.bool,
   masterPanelLanguage:         PropTypes.string,
+  masterPanelLayout:           PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
   hasSidebar:                  PropTypes.bool,

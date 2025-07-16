@@ -4,6 +4,7 @@ import {ReaderPanelContext} from "./context";
 import {layoutOptions, layoutLabels} from "./constants";
 import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
+import RadioButton from "./common/RadioButton";
 
 const calculateLayoutState = (language, textsData, panelMode) => {
     const primaryDir = textsData?.primaryDirection;
@@ -29,20 +30,21 @@ const getPath = (layoutOption, layoutState, textsData) => {
 };
 
 const LayoutButton = ({layoutOption, layoutState}) => {
-    const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
+    const {language, textsData, setOption, layout, panelPosition} = useContext(ReaderPanelContext);
     const path = getPath(layoutOption, layoutState, textsData);
     const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
     const checked = layout === layoutOption;
     return (
-        <input
-            key={layoutOption}
-            className={`layout-button ${checked ? 'checked' : ''}`}
-            onClick={() => setOption(optionName, layoutOption)}
-            style={{"--url": `url(${path})`}}
-            role="radio"
-            aria-label={layoutLabels[layoutOption]}
-            aria-checked={checked}
-        />
+        <div className='layout-button focus-visible' key={layoutOption}>
+            <RadioButton
+                onClick={() => setOption(optionName, layoutOption)}
+                name='layout-options'
+                isActive={checked}
+                value={layoutOption}
+                style={{"--url": `url(${path})`}}
+                id={`${layoutOption}${panelPosition}`}
+            />
+        </div>
     );
 };
 LayoutButton.propTypes = {
@@ -58,6 +60,7 @@ const LayoutButtons = () => {
             <InterfaceText>Layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map(option => <LayoutButton
+                    key={option}
                     layoutOption={option}
                     layoutState={layoutState}
                 />)}

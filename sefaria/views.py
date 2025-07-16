@@ -33,11 +33,12 @@ from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import in_memory_cache
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
@@ -324,7 +325,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    CURRENT_LINKER_VERSION = "2"
+    CURRENT_LINKER_VERSION = "3"
     linker_version = linker_version or CURRENT_LINKER_VERSION
 
     if linker_version == "3":
@@ -690,14 +691,11 @@ def rebuild_toc(request):
 @staff_member_required
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
-    library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
-    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
-        server_coordinator.publish_event("library", "build_ref_auto_completer")
         server_coordinator.publish_event("library", "build_lexicon_auto_completers")
         server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
 
@@ -727,9 +725,10 @@ def reset_ref(request, tref):
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
-        vs = model.VersionState(index=oref.index)
+        index = model.library.get_index(tref)  # Get a fresh instance of the index
+        vs = model.VersionState(index=index)
         vs.refresh()
-        model.library.update_index_in_toc(oref.index)
+        model.library.update_index_in_toc(index)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
@@ -760,6 +759,15 @@ def rebuild_citation_links(request, title):
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
+@csrf_exempt
+@webhook_auth_or_staff_required
+def rebuild_shared_cache(request):
+    regenerating = get_shared_cache_elem("regenerating")
+    status = "build in progress" if regenerating else "start rebuilding"
+    if not regenerating:
+        set_shared_cache_elem("regenerating", True)
+        library.init_shared_cache(rebuild=True)
+    return jsonResponse({"status": status})
 
 @staff_member_required
 def delete_citation_links(request, title):
@@ -832,8 +840,8 @@ def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
     html  = ""
 
-    html += "Total Sheets: %d\n" % db.sheets.find().count()
-    html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
+    html += "Total Sheets: %d\n" % len(list(db.sheets.find()))
+    html += "Public Sheets: %d\n" % len(list(db.sheets.find({"status": "public"})))
 
 
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
@@ -845,10 +853,10 @@ def sheet_stats(request):
         start    = end - relativedelta(years=1)
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         cursor   = db.sheets.find(query)
-        total    = cursor.count()
+        total    = len(list(cursor.clone()))
         creators = len(cursor.distinct("owner"))
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
-        ptotal   = db.sheets.find(query).count()
+        ptotal   = len(list(db.sheets.find(query)))
         html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
 
     html += "\n\nUnique Source Sheet creators per month:\n\n"
@@ -990,7 +998,7 @@ def profile_spam_dashboard(request):
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
+            history_count = len(list(db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}})))
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
@@ -1054,7 +1062,7 @@ def delete_sheet_by_id(request):
             if not sheet:
                 return jsonResponse({"error": "Sheet %d not found." % id})
 
-            db.sheets.remove({"id": id})
+            db.sheets.delete_one({"id": id})
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
@@ -1096,7 +1104,7 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations

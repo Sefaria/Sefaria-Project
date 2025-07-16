@@ -15,6 +15,7 @@ import {
     CollectionStatement,
     InterfaceText,
     Autocompleter,
+    ToolTipped,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 
@@ -32,11 +33,11 @@ const sheet_item_els = {
 };
 
 const voidElements = [
-    "ProfilePic",
-    "SheetMedia",
-    "SheetSource",
-    "SheetOutsideBiText",
-    "horizontal-line"
+  "ProfilePic",
+  "SheetMedia",
+  "SheetSource",
+  "SheetOutsideBiText",
+  "horizontal-line"
 ];
 
 
@@ -204,13 +205,14 @@ const insertNewLine = (editor) => {
 }
 
 export const deserialize = el => {
-    if (el.nodeType === 3) {
-        return el.textContent
-    } else if (el.nodeType !== 1) {
-        return null
-    } else if (el.nodeName === 'BR') {
-        return null
-    }
+  if (el.nodeType === 3) {
+    const t = el.textContent ?? '';
+    return t.trim() === '' ? null : t;      //ignore pure whitespace
+  } else if (el.nodeType !== 1) {
+      return null
+  } else if (el.nodeName === 'BR') {
+      return null
+  }
 
     const checkForStyles = () => {
         if (el.getAttribute("style")) {
@@ -249,8 +251,10 @@ export const deserialize = el => {
 
     if (ELEMENT_TAGS[nodeName]) {
         let new_children = children
-        if(!children[0]) {
-            new_children = [{'text':''}]
+        // for some reason, if there's only one child, and it's null, the editor crashes
+        // but null children are fine if there are multiple children
+        if(!children[0] && children.length <= 1) {
+            new_children = [{'text':''}];
         }
         const attrs = {
             ...ELEMENT_TAGS[nodeName](el),
@@ -306,7 +310,10 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
+
+        return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
+
     }
 
     if (content.type) {
@@ -514,9 +521,37 @@ function renderSheetItem(source) {
         }
     }
 }
+function flattenLists(htmlString) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlString, 'text/html');
+
+  function flattenList(list) {
+    list.querySelectorAll('li').forEach(item => {
+      const nestedList = item.querySelector('ul, ol');
+      if (nestedList) {
+        nestedList.querySelectorAll('li').forEach(nestedItem => {
+          item.parentNode.insertBefore(nestedItem, item.nextSibling);
+        });
+        nestedList.remove();
+      }
+    });
+  }
+
+  doc.querySelectorAll('ul, ol').forEach(flattenList);
+
+  return doc.body.innerHTML;
+}
+function replaceBrWithNewLine(html) {
+  return html.replace(/<br\s*\/?>\s*/gi, '\n');
+  }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
+    console.log(rawhtml);
+    // replace non-breaking spaces with regular spaces and replace line breaks with spaces
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ')
+    preparseHtml = replaceBrWithNewLine(preparseHtml);
+    // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
+    preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -580,9 +615,16 @@ function transformSheetJsonToSlate(sheet) {
       //-------//
 
 
-      sourceNodes.push(
+    const title = source.title;
+    title && sourceNodes.push({
+      type: "header",
+      children: [{ text: title.stripHtmlConvertLineBreaks() }]
+    });
+
+    sourceNodes.push(
         renderSheetItem(source)
       );
+
 
 
     });
@@ -645,7 +687,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
-  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText);
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
@@ -655,23 +697,38 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    useEffect(
-        () => {
-            const replacement = divineName || "noSub"
-            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-            for (const editor of editors) {
-                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-                for (const [node, path] of nodes) {
-                    if (node.text) {
-                        const newStr = replaceDivineNames(node.text, replacement)
-                        if (newStr != node.text) {
-                            Transforms.insertText(editor, newStr, {at: path})
-                        }
-                    }
-                }
+
+    useEffect(() => {
+      const replacement = divineName || "noSub";
+      const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
+
+      for (const editor of editors) {
+        Editor.withoutNormalizing(editor, () => {
+          for (const [node, path] of Editor.nodes(editor, {
+            at: [],                 // whole document
+            match: Text.isText,     // only text nodes
+            reverse: true           // bottom-up keeps paths stable
+          })) {
+            const newText = replaceDivineNames(node.text, replacement);
+            if (newText !== node.text) {
+              // Split out any existing marks (bold/italic/…)
+              const { text: _old, ...marks } = node;
+
+              // Remove the old leaf node
+              Transforms.removeNodes(editor, { at: path });
+
+              // Insert a new leaf with updated text + same marks
+              Transforms.insertNodes(
+                editor,
+                { text: newText, ...marks },
+                { at: path }
+              );
             }
-        }, [divineName]
-    )
+          }
+        });
+      }
+    }, [divineName]);
+
 
 
   const onHeChange = (value) => {
@@ -686,7 +743,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
       () => {
         Transforms.setNodes(parentEditor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(parentEditor, element)});
       },
-      [sourceActive]
+      [sourceActive, sheetHeSourceValue, sheetEnSourceValue]
   );
 
   useEffect(
@@ -715,6 +772,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   }
 
+
   const suppressParentContentEditable = (toggle) => {
       // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
       // Don't work as expected -- this hack fixes that
@@ -722,13 +780,17 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onClick = (e) => {
-
-    if ((e.target).closest('.he') && sourceActive) {
+    if (e.target.closest('.hoverButton')) {  // if the click is on a hover button, don't do anything
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if ((e.target).closest('.he .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
 
     }
-    else if ((e.target).closest('.en') && sourceActive) {
+    else if ((e.target).closest('.en .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('en')
         if (window.chrome) {suppressParentContentEditable(false)}
     }
@@ -737,7 +799,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         if (window.chrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
-
   }
 
   const onBlur = (e) => {
@@ -818,7 +879,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         )
     }
 
-
   return (
       <div
           draggable={true}
@@ -829,6 +889,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           onDragEnter={(e)=>{e.preventDefault()}}
           onDragOver={(e)=>{dragOver(e)}}
           onDrop={(e)=> {drop(e)}}
+          tabIndex={0}
           {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
@@ -837,7 +898,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -850,7 +911,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -943,7 +1004,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         if (input === "") {
             return results;
         }
-        const d = await Sefaria.getName(input, true, 5);
+        const d = await Sefaria.getName(input, 5, 'ref');
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
@@ -1314,13 +1375,19 @@ const Element = (props) => {
 }
 
 const getClosestSheetElement = (editor, path, elementType) => {
-    for(const node of Node.ancestors(editor, path)) {
-        if (node[0].type == elementType) {
+    for (const node of Node.ancestors(editor, path)) {
+        if (node[0].type === elementType) {
             return node;
-            break
         }
     }
-    return(null);
+    return null;
+}
+
+const sourceBoxIsClosestSelectedElement = (editor) => {
+    /**
+     * Returns true if BoxedSheetElement is the closest selected element to the cursor.
+     */
+    return getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource");
 }
 
 const activeSheetSources = editor => {
@@ -1396,14 +1463,22 @@ const withSefariaSheet = editor => {
     };
 
     editor.isVoid = element => {
-        return (voidElements.includes(element.type)) ? true : isVoid(element)
+      return (voidElements.includes(element.type)) ? true : isVoid(element);
     };
 
-    editor.deleteForward = () => {
+    editor.deleteForward = (fromOnKeyDown) => {
+        // Slate doesn't trigger deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteForward()
+        if (fromOnKeyDown !== true) { return; }
         deleteForward(editor);
     }
 
-    editor.deleteBackward = () => {
+    editor.deleteBackward = (fromOnKeyDown) => {
+        // Slate doesn't trigger deleteBackward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteBackward()
+        if (fromOnKeyDown !== true) { return; }
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
         const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
@@ -1411,9 +1486,9 @@ const withSefariaSheet = editor => {
         }
 
         //if selected element is sheet source, delete it as normal
-        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+        if (sourceBoxIsClosestSelectedElement(editor)) {
             deleteBackward();
-            return
+            return;
         } else {
             //check to see if we're in a spacer to apply special delete rules
             let inSpacer = false;
@@ -1428,11 +1503,11 @@ const withSefariaSheet = editor => {
 
             //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
-            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            if (sourceBoxIsClosestSelectedElement(editor)) {
                 //deletes the extra spacer space that would otherwise be left behind
                 if (inSpacer) {
                     Transforms.move(editor, {distance: 2});
-                    if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+                    if (sourceBoxIsClosestSelectedElement(editor)) {
                             Transforms.move(editor, {reverse: true, distance: 2})
                     }
                     else {
@@ -2379,18 +2454,15 @@ const HoverMenu = (opt) => {
     useEffect(() => {
         const el = ref.current;
         const {selection} = editor;
-
         if (!el) {
             return
         }
-
-
+        const isNotFocused = !ReactEditor.isFocused(editor);
+        const isCollapsed = selection && Range.isCollapsed(selection);
+        const isEmpty = selection && Editor.string(editor, selection) === '';
+        const isLink = isLinkActive(editor);
         if (
-            !selection ||
-            !ReactEditor.isFocused(editor) ||
-            Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === '' ||
-            isLinkActive(editor)
+            !selection || isNotFocused || isCollapsed || isEmpty || isLink
         ) {
             el.removeAttribute('style');
             return
@@ -2416,8 +2488,8 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <HighlightButton/>
             {buttons == "basic" ? null : <>
-                <HighlightButton/>
                 <AddLinkButton/>
                 <BlockButton editor={editor} format="header" icon="header"/>
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
@@ -2472,7 +2544,6 @@ const FormatButton = ({format}) => {
     )
 };
 
-
 const HighlightButton = () => {
     const editor = useSlate();
     const ref = useRef();
@@ -2480,16 +2551,26 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
-        const isActive = isFormatActive(editor, "background-color", color);
-        if (isActive) {
-            Editor.removeMark(editor, "background-color")
-        } else {
-            Editor.addMark(editor, "background-color", color)
-        }
-  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
-    )}</>
-
+    const colorButtons = <>{colors.map(color =>
+      <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
+            e.preventDefault();
+            const isActive = isFormatActive(editor, "background-color", color);
+            if (isActive) {
+                Editor.removeMark(editor, "background-color");
+            } else {
+                Editor.addMark(editor, "background-color", color);
+            }
+            }}><div className="highlightDot" style={{"backgroundColor":color}}></div>
+      </button>
+    )}</>;
+    const portal = <div className="highlightMenu" ref={ref} contentEditable={false}>
+                                  {colorButtons}
+                                  <button className="highlightButton" onMouseDown={e => {
+                                      Editor.removeMark(editor, "background-color")
+                                  }}>
+                                    <i className="fa fa-ban highlightCancel"></i>
+                                  </button
+                    ></div>;
     useEffect(() => {
         const el = ref.current;
         if (el) {
@@ -2516,13 +2597,7 @@ const HighlightButton = () => {
         >
       <i className={classNames(classes)}/>
     </span>
-    {showPortal ? <div className="highlightMenu" ref={ref}>
-    {colorButtons}
-    <button className="highlightButton" onClick={e => {
-        Editor.removeMark(editor, "background-color")
-    }}>
-    <i className="fa fa-ban highlightCancel"></i>
-  </button></div> : null}
+    {showPortal && portal}
     </>
     )
 };
@@ -2546,18 +2621,221 @@ const BlockButton = ({format, icon}) => {
     )
 }
 
+const EditorSaveStateIndicator = ({ state }) => {
+    const localize = (inputStr) => Sefaria._(inputStr, "EditorSaveIndicator");
+    const stateToIcon = {
+        "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
+        "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
+        "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
+        "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
+        "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
+        };
+    const stateToTooltip = {
+        "saved": "Your sheet is saved to Sefaria",
+        "saving": "We are saving your changes to Sefaria",
+        "connectionLost": "No internet connection detected",
+        "userUnauthenticated": "You are not logged in to Sefaria",
+        "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
+        };
+
+    const path = window.location.pathname + window.location.search;
+    const stateToMessage = {
+        "connectionLost": "Trying to connect…",
+        "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
+        "saving": "Saving...",
+        "saved": "Saved",
+        "unknownError": "Something went wrong. Try refreshing the page."
+        };
+    const loadedIcons = new Set();
+    useEffect(() => {
+      if (state === "connectionLost") {
+        return;
+      }
+      // Preload icons for all states if they are not already loaded.
+      Object.values(stateToIcon).forEach((src) => {
+        if (!loadedIcons.has(src)) {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => loadedIcons.add(src);  // Mark as loaded after successful load
+        }
+      });
+    }, [state]);
+
+    const tooltip = stateToTooltip[state];
+
+    return (
+        <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
+        {<img src={stateToIcon[state]} alt={localize(state)} />}
+        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        </ToolTipped>
+  );
+}
+function useUnsavedChangesWatcher(timeoutSeconds, hasUnsavedChanges, savingState, setSavingState) {
+  const timeoutRef = useRef(null);
+
+  // if failed to save and no reason is given, transition into known error state after a timeout
+  useEffect(() => {
+    if (hasUnsavedChanges && !timeoutRef.current) {
+      // Start a timeout only if none is running
+      timeoutRef.current = setTimeout(() => {
+        savingState === "saving" && setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+        timeoutRef.current = null; // Reset the ref
+      }, timeoutSeconds * 1000);
+    }
+
+    if ((!hasUnsavedChanges)
+        && timeoutRef.current) {
+      // Cancel if unsavedChanges were cleared before timeout ends
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    return () => {
+      // Clean up on unmount or re-run
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [hasUnsavedChanges, savingState]);
+}
+function useBlockEditorInputWhenDisabled(isEditingBlocked, ...elementRefs) {
+  useEffect(() => {
+    elementRefs.forEach(elementRef => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      if (isEditingBlocked) {
+        sheetsUtils.disableUserInput(element);
+      } else {
+        sheetsUtils.enableUserInput(element);
+      }
+    });
+  }, [isEditingBlocked, ...elementRefs]);
+}
+function useBeforeUnloadWarning(savingState) {
+    // alert user before (hard-) leaving the page if there are unsaved changes
+  useEffect(() => {
+    const handler = e => {
+      if (savingState === 'saved') return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => {window.removeEventListener('beforeunload', handler)};
+  }, [savingState]);
+}
+
+function useSavingStateSideEffects(
+  savingState,
+  {
+    setBlockEditing,
+    setConnectionLostPolling,
+    setUserUnauthenticated,
+    setUnknownErrorDetected,
+  }
+) {
+  useEffect(() => {
+    if (savingState === 'saved') {
+      setBlockEditing(false);
+      setConnectionLostPolling(false);
+    } else if (savingState === 'userUnauthenticated') {
+      setUserUnauthenticated(true);
+      setBlockEditing(true);
+    } else if (savingState === 'connectionLost') {
+      setConnectionLostPolling(true);
+      setBlockEditing(true);
+    } else if (savingState === 'unknownError') {
+      setUnknownErrorDetected(true);
+      setBlockEditing(true);
+    }
+  }, [savingState]);
+}
+function useOfflinePollingSave(
+  connectionLostPolling,
+  documentDraft,
+  saveDocument,
+  setHasUnsavedChanges,
+  canUseDOM,
+  intervalMs = 2000,
+  debounceMs = 500
+) {
+  useEffect(() => {
+    if (!canUseDOM || !connectionLostPolling) return;
+    const interval = setInterval(() => {
+      setHasUnsavedChanges(true);
+      const timeout = setTimeout(() => saveDocument(documentDraft), debounceMs);
+      return () => clearTimeout(timeout);
+    }, intervalMs);
+    return () => clearInterval(interval);
+  }, [
+    connectionLostPolling,
+    documentDraft,
+    canUseDOM,
+    intervalMs,
+    debounceMs,
+  ]);
+}
+
+function useSaveStateManagement({
+  hasUnsavedChanges,
+  savingState,
+  setSavingState,
+  blockEditing,
+  setBlockEditing,
+  editorContentContainer,
+  editorTitleContainer,
+  connectionLostPolling,
+  currentDocument,
+  saveDocument,
+  setHasUnsavedChanges,
+  canUseDOM,
+  setConnectionLostPolling,
+  setUserUnauthenticated,
+  setUnknownErrorDetected,
+}) {
+  useUnsavedChangesWatcher(20, hasUnsavedChanges, savingState, setSavingState);
+  useBlockEditorInputWhenDisabled(blockEditing, editorContentContainer, editorTitleContainer);
+  useBeforeUnloadWarning(savingState);
+  useOfflinePollingSave(connectionLostPolling, currentDocument, saveDocument, setHasUnsavedChanges, canUseDOM);
+  useSavingStateSideEffects(savingState, {
+    setBlockEditing,
+    setConnectionLostPolling,
+    setUserUnauthenticated,
+    setUnknownErrorDetected,
+  });
+}
+
 const SefariaEditor = (props) => {
     const editorContainer = useRef();
+    const editorContentContainer = useRef();
+    const editorTitleContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
     const [currentDocument, setCurrentDocument] = useState(initValue);
-    const [unsavedChanges, setUnsavedChanges] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [blockEditing, setBlockEditing] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [canUseDOM, setCanUseDOM] = useState(false);
     const [lastSelection, setLastSelection] = useState(null)
     const [readyForNormalize, setReadyForNormalize] = useState(false);
+    const [connectionLostPolling, setConnectionLostPolling] = useState(false);
+    const [userUnauthenticated, setUserUnauthenticated] = useState(false);
+    const [unknownErrorDetected, setUnknownErrorDetected] = useState(false);
+    const savingState = props.editorSaveState;
+    const setSavingState = props.setEditorSaveState;
+    const isMultiPanel = Sefaria.multiPanel;
+    isMultiPanel && useSaveStateManagement({
+      hasUnsavedChanges, savingState, setSavingState,
+      blockEditing, setBlockEditing,
+      editorContentContainer, editorTitleContainer,
+      connectionLostPolling, currentDocument, saveDocument,
+      setHasUnsavedChanges, canUseDOM,
+      setConnectionLostPolling, setUserUnauthenticated, setUnknownErrorDetected
+});
+
 
     useEffect(
         () => {
@@ -2565,7 +2843,7 @@ const SefariaEditor = (props) => {
                 return
             }
 
-            setUnsavedChanges(true);
+            setHasUnsavedChanges(true);
             // Update debounced value after delay
             const handler = setTimeout(() => {
                 saveDocument(currentDocument);
@@ -2580,6 +2858,23 @@ const SefariaEditor = (props) => {
         },
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
+
+
+    useEffect(() => {
+        if (!canUseDOM || !connectionLostPolling) return;
+
+        const interval = setInterval(() => {
+            setHasUnsavedChanges(true);
+
+            const handler = setTimeout(() => {
+                saveDocument(currentDocument);
+            }, 500);
+
+            return () => clearTimeout(handler); // cleanup debounce on next tick
+        }, 2000); // polling every 2s
+
+        return () => clearInterval(interval); // cleanup polling
+    }, [connectionLostPolling]);
 
     useEffect(
         () => {
@@ -2835,20 +3130,39 @@ const SefariaEditor = (props) => {
 
 
     function saveDocument(doc) {
+        // transition into saving state only if previous state is a valid "saved" state
+        savingState === "saved" && setSavingState(sheetsUtils.editorSaveStates.SAVING)
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
 
+        function handlePostError(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status === 0) {
+                console.warn("No network connection or request blocked.");
+                setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
+            } else if (jqXHR.status === 401) {
+                setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
+            } else {
+                console.warn("Unknown error:", textStatus, errorThrown);
+                setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+            }
+        }
+        if(Sefaria.testUnkownNewEditorSaveError) {
+            console.log("Simulating unknown error");
+            return;
+        }
+
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
-            setUnsavedChanges(false);
+            setHasUnsavedChanges(false);
+            setSavingState(sheetsUtils.editorSaveStates.SAVED);
 
             const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
             Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
-        });
+        }).fail(handlePostError);
     }
 
     function onChange(value) {
@@ -2943,6 +3257,14 @@ const SefariaEditor = (props) => {
         if (event.key === " " || Node.get(editor, editor.selection.focus.path).isRef) {
             getRefInText(editor, false)
         }
+
+        // Slate doesn't trigger deleteBackward() or deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        if (event.key === 'Backspace' ) {
+            editor.deleteBackward(true);
+        } else if (event.key === 'Delete') {
+            editor.deleteForward(true);
+        }
     };
 
     const whereIsElementInViewport = (element) => {
@@ -3010,7 +3332,14 @@ const SefariaEditor = (props) => {
         []
     );
 
+
     return (
+        <>
+            <div className="floatingEditorIcons">
+      {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
+        <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
+            </div>
+      <div className="sheetContent">
         <div ref={editorContainer} onClick={props.handleClick}>
         {
           /* debugger */
@@ -3020,10 +3349,10 @@ const SefariaEditor = (props) => {
           // </div>
 
         }
-
-            <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
         <SheetMetaDataBox>
+            <span ref={editorTitleContainer}>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
+            </span>
             <SheetAuthorStatement
                 authorUrl={sheet.ownerProfileUrl}
                 authorStatement={sheet.ownerName}
@@ -3044,6 +3373,7 @@ const SefariaEditor = (props) => {
                 image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
+            <span  ref={editorContentContainer}>
             {canUseDOM ?
             <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
                 <HoverMenu buttons="all"/>
@@ -3062,7 +3392,10 @@ const SefariaEditor = (props) => {
                   autoFocus
                 />
             </Slate> : null }
+            </span>
         </div>
+      </div>
+            </>
     )
 };
 

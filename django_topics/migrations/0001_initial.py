@@ -32,6 +32,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Topic',
             fields=[
+                # ('id', models.AutoField(auto_created=True, serialize=False, verbose_name='ID')),
                 ('slug', models.CharField(max_length=255, primary_key=True, serialize=False, unique=True)),
                 ('en_title', models.CharField(blank=True, default='', max_length=255)),
                 ('he_title', models.CharField(blank=True, default='', max_length=255)),

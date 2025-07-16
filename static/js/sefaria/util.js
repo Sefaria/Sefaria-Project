@@ -74,6 +74,11 @@ class Util {
         const dateOptions = {year: 'numeric', month: 'long', day: 'numeric'};
         return (new Date(dateString)).toLocaleDateString(locale, dateOptions);  // remove comma from english date
     }
+    static createTimeZoneAgnosticDate = (dateString)=>{
+      if (!dateString) return null;
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(Date.UTC(year, month - 1, day, 12)); // Use noon UTC to avoid time shifts (most time zones are 12 hours off from UTC)
+}
     static hebrewCalendarDateStr(dateObjStr){
         //returns a fully qualified Hebrew calendar date from a Gregorian input. Can output in English or Hebrew
         const hd = new HDate(new Date(dateObjStr));
@@ -821,7 +826,7 @@ class Util {
                 }.bind(this))
             .autocomplete({
                 source: function(request, response) {
-                  Sefaria.getName(request.term, true)
+                  Sefaria.getName(request.term, undefined, 'ref')
                          .then(d => d.completions)
                          .then(response);
                 },
@@ -917,7 +922,7 @@ Util.RefValidator.prototype = {
   },
   _lookupAndRoute: function(inString) {
       if (this.current_lookup_ajax) {this.current_lookup_ajax.cancel();}
-      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, true));
+      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, undefined, 'ref'));
       this.current_lookup_ajax.promise.then(data => {
               // If this query has been outpaced by typing, just return.
               if (this.$input.val() != inString) { this.current_lookup_ajax = null; return; }

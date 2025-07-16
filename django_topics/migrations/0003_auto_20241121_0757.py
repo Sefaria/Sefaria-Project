@@ -14,4 +14,13 @@ class Migration(migrations.Migration):
     operations = [
         # Operations removed to reconcile migration issues
         # due to transitioning Topic to a CharField primary key (`slug`)
+        # migrations.RemoveField(
+        #     model_name='topic',
+        #     name='id',
+        # ),
+        # migrations.AlterField(
+        #     model_name='topic',
+        #     name='slug',
+        #     field=models.CharField(max_length=255, primary_key=True, serialize=False),
+        # ),
     ]

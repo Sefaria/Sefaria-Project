@@ -1,10 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-function ToggleSwitch({name, disabled, onChange, isChecked, ariaLabelledBy}) {
+function ToggleSwitch({name, disabled, onChange, isChecked}) {
     return (
         <div className="toggle-switch-container">
-          <div className="toggle-switch">
+          <div className="toggle-switch focus-visible">
             <input
                 type="checkbox"
                 className="toggle-switch-checkbox"
@@ -14,7 +14,6 @@ function ToggleSwitch({name, disabled, onChange, isChecked, ariaLabelledBy}) {
                 onChange={onChange}
                 checked={isChecked && !disabled}
                 aria-checked={isChecked}
-                aria-labelledby={ariaLabelledBy}
                 role="switch"
             />
             <label className="toggle-switch-label" htmlFor={name}>
