@@ -39,16 +39,7 @@ data:
         init_library_cache()
 
     def post_worker_init(worker):
-        import sys, os, importlib
-        print("CWD:", os.getcwd())
-        print("sys.path:", sys.path)
-        if "reader.startup" in sys.modules:
-            print("Cached module file:", sys.modules["reader.startup"].__file__)
-            print("Contents:", dir(sys.modules["reader.startup"]))
-            # force a fresh load:
-            importlib.reload(sys.modules["reader.startup"])
-        from reader.startup import init_linker
-        init_linker()
+        pass
 
     def combined_logformat(logger, name, event_dict):
         if event_dict.get('logger') == "gunicorn.access":
