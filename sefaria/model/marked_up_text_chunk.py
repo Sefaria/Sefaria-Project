@@ -10,7 +10,7 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
     collection = "marked_up_text_chunks"
     criteria_field = "ref"
     track_pkeys = True
-    pkeys = ["ref", "versionTitle"]
+    pkeys = ["ref", "versionTitle", "language"]
 
     required_attrs = [
         "ref",
@@ -48,6 +48,7 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         }
     }
 
+
     def _validate(self):
         super()._validate()
         oref = Ref(self.ref)
@@ -56,13 +57,16 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         if not tc.text:
             raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")
 
-        # Enforce uniqueness of (ref, versionTitle)
-        existing = self.load({
-        "ref": self.ref,
-        "versionTitle": self.versionTitle,
-        "language": self.language
-    })
-        if existing and str(existing._id) != str(getattr(self, "_id", None)):
+        # Enforce uniqueness
+        pkey_query = {}
+        for key in self.pkeys:
+            value = getattr(self, key, None)
+            if value is None:
+                raise InputError(f"{type(self).__name__}._validate(): Missing value for primary key: {key}")
+            pkey_query[key] = value
+
+        existing = self.load(pkey_query)
+        if existing:
             raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, language, versionTitle)")
         return True
 

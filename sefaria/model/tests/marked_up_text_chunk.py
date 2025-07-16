@@ -100,14 +100,16 @@ DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
 # ---------------------------------------------------------------------------#
 def _aggregate_chunks(chunks: list[dict]) -> list[dict]:
     """
-    MarkedUpTextChunk enforces a PK of (ref, versionTitle).
-    The dummy payloads contain three distinct entries for the
-    same PK.  We merge their ``spans`` before inserting.
+    Aggregates MarkedUpTextChunk payloads by their primary key fields.
+    If multiple chunks share the same key,
+    their 'spans' lists are merged.
+    The key fields are dynamically read from the model's pkeys list.
     """
-    merged: dict[tuple[str, str, str], dict] = {}
+    pkeys = MarkedUpTextChunk.pkeys
+    merged: dict[tuple, dict] = {}
 
     for chunk in chunks:
-        key = (chunk["ref"], chunk["versionTitle"], chunk["language"])
+        key = tuple(chunk[field] for field in pkeys)
         if key not in merged:
             merged[key] = deepcopy(chunk)
         else:
@@ -148,16 +150,7 @@ def marked_up_chunks(django_db_setup, django_db_blocker):
         for o in objs:
             o.delete()
 
-
-# ---------------------------------------------------------------------------#
-# Tests                                                                      #
-# ---------------------------------------------------------------------------#
 class TestMarkedUpTextChunk:
-    """
-    Mirrors the style of the Topic tests:
-      * One class, several logically-separate test methods.
-    """
-
     def test_inserted_records_match_input(self, marked_up_chunks):
         objs  = marked_up_chunks["objects"]
         input = { (p["ref"], p["versionTitle"], p["language"]): p for p in marked_up_chunks["payloads"] }
@@ -176,9 +169,6 @@ class TestMarkedUpTextChunk:
             assert len(obj.spans) == len(p["spans"])
 
     def test_primary_key_uniqueness(self, marked_up_chunks):
-        """
-        Saving another record with the same (ref, versionTitle) should fail.
-        """
         dup_payload = deepcopy(marked_up_chunks["payloads"][0])
         with pytest.raises(DuplicateRecordError):
             MarkedUpTextChunk(dup_payload).save()
