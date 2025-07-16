@@ -14853,6 +14853,21 @@ span.ref-link-color-3 {color: blue}
 /* Main text content styling */
 .guideOverlayText ul {
   padding-inline-start: 18px;
+  margin: 16px 0;
+}
+
+/* Paragraph spacing - reduced from default 16px */
+.guideOverlayText p {
+  margin: 0 0 8px 0;
+}
+
+/* Tighter spacing between paragraphs and lists */
+.guideOverlayText p + ul {
+  margin-top: 4px;
+}
+
+.guideOverlayText p:last-child {
+  margin-bottom: 0;
 }
 
 .guideOverlayText li {
@@ -14866,15 +14881,6 @@ span.ref-link-color-3 {color: blue}
 
 .guideOverlayText a:hover {
   text-decoration: underline;
-}
-
-/* Paragraph spacing for markdown content */
-.guideOverlayText p {
-  margin: 0 0 16px 0;
-}
-
-.guideOverlayText p:last-child {
-  margin-bottom: 0;
 }
 
 /* Footer with links */
