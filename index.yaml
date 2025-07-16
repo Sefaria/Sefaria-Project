@@ -528,6 +528,21 @@ entries:
     version: 0.66.0-miscmodularization-main-merge-master-620930634.1
   - apiVersion: v2
     appVersion: v6.25.5
+    created: "2025-07-16T18:39:52.867441327Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: b48ad8f6ad4072f05f56dd3a3d80731866bc3d3a0c93504867c6b6723a2afb08
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.65.9-fix-linker-cors.5.tgz
+    version: 0.65.9-fix-linker-cors.5
+  - apiVersion: v2
+    appVersion: v6.25.5
     created: "2025-07-16T14:14:48.398249049Z"
     description: Chart to deploy complete Sefaria environment
     digest: fd6b50cf288fee2df4a469c4a6920ff7ce922f193107ccc3ce8d1806fbd76951
@@ -8385,4 +8400,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-07-16T14:14:48.395174125Z"
+generated: "2025-07-16T18:39:52.865267162Z"
