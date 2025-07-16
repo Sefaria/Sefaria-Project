@@ -1,6 +1,14 @@
 from django_topics.models import Topic as DjangoTopic
+import multiprocessing as mp
+
 
 def init_library_cache():
+    try:
+        mp.set_start_method("spawn", force=True)
+    except RuntimeError:
+        # already set
+        pass
+
     import django
     django.setup()
     import structlog
