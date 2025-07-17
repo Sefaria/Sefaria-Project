@@ -71,10 +71,11 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         if existing:
             raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, language, versionTitle)")
 
-        # for span in self.spans:
-        #     text = Ref(span['ref']).text(lang=self.language, vtitle=self.versionTitle).text
-        #     if text[span['charRange'][0]:span['charRange'][1]] != span['text']:
-        #         raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}")
+        for span in self.spans:
+            text = tc.text
+            citation_text = text[span['charRange'][0]:span['charRange'][1]]
+            if citation_text != span['text']:
+                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}")
 
         return True
 

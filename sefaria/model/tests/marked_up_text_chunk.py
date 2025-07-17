@@ -1,13 +1,5 @@
-"""
-Tests for sefaria.model.marked_up_text.MarkedUpTextChunk
-
-We  ▸ load a clean set of dummy records
-    ▸ run assertions on validation, normalisation & PK-uniqueness
-    ▸ remove every record we created – no residue in the DB
-"""
 from __future__ import annotations
 from copy import deepcopy
-from collections import defaultdict
 
 import pytest
 from sefaria.system.database import db as mongo_db
@@ -16,63 +8,39 @@ from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
 pytestmark = pytest.mark.django_db
 
-
-# ---------------------------------------------------------------------------#
-# Test data (as supplied by the user)                                        #
-# ---------------------------------------------------------------------------#
 DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
-    # {
-    #     "ref": "Rashi on Genesis 1:6:1",
-    #     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-    #     "language": "en",
-    #     "spans": [
-    #         # {
-    #         #     "charRange": [1, 25],
-    #         #     "text": "Let there be a firmament",
-    #         #     "type": "quote",
-    #         #     "ref": "Job 26:11",
-    #         # },
-    #         {
-    #             "charRange": [100, 110],
-    #             "text": "Iyov 26:11",
-    #             "type": "citation",
-    #             "ref": "Job 26:11",
-    #         },
-    #     ],
-    # },
-    # {
-    #     "ref": "Rashi on Genesis 1:1:1",
-    #     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-    #     "language": "en",
-    #     "spans": [
-    #         {
-    #             "charRange": [156, 168],
-    #             "text": "Exodus 12:2",
-    #             "type": "citation",
-    #             "ref": "Exodus 12:2",
-    #         }
-    #     ],
-    # },
-    # {
-    #     "ref": "Rashi on Genesis 1:1:1",
-    #     "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-    #     "language": "en",
-    #     "spans": [
-    #         {
-    #             "charRange": [378, 390],
-    #             "text": "Psalms 111:6",
-    #             "type": "citation",
-    #             "ref": "Psalms 111:6",
-    #         }
-    #     ],
-    # },
+    {
+        "ref": "Rashi on Genesis 1:6:1",
+        "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+        "language": "en",
+        "spans": [
+            {
+                "charRange": [319, 337],
+                "text": "Genesis Rabbah 4:2",
+                "type": "citation",
+                "ref": "Bereshit Rabbah 4:2",
+            },
+            {
+                "charRange": [399, 408],
+                "text": "Job 26:11",
+                "type": "citation",
+                "ref": "Job 26:11",
+            },
+            {
+                "charRange": [543, 552],
+                "text": "Job 26:11",
+                "type": "citation",
+                "ref": "Job 26:11",
+            }
+        ],
+    },
     {
         "ref": "Rashi on Genesis 1:1:1",
         "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
         "language": "en",
         "spans": [
             {
-                "charRange": [888, 918],
+                "charRange": [912, 939],
                 "text": "Yalkut Shimoni on Torah 187",
                 "type": "citation",
                 "ref": "Yalkut Shimoni on Torah 187",
@@ -85,7 +53,7 @@ DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
         "language": "en",
         "spans": [
             {
-                "charRange": [356, 383],
+                "charRange": [361, 387],
                 "text": "Midrash Tanchuma, Tazria 1",
                 "type": "citation",
                 "ref": "Midrash Tanchuma, Tazria 1",
@@ -95,9 +63,6 @@ DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
 ]
 
 
-# ---------------------------------------------------------------------------#
-# Helper:  merge duplicate (ref, versionTitle, language) into one payload    #
-# ---------------------------------------------------------------------------#
 def _aggregate_chunks(chunks: list[dict]) -> list[dict]:
     """
     Aggregates MarkedUpTextChunk payloads by their primary key fields.
@@ -172,6 +137,13 @@ class TestMarkedUpTextChunk:
         dup_payload = deepcopy(marked_up_chunks["payloads"][0])
         with pytest.raises(DuplicateRecordError):
             MarkedUpTextChunk(dup_payload).save()
+
+    def test_incorrect_text_span(self, marked_up_chunks):
+        marked_up_chunk = marked_up_chunks["payloads"][0]
+        for span in marked_up_chunk["spans"]:
+            span["text"] = "incorrect text"
+        with pytest.raises(InputError):
+            MarkedUpTextChunk(marked_up_chunk).save()
 
     def test_validation_failure(self):
         """
