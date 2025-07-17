@@ -25,7 +25,7 @@ data:
     {{- end }}
 
     loglevel = "warning"
-    preload_app = True
+    preload_app = False
     
     {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
