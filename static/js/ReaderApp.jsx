@@ -823,7 +823,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
