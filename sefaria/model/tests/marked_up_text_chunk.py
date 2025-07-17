@@ -7,7 +7,7 @@ from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
 pytestmark = pytest.mark.django_db
 
-DUMMY_MARKED_UP_TEXT_CHUNKS: list[dict] = [
+MARKED_UP_TEXT_CHUNKS_DATA = [
     {
         "ref": "Rashi on Genesis 1:6:1",
         "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
@@ -93,13 +93,13 @@ def marked_up_chunks(django_db_setup, django_db_blocker):
     """
     with django_db_blocker.unblock():
         # 1) Start with a clean slate for the PKs we care about
-        for c in DUMMY_MARKED_UP_TEXT_CHUNKS:
+        for c in MARKED_UP_TEXT_CHUNKS_DATA:
             mongo_db.marked_up_text_chunks.delete_many(
                 {"ref": c["ref"], "versionTitle": c["versionTitle"], "language": c["language"]}
             )
 
         # 2) Insert merged (PK-unique) payloads
-        objs, payloads = [], _aggregate_chunks(DUMMY_MARKED_UP_TEXT_CHUNKS)
+        objs, payloads = [], _aggregate_chunks(MARKED_UP_TEXT_CHUNKS_DATA)
         for data in payloads:
             obj = MarkedUpTextChunk(data)
             obj.save()  # validation & normalisation happen inside .save()
