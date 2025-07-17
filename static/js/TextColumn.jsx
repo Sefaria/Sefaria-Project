@@ -245,26 +245,8 @@ class TextColumn extends Component {
   
   calculateScrollPositionAfterTopLoad($texts) {
     // Calculate the correct scroll position after new content has been loaded at the top
-    // The goal is to keep the user viewing the same content they were looking at before
-    
-    // Safer target section identification with bounds checking
-    let targetIndex = this.numSectionsLoadedAtTop;
-    
-    // Validate that targetIndex is within bounds
-    if (targetIndex >= $texts.length) {
-      targetIndex = $texts.length - 1;
-    }
-    
-    if (targetIndex < 0) {
-      targetIndex = 0;
-    }
-    
-    const $targetSection = $texts.eq(targetIndex);
-    if (!$targetSection.length) {
-      return this.node.scrollTop; // Keep current position as fallback
-    }
-    
-    const targetTop = $targetSection.position().top;
+    // The goal is to keep the user viewing the same content they were looking at before (avoid a jump)
+    const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
     const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
     
     const currentScrollTop = this.node.scrollTop;
