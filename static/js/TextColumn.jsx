@@ -228,7 +228,10 @@ class TextColumn extends Component {
   restoreScrollPositionAfterTopLoad() {
     // After new TextRanges load at the top, adjust scroll position to prevent content jumping
     const $texts = this.$container.find(".basetext");
-    if (!this.canRestoreScrollPosition($texts)) {
+    
+    // Check if we can safely restore scroll position
+    // Need at least 2 text sections and first one should be loaded
+    if ($texts.length < 2 || $texts.eq(0).hasClass("loading")) {
       return;
     }
     
@@ -238,20 +241,7 @@ class TextColumn extends Component {
     // Apply the new scroll position
     this.setScrollTop(newScrollTop);
   }
-  
-  canRestoreScrollPosition($texts) {
-    // Check if we can safely restore scroll position
-    // Need at least 2 text sections and first one should be loaded
-    if ($texts.length < 2) {
-      return false;
-    }
-    
-    if ($texts.eq(0).hasClass("loading")) {
-      return false;
-    }
-    
-    return true;
-  }
+
   
   calculateScrollPositionAfterTopLoad($texts) {
     // Calculate the correct scroll position after new content has been loaded at the top
