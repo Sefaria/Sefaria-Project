@@ -1713,8 +1713,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.refs = parent.refs.map(ref => Sefaria.ref(ref).sectionRef);
-        parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
