@@ -382,54 +382,42 @@ class TextColumn extends Component {
     return refs;
   }
   adjustHighlightedAndVisible() {
-    // This function determines which text section is currently "visible" to the user
-    // and updates the URL and highlighted segments accordingly
-    // This is called during scroll events (debounced)
+    //console.log("adjustHighlightedAndVisible");
+    // Adjust which ref is currently consider visible for header and URL,
+    // and while the TextList is open, update which segment should be highlighted.
+    // Keeping the highlightedRefs value in the panel ensures it will return
+    // to the right location after closing other panels.
     if (!this._isMounted) { return; }
-    
-    // Store the current scroll percentage for use in layout width changes
+
     this.prevScrollPercentage = this.node.scrollTop / this.node.scrollHeight;
-    
-    // Find the segment that should be considered "currently visible"
-    // Priority: 1) Focused segment (accessibility), 2) First segment past middle threshold
-    let $currentSegment = null;
-    
-    // When using tab navigation, prioritize focused segment
+
+    // When using tab to navigate (i.e. a11y) set ref to currently focused ref
+    let $segment = null;
     if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
-      $currentSegment = $(".segment:focus").eq(0);
+      $segment = $(".segment:focus").eq(0);
     } else {
-      // Otherwise, find the first segment that crosses the visibility threshold
       const $container = this.$container;
-      
       $container.find(".basetext .segment").each(function(i, segment) {
-        const $segment = $(segment);
-        const top = $segment.offset().top - $container.offset().top;
-        const bottom = $segment.outerHeight() + top;
-        
-        // If segment bottom is past the middle, or top is past highlight threshold
+        const top = $(segment).offset().top - $container.offset().top;
+        const bottom = $(segment).outerHeight() + top;
         if (bottom > this.windowMiddle || top >= this.highlightThreshhold) {
-          $currentSegment = $segment;
-          return false; // Break out of each loop
+          $segment = $(segment);
+          return false;
         }
       }.bind(this));
     }
-    
-    if (!$currentSegment) { return; }
-    
-    // Update the URL and highlighted segments based on the currently visible segment
-    const $section = $currentSegment.closest(".textRange");
+
+    if (!$segment) { return; }
+
+    const $section = $segment.closest(".textRange");
     const sectionRef = $section.attr("data-ref");
-    
-    // Update the URL to reflect currently visible section
     this.props.setCurrentlyVisibleRef(sectionRef);
 
-    // Update highlighted segment (only when sidebar is open or in TextAndConnections mode)
+    // don't move around highlighted segment when scrolling a single panel,
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
-    const segmentRef = $currentSegment.attr("data-ref");
-    
-    this.props.setTextListHighlight(segmentRef, shouldShowHighlight);
+    const ref = $segment.attr("data-ref");
+    this.props.setTextListHighlight(ref, shouldShowHighlight);
   }
-
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
