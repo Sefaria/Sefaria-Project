@@ -165,6 +165,15 @@ class ConnectionsPanel extends Component {
     });
     this._savedHistorySegments.add(ref);
   }
+  onTextLoad(ref) {
+    const connectionsPanelCitataions = this.$scrollView[0].querySelectorAll(`[data-ref="${this.props.currentlyVisibleRef}"]`);
+    if (connectionsPanelCitataions.length > 0) {
+      for (let citation of connectionsPanelCitataions) {
+        citation.classList.add('highlightCitation');
+      }
+      connectionsPanelCitataions[0].scrollIntoView();
+    }
+  }
   isSheet() {
     return this.props.srefs[0].startsWith("Sheet");
   }
@@ -425,6 +434,7 @@ class ConnectionsPanel extends Component {
         setFilter={this.props.setFilter}
         setConnectionsMode={this.props.setConnectionsMode}
         onTextClick={this.props.onTextClick}
+        onTextLoad={this.onTextLoad}
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
         openNav={this.props.openNav}
