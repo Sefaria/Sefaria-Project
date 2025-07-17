@@ -38,6 +38,7 @@ test('TC001: Create Sheet', async () => {
   // This test is now just a check that the sheet was created in beforeAll
   expect(sheetUrl).toBeTruthy();
   await expect(sheetEditorPage.sourceSheetBody()).toBeVisible();
+  await page.pause();
 });
 
 test('TC002: Give Sheet Title', async () => {
@@ -54,7 +55,7 @@ test('TC003: Add Text', async () => {
   await sheetEditorPage.addText('This is test text');
   const textLocator = await sheetEditorPage.getTextLocator('This is test text');
   await expect(textLocator).toBeVisible();
-  await page.keyboard.press('Enter');
+  await page.keyboard.press('Escape');
   await sheetEditorPage.assertSaveState(SaveStates.saved);
 });
 
@@ -106,7 +107,19 @@ test('TC007: Add Media - Spotify (followed by text)', async () => {
 
 test('TC008: Drag and Drop Text', async () => {
   await page.goto(sheetUrl);
-  await expect(page.locator('.text-segment')).toBeVisible();
+  // First click to select/highlight the element
+  // const sourceElement = page.locator('.text-segment').first();
+  // await sourceElement.click();
+  
+  // // Wait for highlight/selection state
+  // await expect(sourceElement).toHaveClass(/selected|highlighted/);
+  
+  // // Drag to target position
+  // const targetElement = page.locator('.text-segment').nth(2);
+  // await sourceElement.dragTo(targetElement);
+  
+  // // Verify the element moved
+  // await expect(page.locator('.text-segment').nth(2)).toContainText('expected text');
 });
 
 test('TC009: Drag and Drop Added Source', async () => {

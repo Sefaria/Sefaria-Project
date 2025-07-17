@@ -145,7 +145,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await hideGenericBanner(page);
   await hideCookiesPopup(page);
   await hideTopBanner(page);
-  await hideExploreTopicsModal(page); 
+  await hideExploreTopicsModal(page);
 };
 
 /**
@@ -233,12 +233,9 @@ export const expireLogoutCookie = async (context) => {
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     const page: Page = await context.newPage();
     await page.goto(url);
-
     await changeLanguageIfNeeded(page, language);
-
-    //await hideAllModalsAndPopups(page);
-    await hideModals(page);
-    return page
+    await hideAllModalsAndPopups(page);
+    return page;
 }
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE, user = testUser) => {
@@ -249,7 +246,6 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, lan
     await loginPage.loginAs(user);
     await page.goto(url, {waitUntil: 'domcontentloaded'});
     await changeLanguageIfNeeded(page, language);
-    await hideAllModalsAndPopups(page);
     return page;
 }
 
