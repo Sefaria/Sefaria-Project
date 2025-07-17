@@ -13,7 +13,6 @@ logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
-from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
@@ -26,7 +25,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from sefaria.google_storage_manager import GoogleStorageManager
 
-from sefaria.client.util import jsonResponse, HttpResponse
+from sefaria.client.util import HttpResponse, authenticationRequiredResponse
 from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
@@ -275,19 +274,8 @@ def delete_sheet_api(request, sheet_id):
         return jsonResponse({"error": "Sheet %d not found." % id})
 
     if not request.user.is_authenticated:
-        key = request.POST.get("apikey")
-        if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to delete a sheet."})
-        apikey = db.apikeys.find_one({"key": key})
-        if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."})
-    else:
-        apikey = None
-
-    if apikey:
-        user = User.objects.get(id=apikey["uid"])
-    else:
-        user = request.user
+        return authenticationRequiredResponse()
+    user = request.user
 
     if user.id != sheet["owner"]:
         return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
@@ -314,17 +302,11 @@ def collections_api(request, slug=None):
         return collections_get_api(request, slug)
     else:
         if not request.user.is_authenticated and request.method == "POST":
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": _("You must be logged in to create a new collection.")})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            else:
-                user_id = apikey["uid"]
+            return authenticationRequiredResponse()
+        user_id = request.user.id
+        if request.is_api_authenticated:
             return collections_post_api(request, user_id, slug=slug)
         else:
-            user_id = request.user.id
             return protected_collections_post_api(request, user_id, slug=slug)
 
 @csrf_protect
@@ -558,31 +540,17 @@ def save_sheet_api(request):
     # Save a sheet
     if request.method == "POST":
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse(
-                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"},
-                    status=401
-                )
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."}, status=401)
-        else:
-            apikey = None
+            return authenticationRequiredResponse({"errorAction": "loginRedirect"})
 
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
-
-        if apikey:
-            if "id" in sheet:
-                sheet["lastModified"] = get_sheet(sheet["id"])["dateModified"] # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
-            user = User.objects.get(id=apikey["uid"])
-        else:
-            user = request.user
+        user = request.user
 
         if "id" in sheet:
+            if request.is_api_authenticated:
+                sheet["lastModified"] = get_sheet(sheet["id"])["dateModified"]  # Usually lastModified gets set on the frontend, so we need to set it here to match with the previous dateModified so that the check in `save_sheet` returns properly
             existing = get_sheet(sheet["id"])
             if "error" not in existing  and \
                 not can_edit(user, existing) and \
