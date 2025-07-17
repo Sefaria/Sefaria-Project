@@ -391,49 +391,33 @@ class TextColumn extends Component {
     this.prevScrollPercentage = this.node.scrollTop / this.node.scrollHeight;
     
     // Find the segment that should be considered "currently visible"
-    const $currentSegment = this.findCurrentlyVisibleSegment();
-    if (!$currentSegment) { return; }
-    
-    // Update the URL and highlighted segments based on the visible segment
-    this.updateVisibleStateFromSegment($currentSegment);
-  }
-  
-  findCurrentlyVisibleSegment() {
-    // Find which segment should be considered "currently visible" based on scroll position
     // Priority: 1) Focused segment (accessibility), 2) First segment past middle threshold
+    let $currentSegment = null;
     
     // When using tab navigation, prioritize focused segment
     if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
-      return $(".segment:focus").eq(0);
-    }
-    
-    // Otherwise, find the first segment that crosses the visibility threshold
-    return this.findSegmentByScrollPosition();
-  }
-  
-  findSegmentByScrollPosition() {
-    // Find the first segment that crosses the middle threshold or highlight threshold
+      $currentSegment = $(".segment:focus").eq(0);
+    } else {
+      // Otherwise, find the first segment that crosses the visibility threshold
       const $container = this.$container;
-    let $foundSegment = null;
-    
-      $container.find(".basetext .segment").each(function(i, segment) {
-      const $segment = $(segment);
-      const top = $segment.offset().top - $container.offset().top;
-      const bottom = $segment.outerHeight() + top;
       
-      // If segment bottom is past the middle, or top is past highlight threshold
+      $container.find(".basetext .segment").each(function(i, segment) {
+        const $segment = $(segment);
+        const top = $segment.offset().top - $container.offset().top;
+        const bottom = $segment.outerHeight() + top;
+        
+        // If segment bottom is past the middle, or top is past highlight threshold
         if (bottom > this.windowMiddle || top >= this.highlightThreshhold) {
-        $foundSegment = $segment;
-        return false; // Break out of each loop
+          $currentSegment = $segment;
+          return false; // Break out of each loop
         }
       }.bind(this));
-    
-    return $foundSegment;
     }
-
-  updateVisibleStateFromSegment($segment) {
+    
+    if (!$currentSegment) { return; }
+    
     // Update the URL and highlighted segments based on the currently visible segment
-    const $section = $segment.closest(".textRange");
+    const $section = $currentSegment.closest(".textRange");
     const sectionRef = $section.attr("data-ref");
     
     // Update the URL to reflect currently visible section
@@ -441,10 +425,11 @@ class TextColumn extends Component {
 
     // Update highlighted segment (only when sidebar is open or in TextAndConnections mode)
     const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
-    const segmentRef = $segment.attr("data-ref");
+    const segmentRef = $currentSegment.attr("data-ref");
     
     this.props.setTextListHighlight(segmentRef, shouldShowHighlight);
   }
+
   render() {
     let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
     const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
