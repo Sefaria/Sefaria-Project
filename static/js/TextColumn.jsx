@@ -382,7 +382,6 @@ class TextColumn extends Component {
     return refs;
   }
   adjustHighlightedAndVisible() {
-    //console.log("adjustHighlightedAndVisible");
     // Adjust which ref is currently consider visible for header and URL,
     // and while the TextList is open, update which segment should be highlighted.
     // Keeping the highlightedRefs value in the panel ensures it will return
