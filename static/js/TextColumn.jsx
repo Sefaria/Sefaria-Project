@@ -158,7 +158,7 @@ class TextColumn extends Component {
     // Called when TextRange components finish loading their content
     // This is where we handle scroll position adjustments and trigger additional loading
     
-    // Don't adjust scroll positions while sections are still loading to prevent race conditions
+    // Don't adjust scroll positions while sections are still loading to prevent race conditions when mutliple section may load out of order.
     if (this.$container.find(".basetext.loading").length > 0) {
       return;
     }
