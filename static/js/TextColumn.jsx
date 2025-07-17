@@ -47,17 +47,10 @@ class TextColumn extends Component {
     this.node.removeEventListener("scroll", this.handleScroll);
   }
   componentDidUpdate(prevProps, prevState) {
-    // Track navigation changes and reset infinite scroll state when needed
-    if (prevProps.srefs.length !== this.props.srefs.length || 
-        !prevProps.srefs.every((ref, index) => ref === this.props.srefs[index])) {
-      
-      // Reset infinite scroll state on navigation (vs infinite scroll expansion)
-      const isNavigation = this.isNavigationChange(prevProps.srefs, this.props.srefs);
-      if (isNavigation) {
-        this.numSectionsLoadedAtTop = 0;
-        this.loadingContentAtTop = false;
-        this.initialScrollTopSet = false;
-      }
+    // Identify navigation changes from TOC and reset infinite scroll state
+    // Reset if we have fewer sections in the navigation than we have loaded OR if it's a navigation to a single section
+    if (this.numSectionsLoadedAtTop && this.props.srefs.length <= this.numSectionsLoadedAtTop || this.props.srefs.length === 1) {
+      this.resetInfiniteScrollState();
     }
     
     const layoutWidth = this.$container.find(".textInner").width();
@@ -97,28 +90,12 @@ class TextColumn extends Component {
     
   }
   
-  isNavigationChange(prevRefs, newRefs) {
-    // Determine if this is a navigation (completely different content) vs infinite scroll (expansion)
-    
-    // If new refs is a subset or superset of previous refs, it's infinite scroll
-    if (prevRefs.length === 1 && newRefs.length > 1) {
-      // Likely infinite scroll expanding from single ref
-      return !newRefs.includes(prevRefs[0]);
-    }
-    
-    if (newRefs.length === 1 && prevRefs.length > 1) {
-      // Going from multiple refs to single ref - likely navigation
-      return true;
-    }
-    
-    if (newRefs.length === 1 && prevRefs.length === 1) {
-      // Single to single - definitely navigation if different
-      return newRefs[0] !== prevRefs[0];
-    }
-    
-    // For other cases, check if there's any overlap
-    const hasOverlap = newRefs.some(ref => prevRefs.includes(ref));
-    return !hasOverlap;
+  resetInfiniteScrollState() {
+    // Reset all infinite scroll state variables
+    // This is called when the user navigates through the TOC so the existing scroll position is not relevant
+    this.numSectionsLoadedAtTop = 0;
+    this.loadingContentAtTop = false;
+    this.initialScrollTopSet = false;
   }
   handleScroll(event) {
     if (this.justScrolled) {
