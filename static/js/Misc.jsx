@@ -24,6 +24,7 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
+import { useOnceFullyVisible } from './Header';
 
 
 /**
@@ -1443,8 +1444,19 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 };
 
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) => {
+  const headerRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "category_color_line" });
+    if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
+  }, "sa.header_viewed");
+  return (
+    <div
+      className="categoryColorLine"
+      style={{ background: Sefaria.palette.categoryColor(category) }}
+      ref={headerRef}
+    />
+  );
+};
 
 
 class ProfileListing extends Component {
