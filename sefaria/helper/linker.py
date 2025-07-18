@@ -2,6 +2,7 @@ import dataclasses
 import json
 import spacy
 import structlog
+import time
 from cerberus import Validator
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
@@ -159,17 +160,24 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
     linker = library.get_linker(request_text.lang)
+    start = time.perf_counter()
     title_doc = linker.link(request_text.title, type_filter='citation')
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
     body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
+    duration = time.perf_counter() - start
+    logger.info(
+        "linker.link timing",
+        seconds=duration,
+        title_chars=len(request_text.title),
+        body_chars=len(request_text.body),
+    )
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
         "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
     }
-
     return response
 
 
