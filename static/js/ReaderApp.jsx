@@ -226,7 +226,7 @@ class ReaderApp extends Component {
       if (Sefaria._debug) console.log("sa: reader app has loaded!");
     }
     if (localStorage.getItem("sa.intersection_observer_api_checked") == null) {
-      if (!(IntersectionObserver in window)) {
+      if (!('IntersectionObserver' in window)) {
         sa_event("intersection_observer_not_supported");
       }
       localStorage.setItem("sa.intersection_observer_api_checked", "true");
