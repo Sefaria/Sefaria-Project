@@ -16,6 +16,32 @@ import {
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
 
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
+
 const Header = (props) => {
 
   useEffect(() => {
@@ -32,6 +58,11 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
+
+  const headerRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "regular_header" });
+    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
+  }, "sa.header_viewed");
 
   if (props.hidden && !props.mobileNavMenuOpen) {
     return null;
@@ -102,7 +133,7 @@ const Header = (props) => {
       mobile: !props.multiPanel
     });
     return (
-      <div className={headerClasses} role="banner">
+      <div className={headerClasses} role="banner" ref={headerRef}>
         <div className={headerInnerClasses}>
           {props.multiPanel ? headerContent : mobileHeaderContent}
         </div>
@@ -407,4 +438,4 @@ const HelpButton = () => {
 };
 
 
-export { Header } ;
+export {Header, useOnceFullyVisible};
