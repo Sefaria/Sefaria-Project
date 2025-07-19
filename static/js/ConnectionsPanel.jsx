@@ -166,7 +166,7 @@ class ConnectionsPanel extends Component {
     this._savedHistorySegments.add(ref);
   }
   onTextLoad(ref) {
-    const connectionsPanelCitataions = this.$scrollView[0].querySelectorAll(`[data-ref="${this.props.currentlyVisibleRef}"]`);
+    const connectionsPanelCitataions = [...this.$scrollView[0].querySelectorAll("[data-ref]")].filter(el => Sefaria.refContains(el.getAttribute("data-ref"), this.props.currentlyVisibleRef));
     if (connectionsPanelCitataions.length > 0) {
       for (let citation of connectionsPanelCitataions) {
         citation.classList.add('highlightCitation');
