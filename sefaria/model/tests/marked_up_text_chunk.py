@@ -86,33 +86,33 @@ def _aggregate_chunks(chunks: list[dict]) -> list[dict]:
 # Fixture: load → yield → cleanup (identical pattern to Topic graph tests)   #
 # ---------------------------------------------------------------------------#
 @pytest.fixture(scope="module")
-def marked_up_chunks(django_db_setup, django_db_blocker):
+def marked_up_chunks():
     """
     Prepare a clean set of MarkedUpTextChunk records in Mongo,
     then yield them for the tests, then delete them afterwards.
     """
-    with django_db_blocker.unblock():
-        # 1) Start with a clean slate for the PKs we care about
-        for c in MARKED_UP_TEXT_CHUNKS_DATA:
-            mongo_db.marked_up_text_chunks.delete_many(
-                {"ref": c["ref"], "versionTitle": c["versionTitle"], "language": c["language"]}
-            )
+    # 1) Start with a clean slate for the PKs we care about
+    for c in MARKED_UP_TEXT_CHUNKS_DATA:
+        mongo_db.marked_up_text_chunks.delete_many(
+            {"ref": c["ref"], "versionTitle": c["versionTitle"], "language": c["language"]}
+        )
 
-        # 2) Insert merged (PK-unique) payloads
-        objs, payloads = [], _aggregate_chunks(MARKED_UP_TEXT_CHUNKS_DATA)
-        for data in payloads:
-            obj = MarkedUpTextChunk(data)
-            obj.save()  # validation & normalisation happen inside .save()
-            objs.append(obj)
+    # 2) Insert merged (PK-unique) payloads
+    objs = []
+    payloads = _aggregate_chunks(MARKED_UP_TEXT_CHUNKS_DATA)
+    for data in payloads:
+        obj = MarkedUpTextChunk(data)
+        obj.save()  # validation & normalisation happen inside .save()
+        objs.append(obj)
 
-        yield {
-            "objects": objs,     # the live objects we saved
-            "payloads": payloads # the canonical input they were built from
-        }
+    yield {
+        "objects": objs,     # the live objects we saved
+        "payloads": payloads # the canonical input they were built from
+    }
 
-        # 3) Tear-down – remove every object we created
-        for o in objs:
-            o.delete()
+    # 3) Tear-down – remove every object we created
+    for o in objs:
+        o.delete()
 
 class TestMarkedUpTextChunk:
     def test_inserted_records_match_input(self, marked_up_chunks):
@@ -144,22 +144,11 @@ class TestMarkedUpTextChunk:
         with pytest.raises(InputError):
             MarkedUpTextChunk(marked_up_chunk).save()
 
-    def test_validation_failure(self):
+    def test_validation_failure(self, marked_up_chunks):
         """
         Invalid language → InputError
         """
-        bad_payload = {
-            "ref": "Rashi on Genesis 1:1:1",
-            "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
-            "language": "fr",  # not allowed
-            "spans": [
-                {
-                    "charRange": [0, 5],
-                    "text": "foo",
-                    "type": "citation",
-                    "ref": "Genesis 1:1",
-                }
-            ],
-        }
+        invalid_language_payload = deepcopy(marked_up_chunks["payloads"][0])
+        invalid_language_payload["language"] = "fr"
         with pytest.raises(InputError):
-            MarkedUpTextChunk(bad_payload).save()
+            MarkedUpTextChunk(invalid_language_payload).save()
