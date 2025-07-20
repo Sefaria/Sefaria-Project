@@ -348,9 +348,9 @@ class Completions(object):
         for cs, co in zip(completion_strings, completion_objects):
             co_type = co["type"]
             normalized_type = self._type_norm_map[co_type]
-            if normalized_type in self._library_types and self.active_module != 'library':
+            if normalized_type in self._library_types and self.active_module == 'sheets':
                 continue
-            elif normalized_type in self._sheet_types and self.active_module != 'sheets':
+            elif normalized_type in self._sheet_types and self.active_module == 'library':
                 continue
             elif normalized_type == 'Topic' and self.active_module and self.active_module not in co["topic_pools"]:
                 continue
