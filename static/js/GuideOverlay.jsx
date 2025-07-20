@@ -157,7 +157,7 @@ const GuideOverlay = ({
     // Reason for this functionality: The guide is meant to clarify the page, if it causes more problems, it isn't worth the hassle
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
-        handleClose();
+        handleClose(setCookie=false);
         // It would be great to also trigger some sort of analytics here. It wasn't in the current spec.
         alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
       }
@@ -180,7 +180,7 @@ const GuideOverlay = ({
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
           console.error("Error loading guide:", error);
-          handleClose();
+          handleClose(setCookie=false);
           alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
         }
       } finally {
@@ -206,7 +206,12 @@ const GuideOverlay = ({
     $.cookie(cookieName, currentDate, {path: "/", expires: 20*365}); // 20 year expiration
   };
 
-  const handleClose = () => {
+  /**
+   * Handles closing the guide overlay.
+   * @param {boolean} [shouldSetCookie=true] - If true, sets a cookie to remember that the user dismissed the overlay.
+   *   If false, does not set the cookie. This is useful when closing the overlay due to an error.
+   */
+  const handleClose = (shouldSetCookie = true) => {
     // Calculate duration in seconds (how long overlay was open)
     const durationMs = overlayStartTimeRef.current ? Date.now() - overlayStartTimeRef.current : 0;
     const durationSeconds = Math.floor(durationMs / 1000); // Round down to the second
@@ -216,7 +221,7 @@ const GuideOverlay = ({
       duration: durationSeconds
     });
     
-    setCookie();
+    if (shouldSetCookie) setCookie();
     if (onClose) onClose();
     setIsVisible(false);
   };
