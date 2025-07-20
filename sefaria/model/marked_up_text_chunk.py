@@ -53,29 +53,25 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         super()._validate()
         oref = Ref(self.ref)
         if not oref.is_segment_level():
-            raise InputError(type(self).__name__ + "._validate(): Ref must be at segment level: " + str(oref))
+            raise InputError(type(self).__name__ + "._validate(): Ref must be at segment level: " + oref.normal())
         tc = TextChunk(oref, lang=self.language, vtitle=self.versionTitle)
 
         if not tc.text:
             raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")
 
         # Enforce uniqueness
-        pkey_query = {}
-        for key in self.pkeys:
-            value = getattr(self, key, None)
-            if value is None:
-                raise InputError(f"{type(self).__name__}._validate(): Missing value for primary key: {key}")
-            pkey_query[key] = value
+        pkey_query = {k: getattr(self, k) for k in self.pkeys}
 
         existing = self.load(pkey_query)
         if existing:
-            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key (ref, language, versionTitle)")
+            raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found {pkey_query} to already exist in the database.")
 
         for span in self.spans:
             text = tc.text
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
-                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}")
+                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}"
+                                 f": expected '{span['text']}', found '{citation_text}'.")
 
         return True
 
