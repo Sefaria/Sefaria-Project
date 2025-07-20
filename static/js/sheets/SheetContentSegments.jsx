@@ -205,7 +205,7 @@ class SheetMedia extends Component {
     else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
-    else if (parsedUrl.hostname.includes("spotify.com")) {
+    else if (parsedUrl && parsedUrl.hostname.includes("spotify.com")) {
       const [,, type] = parsedUrl.pathname.split("/");
 
       // Spotify embed heights are fixed by Spotify's player design.
