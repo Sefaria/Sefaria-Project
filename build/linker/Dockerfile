@@ -25,6 +25,7 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 
 RUN apt-get update -qq \
  && apt-get install --no-install-recommends -y \
+    cuda-toolkit-12-2 \
     cuda-libraries-12-2 \
     libnpp-12-2 \
     cuda-nvtx-12-2 \
@@ -46,5 +47,5 @@ ENV PATH=/usr/local/nvidia/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64/
 ENV LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so
 
-RUN pip install spacy[cuda122]~=3.7.0
+RUN pip install cupy-cuda12x spacy[cuda122]~=3.7.0
 

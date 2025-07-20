@@ -401,7 +401,7 @@ return (
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
-            {hasAiContentLinks &&
+            {hasAiContentLinks && Sefaria.activeModule === 'library' && 
                 <AiInfoTooltip/>
             }
         </div>
