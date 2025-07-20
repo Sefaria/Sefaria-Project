@@ -46,6 +46,7 @@ import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
 import GuideOverlay from './GuideOverlay';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 
 class ReaderPanel extends Component {
@@ -523,7 +524,10 @@ class ReaderPanel extends Component {
     const GUIDE_MAPPINGS = [
       {
         guideType: "editor",
-        condition: (state, props) => state.mode === "Sheet"
+        condition: (state, props) => {
+          if (state.mode !== "Sheet") return false;
+          return shouldUseEditor(state.sheetID);
+        }
       },
       // Add new guides here following the same pattern:
       // {
