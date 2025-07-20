@@ -8700,14 +8700,6 @@ a .button:hover {
   width: -moz-fit-content;
   width: fit-content;
 }
-.button.small.publish {
-  color: #666666;
-  background-color: white;
-  font-weight: 500;
-  min-height: 31px;
-  height: 31px;
-  padding: 0 10px;
-}
 .headerWithAdminButtonsContainer{
   display: flex;
   justify-content: space-between;
@@ -9179,6 +9171,9 @@ a.sheetAuthorName:hover {
   position: relative;
   pointer-events: none;
   width: auto;
+}
+.interface-hebrew .sheetMetaDataBox .summary:empty:before {
+  content: "הוסף תיאור";
 }
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";

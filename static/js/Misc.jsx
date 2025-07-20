@@ -27,7 +27,7 @@ import { ReaderApp } from './ReaderApp';
 import { ToolsButton } from "./ConnectionsPanel";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
-
+import Button from "./common/Button";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -3099,9 +3099,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           className={inputClassNames}
 
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+      {showAddButton && <Button className={buttonClassNames} onClick={(e) => {handleSelection(inputValue, currentSuggestions)
+                }}><InterfaceText>{buttonTitle}</InterfaceText></Button>}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
