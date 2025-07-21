@@ -14,7 +14,7 @@ def load_initial_data(apps, schema_editor):
     InfoCard = apps.get_model('guides', 'InfoCard')
     
     # Get the path to the JSON file
-    json_file_path = os.path.join(os.path.dirname(__file__), 'guides_data.json')
+    json_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fixtures', 'guides_data.json')
     
     # Load data from JSON file
     with open(json_file_path, 'r', encoding='utf-8') as f:
