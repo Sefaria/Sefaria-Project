@@ -165,9 +165,8 @@ class TextColumn extends Component {
     
     // Clear the loading flag if we were loading content at the top
     const wasLoadingContentAtTop = this.loadingContentAtTop;
-    if (this.loadingContentAtTop) {
-      this.loadingContentAtTop = false;
-    }
+    this.loadingContentAtTop = false;
+    
     
     // Set initial scroll position if this is the first load
     if (!this.initialScrollTopSet) {
