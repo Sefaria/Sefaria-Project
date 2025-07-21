@@ -63,6 +63,8 @@ class Guide(models.Model):
         verbose_name="Footer Link 2 URL",
         help_text="URL for the second footer link (optional)"
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def footer_links(self):
@@ -86,9 +88,6 @@ class Guide(models.Model):
                 })
 
         return links
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def contents(self, **kwargs):
         """
