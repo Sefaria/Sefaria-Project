@@ -1,4 +1,4 @@
-import re
+import regex as re
 from typing import Dict, List, Callable
 from functools import reduce, lru_cache
 from bisect import bisect_right
