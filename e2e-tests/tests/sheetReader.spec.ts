@@ -35,33 +35,34 @@ test.describe('Read Public Sheet', () => {
     await expect(sheet.addedImage()).toBeVisible();
     await expect(sheet.outsideText().filter({ hasText: 'text after image' })).toBeVisible();
 
-    await expect(sheet.youTubeIframe()).toBeVisible();
-    await expect(sheet.youTubeIframe()).toHaveAttribute('src', /youtube\.com\/embed\/Vmwc02Q7DEA/);
+    await expect(sheet.youTubeIframeElement()).toBeVisible();
+    await expect(sheet.youTubeIframeElement()).toHaveAttribute('src', /youtube\.com\/embed\/Vmwc02Q7DEA/);
     await expect(sheet.outsideText().filter({ hasText: 'text after youtube video' })).toBeVisible();
 
-    await expect(sheet.spotifyIframe()).toBeVisible();
-    await expect(sheet.spotifyIframe()).toHaveAttribute('src', /open\.spotify\.com\/embed\/episode\/4FJZFVPldsPmNZHWDjErc7/);
+    await expect(sheet.spotifyIframeElement()).toBeVisible();
+    await expect(sheet.spotifyIframeElement()).toHaveAttribute('src', /open\.spotify\.com\/embed\/episode\/4FJZFVPldsPmNZHWDjErc7/);
     await expect(sheet.outsideText().filter({ hasText: 'text after spotify' })).toBeVisible();
   });
 
   // TC042: Check embedded Media plays in Sheet (even if not a Spotify subscriber)
-  test('TC042: Embedded media plays in sheet', async ({ page }) => {
-    // Find the media iframe (YouTube or Spotify)
-    const youtubeFrame = page.frameLocator('iframe[src*="youtube"]');
-    const spotifyFrame = page.frameLocator('iframe[src*="spotify"]');
-    // At least one media iframe should be present
-    const youtubeCount = await page.locator('iframe[src*="youtube"]').count();
-    const spotifyCount = await page.locator('iframe[src*="spotify"]').count();
-    expect(youtubeCount + spotifyCount).toBeGreaterThan(0);
-    // Optionally, check that the iframe is visible
-    if (youtubeCount > 0) {
-      await expect(page.locator('iframe[src*="youtube"]')).toBeVisible();
-    }
-    if (spotifyCount > 0) {
-      await expect(page.locator('iframe[src*="spotify"]')).toBeVisible();
-    }
-    // Optionally, interact with the iframe to check playback (advanced)
-  });
+  test('TC042-A: Embedded YouTube media is present and can be played', async ({ page }) => {
+    await page.goto(SHEET_URL);
+    await expect(sheet.youTubeIframe).toBeDefined();
+    if (await sheet.youTubeLargePlayButton().isVisible()) {
+        await sheet.youTubeLargePlayButton().click();
+      }
+    await sheet.youTubePlayerArea().hover();
+    await expect(sheet.youTubePlayPauseButton()).toHaveAttribute('title', /Pause/); 
+    });
+
+    test('TC042-B: Embedded Spoptify media is present and can be played', async ({ page }) => {
+        await page.goto(SHEET_URL)
+        await expect(sheet.spotifyIframe()).toBeDefined();
+        await expect(sheet.spotifyPlayPauseButton()).toBeVisible();
+        await sheet.spotifyPlayPauseButton().click();
+        await expect(sheet.spotifyPlayPauseButton()).toHaveAttribute('aria-label', 'Pause');  
+    });
+  
   test('TC043: Outside text formatting is displayed correctly', async ({ page }) => {
     // Check for bold
     await expect(sheet.outsideText().locator('b')).toHaveText('bolded');
@@ -99,7 +100,7 @@ test.describe('Read Public Sheet', () => {
     await page.waitForLoadState('domcontentloaded');
     await sheet.topTitle().click();
     await expect(sheet.resourcePanel()).toBeVisible();
-    await expect(sheet.resourcePanel()).toContainText('About this Sheet');
+    await expect(sheet.resourcePanel()).toContainText('Tools');
     await expect(sheet.resourcePanel()).toContainText('Share');
   });
 
@@ -117,7 +118,7 @@ test.describe('Read Public Sheet', () => {
     await page.waitForLoadState('domcontentloaded');
     await sheet.outsideText().first().click();    
     await expect(sheet.resourcePanel()).toBeVisible();
-    await expect(sheet.resourcePanel()).toContainText('About this Sheet');
+    await expect(sheet.resourcePanel()).toContainText('Tools');
     await expect(sheet.resourcePanel()).toContainText('Share');
     await sheet.closeResourcePanel();
 
@@ -129,6 +130,8 @@ test.describe('Read Public Sheet', () => {
     await sheet.sourceBox().first().click();
     await expect(sheet.resourcePanel()).toBeVisible();
     await expect(sheet.resourcePanel()).toContainText('About this Sheet');
+    await expect(sheet.resourcePanel()).toContainText('Tools');
+    await expect(sheet.resourcePanel()).toContainText('Resources');
     await expect(sheet.resourcePanel()).toContainText('About this Source');
     await sheet.closeResourcePanel();
   });
@@ -138,7 +141,7 @@ test.describe('Read Public Sheet', () => {
     await page.waitForLoadState('domcontentloaded');
     await sheet.addedImage().first().click();
     await expect(sheet.resourcePanel()).toBeVisible();
-    await expect(sheet.resourcePanel()).toContainText('About this Sheet');
+    await expect(sheet.resourcePanel()).toContainText('Tools');
     await expect(sheet.resourcePanel()).toContainText('Share');
     await sheet.closeResourcePanel();
 
