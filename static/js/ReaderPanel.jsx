@@ -1209,7 +1209,7 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
-              showGuide={this.getGuideType() && this.showGuide.bind(this)}
+              showGuide={this.getGuideType() && this.showGuide.bind(this)} // Sending null (false) if the guide shouldn't show so we don't show the guide button
             />}
 
           {(items.length > 0 && !menu) ?
