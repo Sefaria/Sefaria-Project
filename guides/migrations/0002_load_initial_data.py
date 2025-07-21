@@ -5,27 +5,27 @@ from __future__ import unicode_literals
 from django.db import migrations
 import json
 import os
-from django.conf import settings
 
 
 def load_initial_data(apps, schema_editor):
     """Load initial guide data from guides_data.json"""
     Guide = apps.get_model('guides', 'Guide')
     InfoCard = apps.get_model('guides', 'InfoCard')
-    
+
     # Get the path to the JSON file
-    json_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fixtures', 'guides_data.json')
-    
+    json_file_path = os.path.join(os.path.dirname(
+        os.path.dirname(__file__)), 'fixtures', 'guides_data.json')
+
     # Load data from JSON file
     with open(json_file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    
+
     # Process each item in the JSON data
     for item in data:
         model_name = item['model']
         fields = item['fields']
         pk = item['pk']
-        
+
         if model_name == 'guides.guide':
             # Create Guide object
             Guide.objects.get_or_create(
@@ -44,11 +44,11 @@ def load_initial_data(apps, schema_editor):
                     'updated_at': fields['updated_at'],
                 }
             )
-        
+
         elif model_name == 'guides.infocard':
             # Get the related Guide object
             guide = Guide.objects.get(pk=fields['guide'])
-            
+
             # Create InfoCard object
             InfoCard.objects.get_or_create(
                 pk=pk,
@@ -69,10 +69,10 @@ def reverse_load_initial_data(apps, schema_editor):
     """Remove the initial guide data"""
     Guide = apps.get_model('guides', 'Guide')
     InfoCard = apps.get_model('guides', 'InfoCard')
-    
+
     # Delete all InfoCard objects first (due to foreign key constraint)
     InfoCard.objects.all().delete()
-    
+
     # Delete all Guide objects
     Guide.objects.all().delete()
 
@@ -88,4 +88,4 @@ class Migration(migrations.Migration):
             load_initial_data,
             reverse_load_initial_data,
         ),
-    ] 
+    ]
