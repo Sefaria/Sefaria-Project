@@ -1,6 +1,7 @@
 # Sefaria E2E Testing Guide
 
 A comprehensive guide for writing Playwright tests for Sefaria.
+Note, there are currently many inconsistencies in the tests and a general need for a refactor.
 
 ## 🏗️ Core Architecture
 
@@ -127,15 +128,9 @@ await pm.onUserMenu().yourNewMethod();
 Note - Currently local development could have problems with language changes.
 
 Create an `.env` file in the project root (gitignored):
+You can use the example.env in the /e2e-tests folder as a template.
+
 ```bash
-# Set environment variables
-export SANDBOX_URL=https://your-cauldron.cauldron.sefaria.org // For local testing set local host
-export PLAYWRIGHT_USER_EMAIL=your-email@sefaria.org  
-export PLAYWRIGHT_USER_PASSWORD=your-password
-
-PLAYWRIGHT_SUPERUSER_EMAIL=your-admin-email@sefaria.org
-PLAYWRIGHT_SUPERUSER_PASSWORD=your-password
-
 # Run tests
 npx playwright test
 ```
