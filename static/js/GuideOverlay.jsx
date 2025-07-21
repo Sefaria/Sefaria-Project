@@ -157,7 +157,7 @@ const GuideOverlay = ({
     // Reason for this functionality: The guide is meant to clarify the page, if it causes more problems, it isn't worth the hassle
     timeoutId = setTimeout(() => {
       if (isComponentMounted) {
-        handleClose(setCookie=false);
+        handleClose(false);
         // It would be great to also trigger some sort of analytics here. It wasn't in the current spec.
         alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
       }
@@ -176,11 +176,9 @@ const GuideOverlay = ({
           setCurrentCardIndex(0);
         }
       } catch (error) {
-        console.error("Error loading guide:", error);
         if (isComponentMounted) {
           clearTimeout(timeoutId); // Clear the timeout if there is an error
-          console.error("Error loading guide:", error);
-          handleClose(setCookie=false);
+          handleClose(false);
           alert(Sefaria._("Something went wrong. Try refreshing the page", "EditorSaveIndicator"));
         }
       } finally {
@@ -254,7 +252,6 @@ const GuideOverlay = ({
     
     // Validate direction parameter
     if (direction !== "next" && direction !== "previous") {
-      console.error(`Invalid direction: ${direction}. Expected "next" or "previous".`);
       return;
     }
     
