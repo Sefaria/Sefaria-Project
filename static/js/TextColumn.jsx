@@ -344,7 +344,7 @@ class TextColumn extends Component {
     // This enables smooth downward scrolling
     const $lastText = this.$container.find(".textRange.basetext").last();
       if ($lastText.hasClass("loading")) {
-      return; // Don't load more while already loading
+        return; // Don't load more while already loading
       }
     
     const refs = this.props.srefs.slice();
