@@ -168,7 +168,7 @@ class TextList extends Component {
                                       textHighlights={link.highlightedWords || null}
                                       inlineReference={link.inline_reference || null}
                                       onCitationClick={this.props.onCitationClick}
-                                      onTextLoad={this.props.onTextLoad}
+                                      onTextLoad={i === 0 ? this.props.onTextLoad : null}
                                       translationLanguagePreference={this.props.translationLanguagePreference}
                                       filterRef={this.props.filterRef}
                                     />
