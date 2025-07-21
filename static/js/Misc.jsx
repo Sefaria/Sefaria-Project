@@ -24,8 +24,32 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
-import { useOnceFullyVisible } from './Header';
 
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -3317,5 +3341,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner
+  LearnAboutNewEditorBanner,
+  useOnceFullyVisible
 };

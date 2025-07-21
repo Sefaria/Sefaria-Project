@@ -11,36 +11,12 @@ import {
   InterfaceLanguageMenu,
   InterfaceText,
   LanguageToggleButton,
-  DonateLink
+  DonateLink,
+  useOnceFullyVisible
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
 
-function useOnceFullyVisible(onVisible, key) {
-  const targetRef = useRef(null);
-
-  useEffect(() => {
-    if (sessionStorage.getItem(key)) return;
-    const node = targetRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio === 1) {
-          onVisible();
-          sessionStorage.setItem(key, "true");
-          observer.disconnect();
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [onVisible, key]);
-
-  return targetRef;
-}
 
 const Header = (props) => {
 
@@ -438,4 +414,4 @@ const HelpButton = () => {
 };
 
 
-export {Header, useOnceFullyVisible};
+export {Header};
