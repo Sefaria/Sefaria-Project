@@ -242,7 +242,7 @@ const GuideOverlay = ({
     });
 
     if (shouldSetCookie) setCookie();
-    if (onClose) onClose();
+    onClose();
     setIsVisible(false);
   };
 
