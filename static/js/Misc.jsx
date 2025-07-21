@@ -1469,7 +1469,7 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 
 
 const CategoryColorLine = ({ category }) => {
-  const headerRef = useOnceFullyVisible(() => {
+  const categoryColorLineRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "category_color_line" });
     if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
   }, "sa.header_viewed");
@@ -1477,7 +1477,7 @@ const CategoryColorLine = ({ category }) => {
     <div
       className="categoryColorLine"
       style={{ background: Sefaria.palette.categoryColor(category) }}
-      ref={headerRef}
+      ref={categoryColorLineRef}
     />
   );
 };
