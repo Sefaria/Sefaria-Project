@@ -8,6 +8,7 @@ import {
   transformValues,
 } from "./Misc";
 import Sefaria from "./sefaria/sefaria";
+import Cookies from "js-cookie";
 
 const localize = (str) => Sefaria._(str, "Guide");
 
@@ -199,7 +200,7 @@ const GuideOverlay = ({
 
   // Cookie-based effect - runs once on mount to check if guide should auto-show
   useEffect(() => {
-    if (!$.cookie(cookieName) && !isVisible) {
+    if (!Cookies.get(cookieName) && !isVisible) {
       // Auto view fires when guide shows without being forced (no cookie exists)
       trackGuideEvent("guide_view_auto", guideType);
       setIsVisible(true);
@@ -220,7 +221,7 @@ const GuideOverlay = ({
   const setCookie = () => {
     // Store the current date when user dismisses the overlay
     const currentDate = new Date().toISOString();
-    $.cookie(cookieName, currentDate, { path: "/", expires: 20 * 365 }); // 20 year expiration
+    Cookies.set(cookieName, currentDate, { path: "/", expires: 20 * 365 }); // 20 year expiration
   };
 
   /**
