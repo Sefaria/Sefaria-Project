@@ -173,7 +173,7 @@ class InfoCard(Sortable):
         }
 
     def __str__(self):
-        return f"{self.guide.key} - {self.title_en}"
+        return f"{self.guide.key} - {self.title_en} - Card #{self.order}"
 
     class Meta(Sortable.Meta):
         verbose_name = "Info Card"
