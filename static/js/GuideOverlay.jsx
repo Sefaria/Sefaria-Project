@@ -130,34 +130,14 @@ const GuideOverlay = ({
   const [isVisible, setIsVisible] = useState(false);
   const [guideData, setGuideData] = useState(null);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Track when overlay becomes visible to calculate duration on close
   const overlayStartTimeRef = useRef(null);
 
-  // Respond to prop changes and initial mount
-  // This is needed for the GuideButton functionality - when user clicks the button,
-  // forceShow changes from false to true, and we need to show the overlay
-  useEffect(() => {
-    const shouldShow = forceShow || !$.cookie(cookieName);
-    setIsVisible(shouldShow);
-
-    if (shouldShow) {
-      // Start tracking duration when overlay becomes visible
-      overlayStartTimeRef.current = Date.now();
-
-      if (forceShow) {
-        trackGuideEvent("guide_view_manual", guideType);
-      } else {
-        // Auto view fires when guide shows without being forced (no cookie exists)
-        trackGuideEvent("guide_view_auto", guideType);
-      }
-    }
-  }, [forceShow]);
-
-  // Load guide data only when overlay is visible to avoid unnecessary API calls
-  useEffect(() => {
-    if (!isVisible) return;
+  const loadGuideData = () => {
+    // Start tracking duration when overlay becomes visible
+    overlayStartTimeRef.current = Date.now();
 
     // Prevents state updates and alerts after component unmounts to avoid alerts etc' after component is closed
     let isComponentMounted = true;
@@ -215,7 +195,26 @@ const GuideOverlay = ({
       isComponentMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [isVisible, guideType, timeoutLength]);
+  };
+
+  // Cookie-based effect - runs once on mount to check if guide should auto-show
+  useEffect(() => {
+    if (!$.cookie(cookieName) && !isVisible) {
+      // Auto view fires when guide shows without being forced (no cookie exists)
+      trackGuideEvent("guide_view_auto", guideType);
+      setIsVisible(true);
+      loadGuideData();
+    }
+  }, []);
+
+  // ForceShow effect - responds to prop changes for manual guide display (guide button click)
+  useEffect(() => {
+    if (forceShow && !isVisible) {
+      trackGuideEvent("guide_view_manual", guideType);
+      setIsVisible(true);
+      loadGuideData();
+    }
+  }, [forceShow, isVisible, guideType]);
 
   // Set cookie when user dismisses the overlay
   const setCookie = () => {
