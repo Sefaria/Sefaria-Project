@@ -304,7 +304,7 @@ class TextColumn extends Component {
     const topRef = refs[0]; // Currently displayed top section
     
     const currentData = Sefaria.ref(topRef);
-    if (!currentData || !currentData.prev) {
+    if (!currentData?.next) {
       return; // No previous content available
     }
     
@@ -351,7 +351,7 @@ class TextColumn extends Component {
     const currentRef = refs.slice(-1)[0]; // Currently displayed bottom section
     const currentData = Sefaria.ref(currentRef);
     
-    if (!currentData || !currentData.next) {
+    if (!currentData?.next) {
       return; // No next content available
     }
     
