@@ -76,7 +76,7 @@ class Guide(models.Model):
             url = getattr(self, f'footer_link_{i}_url')
 
             # Add link if it has texts and URL
-            if text_en and text_he and url:
+            if all([text_en, text_he, url]):
                 links.append({
                     'text': {
                         'en': text_en,
