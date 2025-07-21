@@ -17,17 +17,11 @@ export class SheetEditorPage extends HelperBase {
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
     maxSaveStateTimeout = 5000; //used in assertSaveState and a few other functions to allow for save state detection/update
 
-    async getHoverStatus() {
-      await this.statusIndicator().hover();
-    }
+    async getHoverStatus() { await this.statusIndicator().hover();}
 
-    async getStatusText() {
-        return await this.statusIndicator().innerText();
-    }
+    async getStatusText() { return await this.statusIndicator().innerText() }
 
-    async getTooltipText() {
-        return await this.statusTooltip().getAttribute('aria-label');
-    }
+    async getTooltipText() {return await this.statusTooltip().getAttribute('aria-label');}
 
     /**
      * Asserts the save state of the editor
@@ -110,14 +104,8 @@ export class SheetEditorPage extends HelperBase {
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
     sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
-    //addSomethingButton = () => this.page.locator('.editorAddInterface');
-    // addSomethingButton= () => this.page.locator('.editorAddLineButton');
-    // //addSomethingButton = () => this.page.getByRole('button', { name: 'Add a source, image, or other media' });
-    // addSourceButton = () => this.page.getByRole('button', { name: 'Add a source' });
-    // addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
-    // addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
-    //addSomethingButton = () => this.page.locator('.editorAddInterface:not(.active)');
-    addSomethingButton = () => this.page.locator('div[role="button"][aria-label="Add new line"]');    
+    
+    addSomethingButton = () => this.page.locator('.editorAddInterface');   
     addSourceButton = () => this.page.locator('#addSourceButton');
     addImageButton = () => this.page.locator('#addImageButton');
     addMediaButton = () => this.page.locator('#addMediaButton');
@@ -125,6 +113,7 @@ export class SheetEditorPage extends HelperBase {
     // Sheet Body---------------------------------------------
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
+    addedSource = () => this.page.locator('.SheetSource.segment');
 
     // Sheet Actions--------------------------------------------------
     async closeSheetEditor() {
@@ -145,22 +134,34 @@ export class SheetEditorPage extends HelperBase {
         await this.page.keyboard.type(text, {delay: 100});
     }
 
+    async clickPlusButton() {
+      const box = await this.page.locator('.editorAddInterface').boundingBox();
+      if (box) {
+          const plusX = box.x - 46 + 15;
+          const plusY = box.y + box.height / 2;
+          await this.page.mouse.click(plusX, plusY);
+      } else {
+          throw new Error('editorAddInterface not found');
+      }
+  }
+
     async clickAddSomething() {
         await this.addSomethingButton().click();
     }
 
     async clickAddSource() {
-        this.clickAddSomething();
+        this.clickPlusButton();
         await this.addSourceButton().click();
     }
 
-    async clickAddText() {
-        await this.addSomethingButton().click();
-    }
-
     async clickAddMedia() {
-        this.clickAddSomething();
-        await this.addMediaButton().click();
+      this.clickPlusButton();
+      await this.addMediaButton().click();
+    }
+    
+    async clickAddImage() {
+      this.clickPlusButton();
+      await this.addImageButton().click();
     }
 
     async clickSidebarToggle() {
@@ -175,19 +176,91 @@ export class SheetEditorPage extends HelperBase {
       return this.page.locator('span[data-slate-string="true"]', { hasText: text });
     }
 
-
     async addSampleSource() {
-        console.log(await this.page.content());
-        //await this.addSomethingButton().scrollIntoViewIfNeeded();
-        await expect(this.addSomethingButton()).toBeVisible();
-        await this.addSomethingButton().click({ force: true });
-       // await this.addSomethingButton().first().click({ force: true });
-        await expect(this.addSourceButton()).toBeVisible();
-        await this.addSourceButton().click();
+        await this.clickAddSource();
         await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
         await this.page.getByRole('button', { name: 'Add Source' }).click();
       };
+
+    async addSampleImage() {
+      await this.clickAddImage();
+      const imagePath = 'e2e-tests/fixtures/test-image.jpg';
+      const fileInput = this.page.locator('#addImageFileSelector');
+      await fileInput.setInputFiles(imagePath);
+      await this.page.waitForSelector('img');
+      await expect(this.page.locator('img.addedMedia')).toBeVisible();
+    };
+
+    async addSampleMedia(link: string) {
+      await this.clickAddMedia();
+      await this.page.getByRole('textbox', { name: 'Paste a link to an image, video, or audio' }).fill(link);
+      await this.page.getByRole('button', { name: 'Add Media' }).click();
+      // By using .last(), we specifically target the media element that was just added.
+      await expect(this.page.locator('.SheetMedia').last()).toBeVisible();
+    };   
     
+  //   async addTextBelow(text: string) {
+  //     await this.page.locator('.spacerSelected .editorAddInterface').click();
+  //     await this.page.keyboard.type(text, { delay: 100 });
+  //  }
+  async addTextBelow(text: string) {
+    // This is the most robust method for complex editors like Slate.js.
+    // It bypasses all click/focus issues by programmatically setting the browser's text selection
+    // inside the editable area.
+    await this.page.evaluate(() => {
+        const editableContainer = document.querySelector('.spacerSelected .cursorHolder[contenteditable="true"]') as HTMLElement;
+        if (editableContainer) {
+            editableContainer.focus();
+            const range = document.createRange();
+            range.selectNodeContents(editableContainer);
+            range.collapse(true); 
+            const selection = window.getSelection();
+            if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+    });
+    await this.page.keyboard.type(text);
+}
+
+  async goToNewLineAtBottom() {
+    await this.page.evaluate(() => {
+        const editor = document.querySelector('[data-slate-editor="true"]');
+        if (!editor) return;
+
+        // Find the last text block (with contenteditable)
+        // This assumes each text block is a direct child or has a contenteditable descendant
+        let lastTextBlock: HTMLElement | null = null;
+        const children = Array.from(editor.children) as HTMLElement[];
+        for (let i = children.length - 1; i >= 0; i--) {
+            const block = children[i];
+            if (block.querySelector('[contenteditable="true"]')) {
+                lastTextBlock = block.querySelector('[contenteditable="true"]') as HTMLElement;
+                break;
+            }
+        }
+
+        if (lastTextBlock) {
+            lastTextBlock.focus();
+            // Move cursor to the end
+            const selection = window.getSelection();
+            if (selection) {
+                const range = document.createRange();
+                range.selectNodeContents(lastTextBlock);
+                range.collapse(false); // Move to end
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+    });
+
+    // Now press Enter to create a new line at the bottom
+    await this.page.keyboard.press('Enter');
+    // Optionally, wait for the new line to appear
+    await this.page.waitForTimeout(200);
+  }
+
     async sampleSourceNotEditable() {
         const sourceBox = this.page.locator('.sourceBox').last();
         await sourceBox.click();
