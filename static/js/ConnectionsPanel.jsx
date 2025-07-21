@@ -171,7 +171,13 @@ class ConnectionsPanel extends Component {
       for (let citation of connectionsPanelCitataions) {
         citation.classList.add('highlightCitation');
       }
-      connectionsPanelCitataions[0].scrollIntoView();
+      const citationClientRect = connectionsPanelCitataions[0].getBoundingClientRect();
+      const scrollViewClientRect = this.$scrollView[0].getBoundingClientRect();
+      this.$scrollView[0].scrollTo(
+        {top: 
+          citationClientRect.top - scrollViewClientRect.top - (scrollViewClientRect.height - citationClientRect.height) / 2,
+          behavior: "smooth"
+        });
     }
   }
   isSheet() {
