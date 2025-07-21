@@ -59,7 +59,7 @@ class ReaderPanel extends Component {
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
       data: null,
-      forceGuideOverlay: false, // State to force guide overlay to show
+      forceGuideOverlay: false,
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
