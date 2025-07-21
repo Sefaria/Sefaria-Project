@@ -3,66 +3,18 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import json
+from django.core.management import call_command
 import os
 
 
 def load_initial_data(apps, schema_editor):
     """Load initial guide data from guides_data.json"""
-    Guide = apps.get_model('guides', 'Guide')
-    InfoCard = apps.get_model('guides', 'InfoCard')
-
-    # Get the path to the JSON file
-    json_file_path = os.path.join(os.path.dirname(
+    # Get the path to the fixture file
+    fixture_file = os.path.join(os.path.dirname(
         os.path.dirname(__file__)), 'fixtures', 'guides_data.json')
-
-    # Load data from JSON file
-    with open(json_file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    # Process each item in the JSON data
-    for item in data:
-        model_name = item['model']
-        fields = item['fields']
-        pk = item['pk']
-
-        if model_name == 'guides.guide':
-            # Create Guide object
-            Guide.objects.get_or_create(
-                pk=pk,
-                defaults={
-                    'key': fields['key'],
-                    'title_prefix_en': fields['title_prefix_en'],
-                    'title_prefix_he': fields['title_prefix_he'],
-                    'footer_link_1_text_en': fields['footer_link_1_text_en'],
-                    'footer_link_1_text_he': fields['footer_link_1_text_he'],
-                    'footer_link_1_url': fields['footer_link_1_url'],
-                    'footer_link_2_text_en': fields['footer_link_2_text_en'],
-                    'footer_link_2_text_he': fields['footer_link_2_text_he'],
-                    'footer_link_2_url': fields['footer_link_2_url'],
-                    'created_at': fields['created_at'],
-                    'updated_at': fields['updated_at'],
-                }
-            )
-
-        elif model_name == 'guides.infocard':
-            # Get the related Guide object
-            guide = Guide.objects.get(pk=fields['guide'])
-
-            # Create InfoCard object
-            InfoCard.objects.get_or_create(
-                pk=pk,
-                defaults={
-                    'guide': guide,
-                    'title_en': fields['title_en'],
-                    'title_he': fields['title_he'],
-                    'text_en': fields['text_en'],
-                    'text_he': fields['text_he'],
-                    'order': fields['order'],
-                    'video_en': fields['video_en'],
-                    'video_he': fields['video_he'],
-                }
-            )
+    
+    # Use Django's loaddata command to load the fixture
+    call_command('loaddata', fixture_file)
 
 
 def reverse_load_initial_data(apps, schema_editor):
