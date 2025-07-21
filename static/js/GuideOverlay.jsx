@@ -122,7 +122,7 @@ GuideFooter.propTypes = {
  */
 const GuideOverlay = ({
   onClose,
-  guideType = "editor",
+  guideType,
   forceShow = false,
   timeoutLength = 7,
 }) => {
@@ -404,7 +404,7 @@ const GuideOverlay = ({
 
 GuideOverlay.propTypes = {
   onClose: PropTypes.func.isRequired,
-  guideType: PropTypes.string,
+  guideType: PropTypes.string.isRequired,
   forceShow: PropTypes.bool,
   timeoutLength: PropTypes.number,
 };
