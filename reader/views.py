@@ -86,7 +86,6 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
-from guides.models import *
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -4786,40 +4785,3 @@ def application_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
-
-@catch_error_as_json
-def guides_api(request, guide_key=None):
-    """
-    API endpoint that returns guide data for a specific guide.
-    
-    Args:
-        guide_key (str): The guide key to fetch guide for (e.g., 'editor')
-    
-    Returns:
-        JSON response with the following structure:
-        {
-            "titlePrefix": {"en": str, "he": str},
-            "footerLinks": [{"text": {"en": str, "he": str}, "url": str}, ...],
-            "cards": [
-                {
-                    "id": str,
-                    "title": {"en": str, "he": str},
-                    "text": {"en": str, "he": str},
-                    "videoUrl": {"en": str, "he": str},
-
-                },
-                ...
-            ]
-        }
-    """
-    if not guide_key:
-        return jsonResponse({"error": "Guide key is required"}, status=400)
-    
-    try:
-        guide = Guide.objects.get(key=guide_key)
-    except Guide.DoesNotExist:
-        return jsonResponse({"error": f"Guide '{guide_key}' not found"}, status=404)
-    
-    response_data = guide.contents()
-    
-    return jsonResponse(response_data)

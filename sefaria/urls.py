@@ -15,6 +15,7 @@ import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
+import guides.views as guides_views
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -472,7 +473,7 @@ urlpatterns += [
 
 # Guides
 urlpatterns += [
-    url(r'^api/guides/(?P<guide_key>[^/]+)$', reader_views.guides_api),
+    url(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
 ]
 
 # add static files to urls
