@@ -6,6 +6,8 @@ class Guide(models.Model):
     """
     Guide model for organizing InfoCards by guide type (e.g., 'editor', 'topics')
     """
+    MAX_FOOTER_LINKS = 2
+
     key = models.CharField(
         max_length=100,
         unique=True,
@@ -68,7 +70,7 @@ class Guide(models.Model):
         links = []
 
         # Process both footer links
-        for i in [1, 2]:  # Currently up to 2 links are supported
+        for i in range(1, self.MAX_FOOTER_LINKS + 1):
             text_en = getattr(self, f'footer_link_{i}_text_en')
             text_he = getattr(self, f'footer_link_{i}_text_he')
             url = getattr(self, f'footer_link_{i}_url')
