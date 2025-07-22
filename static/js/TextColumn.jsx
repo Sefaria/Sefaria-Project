@@ -302,7 +302,7 @@ class TextColumn extends Component {
     const [topRef] = this.props.srefs; // Currently displayed top section
     
     const currentData = Sefaria.ref(topRef);
-    if (!currentData?.next) {
+    if (!currentData?.prev) {
       return; // No previous content available
     }
     
