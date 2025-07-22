@@ -267,9 +267,9 @@ def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions)
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
-    he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
-    en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
     if options.with_text:
+        he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
+        en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
         res.update({
             'he': he,
             'en': en,
