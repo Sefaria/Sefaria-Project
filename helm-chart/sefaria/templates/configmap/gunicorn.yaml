@@ -34,14 +34,9 @@ data:
     
     {{- end }}
 
-    def on_starting(server):
-        pass
-
     def post_worker_init(worker):
-        from reader.startup import init_library_cache
-        from reader.startup import init_linker
-        init_library_cache()
-        init_linker()
+        from reader.startup import init_library_objects
+        init_library_objects()
 
     def combined_logformat(logger, name, event_dict):
         if event_dict.get('logger') == "gunicorn.access":

@@ -1,7 +1,7 @@
 from django_topics.models import Topic as DjangoTopic
 
 
-def init_library_cache():
+def init_library_objects():
     import django
     django.setup()
     import structlog
@@ -23,29 +23,17 @@ def init_library_cache():
         logger.info("Initializing Full Auto Completer")
         library.build_full_auto_completer()
 
-
         logger.info("Initializing Lexicon Auto Completers")
         library.build_lexicon_auto_completers()
 
         logger.info("Initializing Cross Lexicon Auto Completer")
         library.build_cross_lexicon_auto_completer()
 
-    if server_coordinator:
-        server_coordinator.connect()
-    logger.info("Initialization Complete")
-
-
-def init_linker():
-    import django
-    django.setup()
-    import structlog
-    logger = structlog.get_logger(__name__)
-
-    from sefaria.model.text import library
-    from django.conf import settings
     if settings.ENABLE_LINKER:
         logger.info("Initializing Linker")
         library.build_linker('he')
         library.build_linker('en')
 
-
+    if server_coordinator:
+        server_coordinator.connect()
+    logger.info("Initialization Complete")
