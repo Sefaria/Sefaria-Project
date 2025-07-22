@@ -299,8 +299,7 @@ class TextColumn extends Component {
     // When user scrolls near the top, load previous sections above current content
     // This prevents the user from hitting the top and enables smooth upward scrolling
     
-    const refs = this.props.srefs.slice();
-    const topRef = refs[0]; // Currently displayed top section
+    const [topRef] = this.props.srefs; // Currently displayed top section
     
     const currentData = Sefaria.ref(topRef);
     if (!currentData?.next) {
@@ -308,7 +307,7 @@ class TextColumn extends Component {
     }
     
     // Build list of previous sections to load
-    const newRefs = this.buildPreviousRefs(currentData, refs);
+    const newRefs = this.buildPreviousRefs(currentData, this.props.srefs);
     
     // Set flag to indicate we're loading content at top (affects scroll restoration)
     this.loadingContentAtTop = true;
