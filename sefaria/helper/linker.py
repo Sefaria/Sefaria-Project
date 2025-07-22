@@ -2,7 +2,6 @@ import dataclasses
 import json
 import spacy
 import structlog
-import time
 from cerberus import Validator
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
@@ -59,11 +58,9 @@ def load_spacy_model(path: str) -> spacy.Language:
     from tempfile import TemporaryDirectory
     from sefaria.google_storage_manager import GoogleStorageManager
     from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
-    from thinc.api import get_current_ops
 
     using_gpu = spacy.prefer_gpu()
     logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
-    logger.info(f"Spacy using ops: {get_current_ops().xp.__name__}")
 
     if path.startswith("gs://"):
         # file is located in Google Cloud
@@ -160,19 +157,11 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
     linker = library.get_linker(request_text.lang)
-    start = time.perf_counter()
     title_doc = linker.link(request_text.title, type_filter='citation')
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
     body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
-    duration = time.perf_counter() - start
-    logger.info(
-        "linker.link timing",
-        seconds=duration,
-        title_chars=len(request_text.title),
-        body_chars=len(request_text.body),
-    )
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
