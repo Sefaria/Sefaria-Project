@@ -271,13 +271,18 @@ class TextColumn extends Component {
     // Apply the new scroll position
     this.node.scrollTop = targetScrollTop;
   }
+  
+  getLastTextRange() {
+    return this.$container.find(".textRange.basetext").last();
+  }
+  
   adjustInfiniteScroll(downOnly=false) {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
     if (!this._isMounted) { return; }
     if (this.node.scrollHeight <= this.node.clientHeight) { return; }
 
     const $node = this.$container;
-    const $lastText = $node.find(".textRange.basetext").last();
+    const $lastText = this.getLastTextRange();
     if (!$lastText.length) { return; }
     
     const windowTop = this.node.scrollTop;
@@ -340,7 +345,7 @@ class TextColumn extends Component {
   handleInfiniteScrollDown() {
     // When user scrolls near the bottom, load next sections below current content
     // This enables smooth downward scrolling
-    const $lastText = this.$container.find(".textRange.basetext").last();
+    const $lastText = this.getLastTextRange();
       if ($lastText.hasClass("loading")) {
         return; // Don't load more while already loading
       }
