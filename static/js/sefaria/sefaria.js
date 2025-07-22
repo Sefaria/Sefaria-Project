@@ -1328,7 +1328,7 @@ Sefaria = extend(Sefaria, {
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, limit = undefined, type=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
-    let params = {};
+    let params = {active_module: this.activeModule};
     // if (refOnly) { params["ref_only"] = 1; }
     if (limit != undefined) { params["limit"] = limit; }
     if (type != undefined) { params["type"] = type; }

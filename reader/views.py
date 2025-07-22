@@ -2721,7 +2721,7 @@ def name_api(request, name):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
     type = request.GET.get("type", None)
-    active_module = getattr(request, "active_module", None)
+    active_module = request.GET.get('active_module', None)
     exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
     order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
     completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)

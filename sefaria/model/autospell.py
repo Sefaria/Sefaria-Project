@@ -257,8 +257,6 @@ class Completions(object):
         "ref": "ref",
         "Term": "Term",
         "User": "User"}
-    _library_types = ['ref', 'Term', 'TocCategory']   # these should only show in library module
-    _sheet_types = ['User', 'Collection']            # these should only show in sheets module
 
     def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
         """
@@ -335,6 +333,22 @@ class Completions(object):
             return c[1]["order"]
         else:
             return c[1]["order"] * 100
+    
+    def _type_to_active_module(self, co):
+        """
+        Given a completion object, `co`, return a list of what modules it can show for.
+        'Topic' is the special case where we don't know whether the current `co` is relevant unless we check its `topic_pools`
+        """
+        normalized_type = self._type_norm_map[co["type"]]
+        normalized_type_to_allowed_modules_map = {  
+            "ref": ["library"],
+            "Term": ["library"],
+            "TocCategory": ["library"],
+            "User": ["sheets"],
+            "Collection": ["sheets"],
+            "Topic": co.get("topic_pools", [])
+        }
+        return normalized_type_to_allowed_modules_map[normalized_type]
 
     def _filter_completions(self, completion_strings, completion_objects):
         """
@@ -346,15 +360,10 @@ class Completions(object):
         """
         filtered_completions = []
         for cs, co in zip(completion_strings, completion_objects):
-            co_type = co["type"]
-            normalized_type = self._type_norm_map[co_type]
-            if normalized_type in self._library_types and self.active_module == 'sheets':
+            allowed_modules = self._type_to_active_module(co)
+            if self.active_module and self.active_module not in allowed_modules:
                 continue
-            elif normalized_type in self._sheet_types and self.active_module == 'library':
-                continue
-            elif normalized_type == 'Topic' and self.active_module and self.active_module not in co["topic_pools"]:
-                continue
-            elif self.type and normalized_type != self.type:
+            if self.type and self._type_norm_map[co["type"]] != self.type:
                 continue
             filtered_completions.append((cs, co))
 
