@@ -165,19 +165,22 @@ class ConnectionsPanel extends Component {
     });
     this._savedHistorySegments.add(ref);
   }
-  onTextLoad(ref) {
+  onTextLoad(order) {
     const connectionsPanelCitataions = [...this.$scrollView[0].querySelectorAll("[data-ref]")].filter(el => Sefaria.refContains(el.getAttribute("data-ref"), this.props.currentlyVisibleRef));
     if (connectionsPanelCitataions.length > 0) {
       for (let citation of connectionsPanelCitataions) {
         citation.classList.add('highlightCitation');
       }
-      const citationClientRect = connectionsPanelCitataions[0].getBoundingClientRect();
-      const scrollViewClientRect = this.$scrollView[0].getBoundingClientRect();
-      this.$scrollView[0].scrollTo(
-        {top: 
-          citationClientRect.top - scrollViewClientRect.top - (scrollViewClientRect.height - citationClientRect.height) / 2,
-          behavior: "smooth"
-        });
+      if (order === 0) {
+        const citationClientRect = connectionsPanelCitataions[0].getBoundingClientRect();
+        const scrollViewClientRect = this.$scrollView[0].getBoundingClientRect();
+        this.$scrollView[0].scrollTo(
+          {top: 
+            citationClientRect.top - scrollViewClientRect.top - (scrollViewClientRect.height - citationClientRect.height) / 2,
+            behavior: "smooth"
+          }
+        );
+      }
     }
   }
   isSheet() {
