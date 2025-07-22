@@ -381,7 +381,7 @@ import {LinkExcluder} from "./excluder";
 
     function getFindRefsUrl() {
         const params = {
-            with_text: ns.mode === "popup" ? 1 : 0,
+            with_text: ns.mode.startsWith("popup") ? 1 : 0,
             debug: 0 + ns.debug,
             max_segments: ns.maxParagraphs,
         }
