@@ -307,7 +307,7 @@ class TextColumn extends Component {
     }
     
     // Build list of previous sections to load
-    const newRefs = this.buildPreviousRefs(currentData, this.props.srefs);
+    const newRefs = this.buildPreviousRefs(currentData);
     
     // Set flag to indicate we're loading content at top (affects scroll restoration)
     this.loadingContentAtTop = true;
@@ -315,10 +315,10 @@ class TextColumn extends Component {
     this.props.updateTextColumn(newRefs);
   }
 
-  buildPreviousRefs(currentData, existingRefs) {
+  buildPreviousRefs(currentData) {
     // Build a list of previous sections to load, starting from the current top section
     // We load multiple sections at once for better performance
-    const refs = existingRefs.slice();
+    const refs = this.props.srefs.slice();
     
     // Add the immediate previous section
     refs.splice(0, 0, currentData.prev);
