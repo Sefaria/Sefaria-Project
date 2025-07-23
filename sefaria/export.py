@@ -720,101 +720,87 @@ def import_versions_from_file(csv_filename, columns):
     return _import_versions_from_csv(rows, columns)
 
 
-from collections import defaultdict
-from sefaria.model import Ref, Index, Version      # new import ✔
+      # new import ✔
 
 def _import_versions_from_csv(rows, columns, user_id):
-    """
-    Now accepts two layouts transparently.
+    from sefaria.tracker import modify_bulk_text
+    from collections import defaultdict
+    from sefaria.model import Ref
 
-    ─ Legacy (unchanged) ─────────────────────────────
-        Row-0  :  index title
-        Row-1+ :  per-column version metadata
-        Row-5+ :  refs + text (one index only)
+    # If the first label is "Version Title", we're in the multi-index sheet
+    if str(rows[0][0]).strip().lower() == "version title":
+        col = columns[0]
+        vt, lang, src, notes = rows[0][col], rows[1][col], rows[2][col], rows[3][col]
 
-    ─ New compact layout ────────────────────────────
-        Row-0  :  Version Title
-        Row-1  :  Language (2-letter)
-        Row-2  :  Version Source
-        Row-3  :  Version Notes
-        Row-4+ :  ref , text               ← may mix refs from many indices
+        book_maps = defaultdict(dict)
+        for r in rows[4:]:
+            if not r or len(r) <= col:
+                continue
+            ref, txt = r[0], r[col]
+            if not txt:
+                continue
+            book_maps[Ref(ref).index.title][ref] = txt
 
-        All metadata go in whichever column number is passed in *columns*,
-        exactly as before (typically column 1).
-    """
-    from sefaria.tracker import modify_bulk_text      # existing import ✔
+        for idx_title, text_map in book_maps.items():
+            index = Index().load({'title': idx_title})
+            if not index:
+                raise InputError(f'No book with primary title \"{idx_title}\"')
+            index_node = index.nodes
 
-    col = columns[0]                                  # only one column is ever used
-    first_cell = rows[0][col]
-
-    # ── 1.  Try legacy path ─────────────────────────
-    index = Index().load({'title': first_cell})
-    if index:
-        # 100 % of the old logic, completely unchanged
-        index_node = index.nodes
-        action = "edit"
-        for column in columns:
-            version_title, version_lang = rows[1][column], rows[2][column]
             v = Version().load({
-                "title": first_cell,
-                "versionTitle": version_title,
-                "language": version_lang
+                "title": idx_title,
+                "versionTitle": vt,
+                "language": lang
             })
+            action = "edit"
             if v is None:
                 action = "add"
                 v = Version({
                     "chapter": index_node.create_skeleton(),
-                    "title": first_cell,
-                    "versionTitle": version_title,
-                    "language": version_lang,
-                    "versionSource": rows[3][column],
-                    "versionNotes":  rows[4][column],
+                    "title": idx_title,
+                    "versionTitle": vt,
+                    "language": lang,
+                    "versionSource": src,
+                    "versionNotes":  notes,
                 }).save()
-
-            text_map = {row[0]: row[column] for row in rows[5:]}
             modify_bulk_text(user_id, v, text_map, type=action)
-        return                                     #  ← finished legacy import
+        return
 
-    # ── 2.  New multi-index path ───────────────────
-    version_title  = rows[0][col]
-    version_lang   = rows[1][col]
-    version_source = rows[2][col]
-    version_notes  = rows[3][col]
-
-    # Build one text-map per Index
-    book_maps = defaultdict(dict)
-    for row in rows[4:]:
-        ref, text = row[0], row[col]
-        try:
-            idx_title = Ref(ref).index.title       # deduce book name
-        except Exception as e:
-            raise InputError(f'"{ref}" is not a valid ref: {e}')
-        book_maps[idx_title][ref] = text
-
-    # Create / update that version for *every* book touched
-    for idx_title, text_map in book_maps.items():
-        index = Index().load({'title': idx_title})
-        if not index:
-            raise InputError(f'No book with primary title "{idx_title}"')
+    index_title = rows[0][columns[0]]  # assume the same index title for all
+    index = Index().load({'title': index_title})
+    if index:
         index_node = index.nodes
+    else:
+        raise InputError(f'No book with primary title "{index_title}"')
+
+
+    action = "edit"
+    for column in columns:
+        # Create version
+        version_title = rows[1][column]
+        version_lang = rows[2][column]
 
         v = Version().load({
-            "title": idx_title,
+            "title": index_title,
             "versionTitle": version_title,
             "language": version_lang
         })
-        action = "edit"
+
         if v is None:
             action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
-                "title": idx_title,
+                "title": index_title,
                 "versionTitle": version_title,
-                "language": version_lang,
-                "versionSource": version_source,
-                "versionNotes":  version_notes,
+                "language": version_lang,            # Language
+                "versionSource": rows[3][column],       # Version Source
+                "versionNotes": rows[4][column],        # Version Notes
             }).save()
 
+        # Populate it
+        text_map = {}
+        for row in rows[5:]:
+            text_map[row[0]] = row[column]
         modify_bulk_text(user_id, v, text_map, type=action)
 
 
