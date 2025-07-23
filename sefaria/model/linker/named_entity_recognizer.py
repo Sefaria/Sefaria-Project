@@ -11,7 +11,7 @@ except ImportError:
 logger = structlog.get_logger(__name__)
 
 
-def load_spacy_model(path: str) -> spacy.Language:
+def load_spacy_model(path: str):
     import tarfile
     from tempfile import TemporaryDirectory
     from sefaria.google_storage_manager import GoogleStorageManager
