@@ -19,12 +19,12 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
-
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
-
+from sefaria.tracker import modify_bulk_text
+from collections import defaultdict
 
 lang_codes = {
     "he": "Hebrew",
@@ -723,15 +723,15 @@ def import_versions_from_file(csv_filename, columns):
       # new import ✔
 
 def _import_versions_from_csv(rows, columns, user_id):
-    from sefaria.tracker import modify_bulk_text
-    from collections import defaultdict
-    from sefaria.model import Ref
 
-    # If the first label is "Version Title", we're in the multi-index sheet
-    if str(rows[0][0]).strip().lower() == "version title":
+
+    multi = str(rows[0][0]).strip().lower() == "version title"
+
+    jobs = []  # (idx_title, vt, lang, src, notes, text_map)
+
+    if multi:
         col = columns[0]
-        vt, lang, src, notes = rows[0][col], rows[1][col], rows[2][col], rows[3][col]
-
+        vt, lang, src, notes = [rows[i][col] for i in range(4)]
         book_maps = defaultdict(dict)
         for r in rows[4:]:
             if not r or len(r) <= col:
@@ -740,77 +740,36 @@ def _import_versions_from_csv(rows, columns, user_id):
             if not txt:
                 continue
             book_maps[Ref(ref).index.title][ref] = txt
-
         for idx_title, text_map in book_maps.items():
-            index = Index().load({'title': idx_title})
-            if not index:
-                raise InputError(f'No book with primary title \"{idx_title}\"')
-            index_node = index.nodes
-
-            v = Version().load({
-                "title": idx_title,
-                "versionTitle": vt,
-                "language": lang
-            })
-            action = "edit"
-            if v is None:
-                action = "add"
-                v = Version({
-                    "chapter": index_node.create_skeleton(),
-                    "title": idx_title,
-                    "versionTitle": vt,
-                    "language": lang,
-                    "versionSource": src,
-                    "versionNotes":  notes,
-                }).save()
-            modify_bulk_text(user_id, v, text_map, type=action)
-        return
-
-    index_title = rows[0][columns[0]]  # assume the same index title for all
-    index = Index().load({'title': index_title})
-    if index:
-        index_node = index.nodes
+            jobs.append((idx_title, vt, lang, src, notes, text_map))
     else:
-        raise InputError(f'No book with primary title "{index_title}"')
+        idx_title = rows[0][columns[0]]
+        for col in columns:
+            vt, lang, src, notes = [rows[i][col] for i in range(1, 5)]
+            text_map = {r[0]: r[col] for r in rows[5:] if len(r) > col and r[col]}
+            jobs.append((idx_title, vt, lang, src, notes, text_map))
 
-
-    action = "edit"
-    for column in columns:
-        # Create version
-        version_title = rows[1][column]
-        version_lang = rows[2][column]
+    for idx_title, vt, lang, src, notes, text_map in jobs:
+        index = Index().load({'title': idx_title})
+        if not index:
+            raise InputError(f'No book with primary title "{idx_title}"')
+        index_node = index.nodes
 
         v = Version().load({
-            "title": index_title,
-            "versionTitle": version_title,
-            "language": version_lang
+            "title": idx_title,
+            "versionTitle": vt,
+            "language": lang
         })
-
+        action = "edit"
         if v is None:
             action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
-                "title": index_title,
-                "versionTitle": version_title,
-                "language": version_lang,            # Language
-                "versionSource": rows[3][column],       # Version Source
-                "versionNotes": rows[4][column],        # Version Notes
+                "title": idx_title,
+                "versionTitle": vt,
+                "language": lang,
+                "versionSource": src,
+                "versionNotes": notes,
             }).save()
 
-        # Populate it
-        text_map = {}
-        for row in rows[5:]:
-            text_map[row[0]] = row[column]
         modify_bulk_text(user_id, v, text_map, type=action)
-
-
-# ── Workflowy helper for the mod-tools bulk uploader ──────────────────────
-def upload_workflowy_from_stream(stream, user_id):
-    """
-    Accept an OPML / Workflowy export *file-like* object, build an Index
-    skeleton (nodes + jagged-array) and save it.  No versions are created.
-    """
-    from sefaria.helper.workflowy import WFImporter
-    opml_bytes = stream.read()
-    wf_tree = WFImporter.from_opml_bytes(opml_bytes)
-    wf_tree.save_to_db(uploader=user_id)
