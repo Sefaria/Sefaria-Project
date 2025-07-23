@@ -161,10 +161,9 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
-    if editor != '1' and embed !='1' and editorMode is False:
+    if embed !='1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
