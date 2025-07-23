@@ -8,7 +8,17 @@ class HasMatchTemplates:
 
     def get_match_template_trie(self, lang: str):
         from sefaria.model.linker.match_template import MatchTemplateTrie
-        return MatchTemplateTrie(lang, nodes=[self], scope='combined')
+        # check cache first
+        if not hasattr(self, '_match_template_trie_cache'):
+            self._match_template_trie_cache = {}
+        cached_trie = self._match_template_trie_cache.get(lang)
+        if cached_trie:
+            return cached_trie
+        trie = MatchTemplateTrie(lang, nodes=[self], scope='combined')
+        # cache the trie for future use
+        self._match_template_trie_cache[lang] = trie
+        return trie
+
 
     def has_scope_alone_match_template(self):
         """
