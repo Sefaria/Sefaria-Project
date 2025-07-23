@@ -165,6 +165,38 @@ class ConnectionsPanel extends Component {
     });
     this._savedHistorySegments.add(ref);
   }
+  onTextLoad(order) {
+    const connectionsPanelCitataions = [...this.$scrollView[0].querySelectorAll("[data-ref]")].filter(el => Sefaria.refContains(el.getAttribute("data-ref"), this.props.currentlyVisibleRef));
+    if (connectionsPanelCitataions.length > 0) {
+      const footnotes = this.$scrollView[0].querySelectorAll(".footnote");
+      if (footnotes.length > 0) {
+        for (let footnote of footnotes) {
+          const linksInFootnote = footnote.querySelectorAll("[data-ref]");
+          if (linksInFootnote.length === 0)  continue;
+
+          for (let link of linksInFootnote) {
+            if (connectionsPanelCitataions.includes(link)) {
+              footnote.style.display = "inline";
+              break;
+            }
+          }
+        }
+      }
+      for (let citation of connectionsPanelCitataions) {
+        citation.classList.add('highlightCitation');
+      }
+      if (order === 0) {
+        const citationClientRect = connectionsPanelCitataions[0].getBoundingClientRect();
+        const scrollViewClientRect = this.$scrollView[0].getBoundingClientRect();
+        this.$scrollView[0].scrollTo(
+          {top: 
+            citationClientRect.top - scrollViewClientRect.top - (scrollViewClientRect.height - citationClientRect.height) / 2,
+            behavior: "smooth"
+          }
+        );
+      }
+    }
+  }
   isSheet() {
     return this.props.srefs[0].startsWith("Sheet");
   }
@@ -425,6 +457,7 @@ class ConnectionsPanel extends Component {
         setFilter={this.props.setFilter}
         setConnectionsMode={this.props.setConnectionsMode}
         onTextClick={this.props.onTextClick}
+        onTextLoad={this.onTextLoad}
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
         openNav={this.props.openNav}
