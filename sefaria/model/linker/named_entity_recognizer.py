@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 import re
 from typing import Union, Any
-import spacy
 import structlog
 from sefaria.model.linker.ne_span import NESpan, NEDoc
+try:
+    import spacy
+except ImportError:
+    spacy = None
 
 logger = structlog.get_logger(__name__)
 
