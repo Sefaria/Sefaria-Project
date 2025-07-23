@@ -18,10 +18,12 @@ def hello_world(words: str):
 
 
 
-@app.task(name="linker.link_paragraph")
-def link_paragraph(raw_output: dict):
-    linker = library.get_linker('en')
-    output = linker.link_by_paragraph(raw_output['text'], raw_output['ref'])
+@app.task(name="linker.link_segment_with_worker")
+def link_segment_with_worker(raw_input: dict):
+    print(f"raw_input type: {type(raw_input)} value: {raw_input}")
+    print(f"Linking segment with input: {raw_input}")
+    linker = library.get_linker(raw_input['lang'])
+    output = linker.link(raw_input['text'], book_context_ref=raw_input['ref'])
     print(output)
     return str(output)
 
