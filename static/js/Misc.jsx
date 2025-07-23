@@ -25,6 +25,31 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1443,8 +1468,19 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 };
 
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) => {
+  const categoryColorLineRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "category_color_line" });
+    if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
+  }, "sa.header_viewed");
+  return (
+    <div
+      className="categoryColorLine"
+      style={{ background: Sefaria.palette.categoryColor(category) }}
+      ref={categoryColorLineRef}
+    />
+  );
+};
 
 
 class ProfileListing extends Component {
@@ -3305,5 +3341,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner
+  LearnAboutNewEditorBanner,
+  useOnceFullyVisible
 };
