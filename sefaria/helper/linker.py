@@ -167,7 +167,6 @@ def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _Fi
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
         "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
     }
-
     return response
 
 
@@ -257,9 +256,9 @@ def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions)
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
-    he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
-    en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
     if options.with_text:
+        he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
+        en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
         res.update({
             'he': he,
             'en': en,
