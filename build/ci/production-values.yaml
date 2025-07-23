@@ -50,7 +50,7 @@ linker:
   resources:
     web:
       # gunicornWorkerCount: 1
-      gunicornThreadCount: 4
+      gunicornThreadCount: 1
       resources:
         requests:
           memory: "3Gi"
