@@ -16,7 +16,10 @@ if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
 from sefaria.helper import linker
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 
 
 @pytest.fixture

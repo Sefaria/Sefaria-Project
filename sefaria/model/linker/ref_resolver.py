@@ -12,12 +12,6 @@ from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENT
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
 logger = structlog.get_logger(__name__)
-try:
-    import spacy
-    from spacy.tokens import Span, Token, Doc
-    from spacy.language import Language
-except ImportError:
-    spacy = Doc = Span = Token = Language = None
 
 
 class ContextType(Enum):
