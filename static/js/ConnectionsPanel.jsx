@@ -168,6 +168,20 @@ class ConnectionsPanel extends Component {
   onTextLoad(order) {
     const connectionsPanelCitataions = [...this.$scrollView[0].querySelectorAll("[data-ref]")].filter(el => Sefaria.refContains(el.getAttribute("data-ref"), this.props.currentlyVisibleRef));
     if (connectionsPanelCitataions.length > 0) {
+      const footnotes = this.$scrollView[0].querySelectorAll(".footnote");
+      if (footnotes.length > 0) {
+        for (let footnote of footnotes) {
+          const linksInFootnote = footnote.querySelectorAll("[data-ref]");
+          if (linksInFootnote.length === 0)  continue;
+
+          for (let link of linksInFootnote) {
+            if (connectionsPanelCitataions.includes(link)) {
+              footnote.style.display = "inline";
+              break;
+            }
+          }
+        }
+      }
       for (let citation of connectionsPanelCitataions) {
         citation.classList.add('highlightCitation');
       }
