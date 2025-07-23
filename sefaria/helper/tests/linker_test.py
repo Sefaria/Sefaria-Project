@@ -16,6 +16,7 @@ if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
 from sefaria.helper import linker
+from sefaria.model.linker.named_entity_recognizer import load_spacy_model
 try:
     import spacy
 except ImportError:
@@ -47,7 +48,7 @@ class TestLoadSpacyModel:
     @patch('spacy.load')
     def test_load_spacy_model_local(spacy_load_mock: Callable, spacy_model: spacy.Language):
         spacy_load_mock.return_value = spacy_model
-        assert linker.load_spacy_model('local/path') == spacy_model
+        assert load_spacy_model('local/path') == spacy_model
 
     @staticmethod
     @patch('spacy.load')
@@ -56,7 +57,7 @@ class TestLoadSpacyModel:
                                     tarfile_buffer: io.BytesIO):
         get_filename_mock.return_value = tarfile_buffer
         spacy_load_mock.return_value = spacy_model
-        assert linker.load_spacy_model('gs://bucket_name/blob_name') == spacy_model
+        assert load_spacy_model('gs://bucket_name/blob_name') == spacy_model
 
     @staticmethod
     @patch('spacy.load')
@@ -66,7 +67,7 @@ class TestLoadSpacyModel:
         get_filename_mock.return_value = tarfile_buffer
         spacy_load_mock.side_effect = OSError
         with pytest.raises(OSError):
-            linker.load_spacy_model('invalid_path')
+            load_spacy_model('invalid_path')
 
 
 @pytest.fixture
