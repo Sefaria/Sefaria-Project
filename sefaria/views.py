@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -1319,6 +1318,59 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
     return content
 
+import csv, io, itertools, logging
+from sefaria.export import import_versions_from_stream
+
+logger = logging.getLogger(__name__)
+
+def _safe_import_versions(uploaded_file, user_id, batch_size=1000):
+    """
+    Accepts *both* Sefaria CSV layouts:
+      • 5-row header  (one index, many versions)
+      • 4-row header  (one version across many indices)
+    Strategy:
+      1.   Read until we’ve seen 4 or 5 non-blank rows  →  that’s the header.
+      2.   Record `required = len(widest_header_row)`.
+      3.   For every later row:
+               – skip rows that are *completely* blank
+               – right-pad shorter rows with '' so they never trigger IndexError.
+      4.   Flush in bulk every `batch_size` lines → big speed-up, tiny RAM.
+    """
+    reader      = csv.reader(io.TextIOWrapper(uploaded_file, encoding="utf-8"))
+    header_rows = []
+    required    = 0
+    batch       = []
+
+    # ── 1 & 2  ─────────────────────────────────────────────────────────
+    for row in reader:
+        if not row or all(c.strip() == "" for c in row):
+            continue                       # ignore stray blank lines
+        header_rows.append(row)
+        required = max(required, len(row))
+        if len(header_rows) in (4, 5):     # both layouts covered
+            break                          # we’ve got the entire header
+
+    # ── 3 & 4  ─────────────────────────────────────────────────────────
+    combined_reader = itertools.chain(header_rows, reader)
+    for lineno, row in enumerate(combined_reader, start=1):
+        if not row or all(c.strip() == "" for c in row):
+            continue                       # truly blank ➜ skip
+        if len(row) < required:            # right-pad, don’t reject
+            row.extend([""] * (required - len(row)))
+        batch.append(row)
+        if len(batch) == batch_size:
+            _flush_batch(batch, user_id)
+            batch.clear()
+    if batch:
+        _flush_batch(batch, user_id)
+
+def _flush_batch(rows, user_id):
+    """Serialize the collected rows back to CSV and feed the stock importer."""
+    buf = io.StringIO()
+    csv.writer(buf).writerows(rows)
+    buf.seek(0)
+    import_versions_from_stream(buf, [1], user_id)
+
 
 
 @staff_member_required
@@ -1326,18 +1378,218 @@ def text_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    from sefaria.export import import_versions_from_stream
+    from .views import _safe_import_versions
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
-            import_versions_from_stream(f, [1], request.user.id)
+            _safe_import_versions(f, request.user.id)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
             return jsonResponse({"error": str(e), "message": message})
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+# ─────────────────────────  BULK WORKFLOWY + INDEX ADMIN  ──────────────────
+@staff_member_required
+def upload_workflowy_multi_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "POST required"})
+
+    from sefaria.helper.text import WorkflowyParser
+
+    # Get configuration from the form, just like the single-file uploader
+    files = request.FILES.getlist("workflowys[]")
+    c_index = request.POST.get("c_index") == 'true'
+    c_version = request.POST.get("c_version") == 'true'
+    delims = request.POST.get("delims") or None
+    term_scheme = request.POST.get("term_scheme") or None
+    uid = request.user.id
+    
+    msg = []
+    for f in files:
+        try:
+            # Pass all the necessary parameters to the parser
+            wfparser = WorkflowyParser(f, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                # If the parser returns a specific error, report it
+                raise InputError(f"Error in {f.name}: {res['error']}")
+            msg.append(f"Imported {f.name}")
+
+        except Exception as e:
+            error_message = f"Failed to process {f.name}: {e}"
+            # Stop on first error, but report what was done so far.
+            return jsonResponse({"error": error_message, "message": ' • '.join(msg)})
+
+    return jsonResponse({"status": "ok", "message": ' • '.join(msg)})
+
+
+@staff_member_required
+def duplicate_index_api(request):
+    """Improved version of the Duplicate‑Index endpoint.
+    • Ignores meta categories like "Commentary" when looking for the base text’s top‑level category.
+    • Returns a detailed list of skipped targets with reasons (instead of silently dropping them).
+    • Keeps the rest of the original logic unchanged.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "POST required"})
+
+    from sefaria.model import Index
+    from copy import deepcopy
+    import re, json
+
+    data = json.loads(request.body)
+    src_title      = data.get("src")
+    target_titles  = data.get("targets", [])
+    if not src_title or not target_titles:
+        return jsonResponse({"error": "src and targets required"})
+
+    src_idx = Index().load({"title": src_title})
+    if not src_idx:
+        return jsonResponse({"error": f'No Index titled "{src_title}"'})
+
+    # ── find the tractate name inside the source title ───────────────────────────
+    m = re.search(r"on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)", src_title)
+    if not m:
+        return jsonResponse({"error": f"Could not determine the base text from '{src_title}'"})
+    src_base_text = m.group(1)
+
+    # ── work out the base‑text category more robustly ────────────────────────────
+    base_text_category = next((c for c in src_idx.categories
+                               if c not in {"Commentary", "Parshanut", "Midrash"}), None)
+    if not base_text_category:
+        return jsonResponse({"error": f"Cannot infer base category from categories {src_idx.categories}"})
+
+    # load the base index of the source so we can translate titles later
+    src_base_idx_title = f"{base_text_category} {src_base_text}"
+    src_base_idx = Index().load({"title": src_base_idx_title})
+    if not src_base_idx:
+        return jsonResponse({"error": f"Base index '{src_base_idx_title}' not found"})
+    he_src_base_title = src_base_idx.get_title('he')
+
+    # clean copy of the Mongo document
+    src_contents = src_idx.contents()
+    src_contents.pop("_id", None)
+
+    created, skipped = [], []
+
+    def update_node_titles(node, old, new):
+        if not old or not new: return
+        if isinstance(node, dict):
+            if "key" in node:   node["key"]   = node["key"].replace(old, new)
+            if "title" in node: node["title"] = node["title"].replace(old, new)
+            for t in node.get("titles", []):
+                t["text"] = t["text"].replace(old, new)
+            for child in node.get("nodes", []):
+                update_node_titles(child, old, new)
+
+    # ── build each target ────────────────────────────────────────────────────────
+    for tgt in target_titles:
+        if Index().load({"title": tgt}):
+            skipped.append({"title": tgt, "reason": "already exists"})
+            continue
+
+        tm = re.search(r"on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)", tgt)
+        if not tm:
+            skipped.append({"title": tgt, "reason": "title pattern not recognised"})
+            continue
+        tgt_base_text         = tm.group(1)
+        tgt_base_idx_title    = f"{base_text_category} {tgt_base_text}"
+        tgt_base_idx          = Index().load({"title": tgt_base_idx_title})
+        if not tgt_base_idx:
+            skipped.append({"title": tgt, "reason": "base index not found"})
+            continue
+        he_tgt_base_title     = tgt_base_idx.get_title('he')
+
+        # deep copy and retitle
+        new_doc               = deepcopy(src_contents)
+        new_doc["title"]      = tgt
+        if new_doc.get("heTitle"):
+            new_doc["heTitle"] = new_doc["heTitle"].replace(he_src_base_title, he_tgt_base_title)
+
+        for node in new_doc.get("nodes", []):
+            update_node_titles(node, src_base_text, tgt_base_text)
+            update_node_titles(node, he_src_base_title, he_tgt_base_title)
+
+        try:
+            Index(new_doc).save()
+            created.append(tgt)
+        except Exception as e:
+            skipped.append({"title": tgt, "reason": str(e)})
+
+    return jsonResponse({"status": "ok", "created": created, "skipped": skipped})
+
+
+@staff_member_required
+def indices_by_version_api(request):
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+    vtitle = request.GET.get("versionTitle")
+    lang   = request.GET.get("language")
+    if not vtitle:
+        return jsonResponse({"error": "versionTitle param required"})
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)      # same query as bulk-version tool
+    return jsonResponse({"indices": sorted(indices)})
+
+
+# ───────────────────────────────────────────────────────────────────────────
+
+
+@staff_member_required
+def version_indices_api(request):
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+    """
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...]}
+    """
+    from sefaria.model import Version
+    vtitle  = request.GET.get("versionTitle")
+    lang    = request.GET.get("language")
+    if not vtitle:
+        raise InputError("versionTitle is required")
+
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)          # 4–5 ms
+    return jsonResponse({"indices": sorted(indices)})
+
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    """
+    Body JSON:
+      {"versionTitle":"Example 2025",
+       "language":"he",
+       "indices":["Genesis","Exodus"],
+       "updates":{"license":"CC-BY","versionNotes":"Second draft"}}
+    """
+    from sefaria.model import Version
+    data = json.loads(request.body)
+    vtitle, lang, indices, updates = (
+        data["versionTitle"], data["language"],
+        data["indices"],       data["updates"]
+    )
+    if not indices:
+        raise InputError("indices may not be empty")
+
+    for t in indices:
+        v = Version().load({"title": t,
+                            "versionTitle": vtitle,
+                            "language": lang})
+        if not v:
+            raise InputError(f'No Version "{vtitle}" in "{t}"')
+        for k, val in updates.items():
+            setattr(v, k, val)
+        v.save()                                # retains full history / cache hooks
+    return jsonResponse({"status":"ok","count":len(indices)})
 
 
 @staff_member_required

@@ -8,6 +8,616 @@ import { saveAs } from 'file-saver';
 import qs from 'qs';
 import { useState } from 'react';
 
+// Define field metadata for proper handling
+const INDEX_FIELD_METADATA = {
+  "enDesc": {
+    label: "English Description",
+    type: "textarea",
+    placeholder: "A description of the text in English"
+  },
+  "enShortDesc": {
+    label: "Short English Description",
+    type: "textarea",
+    placeholder: "Brief description (1-2 sentences)"
+  },
+  "heDesc": {
+    label: "Hebrew Description",
+    type: "textarea",
+    placeholder: "תיאור הטקסט בעברית",
+    dir: "rtl"
+  },
+  "heShortDesc": {
+    label: "Hebrew Short Description",
+    type: "textarea",
+    placeholder: "תיאור קצר (משפט או שניים)",
+    dir: "rtl"
+  },
+  "categories": {
+    label: "Category",
+    type: "array",
+    placeholder: "Select category...",
+    help: "The category path determines where this text appears in the library"
+  },
+  "authors": {
+    label: "Authors",
+    type: "array",
+    placeholder: "Comma-separated list of author names",
+    help: "Enter author names separated by commas (e.g., 'Rashi, Rabbi Shlomo Yitzchaki')"
+  },
+  "titleVariants": {
+    label: "Alternative English Titles",
+    type: "array",
+    placeholder: "Comma-separated alternative titles",
+    help: "English alternative titles for this text"
+  },
+  "heTitleVariants": {
+    label: "Hebrew Alternative Titles",
+    type: "array",
+    placeholder: "כותרות חלופיות מופרדות בפסיקים",
+    help: "כותרות חלופיות בעברית",
+    dir: "rtl"
+  },
+  "compDate": {
+    label: "Composition Date",
+    type: "daterange",
+    placeholder: "[1040, 1105] or 1105 or -500",
+    help: "Year or range [start, end]. Negative for BCE. Arrays auto-convert to single year if identical."
+  },
+  "compPlace": {
+    label: "Composition Place",
+    type: "text",
+    placeholder: "e.g., 'Troyes, France'"
+  },
+  "heCompPlace": {
+    label: "Hebrew Composition Place",
+    type: "text",
+    placeholder: "למשל: 'טרואה, צרפת'",
+    dir: "rtl"
+  },
+  "pubDate": {
+    label: "Publication Date",
+    type: "daterange",
+    placeholder: "[1475, 1475] or 1475",
+    help: "First publication year or range"
+  },
+  "pubPlace": {
+    label: "Publication Place",
+    type: "text",
+    placeholder: "e.g., 'Venice, Italy'"
+  },
+  "hePubPlace": {
+    label: "Hebrew Publication Place",
+    type: "text",
+    placeholder: "למשל: 'ונציה, איטליה'",
+    dir: "rtl"
+  },
+  // New fields:
+  "toc_zoom": {
+    label: "TOC Zoom Level",
+    type: "number",
+    placeholder: "0-10",
+    help: "Controls how deep the table of contents displays by default (0=fully expanded)"
+  },
+  "dependence": {
+    label: "Dependence Type",
+    type: "select",
+    placeholder: "Select dependence type",
+    help: "Is this text dependent on another text? (e.g., Commentary on a base text)"
+  },
+  "base_text_titles": {
+    label: "Base Text Titles",
+    type: "array",
+    placeholder: "Base text names or 'auto' for auto-detection",
+    help: "Enter base text names separated by commas, or type 'auto' to detect from title (e.g., 'Genesis' for 'Rashi on Genesis')"
+  },
+  "collective_title": {
+    label: "English Collective Title",
+    type: "text",
+    placeholder: "Collective title or 'auto' for auto-detection",
+    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis')"
+  }
+};
+
+const BulkIndexEditor = () => {
+  const [vtitle, setVtitle] = React.useState("");
+  const [lang, setLang] = React.useState("");
+  const [indices, setIndices] = React.useState([]);
+  const [pick, setPick] = React.useState(new Set());
+  const [mapping, setMapping] = React.useState("many_to_one_default_only");
+  const [updates, setUpdates] = React.useState({});
+  const [msg, setMsg] = React.useState("");
+  const [categories, setCategories] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  // Load categories on mount
+  React.useEffect(() => {
+    $.getJSON('/api/index', data => {
+      const cats = [];
+      const extractCategories = (node, path = []) => {
+        if (node.category) {
+          const fullPath = [...path, node.category].join(", ");
+          cats.push(fullPath);
+        }
+        if (node.contents) {
+          node.contents.forEach(item => {
+            extractCategories(item, node.category ? [...path, node.category] : path);
+          });
+        }
+      };
+      data.forEach(cat => extractCategories(cat));
+      setCategories(cats.sort());
+    });
+  }, []);
+
+  const load = () => {
+    if (!vtitle) {
+      setMsg("❌ Please enter a version title");
+      return;
+    }
+
+    setLoading(true);
+    setMsg("Loading indices...");
+
+    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+      .done(d => {
+        setIndices(d.indices);
+        setPick(new Set(d.indices));
+        setMsg(`Found ${d.indices.length} indices`);
+      })
+      .fail(xhr => {
+        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
+        setMsg(`❌ Error: ${errorMsg}`);
+        setIndices([]);
+        setPick(new Set());
+      })
+      .always(() => setLoading(false));
+  };
+
+// Better pattern detection that handles multi-word base texts
+const detectCommentaryPattern = (title) => {
+  // Match "X on Y" where Y can be multiple words
+  const match = title.match(/^(.+?)\s+on\s+(.+)$/);
+  if (match) {
+    return {
+      commentaryName: match[1].trim(),
+      baseText: match[2].trim()  // This will be "Mishnah Bikkurim" not just "Bikkurim"
+    };
+  }
+  return null;
+};
+
+const save = async () => {
+  if (!pick.size || !Object.keys(updates).length) return;
+
+  setSaving(true);
+  setMsg("Saving changes...");
+
+  // Process updates to ensure correct data types
+  const processedUpdates = {};
+
+  for (const [field, value] of Object.entries(updates)) {
+    if (!value && field !== "toc_zoom") continue;
+    const fieldMeta = INDEX_FIELD_METADATA[field];
+    if (!fieldMeta) {
+      processedUpdates[field] = value;
+      continue;
+    }
+
+    switch (fieldMeta.type) {
+      case 'array':
+        if (field === 'base_text_titles' && value === 'auto') {
+          processedUpdates[field] = 'auto'; // Keep as marker
+        } else {
+          processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+        }
+        break;
+      case 'daterange':
+        if (value.startsWith('[') && value.endsWith(']')) {
+          try {
+            processedUpdates[field] = JSON.parse(value);
+          } catch (e) {
+            setMsg(`❌ Invalid date format for ${field}`);
+            setSaving(false);
+            return;
+          }
+        } else {
+          const year = parseInt(value);
+          if (!isNaN(year)) {
+            processedUpdates[field] = year;
+          } else {
+            setMsg(`❌ Invalid date format for ${field}`);
+            setSaving(false);
+            return;
+          }
+        }
+        break;
+      case 'number':
+        processedUpdates[field] = parseInt(value);
+        break;
+      default:
+        processedUpdates[field] = value;
+    }
+  }
+
+  // Handle authors validation if present
+  if (processedUpdates.authors) {
+    try {
+      const authorSlugs = [];
+      for (const authorName of processedUpdates.authors) {
+        const response = await $.ajax({
+          url: `/api/name/${authorName}`,
+          method: 'GET'
+        });
+
+        const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+        const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
+
+        if (!exactMatch) {
+          const closestMatches = matches.map(t => t.title).slice(0, 3);
+          const msg = matches.length > 0
+            ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
+            : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
+          setMsg(`❌ ${msg}`);
+          setSaving(false);
+          return;
+        }
+        authorSlugs.push(exactMatch.key);
+      }
+      processedUpdates.authors = authorSlugs;
+    } catch (e) {
+      setMsg(`❌ Error validating authors`);
+      setSaving(false);
+      return;
+    }
+  }
+
+  let successCount = 0;
+  let errors = [];
+
+  for (const indexTitle of pick) {
+    try {
+      setMsg(`Fetching data for ${indexTitle}...`);
+      
+      const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+      if (!existingIndexData) {
+        errors.push(`${indexTitle}: Could not fetch existing index data.`);
+        continue;
+      }
+
+      setMsg(`Updating ${indexTitle}...`);
+
+      // Create a copy of updates for this specific index
+      let indexSpecificUpdates = { ...processedUpdates };
+
+      // Handle TOC zoom specially - it needs to be set on nodes
+      let tocZoomValue = null;
+      if ('toc_zoom' in indexSpecificUpdates) {
+        tocZoomValue = indexSpecificUpdates.toc_zoom;
+        delete indexSpecificUpdates.toc_zoom; // Don't include in regular updates
+      }
+
+      // Handle smart detection
+      if (indexSpecificUpdates.dependence) {
+        const pattern = detectCommentaryPattern(indexTitle);
+        
+        if (indexSpecificUpdates.base_text_titles === 'auto') {
+          if (pattern && pattern.baseText) {
+            // For "Kehati on Mishnah Bikkurim", this will be ["Mishnah Bikkurim"]
+            indexSpecificUpdates.base_text_titles = [pattern.baseText];
+          } else {
+            delete indexSpecificUpdates.base_text_titles;
+            console.warn(`Could not auto-detect base text for ${indexTitle}`);
+          }
+        }
+        
+        if (indexSpecificUpdates.collective_title === 'auto') {
+          if (pattern && pattern.commentaryName) {
+            // For "Kehati on Mishnah Bikkurim", this will be "Kehati"
+            indexSpecificUpdates.collective_title = pattern.commentaryName;
+          } else {
+            delete indexSpecificUpdates.collective_title;
+            console.warn(`Could not auto-detect collective title for ${indexTitle}`);
+          }
+        }
+      }
+
+      // Apply TOC zoom to nodes if specified
+      if (tocZoomValue !== null) {
+        // The structure in the API response might be different from the Python object
+        // Let's check multiple possible structures
+        
+        // First, let's see what structure we have
+        console.log(`TOC zoom structure for ${indexTitle}:`, {
+          hasNodes: !!existingIndexData.nodes,
+          hasSchema: !!existingIndexData.schema,
+          schemaNodes: existingIndexData.schema?.nodes,
+          nodesType: typeof existingIndexData.nodes
+        });
+
+        // Try different ways to find the nodes
+        let nodesToUpdate = [];
+        
+        // Method 1: If there's a schema with nodes array (like in your CLI: index.nodes.children)
+        if (existingIndexData.schema?.nodes && Array.isArray(existingIndexData.schema.nodes)) {
+          nodesToUpdate = existingIndexData.schema.nodes;
+        }
+        // Method 2: If nodes is at the top level
+        else if (existingIndexData.nodes && Array.isArray(existingIndexData.nodes)) {
+          nodesToUpdate = existingIndexData.nodes;
+        }
+        // Method 3: Check if it's a simple schema
+        else if (existingIndexData.schema && !existingIndexData.schema.nodes) {
+          // Simple text, set on schema itself
+          existingIndexData.schema.toc_zoom = tocZoomValue;
+          console.log(`Set toc_zoom=${tocZoomValue} on schema directly`);
+        }
+
+        // Update all nodes found
+        if (nodesToUpdate.length > 0) {
+          nodesToUpdate.forEach((node, index) => {
+            if (node.nodeType === "JaggedArrayNode") {
+              node.toc_zoom = tocZoomValue;
+              console.log(`Set toc_zoom=${tocZoomValue} on node ${index}: ${node.title || 'default'}`);
+            }
+          });
+        }
+      }
+
+      // Create postData with all the fields including modified schema
+      const postData = {
+        title: indexTitle,
+        heTitle: existingIndexData.heTitle,
+        categories: existingIndexData.categories,
+        schema: existingIndexData.schema,  // This now includes our toc_zoom changes
+        ...indexSpecificUpdates
+      };
+
+      const baseUrl = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
+      const url = `${baseUrl}?update=1`;
+
+      await $.ajax({
+        url,
+        type: 'POST',
+        data: { json: JSON.stringify(postData) }
+      });
+
+      // After the cache reset, add a verification step
+      await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+
+      // Verify the change (optional - for debugging)
+      if (tocZoomValue !== null) {
+        setTimeout(async () => {
+          try {
+            const updatedData = await Sefaria.getIndexDetails(indexTitle);
+            console.log(`Verification for ${indexTitle} toc_zoom:`, {
+              nodes: updatedData.schema?.nodes?.map(n => ({
+                title: n.title || 'default',
+                toc_zoom: n.toc_zoom
+              }))
+            });
+          } catch (e) {
+            console.error('Could not verify toc_zoom update');
+          }
+        }, 2000); // Wait 2 seconds for cache to clear
+      }
+      
+      successCount++;
+
+    } catch (e) {
+      console.error(`Error updating ${indexTitle}:`, e);
+      
+      let errorMsg = 'Unknown error';
+      if (e.responseJSON?.error) {
+        errorMsg = e.responseJSON.error;
+      } else if (e.responseText) {
+        try {
+          const parsed = JSON.parse(e.responseText);
+          errorMsg = parsed.error || e.responseText;
+        } catch {
+          errorMsg = e.responseText || 'Server error';
+        }
+      } else if (e.statusText) {
+        errorMsg = e.statusText;
+      }
+      
+      errors.push(`${indexTitle}: ${errorMsg}`);
+    }
+  }
+
+  if (errors.length) {
+    setMsg(`⚠️ Finished. Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+  } else {
+    setMsg(`✅ Successfully updated ${successCount} indices`);
+    setUpdates({});
+    document.querySelectorAll('.field-input').forEach(el => el.value = '');
+  }
+  setSaving(false);
+};
+    
+  const handleFieldChange = (fieldName, value) => {
+    setUpdates(prev => ({...prev, [fieldName]: value}));
+  };
+
+  const renderField = (fieldName) => {
+    const fieldMeta = INDEX_FIELD_METADATA[fieldName];
+    const currentValue = updates[fieldName] || "";
+
+    const commonProps = {
+      className: "dlVersionSelect field-input",
+      placeholder: fieldMeta.placeholder,
+      value: currentValue,
+      onChange: e => handleFieldChange(fieldName, e.target.value),
+      style: { width: "100%", direction: fieldMeta.dir || "ltr" }
+    };
+
+    return (
+      <div key={fieldName} style={{ marginBottom: "12px" }}>
+        <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>
+          {fieldMeta.label}:
+        </label>
+
+        {fieldMeta.help && (
+          <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
+            {fieldMeta.help}
+          </div>
+        )}
+
+        {fieldName === "categories" ? (
+          <select {...commonProps}>
+            <option value="">Select category...</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        ) : fieldName === "dependence" ? (
+          <select {...commonProps}>
+            <option value="">--Not a dependent text--</option>
+            <option value="Commentary">Commentary</option>
+            <option value="Targum">Targum</option>
+            <option value="Midrash">Midrash</option>
+            <option value="Guides">Guides</option>
+          </select>
+        ) : fieldMeta.type === "textarea" ? (
+          <textarea {...commonProps} rows={3} />
+        ) : fieldMeta.type === "number" ? (
+          <input {...commonProps} type="number" min="0" max="10" />
+        ) : (
+          <input {...commonProps} type="text" />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Edit Index Metadata</div>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <input
+          className="dlVersionSelect"
+          placeholder="Version title"
+          value={vtitle}
+          onChange={e => setVtitle(e.target.value)}
+          style={{ flex: 1 }}
+        />
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+          style={{ width: "100px" }}
+        >
+          <option value="">All langs</option>
+          <option value="he">Hebrew</option>
+          <option value="en">English</option>
+        </select>
+        <button
+          className="modtoolsButton"
+          onClick={load}
+          disabled={loading || !vtitle}
+        >
+          {loading ? "Loading..." : "Find Indices"}
+        </button>
+      </div>
+
+      {indices.length > 0 && (
+        <>
+          <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                checked={pick.size === indices.length}
+                onChange={() => setPick(pick.size === indices.length ? new Set() : new Set(indices))}
+              />
+              <span style={{ fontWeight: "500" }}>
+                Select all ({indices.length} indices)
+              </span>
+            </label>
+          </div>
+
+          <div
+            className="indicesList"
+            style={{
+              maxHeight: "200px",
+              overflow: "auto",
+              border: "1px solid #ddd",
+              padding: "8px",
+              marginBottom: "16px",
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            {indices.map(t => (
+              <label key={t} style={{ display: "block", padding: "4px", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={pick.has(t)}
+                  onChange={e => {
+                    const s = new Set(pick);
+                    e.target.checked ? s.add(t) : s.delete(t);
+                    setPick(s);
+                  }}
+                /> {t}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+
+      {pick.size > 0 && (
+        <>
+          <div style={{ marginBottom: "12px", fontWeight: "500" }}>
+            Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
+          </div>
+
+          {Object.keys(updates).filter(k => updates[k]).length > 0 && (
+            <div style={{ marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
+              <strong>Changes to apply:</strong>
+              <ul style={{ margin: "4px 0 0 20px", padding: 0 }}>
+                {Object.entries(updates).filter(([k,v]) => v || k === 'toc_zoom').map(([k, v]) => (
+                  <li key={k} style={{ fontSize: "14px" }}>
+                    {INDEX_FIELD_METADATA[k]?.label || k}: "{v}"
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <button
+            className="modtoolsButton"
+            disabled={Object.keys(updates).filter(k=>updates[k] || k === 'toc_zoom').length === 0 || saving}
+            onClick={save}
+          >
+            {saving ? "Saving..." : `Save Changes to ${pick.size} Indices`}
+          </button>
+        </>
+      )}
+
+      {msg && (
+        <div
+          className="message"
+          style={{
+            marginTop: "12px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
+                           msg.includes("❌") ? "#f8d7da" : 
+                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" :
+                   msg.includes("❌") ? "#721c24" : 
+                   msg.includes("⚠️") ? "#856404" : "#0c5460"
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+};
+
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
@@ -158,16 +768,53 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <GetLinks/>
       </div>);
-    const removeLinksFromCsv = (
-        <div className='modToolsSection'>
-            <RemoveLinksFromCsv/>
-        </div>
+     const removeLinksFromCsv = (
+         <div className='modToolsSection'>
+             <RemoveLinksFromCsv/>
+         </div>
+     );
+     const workflowyPanel  = (
+       <div className="modToolsSection"><WorkflowyBulkPanel /></div>
+     );
+     const bulkIndexEditor = (
+      <div className="modToolsSection"><BulkIndexEditor /></div>
+     );
+     const bulkVersionEditor = (
+       <div className="modToolsSection">
+         <BulkVersionEditor />
+       </div>
+     );
+    const autoLinkCommentaryTool = (
+      <div className="modToolsSection"><AutoLinkCommentaryTool /></div>
     );
-    return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks}{removeLinksFromCsv} </div> :
-        <div className="modTools"> Tools are only available to logged in moderators.</div>;
-  }
-}
+
+    const nodeTitleEditor = (
+      <div className="modToolsSection"><NodeTitleEditor /></div>
+    );
+
+    // Add to the return statement:
+    return Sefaria.is_moderator ? (
+      <div className="modTools">
+        {downloadSection}
+        {uploadForm}
+        {wflowyUpl}
+        {uploadLinksFromCSV}
+        {getLinks}
+        {removeLinksFromCsv}
+        {workflowyPanel}
+        {bulkIndexEditor}
+        {bulkVersionEditor}
+        {autoLinkCommentaryTool}
+        {nodeTitleEditor}
+      </div>
+    ) : (
+       <div className="modTools">
+         Tools are only available to logged-in moderators.
+       </div>
+     );
+   }
+ }
+ 
 ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
@@ -592,5 +1239,936 @@ function GetLinks() {
     </div>
   );
 }
+
+const WorkflowyBulkPanel = () => {
+  const [files, setFiles] = React.useState([]);
+  const [src, setSrc] = React.useState("");
+  const [targets, setTargets] = React.useState(new Set());
+  const [msg, setMsg] = React.useState("");
+  const [uploading, setUploading] = React.useState(false);
+  const [duplicating, setDuplicating] = React.useState(false);
+
+  // State for new form controls, matching the single uploader
+  const [c_index, setCreateIndex] = React.useState(true);
+  const [c_version, setCreateVersion] = React.useState(false);
+  const [delims, setDelims] = React.useState("");
+  const [term_scheme, setTermScheme] = React.useState("");
+
+
+  // Define all books/tractates
+  const BIBLE_BOOKS = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
+  
+  const MISHNAH_TRACTATES = [
+    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", "Maaser Sheni",
+    "Challah", "Orlah", "Bikkurim", "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma",
+    "Sukkah", "Beitzah", "Rosh Hashanah", "Ta'anit", "Megillah", "Moed Katan", "Chagigah",
+    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
+    "Eduyot", "Avodah Zarah", "Pirkei Avot", "Horayot", "Zevachim", "Menachot",
+    "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid",
+    "Middot", "Kinnim", "Kelim", "Oholot", "Negaim", "Parah", "Tahorot",
+    "Mikvaot", "Niddah", "Makhshirin", "Zavim", "Tevul Yom", "Yadayim", "Oktzin"
+  ];
+  
+  const TALMUD_TRACTATES = [
+    "Berakhot", "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah",
+    "Beitzah", "Rosh Hashanah", "Ta'anit", "Megillah", "Moed Katan", "Chagigah",
+    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
+    "Avodah Zarah", "Horayot", "Zevachim", "Menachot", "Chullin", "Bekhorot",
+    "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid", "Niddah"
+  ];
+
+  const JERUSALEM_TALMUD_TRACTATES = [
+    // Seder Zeraim (included in Jerusalem Talmud)
+    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot",
+    "Maaser Sheni", "Challah", "Orlah", "Bikkurim",
+    // Seder Moed
+    "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Rosh Hashanah", "Yoma", "Sukkah",
+    "Ta'anit", "Megillah", "Moed Katan", "Chagigah", "Shekalim",
+    // Seder Nashim
+    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+    // Seder Nezikin
+    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
+    "Avodah Zarah", "Horayot",
+    // Seder Toharot (only Niddah)
+    "Niddah"
+  ];
+
+  // Extract the base text from the source commentary
+  const getBaseText = (sourceTitle) => {
+    // Handle patterns like "Rashi on Genesis", "Kehati on Mishnah Bekhorot", etc.
+    const patterns = [
+      /on\s+(.+)$/,                    // "X on Y"
+      /to\s+(.+)$/,                    // "X to Y"
+      /,\s+(.+)$/,                     // "X, Y"
+    ];
+    
+    for (let pattern of patterns) {
+      const match = sourceTitle.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    return null;
+  };
+
+  // Determine which category and base book/tractate from the source
+  const analyzeSource = () => {
+    if (!src) return { category: null, baseBook: null, availableTargets: [] };
+    
+    const baseText = getBaseText(src);
+    if (!baseText) return { category: null, baseBook: null, availableTargets: [] };
+    
+    // Check if it's Bible
+    for (let book of BIBLE_BOOKS) {
+      if (baseText.includes(book)) {
+        const targets = BIBLE_BOOKS
+          .filter(b => b !== book)
+          .map(b => src.replace(book, b));
+        return { category: "Bible", baseBook: book, availableTargets: targets };
+      }
+    }
+    
+    // Check if it's Jerusalem Talmud
+    if (baseText.includes("Jerusalem Talmud") || baseText.includes("Talmud Yerushalmi")) {
+      for (let tractate of JERUSALEM_TALMUD_TRACTATES) {
+        if (baseText.includes(tractate)) {
+          const targets = JERUSALEM_TALMUD_TRACTATES
+            .filter(t => t !== tractate)
+            .map(t => src.replace(tractate, t));
+          return { category: "Jerusalem Talmud", baseBook: tractate, availableTargets: targets };
+        }
+      }
+    }
+    
+    // Check if it's Mishnah
+    if (baseText.includes("Mishnah")) {
+      for (let tractate of MISHNAH_TRACTATES) {
+        if (baseText.includes(tractate)) {
+          const targets = MISHNAH_TRACTATES
+            .filter(t => t !== tractate)
+            .map(t => src.replace(tractate, t));
+          return { category: "Mishnah", baseBook: tractate, availableTargets: targets };
+        }
+      }
+    }
+    
+    // Check if it's Talmud (Bavli)
+    for (let tractate of TALMUD_TRACTATES) {
+      if (baseText.includes(tractate)) {
+        const targets = TALMUD_TRACTATES
+          .filter(t => t !== tractate)
+          .map(t => src.replace(tractate, t));
+        return { category: "Talmud", baseBook: tractate, availableTargets: targets };
+      }
+    }
+    
+    return { category: null, baseBook: null, availableTargets: [] };
+  };
+
+  const upload = () => {
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    setMsg("Uploading files...");
+    const fd = new FormData();
+    files.forEach(f => fd.append("workflowys[]", f));
+    
+    // Append the new form data
+    fd.append("c_index", c_index);
+    fd.append("c_version", c_version);
+    fd.append("delims", delims);
+    fd.append("term_scheme", term_scheme);
+
+    $.ajax({
+      url: '/api/upload-workflowy-multi',
+      type: 'POST',
+      data: fd,
+      processData: false,
+      contentType: false,
+      success: d => {
+        setMsg(`✅ ${d.message}`);
+        setFiles([]); // Clear files after success
+        // Reset file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) fileInput.value = '';
+      },
+      error: x => {
+        const errorMsg = x.responseJSON?.error || x.responseText || "Upload failed";
+        setMsg(`❌ Error: ${errorMsg}`);
+      },
+      complete: () => setUploading(false)
+    });
+  };
+
+  const duplicate = () => {
+    if (!src || targets.size === 0) return;
+    
+    setDuplicating(true);
+    setMsg(`Creating ${targets.size} indices...`);
+    
+    $.ajax({
+      url: '/api/duplicate-index',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({src, targets: [...targets]}),
+      success: d => {
+        if (d.created && d.created.length > 0) {
+          setMsg(`✅ Successfully created: ${d.created.join(', ')}`);
+          setTargets(new Set()); // Clear selection after success
+        } else {
+          setMsg(`⚠️ No indices were created (they may already exist)`);
+        }
+      },
+      error: x => {
+        const errorMsg = x.responseJSON?.error || x.responseText || "Unknown error";
+        setMsg(`❌ Error: ${errorMsg}`);
+      },
+      complete: () => setDuplicating(false)
+    });
+  };
+
+  const selectAll = () => {
+    const { availableTargets } = analyzeSource();
+    setTargets(new Set(availableTargets));
+  };
+
+  const selectNone = () => {
+    setTargets(new Set());
+  };
+
+  const { category: detectedCategory, baseBook, availableTargets } = analyzeSource();
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Workflowy Import</div>
+      
+      {/* Configuration options for the uploader */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
+          <label>
+              <input type="checkbox" checked={c_index} onChange={e => setCreateIndex(e.target.checked)} />
+              Create Index Record
+          </label>
+          <label>
+              <input type="checkbox" checked={c_version} onChange={e => setCreateVersion(e.target.checked)} />
+              Create Version From Notes on Outline
+          </label>
+          <label>
+              Custom Delimiters (Title Lang | Alt Titles | Categories):
+              <input type="text" className="dlVersionSelect" value={delims} onChange={e => setDelims(e.target.value)} style={{ width: '100%' }} />
+          </label>
+          <label>
+              Optional Term Scheme Name:
+              <input type="text" className="dlVersionSelect" value={term_scheme} onChange={e => setTermScheme(e.target.value)} style={{ width: '100%' }} />
+          </label>
+      </div>
+
+      <input
+        type="file"
+        multiple
+        onChange={e => setFiles([...e.target.files])}
+        accept=".opml"
+      />
+      <button
+        className="modtoolsButton"
+        disabled={!files.length || uploading}
+        onClick={upload}
+      >
+        {uploading ? "Uploading..." : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}
+      </button>
+
+      <div className="dlSectionTitle" style={{marginTop: "16px"}}>Duplicate Index</div>
+      <input
+        className="dlVersionSelect"
+        placeholder="Source index (e.g., Rashi on Genesis, Kehati on Mishnah Berakhot)"
+        value={src}
+        onChange={e => setSrc(e.target.value)}
+      />
+      
+      {src && detectedCategory && (
+        <>
+          <div style={{margin: "8px 0", fontSize: "14px", color: "#666"}}>
+            Detected: <strong>{detectedCategory}</strong> commentary on <strong>{baseBook}</strong>
+          </div>
+          
+          <div style={{margin: "8px 0"}}>
+            <button
+              className="modtoolsButton"
+              onClick={selectAll}
+              style={{marginRight: "5px"}}
+            >
+              Select All ({availableTargets.length})
+            </button>
+            <button className="modtoolsButton" onClick={selectNone}>
+              Select None
+            </button>
+          </div>
+          
+          <div
+            className="indicesList"
+            style={{
+              maxHeight: "400px",
+              overflow: "auto",
+              border: "1px solid #ddd",
+              padding: "10px",
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            {availableTargets.map(t =>
+              <label key={t} style={{display: "block", padding: "3px", cursor: "pointer"}}>
+                <input
+                  type="checkbox"
+                  checked={targets.has(t)}
+                  onChange={e => {
+                    const s = new Set(targets);
+                    e.target.checked ? s.add(t) : s.delete(t);
+                    setTargets(s);
+                  }}
+                /> {t}
+              </label>
+            )}
+          </div>
+          
+          {targets.size > 0 && (
+            <div style={{margin: "8px 0", fontSize: "14px", color: "#666"}}>
+              Selected: {targets.size} of {availableTargets.length} indices
+            </div>
+          )}
+        </>
+      )}
+      
+      {src && !detectedCategory && (
+        <div style={{margin: "8px 0", color: "#d9534f", fontSize: "14px"}}>
+          Could not detect commentary type. Please ensure the source follows patterns like:
+          <ul style={{marginTop: "5px", marginBottom: "0"}}>
+            <li>"Rashi on Genesis"</li>
+            <li>"Kehati on Mishnah Bekhorot"</li>
+            <li>"Steinsaltz on Talmud Berakhot"</li>
+            <li>"Meiri on Jerusalem Talmud Berakhot"</li>
+          </ul>
+        </div>
+      )}
+      
+      <button
+        className="modtoolsButton"
+        disabled={!src || !targets.size || duplicating}
+        onClick={duplicate}
+        style={{marginTop: "8px"}}
+      >
+        {duplicating ? "Creating..." : `Duplicate to ${targets.size} indices`}
+      </button>
+      
+      {msg && (
+        <div
+          className="message"
+          style={{
+            marginTop: "8px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
+                           msg.includes("❌") ? "#f8d7da" :
+                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" :
+                   msg.includes("❌") ? "#721c24" :
+                   msg.includes("⚠️") ? "#856404" : "#0c5460"
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/*****************************************************************
+ *  B U L K   V E R S I O N   E D I T O R   (full field list)
+ *****************************************************************/
+const ALL_FIELDS = [
+  "versionTitle", "versionTitleInHebrew",
+  "versionSource", "license", "status",        // locked = status:"locked"
+  "priority", "digitizedBySefaria",
+  "isPrimary", "isSource",
+  "versionNotes", "versionNotesInHebrew",
+  "purchaseInformationURL", "purchaseInformationImage",
+  "direction"         // ltr / rtl  – rarely needed, but allowed
+];
+
+const BulkVersionEditor = () => {
+  const [vtitle, setVtitle]   = useState("");
+  const [lang,   setLang]     = useState("");
+  const [indices, setIndices] = useState([]);
+  const [pick,    setPick]    = useState(new Set());
+  const [updates, setUpdates] = useState({});
+  const [msg,     setMsg]     = useState("");
+
+  /* ── helpers ──────────────────────────────────────────────── */
+  const load = () =>
+    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`,
+      d => { setIndices(d.indices); setPick(new Set(d.indices)); }, // pre-select all
+      xhr => setMsg(xhr.responseText));
+
+  const toggleAll = () =>
+    setPick(pick.size === indices.length ? new Set() : new Set(indices));
+
+  const save = () =>
+    $.ajax({
+      url: "/api/version-bulk-edit",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        versionTitle: vtitle, language: lang,
+        indices: Array.from(pick), updates
+      }),
+      success: d => setMsg(`✅ Updated ${d.count} versions`),
+      error:   x => setMsg(`❌ ${x.responseText}`)
+    });
+
+  /* ── UI ───────────────────────────────────────────────────── */
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Bulk Edit Version Metadata</div>
+
+      {/* search bar */}
+      <input  className="dlVersionSelect" placeholder="Version title"
+              value={vtitle} onChange={e=>setVtitle(e.target.value)} />
+      <select className="dlVersionSelect"
+              value={lang} onChange={e=>setLang(e.target.value)}>
+        <option value="">lang</option><option>he</option><option>en</option>
+      </select>
+      <button className="modtoolsButton" onClick={load}>Load</button>
+
+      {/* index checklist */}
+      {indices.length > 0 && (
+        <>
+          <label style={{display:"block",marginTop:"6px"}}>
+            <input type="checkbox"
+                   checked={pick.size===indices.length}
+                   onChange={toggleAll}/> Select all
+          </label>
+          <div className="indicesList">
+            {indices.map(t =>
+              <label key={t}>
+                <input type="checkbox"
+                       checked={pick.has(t)}
+                       onChange={e=>{
+                         const s=new Set(pick);
+                         e.target.checked ? s.add(t) : s.delete(t);
+                         setPick(s);
+                       }}/> {t}
+              </label>)}
+          </div>
+        </>
+      )}
+
+      {/* field inputs */}
+      {pick.size > 0 && (
+        <>
+          <div style={{marginTop:"8px"}}>Fields to change:</div>
+          {ALL_FIELDS.map(f =>
+            <input key={f} className="dlVersionSelect"
+                   placeholder={f}
+                   onChange={e=>{
+                     const v=e.target.value;
+                     setUpdates(u=>{
+                       const n={...u}; v?n[f]=v:delete n[f]; return n;
+                     });
+                   }} />)}
+          <button className="modtoolsButton"
+                  disabled={!Object.keys(updates).length}
+                  onClick={save}>Save</button>
+        </>
+      )}
+
+      {msg && <div className="message">{msg}</div>}
+    </div>
+  );
+};
+
+const AutoLinkCommentaryTool = () => {
+  const [vtitle,   setVtitle]   = React.useState("");
+  const [lang,     setLang]     = React.useState("");
+  const [indices,  setIndices]  = React.useState([]);
+  const [pick,     setPick]     = React.useState(new Set());
+  const [msg,      setMsg]      = React.useState("");
+  const [loading,  setLoading]  = React.useState(false);
+  const [linking,  setLinking]  = React.useState(false);
+  const [mapping,  setMapping]  = React.useState("many_to_one_default_only");   // NEW
+
+  /* ---------------------------------- LOAD --------------------------------- */
+
+  const load = () => {
+    if (!vtitle) { setMsg("❌ Please enter a version title"); return; }
+    setLoading(true);  setMsg("Loading indices…");
+
+    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+      .done(d => {
+        const comm = d.indices.filter(t => t.includes(" on "));
+        setIndices(comm);
+        setPick(new Set(comm));
+        setMsg(`Found ${comm.length} commentary indices`);
+      })
+      .fail(xhr => {
+        const err = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
+        setMsg(`❌ Error: ${err}`);
+        setIndices([]);  setPick(new Set());
+      })
+      .always(() => setLoading(false));
+  };
+
+  /* ------------------------------ CREATE LINKS ----------------------------- */
+
+const createLinks = async () => {
+  if (!pick.size) return;
+  setLinking(true); setMsg("Creating links…");
+
+  let successCount = 0;
+  const errors = [];
+
+  for (const indexTitle of pick) {
+    try {
+      /* 1️⃣ fetch current Index */
+      const raw = await Sefaria.getIndexDetails(indexTitle);
+      if (!raw) throw new Error("couldn’t fetch index JSON");
+
+      /* 2️⃣ guess base work from “… on <Work>” pattern */
+      const guess = (indexTitle.match(/ on (.+)$/) || [])[1];
+      if (!guess) throw new Error("title pattern didn’t reveal base text");
+
+      /* 3️⃣ add missing commentary metadata (idempotent) */
+      if (!raw.base_text_titles || !raw.base_text_mapping) {
+        const patched = {
+          ...raw,
+          dependence        : "Commentary",
+          base_text_titles  : raw.base_text_titles  || [guess],
+          base_text_mapping : raw.base_text_mapping || mapping
+        };
+        delete patched._id;
+        const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}?update=1`;
+        await $.post(url, { json: JSON.stringify(patched) });
+        /* 3b – clear in‑process + Redis + varnish caches */
+        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
+      }
+
+      /* 4️⃣ rebuild links */
+      await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
+      successCount++;
+
+    } catch (e) {
+      const m = e.responseJSON?.error || e.statusText || e.message;
+      errors.push(`${indexTitle}: ${m}`);
+    }
+  }
+
+  setMsg(
+    errors.length
+      ? `⚠️ Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`
+      : `✅ Links built for all ${successCount} indices`
+  );
+  setLinking(false);
+};
+
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Auto-Link Commentaries</div>
+      
+      <div style={{ marginBottom: "8px", padding: "8px", backgroundColor: "#e7f3ff", borderRadius: "4px" }}>
+        <strong>How it works:</strong> This tool automatically creates links between commentaries and their base texts.
+        For example, "Rashi on Genesis 1:1:1" will be linked to "Genesis 1:1". Links update dynamically when text changes.
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <input
+          className="dlVersionSelect"
+          placeholder="Version title"
+          value={vtitle}
+          onChange={e => setVtitle(e.target.value)}
+          style={{ flex: 1 }}
+        />
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+          style={{ width: "100px" }}
+        >
+          <option value="">All langs</option>
+          <option value="he">Hebrew</option>
+          <option value="en">English</option>
+        </select>
+        <button
+          className="modtoolsButton"
+          onClick={load}
+          disabled={loading || !vtitle}
+        >
+          {loading ? "Loading..." : "Find Commentaries"}
+        </button>
+      </div>
+
+      {indices.length > 0 && (
+        <>
+          <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                checked={pick.size === indices.length}
+                onChange={() => setPick(pick.size === indices.length ? new Set() : new Set(indices))}
+              />
+              <span style={{ fontWeight: "500" }}>
+                Select all ({indices.length} commentaries)
+              </span>
+            </label>
+          </div>
+
+          <div
+            className="indicesList"
+            style={{
+              maxHeight: "200px",
+              overflow: "auto",
+              border: "1px solid #ddd",
+              padding: "8px",
+              marginBottom: "16px",
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            {indices.map(t => (
+              <label key={t} style={{ display: "block", padding: "4px", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={pick.has(t)}
+                  onChange={e => {
+                    const s = new Set(pick);
+                    e.target.checked ? s.add(t) : s.delete(t);
+                    setPick(s);
+                  }}
+                /> {t}
+              </label>
+            ))}
+           </div>
+ 
+          <div style={{ marginBottom:"12px" }}>
+            <label style={{ fontWeight:500 }}>base_text_mapping:&nbsp;</label>
+            <select
+              className="dlVersionSelect"
+              value={mapping}
+              onChange={e => setMapping(e.target.value)}
+            >
+              <option value="many_to_one_default_only">many_to_one_default_only (✓ Mishnah / Tanakh)</option>
+              <option value="many_to_one">many_to_one</option>
+              <option value="one_to_one_default_only">one_to_one_default_only</option>
+              <option value="one_to_one">one_to_one</option>
+            </select>
+          </div>
+
+          <button
+            className="modtoolsButton"
+            disabled={!pick.size || linking}
+            onClick={createLinks}
+          >
+            {linking ? "Creating Links…" : `Create Links for ${pick.size} Commentaries`}
+          </button>
+        </>
+      )}
+
+      {msg && (
+        <div className="message" style={{
+          marginTop:12, padding:8, borderRadius:4,
+          backgroundColor: msg.includes("✅") ? "#d4edda"
+                       : msg.includes("❌") ? "#f8d7da"
+                       : msg.includes("⚠️") ? "#fff3cd"
+                       : "#d1ecf1",
+          color: msg.includes("✅") ? "#155724"
+               : msg.includes("❌") ? "#721c24"
+               : msg.includes("⚠️") ? "#856404"
+               : "#0c5460"
+        }}>{msg}</div>
+      )}
+    </div>
+  );
+};
+
+const NodeTitleEditor = () => {
+  const [indexTitle, setIndexTitle] = React.useState("");
+  const [indexData, setIndexData] = React.useState(null);
+  const [editingNodes, setEditingNodes] = React.useState({});
+  const [msg, setMsg] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  const load = async () => {
+    if (!indexTitle) {
+      setMsg("❌ Please enter an index title");
+      return;
+    }
+
+    setLoading(true);
+    setMsg("Loading index...");
+
+    try {
+      const data = await Sefaria.getIndexDetails(indexTitle);
+      setIndexData(data);
+      setEditingNodes({});
+      setMsg(`✅ Loaded ${indexTitle}`);
+    } catch (e) {
+      setMsg(`❌ Error: Could not load index "${indexTitle}"`);
+      setIndexData(null);
+    }
+    setLoading(false);
+  };
+
+  const extractNodes = (schema, path = []) => {
+    let nodes = [];
+    
+    if (schema.nodes) {
+      schema.nodes.forEach((node, index) => {
+        const nodePath = [...path, index];
+        nodes.push({
+          path: nodePath,
+          pathStr: nodePath.join('.'),
+          node: node,
+          titles: node.titles || [],
+          sharedTitle: node.sharedTitle,
+          title: node.title,
+          heTitle: node.heTitle
+        });
+        
+        // Recursively get child nodes
+        if (node.nodes) {
+          nodes = nodes.concat(extractNodes(node, nodePath));
+        }
+      });
+    }
+    
+    return nodes;
+  };
+
+  const handleNodeEdit = (pathStr, field, value) => {
+    setEditingNodes(prev => ({
+      ...prev,
+      [pathStr]: {
+        ...prev[pathStr],
+        [field]: value
+      }
+    }));
+  };
+
+  const save = async () => {
+    if (Object.keys(editingNodes).length === 0) {
+      setMsg("❌ No changes to save");
+      return;
+    }
+
+    setSaving(true);
+    setMsg("Saving changes...");
+
+    try {
+      // Create a deep copy of the index data
+      const updatedIndex = JSON.parse(JSON.stringify(indexData));
+      
+      // Apply edits to the nodes
+      Object.entries(editingNodes).forEach(([pathStr, edits]) => {
+        const path = pathStr.split('.').map(Number);
+        let node = updatedIndex.schema || updatedIndex;
+        
+        // Navigate to the correct node
+        for (let i = 0; i < path.length; i++) {
+          if (i === path.length - 1) {
+            // Last step - this is our target node
+            const targetNode = node.nodes[path[i]];
+            
+            // Apply edits
+            if (edits.removeSharedTitle) {
+              delete targetNode.sharedTitle;
+            }
+            
+            if (edits.title !== undefined) {
+              targetNode.title = edits.title;
+              
+              // Update or add English title in titles array
+              const enTitleIndex = targetNode.titles?.findIndex(t => t.lang === "en" && t.primary);
+              if (enTitleIndex >= 0) {
+                targetNode.titles[enTitleIndex].text = edits.title;
+              } else {
+                if (!targetNode.titles) targetNode.titles = [];
+                targetNode.titles.push({
+                  text: edits.title,
+                  lang: "en",
+                  primary: true
+                });
+              }
+            }
+            
+            if (edits.heTitle !== undefined) {
+              targetNode.heTitle = edits.heTitle;
+              
+              // Update or add Hebrew title in titles array
+              const heTitleIndex = targetNode.titles?.findIndex(t => t.lang === "he" && t.primary);
+              if (heTitleIndex >= 0) {
+                targetNode.titles[heTitleIndex].text = edits.heTitle;
+              } else {
+                if (!targetNode.titles) targetNode.titles = [];
+                targetNode.titles.push({
+                  text: edits.heTitle,
+                  lang: "he",
+                  primary: true
+                });
+              }
+            }
+          } else {
+            node = node.nodes[path[i]];
+          }
+        }
+      });
+
+      // Save the updated index
+      const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
+      
+      await $.ajax({
+        url,
+        type: 'POST',
+        data: { json: JSON.stringify(updatedIndex) }
+      });
+
+      // Reset cache
+      await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+      
+      setMsg(`✅ Successfully updated node titles`);
+      setEditingNodes({});
+      
+      // Reload to show changes
+      setTimeout(() => load(), 1000);
+      
+    } catch (e) {
+      console.error('Save error:', e);
+      const errorMsg = e.responseJSON?.error || e.responseText || 'Unknown error';
+      setMsg(`❌ Error: ${errorMsg}`);
+    }
+    
+    setSaving(false);
+  };
+
+  const nodes = indexData ? extractNodes(indexData.schema || indexData) : [];
+
+  return (
+    <div className="modToolsSection">
+      <div className="dlSectionTitle">Edit Node Titles</div>
+      
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        <input
+          className="dlVersionSelect"
+          placeholder="Index title (e.g., 'Binyan Olam')"
+          value={indexTitle}
+          onChange={e => setIndexTitle(e.target.value)}
+          onKeyPress={e => e.key === 'Enter' && load()}
+          style={{ flex: 1 }}
+        />
+        <button
+          className="modtoolsButton"
+          onClick={load}
+          disabled={loading || !indexTitle}
+        >
+          {loading ? "Loading..." : "Load Index"}
+        </button>
+      </div>
+
+      {nodes.length > 0 && (
+        <>
+          <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
+            Found {nodes.length} nodes. Edit titles below:
+          </div>
+
+          <div style={{ maxHeight: "400px", overflow: "auto", border: "1px solid #ddd", padding: "12px" }}>
+            {nodes.map(({ path, pathStr, node, sharedTitle, title, heTitle }) => {
+              const edits = editingNodes[pathStr] || {};
+              const hasChanges = edits.title !== undefined || edits.heTitle !== undefined || edits.removeSharedTitle;
+              
+              return (
+                <div 
+                  key={pathStr} 
+                  style={{ 
+                    marginBottom: "16px", 
+                    padding: "12px", 
+                    backgroundColor: hasChanges ? "#fffbf0" : "#f9f9f9",
+                    borderRadius: "4px",
+                    border: hasChanges ? "1px solid #ffa500" : "1px solid #eee"
+                  }}
+                >
+                  {sharedTitle && (
+                    <div style={{ marginBottom: "8px", fontSize: "12px", color: "#666" }}>
+                      Shared Title: "{sharedTitle}"
+                      <label style={{ marginLeft: "12px" }}>
+                        <input
+                          type="checkbox"
+                          checked={edits.removeSharedTitle || false}
+                          onChange={e => handleNodeEdit(pathStr, 'removeSharedTitle', e.target.checked)}
+                        />
+                        Remove shared title
+                      </label>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div>
+                      <label style={{ fontSize: "12px", color: "#666" }}>English Title:</label>
+                      <input
+                        className="dlVersionSelect"
+                        value={edits.title !== undefined ? edits.title : title}
+                        onChange={e => handleNodeEdit(pathStr, 'title', e.target.value)}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "12px", color: "#666" }}>Hebrew Title:</label>
+                      <input
+                        className="dlVersionSelect"
+                        value={edits.heTitle !== undefined ? edits.heTitle : heTitle}
+                        onChange={e => handleNodeEdit(pathStr, 'heTitle', e.target.value)}
+                        style={{ width: "100%", direction: "rtl" }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {node.nodeType && (
+                    <div style={{ marginTop: "4px", fontSize: "11px", color: "#999" }}>
+                      Type: {node.nodeType} | Path: nodes[{path.join('][')}]
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {Object.keys(editingNodes).length > 0 && (
+            <button
+              className="modtoolsButton"
+              onClick={save}
+              disabled={saving}
+              style={{ marginTop: "12px" }}
+            >
+              {saving ? "Saving..." : `Save Changes to ${Object.keys(editingNodes).length} Nodes`}
+            </button>
+          )}
+        </>
+      )}
+
+      {msg && (
+        <div
+          className="message"
+          style={{
+            marginTop: "12px",
+            padding: "8px",
+            borderRadius: "4px",
+            backgroundColor: msg.includes("✅") ? "#d4edda" :
+                           msg.includes("❌") ? "#f8d7da" : "#d1ecf1",
+            color: msg.includes("✅") ? "#155724" :
+                   msg.includes("❌") ? "#721c24" : "#0c5460"
+          }}
+        >
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default ModeratorToolsPanel;
