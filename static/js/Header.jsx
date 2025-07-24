@@ -132,15 +132,14 @@ const LoggedInDropdown = ({module}) => {
 }
 
 const ModuleSwitcher = () => {
-  const shouldOpenNewTab = (newModule) => Sefaria.activeModule !== newModule;
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={'/'} newTab={shouldOpenNewTab('library')}>
+              <DropdownMenuItem url={'/'} newModule='library'>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/sheets'} newTab={shouldOpenNewTab('sheets')}>  
+              <DropdownMenuItem url={'/sheets'} newModule='sheets'>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
