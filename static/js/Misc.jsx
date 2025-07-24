@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState, useCallback} from 'react';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import {CollectionsModal} from "./CollectionsWidget";
@@ -25,6 +25,31 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1443,8 +1468,19 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 };
 
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) => {
+  const categoryColorLineRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "category_color_line" });
+    if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
+  }, "sa.header_viewed");
+  return (
+    <div
+      className="categoryColorLine"
+      style={{ background: Sefaria.palette.categoryColor(category) }}
+      ref={categoryColorLineRef}
+    />
+  );
+};
 
 
 class ProfileListing extends Component {
@@ -2888,8 +2924,46 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const [showAddButton, setShowAddButton] = useState(false);
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
   const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
+  const popupsEl = useRef(null);
+
+  const checkSpaceBelow = useCallback(() => {
+    const input = inputEl.current;
+    const pops = popupsEl.current;
+    if (!input || !pops) return;
+
+    // Calculate the visible space
+    const inputRect = input.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - inputRect.bottom
+    const spaceAbove = inputRect.top;
+    const popsTop = Math.min(...Array.from(pops.children).map(c => c.getBoundingClientRect().top))
+    const popsBottom = Math.max(...Array.from(pops.children).map(c => c.getBoundingClientRect().bottom))
+    const popsHeight = popsBottom - popsTop;
+    setShouldShowAbove(spaceBelow < popsHeight && spaceAbove >= popsHeight);
+  }, []);
+
+  useEffect(
+    () => {
+         const element = document.querySelector('.textPreviewSegment.highlight');
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+    }, [previewText]
+  )
+  useEffect(() => {
+    window.addEventListener('resize', checkSpaceBelow);
+    window.addEventListener('scroll', checkSpaceBelow, true);
+    return () => {
+      window.removeEventListener('resize', checkSpaceBelow);
+      window.removeEventListener('scroll', checkSpaceBelow, true);
+    };
+  }, []);
+  useEffect(() => {
+    checkSpaceBelow()
+  }, [currentSuggestions, showCurrentSuggestions, previewText]);
+
+
   const buttonClassNames = classNames({button: 1, small: 1});
 
   const getWidthOfInput = () => {
@@ -2918,13 +2992,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     document.body.removeChild(tmp);
     return theWidth;
   }
-
-  useEffect(
-    () => {
-         const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
-    }, [previewText]
-  )
 
   const resizeInputIfNeeded = () => {
     const currentWidth = getWidthOfInput();
@@ -3010,7 +3077,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     }
   }
 
-
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            let segments = Sefaria.makeSegments(text, true);
@@ -3061,7 +3127,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                     handleSelection(inputValue, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 
-      {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
+      <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popupsEl}>
+        {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
@@ -3084,8 +3151,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           </div>
 
           : null
-
       }
+      </div>
 
     </div>
     )
@@ -3305,5 +3372,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner
+  LearnAboutNewEditorBanner,
+  useOnceFullyVisible
 };

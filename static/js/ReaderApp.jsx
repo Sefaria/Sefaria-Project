@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import extend from 'extend';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import Header from './Header';
+import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
@@ -218,6 +218,18 @@ class ReaderApp extends Component {
     } else if (Sefaria.isNewVisitor()) {
       // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
       Sefaria.markUserAsNewVisitor();
+    }
+
+    if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
+      sessionStorage.setItem("sa.reader_app_mounted", "true");
+      sa_event("reader_app_mounted");
+      if (Sefaria._debug) console.log("sa: reader app has loaded!");
+    }
+    if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
+      if (!('IntersectionObserver' in window)) {
+        sa_event("intersection_observer_not_supported");
+      }
+      localStorage.setItem("sa.intersection_observer_api_checked", "true");
     }
   }
   componentWillUnmount() {

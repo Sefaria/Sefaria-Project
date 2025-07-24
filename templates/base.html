@@ -153,6 +153,32 @@
         })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
     {% endif %}
+    
+    <!-- Simple Analytics -->
+    {# Allow queuing of events in case embed script hasn't loaded yet when calling sa_event #}
+    <script>
+      window.sa_event = window.sa_event || function () {
+        const a = [].slice.call(arguments);
+        window.sa_event.q ? window.sa_event.q.push(a) : window.sa_event.q = [a];
+      };
+    </script>
+    {% if DEBUG %}
+    <script 
+      data-hostname="sa-dev.sefaria.org" 
+      data-collect-dnt="true" 
+      data-allow-params="with,p1,p2,p3,p4,p5,w1,w2,w3,w4,w5" 
+      async 
+      src="https://scripts.simpleanalyticscdn.com/latest.dev.js">
+    </script>
+    {% else %}
+    <script 
+      data-hostname="sefaria.org" 
+      data-collect-dnt="true" 
+      data-allow-params="with,p1,p2,p3,p4,p5,w1,w2,w3,w4,w5" 
+      async 
+      src="https://scripts.simpleanalyticscdn.com/latest.js">
+    </script>
+    {% endif %}
 
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
@@ -275,5 +301,21 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+    
+    <!-- Default metadata for Simple Analytics -->
+    <script>
+      const SESSION_KEY = 'sa_custom_session_id';
+      if (sessionStorage.getItem(SESSION_KEY) == null) {
+        sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+      }
+      sa_metadata = {
+        logged_in: DJANGO_VARS?.props._uid != null,
+        interface_lang: DJANGO_VARS?.props.interfaceLang === 'hebrew' ? 'he' : 'en',
+        device_type: DJANGO_VARS?.props.multiPanel ? 'desktop' : 'mobile',
+        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
+        custom_session_id: sessionStorage.getItem(SESSION_KEY),
+        ...(DJANGO_VARS?.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
+      };
+    </script>
 </body>
 </html>
