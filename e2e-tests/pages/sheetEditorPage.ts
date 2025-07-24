@@ -114,6 +114,9 @@ export class SheetEditorPage extends HelperBase {
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
     addedSource = () => this.page.locator('.SheetSource.segment');
+    addedSpotify = () => this.page.locator('iframe[src*="open.spotify.com/embed/"]');
+    addedYoutube = () => this.page.locator('.youTubeContainer');
+    addedImage = () => this.page.locator('img.addedMedia');
 
     // Sheet Actions--------------------------------------------------
     async closeSheetEditor() {
@@ -121,23 +124,21 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async editTitle(newTitle: string): Promise<void> {
-        const title = this.title();
-        await expect(title).toBeVisible();
-        await title.click({ clickCount: 3 });
-        await this.page.keyboard.press('Backspace');
-        await this.page.keyboard.type(newTitle);
-      };
-    
-    async addText(text: string) {
-        await this.focusTextInput(); 
-        //delay is used to simulate user typing and ensure the save state is detected/updated
-        await this.page.keyboard.type(text, {delay: 100});
-    }
+      const title = this.title();
+      await expect(title).toBeVisible();
+      await title.click({ clickCount: 3 });
+      await this.page.keyboard.press('Backspace');
+      await this.page.keyboard.type(newTitle);
+    };
+
+    /**
+     * Methods to click buttons and interact with the sheet editor
+     */
 
     async clickPlusButton() {
       const box = await this.page.locator('.editorAddInterface').boundingBox();
       if (box) {
-          const plusX = box.x - 46 + 15;
+          const plusX = box.x - 31;
           const plusY = box.y + box.height / 2;
           await this.page.mouse.click(plusX, plusY);
       } else {
@@ -169,18 +170,32 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async focusTextInput() {
-        await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
+        //await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
+        //await this.page.locator('div[data-slate-node="element"]').last().click();
+        await this.page.locator('.spacerSelected.spacer.empty').click();
       }
 
     async getTextLocator(text: string): Promise<Locator> {
       return this.page.locator('span[data-slate-string="true"]', { hasText: text });
     }
 
+   
+/**
+ * Methods to add components to the sheet editor
+ * Simulate user actions to add text, sources, images, and media.
+ */
+
+    async addText(text: string) {
+      await this.focusTextInput(); 
+      //delay is used to simulate user typing and ensure the save state is detected/updated
+      await this.page.keyboard.type(text, {delay: 100});
+    }
+
     async addSampleSource() {
-        await this.clickAddSource();
-        await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
-        await this.page.getByRole('button', { name: 'Add Source' }).click();
-      };
+      await this.clickAddSource();
+      await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
+      await this.page.getByRole('button', { name: 'Add Source' }).click();
+    };
 
     async addSampleImage() {
       await this.clickAddImage();
@@ -188,78 +203,123 @@ export class SheetEditorPage extends HelperBase {
       const fileInput = this.page.locator('#addImageFileSelector');
       await fileInput.setInputFiles(imagePath);
       await this.page.waitForSelector('img');
-      await expect(this.page.locator('img.addedMedia')).toBeVisible();
+      await expect(this.addedImage()).toBeVisible();
     };
 
     async addSampleMedia(link: string) {
       await this.clickAddMedia();
       await this.page.getByRole('textbox', { name: 'Paste a link to an image, video, or audio' }).fill(link);
       await this.page.getByRole('button', { name: 'Add Media' }).click();
-      // By using .last(), we specifically target the media element that was just added.
-      await expect(this.page.locator('.SheetMedia').last()).toBeVisible();
     };   
-    
-  //   async addTextBelow(text: string) {
-  //     await this.page.locator('.spacerSelected .editorAddInterface').click();
-  //     await this.page.keyboard.type(text, { delay: 100 });
-  //  }
-  async addTextBelow(text: string) {
-    // This is the most robust method for complex editors like Slate.js.
-    // It bypasses all click/focus issues by programmatically setting the browser's text selection
-    // inside the editable area.
-    await this.page.evaluate(() => {
-        const editableContainer = document.querySelector('.spacerSelected .cursorHolder[contenteditable="true"]') as HTMLElement;
-        if (editableContainer) {
-            editableContainer.focus();
-            const range = document.createRange();
-            range.selectNodeContents(editableContainer);
-            range.collapse(true); 
-            const selection = window.getSelection();
-            if (selection) {
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        }
-    });
-    await this.page.keyboard.type(text);
-}
 
-  async goToNewLineAtBottom() {
-    await this.page.evaluate(() => {
-        const editor = document.querySelector('[data-slate-editor="true"]');
-        if (!editor) return;
-
-        // Find the last text block (with contenteditable)
-        // This assumes each text block is a direct child or has a contenteditable descendant
-        let lastTextBlock: HTMLElement | null = null;
-        const children = Array.from(editor.children) as HTMLElement[];
-        for (let i = children.length - 1; i >= 0; i--) {
-            const block = children[i];
-            if (block.querySelector('[contenteditable="true"]')) {
-                lastTextBlock = block.querySelector('[contenteditable="true"]') as HTMLElement;
-                break;
-            }
-        }
-
-        if (lastTextBlock) {
-            lastTextBlock.focus();
-            // Move cursor to the end
-            const selection = window.getSelection();
-            if (selection) {
-                const range = document.createRange();
-                range.selectNodeContents(lastTextBlock);
-                range.collapse(false); // Move to end
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-        }
-    });
-
-    // Now press Enter to create a new line at the bottom
-    await this.page.keyboard.press('Enter');
-    // Optionally, wait for the new line to appear
-    await this.page.waitForTimeout(200);
+    async addTextBelow(text: string) {
+      // Move cursor to the very end of the entire editor content
+      await this.page.evaluate(() => {
+          const editableContainer = document.querySelector('.spacerSelected .cursorHolder[contenteditable="true"]') as HTMLElement;
+          if (editableContainer) {
+              editableContainer.focus();
+              const range = document.createRange();
+              range.selectNodeContents(editableContainer);
+              range.collapse(false); // ← CHANGED: false = move to END, not start
+              
+              const selection = window.getSelection();
+              if (selection) {
+                  selection.removeAllRanges();
+                  selection.addRange(range);
+              }
+          }
+      });
+      
+      // Add a new line first to ensure we're not inside the media/source container
+      await this.page.keyboard.press('Enter');
+      await this.page.keyboard.type(text);
   }
+//   async addTextBelow(text: string) {
+//     // This is the most robust method for complex editors like Slate.js.
+//     // It bypasses all click/focus issues by programmatically setting the browser's text selection
+//     // inside the editable area.
+//     await this.page.evaluate(() => {
+//         const editableContainer = document.querySelector('.spacerSelected .cursorHolder[contenteditable="true"]') as HTMLElement;
+//         if (editableContainer) {
+//             editableContainer.focus();
+//             const range = document.createRange();
+//             range.selectNodeContents(editableContainer);
+//             range.collapse(true); 
+//             const selection = window.getSelection();
+//             if (selection) {
+//                 selection.removeAllRanges();
+//                 selection.addRange(range);
+//             }
+//         }
+//     });
+//     await this.page.keyboard.type(text);
+// }
+
+
+  // async goToNewLineAtBottom() {
+  //   await this.page.locator('[data-slate-editor="true"]').click();
+    
+  //   const isMac = process.platform === 'darwin';
+  //   const shortcut = isMac ? 'Meta+ArrowDown' : 'Control+End';
+    
+  //   await this.page.keyboard.press(shortcut);
+  //   await this.page.keyboard.press('Enter');
+  //   await this.page.waitForTimeout(200);
+  // }
+
+  // async goToNewLineAtBottom() {
+  //   await this.page.evaluate(() => {
+  //       const editor = document.querySelector('[data-slate-editor="true"]');
+  //       if (!editor) return;
+
+  //       // Find the last text block (with contenteditable)
+  //       // This assumes each text block is a direct child or has a contenteditable descendant
+  //       let lastTextBlock: HTMLElement | null = null;
+  //       const children = Array.from(editor.children) as HTMLElement[];
+  //       for (let i = children.length - 1; i >= 0; i--) {
+  //           const block = children[i];
+  //           if (block.querySelector('[contenteditable="true"]')) {
+  //               lastTextBlock = block.querySelector('[contenteditable="true"]') as HTMLElement;
+  //               break;
+  //           }
+  //       }
+
+  //       if (lastTextBlock) {
+  //           lastTextBlock.focus();
+  //           // Move cursor to the end
+  //           const selection = window.getSelection();
+  //           if (selection) {
+  //               const range = document.createRange();
+  //               range.selectNodeContents(lastTextBlock);
+  //               range.collapse(false); // Move to end
+  //               selection.removeAllRanges();
+  //               selection.addRange(range);
+  //           }
+  //       }
+  //   });
+
+  //   // Now press Enter to create a new line at the bottom
+  //   await this.page.keyboard.press('Enter');
+  //   // Optionally, wait for the new line to appear
+  //   await this.page.waitForTimeout(200);
+  // }
+    async moveCursorToEnd() {
+      await this.page.evaluate(() => {
+        const elements = document.querySelectorAll('.spacerSelected .cursorHolder[contenteditable="true"]');
+        const lastElement = elements[elements.length - 1] as HTMLElement;
+        if (lastElement) {
+          lastElement.focus();
+          const range = document.createRange();
+          range.selectNodeContents(lastElement);
+          range.collapse(false); // Move to end
+              const selection = window.getSelection();
+              if (selection) {
+                  selection.removeAllRanges();
+                  selection.addRange(range);
+              }
+          }
+      });
+    }
 
     async sampleSourceNotEditable() {
         const sourceBox = this.page.locator('.sourceBox').last();
