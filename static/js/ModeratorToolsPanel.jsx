@@ -1686,92 +1686,85 @@ const BulkVersionEditor = () => {
 };
 
 const AutoLinkCommentaryTool = () => {
-  const [vtitle, setVtitle] = React.useState("");
-  const [lang, setLang] = React.useState("");
-  const [indices, setIndices] = React.useState([]);
-  const [pick, setPick] = React.useState(new Set());
-  const [msg, setMsg] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [linking, setLinking] = React.useState(false);
+  const [vtitle,   setVtitle]   = React.useState("");
+  const [lang,     setLang]     = React.useState("");
+  const [indices,  setIndices]  = React.useState([]);
+  const [pick,     setPick]     = React.useState(new Set());
+  const [msg,      setMsg]      = React.useState("");
+  const [loading,  setLoading]  = React.useState(false);
+  const [linking,  setLinking]  = React.useState(false);
+  const [mapping,  setMapping]  = React.useState("many_to_one_default_only");   // NEW
+
+  /* ---------------------------------- LOAD --------------------------------- */
 
   const load = () => {
-    if (!vtitle) {
-      setMsg("❌ Please enter a version title");
-      return;
-    }
-
-    setLoading(true);
-    setMsg("Loading indices...");
+    if (!vtitle) { setMsg("❌ Please enter a version title"); return; }
+    setLoading(true);  setMsg("Loading indices…");
 
     $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
       .done(d => {
-        // Filter only commentary indices
-        const commentaryIndices = d.indices.filter(title => {
-          // Simple check - if title contains "on" it's likely a commentary
-          return title.includes(" on ");
-        });
-        setIndices(commentaryIndices);
-        setPick(new Set(commentaryIndices));
-        setMsg(`Found ${commentaryIndices.length} commentary indices`);
+        const comm = d.indices.filter(t => t.includes(" on "));
+        setIndices(comm);
+        setPick(new Set(comm));
+        setMsg(`Found ${comm.length} commentary indices`);
       })
       .fail(xhr => {
-        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
-        setMsg(`❌ Error: ${errorMsg}`);
-        setIndices([]);
-        setPick(new Set());
+        const err = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
+        setMsg(`❌ Error: ${err}`);
+        setIndices([]);  setPick(new Set());
       })
       .always(() => setLoading(false));
   };
 
+  /* ------------------------------ CREATE LINKS ----------------------------- */
+
   const createLinks = async () => {
     if (!pick.size) return;
-
-    setLinking(true);
-    setMsg("Creating links...");
+    setLinking(true);  setMsg("Creating links…");
 
     let successCount = 0;
-    let errors = [];
+    const errors = [];
 
     for (const indexTitle of pick) {
       try {
-         /* 1️⃣  fetch raw record */
-         const raw = await Sefaria.getIndexDetails(indexTitle);
-         if (!raw) throw new Error("couldn’t fetch index JSON");
- 
-         /* 2️⃣  guess base text */
-         const guess = (indexTitle.match(/ on (.+)$/) || [])[1];
-         if (!guess) throw new Error("title pattern didn’t reveal base text");
- 
-         /* 3️⃣  add missing commentary fields */
-         const needsPatch = !raw.base_text_titles || !raw.base_text_mapping;
-         if (needsPatch) {
-           const patched = {
-             ...raw,
-             dependence: "Commentary",
-             base_text_titles: raw.base_text_titles || [guess],
-             base_text_mapping: mapping
-           };
-           delete patched._id;
-           const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}?update=1`;
-           await $.post(url, { json: JSON.stringify(patched) });
-         }
- 
-         /* 4️⃣  build the links */
-         await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle)}`);
-         ok++;
-       }
-       catch(e){
-         const m = e.responseJSON?.error || e.statusText || e.message;
-         errs.push(`${indexTitle}: ${m}`);
-       }
-     }
+        /* 1. fetch raw index */
+        const raw = await Sefaria.getIndexDetails(indexTitle);
+        if (!raw) throw new Error("couldn’t fetch index JSON");
+
+        /* 2. guess base text */
+        const guess = (indexTitle.match(/ on (.+)$/) || [])[1];
+        if (!guess) throw new Error("title pattern didn’t reveal base text");
+
+        /* 3. add missing commentary fields */
+        if (!raw.base_text_titles || !raw.base_text_mapping) {
+          const patched = {
+            ...raw,
+            dependence: "Commentary",
+            base_text_titles : raw.base_text_titles  || [guess],
+            base_text_mapping: raw.base_text_mapping || mapping,
+          };
+          delete patched._id;
+          const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
+          await $.post(url, { json: JSON.stringify(patched) });
+        }
+
+        /* 4. rebuild links */
+        await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+        successCount++;
+
+      } catch (e) {
+        const m = e.responseJSON?.error || e.statusText || e.message;
+        errors.push(`${indexTitle}: ${m}`);
+      }
+    }
 
     if (errors.length) {
-     setMsg(errs.length
-       ? `⚠️ Finished. Linked ${ok} / ${pick.size}. Errors: ${errs.join("; ")}`
-       : `✅ Links built for all ${ok} indices`);
-     setLinking(false);
-   };
+      setMsg(`⚠️ Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`);
+    } else {
+      setMsg(`✅ Links built for all ${successCount} indices`);
+    }
+    setLinking(false);
+  };
 
   return (
     <div className="modToolsSection">
@@ -1850,47 +1843,42 @@ const AutoLinkCommentaryTool = () => {
             ))}
            </div>
  
-           <div style={{ marginBottom:"12px" }}>
-             <label style={{ fontWeight:500 }}>base_text_mapping:&nbsp;</label>
-             <select
-               className="dlVersionSelect"
-               value={mapping}
-               onChange={e=>setMapping(e.target.value)}
-             >
-               <option value="many_to_one_default_only">many_to_one_default_only (✓ Mishnah / Tanakh)</option>
-               <option value="many_to_one">many_to_one</option>
-               <option value="one_to_one_default_only">one_to_one_default_only</option>
-               <option value="one_to_one">one_to_one</option>
-             </select>
-           </div>
+          <div style={{ marginBottom:"12px" }}>
+            <label style={{ fontWeight:500 }}>base_text_mapping:&nbsp;</label>
+            <select
+              className="dlVersionSelect"
+              value={mapping}
+              onChange={e => setMapping(e.target.value)}
+            >
+              <option value="many_to_one_default_only">many_to_one_default_only (✓ Mishnah / Tanakh)</option>
+              <option value="many_to_one">many_to_one</option>
+              <option value="one_to_one_default_only">one_to_one_default_only</option>
+              <option value="one_to_one">one_to_one</option>
+            </select>
+          </div>
 
           <button
             className="modtoolsButton"
             disabled={!pick.size || linking}
             onClick={createLinks}
           >
-            {linking ? "Creating Links..." : `Create Links for ${pick.size} Commentaries`}
+            {linking ? "Creating Links…" : `Create Links for ${pick.size} Commentaries`}
           </button>
         </>
       )}
 
       {msg && (
-        <div
-          className="message"
-          style={{
-            marginTop: "12px",
-            padding: "8px",
-            borderRadius: "4px",
-            backgroundColor: msg.includes("✅") ? "#d4edda" :
-                           msg.includes("❌") ? "#f8d7da" : 
-                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
-            color: msg.includes("✅") ? "#155724" :
-                   msg.includes("❌") ? "#721c24" : 
-                   msg.includes("⚠️") ? "#856404" : "#0c5460"
-          }}
-        >
-          {msg}
-        </div>
+        <div className="message" style={{
+          marginTop:12, padding:8, borderRadius:4,
+          backgroundColor: msg.includes("✅") ? "#d4edda"
+                       : msg.includes("❌") ? "#f8d7da"
+                       : msg.includes("⚠️") ? "#fff3cd"
+                       : "#d1ecf1",
+          color: msg.includes("✅") ? "#155724"
+               : msg.includes("❌") ? "#721c24"
+               : msg.includes("⚠️") ? "#856404"
+               : "#0c5460"
+        }}>{msg}</div>
       )}
     </div>
   );
