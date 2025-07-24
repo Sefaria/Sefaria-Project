@@ -720,13 +720,9 @@ def import_versions_from_file(csv_filename, columns):
     return _import_versions_from_csv(rows, columns)
 
 
-      # new import ✔
-
 def _import_versions_from_csv(rows, columns, user_id):
 
-
     multi = str(rows[0][0]).strip().lower() == "version title"
-
     jobs = []  # (idx_title, vt, lang, src, notes, text_map)
 
     if multi:
@@ -734,20 +730,17 @@ def _import_versions_from_csv(rows, columns, user_id):
         vt, lang, src, notes = [rows[i][col] for i in range(4)]
         book_maps = defaultdict(dict)
         for r in rows[4:]:
-            if not r or len(r) <= col:
-                continue
-            ref, txt = r[0], r[col]
-            if not txt:
-                continue
-            book_maps[Ref(ref).index.title][ref] = txt
+             if not r or len(r) <= col:
+                 continue
+             ref, txt = r[0], r[col]
+             book_maps[Ref(ref).index.title][ref] = txt
         for idx_title, text_map in book_maps.items():
             jobs.append((idx_title, vt, lang, src, notes, text_map))
     else:
-        idx_title = rows[0][columns[0]]
-        for col in columns:
-            vt, lang, src, notes = [rows[i][col] for i in range(1, 5)]
-            text_map = {r[0]: r[col] for r in rows[5:] if len(r) > col and r[col]}
-            jobs.append((idx_title, vt, lang, src, notes, text_map))
+         col = columns[-1]
+         idx_title, vt, lang, src, notes = [rows[i][col] for i in range(5)]
+         text_map = {r[0]: r[col] for r in rows[5:] if len(r) > col}
+         jobs.append((idx_title, vt, lang, src, notes, text_map))
 
     for idx_title, vt, lang, src, notes, text_map in jobs:
         index = Index().load({'title': idx_title})
