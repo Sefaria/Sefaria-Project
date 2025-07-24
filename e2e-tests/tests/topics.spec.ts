@@ -1,7 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {goToPageWithLang, goToPageWithUser} from '../utils';
 import {LANGUAGES, testAdminUser} from "../globals";
-import * as assert from "node:assert";
 
 
 test('Go to topic page', async ({ context }) => {
@@ -19,7 +18,7 @@ test('Check source', async ({ context }) => {
 });
 
 test('Check admin tab', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics', testAdminUser);
+  const page = await goToPageWithUser(context, '/topics', LANGUAGES.EN, testAdminUser);
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
@@ -47,7 +46,7 @@ test('Check redirection for sourceless topic', async ({ context }) => {
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics/Monkey', testAdminUser);
+  const page = await goToPageWithUser(context, '/topics/Monkey', LANGUAGES.EN, testAdminUser);
   await page.waitForSelector('span:has-text("Admin")')
 
 });
@@ -66,6 +65,3 @@ test('Filter topics', async ({ context }) => {
   await page.getByRole('link', { name: 'Kiddush', exact: true }).isVisible();
 });
  
-test('Toggle sources and sheets', async ({ context }) => {
-  // fill in test
-})
