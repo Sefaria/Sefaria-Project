@@ -1718,53 +1718,56 @@ const AutoLinkCommentaryTool = () => {
 
   /* ------------------------------ CREATE LINKS ----------------------------- */
 
-  const createLinks = async () => {
-    if (!pick.size) return;
-    setLinking(true);  setMsg("Creating links…");
+const createLinks = async () => {
+  if (!pick.size) return;
+  setLinking(true); setMsg("Creating links…");
 
-    let successCount = 0;
-    const errors = [];
+  let successCount = 0;
+  const errors = [];
 
-    for (const indexTitle of pick) {
-      try {
-        /* 1. fetch raw index */
-        const raw = await Sefaria.getIndexDetails(indexTitle);
-        if (!raw) throw new Error("couldn’t fetch index JSON");
+  for (const indexTitle of pick) {
+    try {
+      /* 1️⃣ fetch current Index */
+      const raw = await Sefaria.getIndexDetails(indexTitle);
+      if (!raw) throw new Error("couldn’t fetch index JSON");
 
-        /* 2. guess base text */
-        const guess = (indexTitle.match(/ on (.+)$/) || [])[1];
-        if (!guess) throw new Error("title pattern didn’t reveal base text");
+      /* 2️⃣ guess base work from “… on <Work>” pattern */
+      const guess = (indexTitle.match(/ on (.+)$/) || [])[1];
+      if (!guess) throw new Error("title pattern didn’t reveal base text");
 
-        /* 3. add missing commentary fields */
-        if (!raw.base_text_titles || !raw.base_text_mapping) {
-          const patched = {
-            ...raw,
-            dependence: "Commentary",
-            base_text_titles : raw.base_text_titles  || [guess],
-            base_text_mapping: raw.base_text_mapping || mapping,
-          };
-          delete patched._id;
-          const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
-          await $.post(url, { json: JSON.stringify(patched) });
-        }
-
-        /* 4. rebuild links */
-        await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
-        successCount++;
-
-      } catch (e) {
-        const m = e.responseJSON?.error || e.statusText || e.message;
-        errors.push(`${indexTitle}: ${m}`);
+      /* 3️⃣ add missing commentary metadata (idempotent) */
+      if (!raw.base_text_titles || !raw.base_text_mapping) {
+        const patched = {
+          ...raw,
+          dependence        : "Commentary",
+          base_text_titles  : raw.base_text_titles  || [guess],
+          base_text_mapping : raw.base_text_mapping || mapping
+        };
+        delete patched._id;
+        const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}?update=1`;
+        await $.post(url, { json: JSON.stringify(patched) });
+        /* 3b – clear in‑process + Redis + varnish caches */
+        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
       }
-    }
 
-    if (errors.length) {
-      setMsg(`⚠️ Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`);
-    } else {
-      setMsg(`✅ Links built for all ${successCount} indices`);
+      /* 4️⃣ rebuild links */
+      await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
+      successCount++;
+
+    } catch (e) {
+      const m = e.responseJSON?.error || e.statusText || e.message;
+      errors.push(`${indexTitle}: ${m}`);
     }
-    setLinking(false);
-  };
+  }
+
+  setMsg(
+    errors.length
+      ? `⚠️ Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`
+      : `✅ Links built for all ${successCount} indices`
+  );
+  setLinking(false);
+};
+
 
   return (
     <div className="modToolsSection">
