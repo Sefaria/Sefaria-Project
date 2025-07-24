@@ -1611,6 +1611,7 @@ div.interfaceLinks-row a {
 }
 .readerNavMenu h1 .navTitleTab.current img {filter: brightness(0.5);}
 .sidebarLayout {
+  background-color: red !important;
   display: flex;
   flex-direction: row;
 }
