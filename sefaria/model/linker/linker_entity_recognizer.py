@@ -46,7 +46,7 @@ class LinkerEntityRecognizer:
         data = resp.json()
         merged_entities = []
         for input_str, result in zip(inputs, data['results']):
-            raw_refs, non_citations = self._parse_recognize_response(input_str, data)
+            raw_refs, non_citations = self._parse_recognize_response(input_str, result)
             merged_entities += [raw_refs + non_citations]
         return merged_entities
 
