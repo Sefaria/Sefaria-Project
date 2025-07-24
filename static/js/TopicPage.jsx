@@ -932,7 +932,10 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
 
   const LinkToSheetsSearchComponent = () => {
-
+    if (!topicTitle) {
+      // If topicTitle is not set, we cannot generate the search URLs
+      return null;
+    }
     let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
     let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
       return (
