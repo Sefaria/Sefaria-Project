@@ -47,11 +47,6 @@ class TextColumn extends Component {
     this.node.removeEventListener("scroll", this.handleScroll);
   }
   componentDidUpdate(prevProps, prevState) {
-    // Identify navigation changes from TOC and reset infinite scroll state
-    // Reset if we have fewer sections in the navigation than we have loaded OR if it's a navigation to a single section
-    if (this.numSectionsLoadedAtTop && this.props.srefs.length <= this.numSectionsLoadedAtTop || this.props.srefs.length === 1) {
-      this.resetInfiniteScrollState();
-    }
     
     const layoutWidth = this.$container.find(".textInner").width();
     const layoutWidthChanged = this.prevLayoutWidth && this.prevLayoutWidth !== layoutWidth;
@@ -89,14 +84,7 @@ class TextColumn extends Component {
     }
     
   }
-  
-  resetInfiniteScrollState() {
-    // Reset all infinite scroll state variables
-    // This is called when the user navigates through the TOC so the existing scroll position is not relevant
-    this.numSectionsLoadedAtTop = 0;
-    this.loadingContentAtTop = false;
-    this.initialScrollTopSet = false;
-  }
+
   handleScroll(event) {
     if (this.justScrolled) {
       this.justScrolled = false;
