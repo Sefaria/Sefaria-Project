@@ -2,8 +2,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
 from sefaria.spacy_function_registry import get_spacy_tokenizer
+from sefaria.settings import ENABLE_LINKER
 
-TOKENIZER = get_spacy_tokenizer()
+if ENABLE_LINKER:
+    TOKENIZER = get_spacy_tokenizer()
+else:
+    TOKENIZER = None
 
 
 class _Subspannable(ABC):
