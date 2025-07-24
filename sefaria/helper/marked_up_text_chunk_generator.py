@@ -4,7 +4,7 @@ from typing import List, Tuple
 from sefaria.model.text import Ref, TextChunk
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import link_segment_with_worker
+from sefaria.helper.linker.tasks import link_segment_with_worker, link_segment_with_worker_debug
 
 logger = structlog.get_logger(__name__)
 
@@ -22,11 +22,13 @@ except ImportError:
         - Handling async processing via celery
         """
         linking_args =  {
-            "ref": "Genesis 1:1",
-            "text": Ref("Genesis 1:1").text().text,
-            "lang": "en"
+            "ref": segment_ref.normal(),
+            "text": text,
+            "lang": lang,
+            "vtitle": vtitle
         }
-        inference = link_segment_with_worker.apply_async(args=[linking_args], queue="linker")
+        inference = link_segment_with_worker.apply_async(args=[linking_args], queue="linker").get()
+        # inference = link_segment_with_worker_debug(linking_args)
         print(f"Linking inference for {segment_ref.normal()} with vtitle {vtitle} and lang {lang}: {inference}")
 
 
