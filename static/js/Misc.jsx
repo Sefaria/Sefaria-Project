@@ -89,14 +89,18 @@ const __filterChildrenByLanguage = (children, language) => {
 };
 
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
+const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=['p']}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
-   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
-   *  Otherwise:
+   * If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   * Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
-   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragraphs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
+   * `disallowedMarkdownElements` is an array of HTML element names to disallow when rendering markdown.
+   *   - Defaults to ['p'] to prevent paragraph tags (preserves inline-only behavior)
+   *   - Pass [] to allow all elements including paragraphs
+   *   - Pass ['p', 'a'] to disallow both paragraphs and links, etc.
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
@@ -121,7 +125,7 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={disallowedMarkdownElements}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
@@ -134,7 +138,8 @@ InterfaceText.propTypes = {
   content: PropTypes.object,
   html: PropTypes.object,
   context: PropTypes.string,
-  className: PropTypes.string
+  className: PropTypes.string,
+  disallowedMarkdownElements: PropTypes.array
 };
 
 const LoadingRing = () => (
@@ -1142,16 +1147,28 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    if (this.props.icon == "circledX"){
-      var icon = <img src="/static/icons/circled-x.svg" />;
-    } else if (this.props.icon == "chevron") {
-      var icon = <i className="fa fa-chevron-left"></i>
+    const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
+    
+    if (icon == "circledX"){
+      var iconElement = <img src="/static/icons/circled-x.svg" alt="" />;
+    } else if (icon == "chevron") {
+      var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
-      var icon = "×";
+      var iconElement = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
-    var url = this.props.url || "";
-    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
+    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    
+    return (
+      <a 
+        href={url} 
+        className={classes} 
+        onClick={this.onClick}
+        aria-label={altText}
+        title={altText}
+      >
+        {iconElement}
+      </a>
+    );
   }
 }
 
@@ -1315,6 +1332,65 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+/**
+ * A button that shows a guide for the given guide type
+ * @param {function} onShowGuide - A function to call when the button is clicked
+ * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
+ */
+function GuideButton({onShowGuide}) {
+  const classes = classNames({guideButton: 1, "tooltip-toggle": true});
+  const altText = Sefaria._("Show guide", "Guide");
+
+  function onClick(event) {
+    event.preventDefault();
+    
+    if (onShowGuide) {
+      onShowGuide();
+    }
+  }
+
+  return (
+    <ToolTipped {...{ altText, classes, onClick }}>
+      <img src="/static/img/bulb.svg" alt={altText}/>
+    </ToolTipped>
+  );
+}
+GuideButton.propTypes = {
+  onShowGuide: PropTypes.func.isRequired,
+};
+
+/**
+ * ArrowButton component for navigation buttons (next/previous arrows)
+ * @param {string} direction - "next" or "previous" 
+ * @param {function} onClick - Function to call when arrow is clicked
+ * @param {string} altText - Alt text for accessibility
+ * @param {string} className - Additional CSS classes
+ */
+function ArrowButton({ direction, onClick, altText = "", className = "" }) {
+
+  // Use appropriate arrow icons for each direction
+  const imageSrc = direction === "next" 
+    ? `/static/img/arrow-right-bold.svg`
+    : `/static/img/arrow-left-bold.svg`;
+  const buttonClass = className ? `arrowButton arrowButton--${direction} ${className}` : `arrowButton arrowButton--${direction}`; // Use CSS transforms to handle RTL direction reversal
+  
+  return (
+    <button 
+      onClick={onClick} 
+      className={buttonClass}
+      aria-label={altText}
+      title={altText}
+    >
+      <img src={imageSrc} alt={altText} />
+    </button>
+  );
+}
+ArrowButton.propTypes = {
+  direction: PropTypes.oneOf(["next", "previous"]).isRequired,
+  onClick: PropTypes.func.isRequired,
+  altText: PropTypes.string.isRequired,
+  className: PropTypes.string,
+};
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
@@ -3373,5 +3449,8 @@ export {
   PencilSourceEditor,
   SmallBlueButton,
   LearnAboutNewEditorBanner,
+  GuideButton,
+  ArrowButton as Arrow,
+  transformValues,
   useOnceFullyVisible
 };
