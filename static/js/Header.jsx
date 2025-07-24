@@ -473,14 +473,14 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr />
         
         { module === "library" &&
-        <a href="/sheets/" target="_blank">
+        <a href="/sheets/" data-attr="sheets">
           <img src="/static/icons/sheets-mobile-icon.svg" />
           <InterfaceText>Sheets</InterfaceText>
         </a>
         } 
 
       { module === "sheets" &&
-        <a href="/texts" target="_blank">
+        <a href="/texts" data-attr="sheets">
           <img src="/static/icons/book.svg" />
           <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
         </a>

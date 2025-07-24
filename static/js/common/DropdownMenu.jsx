@@ -146,11 +146,11 @@ const DropdownLanguageToggle = () => (
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a href={`/interface/english?next=${getCurrentPage()}`} target="_blank">
+        <a href={`/interface/english?next=${getCurrentPage()}`}>
           English
         </a>
       </span>
-      <a href={`/interface/hebrew?next=${getCurrentPage()}`} target="_blank">
+      <a href={`/interface/hebrew?next=${getCurrentPage()}`}>
         עברית
       </a>
       </div>
