@@ -338,3 +338,6 @@ CLIENT_SENTRY_DSN = None
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
+
+WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")

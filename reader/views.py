@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+
+from django.utils.http import is_safe_url
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -35,7 +37,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
@@ -52,7 +54,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -132,12 +134,11 @@ def render_react_component(component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.parse.urlencode({
-        "propsJSON": propsJSON,
-    }).encode("utf-8")
+    data = propsJSON.encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        req = urllib.request.Request(url, data=data, headers=headers)
+        response = urllib.request.urlopen(req, timeout=NODE_TIMEOUT)
         html = response.read().decode("utf-8")
         return html
     except Exception as e:
@@ -171,7 +172,6 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -254,14 +254,18 @@ def user_credentials(request):
 
 def _reader_redirect_add_languages(request, tref):
     versions = Ref(tref).version_list()
-    query_params = QueryDict(mutable=True)
+    query_params = QueryDict(request.GET.urlencode(), mutable=True)
     for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
         version_title = request.GET.get(vlang)
         if version_title:
             version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title))
-            query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
+            if version is not None:
+                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            else:
+                query_params.pop(vlang)
     return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+
 
 
 @ensure_csrf_cookie
@@ -289,7 +293,7 @@ def catchall(request, tref, sheet=None):
         except InputError:
             raise Http404
 
-        uref = oref.url()
+        uref = oref.url(False)
         if uref and tref != uref:
             return reader_redirect(uref)
 
@@ -435,9 +439,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])
         sheet_id = int(sheet_id.split(".")[0])
-    sheet_id = int(sheet_id)
+    else:
+        sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         raise Http404
@@ -833,22 +838,6 @@ def search(request):
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation."),
         "noindex": True
     })
-
-
-@login_required
-def enable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
-
-@login_required
-def disable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": False})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
-
 
 def public_collections(request):
     props = base_props(request)
@@ -1289,8 +1278,12 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    next = request.GET.get("next", "/")
-    next = "/" if next == "undefined" else next
+    next = request.GET.get("next")
+    if not next or not is_safe_url(
+        url=next,
+        allowed_hosts=set(ALLOWED_HOSTS)
+    ):
+        next = "/"
 
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
@@ -2371,7 +2364,7 @@ def flag_text_api(request, title, lang, version):
         vobj.save()
         return jsonResponse({"status": "ok"})
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -4451,6 +4444,7 @@ def annual_report(request, report_year):
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
         '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
+        '2024': STATIC_URL + 'files/Sefaria_Impact_Report_2024.pdf'
     }
     # Assume the most recent year as default when one is not provided
     if not report_year:

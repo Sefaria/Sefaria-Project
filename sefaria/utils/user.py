@@ -115,8 +115,8 @@ def generate_api_key(uid):
     import base64, hashlib, random
     key = base64.b64encode(hashlib.sha256(bytes(str(random.getrandbits(256)), encoding='utf-8')).digest(),
                            random.choice([b'rA', b'aZ', b'gQ', b'hH', b'hG', b'aR', b'DD'])).rstrip(b'==').decode('utf-8')
-    db.apikeys.remove({"uid": uid})
-    db.apikeys.save({"uid": uid, "key": key})
+    db.apikeys.delete_many({"uid": uid})
+    db.apikeys.insert_one({"uid": uid, "key": key})
 
     print("API Key for %s (uid: %d, email: %s): %s" % (user.full_name, uid, user.email, key))
 

@@ -25,6 +25,32 @@ import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
 
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1304,7 +1330,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 const AiLearnMoreLink = ({lang}) => {
   const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
   return (
-      <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
         {text}
       </a>
   );
@@ -1442,8 +1468,19 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 };
 
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) => {
+  const categoryColorLineRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "category_color_line" });
+    if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
+  }, "sa.header_viewed");
+  return (
+    <div
+      className="categoryColorLine"
+      style={{ background: Sefaria.palette.categoryColor(category) }}
+      ref={categoryColorLineRef}
+    />
+  );
+};
 
 
 class ProfileListing extends Component {
@@ -1640,11 +1677,6 @@ const SheetListing = ({
         </div>
       </div>
       <div className="sheetRight">
-        {
-          editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
-            : null
-        }
         {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
@@ -1889,8 +1921,8 @@ const replaceNewLinesWithLinebreaks = (content) => {
 }
 
 const InterruptingMessage = ({
-  onClose,
-}) => {
+                               onClose,
+                             }) => {
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
@@ -1930,30 +1962,35 @@ const InterruptingMessage = ({
 
     let shouldShowModal = false;
 
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
+      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
     )
       shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
+    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.modal.showToReturningVisitors,
+        strapi.modal.showToNewVisitors,
+        strapi.modal.showToSustainers,
+        strapi.modal.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
+      )
+        shouldShowModal = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      )
+        shouldShowModal = true;
+      else if (noUserKindIsSet) 
+        shouldShowModal = true;
+    }
     if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
         excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
@@ -2059,6 +2096,52 @@ const InterruptingMessage = ({
 };
 InterruptingMessage.displayName = "InterruptingMessage";
 
+const GenericBanner = ({message, children}) => {
+  return (
+      <div className="genericBanner">
+        {<InterfaceText>{message}</InterfaceText> }
+        {children}
+      </div>);
+}
+
+const LearnAboutNewEditorBanner = () => {
+  const cookieName = "learned_about_new_editor";
+  const initialShouldShowNotification = !$.cookie(cookieName);
+  const [showNotification, setShowNotification] = useState(false);
+  const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
+  const linkURL = Sefaria._v({en: enURL, he: heURL});
+
+  useEffect(() => {
+    // Force rerendering of the component when initially rendered by ssr
+    setShowNotification(initialShouldShowNotification);
+  }, [initialShouldShowNotification]);
+
+  const handleLearnMoreClick = () => {
+    window.open(linkURL, '_blank');
+  };
+
+  const setCookie = () => {
+    $.cookie(cookieName, 1, {path: "/", expires: 20*365});
+    setShowNotification(false);
+  }
+
+  if (!showNotification) {
+    return null;
+  }
+  return (
+    <GenericBanner
+      message="Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface."
+    >
+      {
+        <button className="button white" onClick={() => {handleLearnMoreClick(); setCookie();}}>
+          <InterfaceText>Get Started</InterfaceText>
+        </button>
+      }
+      <button id="bannerMessageClose" onClick={setCookie}>×</button>
+    </GenericBanner>
+  );
+};
+
 const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
@@ -2099,26 +2182,33 @@ const Banner = ({ onClose }) => {
 
     let shouldShowBanner = false;
 
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
     )
       shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
+    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.banner.showToReturningVisitors,
+        strapi.banner.showToNewVisitors,
+        strapi.banner.showToSustainers,
+        strapi.banner.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      )
+        shouldShowBanner = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      )
+        shouldShowBanner = true;
+      else if (noUserKindIsSet) 
+        shouldShowBanner = true;
+    }
     if (!shouldShowBanner) return false;
-
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
@@ -2210,8 +2300,6 @@ const Banner = ({ onClose }) => {
     return null;
   }
 };
-
-Banner.displayName = "Banner";
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
@@ -3025,7 +3113,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       }
 
       {previewText ?
-          <div className="textPreviewContainer">
+          <div className="textPreviewContainer" onMouseDown={(e) => e.preventDefault()}>
             <div className="textPreview">
               <div className="inner">{previewText}</div>
             </div>
@@ -3253,4 +3341,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  LearnAboutNewEditorBanner,
+  useOnceFullyVisible
 };

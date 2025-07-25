@@ -196,7 +196,7 @@ def record_index_deletion(title, uid):
         "date": datetime.now(),
         "rev_type": "delete index",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def record_version_deletion(title, version, lang, uid):
@@ -211,7 +211,7 @@ def record_version_deletion(title, version, lang, uid):
         "date": datetime.now(),
         "rev_type": "delete text",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def record_sheet_publication(sheet_id, uid):
@@ -224,7 +224,7 @@ def record_sheet_publication(sheet_id, uid):
         "date": datetime.now(),
         "rev_type": "publish sheet",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def delete_sheet_publication(sheet_id, user_id):
@@ -232,7 +232,7 @@ def delete_sheet_publication(sheet_id, user_id):
     Deletes the activity feed item for a sheet publication
     (for when a user unpublishes a sheet)
     """
-    db.history.remove({
+    db.history.delete_many({
             "user": user_id,
             "sheet": sheet_id,
             "rev_type": "publish sheet"

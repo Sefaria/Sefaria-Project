@@ -42,7 +42,7 @@ import {LANGUAGES, SOURCE_LANGUAGES} from '../globals'
          await changeLanguageOfText(page, sourceLanguageToggle)
  
          // Retain the translation name locator
-         const translationNameInTitle = page.locator('span.readerTextVersion')
+         const translationNameInTitle = page.locator('div.readerTextVersion')
  
          // Navigate to the Translations sidebar by clicking on the text title
          //Clicks on בראשית א׳ / Genesis I

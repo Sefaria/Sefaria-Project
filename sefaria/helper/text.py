@@ -85,7 +85,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
 
     old_structure = index["sectionNames"]
     index["sectionNames"] = new_structure
-    db.index.save(index)
+    db.index.replace_one({"_id": index["_id"]}, index)
 
     delta = len(new_structure) - len(old_structure)
     if delta == 0:
@@ -101,7 +101,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
             resized = JaggedTextArray(text["chapter"]).resize(delta).array()
 
         text["chapter"] = resized
-        db.texts.save(text)
+        db.texts.replace_one({"_id": text["_id"]}, text)
 
     # TODO Rewrite any existing Links
     # TODO Rewrite any exisitng History items

@@ -1,4 +1,4 @@
-from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, span_inds
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
 from .linker_test_utils import *
@@ -37,6 +37,8 @@ crrd = create_raw_ref_data
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), ("Jerusalem Talmud Berakhot 9:1:11-19", "Jerusalem Talmud Berakhot 2:1:14-19")],  # ambig venice or vilna yerushalmi daf
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״ג"]), ("Jerusalem Talmud Berakhot 9:1:31-2:9",)],  # venice yerushalmi daf
     [crrd(["@Jerusalem", "@Talmud", "@Yoma", "#5a"], lang='en'), ("Jerusalem Talmud Yoma 1:1:20-25",)],
     [crrd(["@Babylonian", "@Talmud", "@Sukkah", "#49b"], lang='en'), ("Sukkah 49b",)],
     [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
@@ -374,9 +376,9 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
         assert ranged_raw_ref_parts.toSections == expected_ranged_raw_ref_parts.toSections
         start_span = sections[0].span
         end_span = toSections[-1].span
-        start_token_i, _ = span_inds(start_span)
-        _, end_token_i = span_inds(end_span)
-        full_span = start_span.doc[start_token_i:end_token_i]
+        start_char, _ = start_span.range
+        _, end_char = end_span.range
+        full_span = start_span.doc.subspan(slice(start_char, end_char))
         assert ranged_raw_ref_parts.span.text == full_span.text
     assert expected_raw_ref_parts == raw_ref.raw_ref_parts
 
@@ -436,8 +438,7 @@ def test_map_new_indices(crrd_params):
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
     linker = library.get_linker(lang)
-    nlp = linker.get_ner().named_entity_model
-    doc = nlp.make_doc(text)
+    doc = NEDoc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
@@ -445,16 +446,16 @@ def test_map_new_indices(crrd_params):
     # norm data
     n = linker.get_ner()._normalizer
     norm_text = n.normalize(text)
-    norm_doc = nlp.make_doc(norm_text)
+    norm_doc = NEDoc(norm_text)
     norm_part_indices = n.norm_to_unnorm_indices(text, part_indices, reverse=True)
-    norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
-    norm_part_token_inds = []
+    norm_part_spans = [norm_doc.subspan(slice(s, e)) for (s, e) in norm_part_indices]
+    norm_part_char_inds = []
     for span in norm_part_spans:
-        start, end = span_inds(span)
-        norm_part_token_inds += [slice(start, end)]
+        start, end = span.range
+        norm_part_char_inds += [slice(start, end)]
 
     part_types = [part.type for part in raw_ref.raw_ref_parts]
-    raw_encoded_part_list = EncodedPart.convert_to_raw_encoded_part_list(lang, norm_text, norm_part_token_inds, part_types)
+    raw_encoded_part_list = EncodedPart.convert_to_raw_encoded_part_list(lang, norm_text, norm_part_char_inds, part_types)
     norm_crrd_params = crrd_params[:]
     norm_crrd_params[0] = raw_encoded_part_list
     norm_raw_ref, _, _, _ = crrd(*norm_crrd_params)

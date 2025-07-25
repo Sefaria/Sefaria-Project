@@ -20,14 +20,18 @@ class BlockRelationship(object):
         self.block_date = datetime.now()
 
     def exists(self):
-        bool(db.blocking.find_one({"blocker": self.blocker, "blockee": self.blockee}))
+        return bool(db.blocking.find_one({"blocker": self.blocker, "blockee": self.blockee}))
 
     def block(self):
-        db.blocking.save(vars(self))
+        db.blocking.replace_one(
+            {"blocker": self.blocker, "blockee": self.blockee},
+            vars(self),
+            upsert=True
+        )
         return self
 
     def unblock(self):
-        db.blocking.remove({"blocker": self.blocker, "blockee": self.blockee})
+        db.blocking.delete_one({"blocker": self.blocker, "blockee": self.blockee})
 
 
 class BlockSet(object):

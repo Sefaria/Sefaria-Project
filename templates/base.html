@@ -72,7 +72,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:100,200,300,400,500,600,700,800,900'],
-            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîїìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -94,6 +94,7 @@
 
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/fonts.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
@@ -150,6 +151,32 @@
             r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
             a.appendChild(r);
         })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+    {% endif %}
+    
+    <!-- Simple Analytics -->
+    {# Allow queuing of events in case embed script hasn't loaded yet when calling sa_event #}
+    <script>
+      window.sa_event = window.sa_event || function () {
+        const a = [].slice.call(arguments);
+        window.sa_event.q ? window.sa_event.q.push(a) : window.sa_event.q = [a];
+      };
+    </script>
+    {% if DEBUG %}
+    <script 
+      data-hostname="sa-dev.sefaria.org" 
+      data-collect-dnt="true" 
+      data-allow-params="with,p1,p2,p3,p4,p5,w1,w2,w3,w4,w5" 
+      async 
+      src="https://scripts.simpleanalyticscdn.com/latest.dev.js">
+    </script>
+    {% else %}
+    <script 
+      data-hostname="sefaria.org" 
+      data-collect-dnt="true" 
+      data-allow-params="with,p1,p2,p3,p4,p5,w1,w2,w3,w4,w5" 
+      async 
+      src="https://scripts.simpleanalyticscdn.com/latest.js">
     </script>
     {% endif %}
 
@@ -260,11 +287,12 @@
             gtag('js', new Date());
             gtag('config', '{{ GOOGLE_GTAG }}', {
               'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
-              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null
+              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null,
+              'site_lang': '{{ request.interfaceLang }}',
             });
 
             <!-- attach analyticsEventTracker -->
-            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input']);
+            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input', 'inputStart']);
           </script>
       <!-- End Google tag -->
     {% endif %}
@@ -273,5 +301,21 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+    
+    <!-- Default metadata for Simple Analytics -->
+    <script>
+      const SESSION_KEY = 'sa_custom_session_id';
+      if (sessionStorage.getItem(SESSION_KEY) == null) {
+        sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+      }
+      sa_metadata = {
+        logged_in: DJANGO_VARS?.props._uid != null,
+        interface_lang: DJANGO_VARS?.props.interfaceLang === 'hebrew' ? 'he' : 'en',
+        device_type: DJANGO_VARS?.props.multiPanel ? 'desktop' : 'mobile',
+        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
+        custom_session_id: sessionStorage.getItem(SESSION_KEY),
+        ...(DJANGO_VARS?.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
+      };
+    </script>
 </body>
 </html>

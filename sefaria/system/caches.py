@@ -210,14 +210,14 @@ class SimpleMongoDBCache(BaseCache):
             coll.update({}, {'$set': {'expires': timezone.now()}})
 
     def _get_collection(self):
-        if not getattr(self, '_coll', None):
+        if getattr(self, '_coll', None) is None:
             self._initialize_collection()
 
         return self._coll
 
     def _initialize_collection(self):
         self._db = db
-        if self._collection_name not in self._db.collection_names():
+        if self._collection_name not in self._db.list_collection_names():
             options = {}
 
             self._db.create_collection(self._collection_name, **options)

@@ -21,7 +21,7 @@ test('Banner links exist - English', async ({ context }) => {
     expect(getPathAndParams(page.url())).toBe("/texts")
 
     // Testing Topics link
-    await page.getByRole('banner').getByRole('link', { name: 'Topics' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Explore' }).click();
     expect(getPathAndParams(page.url())).toBe("/topics")
 
     // Testing Community link
@@ -83,8 +83,8 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     await page.getByPlaceholder('חיפוש').fill('love');
     await page.getByPlaceholder('חיפוש').press('Enter');
     await page.getByText('תוצאות עבור').click();
-    await page.getByRole('heading', { name: 'תוצאות עבור ״Love״' }).click();
-    expect(getPathAndParams(page.url())).toBe('/search?q=Love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
+    await page.getByRole('heading', { name: 'תוצאות עבור ״love״' }).click();
+    expect(getPathAndParams(page.url())).toBe('/search?q=love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
     
     // Testing Login
     const page2 = await goToPageWithLang(context, '/', LANGUAGES.HE);
@@ -94,7 +94,7 @@ test('Banner links exist - Hebrew', async ({ context }) => {
 
     // Testing Sign-up
     await page.getByRole('banner').getByRole('link', { name: /הרשמה/ }).click();
-    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3DLove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
+    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3Dlove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
     
     // Testing Help link
     await page.getByRole('banner').getByRole('link', { name: 'עזרה' }).click();

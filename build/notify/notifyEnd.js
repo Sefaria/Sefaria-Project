@@ -72,11 +72,12 @@ const activeJobKeys = [];
         }
     });
 
-    // conclusion will be: "success" or "failure"
+    // conclusion will be: "success", "failure" or "skipped"
     // Construct the slack message
-    const succeeded = x => x && x.conclusion === "success";
+    const succeeded = x => x && (x.conclusion === "success");
+    const skipped = x => x && (x.conclusion === "skipped");
 
-    const badge = x => succeeded(x) ? ":large_green_circle:" : ":red_circle:";
+    const badge = x => succeeded(x) ? ":large_green_circle:" : (skipped(x) ? ":large_yellow_circle:" : ":large_red_circle:");
     console.log(jobsResults);
 
     const commitMsg =`${slackName?"@" + slackName:""} • \`${branch}\` • <${commitUrl}|${githubSha.slice(0,6)}>`;
