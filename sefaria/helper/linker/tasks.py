@@ -23,7 +23,9 @@ def link_segment_with_worker(raw_input: dict) -> bool:
     output = linker.link(raw_input["text"], book_context_ref=book_ref)
 
     spans = _extract_resolved_spans(output.resolved_refs)
-
+    if not spans:
+        print(f"No spans found for {raw_input['ref']} in {raw_input['lang']}")
+        return True
     chunk = MarkedUpTextChunk({
         "ref": raw_input["ref"],
         "versionTitle": raw_input["vtitle"],

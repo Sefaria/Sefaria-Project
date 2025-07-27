@@ -23,9 +23,7 @@ class MarkedUpTextChunkGenerator:
             "lang": lang,
             "vtitle": vtitle
         }
-        inference = link_segment_with_worker.apply_async(args=[linking_args], queue="linker").get()
-        # inference = link_segment_with_worker_debug(linking_args)
-        print(f"Linking inference for {segment_ref.normal()} with vtitle {vtitle} and lang {lang}: {inference}")
+        link_segment_with_worker.apply_async(args=[linking_args], queue="linker")
 
     def generate_from_ref(self, ref: Ref) -> None:
         try:
