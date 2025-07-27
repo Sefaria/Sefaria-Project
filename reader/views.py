@@ -2661,7 +2661,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, active_mo
     :param topic_override: bool
     :param type: string - get only completions of objects of this specific type
     :param active_module: string - filter out objects irrelevant for this module ('library' vs 'sheets').  If active_module is None, results for both modules are returned.
-    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param exact_continuations: bool - if true get only completions of objects whose title contains an exact match to 'name'
     :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
     """
     lang = "he" if has_hebrew(name) else "en"
