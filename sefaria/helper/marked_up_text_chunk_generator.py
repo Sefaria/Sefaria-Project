@@ -4,24 +4,20 @@ from typing import List, Tuple
 from sefaria.model.text import Ref, TextChunk
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import link_segment_with_worker, link_segment_with_worker_debug
+from sefaria.helper.linker.tasks import link_segment_with_worker
 
 logger = structlog.get_logger(__name__)
 
-# Import function for async processing (implemented separately)
-# This function handles celery queue processing without making the generator celery-aware
-try:
-    from .link_test import link_test
-except ImportError:
-    # Placeholder function if link_test is not yet implemented
-    def link_test(segment_ref, vtitle, lang, text):
-        """
-        Placeholder for link_test function that should handle:
-        - Running linking algorithms (Linker, Quotation Finder)
-        - Creating MarkedUpTextChunk objects
-        - Handling async processing via celery
-        """
-        linking_args =  {
+
+class MarkedUpTextChunkGenerator:
+
+
+    def __init__(self):
+        """Initialize the generator with necessary components."""
+        pass
+
+    def create_and_save_marked_up_text_chunk(self, segment_ref, vtitle, lang, text):
+        linking_args = {
             "ref": segment_ref.normal(),
             "text": text,
             "lang": lang,
@@ -31,69 +27,54 @@ except ImportError:
         # inference = link_segment_with_worker_debug(linking_args)
         print(f"Linking inference for {segment_ref.normal()} with vtitle {vtitle} and lang {lang}: {inference}")
 
-
-class MarkedUpTextChunkGenerator:
-    """
-    MarkedUpTextChunkGenerator is responsible for delegating generation of MarkedUpTextChunks
-    to relevant algorithms. Currently these include Linker and Quotation Finder.
-
-    The class exposes one public function:
-    - generate(ref: Ref) -> None
-
-    This function runs both algorithms for the given Ref and saves new MarkedUpTextChunks
-    that it generates. The Ref can be section level, ranged etc. which is accounted for
-    when passing to relevant algorithms.
-    """
-
-    def __init__(self):
-        """Initialize the generator with necessary components."""
-        pass
-
-    def generate(self, ref: Ref) -> None:
-
+    def generate_from_ref(self, ref: Ref) -> None:
         try:
-            # Get all segment-level refs from the input ref
-            segment_refs = self._get_segment_refs(ref)
-
+            segment_refs = ref.all_segment_refs()
             logger.info(f"Generating MarkedUpTextChunks for {len(segment_refs)} segment refs from {ref.normal()}")
 
-            # Process each segment ref
             for segment_ref in segment_refs:
-                self._process_segment_ref(segment_ref)
+                self._generate_all_versions_for_segment(segment_ref)
 
         except Exception as e:
-            logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()}: {str(e)}")
+            logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()}: {e}")
             raise
 
-    def _get_segment_refs(self, ref: Ref) -> List[Ref]:
-        """
-        Convert any ref type (section level, ranged, etc.) to a list of segment-level refs.
+    def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:
+        for lang, vtitle in self._get_available_versions(segment_ref):
+            text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
+            if not text_chunk.text:
+                logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
+                continue
+            self.generate(segment_ref, lang, vtitle)
 
-        Args:
-            ref: Input Ref of any level
+    def generate(self, ref: Ref, lang: str, vtitle: str) -> None:
+        try:
+            segment_refs = ref.all_segment_refs()
+            logger.info(f"Generating MarkedUpTextChunks for {len(segment_refs)} segment refs from {ref.normal()}")
 
-        Returns:
-            List of segment-level Ref objects
-        """
-        if ref.is_segment_level():
-            return [ref]
-        elif ref.is_section_level():
-            # Get all segment refs in this section
-            return ref.all_subrefs()
-        elif ref.is_range():
-            # Get all segment refs in the range
-            return ref.all_segment_refs()
-        else:
-            # Book level or higher - get all segment refs
-            return ref.all_segment_refs()
+            for segment_ref in segment_refs:
+                self._generate_single_segment_version(segment_ref, lang, vtitle)
+
+        except Exception as e:
+            logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()}: {e}")
+            raise
+
+    def _generate_single_segment_version(self, segment_ref: Ref, lang: str, vtitle: str) -> None:
+        text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
+        if not text_chunk.text:
+            logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
+            return
+
+        try:
+            self.create_and_save_marked_up_text_chunk(segment_ref, vtitle, lang, text_chunk.text)
+        except Exception as e:
+            logger.error(f"Failed to create/save MarkedUpTextChunk for {segment_ref.normal()}, {vtitle}, {lang}: {e}")
+            raise
+
+
 
     def _process_segment_ref(self, segment_ref: Ref) -> None:
-        """
-        Process a single segment-level ref to generate MarkedUpTextChunks.
 
-        Args:
-            segment_ref: A segment-level Ref object
-        """
         try:
             # Get available versions for this ref
             versions = self._get_available_versions(segment_ref)
@@ -112,7 +93,7 @@ class MarkedUpTextChunkGenerator:
 
                 # Use link_test to make inference and create MarkedUpTextChunks
                 # This function handles the actual linking algorithms and chunk creation
-                link_test(segment_ref, vtitle, lang, text_chunk.text)
+                self.create_and_save_marked_up_text_chunk(segment_ref, vtitle, lang, text_chunk.text)
 
         except Exception as e:
             logger.error(f"Error processing segment ref {segment_ref.normal()}: {str(e)}")

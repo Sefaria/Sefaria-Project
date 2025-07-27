@@ -16,31 +16,46 @@ def hello_world(words: str):
     print(words)
 
 
-
 @app.task(name="linker.link_segment_with_worker")
-def link_segment_with_worker(raw_input: dict):
-    print(f"raw_intput: {raw_input}")
-    linker = library.get_linker(raw_input['lang'])
-    output = linker.link(raw_input['text'], book_context_ref=Ref(raw_input['ref']))
+def link_segment_with_worker(raw_input: dict) -> bool:
+    linker = library.get_linker(raw_input["lang"])
+    book_ref = Ref(raw_input["ref"])
+    output = linker.link(raw_input["text"], book_context_ref=book_ref)
+
+    spans = _extract_resolved_spans(output.resolved_refs)
+
+    chunk = MarkedUpTextChunk({
+        "ref": raw_input["ref"],
+        "versionTitle": raw_input["vtitle"],
+        "language": raw_input["lang"],
+        "spans": spans,
+    })
+
+    _replace_existing_chunk(chunk)
+    chunk.save()
+    return True
+
+
+def _extract_resolved_spans(resolved_refs):
     spans = []
-    for resolved_ref in output.resolved_refs:
+    for resolved_ref in resolved_refs:
         if resolved_ref.is_ambiguous:
-            print("Ambiguous reference found, skipping:", resolved_ref)
             continue
-        print("Resolved ref:", resolved_ref)
         entity = resolved_ref.raw_entity
         spans.append({
             "charRange": entity.char_indices,
             "text": entity.text,
-            "type": 'citation',
+            "type": "citation",
             "ref": resolved_ref.ref.normal(),
         })
-    chunk = MarkedUpTextChunk({
-        "ref": raw_input['ref'],
-        "versionTitle": raw_input['vtitle'],
-        "language": raw_input['lang'],
-        "spans": spans
+    return spans
+
+
+def _replace_existing_chunk(chunk: MarkedUpTextChunk):
+    existing = MarkedUpTextChunk().load({
+        "ref": chunk.ref,
+        "language": chunk.language,
+        "versionTitle": chunk.versionTitle,
     })
-    print(f"Chunk created: {chunk}")
-    chunk.save()
-    return True
+    if existing:
+        existing.delete()

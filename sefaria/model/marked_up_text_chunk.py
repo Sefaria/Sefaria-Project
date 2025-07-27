@@ -73,7 +73,6 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
                 raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}"
                                  f": expected '{span['text']}', found '{citation_text}'.")
 
-        print(f"{type(self).__name__}._validate(): Validation successful for {self.ref}, {self.versionTitle}, {self.language}")
         return True
 
     def _normalize(self):
