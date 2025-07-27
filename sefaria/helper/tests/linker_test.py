@@ -129,7 +129,7 @@ def mock_request_invalid(mock_request_invalid_post_data: dict) -> WSGIRequest:
 def mock_webpage() -> WebPage:
     # Note, the path of WebPage matches the path of the import we want to patch
     # NOT the location of the WebPage class
-    with patch('sefaria.helper.linker.WebPage') as MockWebPage:
+    with patch('sefaria.helper.linker.linker.WebPage') as MockWebPage:
         mock_webpage = MockWebPage.return_value
         loaded_webpage = Mock()
         mock_webpage.load.return_value = loaded_webpage

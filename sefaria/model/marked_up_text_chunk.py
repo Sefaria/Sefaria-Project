@@ -62,9 +62,12 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         # Enforce uniqueness
         pkey_query = {k: getattr(self, k) for k in self.pkeys}
 
-        existing = self.load(pkey_query)
-        if existing:
+        existing = self.__class__().load(pkey_query)
+        if existing and existing._id != getattr(self, "_id", None):
             raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found {pkey_query} to already exist in the database.")
+
+        if not self.spans:
+            raise InputError(f"{type(self).__name__}._validate(): Spans cannot be empty.")
 
         for span in self.spans:
             text = tc.text
