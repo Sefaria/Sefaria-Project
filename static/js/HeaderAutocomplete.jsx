@@ -87,15 +87,15 @@ function sortByTypeOrder(array) {
 
 const getURLForObject = function(type, key) {
     if (type === "Collection") {
-      return `/sheets/collections/${key}`;
+      return {'url': `/sheets/collections/${key}`, 'dataAttr': 'sheets'};
     } else if (type === "TocCategory") {
-      return `/texts/${key.join('/')}`;
+      return {'url': `/texts/${key.join('/')}`, 'dataAttr': 'library'};
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return `/topics/${key}`;
+      return {'url': `/topics/${key}`, 'dataAttr': 'topics'};
     } else if (type === "ref") {
-      return `/${key.replace(/ /g, '_')}`;
+      return {'url': `/${key.replace(/ /g, '_')}`, 'dataAttr': 'library'};
     } else if (type === "User") {
-      return `/sheets/profile/${key}`;
+      return {'url': `/sheets/profile/${key}`, 'dataAttr': 'sheets'};
     }
 };
 
