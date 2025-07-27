@@ -1338,7 +1338,7 @@ class ReaderControls extends Component {
       <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
-            <a href={url} aria-label={"Show Connection Panel contents for " + title} >
+            <a href={url} data-attr={!!this.props.sheetID ? "sheets" : "library"} aria-label={"Show Connection Panel contents for " + title} >
               <div className="readerControlsTitle">
                 { this.props.sheetID ?
                 <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}

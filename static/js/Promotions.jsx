@@ -160,7 +160,7 @@ function trackSidebarAdClick(ad) {
 }
 const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const GDocAdvertText = () => {
-    const learnMoreLink = "/sheets/529099?origin=AddToSheetsPromo"
+    const learnMoreLink = "https://sheets.sefaria.org/sheets/529099?origin=AddToSheetsPromo"
     return    <InterfaceText>
                 <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href={learnMoreLink} data-attr="sheets">Learn more</a></EnglishText>
                 <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו! <a href={learnMoreLink} data-attr="sheets">למדו עוד</a></HebrewText>

@@ -2743,11 +2743,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/sheets/collections/" + slug}>
+        <a href={"/sheets/collections/" + slug} data-attr="sheets">
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/sheets/collections/" + slug}>{children ? children : name}</a>
+      <a href={"/sheets/collections/" + slug} data-attr="sheets">{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>

@@ -854,7 +854,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="button small" href="/sheets/collections/new">
+      <a className="button small" href="/sheets/collections/new" data-attr="sheets">
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -868,7 +868,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/sheets/collections">
+      <a className="button small white" href="/sheets/collections" data-attr="sheets">
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>
