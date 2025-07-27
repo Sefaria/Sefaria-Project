@@ -1,14 +1,10 @@
 """
 Celery tasks for the LLM server
 """
-from typing import List
-from dataclasses import asdict
-from celery import signature
 
+from celery import signature
 from sefaria.model import library
-from sefaria.settings import CELERY_QUEUES
 from sefaria.celery_setup.app import app
-from dataclasses import asdict
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model.text import Ref
 
@@ -46,34 +42,5 @@ def link_segment_with_worker(raw_input: dict):
         "spans": spans
     })
     print(f"Chunk created: {chunk}")
-    chunk._validate()
-    return "hi"
-
-def link_segment_with_worker_debug(raw_input: dict):
-    print(f"raw_input type: {type(raw_input)} value: {raw_input}")
-    print(f"Linking segment with input: {raw_input}")
-    linker = library.get_linker(raw_input['lang'])
-    output = linker.link(raw_input['text'], book_context_ref=Ref(raw_input['ref']))
-    spans = []
-    for resolved_ref in output.resolved_refs:
-        print("Resolved ref:", resolved_ref)
-        entity = resolved_ref.raw_entity
-        spans.append({
-            "charRange": entity.char_indices,
-            "text": entity.text,
-            "type": 'citation',
-            "ref": resolved_ref.ref.normal(),
-        })
-    chunk = MarkedUpTextChunk({
-        "ref": raw_input['ref'],
-        "versionTitle": raw_input['vtitle'],
-        "language": raw_input['lang'],
-        "spans": spans
-    })
-    print(f"Chunk created: {chunk}")
-    chunk._validate()
-    print(output)
-    print(f"Output type: {type(output)} value: {output}")
-    return str(output)
-
-
+    chunk.save()
+    return True

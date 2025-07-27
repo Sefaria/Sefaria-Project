@@ -50,12 +50,7 @@ class MarkedUpTextChunkGenerator:
         pass
 
     def generate(self, ref: Ref) -> None:
-        """
-        Generate MarkedUpTextChunks for the given Ref by running linking algorithms.
 
-        Args:
-            ref: A Ref object that can be section level, ranged, etc.
-        """
         try:
             # Get all segment-level refs from the input ref
             segment_refs = self._get_segment_refs(ref)
