@@ -369,7 +369,7 @@ class ConfirmAddToSheet extends Component {
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">
-                  <a href={sref}>{srefTitles["en"]}</a>
+                  <a href={sref} data-attr={!!this.props.nodeRef ? "sheets" : "library"}>{srefTitles["en"]}</a>
                   &nbsp;has been added to&nbsp;
                    <a href={"/sheets/" + this.props.sheet.id} data-attr="sheets">{this.props.sheet.title}</a>.
                 </span>
