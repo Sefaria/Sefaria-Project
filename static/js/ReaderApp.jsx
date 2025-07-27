@@ -1088,27 +1088,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = linkTarget.getAttribute('href');
+    let href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
     
-    // Check if link has data-attr="sheets" and modify host if needed
-    let modifiedHref = href;
-    if (linkTarget.getAttribute('data-attr') === 'sheets' && Sefaria._siteSettings && Sefaria._siteSettings["sheets_subdomain"]) {
-      try {
-        const url = new URL(href.startsWith("/") ? "https://www.sefaria.org" + href : href);
-        url.hostname = Sefaria._siteSettings["sheets_subdomain"];
-        modifiedHref = url.toString();
-      } catch (e) {
-        // If URL parsing fails, keep original href
-        console.warn("Failed to parse URL for sheets subdomain modification:", href);
-      }
-    }
-    
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(modifiedHref, true);
+      const handled = this.openURL(href, true);
       if (handled) {
         e.preventDefault();
       }
