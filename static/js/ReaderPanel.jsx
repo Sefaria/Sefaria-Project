@@ -122,50 +122,12 @@ class ReaderPanel extends Component {
         data?.primaryDirection === data?.translationDirection;
   }
   /**
-   * Generates a unique key for a new TextColumn
-   * @param {Array<string>} refs - Array of text references
-   * @returns {string} Unique key for TextColumn component
-   */
-  generateTextColumnKey(refs) {
-    console.log("generateTextColumnKey", refs);
-    if (!refs || !refs[0]) {
-      return "empty-TextColumn"; // Maintains backward compatibility with old keys
-    }
-    
-    // TODO remove duplicate code from TextColumn return
-    const firstRef = refs[0];
-    const navId = Date.now();
-    
-    const key = `${firstRef}-TextColumn-${navId}`;
-
-    if (typeof key !== 'string' && typeof key !== 'number') {
-      console.warn('Key is not a string or number:', key, typeof key);
-    }
-    if (key && key.toString().includes('\n')) {
-      console.warn('Key contains newline:', key);
-    }
-    if (key && key.toString().includes('\t')) {
-      console.warn('Key contains tab:', key);
-    }
-    return key;
-  }
-  /**
    * Sets state either in the central app or in the local component.
    * If setCentralState function is present, then this ReaderPanel's state is managed from within the ReaderApp component.
    * If it is not present, then the state for this ReaderPanel is managed from the component itself.
    * @param {Object} state - The state updates to apply
-   * @param {Object} options - Configuration options
-   * @param {boolean} options.isScroll - True if updating from infinite scroll
    */
-  conditionalSetState(state, options = {}) {
-
-    // If we navigated to a new text, create a new key for the text column.
-    // This is so that we get a remount (scroll state etc. is reset)
-    // TODO: This will break sheets, we need to find a way to handle this
-    if (state.refs && !options.isScroll) {
-      state.textColumnKey = this.generateTextColumnKey(state.refs);
-    }
-
+  conditionalSetState(state) {
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -361,17 +323,9 @@ class ReaderPanel extends Component {
       menuOpen: null
     });
   }
-  /**
-   * Updates the text references for infinite scroll.
-   * Preserves the TextColumn component instance to maintain scroll position.
-   * @param {Array<string>} refs - New array of text references to display
-   * @param {Object} options - Configuration options
-   * @param {boolean} options.isScroll - True if updating from infinite scroll
-   */
   updateTextColumn(refs) {
     this.replaceHistory = true;
-    // Update refs with isScroll flag to preserve TextColumn instance
-    this.conditionalSetState({ refs: refs }, { isScroll: true });
+    this.conditionalSetState({ refs: refs });
   }
   setTextListHighlight(refs, showHighlight) {
     refs = typeof refs === "string" ? [refs] : refs;
@@ -756,10 +710,6 @@ class ReaderPanel extends Component {
       const index = oref && oref.index ? Sefaria.index(oref.index) : null;
       const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
 
-      // Use the stored key if it exists, otherwise generate one for backward compatibility
-      const textColumnKey = this.state.textColumnKey || 
-          `${textColumnBookTitle || "empty"}-TextColumn`;
-
       items.push(
         <TextColumn
           panelPosition ={this.props.panelPosition}
@@ -796,7 +746,7 @@ class ReaderPanel extends Component {
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
           navigatePanel={this.props.navigatePanel}
-          key={textColumnKey} />
+          key={this.state.textColumnKey || "empty-TextColumn"} /> // Empty key is for backward compatibility with old keys
       );
     }
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {

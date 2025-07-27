@@ -1457,6 +1457,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
+  /**
+   * Generates a unique key for a new TextColumn
+   * @param {Array<string>} refs - Array of text references
+   * @returns {string} Unique key for TextColumn component
+   */
+  generateTextColumnKey(ref) {
+    if (!ref) {
+      return "empty-TextColumn"; // Maintains backward compatibility with old keys
+    } else {
+      // Clean up the ref from spaces
+      ref = ref.replace(/ /g, '');
+    }
+    
+    const navId = Date.now();
+    
+    return `${ref}-TextColumn-${navId}`;
+  }
   openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
               replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
     /* Open a new panel or replace existing panel. If book level, Open book toc
@@ -1475,8 +1492,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
     let panel, connectionPanel;
+
+    // Generate new key for replaced panels to force TextColumn remount
+    const textColumnKey = replace ? 
+      this.generateTextColumnKey(ref) : 
+      this.state.panels[n]?.textColumnKey || this.generateTextColumnKey(ref);
+
     if (index) {
-      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
+      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title, textColumnKey});
     } else if (parsedRef.book === "Sheet") {
       const [sheetID, sheetNode] = parsedRef.sections;
       panel = this.makePanelState({
@@ -1515,6 +1538,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         filterRef,
         recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
+        textColumnKey,
         ...options
       };
       if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if convertCommentaryRefToBaseRef is true
@@ -1525,7 +1549,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
       panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     }
-
     const newPanels = this.state.panels.slice();
     newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
     if (connectionPanel) {
