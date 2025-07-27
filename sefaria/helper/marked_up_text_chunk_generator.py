@@ -71,15 +71,6 @@ class MarkedUpTextChunkGenerator:
 
 
     def _get_available_versions(self, segment_ref: Ref) -> List[Tuple[str, str]]:
-        """
-        Get available versions (language, versionTitle) for a given ref.
-
-        Args:
-            segment_ref: A segment-level Ref object
-
-        Returns:
-            List of (language, versionTitle) tuples
-        """
         versions = []
 
         # Get the index for this ref
