@@ -45,7 +45,7 @@ class LinkerEntityRecognizer:
         resp = requests.post(f"{NER_SERVER_URL}/bulk-recognize-entities", json={"texts": normalized_inputs, "lang": self._lang})
         data = resp.json()
         merged_entities = []
-        for input_str, result in zip(inputs, data['results']):
+        for input_str, result in zip(normalized_inputs, data['results']):
             raw_refs, non_citations = self._parse_recognize_response(input_str, result)
             merged_entities += [raw_refs + non_citations]
         return merged_entities
@@ -54,7 +54,7 @@ class LinkerEntityRecognizer:
         normalized_input = self._normalize_input([input_str])[0]
         resp = requests.post(f"{NER_SERVER_URL}/recognize-entities", json={"text": normalized_input, "lang": self._lang})
         data = resp.json()
-        return self._parse_recognize_response(input_str, data)
+        return self._parse_recognize_response(normalized_input, data)
 
     def _parse_recognize_response(self, input_str: str, data: dict) -> (list[RawRef], list[RawNamedEntity]):
         all_citations, non_citations = [], []
