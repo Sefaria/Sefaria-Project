@@ -1468,7 +1468,7 @@ class ProfileListing extends Component {
     return (
       <div className={"authorByLine sans-serif" + (smallfonts ? " small" : "")}>
         <div className="authorByLineImage">
-          <a href={url}>
+          <a href={url} data-attr="sheets">
             <ProfilePic
               len={smallfonts ? 30 : 40}
               url={image}
@@ -1574,7 +1574,7 @@ const SheetListing = ({
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
         <div className="sheetUser">
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} data-attr="sheets">
             <ProfilePic
               outerStyle={{display: "inline-block"}}
               name={sheet.ownerName}
@@ -1582,7 +1582,7 @@ const SheetListing = ({
               len={26}
             />
           </a>
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
+          <a href={sheet.ownerProfileUrl} data-attr="sheets" target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
         {viewsIcon}
       </div>
@@ -1608,11 +1608,12 @@ const SheetListing = ({
   const topics = sheet.topics.map((topic, i) => {
     const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
     return (
-      <a href={`/topics/${topic.slug}`}
+      <a href={`/sheets/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
+        data-attr="sheets"
       >
         <InterfaceText text={topic} />
         {separator}
@@ -1622,7 +1623,7 @@ const SheetListing = ({
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
-      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-attr="sheets" target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
       collections.length ? collections : undefined,
@@ -1638,7 +1639,7 @@ const SheetListing = ({
     <div className="sheet" key={sheet.sheetUrl}>
       <div className="sheetLeft">
         {sheetInfo}
-        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+        <a href={sheet.sheetUrl} data-attr="sheets" target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1734,10 +1735,10 @@ class Note extends Component {
   render() {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
         (<div className="noteAuthorInfo">
-          <a href={this.props.ownerProfileUrl}>
+          <a href={this.props.ownerProfileUrl} data-attr="sheets">
             <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
           </a>
-          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+          <a href={this.props.ownerProfileUrl} className="noteAuthor" data-attr="sheets">{this.props.ownerName}</a>
         </div>) : null;
 
       var buttons = this.props.isMyNote ?
@@ -2449,7 +2450,7 @@ class SheetTopicLink extends Component {
   render() {
     const { slug, en, he } = this.props.topic;
     return (
-      <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
+      <a href={`/sheets/topics/${slug}`} onClick={this.handleTagClick} data-attr="sheets">
         <InterfaceText text={{en:en, he:he}} />
       </a>
     );
