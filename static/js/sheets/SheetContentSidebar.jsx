@@ -54,13 +54,13 @@ const SheetSidebarList = ({items, type}) => {
       if (type === "topics") {
         return items.map((item, i) => (
             <li key={i}><a
-                href={"/sheets/topics/" + item.slug}><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
+                href={"/sheets/topics/" + item.slug} data-attr="sheets"><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
             </li>
         ))
       } else {
         return items.map((item, i) => (
             <li key={i}><a
-                href={"/sheets/collections/" + item.slug}><InterfaceText>{item.name}</InterfaceText></a>
+                href={"/sheets/collections/" + item.slug} data-attr="sheets"><InterfaceText>{item.name}</InterfaceText></a>
             </li>
         ))
       }
