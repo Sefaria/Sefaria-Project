@@ -1,7 +1,7 @@
 import dataclasses
 from typing import List, Optional, Union, Iterable, Tuple
 from tqdm import tqdm
-from sefaria.model.linker.ne_span import NEDoc
+from ne_span import NEDoc
 from sefaria.model.text import Ref
 from sefaria.model.linker.ref_part import RawRef, RawNamedEntity
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef, ResolvedRef
