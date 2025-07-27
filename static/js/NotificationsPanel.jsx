@@ -165,14 +165,14 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
 const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
+      <a href={content.profileUrl} data-attr="sheets" className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>published a new sheet</InterfaceText>
     </>
   );
 
   const body = (
     <>
-      <a className="sheetTitle" href={"/sheets/" + content.sheet_id}>{content.sheet_title}</a>
+      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-attr="sheets">{content.sheet_title}</a>
       {content.summary ?
       <div className="sheetSummary">
         {content.summary}
@@ -202,7 +202,7 @@ const SheetLikeNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="sheetTitle" href={"/sheets/" + content.sheet_id}>{content.sheet_title}</a>
+      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-attr="sheets">{content.sheet_title}</a>
     </>
   );
 
@@ -257,7 +257,7 @@ const CollectionAddNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="collectionName" href={"/sheets/collections/" + content.collection_slug}>
+      <a className="collectionName" data-attr="sheets" href={"/sheets/collections/" + content.collection_slug}>
         {content.collection_name}
       </a>
     </>
