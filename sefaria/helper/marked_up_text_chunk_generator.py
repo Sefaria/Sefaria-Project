@@ -2,7 +2,6 @@
 import structlog
 from typing import List, Tuple
 from sefaria.model.text import Ref, TextChunk
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.system.exceptions import InputError
 from sefaria.helper.linker.tasks import link_segment_with_worker
 
