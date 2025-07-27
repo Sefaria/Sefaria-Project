@@ -72,33 +72,6 @@ class MarkedUpTextChunkGenerator:
             raise
 
 
-
-    def _process_segment_ref(self, segment_ref: Ref) -> None:
-
-        try:
-            # Get available versions for this ref
-            versions = self._get_available_versions(segment_ref)
-
-            for lang, vtitle in versions:
-                # Check if MarkedUpTextChunk already exists for this combination
-                if self._chunk_already_exists(segment_ref, vtitle, lang):
-                    logger.debug(f"MarkedUpTextChunk already exists for {segment_ref.normal()}, {vtitle}, {lang}")
-                    continue
-
-                # Get the text chunk
-                text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
-                if not text_chunk.text:
-                    logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
-                    continue
-
-                # Use link_test to make inference and create MarkedUpTextChunks
-                # This function handles the actual linking algorithms and chunk creation
-                self.create_and_save_marked_up_text_chunk(segment_ref, vtitle, lang, text_chunk.text)
-
-        except Exception as e:
-            logger.error(f"Error processing segment ref {segment_ref.normal()}: {str(e)}")
-            # Don't re-raise to allow processing of other segments to continue
-
     def _get_available_versions(self, segment_ref: Ref) -> List[Tuple[str, str]]:
         """
         Get available versions (language, versionTitle) for a given ref.
@@ -126,22 +99,3 @@ class MarkedUpTextChunkGenerator:
                 continue
 
         return versions
-
-    def _chunk_already_exists(self, ref: Ref, vtitle: str, lang: str) -> bool:
-        """
-        Check if a MarkedUpTextChunk already exists for the given parameters.
-
-        Args:
-            ref: Segment-level Ref object
-            vtitle: Version title
-            lang: Language
-
-        Returns:
-            True if chunk already exists, False otherwise
-        """
-        existing = MarkedUpTextChunk().load({
-            "ref": ref.normal(),
-            "versionTitle": vtitle,
-            "language": lang
-        })
-        return existing is not None
