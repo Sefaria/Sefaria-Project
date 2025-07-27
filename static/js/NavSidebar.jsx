@@ -198,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670">
+            <a className="button get-start" href="/sheets/210670" data-attr="sheets">
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -799,14 +799,18 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
-    return <Button variant="secondary" className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
+    return <Button variant="secondary" className="getStartedSheets">
+      <a href={href} data-attr="sheets">Get Started</a>
+    </Button>;
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"} onClick={() => window.location.href="/sheets/new"}>
-      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+    <Button icon={"new-sheet-black"}>
+      <a href="/sheets/new" data-attr="sheets">
+        <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+      </a>
     </Button>
-  ) // hebrew is placeholder
+  ) 
 }
 const CreateASheet = () => (
   <TitledText title={{'en': 'Create A Sheet', 'he': ''}}

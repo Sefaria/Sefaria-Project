@@ -598,7 +598,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} data-attr={isSheet ? "sheets" : "library"} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -1597,6 +1597,7 @@ const SheetListing = ({
       <a href={`/sheets/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
+        data-attr="sheets"
         key={i}
       >
         {collection.name}
@@ -1693,7 +1694,7 @@ const CollectionListing = ({data}) => {
       <div className="left-content">
         <div className="collectionListingText">
 
-          <a href={collectionUrl} className="collectionListingName">
+          <a href={collectionUrl} className="collectionListingName" data-attr="sheets">
             {data.name}
           </a>
 
