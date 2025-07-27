@@ -786,16 +786,16 @@ class ReaderApp extends Component {
     return hist;
   }
   
-  modifyURLbasedOnModule(hist) {
-    if (Sefaria.activeModule === "sheets" && (!hist.url.startsWith("/sheets"))) {
+  modifyURLbasedOnModule(url) {
+    if (Sefaria.activeModule === "sheets" && (!url.startsWith("/sheets"))) {
       // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-      return "/sheets" + hist.url;
+      return "/sheets" + url;
     }
-    else if (Sefaria.activeModule !== "sheets" && hist.url.startsWith("/sheets")) {
+    else if (Sefaria.activeModule !== "sheets" && url.startsWith("/sheets")) {
       // If we are not in the sheets module, remove /sheets from the beginning of the URL
-      return hist.url.replace(/^\/sheets/, "");
+      return url.replace(/^\/sheets/, "");
     }
-    return hist.url;
+    return url;
   }
   
   updateHistoryState(replace) {
@@ -810,7 +810,7 @@ class ReaderApp extends Component {
     }
     
     console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
+    hist.url = this.modifyURLbasedOnModule(url); 
     console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
@@ -1092,9 +1092,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!href) {
       return;
     }
+    
+    // Check if link has data-attr="sheets" and modify host if needed
+    let modifiedHref = href;
+    if (linkTarget.getAttribute('data-attr') === 'sheets' && Sefaria._siteSettings && Sefaria._siteSettings["sheets_subdomain"]) {
+      try {
+        const url = new URL(href.startsWith("/") ? "https://www.sefaria.org" + href : href);
+        url.hostname = Sefaria._siteSettings["sheets_subdomain"];
+        modifiedHref = url.toString();
+      } catch (e) {
+        // If URL parsing fails, keep original href
+        console.warn("Failed to parse URL for sheets subdomain modification:", href);
+      }
+    }
+    
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true);
+      const handled = this.openURL(modifiedHref, true);
       if (handled) {
         e.preventDefault();
       }
@@ -1104,7 +1118,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isSheet = !!(linkTarget.closest(".sheetItem"))
     const replacePanel = !(isSheet)
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage);
+    const handled = this.openURL(modifiedHref,replacePanel, isTranslationsPage);
     if (handled) {
       e.preventDefault();
     }
