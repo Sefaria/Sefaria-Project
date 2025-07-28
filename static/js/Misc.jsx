@@ -2180,44 +2180,6 @@ const GenericBanner = ({message, children}) => {
       </div>);
 }
 
-const LearnAboutNewEditorBanner = () => {
-  const cookieName = "learned_about_new_editor";
-  const initialShouldShowNotification = !$.cookie(cookieName);
-  const [showNotification, setShowNotification] = useState(false);
-  const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
-  const linkURL = Sefaria._v({en: enURL, he: heURL});
-
-  useEffect(() => {
-    // Force rerendering of the component when initially rendered by ssr
-    setShowNotification(initialShouldShowNotification);
-  }, [initialShouldShowNotification]);
-
-  const handleLearnMoreClick = () => {
-    window.open(linkURL, '_blank');
-  };
-
-  const setCookie = () => {
-    $.cookie(cookieName, 1, {path: "/", expires: 20*365});
-    setShowNotification(false);
-  }
-
-  if (!showNotification) {
-    return null;
-  }
-  return (
-    <GenericBanner
-      message="Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface."
-    >
-      {
-        <button className="button white" onClick={() => {handleLearnMoreClick(); setCookie();}}>
-          <InterfaceText>Get Started</InterfaceText>
-        </button>
-      }
-      <button id="bannerMessageClose" onClick={setCookie}>×</button>
-    </GenericBanner>
-  );
-};
-
 const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
@@ -3448,7 +3410,6 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner,
   GuideButton,
   ArrowButton as Arrow,
   transformValues,

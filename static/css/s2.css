@@ -312,14 +312,6 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew #bannerMessage {
   direction: rtl;
 }
-.genericBanner #bannerMessageClose {
-  font-size: 40px;
-  opacity: revert;
-  inset-inline-end: 60px;
-  top: revert;
-  border: none;
-  background: none;
-}
 #bannerMessageClose {
   position: absolute;
   top: -3px;
