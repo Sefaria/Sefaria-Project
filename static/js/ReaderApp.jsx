@@ -1407,10 +1407,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       currentlyVisibleRef = ref;
       highlightedRefs = (panel.mode === "TextAndConnections") ? [ref] : [];
     }
-    let updatePanelObj = {refs, currentlyVisibleRef, highlightedRefs};
+    let updatePanelObj = {
+      refs, 
+      currentlyVisibleRef, 
+      highlightedRefs,
+      textColumnKey: this.generateTextColumnKey(ref) // Remount TextColumn when navigating to a new ref so the scroll state is reset
+    };
+    // Don't update dependent panel's textColumnKey:
     const { dependentPanel } = this._getDependentPanel(n);
     if (dependentPanel) {
-      Object.assign(dependentPanel, updatePanelObj);
+      Object.assign(dependentPanel, {refs, currentlyVisibleRef, highlightedRefs});
     }
     Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
