@@ -2172,14 +2172,6 @@ const InterruptingMessage = ({
 };
 InterruptingMessage.displayName = "InterruptingMessage";
 
-const GenericBanner = ({message, children}) => {
-  return (
-      <div className="genericBanner">
-        {<InterfaceText>{message}</InterfaceText> }
-        {children}
-      </div>);
-}
-
 const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
