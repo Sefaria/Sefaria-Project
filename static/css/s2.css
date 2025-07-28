@@ -14614,3 +14614,8 @@ span.ref-link-color-3 {color: blue}
 87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
 }
 /* end css code for loading bezel */
+
+span.heebo,
+.heebo {
+  font-family: "Heebo", sans-serif !important;
+}
