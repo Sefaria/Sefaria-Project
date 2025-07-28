@@ -1430,37 +1430,7 @@ def check_index_dependencies_api(request, title):
         return jsonResponse({"error": str(e)})
 
 
-@staff_member_required
-def duplicate_index_api(request):
-    """
-    API for duplicating index records.
-    """
-    if request.method != "POST":
-        return jsonResponse({"error": "POST required"})
 
-    data = json.loads(request.body)
-    src = data.get("src")
-    targets = data.get("targets", [])
-
-    if not src or not targets:
-        return jsonResponse({"error": "Both 'src' and 'targets' are required"})
-
-    try:
-        from sefaria.helper.schema import duplicate_index
-        created = []
-        for target in targets:
-            try:
-                duplicate_index(src, target)
-                created.append(target)
-            except Exception as e:
-                # If any individual duplication fails, continue with others
-                print(f"Failed to duplicate {src} to {target}: {e}")
-                continue
-
-        return jsonResponse({"created": created})
-
-    except Exception as e:
-        return jsonResponse({"error": str(e)})
 
 
 @staff_member_required
