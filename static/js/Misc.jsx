@@ -1989,7 +1989,7 @@ const transformValues = (obj, callback) => {
   return newObj;
 };
 
-const replaceNewLinesWithLinebreaks = (content) => {
+export const replaceNewLinesWithLinebreaks = (content) => {
   return transformValues(
     content,
     (s) => s.replace(/\n(?!\n)/g, "  \n")
