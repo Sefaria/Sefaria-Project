@@ -124,8 +124,7 @@ export const hideTopBanner = async (page: Page) => {
   await page.evaluate(() => {
     const style = document.createElement('style');
     style.innerHTML = `
-      .readerControlsOuter,
-      header.readerControls.fullPanel.sheetReaderControls {
+      .readerControlsOuter {
         display: none !important;
         pointer-events: none !important;
         visibility: hidden !important;
@@ -133,6 +132,20 @@ export const hideTopBanner = async (page: Page) => {
     `;
     document.head.appendChild(style);
   });
+};
+
+export const dismissGuideOverlay = async (page: Page) => {
+  try {
+    const closeButton = page.locator('.guideOverlay .readerNavMenuCloseButton.circledX');
+    if (await closeButton.isVisible({ timeout: 2000 })) {
+      await closeButton.click();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log('Could not dismiss guide overlay:', error);
+    return false;
+  }
 };
 
 /**
@@ -144,8 +157,9 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await dismissNewsletterPopupIfPresent(page);
   await hideGenericBanner(page);
   await hideCookiesPopup(page);
-  await hideTopBanner(page);
+  //await hideTopBanner(page);
   await hideExploreTopicsModal(page);
+  await dismissGuideOverlay(page);
 };
 
 /**
@@ -178,8 +192,9 @@ export const changeLanguageIfNeeded = async (page: Page, language: string) => {
 }
 
 export const changeLanguageLoggedIn = async (page: Page, language: string) => {
-    // Open the profile dropdown by clicking the profile icon
+    // Open the profile dropdown by clicking the profile box (but not the direct link)
     const profileIcon = page.locator('.myProfileBox .profile-pic');
+
     await profileIcon.click();
   
     const menu = page.locator('.interfaceLinks-menu.profile-menu');

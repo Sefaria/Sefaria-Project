@@ -100,10 +100,16 @@ export class SheetEditorPage extends HelperBase {
     }
     
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
-    closeSheetEditorButton = () => this.page.locator('.readerNavMenuCloseButton');
+    closeSheetEditorButton = () => this.page.locator('.leftButtons.readerNavMenuCloseButton');
+    //or page.getByRole('link', { name: 'Close' })
+    readerHeader = () => this.page.locator('header.readerControls.fullPanel.sheetReaderControls');
+    topTitle = () => this.page.locator('.readerControlsTitle h1'); 
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
     sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
+    resourcePanel = () => this.page.locator('.connectionsPanel');
+    textReaderPanel = () => this.page.locator('#panel-1.readerPanel');
+    resourcePanelCloseButton = () => this.page.locator('#panel-1').getByRole('link', { name: 'Close' });
     
     addSomethingButton = () => this.page.locator('.editorAddInterface');   
     addSourceButton = () => this.page.locator('#addSourceButton');
@@ -114,6 +120,7 @@ export class SheetEditorPage extends HelperBase {
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
     addedSource = () => this.page.locator('.SheetSource.segment');
+    sourceReferenceLink = () => this.page.locator('.SheetSource .ref a[href^="/"]').first();
     addedSpotify = () => this.page.locator('iframe[src*="open.spotify.com/embed/"]');
     addedYoutube = () => this.page.locator('.youTubeContainer');
     addedImage = () => this.page.locator('img.addedMedia');
