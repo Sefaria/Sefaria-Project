@@ -383,7 +383,7 @@ const save = async () => {
       });
 
       // After the cache reset, add a verification step
-      await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+      await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
 
       // Verify the change (optional - for debugging)
       if (tocZoomValue !== null) {
@@ -773,9 +773,7 @@ class ModeratorToolsPanel extends Component {
              <RemoveLinksFromCsv/>
          </div>
      );
-     const workflowyPanel  = (
-       <div className="modToolsSection"><WorkflowyBulkPanel /></div>
-     );
+
      const bulkIndexEditor = (
       <div className="modToolsSection"><BulkIndexEditor /></div>
      );
@@ -801,7 +799,6 @@ class ModeratorToolsPanel extends Component {
         {uploadLinksFromCSV}
         {getLinks}
         {removeLinksFromCsv}
-        {workflowyPanel}
         {bulkIndexEditor}
         {bulkVersionEditor}
         {autoLinkCommentaryTool}
@@ -824,8 +821,14 @@ class WorkflowyModeratorTool extends Component{
     constructor(props) {
     super(props);
     this.handleWfSubmit = this.handleWfSubmit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleFileChange = this.handleFileChange.bind(this);
     this.wfFileInput = React.createRef();
-    this.state = {c_index: true};
+    this.state = {
+      c_index: true,
+      files: [],
+      multipleFiles: false
+    };
   }
 
   handleInputChange(event) {
@@ -838,18 +841,48 @@ class WorkflowyModeratorTool extends Component{
     });
   }
 
+  handleFileChange(event) {
+    const files = Array.from(event.target.files);
+    this.setState({
+      files: files,
+      multipleFiles: files.length > 1
+    });
+  }
+
   handleWfSubmit(event) {
     event.preventDefault();
-    /*console.log(
-      `Selected file - ${this.wfFileInput.current.files[0].name}`
-    );*/
-    this.setState({uploading: true, uploadMessage:"Uploading..."});
-    const data = new FormData(event.target);
-    console.log(data);
+
+    if (this.state.files.length === 0) {
+      this.setState({uploadMessage: "Please select at least one file", error: true, errorIsHTML: false});
+      return;
+    }
+
+    this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 ? 's' : ''}...`});
+
+    const data = new FormData();
+
+    // Add files - use appropriate field name based on number of files
+    if (this.state.files.length === 1) {
+      // Single file - use original field name for backward compatibility
+      data.append('wf_file', this.state.files[0]);
+    } else {
+      // Multiple files - use array field name
+      this.state.files.forEach(file => {
+        data.append('workflowys[]', file);
+      });
+    }
+
+    // Add other form data
+    data.append('c_index', this.state.c_index);
+    data.append('c_version', this.state.c_version || false);
+    data.append('delims', this.state.delims || '');
+    data.append('term_scheme', this.state.term_scheme || '');
+
     const request = new Request(
         '/modtools/upload_text',
         {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
     );
+
     fetch(request, {
       method: 'POST',
       mode: 'same-origin',
@@ -870,8 +903,14 @@ class WorkflowyModeratorTool extends Component{
                 console.log("okay response", resp_json);
                 this.setState({uploading: false,
                     error: false,
-                    uploadMessage:resp_json["data"]["message"],
-                    uploadResult: JSON.stringify(resp_json["data"]["index"], undefined, 4)})
+                    uploadMessage: resp_json.data ? resp_json.data.message : resp_json.message,
+                    uploadResult: resp_json.data ? JSON.stringify(resp_json.data.index, undefined, 4) : resp_json.message});
+
+                // Clear files after successful upload
+                this.setState({files: [], multipleFiles: false});
+                if (this.wfFileInput.current) {
+                  this.wfFileInput.current.value = '';
+                }
             });
         }
     }).catch(error => {
@@ -899,8 +938,20 @@ class WorkflowyModeratorTool extends Component{
         </div>
         <form id="wf-file-form" className="workflowy-tool-form" onSubmit={this.handleWfSubmit}>
            <label>
-              Upload Workflowy file:
-              <input type="file" name="wf_file" ref={this.wfFileInput} />
+              Upload Workflowy file(s):
+              <input
+                type="file"
+                name="wf_file"
+                ref={this.wfFileInput}
+                multiple
+                accept=".opml"
+                onChange={this.handleFileChange}
+              />
+              {this.state.files.length > 0 && (
+                <div style={{fontSize: "12px", color: "#666", marginTop: "4px"}}>
+                  Selected: {this.state.files.map(f => f.name).join(', ')}
+                </div>
+              )}
            </label>
            <label>
               Create Index Record:
@@ -924,7 +975,7 @@ class WorkflowyModeratorTool extends Component{
                 className="dlVersionSelect"
                 name="delims"
                 type="text"
-                value={this.state.delims}
+                value={this.state.delims || ''}
                 onChange={this.handleInputChange} />
             </label>
             <label>
@@ -933,18 +984,28 @@ class WorkflowyModeratorTool extends Component{
                 className="dlVersionSelect"
                 name="term_scheme"
                 type="text"
-                value={this.state.term_scheme}
+                value={this.state.term_scheme || ''}
                 onChange={this.handleInputChange} />
             </label>
-             <button className="modtoolsButton" name="wf-submit" type="submit">
-                <span className="int-en">Upload</span>
-                <span className="int-he">Upload</span>
+             <button
+               className="modtoolsButton"
+               name="wf-submit"
+               type="submit"
+               disabled={this.state.uploading || this.state.files.length === 0}
+             >
+                <span className="int-en">
+                  {this.state.uploading ? 'Uploading...' :
+                   this.state.files.length > 1 ? `Upload ${this.state.files.length} Files` : 'Upload'}
+                </span>
+                <span className="int-he">
+                  {this.state.uploading ? 'מעלה...' : 'העלאה'}
+                </span>
              </button>
          </form>
         <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
         { (this.state.error && this.state.errorIsHTML) ?
               <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
-              <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
+              <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult || ''}></textarea> }
         </div>);
   }
 }
@@ -1240,346 +1301,7 @@ function GetLinks() {
   );
 }
 
-const WorkflowyBulkPanel = () => {
-  const [files, setFiles] = React.useState([]);
-  const [src, setSrc] = React.useState("");
-  const [targets, setTargets] = React.useState(new Set());
-  const [msg, setMsg] = React.useState("");
-  const [uploading, setUploading] = React.useState(false);
-  const [duplicating, setDuplicating] = React.useState(false);
 
-  // State for new form controls, matching the single uploader
-  const [c_index, setCreateIndex] = React.useState(true);
-  const [c_version, setCreateVersion] = React.useState(false);
-  const [delims, setDelims] = React.useState("");
-  const [term_scheme, setTermScheme] = React.useState("");
-
-
-  // Define all books/tractates
-  const BIBLE_BOOKS = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
-  
-  const MISHNAH_TRACTATES = [
-    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot", "Maaser Sheni",
-    "Challah", "Orlah", "Bikkurim", "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma",
-    "Sukkah", "Beitzah", "Rosh Hashanah", "Ta'anit", "Megillah", "Moed Katan", "Chagigah",
-    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
-    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
-    "Eduyot", "Avodah Zarah", "Pirkei Avot", "Horayot", "Zevachim", "Menachot",
-    "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid",
-    "Middot", "Kinnim", "Kelim", "Oholot", "Negaim", "Parah", "Tahorot",
-    "Mikvaot", "Niddah", "Makhshirin", "Zavim", "Tevul Yom", "Yadayim", "Oktzin"
-  ];
-  
-  const TALMUD_TRACTATES = [
-    "Berakhot", "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah",
-    "Beitzah", "Rosh Hashanah", "Ta'anit", "Megillah", "Moed Katan", "Chagigah",
-    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
-    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
-    "Avodah Zarah", "Horayot", "Zevachim", "Menachot", "Chullin", "Bekhorot",
-    "Arakhin", "Temurah", "Keritot", "Meilah", "Tamid", "Niddah"
-  ];
-
-  const JERUSALEM_TALMUD_TRACTATES = [
-    // Seder Zeraim (included in Jerusalem Talmud)
-    "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot", "Maasrot",
-    "Maaser Sheni", "Challah", "Orlah", "Bikkurim",
-    // Seder Moed
-    "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Rosh Hashanah", "Yoma", "Sukkah",
-    "Ta'anit", "Megillah", "Moed Katan", "Chagigah", "Shekalim",
-    // Seder Nashim
-    "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
-    // Seder Nezikin
-    "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot", "Shevuot",
-    "Avodah Zarah", "Horayot",
-    // Seder Toharot (only Niddah)
-    "Niddah"
-  ];
-
-  // Extract the base text from the source commentary
-  const getBaseText = (sourceTitle) => {
-    // Handle patterns like "Rashi on Genesis", "Kehati on Mishnah Bekhorot", etc.
-    const patterns = [
-      /on\s+(.+)$/,                    // "X on Y"
-      /to\s+(.+)$/,                    // "X to Y"
-      /,\s+(.+)$/,                     // "X, Y"
-    ];
-    
-    for (let pattern of patterns) {
-      const match = sourceTitle.match(pattern);
-      if (match) {
-        return match[1].trim();
-      }
-    }
-    return null;
-  };
-
-  // Determine which category and base book/tractate from the source
-  const analyzeSource = () => {
-    if (!src) return { category: null, baseBook: null, availableTargets: [] };
-    
-    const baseText = getBaseText(src);
-    if (!baseText) return { category: null, baseBook: null, availableTargets: [] };
-    
-    // Check if it's Bible
-    for (let book of BIBLE_BOOKS) {
-      if (baseText.includes(book)) {
-        const targets = BIBLE_BOOKS
-          .filter(b => b !== book)
-          .map(b => src.replace(book, b));
-        return { category: "Bible", baseBook: book, availableTargets: targets };
-      }
-    }
-    
-    // Check if it's Jerusalem Talmud
-    if (baseText.includes("Jerusalem Talmud") || baseText.includes("Talmud Yerushalmi")) {
-      for (let tractate of JERUSALEM_TALMUD_TRACTATES) {
-        if (baseText.includes(tractate)) {
-          const targets = JERUSALEM_TALMUD_TRACTATES
-            .filter(t => t !== tractate)
-            .map(t => src.replace(tractate, t));
-          return { category: "Jerusalem Talmud", baseBook: tractate, availableTargets: targets };
-        }
-      }
-    }
-    
-    // Check if it's Mishnah
-    if (baseText.includes("Mishnah")) {
-      for (let tractate of MISHNAH_TRACTATES) {
-        if (baseText.includes(tractate)) {
-          const targets = MISHNAH_TRACTATES
-            .filter(t => t !== tractate)
-            .map(t => src.replace(tractate, t));
-          return { category: "Mishnah", baseBook: tractate, availableTargets: targets };
-        }
-      }
-    }
-    
-    // Check if it's Talmud (Bavli)
-    for (let tractate of TALMUD_TRACTATES) {
-      if (baseText.includes(tractate)) {
-        const targets = TALMUD_TRACTATES
-          .filter(t => t !== tractate)
-          .map(t => src.replace(tractate, t));
-        return { category: "Talmud", baseBook: tractate, availableTargets: targets };
-      }
-    }
-    
-    return { category: null, baseBook: null, availableTargets: [] };
-  };
-
-  const upload = () => {
-    if (files.length === 0) return;
-    
-    setUploading(true);
-    setMsg("Uploading files...");
-    const fd = new FormData();
-    files.forEach(f => fd.append("workflowys[]", f));
-    
-    // Append the new form data
-    fd.append("c_index", c_index);
-    fd.append("c_version", c_version);
-    fd.append("delims", delims);
-    fd.append("term_scheme", term_scheme);
-
-    $.ajax({
-      url: '/api/upload-workflowy-multi',
-      type: 'POST',
-      data: fd,
-      processData: false,
-      contentType: false,
-      success: d => {
-        setMsg(`✅ ${d.message}`);
-        setFiles([]); // Clear files after success
-        // Reset file input
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
-      },
-      error: x => {
-        const errorMsg = x.responseJSON?.error || x.responseText || "Upload failed";
-        setMsg(`❌ Error: ${errorMsg}`);
-      },
-      complete: () => setUploading(false)
-    });
-  };
-
-  const duplicate = () => {
-    if (!src || targets.size === 0) return;
-    
-    setDuplicating(true);
-    setMsg(`Creating ${targets.size} indices...`);
-    
-    $.ajax({
-      url: '/api/duplicate-index',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({src, targets: [...targets]}),
-      success: d => {
-        if (d.created && d.created.length > 0) {
-          setMsg(`✅ Successfully created: ${d.created.join(', ')}`);
-          setTargets(new Set()); // Clear selection after success
-        } else {
-          setMsg(`⚠️ No indices were created (they may already exist)`);
-        }
-      },
-      error: x => {
-        const errorMsg = x.responseJSON?.error || x.responseText || "Unknown error";
-        setMsg(`❌ Error: ${errorMsg}`);
-      },
-      complete: () => setDuplicating(false)
-    });
-  };
-
-  const selectAll = () => {
-    const { availableTargets } = analyzeSource();
-    setTargets(new Set(availableTargets));
-  };
-
-  const selectNone = () => {
-    setTargets(new Set());
-  };
-
-  const { category: detectedCategory, baseBook, availableTargets } = analyzeSource();
-
-  return (
-    <div className="modToolsSection">
-      <div className="dlSectionTitle">Bulk Workflowy Import</div>
-      
-      {/* Configuration options for the uploader */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
-          <label>
-              <input type="checkbox" checked={c_index} onChange={e => setCreateIndex(e.target.checked)} />
-              Create Index Record
-          </label>
-          <label>
-              <input type="checkbox" checked={c_version} onChange={e => setCreateVersion(e.target.checked)} />
-              Create Version From Notes on Outline
-          </label>
-          <label>
-              Custom Delimiters (Title Lang | Alt Titles | Categories):
-              <input type="text" className="dlVersionSelect" value={delims} onChange={e => setDelims(e.target.value)} style={{ width: '100%' }} />
-          </label>
-          <label>
-              Optional Term Scheme Name:
-              <input type="text" className="dlVersionSelect" value={term_scheme} onChange={e => setTermScheme(e.target.value)} style={{ width: '100%' }} />
-          </label>
-      </div>
-
-      <input
-        type="file"
-        multiple
-        onChange={e => setFiles([...e.target.files])}
-        accept=".opml"
-      />
-      <button
-        className="modtoolsButton"
-        disabled={!files.length || uploading}
-        onClick={upload}
-      >
-        {uploading ? "Uploading..." : `Upload ${files.length} File${files.length !== 1 ? 's' : ''}`}
-      </button>
-
-      <div className="dlSectionTitle" style={{marginTop: "16px"}}>Duplicate Index</div>
-      <input
-        className="dlVersionSelect"
-        placeholder="Source index (e.g., Rashi on Genesis, Kehati on Mishnah Berakhot)"
-        value={src}
-        onChange={e => setSrc(e.target.value)}
-      />
-      
-      {src && detectedCategory && (
-        <>
-          <div style={{margin: "8px 0", fontSize: "14px", color: "#666"}}>
-            Detected: <strong>{detectedCategory}</strong> commentary on <strong>{baseBook}</strong>
-          </div>
-          
-          <div style={{margin: "8px 0"}}>
-            <button
-              className="modtoolsButton"
-              onClick={selectAll}
-              style={{marginRight: "5px"}}
-            >
-              Select All ({availableTargets.length})
-            </button>
-            <button className="modtoolsButton" onClick={selectNone}>
-              Select None
-            </button>
-          </div>
-          
-          <div
-            className="indicesList"
-            style={{
-              maxHeight: "400px",
-              overflow: "auto",
-              border: "1px solid #ddd",
-              padding: "10px",
-              backgroundColor: "#f9f9f9"
-            }}
-          >
-            {availableTargets.map(t =>
-              <label key={t} style={{display: "block", padding: "3px", cursor: "pointer"}}>
-                <input
-                  type="checkbox"
-                  checked={targets.has(t)}
-                  onChange={e => {
-                    const s = new Set(targets);
-                    e.target.checked ? s.add(t) : s.delete(t);
-                    setTargets(s);
-                  }}
-                /> {t}
-              </label>
-            )}
-          </div>
-          
-          {targets.size > 0 && (
-            <div style={{margin: "8px 0", fontSize: "14px", color: "#666"}}>
-              Selected: {targets.size} of {availableTargets.length} indices
-            </div>
-          )}
-        </>
-      )}
-      
-      {src && !detectedCategory && (
-        <div style={{margin: "8px 0", color: "#d9534f", fontSize: "14px"}}>
-          Could not detect commentary type. Please ensure the source follows patterns like:
-          <ul style={{marginTop: "5px", marginBottom: "0"}}>
-            <li>"Rashi on Genesis"</li>
-            <li>"Kehati on Mishnah Bekhorot"</li>
-            <li>"Steinsaltz on Talmud Berakhot"</li>
-            <li>"Meiri on Jerusalem Talmud Berakhot"</li>
-          </ul>
-        </div>
-      )}
-      
-      <button
-        className="modtoolsButton"
-        disabled={!src || !targets.size || duplicating}
-        onClick={duplicate}
-        style={{marginTop: "8px"}}
-      >
-        {duplicating ? "Creating..." : `Duplicate to ${targets.size} indices`}
-      </button>
-      
-      {msg && (
-        <div
-          className="message"
-          style={{
-            marginTop: "8px",
-            padding: "8px",
-            borderRadius: "4px",
-            backgroundColor: msg.includes("✅") ? "#d4edda" :
-                           msg.includes("❌") ? "#f8d7da" :
-                           msg.includes("⚠️") ? "#fff3cd" : "#d1ecf1",
-            color: msg.includes("✅") ? "#155724" :
-                   msg.includes("❌") ? "#721c24" :
-                   msg.includes("⚠️") ? "#856404" : "#0c5460"
-          }}
-        >
-          {msg}
-        </div>
-      )}
-    </div>
-  );
-};
 
 /*****************************************************************
  *  B U L K   V E R S I O N   E D I T O R   (full field list)
@@ -1747,7 +1469,7 @@ const createLinks = async () => {
         const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}?update=1`;
         await $.post(url, { json: JSON.stringify(patched) });
         /* 3b – clear in‑process + Redis + varnish caches */
-        await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g,"_"))}`);
+        await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
       }
 
       /* 4️⃣ rebuild links */
@@ -2030,7 +1752,7 @@ const NodeTitleEditor = () => {
       });
 
       // Reset cache
-      await $.get(`/admin/reset/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+      await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
       
       setMsg(`✅ Successfully updated node titles`);
       setEditingNodes({});
