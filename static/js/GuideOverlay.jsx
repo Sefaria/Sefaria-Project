@@ -365,6 +365,7 @@ const GuideOverlay = ({
                   controls
                   loop
                   autoPlay
+                  defaultMuted // Added to avoid autoplay issues with browsers - specifically Safari
                   muted // Added to avoid autoplay issues with browsers
                   playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)
                 >
