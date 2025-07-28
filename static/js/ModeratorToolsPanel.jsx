@@ -41,22 +41,11 @@ const INDEX_FIELD_METADATA = {
   "authors": {
     label: "Authors",
     type: "array",
-    placeholder: "Comma-separated list of author names",
-    help: "Enter author names separated by commas (e.g., 'Rashi, Rabbi Shlomo Yitzchaki')"
+    placeholder: "Author names (one per line or comma-separated)",
+    help: "Enter author names. Backend expects a list of strings. Use 'auto' to detect from title.",
+    auto: true
   },
-  "titleVariants": {
-    label: "Alternative English Titles",
-    type: "array",
-    placeholder: "Comma-separated alternative titles",
-    help: "English alternative titles for this text"
-  },
-  "heTitleVariants": {
-    label: "Hebrew Alternative Titles",
-    type: "array",
-    placeholder: "כותרות חלופיות מופרדות בפסיקים",
-    help: "כותרות חלופיות בעברית",
-    dir: "rtl"
-  },
+
   "compDate": {
     label: "Composition Date",
     type: "daterange",
@@ -96,25 +85,46 @@ const INDEX_FIELD_METADATA = {
     label: "TOC Zoom Level",
     type: "number",
     placeholder: "0-10",
-    help: "Controls how deep the table of contents displays by default (0=fully expanded)"
+    help: "Controls how deep the table of contents displays by default (0=fully expanded). Must be an integer.",
+    validate: (value) => {
+      if (value === "" || value === null || value === undefined) return true;
+      const num = parseInt(value);
+      return !isNaN(num) && num >= 0 && num <= 10;
+    }
   },
   "dependence": {
     label: "Dependence Type",
     type: "select",
     placeholder: "Select dependence type",
-    help: "Is this text dependent on another text? (e.g., Commentary on a base text)"
+    help: "Is this text dependent on another text? (e.g., Commentary on a base text)",
+    options: [
+      { value: "", label: "None" },
+      { value: "Commentary", label: "Commentary" },
+      { value: "Targum", label: "Targum" },
+      { value: "auto", label: "Auto-detect from title" }
+    ],
+    auto: true
   },
   "base_text_titles": {
     label: "Base Text Titles",
     type: "array",
-    placeholder: "Base text names or 'auto' for auto-detection",
-    help: "Enter base text names separated by commas, or type 'auto' to detect from title (e.g., 'Genesis' for 'Rashi on Genesis')"
+    placeholder: "Base text names (one per line or comma-separated)",
+    help: "Enter base text names that this commentary depends on. Use 'auto' to detect from title (e.g., 'Genesis' for 'Rashi on Genesis'). Backend expects a list of strings.",
+    auto: true
   },
   "collective_title": {
     label: "English Collective Title",
     type: "text",
     placeholder: "Collective title or 'auto' for auto-detection",
-    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis')"
+    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis'). Must have matching term in database.",
+    auto: true
+  },
+  "he_collective_title": {
+    label: "Hebrew Collective Title (Term)",
+    type: "text",
+    placeholder: "Hebrew equivalent of collective title",
+    help: "Hebrew equivalent of the collective title. This should match a term in the database.",
+    dir: "rtl"
   }
 };
 
@@ -206,8 +216,8 @@ const save = async () => {
 
     switch (fieldMeta.type) {
       case 'array':
-        if (field === 'base_text_titles' && value === 'auto') {
-          processedUpdates[field] = 'auto'; // Keep as marker
+        if (value === 'auto') {
+          processedUpdates[field] = 'auto'; // Keep as marker for auto-detection
         } else {
           processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
         }
@@ -233,15 +243,21 @@ const save = async () => {
         }
         break;
       case 'number':
-        processedUpdates[field] = parseInt(value);
+        const numValue = parseInt(value);
+        if (isNaN(numValue)) {
+          setMsg(`❌ Invalid number format for ${field}`);
+          setSaving(false);
+          return;
+        }
+        processedUpdates[field] = numValue;
         break;
       default:
         processedUpdates[field] = value;
     }
   }
 
-  // Handle authors validation if present
-  if (processedUpdates.authors) {
+  // Handle authors validation if present (but not if it's 'auto' - that's handled per-index)
+  if (processedUpdates.authors && processedUpdates.authors !== 'auto') {
     try {
       const authorSlugs = [];
       for (const authorName of processedUpdates.authors) {
@@ -298,27 +314,65 @@ const save = async () => {
       }
 
       // Handle smart detection
-      if (indexSpecificUpdates.dependence) {
-        const pattern = detectCommentaryPattern(indexTitle);
-        
-        if (indexSpecificUpdates.base_text_titles === 'auto') {
-          if (pattern && pattern.baseText) {
-            // For "Kehati on Mishnah Bikkurim", this will be ["Mishnah Bikkurim"]
-            indexSpecificUpdates.base_text_titles = [pattern.baseText];
-          } else {
-            delete indexSpecificUpdates.base_text_titles;
-            console.warn(`Could not auto-detect base text for ${indexTitle}`);
-          }
+      const pattern = detectCommentaryPattern(indexTitle);
+
+      // Handle dependence auto-detection
+      if (indexSpecificUpdates.dependence === 'auto') {
+        if (pattern) {
+          indexSpecificUpdates.dependence = 'Commentary';
+        } else {
+          delete indexSpecificUpdates.dependence;
+          console.warn(`Could not auto-detect dependence for ${indexTitle}`);
         }
-        
-        if (indexSpecificUpdates.collective_title === 'auto') {
-          if (pattern && pattern.commentaryName) {
-            // For "Kehati on Mishnah Bikkurim", this will be "Kehati"
-            indexSpecificUpdates.collective_title = pattern.commentaryName;
-          } else {
-            delete indexSpecificUpdates.collective_title;
-            console.warn(`Could not auto-detect collective title for ${indexTitle}`);
+      }
+
+      // Handle base_text_titles auto-detection
+      if (indexSpecificUpdates.base_text_titles === 'auto') {
+        if (pattern && pattern.baseText) {
+          // For "Kehati on Mishnah Bikkurim", this will be ["Mishnah Bikkurim"]
+          indexSpecificUpdates.base_text_titles = [pattern.baseText];
+        } else {
+          delete indexSpecificUpdates.base_text_titles;
+          console.warn(`Could not auto-detect base text for ${indexTitle}`);
+        }
+      }
+
+      // Handle collective_title auto-detection
+      if (indexSpecificUpdates.collective_title === 'auto') {
+        if (pattern && pattern.commentaryName) {
+          // For "Kehati on Mishnah Bikkurim", this will be "Kehati"
+          indexSpecificUpdates.collective_title = pattern.commentaryName;
+        } else {
+          delete indexSpecificUpdates.collective_title;
+          console.warn(`Could not auto-detect collective title for ${indexTitle}`);
+        }
+      }
+
+      // Handle authors auto-detection
+      if (indexSpecificUpdates.authors === 'auto') {
+        if (pattern && pattern.commentaryName) {
+          // Try to find the author based on the commentary name
+          try {
+            const response = await $.ajax({
+              url: `/api/name/${pattern.commentaryName}`,
+              method: 'GET'
+            });
+            const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+            const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
+
+            if (exactMatch) {
+              indexSpecificUpdates.authors = [exactMatch.key];
+            } else {
+              delete indexSpecificUpdates.authors;
+              console.warn(`Could not auto-detect author for ${indexTitle}`);
+            }
+          } catch (e) {
+            delete indexSpecificUpdates.authors;
+            console.warn(`Error auto-detecting author for ${indexTitle}:`, e);
           }
+        } else {
+          delete indexSpecificUpdates.authors;
+          console.warn(`Could not auto-detect author for ${indexTitle}`);
         }
       }
 
@@ -460,6 +514,11 @@ const save = async () => {
         {fieldMeta.help && (
           <div style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
             {fieldMeta.help}
+            {fieldMeta.auto && (
+              <span style={{ color: "#007cba", fontWeight: "500" }}>
+                {" "}(Supports 'auto' for commentary texts)
+              </span>
+            )}
           </div>
         )}
 
@@ -470,18 +529,30 @@ const save = async () => {
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-        ) : fieldName === "dependence" ? (
+        ) : fieldMeta.type === "select" && fieldMeta.options ? (
           <select {...commonProps}>
-            <option value="">--Not a dependent text--</option>
-            <option value="Commentary">Commentary</option>
-            <option value="Targum">Targum</option>
-            <option value="Midrash">Midrash</option>
-            <option value="Guides">Guides</option>
+            {fieldMeta.options.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
         ) : fieldMeta.type === "textarea" ? (
           <textarea {...commonProps} rows={3} />
         ) : fieldMeta.type === "number" ? (
-          <input {...commonProps} type="number" min="0" max="10" />
+          <input
+            {...commonProps}
+            type="number"
+            min="0"
+            max="10"
+            onBlur={(e) => {
+              if (fieldMeta.validate && !fieldMeta.validate(e.target.value)) {
+                e.target.style.borderColor = 'red';
+                e.target.title = 'Invalid value';
+              } else {
+                e.target.style.borderColor = '';
+                e.target.title = '';
+              }
+            }}
+          />
         ) : (
           <input {...commonProps} type="text" />
         )}
@@ -492,6 +563,17 @@ const save = async () => {
   return (
     <div className="modToolsSection">
       <div className="dlSectionTitle">Bulk Edit Index Metadata</div>
+
+      <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#fff3cd", border: "1px solid #ffeaa7", borderRadius: "4px", fontSize: "14px" }}>
+        <strong>⚠️ Important Notes:</strong>
+        <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px" }}>
+          <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
+          <li><strong>Collective Title:</strong> Must have a matching term in the database.</li>
+          <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot", not "Berakhot").</li>
+          <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
+          <li><strong>TOC Zoom:</strong> Integer 0-10 (0=fully expanded, higher=more collapsed).</li>
+        </ul>
+      </div>
 
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         <input
