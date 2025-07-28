@@ -154,6 +154,7 @@ urlpatterns += [
     url(r'^api/version-indices$',     sefaria_views.version_indices_api),
     url(r'^api/version-bulk-edit$',   sefaria_views.version_bulk_edit_api),
     url(r'^api/duplicate-index$',        sefaria_views.duplicate_index_api),
+    url(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     url(r'^api/indices-by-version$',     sefaria_views.indices_by_version_api),
     url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
     url(r'^api/index/?$', reader_views.table_of_contents_api),

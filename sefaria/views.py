@@ -1392,102 +1392,75 @@ def text_upload_api(request):
     return jsonResponse({"status": "ok", "message": message})
 
 
+@staff_member_required
+def check_index_dependencies_api(request, title):
+    """
+    Check what dependencies exist for a given index title.
+    Used by NodeTitleEditor to warn about potential impacts of title changes.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+
+    try:
+        # Get dependent indices (commentaries, etc.)
+        dependent_indices = library.get_dependant_indices(title, full_records=False)
+
+        # Get version count
+        version_count = db.texts.count_documents({"title": title})
+
+        # Get link count (approximate)
+        from sefaria.model.text import prepare_index_regex_for_dependency_process
+        try:
+            index = library.get_index(title)
+            pattern = prepare_index_regex_for_dependency_process(index)
+            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
+        except:
+            link_count = 0
+
+        return jsonResponse({
+            "title": title,
+            "dependent_indices": dependent_indices,
+            "dependent_count": len(dependent_indices),
+            "version_count": version_count,
+            "link_count": link_count,
+            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
+        })
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
 
 
 @staff_member_required
 def duplicate_index_api(request):
-    """Improved version of the Duplicate‑Index endpoint.
-    • Ignores meta categories like "Commentary" when looking for the base text’s top‑level category.
-    • Returns a detailed list of skipped targets with reasons (instead of silently dropping them).
-    • Keeps the rest of the original logic unchanged.
+    """
+    API for duplicating index records.
     """
     if request.method != "POST":
         return jsonResponse({"error": "POST required"})
 
-    from sefaria.model import Index
-    from copy import deepcopy
-    import re, json
-
     data = json.loads(request.body)
-    src_title      = data.get("src")
-    target_titles  = data.get("targets", [])
-    if not src_title or not target_titles:
-        return jsonResponse({"error": "src and targets required"})
+    src = data.get("src")
+    targets = data.get("targets", [])
 
-    src_idx = Index().load({"title": src_title})
-    if not src_idx:
-        return jsonResponse({"error": f'No Index titled "{src_title}"'})
+    if not src or not targets:
+        return jsonResponse({"error": "Both 'src' and 'targets' are required"})
 
-    # ── find the tractate name inside the source title ───────────────────────────
-    m = re.search(r"on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)", src_title)
-    if not m:
-        return jsonResponse({"error": f"Could not determine the base text from '{src_title}'"})
-    src_base_text = m.group(1)
+    try:
+        from sefaria.helper.schema import duplicate_index
+        created = []
+        for target in targets:
+            try:
+                duplicate_index(src, target)
+                created.append(target)
+            except Exception as e:
+                # If any individual duplication fails, continue with others
+                print(f"Failed to duplicate {src} to {target}: {e}")
+                continue
 
-    # ── work out the base‑text category more robustly ────────────────────────────
-    base_text_category = next((c for c in src_idx.categories
-                               if c not in {"Commentary", "Parshanut", "Midrash"}), None)
-    if not base_text_category:
-        return jsonResponse({"error": f"Cannot infer base category from categories {src_idx.categories}"})
+        return jsonResponse({"created": created})
 
-    # load the base index of the source so we can translate titles later
-    src_base_idx_title = f"{base_text_category} {src_base_text}"
-    src_base_idx = Index().load({"title": src_base_idx_title})
-    if not src_base_idx:
-        return jsonResponse({"error": f"Base index '{src_base_idx_title}' not found"})
-    he_src_base_title = src_base_idx.get_title('he')
-
-    # clean copy of the Mongo document
-    src_contents = src_idx.contents()
-    src_contents.pop("_id", None)
-
-    created, skipped = [], []
-
-    def update_node_titles(node, old, new):
-        if not old or not new: return
-        if isinstance(node, dict):
-            if "key" in node:   node["key"]   = node["key"].replace(old, new)
-            if "title" in node: node["title"] = node["title"].replace(old, new)
-            for t in node.get("titles", []):
-                t["text"] = t["text"].replace(old, new)
-            for child in node.get("nodes", []):
-                update_node_titles(child, old, new)
-
-    # ── build each target ────────────────────────────────────────────────────────
-    for tgt in target_titles:
-        if Index().load({"title": tgt}):
-            skipped.append({"title": tgt, "reason": "already exists"})
-            continue
-
-        tm = re.search(r"on (?:Mishnah|Talmud|Jerusalem Talmud) (.+)", tgt)
-        if not tm:
-            skipped.append({"title": tgt, "reason": "title pattern not recognised"})
-            continue
-        tgt_base_text         = tm.group(1)
-        tgt_base_idx_title    = f"{base_text_category} {tgt_base_text}"
-        tgt_base_idx          = Index().load({"title": tgt_base_idx_title})
-        if not tgt_base_idx:
-            skipped.append({"title": tgt, "reason": "base index not found"})
-            continue
-        he_tgt_base_title     = tgt_base_idx.get_title('he')
-
-        # deep copy and retitle
-        new_doc               = deepcopy(src_contents)
-        new_doc["title"]      = tgt
-        if new_doc.get("heTitle"):
-            new_doc["heTitle"] = new_doc["heTitle"].replace(he_src_base_title, he_tgt_base_title)
-
-        for node in new_doc.get("nodes", []):
-            update_node_titles(node, src_base_text, tgt_base_text)
-            update_node_titles(node, he_src_base_title, he_tgt_base_title)
-
-        try:
-            Index(new_doc).save()
-            created.append(tgt)
-        except Exception as e:
-            skipped.append({"title": tgt, "reason": str(e)})
-
-    return jsonResponse({"status": "ok", "created": created, "skipped": skipped})
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
 
 
 @staff_member_required

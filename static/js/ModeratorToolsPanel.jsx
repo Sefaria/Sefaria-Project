@@ -1616,6 +1616,20 @@ const NodeTitleEditor = () => {
   const [msg, setMsg] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  const [dependencies, setDependencies] = React.useState(null);
+  const [checkingDeps, setCheckingDeps] = React.useState(false);
+
+  const checkDependencies = async (title) => {
+    setCheckingDeps(true);
+    try {
+      const response = await $.get(`/api/check-index-dependencies/${encodeURIComponent(title)}`);
+      setDependencies(response);
+    } catch (e) {
+      console.error('Failed to check dependencies:', e);
+      setDependencies(null);
+    }
+    setCheckingDeps(false);
+  };
 
   const load = async () => {
     if (!indexTitle) {
@@ -1631,9 +1645,13 @@ const NodeTitleEditor = () => {
       setIndexData(data);
       setEditingNodes({});
       setMsg(`✅ Loaded ${indexTitle}`);
+
+      // Check dependencies for the main index
+      await checkDependencies(indexTitle);
     } catch (e) {
       setMsg(`❌ Error: Could not load index "${indexTitle}"`);
       setIndexData(null);
+      setDependencies(null);
     }
     setLoading(false);
   };
@@ -1669,7 +1687,11 @@ const NodeTitleEditor = () => {
       ...prev,
       [pathStr]: {
         ...prev[pathStr],
-        [field]: value
+        [field]: value,
+        // Add validation flags
+        [`${field}_valid`]: field === 'title' ?
+          (value.match(/^[\x00-\x7F]*$/) && !value.match(/[:.\\/-]/)) :
+          true
       }
     }));
   };
@@ -1684,28 +1706,49 @@ const NodeTitleEditor = () => {
     setMsg("Saving changes...");
 
     try {
+      // Validate changes before saving
+      const validationErrors = [];
+      Object.entries(editingNodes).forEach(([, edits]) => {
+        if (edits.title !== undefined) {
+          // Check for ASCII characters only in English titles
+          if (!edits.title.match(/^[\x00-\x7F]*$/)) {
+            validationErrors.push(`English title "${edits.title}" contains non-ASCII characters`);
+          }
+          // Check for forbidden characters
+          if (edits.title.match(/[:.\\/-]/)) {
+            validationErrors.push(`English title "${edits.title}" contains forbidden characters (periods, colons, hyphens, slashes)`);
+          }
+        }
+      });
+
+      if (validationErrors.length > 0) {
+        setMsg(`❌ Validation errors: ${validationErrors.join('; ')}`);
+        setSaving(false);
+        return;
+      }
+
       // Create a deep copy of the index data
       const updatedIndex = JSON.parse(JSON.stringify(indexData));
-      
+
       // Apply edits to the nodes
       Object.entries(editingNodes).forEach(([pathStr, edits]) => {
         const path = pathStr.split('.').map(Number);
         let node = updatedIndex.schema || updatedIndex;
-        
+
         // Navigate to the correct node
         for (let i = 0; i < path.length; i++) {
           if (i === path.length - 1) {
             // Last step - this is our target node
             const targetNode = node.nodes[path[i]];
-            
+
             // Apply edits
             if (edits.removeSharedTitle) {
               delete targetNode.sharedTitle;
             }
-            
+
             if (edits.title !== undefined) {
               targetNode.title = edits.title;
-              
+
               // Update or add English title in titles array
               const enTitleIndex = targetNode.titles?.findIndex(t => t.lang === "en" && t.primary);
               if (enTitleIndex >= 0) {
@@ -1719,10 +1762,10 @@ const NodeTitleEditor = () => {
                 });
               }
             }
-            
+
             if (edits.heTitle !== undefined) {
               targetNode.heTitle = edits.heTitle;
-              
+
               // Update or add Hebrew title in titles array
               const heTitleIndex = targetNode.titles?.findIndex(t => t.lang === "he" && t.primary);
               if (heTitleIndex >= 0) {
@@ -1742,30 +1785,60 @@ const NodeTitleEditor = () => {
         }
       });
 
-      // Save the updated index
-      const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
-      
+      // Save the updated index - remove the ?update=1 parameter since we're sending the full data
+      const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`;
+
       await $.ajax({
         url,
         type: 'POST',
-        data: { json: JSON.stringify(updatedIndex) }
+        data: { json: JSON.stringify(updatedIndex) },
+        dataType: 'json'
       });
 
       // Reset cache
       await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
-      
+
       setMsg(`✅ Successfully updated node titles`);
       setEditingNodes({});
-      
+
       // Reload to show changes
       setTimeout(() => load(), 1000);
-      
+
     } catch (e) {
       console.error('Save error:', e);
-      const errorMsg = e.responseJSON?.error || e.responseText || 'Unknown error';
-      setMsg(`❌ Error: ${errorMsg}`);
+
+      // Handle different types of errors
+      let errorMsg = 'Unknown error';
+      let errorDetails = '';
+
+      if (e.responseJSON) {
+        errorMsg = e.responseJSON.error || 'Server error';
+        errorDetails = e.responseJSON.details || '';
+
+        // Provide specific guidance based on error type
+        switch (e.responseJSON.type) {
+          case 'dependency_error':
+            errorMsg = `⚠️ Dependency Warning: ${errorMsg}`;
+            errorDetails = 'This text has dependent commentaries. Changes may affect other texts.';
+            break;
+          case 'validation_error':
+          case 'title_validation_error':
+            errorMsg = `❌ Validation Error: ${errorMsg}`;
+            break;
+          default:
+            errorMsg = `❌ Error: ${errorMsg}`;
+        }
+
+        if (errorDetails) {
+          errorMsg += ` (${errorDetails})`;
+        }
+      } else if (e.responseText) {
+        errorMsg = `❌ Error: ${e.responseText}`;
+      }
+
+      setMsg(errorMsg);
     }
-    
+
     setSaving(false);
   };
 
@@ -1798,6 +1871,41 @@ const NodeTitleEditor = () => {
           <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
             Found {nodes.length} nodes. Edit titles below:
           </div>
+
+          <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#fff3cd", border: "1px solid #ffeaa7", borderRadius: "4px", fontSize: "14px" }}>
+            <strong>⚠️ Important:</strong>
+            <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px" }}>
+              <li><strong>English titles:</strong> Must contain only ASCII characters. No periods, hyphens, colons, or slashes.</li>
+              <li><strong>Hebrew titles:</strong> Can be changed freely without affecting dependencies.</li>
+              <li><strong>Main index titles:</strong> Changes may affect dependent commentaries and other texts.</li>
+            </ul>
+          </div>
+
+          {dependencies && dependencies.has_dependencies && (
+            <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: "4px", fontSize: "14px" }}>
+              <strong>🚨 Dependency Warning for "{indexTitle}":</strong>
+              <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px" }}>
+                {dependencies.dependent_count > 0 && (
+                  <li><strong>{dependencies.dependent_count} dependent texts:</strong> {dependencies.dependent_indices.slice(0, 5).join(', ')}{dependencies.dependent_indices.length > 5 ? '...' : ''}</li>
+                )}
+                {dependencies.version_count > 0 && (
+                  <li><strong>{dependencies.version_count} text versions</strong> reference this index</li>
+                )}
+                {dependencies.link_count > 0 && (
+                  <li><strong>{dependencies.link_count} links</strong> reference this text</li>
+                )}
+              </ul>
+              <div style={{ marginTop: "8px", fontStyle: "italic", color: "#721c24" }}>
+                Changing the main title will trigger cascading updates across all dependent texts, versions, and links.
+              </div>
+            </div>
+          )}
+
+          {checkingDeps && (
+            <div style={{ marginBottom: "16px", padding: "8px", backgroundColor: "#d1ecf1", border: "1px solid #bee5eb", borderRadius: "4px", fontSize: "12px", color: "#0c5460" }}>
+              Checking dependencies...
+            </div>
+          )}
 
           <div style={{ maxHeight: "400px", overflow: "auto", border: "1px solid #ddd", padding: "12px" }}>
             {nodes.map(({ path, pathStr, node, sharedTitle, title, heTitle }) => {
@@ -1836,8 +1944,16 @@ const NodeTitleEditor = () => {
                         className="dlVersionSelect"
                         value={edits.title !== undefined ? edits.title : title}
                         onChange={e => handleNodeEdit(pathStr, 'title', e.target.value)}
-                        style={{ width: "100%" }}
+                        style={{
+                          width: "100%",
+                          borderColor: edits.title !== undefined && edits.title_valid === false ? "#dc3545" : undefined
+                        }}
                       />
+                      {edits.title !== undefined && edits.title_valid === false && (
+                        <div style={{ fontSize: "11px", color: "#dc3545", marginTop: "2px" }}>
+                          ⚠️ Invalid: Use only ASCII characters, no periods/hyphens/slashes
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label style={{ fontSize: "12px", color: "#666" }}>Hebrew Title:</label>
@@ -1861,14 +1977,28 @@ const NodeTitleEditor = () => {
           </div>
 
           {Object.keys(editingNodes).length > 0 && (
-            <button
-              className="modtoolsButton"
-              onClick={save}
-              disabled={saving}
-              style={{ marginTop: "12px" }}
-            >
-              {saving ? "Saving..." : `Save Changes to ${Object.keys(editingNodes).length} Nodes`}
-            </button>
+            <>
+              {(() => {
+                const hasValidationErrors = Object.values(editingNodes).some(edits =>
+                  edits.title_valid === false
+                );
+                return (
+                  <button
+                    className="modtoolsButton"
+                    onClick={save}
+                    disabled={saving || hasValidationErrors}
+                    style={{
+                      marginTop: "12px",
+                      opacity: hasValidationErrors ? 0.5 : 1
+                    }}
+                  >
+                    {saving ? "Saving..." :
+                     hasValidationErrors ? "Fix validation errors to save" :
+                     `Save Changes to ${Object.keys(editingNodes).length} Nodes`}
+                  </button>
+                );
+              })()}
+            </>
           )}
         </>
       )}
