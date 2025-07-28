@@ -116,14 +116,14 @@ const INDEX_FIELD_METADATA = {
     label: "English Collective Title",
     type: "text",
     placeholder: "Collective title or 'auto' for auto-detection",
-    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis'). Must have matching term in database.",
+    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis'). If Hebrew equivalent is provided, term will be created automatically.",
     auto: true
   },
   "he_collective_title": {
     label: "Hebrew Collective Title (Term)",
     type: "text",
     placeholder: "Hebrew equivalent of collective title",
-    help: "Hebrew equivalent of the collective title. This should match a term in the database.",
+    help: "Hebrew equivalent of the collective title. If the term doesn't exist, it will be created automatically with both English and Hebrew titles.",
     dir: "rtl"
   }
 };
@@ -195,6 +195,56 @@ const detectCommentaryPattern = (title) => {
     };
   }
   return null;
+};
+
+// Function to create a term if it doesn't exist
+const createTermIfNeeded = async (enTitle, heTitle) => {
+  if (!enTitle || !heTitle) {
+    throw new Error("Both English and Hebrew titles are required to create a term");
+  }
+
+  try {
+    // Check if term already exists
+    const response = await $.ajax({
+      url: `/api/terms/${encodeURIComponent(enTitle)}`,
+      method: 'GET'
+    });
+
+    // If we get here, term exists
+    return response;
+  } catch (e) {
+    if (e.status === 404) {
+      // Term doesn't exist, create it
+      try {
+        const newTerm = await $.ajax({
+          url: `/api/terms/${encodeURIComponent(enTitle)}`,
+          method: 'POST',
+          data: {
+            json: JSON.stringify({
+              name: enTitle,
+              titles: [
+                {
+                  lang: "en",
+                  text: enTitle,
+                  primary: true
+                },
+                {
+                  lang: "he",
+                  text: heTitle,
+                  primary: true
+                }
+              ]
+            })
+          }
+        });
+        return newTerm;
+      } catch (createError) {
+        throw new Error(`Failed to create term: ${createError.responseJSON?.error || createError.statusText}`);
+      }
+    } else {
+      throw new Error(`Error checking term: ${e.responseJSON?.error || e.statusText}`);
+    }
+  }
 };
 
 const save = async () => {
@@ -345,6 +395,32 @@ const save = async () => {
         } else {
           delete indexSpecificUpdates.collective_title;
           console.warn(`Could not auto-detect collective title for ${indexTitle}`);
+        }
+      }
+
+      // Handle term creation for collective_title
+      if (indexSpecificUpdates.collective_title && indexSpecificUpdates.he_collective_title) {
+        try {
+          await createTermIfNeeded(indexSpecificUpdates.collective_title, indexSpecificUpdates.he_collective_title);
+          // Remove he_collective_title from updates as it's not a direct index field
+          delete indexSpecificUpdates.he_collective_title;
+        } catch (e) {
+          errors.push(`${indexTitle}: Failed to create term for collective title: ${e.message}`);
+          continue;
+        }
+      } else if (indexSpecificUpdates.collective_title && !indexSpecificUpdates.he_collective_title) {
+        // Check if term exists, if not, warn user
+        try {
+          await $.ajax({
+            url: `/api/terms/${encodeURIComponent(indexSpecificUpdates.collective_title)}`,
+            method: 'GET'
+          });
+          // Term exists, continue
+        } catch (e) {
+          if (e.status === 404) {
+            errors.push(`${indexTitle}: Collective title "${indexSpecificUpdates.collective_title}" requires Hebrew equivalent to create term`);
+            continue;
+          }
         }
       }
 
@@ -568,7 +644,7 @@ const save = async () => {
         <strong>⚠️ Important Notes:</strong>
         <ul style={{ margin: "8px 0 0 0", paddingLeft: "20px" }}>
           <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
-          <li><strong>Collective Title:</strong> Must have a matching term in the database.</li>
+          <li><strong>Collective Title:</strong> If Hebrew equivalent is provided, terms will be created automatically if they don't exist.</li>
           <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot", not "Berakhot").</li>
           <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
           <li><strong>TOC Zoom:</strong> Integer 0-10 (0=fully expanded, higher=more collapsed).</li>
