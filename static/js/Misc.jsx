@@ -1992,7 +1992,7 @@ const transformValues = (obj, callback) => {
 const replaceNewLinesWithLinebreaks = (content) => {
   return transformValues(
     content,
-    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
+    (s) => s.replace(/\n(?!\n)/g, "  \n")
   );
 }
 

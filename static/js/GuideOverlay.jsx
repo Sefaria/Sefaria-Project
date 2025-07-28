@@ -5,7 +5,7 @@ import {
   CloseButton,
   Arrow,
   LoadingMessage,
-  transformValues,
+  replaceNewLinesWithLinebreaks,
 } from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import Cookies from "js-cookie";
@@ -383,9 +383,7 @@ const GuideOverlay = ({
                 onClick={handleTextContentClick}
               >
                 <InterfaceText
-                  markdown={transformValues(currentCard.text, (text) =>
-                    text.replace(/\n(?!\n)/g, "  \n")
-                  )}
+                  markdown={replaceNewLinesWithLinebreaks(currentCard.text)}
                   disallowedMarkdownElements={[]}
                 />
               </div>
