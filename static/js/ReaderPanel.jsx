@@ -46,7 +46,7 @@ import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import GuideOverlay from './GuideOverlay';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
-
+import {DropdownMenu} from "./common/DropdownMenu";
 
 class ReaderPanel extends Component {
   constructor(props) {
