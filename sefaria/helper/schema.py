@@ -273,8 +273,8 @@ def prepare_ja_for_children(ja):
         if isinstance(content_node, dict):
             print("JA is already prepared for children")
             return
-        
-        assert isinstance(content_node, list) and len(content_node) == 0, "JA's content node must be a list and be empty in order to prepare for children" 
+
+        assert isinstance(content_node, list) and len(content_node) == 0, "JA's content node must be a list and be empty in order to prepare for children"
         # convert content node to dict so it can have children (aka, IVF)
         v.sub_content(ja.version_address(), value={})
         v.save()
@@ -284,7 +284,7 @@ def change_parent(node, new_parent, place=0, exact_match=False):
     :param node:
     :param new_parent:
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
-    :param exact_match:  if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
+    :param exact_match: if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
     :return:
     """
     assert isinstance(node, SchemaNode)
@@ -1038,6 +1038,9 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
             dictionary_node.headwordMap = hw_map
         return dictionary_node
 
+    if LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': new_headword}):
+        raise ValueError(f'Entry of {parent_lexicon} with headword {new_headword} already exists')
+
     # change entry itself
     print('Updating entry')
     entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
@@ -1093,3 +1096,16 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
     )
 
     library.rebuild()
+
+    # other entries in the same dictionary that includes wrapped ref for the old headword
+    # changing another entry is too complicated, for any lexicon has different entries structure, so it will be only printed
+    if index:
+        quoted = []
+        for entry in LexiconEntrySet({'parent_lexicon': parent_lexicon}):
+            oref = Ref(f'{index.title}, {entry.headword}')
+            entry_text = ' '.join(oref.index_node.get_text())
+            if ref in entry_text:
+                quoted.append(f'"{entry.headword}"')
+        if quoted:
+            print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
+        print('Warning: old ref can appear as wrapped ref in other places in the library.')

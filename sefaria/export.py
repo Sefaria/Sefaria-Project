@@ -19,12 +19,12 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
-
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
-
+from sefaria.tracker import modify_bulk_text
+from collections import defaultdict
 
 lang_codes = {
     "he": "Hebrew",
