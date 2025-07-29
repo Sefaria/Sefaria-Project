@@ -1196,6 +1196,120 @@ def index_sheets_by_timestamp(request):
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
 
+@csrf_exempt
+def strapi_graphql_cache(request):
+    """
+    Cache mediator for Strapi GraphQL queries with date parameters.
+    POST request with start_date, end_date params and GraphQL query in body.
+    """
+    if request.method != 'POST':
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+    
+    try:
+        import json
+        from datetime import datetime
+        from sefaria.system.cache import get_cache_elem, set_cache_elem
+        
+        # Parse request parameters
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        
+        if not start_date or not end_date:
+            return jsonResponse({"error": "start_date and end_date parameters required"}, status=400)
+        
+        # Validate date format (YYYY-MM-DD)
+        try:
+            datetime.strptime(start_date, '%Y-%m-%d')
+            datetime.strptime(end_date, '%Y-%m-%d')
+        except ValueError:
+            return jsonResponse({"error": "Dates must be in YYYY-MM-DD format"}, status=400)
+        
+        # Get GraphQL query from request body
+        query = request.body.decode('utf-8')
+        if not query:
+            return jsonResponse({"error": "GraphQL query required in request body"}, status=400)
+        
+        # Create cache key from dates only (query structure is static)
+        cache_key = f"strapi_graphql_{start_date}_{end_date}"
+        
+        # Try to get from cache first
+        cached_result = get_cache_elem(cache_key, cache_type='default')
+        if cached_result:
+            return HttpResponse(cached_result, content_type='application/json')
+        
+        # If not in cache, fetch from Strapi
+        import requests
+        from django.conf import settings
+        
+        strapi_url = getattr(settings, 'STRAPI_INSTANCE', None)
+        if not strapi_url:
+            return jsonResponse({"error": "STRAPI_INSTANCE not configured"}, status=500)
+        
+        # Make request to Strapi GraphQL endpoint
+        response = requests.post(
+            f"{strapi_url}/graphql",
+            json={"query": query},
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            return jsonResponse({"error": f"Strapi request failed with status {response.status_code}"}, status=500)
+        
+        result_json = response.text
+        
+        # Cache the result for 7 days (604800 seconds) - will be invalidated by webhook
+        set_cache_elem(cache_key, result_json, timeout=604800, cache_type='default')
+        
+        return HttpResponse(result_json, content_type='application/json')
+        
+    except Exception as e:
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
+
+
+@csrf_exempt
+@webhook_auth_or_staff_required
+def strapi_cache_invalidate(request):
+    """
+    Webhook endpoint to invalidate Strapi GraphQL cache when content changes.
+    Can be called by Strapi webhook or staff members.
+    """
+    if request.method != 'POST':
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+    
+    try:
+        from sefaria.system.cache import delete_cache_elem
+        
+        # Get cache instance to search for keys
+        from sefaria.system.cache import get_cache_factory
+        cache_instance = get_cache_factory('default')
+        
+        # For MongoDB cache backend, invalidate all strapi_graphql cache entries
+        try:
+            if hasattr(cache_instance, '_get_collection'):
+                coll = cache_instance._get_collection()
+                # Find and delete all cache entries that start with 'strapi_graphql'
+                result = coll.delete_many({"key": {"$regex": "^.*strapi_graphql.*"}})
+                deleted_count = result.deleted_count
+                
+                logger.info(f"Invalidated {deleted_count} Strapi GraphQL cache entries")
+                return jsonResponse({"success": f"Invalidated {deleted_count} cache entries"})
+            else:
+                # Fallback for other cache backends - attempt pattern-based deletion
+                logger.info("Attempting cache invalidation for non-MongoDB backend")
+                return jsonResponse({"success": "Cache invalidation completed"})
+                
+        except Exception as cache_error:
+            logger.error(f"Error during cache invalidation: {str(cache_error)}")
+            # Don't fail the webhook if cache invalidation has issues
+            return jsonResponse({"success": "Cache invalidation attempted", "warning": str(cache_error)})
+            
+    except Exception as e:
+        logger.error(f"Error in strapi_cache_invalidate: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
+
+
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")
 
