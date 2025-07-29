@@ -951,7 +951,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "", "https://www.sefaria.org/collections/sefaria-faqs",""],
+          ["Help Center", "", "https://help.sefaria.org/hc/en-us",""],
           ["Webinars", "", "https://www.sefaria.org/sheets/228105?lang=bi",""],
           ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD?typeform-source=www.sefaria.org",""]
       ].map(i =>
