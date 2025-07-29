@@ -197,7 +197,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670">
+            <a className="button get-start" href="//help.sefaria.org/hc/en-us/categories/13368526623132-Getting-Started">
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
