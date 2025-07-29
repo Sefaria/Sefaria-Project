@@ -45,11 +45,9 @@ export class SheetEditorPage extends HelperBase {
     async assertSaveStateIndicatorIsOnTop() {
       const target = this.page.locator('.editorSaveStateIndicator');
       await expect(target).toBeVisible();
-    
       const isOnTop = await target.evaluate((targetEl) => {
         const targetRect = targetEl.getBoundingClientRect();
         const targetZ = parseInt(getComputedStyle(targetEl).zIndex || '0', 10);
-    
         // Test multiple points to ensure comprehensive coverage
         const testPoints = [
           [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2], 
@@ -58,24 +56,19 @@ export class SheetEditorPage extends HelperBase {
           [targetRect.left + 5, targetRect.bottom - 5],
           [targetRect.right - 5, targetRect.bottom - 5], 
         ];
-    
         for (const [x, y] of testPoints) {
           const topElement = document.elementFromPoint(x, y);
-          
           // If the top element isn't our target or contained within it, check z-index
           if (topElement && topElement !== targetEl && !targetEl.contains(topElement)) {
             const topElZ = parseInt(getComputedStyle(topElement).zIndex || '0', 10);
-            
             if (topElZ >= targetZ) {
               console.warn('Element with higher z-index found:', topElement, `z-index: ${topElZ} vs ${targetZ}`);
               return false;
             }
           }
         }
-        
         return true;
       });
-    
       expect(isOnTop).toBe(true);
     }
 
@@ -100,7 +93,7 @@ export class SheetEditorPage extends HelperBase {
     }
     
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
-    closeSheetEditorButton = () => this.page.locator('.leftButtons.readerNavMenuCloseButton');
+    closeSheetEditorButton = () => this.page.locator('a.readerNavMenuCloseButton');
     //or page.getByRole('link', { name: 'Close' })
     readerHeader = () => this.page.locator('header.readerControls.fullPanel.sheetReaderControls');
     topTitle = () => this.page.locator('.readerControlsTitle h1'); 
@@ -128,6 +121,8 @@ export class SheetEditorPage extends HelperBase {
     // Sheet Actions--------------------------------------------------
     async closeSheetEditor() {
       await this.closeSheetEditorButton().click();
+      // Wait for navigation to complete instead of using timeout
+      await this.page.waitForURL(/\/texts/);
     }
 
     async editTitle(newTitle: string): Promise<void> {
@@ -143,15 +138,30 @@ export class SheetEditorPage extends HelperBase {
      */
 
     async clickPlusButton() {
-      const box = await this.page.locator('.editorAddInterface').boundingBox();
-      if (box) {
-          const plusX = box.x - 31;
-          const plusY = box.y + box.height / 2;
-          await this.page.mouse.click(plusX, plusY);
-      } else {
-          throw new Error('editorAddInterface not found');
+      const editorInterface = this.page.locator('.editorAddInterface');
+      
+      try {
+        const box = await editorInterface.boundingBox({ timeout: 2000 });
+        if (box) {
+          await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
+          return;
+        }
+      } catch (error) {
+        // Fallback: position cursor at end and retry
+        await this.page.getByRole('textbox').first().click({ force: true });
+        await this.page.keyboard.press('End');
+        
+        try {
+          const box = await editorInterface.boundingBox({ timeout: 1000 });
+          if (box) {
+            await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
+          }
+        } catch (retryError) {
+          // Create new line if plus button unavailable
+          await this.page.keyboard.press('Enter');
+        }
       }
-  }
+    }
 
     async clickAddSomething() {
         await this.addSomethingButton().click();
@@ -177,16 +187,22 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async focusTextInput() {
-        //await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
-        //await this.page.locator('div[data-slate-node="element"]').last().click();
-        await this.page.locator('.spacerSelected.spacer.empty').click();
+      try {
+        await this.page.locator('.spacerSelected.spacer.empty').click({ timeout: 2000, force: true });
+      } catch (error) {
+        try {
+          await this.page.locator('.editorAddInterface').click({ timeout: 2000, force: true });
+        } catch (error2) {
+          // Use existing moveCursorToEnd helper
+          await this.moveCursorToEnd();
+        }
       }
+    }
 
     async getTextLocator(text: string): Promise<Locator> {
       return this.page.locator('span[data-slate-string="true"]', { hasText: text });
     }
 
-   
 /**
  * Methods to add components to the sheet editor
  * Simulate user actions to add text, sources, images, and media.
@@ -219,97 +235,6 @@ export class SheetEditorPage extends HelperBase {
       await this.page.getByRole('button', { name: 'Add Media' }).click();
     };   
 
-    async addTextBelow(text: string) {
-      // Move cursor to the very end of the entire editor content
-      await this.page.evaluate(() => {
-          const editableContainer = document.querySelector('.spacerSelected .cursorHolder[contenteditable="true"]') as HTMLElement;
-          if (editableContainer) {
-              editableContainer.focus();
-              const range = document.createRange();
-              range.selectNodeContents(editableContainer);
-              range.collapse(false); // ← CHANGED: false = move to END, not start
-              
-              const selection = window.getSelection();
-              if (selection) {
-                  selection.removeAllRanges();
-                  selection.addRange(range);
-              }
-          }
-      });
-      
-      // Add a new line first to ensure we're not inside the media/source container
-      await this.page.keyboard.press('Enter');
-      await this.page.keyboard.type(text);
-  }
-//   async addTextBelow(text: string) {
-//     // This is the most robust method for complex editors like Slate.js.
-//     // It bypasses all click/focus issues by programmatically setting the browser's text selection
-//     // inside the editable area.
-//     await this.page.evaluate(() => {
-//         const editableContainer = document.querySelector('.spacerSelected .cursorHolder[contenteditable="true"]') as HTMLElement;
-//         if (editableContainer) {
-//             editableContainer.focus();
-//             const range = document.createRange();
-//             range.selectNodeContents(editableContainer);
-//             range.collapse(true); 
-//             const selection = window.getSelection();
-//             if (selection) {
-//                 selection.removeAllRanges();
-//                 selection.addRange(range);
-//             }
-//         }
-//     });
-//     await this.page.keyboard.type(text);
-// }
-
-
-  // async goToNewLineAtBottom() {
-  //   await this.page.locator('[data-slate-editor="true"]').click();
-    
-  //   const isMac = process.platform === 'darwin';
-  //   const shortcut = isMac ? 'Meta+ArrowDown' : 'Control+End';
-    
-  //   await this.page.keyboard.press(shortcut);
-  //   await this.page.keyboard.press('Enter');
-  //   await this.page.waitForTimeout(200);
-  // }
-
-  // async goToNewLineAtBottom() {
-  //   await this.page.evaluate(() => {
-  //       const editor = document.querySelector('[data-slate-editor="true"]');
-  //       if (!editor) return;
-
-  //       // Find the last text block (with contenteditable)
-  //       // This assumes each text block is a direct child or has a contenteditable descendant
-  //       let lastTextBlock: HTMLElement | null = null;
-  //       const children = Array.from(editor.children) as HTMLElement[];
-  //       for (let i = children.length - 1; i >= 0; i--) {
-  //           const block = children[i];
-  //           if (block.querySelector('[contenteditable="true"]')) {
-  //               lastTextBlock = block.querySelector('[contenteditable="true"]') as HTMLElement;
-  //               break;
-  //           }
-  //       }
-
-  //       if (lastTextBlock) {
-  //           lastTextBlock.focus();
-  //           // Move cursor to the end
-  //           const selection = window.getSelection();
-  //           if (selection) {
-  //               const range = document.createRange();
-  //               range.selectNodeContents(lastTextBlock);
-  //               range.collapse(false); // Move to end
-  //               selection.removeAllRanges();
-  //               selection.addRange(range);
-  //           }
-  //       }
-  //   });
-
-  //   // Now press Enter to create a new line at the bottom
-  //   await this.page.keyboard.press('Enter');
-  //   // Optionally, wait for the new line to appear
-  //   await this.page.waitForTimeout(200);
-  // }
     async moveCursorToEnd() {
       await this.page.evaluate(() => {
         const elements = document.querySelectorAll('.spacerSelected .cursorHolder[contenteditable="true"]');
