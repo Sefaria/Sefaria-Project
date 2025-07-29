@@ -594,7 +594,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/sefaria-faqs?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/hc/en-us"
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
                 en="Tutorials for Learners"
@@ -769,7 +769,7 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Help Center", "אסופות מומלצות", "/hc/en-us","https://www.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
           ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
