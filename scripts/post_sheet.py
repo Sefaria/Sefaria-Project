@@ -32,7 +32,7 @@ else:
   post = urllib.parse.urlencode({'json': post_json})
 
   req = urllib.request.Request(host + "/api/sheets", post)
-  req.add_header("X-APIKEY", SEFARIA_API_KEY)
+  req.add_header("AUTHORIZATION", SEFARIA_API_KEY)
   req.add_header("Content-Type", "application/x-www-form-urlencoded")
 
   try:

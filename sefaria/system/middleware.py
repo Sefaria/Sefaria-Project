@@ -229,7 +229,7 @@ class ApiKeyAuthenticationMiddleware:
     Middleware that authenticates API requests using an API key.
 
     If the request is not made by an already authenticated user,
-    this middleware checks for an API key in the `HTTP_X_APIKEY` header,
+    this middleware checks for an API key in the `HTTP_AUTHORIZATION` and (old) `HTTP_X_APIKEY` header,
     `POST` data, or `GET` parameters. If a valid API key is found and
     associated with a user, the middleware sets `request.user` to that user
     and adds an `is_api_authenticated` attribute to the request.
@@ -241,7 +241,10 @@ class ApiKeyAuthenticationMiddleware:
     def __call__(self, request):
         request.is_api_authenticated = False
         if not request.user.is_authenticated:
-            apikey = request.META.get("HTTP_X_APIKEY") or request.POST.get("apikey") or request.GET.get("apikey")
+            apikey = (request.META.get("HTTP_AUTHORIZATION") or
+                      request.META.get("HTTP_X_APIKEY") or
+                      request.GET.get("apikey") or
+                      request.POST.get("apikey"))
             if apikey:
                 try:
                     apikey = db.apikeys.find_one({"key": apikey})

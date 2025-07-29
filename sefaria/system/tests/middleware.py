@@ -29,7 +29,7 @@ class ApiKeyMiddlewareTestBase(TestCase):
 class ApiKeyMiddlewareTests(ApiKeyMiddlewareTestBase):
     def test_middleware_authenticated_with_valid_apikey(self):
         request = self.anonymous_request
-        request.META["HTTP_X_APIKEY"] = "valid-key"
+        request.META["HTTP_AUTHORIZATION"] = "valid-key"
 
         mw = middleware_module.ApiKeyAuthenticationMiddleware(self.get_response)
         response = mw(request)
@@ -44,7 +44,7 @@ class ApiKeyMiddlewareTests(ApiKeyMiddlewareTestBase):
 
     def test_middleware_invalid_apikey_does_not_authenticate(self):
         request = self.anonymous_request
-        request.META["HTTP_X_APIKEY"] = "invalid-key"
+        request.META["HTTP_AUTHORIZATION"] = "invalid-key"
         self.mock_get_user.side_effect = User.DoesNotExist
 
         mw = middleware_module.ApiKeyAuthenticationMiddleware(self.get_response)

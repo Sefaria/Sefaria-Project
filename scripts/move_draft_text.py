@@ -144,7 +144,7 @@ class ServerTextCopier(object):
         jpayload = json.dumps(payload)
         data = urllib.parse.urlencode({'json': jpayload}).encode('utf-8')
         req = urllib.request.Request(full_url, data)
-        req.add_header("X-APIKEY", self._apikey)
+        req.add_header("AUTHORIZATION", self._apikey)
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
         try:
             response = urllib.request.urlopen(req)
