@@ -292,7 +292,7 @@ class TextColumn extends Component {
     // When user scrolls near the top, load previous sections above current content
     // This prevents the user from hitting the top and enables smooth upward scrolling
     
-    const [topRef] = this.props.srefs; // Currently displayed top section
+    const topRef = this.props.srefs.at(0); // Currently displayed top section
     
     const currentData = Sefaria.ref(topRef);
     if (!currentData?.prev) {
@@ -338,8 +338,7 @@ class TextColumn extends Component {
         return; // Don't load more while already loading
       }
     
-    const refs = this.props.srefs.slice();
-    const currentRef = refs.slice(-1)[0]; // Currently displayed bottom section
+    const currentRef = this.props.srefs.at(-1); // Currently displayed bottom section
     const currentData = Sefaria.ref(currentRef);
     
     if (!currentData?.next) {
@@ -347,14 +346,14 @@ class TextColumn extends Component {
     }
     
     // Build list of next sections to load
-    const newRefs = this.buildNextRefs(currentData, refs);
+    const newRefs = this.buildNextRefs(currentData);
     this.props.updateTextColumn(newRefs);
   }
 
-  buildNextRefs(currentData, existingRefs) {
+  buildNextRefs(currentData) {
     // Build a list of next sections to load, starting from the current bottom section
     // We load multiple sections at once for better performance
-    const refs = existingRefs.slice();
+    const refs = this.props.srefs.slice();
     
     // Add the immediate next section
     refs.push(currentData.next);
