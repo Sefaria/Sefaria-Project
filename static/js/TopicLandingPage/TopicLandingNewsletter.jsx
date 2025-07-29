@@ -5,7 +5,7 @@ import {InterfaceText} from "../Misc";
 const NEWSLETTER_TEASER_TEXT = "Stay curious. Get the Timeless Topics newsletter every Tuesday."
 
 const getNewsletterAnalyticsData = () => {
-    const lang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+    const lang = Sefaria._getShortInterfaceLang();
     const newsletterName = Sefaria.getTopicLandingNewsletterMailingLists().join(", ");
     return {
         text: Sefaria._(NEWSLETTER_TEASER_TEXT),
