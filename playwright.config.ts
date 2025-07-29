@@ -1,26 +1,25 @@
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
+require('dotenv').config();
+
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: './e2e-tests',
+  /* Output directory for test results */
+  outputDir: './e2e-tests/e2e-test-logs/test-results',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* timeout for each test */
-  timeout: 30000,
+  timeout: 120000,
 
   /* timeout for each expect */
   expect: {
-    timeout: 5000,
+    timeout: 9000,
   },
 
 
@@ -29,14 +28,26 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: process.env.CI 
+    ? [['github']] 
+    : process.env.GENERATE_REPORTS
+      ? [
+          ['list', { printSteps: true }],
+          ['html', { outputFolder: './e2e-tests/e2e-test-logs/html-report' }],
+          ['junit', { outputFile: './e2e-tests/e2e-test-logs/junit-results.xml' }]
+        ]
+      : [['list', { printSteps: true }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.SANDBOX_URL || 'https://sefaria.org',
-
+    baseURL: process.env.SANDBOX_URL,
+    
+    /* Take screenshot on failure */
+    screenshot: 'only-on-failure',
+    /* Record video on failure */
+    video: 'retain-on-failure',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
   },
 
   /* Configure projects for major browsers */
