@@ -125,7 +125,7 @@ data:
     # This is the field that is actually used
     GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
 
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache_db"
     SESSION_CACHE_ALIAS = "default"
 
     SECRET_KEY = os.getenv("SECRET_KEY")
