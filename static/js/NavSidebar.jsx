@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import { HELP_CENTER_URLS } from './constants';
 
 const NavSidebar = ({sidebarModules}) => {
   return <div className="navSidebar sans-serif">
@@ -197,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="//help.sefaria.org/hc/en-us/categories/13368526623132-Getting-Started">
+            <a className="button get-start" href={HELP_CENTER_URLS.GETTING_STARTED}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)

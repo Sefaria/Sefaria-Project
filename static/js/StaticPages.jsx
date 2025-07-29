@@ -17,6 +17,7 @@ import Cookies from 'js-cookie';
 import ReactMarkdown from 'react-markdown';
 import Sefaria from './sefaria/sefaria';
 import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
+import { HELP_CENTER_URLS } from './constants';
 
 
 /*  Templates:
@@ -594,7 +595,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/hc/en-us"
+                href={HELP_CENTER_URLS.EN_US}
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
                 en="Tutorials for Learners"
@@ -709,7 +710,7 @@ const EducatorsPage = () => (
       { [
           ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
           ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
-          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://help.sefaria.org/hc/he"]
+          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", HELP_CENTER_URLS.HE]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -769,7 +770,7 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", "/hc/en-us","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Help Center", "אסופות מומלצות", HELP_CENTER_URLS.EN_US,"https://www.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
           ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
@@ -897,7 +898,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", "https://help.sefaria.org/hc/he"],
+          ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", HELP_CENTER_URLS.HE],
           ["Innovating with a Digital Library", "", "https://www.sefaria.org/sheets/415628?lang=bi", ""],
           ["Collections: A Home for Sermons and Classes", "", "https://www.sefaria.org/sheets/370836?lang=bi", ""]
       ].map(i =>
@@ -951,7 +952,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "", "https://help.sefaria.org/hc/en-us",""],
+          ["Help Center", "", HELP_CENTER_URLS.EN_US,""],
           ["Webinars", "", "https://www.sefaria.org/sheets/228105?lang=bi",""],
           ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD?typeform-source=www.sefaria.org",""]
       ].map(i =>
