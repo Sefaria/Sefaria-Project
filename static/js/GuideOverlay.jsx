@@ -5,7 +5,7 @@ import {
   CloseButton,
   Arrow,
   LoadingMessage,
-  transformValues,
+  replaceNewLinesWithLinebreaks,
 } from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import Cookies from "js-cookie";
@@ -365,6 +365,7 @@ const GuideOverlay = ({
                   controls
                   loop
                   autoPlay
+                  defaultMuted // Added to avoid autoplay issues with browsers - specifically Safari
                   muted // Added to avoid autoplay issues with browsers
                   playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)
                 >
@@ -382,9 +383,7 @@ const GuideOverlay = ({
                 onClick={handleTextContentClick}
               >
                 <InterfaceText
-                  markdown={transformValues(currentCard.text, (text) =>
-                    text.replace(/\n(?!\n)/g, "  \n")
-                  )}
+                  markdown={replaceNewLinesWithLinebreaks(currentCard.text)}
                   disallowedMarkdownElements={[]}
                 />
               </div>
