@@ -516,6 +516,11 @@ Sefaria = extend(Sefaria, {
     return result;
 },
 
+getSubdomain: function(module) {
+  module = module || Sefaria.activeModule;
+  return Sefaria._siteSettings[`${module}_subdomain`] || Sefaria.apiHost;
+},
+
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
