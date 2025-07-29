@@ -38,7 +38,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
@@ -135,12 +135,11 @@ def render_react_component(component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.parse.urlencode({
-        "propsJSON": propsJSON,
-    }).encode("utf-8")
+    data = propsJSON.encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        req = urllib.request.Request(url, data=data, headers=headers)
+        response = urllib.request.urlopen(req, timeout=NODE_TIMEOUT)
         html = response.read().decode("utf-8")
         return html
     except Exception as e:
@@ -257,14 +256,18 @@ def user_credentials(request):
 
 def _reader_redirect_add_languages(request, tref):
     versions = Ref(tref).version_list()
-    query_params = QueryDict(mutable=True)
+    query_params = QueryDict(request.GET.urlencode(), mutable=True)
     for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
         version_title = request.GET.get(vlang)
         if version_title:
             version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title))
-            query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
+            if version is not None:
+                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            else:
+                query_params.pop(vlang)
     return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+
 
 
 @ensure_csrf_cookie
@@ -915,7 +918,8 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
+    # need to pass renderStatic so that s2 shows up in base template
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
 
 
 def groups_redirect(request, group):
@@ -2649,15 +2653,15 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+def get_name_completions(name, limit, topic_override=False, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
     """
     Function to get completions (objects and titles) for a given name.
     :param name: string to get completions for
     :param limit: int number of items to return
     :param topic_override: bool
     :param type: string - get only completions of objects of this specific type
-    :param topic_pool: string - get completions of topic-objects of this specific topic pool
-    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param active_module: string - filter out objects irrelevant for this module ('library' vs 'sheets').  If active_module is None, results for both modules are returned.
+    :param exact_continuations: bool - if true get only completions of objects whose title contains an exact match to 'name'
     :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
     """
     lang = "he" if has_hebrew(name) else "en"
@@ -2685,7 +2689,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+            completions, completion_objects = completer.complete(name, limit, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2695,7 +2699,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+        completions, completion_objects = completer.complete(name, limit, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         object_data = completer.get_object(name)
 
     return {
@@ -2717,10 +2721,10 @@ def name_api(request, name):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
     type = request.GET.get("type", None)
-    topic_pool = request.GET.get("topic_pool", None)
+    active_module = request.GET.get('active_module', None)
     exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
     order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
-    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {
@@ -3105,7 +3109,7 @@ def topic_page(request, slug, test_version=None):
     """
     slug = SluggedAbstractMongoRecord.normalize_slug(slug)
     topic_obj = Topic.init(slug)
-    if topic_obj is None or request.active_module not in DjangoTopic.objects.slug_to_pools[slug]:
+    if topic_obj is None or request.active_module not in topic_obj.get_pools():
         raise Http404
 
     short_lang = get_short_lang(request.interfaceLang)
@@ -3145,12 +3149,16 @@ def topic_page(request, slug, test_version=None):
 @catch_error_as_json
 def topics_list_api(request):
     """
-    API to get data for a particular topic.
+    API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
-    topics = get_all_topics(limit)
-    response = [t.contents() for t in topics]
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    all_topics = get_all_topics(limit, activeModule=request.active_module)
+    all_topics_json = []
+    for topic in all_topics:
+        topic_json = topic.contents(minify=True, with_html=True)
+        topic_json["titles"] = topic.titles
+        all_topics_json.append(topic_json)
+    response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
 

@@ -17,7 +17,7 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                         data-anl-text={bottomLinkText.en}
                         data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
                       >
-                        <InterfaceText text={bottomLinkText}/>
+                      <InterfaceText markdown={{en: bottomLinkText.en, he: bottomLinkText.he}} disallowedMarkdownElements={['p', 'a']}/>
                       </a>
                     </div>
                 }
