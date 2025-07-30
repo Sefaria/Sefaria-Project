@@ -141,7 +141,7 @@ class EditCollectionPage extends Component {
             <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
-              <a className="button small transparent control-elem" href={getCancelLink()}>
+              <a className="button small transparent control-elem" href={this.getCancelLink()}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
               <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
