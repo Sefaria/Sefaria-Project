@@ -654,8 +654,9 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
+  const sheetsURL = Sefaria.getModuleURL('sheets');
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${Sefaria.getSubdomain('sheets')}/sheets/sheets-with-ref/${normalizedRef}`);
+  window.open(`${sheetsURL.href}/sheets/sheets-with-ref/${normalizedRef}`, '_blank');
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
