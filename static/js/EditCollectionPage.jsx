@@ -125,6 +125,12 @@ class EditCollectionPage extends Component {
         alert(Sefaria._("Unfortunately an error occurred saving your collection."));
     });
   }
+  getCancelLink() {
+    if (this.props.initialData) {
+      return `${this.props.domainModules.sheets}/sheets/collections/${this.state.slug}`;
+    }
+    return `${this.props.domainModules.sheets}/my/profile`;
+  }
   render() {
     const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
     return (
@@ -135,7 +141,7 @@ class EditCollectionPage extends Component {
             <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
-              <a className="button small transparent control-elem" data-attr-module="sheets" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
+              <a className="button small transparent control-elem" href={getCancelLink()}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
               <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
