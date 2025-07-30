@@ -1273,6 +1273,7 @@ def bulk_download_versions_api(request):
     return response
 
 
+
 def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
@@ -1318,72 +1319,18 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
     return content
 
-import csv, io, itertools, logging
-from sefaria.export import import_versions_from_stream
-
-logger = logging.getLogger(__name__)
-
-def _safe_import_versions(uploaded_file, user_id, batch_size=1000):
-    """
-    Accepts *both* Sefaria CSV layouts:
-      • 5-row header  (one index, many versions)
-      • 4-row header  (one version across many indices)
-    Strategy:
-      1.   Read until we’ve seen 4 or 5 non-blank rows  →  that’s the header.
-      2.   Record `required = len(widest_header_row)`.
-      3.   For every later row:
-               – skip rows that are *completely* blank
-               – right-pad shorter rows with '' so they never trigger IndexError.
-      4.   Flush in bulk every `batch_size` lines → big speed-up, tiny RAM.
-    """
-    reader      = csv.reader(io.TextIOWrapper(uploaded_file, encoding="utf-8"))
-    header_rows = []
-    required    = 0
-    batch       = []
-
-    # ── 1 & 2  ─────────────────────────────────────────────────────────
-    for row in reader:
-        if not row or all(c.strip() == "" for c in row):
-            continue                       # ignore stray blank lines
-        header_rows.append(row)
-        required = max(required, len(row))
-        if len(header_rows) in (4, 5):     # both layouts covered
-            break                          # we’ve got the entire header
-
-    # ── 3 & 4  ─────────────────────────────────────────────────────────
-    combined_reader = itertools.chain(header_rows, reader)
-    for lineno, row in enumerate(combined_reader, start=1):
-        if not row or all(c.strip() == "" for c in row):
-            continue                       # truly blank ➜ skip
-        if len(row) < required:            # right-pad, don’t reject
-            row.extend([""] * (required - len(row)))
-        batch.append(row)
-        if len(batch) == batch_size:
-            _flush_batch(batch, user_id)
-            batch.clear()
-    if batch:
-        _flush_batch(batch, user_id)
-
-def _flush_batch(rows, user_id):
-    """Serialize the collected rows back to CSV and feed the stock importer."""
-    buf = io.StringIO()
-    csv.writer(buf).writerows(rows)
-    buf.seek(0)
-    import_versions_from_stream(buf, [1], user_id)
-
-
 
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    from .views import _safe_import_versions
+    from sefaria.export import import_versions_from_stream
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
-            _safe_import_versions(f, request.user.id)
+            import_versions_from_stream(f, [1], request.user.id)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
             return jsonResponse({"error": str(e), "message": message})
@@ -1428,8 +1375,6 @@ def check_index_dependencies_api(request, title):
 
     except Exception as e:
         return jsonResponse({"error": str(e)})
-
-
 
 
 
