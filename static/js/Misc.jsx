@@ -533,7 +533,10 @@ class Link extends Component {
               className={this.props.className}
               href={this.props.href}
               onClick={this.handleClick}
-              title={this.props.title}>{this.props.children}</a>
+              title={this.props.title}
+              data-attr-module={module || Sefaria.activeModule}
+              >
+                {this.props.children}</a>
   }
 }
 Link.propTypes = {
@@ -715,7 +718,7 @@ SimpleContentBlock.propTypes = {
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
   <div className={classes} onClick={onClick}>
-    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"} data-attr-module={Sefaria.activeModule}>
       <InterfaceText text={{en, he}}/>
     </a>
     {children}

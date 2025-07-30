@@ -15,7 +15,7 @@ import {
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
 import Button from './common/Button';
   
 const LoggedOutDropdown = ({module}) => {
@@ -74,7 +74,7 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === 'sheets' && 
-                <DropdownMenuItem url={'/my/profile'} preventClose={true} newModule="sheets">
+                <DropdownMenuItem url={'/my/profile'} preventClose={true}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
               }
@@ -94,16 +94,16 @@ const LoggedInDropdown = ({module}) => {
 
               { module === 'sheets' && 
                 <>
-                <DropdownMenuItem url={'/my/profile'} newModule="sheets">
+                <DropdownMenuItem url={'/my/profile'}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/saved'} newModule="sheets">
+                <DropdownMenuItem url={'/sheets/saved'}>
                   <InterfaceText>Saved</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/history'} newModule="sheets">
+                <DropdownMenuItem url={'/sheets/history'}>
                   <InterfaceText>History</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/settings/account'} newModule="sheets">
+                <DropdownMenuItem url={'/settings/account'}>
                     <InterfaceText>Account Settings</InterfaceText>
                 </DropdownMenuItem>
                 </> 
@@ -132,14 +132,16 @@ const LoggedInDropdown = ({module}) => {
 }
 
 const ModuleSwitcher = () => {
+  const libraryURL = Sefaria.getModuleURL('library');
+  const sheetsURL = Sefaria.getModuleURL('sheets');
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={'/'} newModule='library'>
+              <DropdownMenuItem url={`${libraryURL.href}/`}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/sheets'} newModule='sheets'>  
+              <DropdownMenuItem url={`${sheetsURL.href}/sheets`}>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
