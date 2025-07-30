@@ -44,6 +44,10 @@ DOMAIN_LANGUAGES = {
     "http://english.example.org": "english",
 }
 
+DOMAIN_MODULES = {
+    "library": "http://localhost:8000",
+    "sheets": "http://localhost:8000",
+}
 
 ################ These are things you can change! ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
