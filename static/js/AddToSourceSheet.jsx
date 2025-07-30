@@ -370,12 +370,12 @@ class ConfirmAddToSheet extends Component {
                 <span className="int-en">
                   <a href={sref} data-attr={!!this.props.nodeRef ? "sheets" : "library"}>{srefTitles["en"]}</a>
                   &nbsp;has been added to&nbsp;
-                   <a href={"/sheets/" + this.props.sheet.id} data-attr="sheets">{this.props.sheet.title}</a>.
+                   <a href={"/sheets/" + this.props.sheet.id} data-attr-module="sheets">{this.props.sheet.title}</a>.
                 </span>
                 <span className="int-he">
                   <a href={sref}>{srefTitles["he"]}</a>
                    &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
-                  <a href={"/sheets/" + this.props.sheet.id} data-attr="sheets">{this.props.sheet.title}</a>.
+                  <a href={"/sheets/" + this.props.sheet.id} data-attr-module="sheets">{this.props.sheet.title}</a>.
                 </span>
               </div>
             </div>);

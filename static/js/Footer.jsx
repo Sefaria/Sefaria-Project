@@ -62,7 +62,7 @@ class Footer extends Component {
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
                 <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
                 <Link href="/people" en="Authors" he="מחברים" />
-                <Link href="/sheets/collections" en="Collections" he="אסופות" data-attr="sheets" />
+                <Link href="/sheets/collections" en="Collections" he="אסופות" data-attr-module="sheets" />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
                 <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
             </Section>
