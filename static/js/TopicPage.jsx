@@ -253,7 +253,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
+                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['p', 'a']}/>
               </div>
               : null }
             </div>
@@ -932,7 +932,11 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
 
   const LinkToSheetsSearchComponent = () => {
-
+    if (!topicTitle?.en || !topicTitle?.he) {
+      // If topicTitle is not set, we cannot generate the search URLs
+      console.warn("Topic title is not set, cannot generate search URLs for sheets.");
+      return null;
+    }
     let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
     let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
       return (
