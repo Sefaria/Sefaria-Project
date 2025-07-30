@@ -430,14 +430,14 @@ def is_all_hebrew(s):
 	return any_hebrew.search(s) and not any_english.search(s)
 
 
-def is_mostly_hebrew(s: str, len_to_check: int = 60):
+def is_mostly_hebrew(s: str, len_to_check: int = 300):
 	"""
 	Check if input string is majority Hebrew
 	@param s: Input string to check
 	@param len_to_check: Maximum number of characters to check. Use `None` to check the whole string.
 	@return: Returns True if text is majority Hebrew
 	"""
-	s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s)  # remove punctuation/spaces/numbers
+	s = regex.sub(r"(?:[0-9.,'\"?!;:\-=@\#$%^&*()/<>]|\s)", "", s)  # remove punctuation/spaces/numbers
 	s = s[:len_to_check]
 	he_count = len(any_hebrew.findall(s))
 	return he_count > len(s)/2

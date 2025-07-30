@@ -5794,13 +5794,13 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_recognizer import NamedEntityRecognizer
-        from sefaria.helper.linker import load_spacy_model
+        from .linker.linker_entity_recognizer import LinkerEntityRecognizer
+        from .linker.named_entity_recognizer import NERFactory
 
-        return NamedEntityRecognizer(
+        return LinkerEntityRecognizer(
             lang,
-            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+            NERFactory.create('spacy', RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            NERFactory.create('spacy', RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
 
     def _build_category_resolver(self, lang: str):
