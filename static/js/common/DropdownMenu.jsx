@@ -11,7 +11,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, newModule=null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false}) => {
 
   if (!newTab){
     newTab = false;
@@ -22,8 +22,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
   return (
     <a className={cssClasses}
        href={url}
-       target={newTab && !newModule ? '_blank' : null}
-       {...(!!newModule ? { 'data-attr': newModule } : {})}
+       target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}>
       {children}
     </a>

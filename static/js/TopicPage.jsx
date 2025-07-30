@@ -855,8 +855,8 @@ const TopicPageTab = ({
 }
 
 
-const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => {
-  const prefix = Sefaria.activeModule === "sheets" ? "/sheets/" : "/";
+const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory, module}) => {
+  const prefix = module === "sheets" ? "/sheets/" : "/";
   const href = `${prefix}topics/${isCategory ? 'category/' : ''}${topic}`;
   return <div data-anl-event="related_click:click" data-anl-batch={
     JSON.stringify({
@@ -864,9 +864,12 @@ const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) 
       feature_name: "related topic",
     })
   }>
-    <Link className="relatedTopic" href={href}
-          onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-          title={topicTitle.en}>
+    <Link className="relatedTopic" 
+          href={href}
+          onClick={onClick.bind(null, topic, topicTitle)} 
+          key={topic}
+          title={topicTitle.en}
+          module={module}>
       <InterfaceText text={{en: topicTitle.en, he: topicTitle.he}}/>
     </Link>
   </div>
@@ -998,6 +1001,7 @@ const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tre
               onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
               isTransliteration={l.titleIsTransliteration}
               isCategory={l.isCategory}
+              module={Sefaria.activeModule}
             />
           ))
         }
