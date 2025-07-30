@@ -99,7 +99,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
 const CollectionBlockListing = ({data}) => {
   return (
     <div className="navBlock">
-      <a href={`/sheets/collections/${data.slug}`} className="navBlockTitle" data-attr="sheets">
+      <a href={`/sheets/collections/${data.slug}`} className="navBlockTitle" data-attr-module="sheets">
         <div className="collectionListingImageBox">
           <img className="collectionListingImage" src={data.imageUrl} alt="Collection Logo"/>
         </div>

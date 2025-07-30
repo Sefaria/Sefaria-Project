@@ -50,7 +50,7 @@ class SearchSheetResult extends Component {
         return (
             <div className='result sheetResult'>
                 <div className="sheetData sans-serif">
-                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick} data-attr="sheets">
+                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick} data-attr-module="sheets">
                         <ProfilePic
                             url={s.owner_image}
                             name={s.owner_name}
@@ -67,7 +67,7 @@ class SearchSheetResult extends Component {
                             </span>
                     </a>
                 </div>
-                <a href={href} onClick={this.handleSheetClick} data-attr="sheets">
+                <a href={href} onClick={this.handleSheetClick} data-attr-module="sheets">
                     <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
                         <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
                     </div>
