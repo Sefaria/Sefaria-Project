@@ -541,6 +541,11 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
+function replaceDivWithBr(html){
+     return html
+    .replace(/<div[^>]*>/g, '')     // remove opening <div> tags (with or without attributes)
+    .replace(/<\/div>/g, '<br>');   // replace closing </div> tags with <br>
+}
 function replaceBrWithNewLine(html) {
   return html.replace(/<br\s*\/?>\s*/gi, '\n');
   }
@@ -548,7 +553,9 @@ function replaceBrWithNewLine(html) {
 function parseSheetItemHTML(rawhtml) {
     console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
-    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ')
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
+
+    preparseHtml = replaceDivWithBr(preparseHtml);
     preparseHtml = replaceBrWithNewLine(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
