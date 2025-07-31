@@ -218,7 +218,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": DOMAIN_MODULES,
+        "domainModules": json.loads(DOMAIN_MODULES) if isinstance(DOMAIN_MODULES, str) else DOMAIN_MODULES, # if DOMAIN_MODULES is a string, it is a json string, so we need to load it
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
