@@ -41,7 +41,7 @@ test('Banner links exist - English', async ({ context }) => {
     
     // Testing Help link
     await page.getByRole('banner').getByRole('link', { name: 'Help' }).click();
-    expect(getPathAndParams(page.url())).toContain("/collections/sefaria-faqs")
+    expect(getPathAndParams(page.url())).toContain("/hc/en-us")
 
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('banner').getByRole('link', { name: 'Donate' }).click();
@@ -98,7 +98,7 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     
     // Testing Help link
     await page.getByRole('banner').getByRole('link', { name: 'עזרה' }).click();
-    expect(getPathAndParams(page.url())).toContain("/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90");
+    expect(getPathAndParams(page.url())).toContain("/hc/he");
 
 });
 
