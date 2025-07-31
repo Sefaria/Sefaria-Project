@@ -96,10 +96,10 @@ export class SheetEditorPage extends HelperBase {
     closeSheetEditorButton = () => this.page.locator('a.readerNavMenuCloseButton');
     //or page.getByRole('link', { name: 'Close' })
     readerHeader = () => this.page.locator('header.readerControls.fullPanel.sheetReaderControls');
-    topTitle = () => this.page.locator('.readerControlsTitle h1'); 
+    topTitle = () => this.page.locator('a[aria-label*="Show Connection Panel contents"]'); 
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
-    sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
+    sideBarToggleButton = () => this.page.locator('button.editorSidebarToggle');
     resourcePanel = () => this.page.locator('.connectionsPanel');
     textReaderPanel = () => this.page.locator('#panel-1.readerPanel');
     resourcePanelCloseButton = () => this.page.locator('#panel-1').getByRole('link', { name: 'Close' });
