@@ -4,7 +4,7 @@ from django.conf.urls import url
 from django.http import HttpResponseRedirect
 import reader.views as reader_views
 from sefaria.settings import STATIC_URL
-from sefaria.constants.model import HELP_CENTER_URLS
+from sefaria.constants.sites import HELP_CENTER_URLS
 
 
 static_pages = [
