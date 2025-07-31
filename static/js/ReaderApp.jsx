@@ -425,6 +425,7 @@ class ReaderApp extends Component {
   clonePanel(panel, prepareForSerialization) {
     return Sefaria.util.clone(panel, prepareForSerialization);
   }
+
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];

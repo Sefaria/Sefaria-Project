@@ -847,7 +847,7 @@ getModuleURL: function(module=null) {
     }
     const response = await fetch(apiUrl, {
         method,
-        mode: 'same-origin',
+        mode: 'cors',
         headers: {
             'X-CSRFToken': Cookies.get('csrftoken'),
             'Content-Type': 'application/json'

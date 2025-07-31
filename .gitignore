@@ -132,6 +132,10 @@ static/sheetrank.json
 
 /random_files
 
+#nginx local conf
+nginx/local_nginx.conf
+nginx/ssl
+
 # Miscellaneous #
 #################
 
