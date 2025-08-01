@@ -516,6 +516,19 @@ Sefaria = extend(Sefaria, {
     return result;
 },
 
+getModuleURL: function(module=null) {
+  // returns a URL object with the href of the module's subdomain.  
+  // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
+  // example: module = "sheets" -> returns URL object with href of "https://sheets.sefaria.org"
+  module = module || Sefaria.activeModule;
+  const href = Sefaria?.domainModules?.[module] || Sefaria.apiHost;
+  try {
+    return new URL(href);
+  } catch {
+    return false;
+  }
+},
+
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
@@ -834,7 +847,7 @@ Sefaria = extend(Sefaria, {
     }
     const response = await fetch(apiUrl, {
         method,
-        mode: 'same-origin',
+        mode: 'cors',
         headers: {
             'X-CSRFToken': Cookies.get('csrftoken'),
             'Content-Type': 'application/json'
@@ -3609,6 +3622,7 @@ Sefaria.unpackBaseProps = function(props){
       "trendingTopics",
       "numLibraryTopics",
       "_siteSettings",
+      "domainModules",
       "_debug"
   ];
   for (const element of dataPassedAsProps) {

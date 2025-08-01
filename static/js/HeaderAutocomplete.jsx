@@ -86,15 +86,15 @@ function sortByTypeOrder(array) {
 }
 
 const getURLForObject = function(type, key) {
-    if (type === "Collection") {
+    if (type === "Collection" && Sefaria.activeModule === "sheets") {
       return `/sheets/collections/${key}`;
-    } else if (type === "TocCategory") {
+    } else if (type === "TocCategory" && Sefaria.activeModule === "library") {
       return `/texts/${key.join('/')}`;
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return `/topics/${key}`;
-    } else if (type === "ref") {
+      return Sefaria.activeModule === "library" ? `/topics/${key}` : `/sheets/topics/${key}`;
+    } else if (type === "ref" && Sefaria.activeModule === "library") {
       return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User") {
+    } else if (type === "User" && Sefaria.activeModule === "sheets") {
       return `/sheets/profile/${key}`;
     }
 };

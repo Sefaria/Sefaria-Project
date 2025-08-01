@@ -425,6 +425,7 @@ class ReaderApp extends Component {
   clonePanel(panel, prepareForSerialization) {
     return Sefaria.util.clone(panel, prepareForSerialization);
   }
+
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
@@ -798,16 +799,16 @@ class ReaderApp extends Component {
     return hist;
   }
   
-  modifyURLbasedOnModule(hist) {
-    if (Sefaria.activeModule === "sheets" && (!hist.url.startsWith("/sheets"))) {
+  modifyURLbasedOnModule(url) {
+    if (Sefaria.activeModule === "sheets" && (!url.startsWith("/sheets"))) {
       // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-      return "/sheets" + hist.url;
+      return "/sheets" + url;
     }
-    else if (Sefaria.activeModule !== "sheets" && hist.url.startsWith("/sheets")) {
+    else if (Sefaria.activeModule !== "sheets" && url.startsWith("/sheets")) {
       // If we are not in the sheets module, remove /sheets from the beginning of the URL
-      return hist.url.replace(/^\/sheets/, "");
+      return url.replace(/^\/sheets/, "");
     }
-    return hist.url;
+    return url;
   }
   
   updateHistoryState(replace) {
@@ -822,7 +823,7 @@ class ReaderApp extends Component {
     }
     
     console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
+    hist.url = this.modifyURLbasedOnModule(hist.url); 
     console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
@@ -1100,35 +1101,42 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = linkTarget.getAttribute('href');
+
+    let href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
+    
+    const moduleTarget = linkTarget.getAttribute('data-attr-module');
+
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true);
+      const handled = this.openURL(href, true, false, moduleTarget);
       if (handled) {
         e.preventDefault();
       }
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(linkTarget.closest(".sheetItem"))
-    const replacePanel = !(isSheet)
+    const isSheet = !!(linkTarget.closest(".sheetItem"));
+    const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(href, replace=true, overrideContentLang=false) {
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
         return true;
       }
     }
+
+    const moduleURL = Sefaria.getModuleURL(moduleTarget);
+    
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
+    href = href.startsWith("/") ? moduleURL.origin + href : href;   // modify href to include specified module URL if it's a relative link
     let url;
     try {
       url = new URL(href);
@@ -1137,7 +1145,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf("www.sefaria.org") === -1) {
+    if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
+      console.log("opening in new tab", url, moduleURL, moduleTarget, Sefaria.activeModule);
       window.open(url, '_blank')
       return true;
     }
@@ -1149,6 +1158,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setDefaultOption("language", lang)
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
+    console.log("no new tab", path, moduleTarget, Sefaria.activeModule);
     if (path === "/") {
       this.showLibrary();
 

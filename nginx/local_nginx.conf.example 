@@ -1,0 +1,79 @@
+# Define CORS origin logic
+map $http_origin $cors_origin {
+    default "";
+    "https://sheets.localsefaria.org" "$http_origin";
+}
+
+# HTTP Redirect to HTTPS for localsefaria.org
+server {
+    listen 80;
+    server_name localsefaria.org;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS for localsefaria.org
+server {
+    listen 443 ssl;
+    server_name localsefaria.org;
+
+    ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
+    ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
+
+    location / {
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
+            add_header 'Access-Control-Allow-Credentials' 'true' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests, X-CSRFToken, x-csrftoken' always;
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Length' 0;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8';
+            return 204;
+        }
+
+        add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, X-Requested-With, Upgrade-Insecure-Requests, X-CSRFToken, x-csrftoken' always;
+
+        include /Users/yishaiglasner/sefaria/Project/nginx/common.conf;
+    }
+}
+
+# HTTP Redirect to HTTPS for sheets.localsefaria.org
+server {
+    listen 80;
+    server_name sheets.localsefaria.org;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS for sheets.localsefaria.org
+server {
+    listen 443 ssl;
+    server_name sheets.localsefaria.org;
+
+    ssl_certificate     /your/Sefaria-Project/path/nginx/ssl/localsefaria.crt;
+    ssl_certificate_key /your/Sefaria-Project/path/nginx/ssl/localsefaria.key;
+
+    #redirection for service-worker that cannot be registered from redirection for security reasons
+    location = /service-worker.js {
+        alias /your/Sefaria-Project/path/static/js/service-worker.js;
+        add_header Cache-Control "no-cache";
+    }
+
+    # This is needed for requests before the service worker is registered
+    location /static/ {
+        include /your/Sefaria-Project/path/nginx/common.conf;
+    }
+    location ~ ^/data\.\d+\.js$ {
+        include /your/Sefaria-Project/path/nginx/common.conf;
+    }
+    location ~ /api/ {
+        include /your/Sefaria-Project/path/nginx/common.conf;
+    }
+
+    location / {
+        rewrite ^/(.*)$ /sheets/$1 break;
+        include /your/Sefaria-Project/path/nginx/common.conf;
+    }
+}
