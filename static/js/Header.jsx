@@ -137,11 +137,11 @@ const ModuleSwitcher = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={`${libraryURL.href}/`} newTab={Sefaria.activeModule !== "library"}>
+              <DropdownMenuItem url={`${libraryURL.origin}/`} newTab={Sefaria.activeModule !== "library"}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={`${sheetsURL.href}/sheets`} newTab={Sefaria.activeModule !== "sheets"}>  
+              <DropdownMenuItem url={`${sheetsURL.origin}/sheets`} newTab={Sefaria.activeModule !== "sheets"}>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
