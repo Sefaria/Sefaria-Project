@@ -1136,7 +1136,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const moduleURL = Sefaria.getModuleURL(moduleTarget);
     
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? moduleURL.href + href : href;   // modify href to include specified module URL if it's a relative link
+    href = href.startsWith("/") ? moduleURL.origin + href : href;   // modify href to include specified module URL if it's a relative link
     let url;
     try {
       url = new URL(href);
