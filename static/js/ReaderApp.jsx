@@ -1145,7 +1145,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf(moduleURL.hostname) === -1 || moduleTarget !== Sefaria.activeModule) {
+    if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       console.log("opening in new tab", url, moduleURL, moduleTarget, Sefaria.activeModule);
       window.open(url, '_blank')
       return true;
