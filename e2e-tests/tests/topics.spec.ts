@@ -48,7 +48,6 @@ test('Check redirection for sourceless topic', async ({ context }) => {
 test('Check no redirection when user is admin', async ({ context }) => {
   const page = await goToPageWithUser(context, '/topics/Monkey', LANGUAGES.EN, testAdminUser);
   await page.waitForSelector('span:has-text("Admin")')
-
 });
 
 test('Filter topics', async ({ context }) => {

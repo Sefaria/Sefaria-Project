@@ -106,7 +106,7 @@ export class SheetEditorPage extends HelperBase {
     }
     
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
-    closeSheetEditorButton = () => this.page.locator('.readerNavMenuCloseButton');
+    closeSheetEditorButton = () => this.page.getByRole('link', { name: 'Close' }).first();
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
     sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
@@ -161,6 +161,7 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async focusTextInput() {
+        await expect(this.page.locator('[data-slate-editor="true"][contenteditable="true"]')).toBeVisible();
         await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
       }
 

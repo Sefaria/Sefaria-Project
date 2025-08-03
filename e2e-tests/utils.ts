@@ -4,8 +4,14 @@ import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
 import path from 'path';
+import fs from 'fs';
 
-let currentLocation: string = ''; 
+let currentLocation: string = '';
+const AUTH_FILE = path.join(__dirname, 'auth.json');
+// delete AUTH_FILE if it exists to reset the auth state
+if (fs.existsSync(AUTH_FILE)) {
+  fs.unlinkSync(AUTH_FILE);
+}
 
 /**
  * Gets the path to a test fixture file
@@ -71,6 +77,21 @@ export const hideExploreTopicsModal = async (page: Page) => {
   });
 }
 
+export const hideTipsAndTricks = async (page: Page) => {
+  await page.evaluate(() => {
+    const style = document.createElement('style');
+    // Hide the tips and tricks overlay
+    style.innerHTML = `
+      .guideOverlay {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+};
+
 export const dismissNewsletterPopupIfPresent = async (page: Page) => {
   await page.evaluate(() => {
     const style = document.createElement('style');
@@ -119,21 +140,6 @@ export const hideCookiesPopup = async (page: Page) => {
       document.head.appendChild(style);
     });
   };
-  
-export const hideTopBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .readerControlsOuter,
-      header.readerControls.fullPanel.sheetReaderControls {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
 
 /**
  * Hides all common popups, modals, and banners that might interfere with tests
@@ -144,8 +150,8 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await dismissNewsletterPopupIfPresent(page);
   await hideGenericBanner(page);
   await hideCookiesPopup(page);
-  await hideTopBanner(page);
   await hideExploreTopicsModal(page);
+  await hideTipsAndTricks(page);
 };
 
 /**
@@ -237,20 +243,39 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     await changeLanguageIfNeeded(page, language);
 
     //await hideAllModalsAndPopups(page);
-    await hideModals(page);
+    await hideAllModalsAndPopups(page);
     return page
 }
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE, user = testUser) => {
-    const page: Page = await context.newPage();
-    await page.goto('/login', {waitUntil: 'domcontentloaded'});
-    await changeLanguageIfNeeded(page, language);
-    const loginPage = new LoginPage(page, language);
-    await loginPage.loginAs(user);
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
-    await changeLanguageIfNeeded(page, language);
-    await hideModals(page);
-    return page;
+    // Use a persistent auth file to store/reuse login state
+    let page: Page;
+    if (fs.existsSync(AUTH_FILE)) {
+        // If auth file exists, create a new context with storageState and open the page
+        const browser = context.browser();
+        if (!browser) {
+            throw new Error('Browser instance is null. Cannot create a new context.');
+        }
+        const newContext = await browser.newContext({ storageState: AUTH_FILE });
+        page = await newContext.newPage();
+        await page.goto(url, {waitUntil: 'domcontentloaded'});
+        await changeLanguageIfNeeded(page, language);
+        await hideModals(page);
+        return page;
+    } else {
+        // No auth file, perform login and save storage state
+        page = await context.newPage();
+        await page.goto('/login', {waitUntil: 'domcontentloaded'});
+        await changeLanguageIfNeeded(page, language);
+        const loginPage = new LoginPage(page, language);
+        await loginPage.loginAs(user);
+        await page.goto(url, {waitUntil: 'domcontentloaded'});
+        await changeLanguageIfNeeded(page, language);
+        await hideModals(page);
+        // Save storage state for future reuse
+        await page.context().storageState({ path: AUTH_FILE });
+        return page;
+    }
 }
 
 export const getPathAndParams = (url: string) => {
@@ -329,8 +354,3 @@ export const simulateOfflineMode = async (page: Page) => {
 export const simulateOnlineMode = async (page: Page) => {
   await page.context().setOffline(false);
 };
-
-
-
-
-

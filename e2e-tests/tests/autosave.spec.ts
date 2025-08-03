@@ -161,18 +161,20 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
   let pageManager: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithUser(context, '/sheets/new',LANGUAGES.HE);    
+    page = await goToPageWithUser(context, '/sheets/new', LANGUAGES.HE);
     pageManager = new PageManager(page, LANGUAGES.HE);
   });
 
   test('Display save states correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
+    await hideAllModalsAndPopups(page);
     await editor.addText('test saving saved hebrew');
     await editor.assertSaveState(SaveStates.saved || SaveStates.saving, LANGUAGES.HE);
   });
 
   test('Display logout state correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
+    await hideAllModalsAndPopups(page);
     const logoutResult = await expireLogoutCookie(page.context());
     expect(logoutResult).toBe(true);
     await editor.addText('trigger logout');
@@ -182,6 +184,7 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
 
   test('Display connection loss state correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
+    await hideAllModalsAndPopups(page);
     await simulateOfflineMode(page);
     await editor.addText('Trigger connection loss');
     await editor.assertSaveState(SaveStates.tryingToConnect, LANGUAGES.HE);
@@ -190,8 +193,10 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
 
   test('Display unknown error state correctly in Hebrew', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
+    await hideAllModalsAndPopups(page);
     await simulateOnlineMode(page);
     await page.reload();
+    await hideAllModalsAndPopups(page);
     
     await editor.addText('Trigger unknown error');
     await page.evaluate(() => {
