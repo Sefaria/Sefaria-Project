@@ -66,6 +66,7 @@ function WebComponentLoader(props) {
   };
 
   const scrollToRef = (sref) => {
+    // Exposed to the plugin to scroll to a specific reference
     if (sref) {
       const query = `div[data-ref="${sref}"]`;
       const element = document.querySelectorAll(query)[0];
@@ -73,6 +74,9 @@ function WebComponentLoader(props) {
         element.scrollIntoView();
         element.parentElement.parentElement.parentElement.parentElement.parentElement.scrollBy(0, -40);
       }
+    }
+    else {
+      console.warn('No sref provided to scrollToRef');
     }
   };
 
