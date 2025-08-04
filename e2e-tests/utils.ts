@@ -1,9 +1,10 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, SOURCE_LANGUAGES, testUser} from './globals'
+import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
 import path from 'path';
+
 
 let currentLocation: string = ''; 
 
@@ -37,30 +38,26 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
 
 // Dismisses the main modal interrupting message by injecting CSS to hide it.
 export const hideModals = async (page: Page) => {
-    await page.waitForLoadState('networkidle'); // Wait for all network requests to finish to ensure modals are present
+    await page.waitForLoadState('networkidle'); 
     await page.evaluate(() => {
         const style = document.createElement('style');
-        // Use !important to override any inline or external styles
         style.innerHTML = '#interruptingMessageBox {display: none !important;}';
-        document.head.appendChild(style); // Inject style into the page
+        document.head.appendChild(style); 
     });
 }
 //try clicking the close button, else hide the modal and overlay forcibly
 export const hideExploreTopicsModal = async (page: Page) => {
   await page.evaluate(() => {
-    // Try to click the close button if it exists
     const closeBtn = document.querySelector('.ub-emb-close');
     if (closeBtn) {
       (closeBtn as HTMLElement).click();
     } else {
-      // Fallback: hide the modal and overlay forcibly
       const modal = document.querySelector('.ub-emb-iframe-wrapper');
       if (modal) {
         (modal as HTMLElement).style.display = 'none';
         (modal as HTMLElement).style.visibility = 'hidden';
         (modal as HTMLElement).style.pointerEvents = 'none';
       }
-      // Also hide the iframe just in case
       const iframe = document.querySelector('.ub-emb-iframe');
       if (iframe) {
         (iframe as HTMLElement).style.display = 'none';
@@ -157,63 +154,73 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await dismissNewsletterPopupIfPresent(page);
   await hideGenericBanner(page);
   await hideCookiesPopup(page);
-  //await hideTopBanner(page);
   await hideExploreTopicsModal(page);
   await dismissGuideOverlay(page);
 };
 
 /**
- * Changes the interface language by clicking through the language menu.
- * Checks if the language is already correct before making changes.
+ * Bulletproof language change function with multiple fallback strategies
  * 
  * @param page - The Playwright page object
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
-export const changeLanguageIfNeeded = async (page: Page, language: string) => {
-    await page.waitForLoadState('domcontentloaded'); 
-    // Check if we're already in the correct language
+export const changeLanguage = async (page: Page, language: string) => {
     const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
-    const isAlreadyCorrectLanguage = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible();
-    
-    if (isAlreadyCorrectLanguage) {
+    const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+    const langParam = language === LANGUAGES.HE ? 'he' : 'en';
+    // Helper function to verify language is correct
+    const verifyLanguage = async (): Promise<boolean> => {
+        await page.waitForLoadState('domcontentloaded');
+        const elementVisible = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible().catch(() => false);
+        const bodyClass = await page.locator('body').getAttribute('class') || '';
+        return elementVisible && bodyClass.includes(expectedBodyClass);
+    };
+    // Check if we're already in the correct language
+    if (await verifyLanguage()) {
         return;
     }
-    // Language change needed - click through the UI
-    await page.locator('.interfaceLinks-button').click()
-    if (language === LANGUAGES.EN) {
-        await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
-        // Wait for the language change to complete by checking for English interface text
-        await page.getByRole('banner').getByRole('link', { name: 'Texts', exact: true }).waitFor({ state: 'visible' });
-    } else if (language === LANGUAGES.HE) {
-        await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click()
-        // Wait for the language change to complete by checking for Hebrew interface text
-        await page.getByRole('banner').getByRole('link', { name: 'מקורות', exact: true }).waitFor({ state: 'visible' });
+    const currentUrl = page.url();
+    // Strategy 1: Direct URL navigation with lang parameter (most reliable for staging)
+    try {
+        const urlObj = new URL(currentUrl);
+        urlObj.searchParams.set('lang', langParam);
+        await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.waitForLoadState('domcontentloaded');
+        if (await verifyLanguage()) {
+            console.log('Strategy 1 (URL navigation) succeeded');
+            return;
+        }
+    } catch (error) {
+        console.log('Strategy 1 (URL navigation) failed:', error);
     }
-}
+    // Strategy 2: UI-based language change
+    try {
+        console.log(`Strategy 2: UI-based language change`);
+        const isLoggedIn = await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible().catch(() => false);
+        if (isLoggedIn) {
+            await page.locator('.myProfileBox .profile-pic').click();
+            await expect(page.locator('.interfaceLinks-menu.profile-menu')).toBeVisible({ timeout: 3000 });
+        } else {
+            await page.locator('.interfaceLinks-button').click();
+        }
+        if (language === LANGUAGES.EN) {
+            await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
+        } else if (language === LANGUAGES.HE) {
+            await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click();
+        }
+        await page.waitForTimeout(1000);
+        await page.waitForLoadState('domcontentloaded');
+        if (await verifyLanguage()) {
+            console.log(`Strategy 2: UI-based language change succeeded`);
+            return;
+        }    
+    } catch (error) {
+        console.log(`Strategy 2: UI-based language change failed:`, error);
+    }
+    throw new Error(`All language change strategies failed for ${language}. Current URL: ${page.url()}`);
+};
 
-export const changeLanguageLoggedIn = async (page: Page, language: string) => {
-    // Open the profile dropdown by clicking the profile box (but not the direct link)
-    const profileIcon = page.locator('.myProfileBox .profile-pic');
-
-    await profileIcon.click();
-  
-    const menu = page.locator('.interfaceLinks-menu.profile-menu');
-    await expect(menu).toBeVisible();
-  
-    // Select the correct language link
-    const languageLink = language === LANGUAGES.HE
-      ? page.locator('#select-hebrew-interface-link')
-      : page.locator('#select-english-interface-link');
-  
-      await expect(languageLink).toBeVisible();
-      await languageLink.click();
-      const expectedClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
-      await expect(page.locator('body')).toHaveClass(new RegExp(`\\b${expectedClass}\\b`));
-    };
-
-/*LOGIN/LOGOUT RELATED METHODS */
-
-//located in utils rather than loginPage because it is used in multiple places;
+//expireLogoutCookie is located in utils rather than loginPage because it is used in multiple places;
 //it involves removing authentication (cookies) rather than logging out    
 /**
  * Simulates a logout by removing the sessionid cookie
@@ -221,9 +228,9 @@ export const changeLanguageLoggedIn = async (page: Page, language: string) => {
  * @param context - The Playwright browser context
  * @returns true if a sessionid cookie was found and removed, false otherwise
  */
-export const expireLogoutCookie = async (context) => {
+export const expireLogoutCookie = async (context: BrowserContext) => {
   const cookies = await context.cookies();
-  const sessionCookie = cookies.find(c => c.name === 'sessionid');
+  const sessionCookie = cookies.find((c: any) => c.name === 'sessionid');
   if (sessionCookie) {    // Overwrite the sessionid cookie with an expired one to remove it
     await context.addCookies([
       {
@@ -248,19 +255,25 @@ export const expireLogoutCookie = async (context) => {
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     const page: Page = await context.newPage();
     await page.goto(url);
-    await changeLanguageIfNeeded(page, language);
+    await changeLanguage(page, language);
     await hideAllModalsAndPopups(page);
     return page;
 }
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE, user = testUser) => {
     const page: Page = await context.newPage();
+    
+    // Login in default language (doesn't matter which language for authentication)
     await page.goto('/login', {waitUntil: 'domcontentloaded'});
-    await changeLanguageIfNeeded(page, language);
-    const loginPage = new LoginPage(page, language);
+    const loginPage = new LoginPage(page, DEFAULT_LANGUAGE);
     await loginPage.loginAs(user);
+    
+    // Navigate to target page and set correct language
     await page.goto(url, {waitUntil: 'domcontentloaded'});
-    await changeLanguageIfNeeded(page, language);
+    
+    // Use the unified language change function (it will detect login status automatically)
+    await changeLanguage(page, language);
+    
     return page;
 }
 
@@ -340,8 +353,3 @@ export const simulateOfflineMode = async (page: Page) => {
 export const simulateOnlineMode = async (page: Page) => {
   await page.context().setOffline(false);
 };
-
-
-
-
-
