@@ -723,6 +723,21 @@ entries:
     version: 0.66.0-fix-linker-cors.1
   - apiVersion: v2
     appVersion: v6.29.0
+    created: "2025-08-04T10:33:25.387991812Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 133890e532340a639bede32efc596c1cd8f04554ae3ee51e89500c976d2b0c74
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.65.9-fixcacheddb.2.tgz
+    version: 0.65.9-fixcacheddb.2
+  - apiVersion: v2
+    appVersion: v6.29.0
     created: "2025-07-29T08:57:10.541290164Z"
     description: Chart to deploy complete Sefaria environment
     digest: c780ce1998f28c1f266e1feb2bb422f363b98d01284c2584cc362fe62fd9a2f1
@@ -8640,4 +8655,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-08-04T10:13:35.395312114Z"
+generated: "2025-08-04T10:33:25.385775633Z"
