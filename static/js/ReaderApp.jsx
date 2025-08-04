@@ -821,9 +821,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
     
-    console.log("Updating History - " + hist.url + " | " + currentUrl);
     hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
-    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -853,7 +851,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
