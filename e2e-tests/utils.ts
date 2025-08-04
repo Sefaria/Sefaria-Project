@@ -41,6 +41,16 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
  * rather than only calling hideAllModalsAndPopups()
 */
 
+const updateStorageState = async (storageState: any, key: string, value: any) => {
+  // Modify the cookies as needed
+  storageState.cookies = storageState.cookies.map(cookie => {
+    if (cookie.name === key) {
+      return { ...cookie, value: value };
+    }
+    return cookie;
+  });
+}
+
 // Dismisses the main modal interrupting message by injecting CSS to hide it.
 export const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle'); // Wait for all network requests to finish to ensure modals are present
@@ -250,32 +260,29 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
 export const goToPageWithUser = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE, user = testUser) => {
     // Use a persistent auth file to store/reuse login state
     let page: Page;
-    if (fs.existsSync(AUTH_FILE)) {
-        // If auth file exists, create a new context with storageState and open the page
-        const browser = context.browser();
-        if (!browser) {
-            throw new Error('Browser instance is null. Cannot create a new context.');
-        }
-        const newContext = await browser.newContext({ storageState: AUTH_FILE });
-        page = await newContext.newPage();
-        await page.goto(url, {waitUntil: 'domcontentloaded'});
-        await changeLanguageIfNeeded(page, language);
-        await hideModals(page);
-        return page;
-    } else {
+    if (!fs.existsSync(AUTH_FILE)) {
         // No auth file, perform login and save storage state
         page = await context.newPage();
         await page.goto('/login', {waitUntil: 'domcontentloaded'});
-        await changeLanguageIfNeeded(page, language);
         const loginPage = new LoginPage(page, language);
         await loginPage.loginAs(user);
-        await page.goto(url, {waitUntil: 'domcontentloaded'});
-        await changeLanguageIfNeeded(page, language);
-        await hideModals(page);
         // Save storage state for future reuse
         await page.context().storageState({ path: AUTH_FILE });
-        return page;
     }
+    // If auth file exists, create a new context with storageState and open the page
+    const browser = context.browser();
+    if (!browser) {
+        throw new Error('Browser instance is null. Cannot create a new context.');
+    }
+
+    // Read the storage state from the auth file and set language
+    const storageState = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf-8'));
+    await updateStorageState(storageState, 'interfaceLang', language);
+    const newContext = await browser.newContext({ storageState });
+    page = await newContext.newPage();
+    await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await hideModals(page);
+    return page;
 }
 
 export const getPathAndParams = (url: string) => {
