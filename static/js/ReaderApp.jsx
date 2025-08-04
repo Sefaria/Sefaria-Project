@@ -2328,11 +2328,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
+            <a href="#main" className="skip-link">Skip to main content</a>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {panels}
+              <main id="main" role="main">
+                {panels}
+              </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />

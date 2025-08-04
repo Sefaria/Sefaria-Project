@@ -210,12 +210,12 @@ const Header = (props) => {
   
   const headerContent = (
     <>
-        <div className="headerNavSection">
+        <nav className="headerNavSection" aria-label="Primary navigation">
           { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
           <a href={props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
           <a href={props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
-        </div>
+        </nav>
 
       <div className="headerLinksSection">
       <HeaderAutocomplete
@@ -374,7 +374,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
     closed: !visible,
   });
   return (
-    <div className={classes}>
+    <nav className={classes} aria-label="Mobile navigation menu">
       <div className="searchLine">
         <HeaderAutocomplete
             onRefClick={onRefClick}
@@ -512,7 +512,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <hr />
       </div>
-    </div>
+    </nav>
   );
 };
 
