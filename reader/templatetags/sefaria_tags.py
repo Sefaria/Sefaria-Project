@@ -522,3 +522,12 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
+
+
+@register.simple_tag(takes_context=True)
+def interface_lang_code(context):
+    """Returns 'he' for Hebrew interface, 'en' for English (default)"""
+    request = context.get('request')
+    if request and hasattr(request, 'interfaceLang') and request.interfaceLang == 'hebrew':
+        return 'he'
+    return 'en'
