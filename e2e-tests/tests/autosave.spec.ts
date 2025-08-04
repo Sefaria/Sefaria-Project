@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
 import { LoginPage } from '../pages/loginPage';
-import {changeLanguageLoggedIn, goToPageWithLang, simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, changeLanguageIfNeeded, hideAllModalsAndPopups} from "../utils";
+import {simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, hideAllModalsAndPopups, changeLanguage} from "../utils";
 import { LANGUAGES, testUser } from '../globals';
 import { SaveStates } from '../constants';
 import { Banner } from '../pages/banner';
@@ -105,17 +105,27 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Sefaria unsaved changes popup appears after clicking x sheet button', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.focusTextInput();
-    await page.keyboard.type('Leave before saving finishes');
-    await expect(editor.statusMessage()).toContainText(SaveStates.saving.text);
-
+    
     let dialogTriggered = false;
+    
+    // Set up dialog handler first
+    const dialogPromise = page.waitForEvent('dialog').then(async dialog => {
+      dialogTriggered = true;
+      await dialog.dismiss();
+    });
+
+    // Type a longer text to ensure saving takes more time
+    await page.keyboard.type('This is a longer text to ensure saving takes some time and we can click during the saving state');
+    
+    // Use waitForFunction to immediately click when saving state appears
     await Promise.all([
-      page.waitForEvent('dialog').then(async dialog => {
-        dialogTriggered = true;
-        await dialog.dismiss();
-      }),
-      editor.closeSheetEditor() // Attempt to leave while in 'saving' state
+      dialogPromise,
+      page.waitForFunction(() => {
+        const message = document.querySelector('.saveStateMessage');
+        return message && message.textContent?.includes('Saving');
+      }).then(() => editor.closeSheetEditorButton().click())
     ]);
+    
     expect(dialogTriggered).toBe(true);
   });
 
@@ -161,7 +171,10 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
   let pageManager: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithUser(context, '/sheets/new',LANGUAGES.HE);    
+    // Create completely fresh context for each Hebrew test to avoid contamination
+    page = await goToPageWithUser(context, '/sheets/new', LANGUAGES.HE);  
+    await hideAllModalsAndPopups(page);  
+    await changeLanguage(page, LANGUAGES.HE);
     pageManager = new PageManager(page, LANGUAGES.HE);
   });
 
