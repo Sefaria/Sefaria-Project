@@ -4,7 +4,7 @@
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
-<html>
+<html lang="{% if request.interfaceLang == 'hebrew' %}he{% else %}en{% endif %}">
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8"/>

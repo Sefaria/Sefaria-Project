@@ -258,6 +258,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
           className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
+          aria-label={Sefaria._("Search for Texts or Keywords Here")}
           onKeyDown={handleSearchKeyDown}
           onFocus={focusSearch}
           onBlur={blurSearch}

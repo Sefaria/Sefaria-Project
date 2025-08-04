@@ -39,7 +39,7 @@ const LoggedOutDropdown = ({module}) => {
   })
   
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
+      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg' alt="Account menu"/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={loginLink}>
                   <InterfaceText text={{'en': 'Log in', 'he': 'התחברות'}}/>
@@ -136,7 +136,7 @@ const LoggedInDropdown = ({module}) => {
 const ModuleSwitcher = () => {
   const shouldOpenNewTab = (newModule) => Sefaria.activeModule !== newModule;
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
+              <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg' alt="Switch between library and sheets"/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={'/'} newTab={shouldOpenNewTab('library')}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
@@ -195,7 +195,7 @@ const Header = (props) => {
                               </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
                                         <a href="/sheets/notifications" >
-                                          <img src='/static/icons/notification.svg' />
+                                          <img src='/static/icons/notification.svg' alt="Notifications" />
                                         </a>
                                       </div>;
 
@@ -326,13 +326,13 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
     <div className={classes}>
       { loginOnly && (
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
-         {mobile ? <img src="/static/icons/login.svg" /> : null }
+         {mobile ? <img src="/static/icons/login.svg" alt="Login" /> : null }
          <InterfaceText>Log in</InterfaceText>
        </a>)}
       {loginOnly ? null :
       <span>
         <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
-          {mobile ? <img src="/static/icons/login.svg" /> : null }
+          {mobile ? <img src="/static/icons/login.svg" alt="Login" /> : null }
           <InterfaceText>Sign up</InterfaceText>
         </a> 
         <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
@@ -387,31 +387,24 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </div>
       {module === "library" && 
       <a href="/texts" onClick={close} className="textsPageLink">
-        <img src="/static/icons/book.svg" />
+        <img src="/static/icons/book.svg" alt="Texts" />
         <InterfaceText context="Header">Texts</InterfaceText>
       </a>
       }
       <a href={module === "library" ? "/topics" : "/sheets/topics"} onClick={close}>
-        <img src="/static/icons/topic.svg" />
+        <img src="/static/icons/topic.svg" alt="Topics" />
         <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       {module === "sheets" && 
       <a href="/sheets/collections" onClick={close} className="textsPageLink">
-        <img src="/static/icons/collection.svg" />
-        <InterfaceText context="Header">Collections</InterfaceText>
-      </a>
-      }
-
-      {module === "sheets" && 
-      <a href="/sheets/collections" onClick={close} className="textsPageLink">
-        <img src="/static/icons/collection.svg" />
+        <img src="/static/icons/collection.svg" alt="Collections" />
         <InterfaceText context="Header">Collections</InterfaceText>
       </a>
       }
 
      { module === "library" && 
       <a href="/calendars" onClick={close}>
-        <img src="/static/icons/calendar.svg" />
+        <img src="/static/icons/calendar.svg" alt="Learning Schedules" />
         <InterfaceText>Learning Schedules</InterfaceText>
       </a>
     }
@@ -445,7 +438,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         {Sefaria._uid && module === "sheets" ?
           <>
             <a href="/sheets/notifications">
-            <img src="/static/icons/notification.svg" />
+            <img src="/static/icons/notification.svg" alt="Notifications" />
             <InterfaceText>Notifications</InterfaceText>
           </a>
           </> : null 
@@ -454,7 +447,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         {Sefaria._uid ?
           <>
             <a href="/settings/account">
-            <img src="/static/icons/settings.svg" />
+            <img src="/static/icons/settings.svg" alt="Settings" />
             <InterfaceText>Account Settings</InterfaceText>
           </a>
           </> : null 
@@ -465,12 +458,12 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr/>
 
         <a href="/help">
-          <img src="/static/icons/help.svg" />
+          <img src="/static/icons/help.svg" alt="Help" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
 
         <a href="/mobile-about-menu">
-          <img src="/static/icons/info.svg" />
+          <img src="/static/icons/info.svg" alt="About" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
 
@@ -478,25 +471,25 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         
         { module === "library" &&
         <a href="/sheets/" target="_blank">
-          <img src="/static/icons/sheets-mobile-icon.svg" />
+          <img src="/static/icons/sheets-mobile-icon.svg" alt="Sheets" />
           <InterfaceText>Sheets</InterfaceText>
         </a>
         } 
 
       { module === "sheets" &&
         <a href="/texts" target="_blank">
-          <img src="/static/icons/book.svg" />
+          <img src="/static/icons/book.svg" alt="Library" />
           <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
         </a>
         } 
 
         <a href="developers.sefaria.org" target="_blank">
-          <img src="/static/icons/dev-portal-mobile-icon.svg" />
+          <img src="/static/icons/dev-portal-mobile-icon.svg" alt="Developers" />
           <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
         </a>
 
         <a href="sefaria.org/products" target="_blank">
-          <img src="/static/icons/products-icon.svg" />
+          <img src="/static/icons/products-icon.svg" alt="Products" />
           <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
         </a>
 
@@ -504,7 +497,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         {Sefaria._uid ?
         <a href={Sefaria.getLogoutUrl()} className="logout">
-          <img src="/static/icons/logout.svg" />
+          <img src="/static/icons/logout.svg" alt="Logout" />
           <InterfaceText>Logout</InterfaceText>
         </a>
         :
@@ -615,7 +608,7 @@ const MobileInterfaceLanguageToggle = () => {
 
   return (
     <div className="mobileInterfaceLanguageToggle">
-      <img src="/static/icons/globe-wire.svg" />
+                <img src="/static/icons/globe-wire.svg" alt="Language" />
       {links}
     </div>
   );
