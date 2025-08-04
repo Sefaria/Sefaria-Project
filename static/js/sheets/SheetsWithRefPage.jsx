@@ -17,7 +17,9 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     // they are never changed.
 
     const [refs, setRefs] = useState(srefs);
-    const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray.filter(sortType => sortType.type !== 'relevance');
+    const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray;
+
+    // const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray.filter(sortType => sortType.type !== 'relevance');
 
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
         // clone filters so that we can update the available filters docCounts
@@ -118,6 +120,9 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
             case 'dateCreated':
                 sheets = sheets.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
             break;
+            case 'relevance':
+                sheets = sheets.sort((a, b) => (b.combined_score || 0) - (a.combined_score || 0));
+            break;
         }
         return sheets;
     }
@@ -153,7 +158,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     }
     const handleSheetsLoad = (sheets) => {
       searchState.availableFilters = Sefaria.sheets.sheetsWithRefFilterNodes(sheets);
-      searchState.sortType = "views";
+      searchState.sortType = "relevance";
       setSheets(sheets);
       updateSearchState(searchState, 'sheet');
       setOrigAvailableFilters(searchState.availableFilters);
