@@ -1,17 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
-require('dotenv').config();
-
 // load environment variables from .env file in the e2e-tests directory
-try {
+if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
   process.env = {  ...process.env,
     ...env,
   };
-} catch (error) {
-  console.warn('No .env file found in e2e-tests directory, using environment variables from process.env');
 }
-
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -34,7 +29,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? undefined : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
