@@ -19,12 +19,12 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
-
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
-
+from sefaria.tracker import modify_bulk_text
+from collections import defaultdict
 
 lang_codes = {
     "he": "Hebrew",
@@ -392,11 +392,9 @@ def prepare_merged_text_for_export(title, lang=None):
     }
     text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
-    print("%d versions in %s" % (text_docs.count(), lang))
-
-
     # Exclude copyrighted docs from merging
     text_docs = [text for text in text_docs if not text_is_copyright(text)]
+    print("%d versions in %s" % (len(text_docs), lang))
 
     if len(text_docs) == 0:
         return
@@ -723,41 +721,48 @@ def import_versions_from_file(csv_filename, columns):
 
 
 def _import_versions_from_csv(rows, columns, user_id):
-    from sefaria.tracker import modify_bulk_text
 
-    index_title = rows[0][columns[0]]  # assume the same index title for all
-    index = Index().load({'title': index_title})
-    if index:
-        index_node = index.nodes
+    multi = str(rows[0][0]).strip().lower() == "version title"
+    jobs = []  # (idx_title, vt, lang, src, notes, text_map)
+
+    if multi:
+        col = columns[0]
+        vt, lang, src, notes = [rows[i][col] for i in range(4)]
+        book_maps = defaultdict(dict)
+        for r in rows[4:]:
+             if not r or len(r) <= col:
+                 continue
+             ref, txt = r[0], r[col]
+             book_maps[Ref(ref).index.title][ref] = txt
+        for idx_title, text_map in book_maps.items():
+            jobs.append((idx_title, vt, lang, src, notes, text_map))
     else:
-        raise InputError(f'No book with primary title "{index_title}"')
+         col = columns[-1]
+         idx_title, vt, lang, src, notes = [rows[i][col] for i in range(5)]
+         text_map = {r[0]: r[col] for r in rows[5:] if len(r) > col}
+         jobs.append((idx_title, vt, lang, src, notes, text_map))
 
-
-    action = "edit"
-    for column in columns:
-        # Create version
-        version_title = rows[1][column]
-        version_lang = rows[2][column]
+    for idx_title, vt, lang, src, notes, text_map in jobs:
+        index = Index().load({'title': idx_title})
+        if not index:
+            raise InputError(f'No book with primary title "{idx_title}"')
+        index_node = index.nodes
 
         v = Version().load({
-            "title": index_title,
-            "versionTitle": version_title,
-            "language": version_lang
+            "title": idx_title,
+            "versionTitle": vt,
+            "language": lang
         })
-
+        action = "edit"
         if v is None:
             action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
-                "title": index_title,
-                "versionTitle": version_title,
-                "language": version_lang,            # Language
-                "versionSource": rows[3][column],       # Version Source
-                "versionNotes": rows[4][column],        # Version Notes
+                "title": idx_title,
+                "versionTitle": vt,
+                "language": lang,
+                "versionSource": src,
+                "versionNotes": notes,
             }).save()
 
-        # Populate it
-        text_map = {}
-        for row in rows[5:]:
-            text_map[row[0]] = row[column]
         modify_bulk_text(user_id, v, text_map, type=action)

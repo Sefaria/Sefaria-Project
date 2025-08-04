@@ -376,6 +376,8 @@ class ConnectionsPanel extends Component {
             {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
               toggleSignUpModal={this.props.toggleSignUpModal}
               setConnectionsMode={this.props.setConnectionsMode}
+              masterPanelLanguage={this.props.masterPanelLanguage}
+              masterPanelLayout={this.props.masterPanelLayout}
               masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
@@ -718,6 +720,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang: PropTypes.string,
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  masterPanelLayout: PropTypes.string,
   masterPanelMode: PropTypes.string,
   masterPanelSheetId: PropTypes.number,
   versionFilter: PropTypes.array,
@@ -779,13 +782,6 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   useEffect(() => {
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
-    setShowEditButton(
-        !Sefaria._uses_new_editor && Sefaria._uid && (
-            sheet.owner === Sefaria._uid ||
-            sheet.options.collaboration == "anyone-can-edit" ||
-            sheet.options.collaboration == "anyone-can-add"
-        )
-    )
     console.log(sheet)
   }, []);
 
@@ -805,7 +801,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   </div>);
 }
 
-const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode }) => {
+const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode, masterPanelLanguage, masterPanelLayout }) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
@@ -833,7 +829,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       $.ajax({
         type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        url: "/api/sheets/" + sheet.id + `/export_to_drive?language=${masterPanelLanguage}&layout=${masterPanelLayout}`,
         success: function (data) {
           if ("error" in data) {
             console.log(data.error.message);
@@ -928,7 +924,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {
-      Sefaria._uses_new_editor && Sefaria._uid && (
+      Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration == "anyone-can-edit"
         ) ?
@@ -937,6 +933,14 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   </div>
   )
 }
+SheetToolsList.propTypes = {
+  toggleSignUpModal: PropTypes.func.isRequired,
+  masterPanelSheetId: PropTypes.number.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  masterPanelLanguage: PropTypes.string.isRequired,
+  masterPanelLayout: PropTypes.string.isRequired
+};
+
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
@@ -1070,7 +1074,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
-        {isTopLevel ? essaySummary : null}
+        {isTopLevel && essaySummary}
         {connectionsSummary}
         {summaryToggle}
       </div>
@@ -1275,21 +1279,16 @@ WebPagesList.propTypes = {
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
     const {textsData} = useContext(ReaderPanelContext);
     const editText = canEditText && textsData ? function () {
-      let refString = srefs[0];
-      const {primaryDirection, translationDirection} = textsData;
-      const currVersionsLangCode = masterPanelLanguage.slice(0,2);
-      const versionTitle = currVersions[currVersionsLangCode]?.versionTitle;
-      const direction = (masterPanelLanguage === 'english') ? translationDirection : primaryDirection;
-      const langCode = direction === 'rtl' ? 'he': 'en';
-      if (versionTitle) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(versionTitle);
-      }
+      const isTranslation = masterPanelLanguage === 'english';
+      const versionType = isTranslation ? 'translation' : 'primary';
+      const langCode = textsData[`${versionType}Direction`] === 'ltr' ? 'en': 'he';
+      const versionTitle = isTranslation ? textsData.versionTitle : textsData.heVersionTitle;
+      const refString = `${srefs[0]}/${encodeURIComponent(langCode)}/${encodeURIComponent(versionTitle)}`;
 
       let path = "/edit/" + refString;
       let currentPath = Sefaria.util.currentPath();
       let nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
-      //console.log(path);
       Sefaria.track.event("Tools", "Edit Text Click", refString,
         { hitCallback: () => window.location = path }
       );
@@ -1453,19 +1452,6 @@ class ShareBox extends Component {
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
-          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
-            <div className="shareSettingsBox">
-              <InterfaceText>People with this link can</InterfaceText>
-              <select
-                className="shareDropdown"
-                name="Share"
-                onChange={this.updateShareOptions.bind(this)}
-                value={this.state.shareValue}>
-                <option value="none">{Sefaria._("View", "Sheet Share")}</option>
-                <option value="anyone-can-add">{Sefaria._("Add", "Sheet Share")}</option>
-                <option value="anyone-can-edit">{Sefaria._("Edit", "Sheet Share")}</option>
-              </select>
-            </div> : null}
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
@@ -1538,7 +1524,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }

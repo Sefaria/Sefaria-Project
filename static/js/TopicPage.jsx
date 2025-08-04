@@ -38,26 +38,22 @@ import {ContentText} from "./ContentText";
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
-
 const fetchBulkText = (translationLanguagePreference, inRefs) =>
   Sefaria.getBulkText(
     inRefs.map(x => x.ref),
     true, 500, 600,
     translationLanguagePreference
   ).then(outRefs => {
+    // Hydrate inRefs with text from outRefs
     for (let tempRef of inRefs) {
-      // annotate outRefs with `order` and `dataSources` from `topicRefs`
-      if (outRefs[tempRef.ref]) {
-        outRefs[tempRef.ref].order = tempRef.order;
-        outRefs[tempRef.ref].dataSources = tempRef.dataSources;
-        if(tempRef.descriptions) {
-            outRefs[tempRef.ref].descriptions = tempRef.descriptions;
-        }
+      const outRef = outRefs[tempRef.ref];
+
+      if (outRef) {
+        Object.assign(tempRef, outRef);
       }
     }
-    return Object.entries(outRefs);
-  }
-);
+    return inRefs.map(ref => [ref.ref, ref]);
+  });
 
 
 const fetchBulkSheet = inSheets =>
@@ -257,7 +253,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
+                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['p', 'a']}/>
               </div>
               : null }
             </div>
@@ -936,7 +932,11 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
 
 
   const LinkToSheetsSearchComponent = () => {
-
+    if (!topicTitle?.en || !topicTitle?.he) {
+      // If topicTitle is not set, we cannot generate the search URLs
+      console.warn("Topic title is not set, cannot generate search URLs for sheets.");
+      return null;
+    }
     let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
     let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
       return (

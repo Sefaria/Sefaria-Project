@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import extend from 'extend';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import Header from './Header';
+import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
@@ -34,11 +34,11 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
-import { TopicsLaunchBanner } from './TopicsLaunchBanner';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -123,8 +123,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      editorSaveState: 'saved',
     };
   }
+  setEditorSaveState = (nextState) => {
+    this.setState({ editorSaveState: nextState });
+    };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -214,6 +218,18 @@ class ReaderApp extends Component {
     } else if (Sefaria.isNewVisitor()) {
       // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
       Sefaria.markUserAsNewVisitor();
+    }
+
+    if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
+      sessionStorage.setItem("sa.reader_app_mounted", "true");
+      sa_event("reader_app_mounted");
+      if (Sefaria._debug) console.log("sa: reader app has loaded!");
+    }
+    if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
+      if (!('IntersectionObserver' in window)) {
+        sa_event("intersection_observer_not_supported");
+      }
+      localStorage.setItem("sa.intersection_observer_api_checked", "true");
     }
   }
   componentWillUnmount() {
@@ -772,6 +788,9 @@ class ReaderApp extends Component {
         }
       }
     }
+    // Replace question marks that can be included in titles
+    // (not using encodeURIComponent for this can run twice and encode the % of the first running)
+    hist.url = hist.url.replace(/\?/g, '%3F')
     // Replace the first only & with a ?
     hist.url = hist.url.replace(/&/, "?");
 
@@ -1022,6 +1041,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       parent = parent.parentNode;
     }
   }
+  alertUnsavedChangesConfirmed() {
+    // If the user has unsaved changes, we want to prevent the default action of the click
+    // and show a confirmation dialog instead.
+    const ok = window.confirm(
+        "You have unsaved changes that may be lost. Continue?"
+    );
+    if (!ok) {
+        return false;
+    }
+    return true;
+  }
   handleInAppClickWithModifiers(e){
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
@@ -1085,6 +1115,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   openURL(href, replace=true, overrideContentLang=false) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
@@ -1164,13 +1199,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/translations\/.+/)) {
       let slug = path.slice(14);
       this.openTranslationsPage(slug);
-    } else if (Sefaria.isRef(path.slice(1))) {
+    } else if (Sefaria.isRef(path.slice(1).replace(/%3F/g, '?'))) {
+      const ref = path.slice(1).replace(/%3F/g, '?');
       const currVersions = {
         en: Sefaria.util.getObjectFromUrlParam(params.get("ven")),
         he: Sefaria.util.getObjectFromUrlParam(params.get("vhe"))
       };
-      const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
-      openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
+      const options = {showHighlight: ref.indexOf("-") !== -1};   // showHighlight when ref is ranged
+      openPanel(Sefaria.humanRef(ref), currVersions, options);
     } else {
       return false
     }
@@ -1663,7 +1699,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
+
+  shouldAlertBeforeCloseEditor() {
+    const sheetId = this.state.panels[0]?.sheetID;
+    return !!(sheetId &&
+        this.state.panels[0].mode === "Sheet" &&
+        this.state.editorSaveState && this.state.editorSaveState !== "saved")
+        && shouldUseEditor(sheetId);
+
+  }
   closePanel(n) {
+    // currently we assume that the editor is always the first panel,
+    // TODO: enforce this assumption
+    if (n===0 && this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return false;
+      }
+    }
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
       this.state.panels = [];
@@ -1673,8 +1725,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.refs = parent.refs.map(ref => Sefaria.ref(ref).sectionRef);
-        parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
@@ -2112,7 +2162,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
-        setTranslationLanguagePreference={this.setTranslationLanguagePreference} />
+        setTranslationLanguagePreference={this.setTranslationLanguagePreference}
+      />
     );
 
     var panels = [];
@@ -2203,6 +2254,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
+                      masterPanelLayout={panel.mode === "Connections" ? panelStates[i-1].settings.biLayout : ""}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       masterPanelMode={panel.mode === "Connections" ? panelStates[i-1].mode : null}
                       masterPanelSheetId={panel.mode === "Connections" ? panelStates[i-1].sheetID : null}
@@ -2223,6 +2275,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      editorSaveState={this.state.editorSaveState}
+                      setEditorSaveState={this.setEditorSaveState}
                     />
                   </div>);
     }
@@ -2258,8 +2312,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
             <InterruptingMessage />
-            <TopicsLaunchBanner onClose={this.setContainerMode} />
-            {/*<Banner onClose={this.setContainerMode} />*/}
+            <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}

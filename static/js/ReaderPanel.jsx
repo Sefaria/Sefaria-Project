@@ -36,6 +36,7 @@ import {
   MenuButton,
   DisplaySettingsButton,
   SaveButton,
+  GuideButton,
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
@@ -44,6 +45,8 @@ import {ContentText} from "./ContentText";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
+import GuideOverlay from './GuideOverlay';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 
 class ReaderPanel extends Component {
@@ -56,6 +59,7 @@ class ReaderPanel extends Component {
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
       data: null,
+      forceGuideOverlay: false,
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -478,6 +482,60 @@ class ReaderPanel extends Component {
       searchQuery: query
     });
   }
+  showGuide() {
+    // Force the guide overlay to show
+    this.setState({forceGuideOverlay: true});
+  }
+  closeGuideOverlay() {
+    // Reset the force guide overlay state when guide is closed
+    this.setState({forceGuideOverlay: false});
+  }
+  getGuideType() {
+    /**
+     * CENTRAL GUIDE MAPPING - This is the one place to update when adding new guides
+     * 
+     * This function determines which guide (if any) should be shown based on current state.
+     * When adding a new guide:
+     * 1. Add a new entry to the GUIDE_MAPPINGS array below
+     * 2. Ensure the guideType matches what you'll use in the guide data/API
+     * 3. Define the condition function that determines when this guide should show
+     * 
+     * @returns {string|null} The guide type to show, or null if no guide should be shown
+     */
+    
+    // Global conditions that apply to ALL guides
+    // Don't show on mobile or in resource panels
+    if (!this.props.multiPanel || this.props.panelPosition !== 0) {
+      return null;
+    }
+    
+    // Define all available guides and their conditions
+    // ORDER MATTERS: First matching condition will be used
+    const GUIDE_MAPPINGS = [
+      {
+        guideType: "editor",
+        condition: (state, props) => {
+          if (state.mode !== "Sheet") return false;
+          return shouldUseEditor(state.sheetID);
+        }
+      },
+      // Add new guides here following the same pattern:
+      // {
+      //   guideType: "reader", 
+      //   condition: (state, props) => /* your condition */
+      // },
+    ];
+
+    // Check each guide mapping and return the first match
+    for (const mapping of GUIDE_MAPPINGS) {
+      if (mapping.condition(this.state, this.props)) {
+        return mapping.guideType;
+      }
+    }
+    
+    // No guide should be shown
+    return null;
+  }
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
   }
@@ -767,6 +825,8 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
+          editorSaveState={this.props.editorSaveState}
+          setEditorSaveState={this.props.setEditorSaveState}
         />
       );
     }
@@ -823,6 +883,7 @@ class ReaderPanel extends Component {
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+          masterPanelLayout={this.props.masterPanelLayout}
           masterPanelLanguage={this.props.masterPanelLanguage}
           masterPanelMode={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? "Sheet" : this.props.masterPanelMode}
           masterPanelSheetId={this.props.initialState.mode === "SheetAndConnections" && this.props.multiPanel === false ? this.props.initialState.sheetID : this.props.masterPanelSheetId}
@@ -1138,6 +1199,7 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
+              showGuide={this.getGuideType() && this.showGuide.bind(this)} // Sending null (false) if the guide shouldn't show so we don't show the guide button
             />}
 
           {(items.length > 0 && !menu) ?
@@ -1146,6 +1208,17 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
+          {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
+          {(() => {
+            const guideType = this.getGuideType();
+            return guideType && (
+              <GuideOverlay 
+                onClose={this.closeGuideOverlay.bind(this)} 
+                guideType={guideType}
+                forceShow={this.state.forceGuideOverlay}
+              />
+            );
+          })()}
 
         </div>
       </ReaderPanelContext.Provider>
@@ -1184,6 +1257,7 @@ ReaderPanel.propTypes = {
   highlightedRefs:             PropTypes.array,
   multiPanel:                  PropTypes.bool,
   masterPanelLanguage:         PropTypes.string,
+  masterPanelLayout:           PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
   hasSidebar:                  PropTypes.bool,
@@ -1379,6 +1453,12 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          {this.props.showGuide && 
+            <GuideButton
+              onShowGuide={this.props.showGuide}
+              tooltip={true}
+            />
+          }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
@@ -1444,6 +1524,7 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   backButtonSettings:      PropTypes.object,
+  showTips:                PropTypes.func,
 };
 
 

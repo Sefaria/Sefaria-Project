@@ -403,6 +403,7 @@ const Strings = {
     "Portuguese": "פורטוגזית",
     "Spanish": "ספרדית",
     "French": "צרפתית",
+    "Romanian": "רומנית",
     "German": "גרמנית",
     "Arabic": "ערבית",
     "Italian": "איטלקית",
@@ -529,10 +530,8 @@ const Strings = {
     "on Sefaria": " בספריא",
 
     //New Editor Flow
-    "Thanks for Trying the New Editor!": "תודה שבחרת לנסות את העורך החדש שלנו!",
     "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
     "Back to Profile": "חזרה לפרופיל האישי שלך",
-    "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
     "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
@@ -543,13 +542,7 @@ const Strings = {
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
-    "You are currently using the most up-to-date source sheet editor. Starting April 27, 2025, you will no longer be able to switch to an older version.":    "הנכם משתמשים בגרסה העדכנית ביותר של התוכנה לעריכת דפי מקורות בספריא. החל מה-27.4.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסאות מוקדמות יותר של תוכנת העריכה.",
-    "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting April 27, 2025. Start using the new editor now, or learn more about this important change.": "הנכם משתמשים בגרסה מוקדמת של התוכנה לעריכת דפי מקורות בספריא. החל מה-27.4.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסה זו של תוכנת העריכה. אנו ממליצים להתחיל להשתמש בגרסה המעודכנת של התוכנה.",
-    "Go Back to Old Version": "חזור לגרסה הישנה",
-    "Switch to New Editor": "עבור לעורך חדש",
     "Thank you!": "תודה רבה!",
-    "Try the new version": "להתנסוּת בגרסה החדשה",
-    "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
     "Contents": "תוכן",
@@ -620,6 +613,19 @@ const Strings = {
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
     },
+    "EditorSaveIndicator": {
+      "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
+      "Saving…": "שומר...",
+      "Saved": "נשמר",
+      "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+      "Trying to connect…": "ניסיון התחברות...",
+      "No internet connection detected": "לא זוהה חיבור לאינטרנט",
+      "User Logged out": "בוצעה התנתקות מהמערכת",
+      "Log in": "התחברות",
+      "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
+      "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
+      "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
+    },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
     },
@@ -678,6 +684,16 @@ const Strings = {
     },
     "WebPageList": {
       'Author': 'מחבר'
+    },
+    "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
+    "Loading guide...": "טוען מדריך...",
     }
   },
 };
