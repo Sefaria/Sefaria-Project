@@ -509,16 +509,6 @@ class ReaderPanel extends Component {
       return null;
     }
     
-    // !! Temp flag!! Only show guides to moderators/admins - TODO: Remove this once we have everything in place
-    if (!Sefaria.is_moderator) {
-      return null;
-    }
-    
-    // !! Temp flag!! Only show on .org site (English), not .org.il site (Hebrew) - TODO: Remove this once we have everything in place
-    if (Sefaria.interfaceLang === "hebrew") {
-      return null;
-    }
-    
     // Define all available guides and their conditions
     // ORDER MATTERS: First matching condition will be used
     const GUIDE_MAPPINGS = [
