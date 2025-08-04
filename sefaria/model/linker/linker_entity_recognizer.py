@@ -3,7 +3,7 @@ from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, RawNamedEntity, NamedEntityType
 from sefaria.helper.normalization import NormalizerComposer
-from sefaria.settings import NER_SERVER_URL
+from sefaria.settings import GPU_SERVER_URL
 import requests
 from ne_span import NESpan, NEDoc
 
@@ -42,7 +42,7 @@ class LinkerEntityRecognizer:
         @return: 2D list of RawNamedEntity's. Includes RawRefs which are a subtype of RawNamedEntity
         """
         normalized_inputs = self._normalize_input(inputs)
-        resp = requests.post(f"{NER_SERVER_URL}/bulk-recognize-entities", json={"texts": normalized_inputs, "lang": self._lang})
+        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities", json={"texts": normalized_inputs, "lang": self._lang})
         data = resp.json()
         merged_entities = []
         for input_str, result in zip(normalized_inputs, data['results']):
@@ -52,7 +52,7 @@ class LinkerEntityRecognizer:
 
     def recognize(self, input_str: str) -> [list[RawRef], list[RawNamedEntity]]:
         normalized_input = self._normalize_input([input_str])[0]
-        resp = requests.post(f"{NER_SERVER_URL}/recognize-entities", json={"text": normalized_input, "lang": self._lang})
+        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities", json={"text": normalized_input, "lang": self._lang})
         data = resp.json()
         return self._parse_recognize_response(normalized_input, data)
 
