@@ -205,7 +205,9 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
             title       = {item.title}
             heTitle     = {item.heTitle}
             enDesc      = {item.enShortDesc}
-            heDesc      = {item.heShortDesc} />
+            heDesc      = {item.heShortDesc}
+            module="sheets"
+          />
         );
 
     // Skip hidden texts
@@ -263,7 +265,7 @@ TextCategoryContents.defaultProps = {
 };
 
 
-const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc}) => {
+const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module}) => {
   const keytype  = !!cats ? "cat" : "text";
   const classes = classNames({ navBlockTitle: 1 });
   return (
@@ -273,6 +275,7 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDes
         onClick     = {onClick}
         data-cat    = {cats ? cats.slice(-1) : null} // This is only used for Selenium test, would like to get rid of it
         key         = {keytype + "." + nestLevel + "." + title}
+        data-attr-module={module || Sefaria.activeModule}
       >
         <ContentText text={{en: title, he: heTitle}} />
       </a>

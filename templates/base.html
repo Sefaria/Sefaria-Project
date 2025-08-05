@@ -96,7 +96,7 @@
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
     <link rel="stylesheet" href="{%  static 'css/fonts.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
-        
+
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
     <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
     <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
@@ -170,7 +170,22 @@
     </script>
 
     <!-- Unbounce Embed Code -->
-    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
+    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
+
+    <!-- redirect sheets to it its subdomain -->
+    <script>
+      (function() {
+        const {protocol, host, pathname, search, hash} = window.location;
+        const canSwitchToSheets = /^(?!sheets\.).*sefaria\.org/.test(host);
+        const isSheets = /^\/sheets($|\/)/.test(pathname);
+
+        if (canSwitchToSheets && isSheets) {
+          const newURL = `${protocol}//sheets.${host}${pathname.replace('/sheets', '')}${search}${hash}`;
+          window.location.replace(newURL); // Replace to avoid keeping old URL in history
+        }
+      })();
+    </script>
+
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
@@ -271,42 +286,8 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
-    
-    <!-- Default metadata for Simple Analytics -->
-    <script>
-      const SESSION_KEY = 'sa_custom_session_id';
-      if (sessionStorage.getItem(SESSION_KEY) === null) {
-        sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
-      }
-      const SA_KEY = 'sa_id';
-      if (localStorage.getItem(SA_KEY) === null) {
-        localStorage.setItem(SA_KEY, crypto.randomUUID());
-      }
-      sa_metadata = {
-        logged_in: Boolean(DJANGO_VARS.props._uid),
-        interface_lang: DJANGO_VARS.props.interfaceLang === 'hebrew' ? 'he' : 'en',
-        device_type: DJANGO_VARS.props.multiPanel ? 'desktop' : 'mobile',
-        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
-        custom_session_id: sessionStorage.getItem(SESSION_KEY),
-        sefaria_id: localStorage.getItem(SA_KEY),
-        ...(DJANGO_VARS.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
-      };
-    </script>
 
-    {% if DEBUG %}
-    <script 
-      defer 
-      data-hostname="sa-dev.sefaria.org" 
-      data-collect-dnt="true" 
-      src="https://scripts.simpleanalyticscdn.com/latest.dev.js">
-    </script>
-    {% else %}
-    <script 
-      defer 
-      data-hostname="sefaria.org" 
-      data-collect-dnt="true" 
-      src="https://scripts.simpleanalyticscdn.com/latest.js">
-    </script>
-    {% endif %}
-</body>
+    <script src="{% static 'js/service-worker-register.js' %}"></script>
+
+ </body>
 </html>
