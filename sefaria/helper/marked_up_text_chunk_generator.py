@@ -49,7 +49,9 @@ class MarkedUpTextChunkGenerator:
 
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:
-        for lang, vtitle in self._get_available_versions(segment_ref):
+        lang_title_pairs = [(version.language, version.versionTitle)
+                    for version in segment_ref.versionset().array()]
+        for lang, vtitle in lang_title_pairs:
             text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
             if not text_chunk.text:
                 logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
@@ -67,23 +69,3 @@ class MarkedUpTextChunkGenerator:
         except Exception as e:
             logger.error(f"Failed to create/save MarkedUpTextChunk for {segment_ref.normal()}, {vtitle}, {lang}: {e}")
             raise
-
-
-    def _get_available_versions(self, segment_ref: Ref) -> List[Tuple[str, str]]:
-        versions = []
-
-        # Get the index for this ref
-        index = segment_ref.index
-        version_set = index.versionSet()
-
-        for version in version_set:
-            # Check if this version has content for our specific ref
-            try:
-                text_chunk = TextChunk(segment_ref, lang=version.language, vtitle=version.versionTitle)
-                if text_chunk.text and text_chunk.text.strip():
-                    versions.append((version.language, version.versionTitle))
-            except (InputError, AttributeError):
-                # Skip versions that don't have this ref
-                continue
-
-        return versions
