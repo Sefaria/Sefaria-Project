@@ -7,7 +7,7 @@ from sefaria.model import library
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model.text import Ref
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class LinkingArgs:
@@ -16,17 +16,11 @@ class LinkingArgs:
     lang: str
     vtitle: str
 
-    @staticmethod
-    def from_dict(d: dict) -> "LinkingArgs":
-        return LinkingArgs(**d)
-
-    def to_dict(self) -> dict:
-        return asdict(self)
 
 
 @app.task(name="linker.link_segment_with_worker")
 def link_segment_with_worker(linking_args_dict: dict) -> None:
-    linking_args = LinkingArgs.from_dict(linking_args_dict)
+    linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
     output = linker.link(linking_args.text, book_context_ref=book_ref)
