@@ -132,16 +132,16 @@ const LoggedInDropdown = ({module}) => {
 }
 
 const ModuleSwitcher = () => {
-  const libraryURL = Sefaria.getModuleURL('library');
-  const sheetsURL = Sefaria.getModuleURL('sheets');
+  const libraryURL = Sefaria.getModuleURL('library')?.origin;
+  const sheetsURL = Sefaria.getModuleURL('sheets')?.origin;
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={`${libraryURL.origin}/`} newTab={Sefaria.activeModule !== "library"}>
+              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== "library"}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={`${sheetsURL.origin}/sheets`} newTab={Sefaria.activeModule !== "sheets"}>  
+              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== "sheets"}>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
@@ -401,7 +401,8 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         />
       </div>
       {module === "library" && 
-      <><a href="/texts" onClick={close} className="textsPageLink">
+      <>
+        <a href="/texts" onClick={close} className="textsPageLink">
           <img src="/static/icons/book.svg" />
           <InterfaceText context="Header">Texts</InterfaceText>
         </a>
@@ -417,7 +418,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       }
       {module === "sheets" && 
       <>
-        <a href="/sheets/topics" data-attr={"sheets"} onClick={close}>
+        <a href="/sheets/topics" data-attr-module="sheets" onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText context="Header">Topics</InterfaceText>
         </a>

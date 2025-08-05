@@ -600,7 +600,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} data-attr={isSheet ? "sheets" : "library"} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} data-attr-module={isSheet ? "sheets" : "library"} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
