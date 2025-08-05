@@ -1984,7 +1984,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   display: block;
 }
 .navSidebar a.allLink {
-  color: #999;
+  color: var(--dark-grey);
   font-size: 13px;
 }
 .navSidebar a.moreLink:hover {
@@ -3286,7 +3286,7 @@ a.cardTitle:hover {
   padding-bottom: 15px;
 }
 .bookPage .tocCategory{
-  color:#999;
+  color: var(--dark-grey);
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
