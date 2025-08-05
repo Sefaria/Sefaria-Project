@@ -138,11 +138,17 @@ class TestMarkedUpTextChunk:
             MarkedUpTextChunk(dup_payload).save()
 
     def test_incorrect_text_span(self, marked_up_chunks):
-        marked_up_chunk = marked_up_chunks["payloads"][0]
-        for span in marked_up_chunk["spans"]:
+        marked_up_chunk = marked_up_chunks["objects"][0]
+        for span in marked_up_chunk.spans:
             span["text"] = "incorrect text"
         with pytest.raises(InputError):
-            MarkedUpTextChunk(marked_up_chunk).save()
+            marked_up_chunk.save()
+
+    def test_empty_spans(self, marked_up_chunks):
+        marked_up_chunk = marked_up_chunks["objects"][0]
+        marked_up_chunk.spans = []
+        with pytest.raises(InputError):
+            marked_up_chunk.save()
 
     def test_validation_failure(self, marked_up_chunks):
         """
