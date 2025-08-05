@@ -299,7 +299,7 @@
 }
 #homePage .dedication {
   margin: -12px 0 34px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
@@ -310,7 +310,7 @@
 }
 #homePage #homeBlog .blogTag {
   text-transform: uppercase;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 20px;
   letter-spacing: 1px;
   font-size: 15px;
@@ -323,7 +323,7 @@
   text-align: justify;
 }
 #homePage a {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 #homePage a.refLink {
@@ -378,10 +378,10 @@
   margin: 0px 0;
 }
 #homeProgress .stat .int-en {
-  color: #999;
+  color: var(--medium-grey);
 }
 #homeProgress .stat .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 #homeProgress #moreMetrics {
   display: block;
@@ -395,7 +395,7 @@
 }
 #homeConnect #mailingListTitle {
   margin-bottom: 40px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 #homeConnect #mailingListTitle .int-en {
@@ -459,13 +459,13 @@
 }
 #profileSnippets > div {
   display: inline-block;
-  color: #999;
+  color: var(--medium-grey);
   margin: 2px 7px;
   font-size: 14px;
   font-weight: lighter;
 }
 #profileSnippets a {
-  color: #999
+  color: var(--medium-grey)
 }
 #profilePage #buttons {
   margin: 24px 0 50px;
@@ -621,7 +621,7 @@ input#id_email{
   margin-top: 20px;
   display: block;
   text-align: center;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   font-style: normal;
   text-decoration: none;
@@ -630,7 +630,7 @@ input#id_email{
   color: var(--dark-grey);
 }
 p.registration-links a{
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: none;
 }
 p.registration-links a:hover{
@@ -785,7 +785,7 @@ p.registration-links a:hover{
 #teamPage h2{
   font-size: 16px;
   letter-spacing: 2px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: center;
   margin-bottom: 40px;
 }
@@ -1011,7 +1011,7 @@ p.registration-links a:hover{
 }
 #accountSettingsPage input {
   width: 100%;
-  color: #999;
+  color: var(--medium-grey);
   box-sizing: border-box;
   padding: 15px 12px;
   border: none;
@@ -1027,7 +1027,7 @@ p.registration-links a:hover{
 #accountSettingsPage input::placeholder{
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
   padding-bottom: 15px;
   font-style: normal;
 }
@@ -1499,7 +1499,7 @@ p.registration-links a:hover{
 }
 #edPage .dedication {
   margin: -12px 0 34px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
@@ -1509,7 +1509,7 @@ p.registration-links a:hover{
   position: relative;
 }
 #edPage a {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 #edPage a.refLink {
@@ -1525,7 +1525,7 @@ p.registration-links a:hover{
 }
 #edConnect #mailingListTitle {
   margin-bottom: 40px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 #edConnect #mailingListEmail {
@@ -2157,7 +2157,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   line-height: 22px;
-  color: #999;
+  color: var(--medium-grey);
   font-style: normal;
 }
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox .inputWithNestedImageSubmit{

@@ -43,6 +43,7 @@ const LayoutButton = ({layoutOption, layoutState}) => {
                 value={layoutOption}
                 style={{"--url": `url(${path})`}}
                 id={`${layoutOption}${panelPosition}`}
+                label={layoutLabels[layoutOption]}
             />
         </div>
     );
