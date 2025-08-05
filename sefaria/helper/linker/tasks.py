@@ -25,7 +25,7 @@ class LinkingArgs:
 
 
 @app.task(name="linker.link_segment_with_worker")
-def link_segment_with_worker(linking_args_dict: dict) -> bool:
+def link_segment_with_worker(linking_args_dict: dict) -> None:
     linking_args = LinkingArgs.from_dict(linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
@@ -43,7 +43,6 @@ def link_segment_with_worker(linking_args_dict: dict) -> bool:
 
     _replace_existing_chunk(chunk)
     chunk.save()
-    return
 
 
 def _extract_resolved_spans(resolved_refs):
