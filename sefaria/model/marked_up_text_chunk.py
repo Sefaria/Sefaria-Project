@@ -25,6 +25,7 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         "language": {"type": "string", "allowed": ["en", "he"], "required": True},
         "spans": {
             "type": "list",
+            "empty": False,
             "schema": {
                 "type": "dict",
                 "schema": {
@@ -66,8 +67,6 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
         if existing and existing._id != getattr(self, "_id", None):
             raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found {pkey_query} to already exist in the database.")
 
-        if not self.spans:
-            raise InputError(f"{type(self).__name__}._validate(): Spans cannot be empty.")
 
         for span in self.spans:
             text = tc.text
