@@ -157,11 +157,6 @@ http {
       proxy_pass http://linker_upstream;
     }
     {{- end }}
-    {{ range $k, $v := $.Values.ingress.subdomains }}
-    location ~ ^/{{ $v }}/(.*)$ {
-        return 301 https://www.{{ $k }}.{{ tpl $i.host $ }}/$1$is_args$args;
-    }
-    {{ end }}
   } # server
 
   {{- range $k, $v := $.Values.ingress.subdomains }}
