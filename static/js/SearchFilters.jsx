@@ -223,7 +223,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   }
   // need hebrew for placeholder/title
   const clearInputButton = <button aria-label="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} aria-label={`Search ${name}`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
     <div className="searchFilterGroup">
@@ -251,7 +251,10 @@ class SearchFilterExactBox extends Component {
       <li>
         <div className="checkboxAndText">
           <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-          <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
+          <label htmlFor="searchFilterExactBox" tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}>
+            <span></span>
+            <span className="sr-only">Exact Matches Only</span>
+          </label>
         
          <span className={"filter-title"}>
             <InterfaceText>Exact Matches Only</InterfaceText>
