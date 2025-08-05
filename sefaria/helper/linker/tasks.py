@@ -19,8 +19,7 @@ def link_segment_with_worker(raw_input: dict) -> bool:
 
     spans = _extract_resolved_spans(output.resolved_refs)
     if not spans:
-        print(f"No spans found for {raw_input['ref']} in {raw_input['lang']}")
-        return True
+        return
     chunk = MarkedUpTextChunk({
         "ref": raw_input["ref"],
         "versionTitle": raw_input["vtitle"],
@@ -30,7 +29,7 @@ def link_segment_with_worker(raw_input: dict) -> bool:
 
     _replace_existing_chunk(chunk)
     chunk.save()
-    return True
+    return
 
 
 def _extract_resolved_spans(resolved_refs):
