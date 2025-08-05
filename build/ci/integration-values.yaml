@@ -2,8 +2,6 @@ sandbox: "false"
 contentSandbox: "true"
 deployEnv:  
 previousServicesCount: "1"
-mongo:
-  enabled: true
 restore:
   enabled: false
   cleanup: false
