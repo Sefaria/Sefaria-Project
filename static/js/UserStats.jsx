@@ -74,7 +74,11 @@ const UserStatModeChooser = ({modes, activeMode, setMode}) => (
 
 const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
     <div className={"userStatModeButton" + (thisMode === activeMode?" active":"")}
-         onClick  ={()=>setMode(thisMode)}>
+         onClick={()=>setMode(thisMode)}
+         role="button" 
+         tabIndex="0" 
+         aria-label={`Switch to ${thisMode} mode`}
+         aria-pressed={thisMode === activeMode}>
         <span>{Sefaria._(thisMode)}</span>
     </div>
 );

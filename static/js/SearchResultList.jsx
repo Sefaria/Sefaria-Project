@@ -206,7 +206,11 @@ SearchSortBox.propTypes = {
 
 
 const SearchFilterButton = ({openMobileFilters, nFilters}) => (
-  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} onClick={openMobileFilters}>
+  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} 
+       onClick={openMobileFilters} 
+       role="button" 
+       tabIndex="0" 
+       aria-label={`Open filters${nFilters ? ` (${nFilters} active)` : ''}`}>
     <InterfaceText>Filter</InterfaceText>
     {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>
