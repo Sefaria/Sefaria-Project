@@ -49,6 +49,25 @@ test('TC003: Add Text', async () => {
   await expect(textLocator).toBeVisible();
 });
 
+test('TC004: Format text', async () => {
+  await page.goto(sheetUrl);
+  await hideAllModalsAndPopups(page);
+  await sheetEditorPage.addText('format');
+  await page.getByText('format').dblclick();
+  await sheetEditorPage.makeTextHeadingButton().click();
+  await sheetEditorPage.makeNumberedListButton().click();
+  await sheetEditorPage.makeBulletedListButton().click();
+  await sheetEditorPage.boldTextButton().click();
+  await sheetEditorPage.italicTextButton().click();
+  await sheetEditorPage.highlightTextButton().click();
+  await sheetEditorPage.highlightTextButton().click();
+  await sheetEditorPage.underlineTextButton().click();
+  await sheetEditorPage.makeTextLinkButton().click();
+  await page.getByRole('textbox', { name: 'Enter link URL' }).fill('www.sefaria.org');
+
+});
+
+
 test('TC007: Add Image (followed by text)', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
@@ -70,6 +89,20 @@ test('TC004: Add Source (followed by text)', async () => {
 
 });
 
+test('TC0: Format Source Text', async () => {
+  await page.goto(sheetUrl);
+  await hideAllModalsAndPopups(page);
+  await sheetEditorPage.addSampleSource();
+  await expect(sheetEditorPage.addedSource()).toBeVisible();
+  await sheetEditorPage.sourceSheetBody().click();
+  await page.getByText('בָּרָ֣א').dblclick();
+  await sheetEditorPage.boldSourceTextButton().click();
+  await sheetEditorPage.underlineSourceTextButton().click();
+  await sheetEditorPage.highlightSourceTextButton().click();
+  await page.locator('.highlightButton').first().click();
+  await sheetEditorPage.italicSourceTextButton().click();
+});
+
 test('TC005: Add Media - Spotify (followed by text)', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
@@ -85,7 +118,8 @@ test('TC006: Add Media - Youtube (followed by text)', async () => {
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.addSampleMedia('https://www.youtube.com/watch?v=Vmwc02Q7DEA');
   await expect(sheetEditorPage.addedYoutube()).toBeVisible();
-  await page.waitForTimeout(2000);
+  // Wait for YouTube iframe to be fully loaded and stable
+  await expect(sheetEditorPage.addedYoutube().locator('iframe')).toBeVisible();
   await page.keyboard.press('Enter');   
   await sheetEditorPage.addText('Text after YouTube');
   const textLocator = await sheetEditorPage.getTextLocator('Text after YouTube');
@@ -235,11 +269,8 @@ test('TC018: Manually delete sheet from account profile', async () => {
   await expect(sheetRow).toBeVisible();
   const deleteButton = sheetRow.locator('.sheetRight img[title="Delete"]');
   await expect(deleteButton).toHaveCount(1);
-  let dialogHandled = false;
   page.once('dialog', async dialog => {
-    console.log('Dialog appeared:', dialog.message());
     await dialog.accept();
-    dialogHandled = true;
   });
   await sheetRow.evaluate((el) => {
     const deleteBtn = el.querySelector('.sheetRight img[title="Delete"]') as HTMLElement;
@@ -260,10 +291,9 @@ test('TC018: Manually delete sheet from account profile', async () => {
     }
     return false;
   });
-  // Wait for potential dialog and network request
-  await page.waitForTimeout(3000);
+  // Wait for the sheet to be deleted by checking if it's no longer visible
   const deletedSheetRow = page.locator('.sheet').filter({ has: page.locator(`a.sheetTitle:has-text("${uniqueTitle}")`) }).first();
-  await expect(deletedSheetRow).not.toBeVisible();
+  await expect(deletedSheetRow).not.toBeVisible({ timeout: 10000 });
 });
 
 

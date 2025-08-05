@@ -94,7 +94,6 @@ export class SheetEditorPage extends HelperBase {
     
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
     closeSheetEditorButton = () => this.page.locator('a.readerNavMenuCloseButton');
-    //or page.getByRole('link', { name: 'Close' })
     readerHeader = () => this.page.locator('header.readerControls.fullPanel.sheetReaderControls');
     topTitle = () => this.page.locator('a[aria-label*="Show Connection Panel contents"]'); 
     title = () => this.page.locator('.title');
@@ -108,6 +107,22 @@ export class SheetEditorPage extends HelperBase {
     addSourceButton = () => this.page.locator('#addSourceButton');
     addImageButton = () => this.page.locator('#addImageButton');
     addMediaButton = () => this.page.locator('#addMediaButton');
+
+    //Text formatting locators - regular text
+    boldTextButton = () => this.page.locator('.hoverMenu i.fa.fa-bold');
+    italicTextButton = () => this.page.locator('.hoverMenu i.fa.fa-italic');
+    underlineTextButton = () => this.page.locator('.hoverMenu i.fa.fa-underline');
+    highlightTextButton = () => this.page.locator('.hoverMenu i.fa.fa-pencil');
+    makeTextLinkButton = () => this.page.locator('.hoverMenu i.fa.fa-link');
+    makeTextHeadingButton = () => this.page.locator('.hoverMenu i.fa.fa-header');
+    makeBulletedListButton = () => this.page.locator('.hoverMenu i.fa.fa-list-ul');
+    makeNumberedListButton = () => this.page.locator('.hoverMenu i.fa.fa-list-ol');
+
+    //Text formatting locators - source text (more specific)
+    boldSourceTextButton = () => this.page.locator('div:nth-child(3) > span > .fa.fa-bold');
+    underlineSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(3) > .fa.fa-underline');
+    highlightSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(4) > .fa.fa-pencil');
+    italicSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(2) > .fa.fa-italic');
     
     // Sheet Body---------------------------------------------
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
