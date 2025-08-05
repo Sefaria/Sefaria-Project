@@ -15,7 +15,7 @@ class MarkedUpTextChunkGenerator:
         """Initialize the generator with necessary components."""
         pass
 
-    def create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str):
+    def create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
         linking_args = LinkingArgs(ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle)
         link_segment_with_worker.apply_async(args=[linking_args.to_dict()], queue="linker")
 
