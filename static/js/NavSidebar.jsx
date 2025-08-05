@@ -9,7 +9,7 @@ import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
 const NavSidebar = ({sidebarModules}) => {
-  return <div className="navSidebar sans-serif">
+  return <aside className="navSidebar sans-serif" role="complementary" aria-label="Sidebar navigation">
     {sidebarModules.map((m, i) =>
       <SidebarModules
         type={m.type}
@@ -17,7 +17,7 @@ const NavSidebar = ({sidebarModules}) => {
         key={i} />
     )}
     <SidebarFooter />
-  </div>
+  </aside>
 };
 
 

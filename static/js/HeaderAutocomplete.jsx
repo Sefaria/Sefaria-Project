@@ -252,7 +252,9 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
 
     return (
       <div id="searchBox"
-           className={searchBoxClasses}>
+           className={searchBoxClasses}
+           role="search"
+           aria-label="Site search">
         <SearchButton onClick={handleSearchButtonClick} />
         <input
           className={inputClasses}

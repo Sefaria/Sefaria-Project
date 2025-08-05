@@ -74,7 +74,7 @@ class SearchFilters extends Component {
     }));
 
     return Sefaria.multiPanel && !this.props.compare ? (
-      <div className="searchFilters navSidebarModule">
+      <div className="searchFilters navSidebarModule" role="search" aria-label="Search filters">
         {filters}
       </div>
     ) : (
@@ -84,7 +84,7 @@ class SearchFilters extends Component {
           <InterfaceText>Filters</InterfaceText>
           <div></div>
         </div>
-        <div className="searchFilters navSidebarModule">
+        <div className="searchFilters navSidebarModule" role="search" aria-label="Search filters">
           <div className="searchFilterGroup">
             <h2>
               <InterfaceText>Sort by</InterfaceText>
