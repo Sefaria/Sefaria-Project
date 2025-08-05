@@ -19,26 +19,37 @@ body:not(.user-is-tabbing) *:focus {
 /* Skip Link for Accessibility */
 .skip-link {
   position: fixed;
-  top: -50px;
+  top: -80px;
   left: 10px;
   z-index: 9999;
-  padding: 8px 12px;
-  background: #18345D;
+  padding: 10px 20px;
+  background-color: var(--sefaria-blue);
   color: white !important;
   text-decoration: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border-radius: 6px;
+  font-size: 16px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
   transition: top 0.3s ease;
+  line-height: 19px;
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  font-family: var(--hebrew-font-conditional, var(--english-font));
 }
 
 .skip-link:focus {
   top: 10px;
-  background: #0056b3;
+  background-color: var(--sefaria-blue);
   outline: 2px solid #fff;
   outline-offset: 2px;
+}
+
+.skip-link:hover {
+  text-decoration: none;
 }
 
 a, a:hover {
