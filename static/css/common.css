@@ -720,7 +720,7 @@ a:active {
 }
 .static label .sub {
   font-size: 12px;
-  color: #999;
+  color: var(--medium-grey);
   letter-spacing: normal;
   white-space: nowrap;
 }
