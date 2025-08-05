@@ -201,7 +201,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-size: 83%;
 }
 .readerPanel span.mediumGrey {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -1282,7 +1282,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 
 #defaultModal #defaultModalBody .sub {
-    color: var(--dark-grey);
+    color: var(--medium-grey);
     font-size: 12px;
     font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
@@ -1806,7 +1806,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   margin-block-start: 5px;
 }
 .singlePanel .recentlyViewed #history span {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .gDocAdvertBox {
@@ -2428,7 +2428,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .sideColumn .sideList .topicMetaData .int-en,
 .topicPanel .sideColumn .sideList .topicMetaData .int-he {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -2758,7 +2758,7 @@ input.resourcesLink {
   visibility: visible;
 }
 .savedHistoryList .timeStamp {
-  color:  var(--dark-grey);
+  color:  var(--medium-grey);
   font-size: 14px;
   margin-inline-start: 10px;
 }
@@ -3028,7 +3028,7 @@ a.cardTitle:hover {
   align-items: center;
 }
 .featuredSheetDate {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 14px;
 }
 .communityPage .recentlyPublished {
@@ -3613,7 +3613,7 @@ a.cardTitle:hover {
   margin: 0;
   padding: 0 4px;
   line-height: 30px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
@@ -3694,7 +3694,7 @@ a.cardTitle:hover {
   font-size: 14px;
   position: relative;
   top: -2px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
@@ -3840,7 +3840,7 @@ a.cardTitle:hover {
   flex-wrap: wrap;
   font-size: 14px;
   line-height: 22px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 5px;
 }
 .version-with-preview-title-line .open-details {
@@ -3884,7 +3884,7 @@ details .open-details::before {
 .version-with-preview-title-line .selectButton::before {
   content: "•";
   margin-inline-end: 5px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .version-block-with-preview-details {
   background-color: var(--lighter-grey);
@@ -4280,7 +4280,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
-  border-bottom: 4px solid var(--dark-grey);
+  border-bottom: 4px solid var(--medium-grey);
 }
 
 .searchContent .searchResultList {
@@ -4507,7 +4507,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--dark-grey);
 }
 .searchContent .searchFilterBoxes li .fa {
-  color:  var(--dark-grey);
+  color:  var(--medium-grey);
   font-size: 20px;
 }
 .searchContent .searchFilterBooks {
@@ -4648,7 +4648,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
   font-size: 45px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   height: 20px;
   display: block;
   line-height: 20px;
@@ -8517,7 +8517,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex: 1;
 }
 .notification .date {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 14px;
   margin-inline-start: 15px;
 }
@@ -8705,11 +8705,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   line-height: 19px;
   text-align: center;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   box-shadow: none;
 }
 .button.disabled:hover{
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   cursor: initial;
 }
 a.button {
@@ -9769,7 +9769,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-inline-end: 10px;
 }
 .collectionMemberListingPic.invitation {
-  background-color: var(--dark-grey);
+  background-color: var(--medium-grey);
   border-radius: 1000px;
   width: 40px;
   height: 40px;
@@ -9867,7 +9867,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .topicsFilterReset {
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .topicsFilterResetIcon {
   height: 16px;
@@ -10014,7 +10014,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 div.aboutSheetMetadata {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-small-font-size);
@@ -10659,7 +10659,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .aboutComposed{
   font-size: 14px;
   line-height: 18px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .guideBox .guideHeader {
   color: var(--dark-grey);
@@ -10703,7 +10703,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .guideBox .guidePromptBox span {
   font-size: 14px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-top: 10px;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
@@ -11547,7 +11547,7 @@ background-color: white;
 .addInterfaceInput input+span.helperCompletionText {
   position: absolute;
   margin-inline-start: 4px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .editorAddInterface.active .editorAddInterfaceButton {
@@ -14106,7 +14106,7 @@ span.ref-link-color-3 {color: blue}
 .beitMidrashUser .userDetailsToggle {
   float: inline-end;
   margin-inline-end: 15px;
-  color:  var(--dark-grey);
+  color:  var(--medium-grey);
   font-weight: bolder;
   display: none;
 }
