@@ -705,7 +705,7 @@ a:active {
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   border: none;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
   background-color: white;
   -webkit-appearance: none;

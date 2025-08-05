@@ -60,7 +60,7 @@
   font-size: 16px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -101,7 +101,7 @@
   color: #333;
 }
 .static a.button.transparent {
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .refLink {
   text-decoration: none;
@@ -139,10 +139,10 @@
 .static .quotation {
   text-align: center;
   font-weight: bold;
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .quotation a {
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .quotation he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -292,7 +292,7 @@
 }
 #homePage .description .int-en,
 #homePage .description .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 #homePage .description .int-he {
   font-style: normal;
@@ -345,7 +345,7 @@
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 20px;
   border-bottom: none;
   text-transform: uppercase;
@@ -455,7 +455,7 @@
 #profileTagline {
   margin-bottom: 24px;
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
 }
 #profileSnippets > div {
   display: inline-block;
@@ -501,7 +501,7 @@
 }
 #activityList {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   padding: 0;
 }
 .interface-hebrew #activityList {
@@ -627,14 +627,14 @@ input#id_email{
   text-decoration: none;
 }
 .registrationContent a.registration-links:hover{
-  color: #666;
+  color: var(--dark-grey);
 }
 p.registration-links a{
   color: #999;
   text-decoration: none;
 }
 p.registration-links a:hover{
-  color: #666;
+  color: var(--dark-grey);
   text-decoration: none;
 }
 #visualizationsPage {
@@ -860,7 +860,7 @@ p.registration-links a:hover{
   line-height: 2;
 }
 #editProfilePage {
-  color: #666;
+  color: var(--dark-grey);
 }
 #editProfilePage .inner {
   position: relative;
@@ -1044,7 +1044,7 @@ p.registration-links a:hover{
   color: #CB6158;
 }
 #accountSettingsPage #email-edit-ok{
-  color: #666;
+  color: var(--dark-grey);
 }
 #accountSettingsPage #reading-history-warning{
   display: none;
@@ -1066,7 +1066,7 @@ p.registration-links a:hover{
   line-height: 1.1em;
 }
 #personPage #bio{
-  color: #666;
+  color: var(--dark-grey);
 }
 #personPage a,
 #peoplePage a,
@@ -1103,7 +1103,7 @@ p.registration-links a:hover{
   padding-top: 10px;
 }
 #peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
 }
 #talmudicPeoplePage .talmudic-generation {
@@ -1158,7 +1158,7 @@ p.registration-links a:hover{
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #activityPage #activityFeed {
-  color: #666;
+  color: var(--dark-grey);
 }
 #activityPage #activityFeed a {
   color: #333;
@@ -1290,7 +1290,7 @@ p.registration-links a:hover{
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   direction: ltr;
@@ -1320,7 +1320,7 @@ p.registration-links a:hover{
   padding: 0;
 }
 #digitizedBySefaria .sub {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 13px;
 }
 #digitizedBySefaria ul {
@@ -2019,7 +2019,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-feature-settings: 'cpsp' on;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
   text-align: end;
@@ -2101,7 +2101,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
   line-height: 58px;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: initial;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
@@ -2148,7 +2148,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 289px;
   height: 46px;
   background: #FFFFFF;
-  border: 1px solid #666666;
+  border: 1px solid var(--dark-grey);
   box-sizing: border-box;
   border-radius: 6px;
 }
@@ -2195,7 +2195,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 26px;
   text-align: center;
   letter-spacing: 0.1em;
-  color: #666666;
+  color: var(--dark-grey);
   margin: 5% 10%;
   justify-content: space-around;
 }
@@ -2554,7 +2554,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-feature-settings: 'cpsp' on;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
   text-align: end;
@@ -2592,7 +2592,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
   line-height: 58px;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: initial;
 }
 
@@ -2914,7 +2914,7 @@ display: none;
   font-weight: 500;
   font-size: 30px;
   line-height: 35px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .staticPage.donate .staticPageH2 span {
   color: #000;
@@ -3106,7 +3106,7 @@ display: none;
 .staticPageAbout h2 {
   font-size: 22px;
   font-weight: 500;
-  color: #666;
+  color: var(--dark-grey);
   line-height: 26px;
   margin: 0 0 19px 0;
 }
@@ -3298,7 +3298,7 @@ form.globalUpdateForm + div.notificationsList {
 }
 #supportersPage p{
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   text-align: left;
   max-width: revert;
 }
@@ -3366,7 +3366,7 @@ form.globalUpdateForm + div.notificationsList {
   min-width: max-content;
   padding: 10px;
   margin: 0;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #aboutSidebar a {
   text-decoration: none !important;

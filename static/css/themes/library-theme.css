@@ -55,7 +55,7 @@ button:disabled[data-active-module="sheets"],
 button.secondary:disabled[data-active-module="sheets"]{
   /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
   --theme-button-background: var(--lightest-grey);
-  --theme-button-text: var(--medium-grey);
+  --theme-button-text: var(--dark-grey);
   --theme-button-icon-filter: brightness(0) saturate(100%) invert(66%) sepia(0%) saturate(1333%) hue-rotate(200deg) brightness(92%) contrast(91%);;  /* --medium-grey */
   --theme-button-border: var(--light-grey);
   --theme-button-dropshadow: none;
