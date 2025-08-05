@@ -999,7 +999,7 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
     return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
-        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
+        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"} alt="Edit topic"/>;
 }
 
 const ReorderEditorWrapper = ({toggle, type, data}) => {
@@ -1275,7 +1275,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               <div className="interfaceLinks-options trans-pref-header-container">
                 <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <img src="/static/img/circled-x.svg" className="reset-btn" alt="Reset" />
                   <span className="smallText">
                     <InterfaceText>Reset</InterfaceText>
                   </span>
@@ -1732,7 +1732,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt="Not published"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1743,7 +1743,7 @@ const SheetListing = ({
   const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
   const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
                     pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
-  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
+  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} alt={pinMessage} />
 
   return (
     <div className="sheet" key={sheet.sheetUrl}>
@@ -1767,12 +1767,12 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           collectable ?
-            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} alt="Add to Collection" />
             : null
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} alt="Delete" />
             : null
         }
         {
@@ -1812,7 +1812,7 @@ const CollectionListing = ({data}) => {
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg"/>
+                <img src="/static/img/eye-slash.svg" alt="Unlisted"/>
                 <InterfaceText>Unlisted</InterfaceText>
               </span>) }
 
@@ -1846,7 +1846,7 @@ class Note extends Component {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt="Note author profile picture" />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
         </div>) : null;

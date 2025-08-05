@@ -884,7 +884,7 @@ const WhoToFollow = ({toggleSignUpModal}) => (
 
 const Image = ({url}) => (
   <SidebarModule>
-    <img className="imageModuleImage" src={url} />
+    <img className="imageModuleImage" src={url} alt="Module image" />
   </SidebarModule>
 );
 

@@ -148,7 +148,7 @@ const OverallActivityBlock = ({user_data}) => (
 
 const StatCard = ({icon_file, name, number}) => (
     <div className="statcard">
-        <img src={"static/img/" + icon_file}/>
+        <img src={"static/img/" + icon_file} alt={name}/>
         <div className="statcardValue">{number}</div>
         <div className="statcardLabel">{Sefaria._(name)}</div>
     </div>

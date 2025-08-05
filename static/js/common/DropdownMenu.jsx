@@ -57,7 +57,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
-        <img src={icon} />
+        <img src={icon} alt="Menu icon" />
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>

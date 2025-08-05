@@ -537,7 +537,7 @@ const UserBackground = ({profile: p, showBio, multiPanel}) => {
             // we only store twitter handles so twitter needs to be hardcoded
             <span>
         {
-          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s === 'twitter' ? 'https://twitter.com/' : s === 'youtube' ? 'https://www.youtube.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} /></a>))
+          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={(s === 'twitter' ? 'https://twitter.com/' : s === 'youtube' ? 'https://www.youtube.com/' : '') + p[s]}><img src={`/static/img/${s}.svg`} alt={`${s} profile`} /></a>))
         }
       </span>
         );

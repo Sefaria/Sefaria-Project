@@ -1243,7 +1243,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt="User uploaded media" />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>

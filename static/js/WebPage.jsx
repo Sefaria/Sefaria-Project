@@ -36,7 +36,7 @@ AuthorString.propTypes = {
 
 const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, articleSource, anchorRef}) => {
   return (<div className={"webpage" + (isHebrew ? " hebrew" : "")} key={url}>
-    <img className="icon" src={favicon} />
+    <img className="icon" src={favicon} alt="Website icon" />
     <a className="title" href={url} target="_blank">{title}</a>
     <div className="domain">{domain}</div>
     {description ? <div className="description">{description}</div> : null}

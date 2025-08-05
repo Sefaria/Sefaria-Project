@@ -2489,7 +2489,7 @@ const UserQuote = ({enText, heText, image, enName, heName}) =>
             <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
         </div>
         <div className="staticPageUserQuoteNameBox">
-            <img src={image} />
+            <img src={image} alt="User profile image" />
             <div className="staticPageUserQuoteName">
                 <span className="int-en" dangerouslySetInnerHTML={{__html:enName}} />
                 <span className="int-he" dangerouslySetInnerHTML={{__html:heName}} />
@@ -2500,7 +2500,7 @@ const UserQuote = ({enText, heText, image, enName, heName}) =>
 const Sheet = ({title, link, author, image}) =>
     <div className="staticPageSheetItem">
         <a href={link}>{title}</a>
-        <img src={image}/>
+        <img src={image} alt="Sheet thumbnail"/>
         <span className="staticPageSheetAuthor">{author}</span>
     </div>;
 
