@@ -2664,7 +2664,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
         {<img src={stateToIcon[state]} alt={localize(state)} />}
-        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
 }

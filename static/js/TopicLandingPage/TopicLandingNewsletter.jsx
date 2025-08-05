@@ -98,7 +98,7 @@ export const TopicLandingNewsletter = () => {
             </div>
             <div className="">
                 {subscribeErrorMessage ?
-                    <div className="subscribeErrorMessage">{Sefaria._(subscribeErrorMessage)}</div>
+                    <div className="subscribeErrorMessage" role="alert" aria-live="assertive">{Sefaria._(subscribeErrorMessage)}</div>
                     : null}
             </div>
         </div>

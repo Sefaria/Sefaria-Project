@@ -458,8 +458,8 @@ const RemoveLinksFromCsv = () => {
                 <br/>
                 <input type="submit" value="Submit" disabled={!fileName} />
             </form>
-            {uploadMessage && <div>{uploadMessage}</div>}
-            {errorMessage && <div dangerouslySetInnerHTML={{__html: errorMessage}}/> }
+            {uploadMessage && <div aria-live="polite">{uploadMessage}</div>}
+            {errorMessage && <div role="alert" aria-live="assertive" dangerouslySetInnerHTML={{__html: errorMessage}}/> }
         </div>
     );
 };

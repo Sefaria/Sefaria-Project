@@ -2476,7 +2476,7 @@ class LoadingMessage extends Component {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
-    return (<div className={classes}>
+    return (<div className={classes} aria-live="polite" aria-label="Loading status">
               <InterfaceText>
                 <EnglishText>{message}</EnglishText>
                 <HebrewText>{heMessage}</HebrewText>
@@ -2611,7 +2611,7 @@ class FeedbackBox extends Component {
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
             {this.state.alertmsg ?
-                <div>
+                <div role="alert" aria-live="assertive">
                     <p className="int-en">{this.state.alertmsg}</p>
                     <p className="int-he">{this.state.alertmsg}</p>
                 </div>
