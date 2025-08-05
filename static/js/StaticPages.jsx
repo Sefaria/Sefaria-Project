@@ -2372,10 +2372,10 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
   return <span>
       <div className="simpleButtonWrapper signUpEducators">
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})}>
-          <span className="int-en">{email.length === 0 ? <a href={redirectURL}>{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+          <span className="int-en">{email.length === 0 ? <a href={redirectURL}>{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg" alt="Submit"/></span>
         </div>
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-          <span className="int-he">{email.length === 0 ? <a href={redirectURL}>{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
+          <span className="int-he">{email.length === 0 ? <a href={redirectURL}>{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg" alt="Submit"/></span>
         </div>
       </div>
       <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>

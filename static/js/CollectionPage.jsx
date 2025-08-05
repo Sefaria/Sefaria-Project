@@ -350,7 +350,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 const EditCollectionButton = ({slug}) => (
   <a className="button small white" href={`/sheets/collections/${slug}/settings`}>
-    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
+    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" alt="Edit collection" /><InterfaceText>Edit</InterfaceText>
   </a>
 );
 
@@ -518,7 +518,7 @@ class CollectionInvitationListing extends Component {
     return (
       <div className="collectionMemberListing">
         <div className="collectionMemberListingPic invitation">
-          <img src="/static/icons/mail.svg" />
+          <img src="/static/icons/mail.svg" alt="Subscribe to newsletter" />
         </div>
         <div className="collectionMemberListingText">
           <span className="collectionMemberListingName">
