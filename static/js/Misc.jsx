@@ -1216,7 +1216,7 @@ class DisplaySettingsButton extends Component {
       icon = <span className="textIcon">Aa</span>;
     }
     return (
-            <ToolTipped {...{ altText, classes, onClick: this.props.onClick, style}}>
+            <ToolTipped {...{ altText, classes, style}}>
                 <span
                 className="readerOptions"
                 aria-haspopup="true">
@@ -1403,11 +1403,32 @@ ArrowButton.propTypes = {
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
+  const handleClick = (e) => {
+    if (onClick) {
+      TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext);
+    }
+  };
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { 
+      e.preventDefault(); 
+      if (onClick) {
+        handleClick(e);
+      } else {
+        // If no onClick prop, create a synthetic click event that will bubble up
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        e.target.dispatchEvent(clickEvent);
+      }
+    }
+  };
   return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
-    onKeyPress={e => {e.key === 'Enter' ? onClick(e): null}}>
+    style={style} onClick={handleClick}
+    onKeyDown={handleKeyDown}>
     { children }
   </div>
 )};
