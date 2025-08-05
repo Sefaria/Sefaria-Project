@@ -21,7 +21,7 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                         data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
                         data-attr-module={Sefaria.activeModule}
                       >
-                        <InterfaceText text={bottomLinkText}/>
+                      <InterfaceText markdown={{en: bottomLinkText.en, he: bottomLinkText.he}} disallowedMarkdownElements={['p', 'a']}/>
                       </a>
                     </div>
                 }

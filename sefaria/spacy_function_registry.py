@@ -1,7 +1,11 @@
-import spacy, re
-from spacy.tokenizer import Tokenizer
+import re
+try:
+    import spacy
+    from spacy.tokenizer import Tokenizer
+except ImportError:
+    spacy = Tokenizer = None
 
-@spacy.registry.tokenizers("inner_punct_tokenizer")
+
 def inner_punct_tokenizer_factory():
     def inner_punct_tokenizer(nlp):
         # infix_re = spacy.util.compile_infix_regex(nlp.Defaults.infixes)
@@ -14,3 +18,16 @@ def inner_punct_tokenizer_factory():
                          infix_finditer=infix_re.finditer,
                          token_match=None)
     return inner_punct_tokenizer
+
+
+if spacy:
+    spacy.registry.tokenizers("inner_punct_tokenizer")(inner_punct_tokenizer_factory)
+
+
+def get_spacy_tokenizer():
+    """
+    language agnostic spacy tokenizer that uses inner punctuation
+    @return:
+    """
+    nlp = spacy.blank("en")
+    return inner_punct_tokenizer_factory()(nlp)

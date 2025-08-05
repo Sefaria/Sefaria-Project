@@ -1,16 +1,11 @@
-from typing import List, Union, Dict, Optional, Tuple, Iterable
+from typing import Union, Optional, Iterable
 from enum import Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import schema
+from sefaria.model.linker.ne_span import NESpan, NEDoc
 import structlog
 logger = structlog.get_logger(__name__)
-try:
-    import spacy
-    from spacy.tokens import Span, Token, Doc
-    from spacy.language import Language
-except ImportError:
-    spacy = Doc = Span = Token = Language = None
 
 
 # keys correspond named entity labels in spacy models
@@ -48,8 +43,6 @@ LABEL_TO_NAMED_ENTITY_TYPE_ATTR = {
     "Citation": "CITATION",
 }
 
-SpanOrToken = Union[Span, Token]  # convenience type since Spans and Tokens are very similar
-
 
 class TrieEntry:
     """
@@ -67,27 +60,6 @@ class LeafTrieEntry:
 
 # static entry which represents a leaf entry in MatchTemplateTrie
 LEAF_TRIE_ENTRY = LeafTrieEntry()
-
-
-def span_inds(span: SpanOrToken) -> Tuple[int, int]:
-    """
-    @return: start and end word-indices for `span`, relative to `spacy.Doc` which contains the span.
-    """
-    start = span.start if isinstance(span, Span) else span.i
-    end = span.end if isinstance(span, Span) else (span.i+1)
-    return start, end
-
-
-def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
-    """
-    @param span:
-    @return: start and end char-indices for `span`, relative to `spacy.Doc` which contains the span.
-    """
-    if isinstance(span, Span):
-        return span.start_char, span.end_char
-    elif isinstance(span, Token):
-        idx = span.idx
-        return idx, idx + len(span)
 
 
 class NamedEntityType(Enum):
@@ -129,15 +101,15 @@ class RawRefPart(TrieEntry, abst.Cloneable):
     key_is_id = False
     max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation.
 
-    def __init__(self, type: RefPartType, span: Optional[SpanOrToken], potential_dh_continuation: SpanOrToken = None):
+    def __init__(self, type: RefPartType, span: Optional[NESpan], potential_dh_continuation: NESpan = None):
         self.span = span
         self.type = type
         self.potential_dh_continuation = self.__truncate_potential_dh_continuation(potential_dh_continuation)
 
-    def __truncate_potential_dh_continuation(self, potential_dh_continuation: SpanOrToken) -> Optional[SpanOrToken]:
-        if potential_dh_continuation is None or isinstance(potential_dh_continuation, Token):
+    def __truncate_potential_dh_continuation(self, potential_dh_continuation: NESpan) -> Optional[NESpan]:
+        if potential_dh_continuation is None:
             return potential_dh_continuation
-        return potential_dh_continuation[:self.max_dh_continuation_len]
+        return potential_dh_continuation.subspan_by_word_indices(slice(0, self.max_dh_continuation_len))
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, {self.type}"
@@ -163,9 +135,12 @@ class RawRefPart(TrieEntry, abst.Cloneable):
 
     @property
     def dh_cont_text(self):
-        return '' if self.potential_dh_continuation is None else self.potential_dh_continuation.text
+        cont = self.potential_dh_continuation
+        if not cont:
+            return ""
+        return cont.text
 
-    def get_dh_text_to_match(self, lang: str) -> Iterable[Tuple[str, int]]:
+    def get_dh_text_to_match(self, lang: str) -> Iterable[tuple[str, int]]:
         import re2
         reg = r'^(?:ב?ד"ה )?(.+?)$' if lang == 'he' else r'^(?:s ?\. ?v ?\. )?(.+?)$'
         match = re2.match(reg, self.text)
@@ -177,9 +152,9 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         # no matter what yield just the dh
         yield dh, 0
 
-    def __enumerate_potential_dh_continuations(self, dh: str) -> Iterable[Tuple[str, int]]:
-        for potential_dh_token_idx in range(len(self.potential_dh_continuation), 0, -1):
-            temp_dh = f"{dh} {self.potential_dh_continuation[:potential_dh_token_idx]}"
+    def __enumerate_potential_dh_continuations(self, dh: str) -> Iterable[tuple[str, int]]:
+        for potential_dh_token_idx in range(self.potential_dh_continuation.word_length(), 0, -1):
+            temp_dh = f"{dh} {self.potential_dh_continuation.subspan_by_word_indices(slice(0, potential_dh_token_idx)).text}"
             yield temp_dh, potential_dh_token_idx
 
     @property
@@ -187,22 +162,21 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         return isinstance(self, ContextPart)
 
     @property
-    def char_indices(self) -> Tuple[int, int]:
+    def char_indices(self) -> [int, int]:
         """
         Return start and end char indices of underlying text
         """
-        return span_char_inds(self.span)
+        return self.span.range if self.span else None
 
-    def realign_to_new_raw_ref(self, old_raw_ref_span: SpanOrToken, new_raw_ref_span: SpanOrToken):
+    def realign_to_new_raw_ref(self, old_raw_ref_span: NESpan, new_raw_ref_span: NESpan):
         """
         If span of raw_ref backing this ref_part changes, use this to align self.span to new raw_ref span
         """
-        new_raw_ref_doc = new_raw_ref_span.as_doc()
-        part_start, part_end = span_inds(self.span)
-        old_raw_start, _ = span_inds(old_raw_ref_span)
-        new_raw_start, _ = span_inds(new_raw_ref_span)
+        part_start, part_end = self.span.range
+        old_raw_start, _ = old_raw_ref_span.range
+        new_raw_start, _ = new_raw_ref_span.range
         offset = new_raw_start - old_raw_start
-        return self.clone(span=new_raw_ref_doc[part_start-offset:part_end-offset])
+        return self.clone(span=new_raw_ref_span.subspan(slice(part_start-offset, part_end-offset)))
 
     def merge(self, other: 'RawRefPart') -> None:
         """
@@ -210,8 +184,8 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         Assumes other has same type as self
         """
         assert other.type == self.type
-        self_start, self_end = span_inds(self.span)
-        other_start, other_end = span_inds(other.span)
+        self_start, self_end = self.span.range
+        other_start, other_end = other.span.range
         if other_start < self_start:
             other.merge(self)
             return
@@ -287,7 +261,7 @@ class RangedRawRefParts(RawRefPart):
     """
     Container for ref parts that represent the sections and toSections of a ranged ref
     """
-    def __init__(self, sections: List[RawRefPart], toSections: List[RawRefPart], **kwargs):
+    def __init__(self, sections: list[RawRefPart], toSections: list[RawRefPart], **kwargs):
         super().__init__(RefPartType.RANGE, self._get_full_span(sections, toSections))
         self.sections = sections
         self.toSections = toSections
@@ -302,11 +276,12 @@ class RangedRawRefParts(RawRefPart):
         return not self.__eq__(other)
 
     @staticmethod
-    def _get_full_span(sections, toSections):
+    def _get_full_span(sections: list[RawRefPart], toSections: list[RawRefPart]) -> NESpan:
         start_span = sections[0].span
-        start_token_i = span_inds(start_span)[0]
-        end_token_i = span_inds(toSections[-1].span)[1]
-        return start_span.doc[start_token_i:end_token_i]
+        end_span = toSections[-1].span
+        start_char, _ = start_span.range
+        _, end_char = end_span.range
+        return start_span.doc.subspan(slice(start_char, end_char))
 
 
 class RawNamedEntity(abst.Cloneable):
@@ -314,28 +289,24 @@ class RawNamedEntity(abst.Cloneable):
     Span of text which represents a named entity before it has been identified with an object in Sefaria's DB
     """
 
-    def __init__(self, span: SpanOrToken, type: NamedEntityType, **cloneable_kwargs) -> None:
+    def __init__(self, span: NESpan, type: NamedEntityType, **cloneable_kwargs) -> None:
         self.span = span
         self.type = type
 
-    def map_new_char_indices(self, new_doc: Doc, new_char_indices: Tuple[int, int]) -> None:
+    def map_new_char_indices(self, new_doc: NEDoc, new_char_indices: [int, int]) -> None:
         """
         Remap self.span to new indices
         """
-        self.span = new_doc.char_span(*new_char_indices, alignment_mode='expand')
-        if self.span is None: raise InputError(f"${new_char_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+        self.span = new_doc.subspan(slice(*new_char_indices))
 
-    def align_to_new_doc(self, new_doc: Doc, offset: int) -> None:
+    def align_to_new_doc(self, new_doc: NEDoc, offset: int) -> None:
         """
-        Aligns underlying span to `new_doc`'s tokens. Assumption is `new_doc` has some token offset from the original
-        doc of `self.span`
-
-        @param new_doc: new Doc to align to
-        @param offset: token offset that aligns tokens in `self.span` to `new_doc
+        @param new_doc: new NEDoc to align to
+        @param offset: char offset that aligns chars in `self.span` to `new_doc
         """
-        curr_start, curr_end = span_inds(self.span)
+        curr_start, curr_end = self.span.range
         new_start, new_end = curr_start+offset, curr_end+offset
-        self.span = new_doc[new_start:new_end]
+        self.span = new_doc.subspan(slice(new_start, new_end))
 
     @property
     def text(self):
@@ -345,11 +316,11 @@ class RawNamedEntity(abst.Cloneable):
         return self.span.text
 
     @property
-    def char_indices(self) -> Tuple[int, int]:
+    def char_indices(self) -> [int, int]:
         """
         Return start and end char indices of underlying text
         """
-        return span_char_inds(self.span)
+        return self.span.range if self.span else None
 
 
 class RawRef(RawNamedEntity):
@@ -357,7 +328,7 @@ class RawRef(RawNamedEntity):
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, span: SpanOrToken, lang: str, raw_ref_parts: list, **clonable_kwargs) -> None:
+    def __init__(self, span: NESpan, lang: str, raw_ref_parts: list, **clonable_kwargs) -> None:
         """
 
         @param lang:
@@ -368,14 +339,14 @@ class RawRef(RawNamedEntity):
         super().__init__(span, NamedEntityType.CITATION)
         self.lang = lang
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
-        self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when their are context swaps
+        self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when there are context swaps
         self.prev_num_parts_map = self._get_prev_num_parts_map(self.raw_ref_parts)
         for k, v in clonable_kwargs.items():
             setattr(self, k, v)
         self.span = span
 
     @staticmethod
-    def _group_ranged_parts(raw_ref_parts: List['RawRefPart']) -> List['RawRefPart']:
+    def _group_ranged_parts(raw_ref_parts: list['RawRefPart']) -> list['RawRefPart']:
         """
         Preprocessing function to group together RawRefParts which represent ranged sections
         """
@@ -405,7 +376,7 @@ class RawRef(RawNamedEntity):
         return new_raw_ref_parts
 
     @staticmethod
-    def _get_prev_num_parts_map(raw_ref_parts: List[RawRefPart]) -> Dict[RawRefPart, RawRefPart]:
+    def _get_prev_num_parts_map(raw_ref_parts: list[RawRefPart]) -> dict[RawRefPart, RawRefPart]:
         """
         Helper function to avoid matching NUMBERED RawRefParts that match AddressInteger sections out of order
         AddressInteger sections must resolve in order because resolving out of order would be meaningless
@@ -420,35 +391,33 @@ class RawRef(RawNamedEntity):
             prev_part = part
         return prev_num_parts_map
 
-    def subspan(self, part_slice: slice) -> SpanOrToken:
+    def subspan(self, part_slice: slice) -> NESpan:
         """
         Return subspan covered by `part_slice`, relative to self.span
         """
         parts = self.raw_ref_parts[part_slice]
-        start_token_i = span_inds(parts[0].span)[0]
-        end_token_i = span_inds(parts[-1].span)[1]
+        start_char, _ = parts[0].span.range
+        _, end_char = parts[-1].span.range
 
-        offset_i = span_inds(self.span)[0]
-        subspan = self.span.doc[offset_i+start_token_i:offset_i+end_token_i]
+        offset_i, _ = self.span.range
+        subspan = self.span.doc.subspan(slice(offset_i+start_char, offset_i+end_char))
         # potentially possible that tokenization of raw ref spans is not identical to that of ref parts. check to make sure.
-        assert subspan.text == parts[0].span.doc[start_token_i:end_token_i].text, f"{subspan.text} != {parts[0].span.doc[start_token_i:end_token_i].text}"
+        comparison_text = parts[0].span.doc.subspan(slice(start_char, end_char)).text
+        assert subspan.text == comparison_text, f"{subspan.text} != {comparison_text}"
         return subspan
 
-    def split_part(self, part: RawRefPart, str_end) -> Tuple['RawRef', RawRefPart, RawRefPart]:
+    def split_part(self, part: RawRefPart, str_end) -> ['RawRef', RawRefPart, RawRefPart]:
         """
-        split `part` into two parts based on strings in `str_split`
+        split `part` into two parts based on strings in `str_end`
         Return new RawRef with split parts (doesn't modify self)
-        Will raise InputError if the strings in str_split don't fall on token boundaries
         @param part: original part to be split
         @param str_end: end string
         @return: new RawRef with split parts
         """
-        start_char, end_char = span_char_inds(part.span)
+        start_char, end_char = part.span.range
         pivot = len(part.text) - len(str_end) + start_char
-        aspan = part.span.doc.char_span(start_char, pivot, alignment_mode='contract')
-        bspan = part.span.doc.char_span(pivot, end_char, alignment_mode='contract')
-        if aspan is None or bspan is None:
-            raise InputError(f"Couldn't break on token boundaries for strings '{self.text[0:pivot]}' and '{self.text[pivot:end_char]}'")
+        aspan = part.span.doc.subspan(slice(start_char, pivot))
+        bspan = part.span.doc.subspan(slice(pivot, end_char))
         apart = part.clone(span=aspan)
         bpart = part.clone(span=bspan)
 
@@ -468,18 +437,15 @@ class RawRef(RawNamedEntity):
             new_parts_to_match = self.parts_to_match
         return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
 
-    def map_new_part_char_indices(self, new_part_char_indices: List[Tuple[int, int]]) -> None:
+    def map_new_part_char_indices(self, new_part_char_indices: list[[int, int]]) -> None:
         """
         Remap self.span and all spans of parts to new indices
         """
         start_char, _ = self.char_indices
-        doc_span = self.span.as_doc()
         for part, temp_part_indices in zip(self.raw_ref_parts, new_part_char_indices):
-            part.span = doc_span.char_span(*[i-start_char for i in temp_part_indices], alignment_mode='expand')
-            if part.span is None:
-                raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}.")
+            part.span = self.span.subspan(slice(*[i-start_char for i in temp_part_indices]))
 
-    def align_parts_to_new_doc(self, new_doc: Doc, offset: int) -> None:
+    def align_parts_to_new_doc(self, new_doc: NEDoc, offset: int) -> None:
         """
         See `RawNamedEntity.align_to_new_doc`
         @param new_doc:
@@ -487,6 +453,6 @@ class RawRef(RawNamedEntity):
         @return:
         """
         for part in self.raw_ref_parts:
-            curr_start, curr_end = span_inds(part.span)
+            curr_start, curr_end = part.span.range
             new_start, new_end = curr_start+offset, curr_end+offset
-            part.span = new_doc[new_start:new_end]
+            part.span = new_doc.subspan(slice(new_start, new_end))
