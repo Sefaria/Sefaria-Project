@@ -11,11 +11,6 @@ from sefaria.model.text import Ref
 
 
 
-@app.task(name="linker.hello_world")
-def hello_world(words: str):
-    print(words)
-
-
 @app.task(name="linker.link_segment_with_worker")
 def link_segment_with_worker(raw_input: dict) -> bool:
     linker = library.get_linker(raw_input["lang"])
