@@ -1216,18 +1216,12 @@ class DisplaySettingsButton extends Component {
       icon = <span className="textIcon">Aa</span>;
     }
     return (
-            <ToolTipped {...{ altText, classes}}>
-                <a
+            <ToolTipped {...{ altText, classes, onClick: this.props.onClick, style}}>
+                <span
                 className="readerOptions"
-                tabIndex="0"
-                role="button"
-                aria-haspopup="true"
-                aria-label="Toggle Reader Menu Display Settings"
-                style={style}
-                onClick={this.props.onClick}
-                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                aria-haspopup="true">
                 {icon}
-              </a>
+              </span>
             </ToolTipped>
             );
   }
@@ -1413,7 +1407,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
     style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
-    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    onKeyPress={e => {e.key === 'Enter' ? onClick(e): null}}>
     { children }
   </div>
 )};
