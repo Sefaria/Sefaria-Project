@@ -320,7 +320,7 @@ class AddToSourceSheetBox extends Component {
               {sheetsList}
             </div>
             <div className="newSheet noselect">
-              <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
+              <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")} aria-label={Sefaria._("Name New Sheet")} type="text"/>
               <div className="button small noselect" onClick={this.createSheet} >
                 <span className="int-en">Create</span>
                 <span className="int-he">יצירה</span>

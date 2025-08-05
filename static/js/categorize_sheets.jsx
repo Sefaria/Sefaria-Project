@@ -222,7 +222,9 @@ class SheetCategorizer extends React.Component {
                 ))
               }
             </fieldset>
-            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
+            <label htmlFor="newCategory" className="sr-only">New Category</label>
+            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" aria-label="New Category" onKeyUp={this.addCategory.bind(this)}></input>
+            <button onClick={this.addCategory.bind(this)} aria-label="Add new category">Add</button>
           </div>
           <button id="save-and-next" onClick={this.saveAndNext.bind(this)}>Save and Next</button>
           <div className="left-pane-bottom">

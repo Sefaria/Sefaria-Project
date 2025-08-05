@@ -654,7 +654,7 @@ class TextSegment extends Component {
     return (
       <div tabIndex="0"
            className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
-           data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
+           data-ref={this.props.sref} aria-controls={"panel-"+this.props.panelPosition}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
