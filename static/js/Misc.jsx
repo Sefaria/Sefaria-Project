@@ -1146,7 +1146,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/iconmonstr-magnifier-2.svg" />
+      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt="Search" />
     </span>);
   }
 }
@@ -2445,7 +2445,7 @@ class Dropdown extends Component {
         <div className="dropdown sans-serif">
           <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
-            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt="Open dropdown"/>
 
           </div>
           {this.state.optionsOpen ?

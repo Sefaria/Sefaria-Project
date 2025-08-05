@@ -199,7 +199,7 @@ const AboutSefaria = ({hideTitle}) => (
       {!hideTitle && <InterfaceText>
           <EnglishText>
             <a className="button get-start" href="/sheets/210670">
-                <img src="/static/icons/vector.svg"/>
+                <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   Getting Started (2 min)
                 </div>
@@ -207,7 +207,7 @@ const AboutSefaria = ({hideTitle}) => (
           </EnglishText>
           <HebrewText>
             <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
-                <img src="/static/icons/vector.svg"/>
+                <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   הכירו את ספריא (2 דק')
                 </div>

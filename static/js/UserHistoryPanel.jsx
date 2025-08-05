@@ -67,16 +67,16 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   const title = (
     <span className="sans-serif">
       <a href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved } className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }>
-        <img src="/static/icons/bookmark.svg" />
+        <img src="/static/icons/bookmark.svg" alt="Saved" />
         <InterfaceText>Saved</InterfaceText>
       </a>
       <a href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history } className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}>
-        <img src="/static/icons/clock.svg" />
+        <img src="/static/icons/clock.svg" alt="History" />
         <InterfaceText>History</InterfaceText>
       </a>
       { dataSource === "library" &&
         <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}>
-        <img src="/static/icons/notes-icon.svg" />
+        <img src="/static/icons/notes-icon.svg" alt="Notes" />
         <InterfaceText>Notes</InterfaceText>
       </a> }
     </span>

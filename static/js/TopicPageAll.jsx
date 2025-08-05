@@ -88,12 +88,12 @@ class TopicPageAll extends Component {
               </h1>
 
               <div className="topicFilterBox">
-                <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" />
+                <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" alt="Search topics" />
                 <input className={inputClasses} placeholder={Sefaria._("Search Topics")} onChange={this.handleFilterChange} />
                 { this.state.filter.length ?
                 <div className="topicsFilterReset sans-serif" onClick={this.resetFilter}>
                   <InterfaceText>Reset</InterfaceText>
-                  <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" />
+                  <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" alt="Reset filter" />
                 </div>
                 : null }
               </div>
