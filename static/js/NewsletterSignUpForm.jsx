@@ -128,17 +128,19 @@ const EducatorCheckbox = ({educatorCheck, setEducatorCheck}) => {
             <input
                 type="checkbox"
                 className="educatorNewsletterInput"
+                id="educator-check-en"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> I am an educator</span>
+            <label htmlFor="educator-check-en"> I am an educator</label>
           </span>
             <span className="int-he">
             <input
                 type="checkbox"
                 className="educatorNewsletterInput"
+                id="educator-check-he"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> מורים/ אנשי הוראה</span>
+            <label htmlFor="educator-check-he"> מורים/ אנשי הוראה</label>
           </span>
         </div>
     );
