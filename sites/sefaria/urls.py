@@ -36,7 +36,6 @@ static_pages = [
     "torah-tab",
     "dicta-thanks",
     "daf-yomi",
-    "remote-learning",
     "sheets",
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
