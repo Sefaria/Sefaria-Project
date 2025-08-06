@@ -1472,7 +1472,7 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Join Now or Learn More"
                 heButtonText=""
-                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214?c_src=waystogive"
+                enButtonUrl="https://donate.sefaria.org/campaign/687023/donate?c_src=waystogive"
                 heButtonUrl=""
                 borderColor="#7C416F"
             />
@@ -1520,7 +1520,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Additional Ways to Give"
                     heTitle=""
-                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong>, <strong>stock</strong>, and <strong>Cryptocurrency</strong>. For more information, please email Caitlyn Cushing, Development Operations Associate, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. (For wire transfers, you can also <a href='https://sefaria.formstack.com/forms/wire_request'>click here</a> to get our account information)."
+                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong> and <strong>stock</strong>. For more information, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> (For wire transfers, you can also <a href='https://sefaria.formstack.com/forms/wire_request'>click here</a> to get our account information.)</p>"
                     heText=""
                     colorBar="#97B386"
                 />
@@ -1551,7 +1551,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="Can I make my gift in honor or memory of someone?"
             heTitle=""
-            enText="<p>Yes! If you’re donating online, check the box for “Dedicate my donation <strong>in honor or in memory</strong> of someone” right after entering your donation amount. Then enter your desired tribute information and our donation processing platform will send your message to the recipient. If you have questions about this process, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a></p>"
+            enText="<p>Yes! If you're donating online, check the box for “Dedicate my donation <strong>in honor or in memory</strong> of someone” right after entering your donation amount. Then enter your desired tribute information and our donation processing platform will send your message to the recipient. If you have questions about this process, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a></p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1560,7 +1560,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2023_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we're devoted to making sure we're transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2023_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1574,11 +1574,17 @@ const DonatePage = () => (
         />
 
         <Accordian
-            enTitle="I want to sponsor a day of learning or a new text. How do I know what’s available and where my message will appear?"
+            enTitle="I want to sponsor a new text."
             heTitle=""
-            enText="<p>To learn more about available sponsorship dates and texts on Sefaria, send an email to Samantha Shokin, Grant Writer and Development Associate, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a>, with “Sponsorship” in your subject line. We’ll aim to get back to you within two business days.</p>
-            <p>Sponsorships can be made in honor, memory, or celebration of a person, group, occasion, or anything else that matters to you. </p>
-            <p>Dedications for a day, week, or month of learning will appear on Sefaria’s homepage throughout the duration of the sponsorship period beginning the evening of the date you choose. <a href='https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0'>Available dates can be viewed in this calendar</a>. To convert a Hebrew date to the English calendar, we recommend <a href='https://www.hebcal.com/converter/'>HebCal’s date converter</a>.</p>"
+            enText="<p>To learn more about available text sponsorships, send an email to Samantha Shokin, Grants Coordinator, at <a href='mailto:samantha@sefaria.org'>samantha@sefaria.org</a> with “Sponsorship” in your subject line. We’ll aim to get back to you within two business days. Sponsorships can be made in honor, memory, or celebration of a person, group, occasion, or anything else that matters to you.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="I want to sponsor a Day of Learning."
+            heTitle=""
+            enText="<p>Please visit our <a href='https://donate.sefaria.org/campaign/sponsor-a-day-of-learning/c460961?c_src=waystogive'>Day of Learning page</a> for more information, or contact Desiree Neissani at <a href='mailto:desiree@sefaria.org'>desiree@sefaria.org</a> if you are interested in dedicating a Day of Learning on Sefaria.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1597,9 +1603,9 @@ const DonatePage = () => (
         />
 
         <Accordian
-            enTitle="Why aren’t you tax-exempt outside of the United States?"
+            enTitle="Are you tax-exempt outside the United States?"
             heTitle=""
-            enText="<p>At this time, Sefaria only meets eligibility requirements for tax-exempt status in the United States.</p>"
+            enText="<p>We have a partnership with an organization called CAF Canada through which you can receive Canadian tax receipts if you are donating from Canada. <a href='https://www.cafcanada.ca/cafc-project-donation/' target='blank'>Here is a link</a> to donate and receive more information.</p>"
             heText=""
             colorBar="#7F85A9"
         />
@@ -1661,7 +1667,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I made a one-time or monthly donation in error."
             heTitle=""
-            enText="<p>To cancel and/or request a refund for a donation, please follow the link in your email confirmation to view your online Classy (Sefaria's donation processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Caitlyn Cushing, Development Operations Associate <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, for support with this process.</p>"
+            enText="<p>To cancel and/or request a refund for a donation, please follow the link in your email confirmation to view your online profile with Classy (Sefaria’s donation processor), where you can manually update or cancel your monthly gift. In addition, you can email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> for support with this process.</p>"
             heText=""
             colorBar="#5A99B7"
         />
@@ -1677,7 +1683,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I want to cancel my monthly donation."
             heTitle=""
-            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please follow the link in your email confirmation to view your online Classy (Sefaria's donation processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, or by phone at <a href='tel:+13477730077'>(347) 773-0077</a></p>"
+            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please follow the link in your email confirmation to view your online profile with Classy (Sefaria’s donation processor), where you can manually update or cancel your monthly gift. In addition, you can email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> for assistance with this process.</p>"
             heText=""
             colorBar="#5A99B7"
         />
@@ -1685,7 +1691,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I want to change my monthly donation by updating the amount or changing my credit card."
             heTitle=""
-            enText="<p>To change the amount of or credit card information associated with your monthly donation, please follow the link in your email confirmation to your Classy (Sefaria's donation processor) profile. On your profile, you can edit this information. You can also contact Caitlyn Cushing, Development Operations Associate, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, for assistance with this process."
+            enText="<p>To change your donation amount or the credit card information associated with your monthly donation, please follow the link in your email confirmation to your online profile with Classy (Sefaria’s donation processor). On your profile, you can edit this information. You can also email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> for assistance with this process.</p>"
             heText=""
             colorBar="#5A99B7"
         />
