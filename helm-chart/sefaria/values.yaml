@@ -119,7 +119,7 @@ linker:
     tag: latest
   replicaCount: 1
   serviceAccount: linker
-  nerServer: ner-server
+  gpuServer: gpu-server
   resources:
     web:
       gunicornWorkerCount: 1

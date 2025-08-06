@@ -227,7 +227,7 @@ data:
     SLACK_URL = os.getenv("SLACK_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
-    GPU_SERVER_URL = f'http://{os.getenv("NER_SERVER_HOST")}:8000'
+    GPU_SERVER_URL = f'http://{os.getenv("GPU_SERVER_HOST")}:8000'
 
     LOGGING = {
         'version': 1,

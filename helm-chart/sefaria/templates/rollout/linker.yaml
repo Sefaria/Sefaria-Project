@@ -90,8 +90,8 @@ spec:
             value: "True"
           - name: DISABLE_AUTOCOMPLETER
             value: "True"
-          - name: NER_SERVER_HOST
-            value: "{{ .Values.linker.nerServer }}"
+          - name: GPU_SERVER_HOST
+            value: "{{ .Values.linker.gpuServer }}"
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
