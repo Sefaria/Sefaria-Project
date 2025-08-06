@@ -75,6 +75,7 @@ class ConnectionsPanel extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
+      this.onTextLoad(0);
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
@@ -166,6 +167,12 @@ class ConnectionsPanel extends Component {
     this._savedHistorySegments.add(ref);
   }
   onTextLoad(order) {
+    const currentlyHighlighted = [...this.$scrollView[0].querySelectorAll(".highlightCitation")];
+    if (currentlyHighlighted.length > 0) {
+      for (let el of currentlyHighlighted) {
+        el.classList.remove("highlightCitation");
+      }
+    }
     const connectionsPanelCitataions = [...this.$scrollView[0].querySelectorAll("[data-ref]")].filter(el => Sefaria.refContains(el.getAttribute("data-ref"), this.props.currentlyVisibleRef));
     if (connectionsPanelCitataions.length > 0) {
       const footnotes = this.$scrollView[0].querySelectorAll(".footnote");
@@ -188,9 +195,26 @@ class ConnectionsPanel extends Component {
       if (order === 0) {
         const citationClientRect = connectionsPanelCitataions[0].getBoundingClientRect();
         const scrollViewClientRect = this.$scrollView[0].getBoundingClientRect();
+        if (
+            citationClientRect.top >= 0 &&
+            citationClientRect.left >= 0 &&
+            citationClientRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            citationClientRect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        ) return;
+
+        const computedStyle = window.getComputedStyle(this.$scrollView[0].querySelectorAll('.textRange')[0]);
+        let lineHeight = parseFloat(computedStyle.lineHeight);
+
+        if (isNaN(lineHeight)) {
+          const fontSize = parseFloat(computedStyle.fontSize);
+          lineHeight = fontSize * 1.2;
+        }
+
+        const offset = lineHeight * 5;
+
         this.$scrollView[0].scrollTo(
-          {top: 
-            citationClientRect.top - scrollViewClientRect.top - (scrollViewClientRect.height - citationClientRect.height) / 2,
+          {
+            top: citationClientRect.top - scrollViewClientRect.top - offset,
             behavior: "smooth"
           }
         );
