@@ -115,7 +115,6 @@ data:
     rm "${DATADIR}/dump/sefaria/layers.bson"
     rm "${DATADIR}/dump/sefaria/layers.metadata.json"
 
-    rm "${DATADIR}/dump/sefaria/sheets.bson"
     rm "${DATADIR}/dump/sefaria/sheets.metadata.json"
 
     rm "${DATADIR}/dump/sefaria/locks.bson"
