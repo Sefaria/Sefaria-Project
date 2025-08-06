@@ -41,7 +41,6 @@ static_pages = [
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
-    "rabbis",
     "contest",
     "design-system",
     "powered-by",
@@ -97,6 +96,7 @@ site_urlpatterns += [
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
     url(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
+    url(r'^rabbis/?$', lambda x: HttpResponseRedirect('/educators')),
 ]
 
 
