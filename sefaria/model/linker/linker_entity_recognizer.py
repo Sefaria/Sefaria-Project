@@ -8,7 +8,6 @@ from ne_span import NESpan, NEDoc
 import structlog
 logger = structlog.get_logger(__name__)
 
-
 class LinkerEntityRecognizer:
     """
     Wrapper around AbstractNER
