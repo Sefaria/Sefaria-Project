@@ -92,6 +92,14 @@ spec:
             value: "True"
           - name: GPU_SERVER_HOST
             value: "{{ .Values.linker.gpuServer }}"
+          - name: RAW_REF_MODEL_BY_LANG_FILEPATH
+            value: '{{ toJson .Values.linker.model_paths }}'
+          - name: RAW_REF_PART_MODEL_BY_LANG_FILEPATH
+            value: '{{ toJson .Values.linker.part_model_paths }}'
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
