@@ -2610,6 +2610,77 @@ class TextFamily(object):
         return d
 
 """
+                -----------------------------
+                      MarkedUpTextChunk
+                -----------------------------
+"""
+
+class MarkedUpTextChunk(abst.AbstractMongoRecord):
+    """
+    MarkedUpTextChunk objects define the quotations and links inside Sefaria texts
+    Probably, every Quoting Commentary will have a MarkedUpTextChunk object
+
+    """
+    collection = "marked_up_text_chunks"
+    criteria_field = "ref"
+    track_pkeys = True
+    pkeys = ["ref", "versionTitle"]
+
+    required_attrs = [
+        "ref",
+        "versionTitle",
+        "language",
+        "spans"
+    ]
+
+    attr_schemas = {
+        "ref": {"type": "string", "required": True},
+        "versionTitle": {"type": "string", "required": True},
+        "language": {"type": "string", "allowed": ["en", "he"], "required": True},
+        "spans": {
+            "type": "list",
+            "schema": {
+                "type": "dict",
+                "schema": {
+                    "charRange": {
+                        "type": "list",
+                        "schema": {"type": "integer"},
+                        "minlength": 2,
+                        "maxlength": 2,
+                        "required": True
+                    },
+                    "text": {"type": "string", "required": True},
+                    "type": {
+                        "type": "string",
+                        "allowed": ["quote", "citation"],
+                        "required": True
+                    },
+                    "ref": {"type": "string", "required": True}
+                }
+            },
+            "required": True
+        }
+    }
+
+    def _validate(self):
+        super()._validate()
+        oref = Ref(self.ref)
+        tc = TextChunk(oref, lang=self.language, vtitle=self.versionTitle)
+
+        if not tc.text:
+            raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")
+        return True
+
+    def _normalize(self):
+        self.ref = Ref(self.ref).normal()
+        for span in self.spans:
+            span['ref'] = Ref(span['ref']).normal()
+
+    def __str__(self):
+        return "TextSpan: {}".format(self.ref)
+
+
+"""
                     -------------------
                            Refs
                     -------------------
@@ -5723,13 +5794,13 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_recognizer import NamedEntityRecognizer
-        from sefaria.helper.linker import load_spacy_model
+        from .linker.linker_entity_recognizer import LinkerEntityRecognizer
+        from .linker.named_entity_recognizer import NERFactory
 
-        return NamedEntityRecognizer(
+        return LinkerEntityRecognizer(
             lang,
-            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+            NERFactory.create('spacy', RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            NERFactory.create('spacy', RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
 
     def _build_category_resolver(self, lang: str):

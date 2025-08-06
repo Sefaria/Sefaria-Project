@@ -15,7 +15,6 @@ import {
   SheetAuthorStatement,
   SheetTitle,
   CollectionStatement,
-  LearnAboutNewEditorBanner,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {shouldUseEditor} from './sefaria/sheetsUtils';
@@ -135,7 +134,6 @@ class Sheet extends Component {
     }
     const editor = (
       <>
-        <LearnAboutNewEditorBanner/>
         <div className={classes}>
             <SefariaEditor
               data={sheet}
