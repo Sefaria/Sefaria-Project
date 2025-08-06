@@ -46,7 +46,7 @@ class LinkerEntityRecognizer:
         resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities",
                              json={"texts": normalized_inputs, "lang": self._lang})
         elapsed_time = time.perf_counter() - start_time
-        logger.debug("bulk_recognize GPU server post completed", elapsed_time=elapsed_time, num_inputs=len(normalized_inputs))
+        logger.info("bulk_recognize GPU server post completed", elapsed_time=elapsed_time, num_inputs=len(normalized_inputs))
         data = resp.json()
         merged_entities = []
         for input_str, result in zip(normalized_inputs, data['results']):
@@ -60,7 +60,7 @@ class LinkerEntityRecognizer:
         resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities",
                              json={"text": normalized_input, "lang": self._lang})
         elapsed_time = time.perf_counter() - start_time
-        logger.debug("recognize GPU server post completed", elapsed_time=elapsed_time)
+        logger.info("recognize GPU server post completed", elapsed_time=elapsed_time)
         data = resp.json()
         return self._parse_recognize_response(normalized_input, data)
 

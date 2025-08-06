@@ -64,12 +64,12 @@ class Linker:
             if not with_failures:
                 resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
-        logger.debug("bulk_link: resolution completed", elapsed_time=time.perf_counter() - start)
+        logger.info("bulk_link: resolution completed", elapsed_time=time.perf_counter() - start)
 
         start = time.perf_counter()
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
         self._ner.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
-        logger.debug("bulk_link: mapping completed", elapsed_time=time.perf_counter() - start)
+        logger.info("bulk_link: mapping completed", elapsed_time=time.perf_counter() - start)
 
         return docs
 
