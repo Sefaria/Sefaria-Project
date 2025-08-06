@@ -1,5 +1,6 @@
 import dataclasses
 from typing import List, Optional, Union, Iterable, Tuple
+import time
 from tqdm import tqdm
 from ne_span import NEDoc
 from sefaria.model.text import Ref
@@ -8,6 +9,8 @@ from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughnes
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
 from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from sefaria.model.linker.category_resolver import CategoryResolver, ResolvedCategory
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 @dataclasses.dataclass
@@ -47,6 +50,8 @@ class Linker:
         self._ref_resolver.reset_ibid_history()
         all_named_entities = self._ner.bulk_recognize(inputs)
         docs = []
+
+        start = time.perf_counter()
         book_context_refs = book_context_refs or [None]*len(all_named_entities)
         iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
         for input_str, book_context_ref, inner_named_entities in iterable:
@@ -59,9 +64,13 @@ class Linker:
             if not with_failures:
                 resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
+        logger.debug("bulk_link: resolution completed", elapsed_time=time.perf_counter() - start)
 
+        start = time.perf_counter()
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
         self._ner.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
+        logger.debug("bulk_link: mapping completed", elapsed_time=time.perf_counter() - start)
+
         return docs
 
     def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
