@@ -178,62 +178,6 @@ class TextRequestAdapter:
                 shared_data[cache_key] = ne_by_secs
             return shared_data[cache_key]
 
-        def _ref_to_href(ref: str) -> str:
-            """
-            Turn 'Numbers 14' or 'Genesis 22:1' into '/Numbers.14' or '/Genesis.22.1'.
-            Feel free to swap this out if your routing is different.
-            """
-            return "/" + re.sub(r"[:\s]+", ".", ref.strip())
-
-        def wrap_citations_with_links(s: str, spans: List[Dict], end_inclusive: bool = False) -> str:
-            """
-            Wrap each citation span with <a class="refLink" ...>…</a>.
-
-            Args:
-                s: the original string.
-                spans: list of dicts with at least:
-                       - 'charRange': [start, end] (end is exclusive by default)
-                       - 'ref': e.g. 'Numbers 14'
-                       - 'text' (optional): visible text for the link (defaults to substring)
-                end_inclusive: set True if your charRange end is inclusive.
-
-            Returns:
-                Modified string with anchor tags inserted.
-            """
-            if not spans:
-                return s
-
-            # Insert from the right so earlier insertions don't shift later indices.
-            spans_sorted = sorted(spans, key=lambda sp: sp["charRange"][0], reverse=True)
-
-            out = s
-            for sp in spans_sorted:
-                start, end = sp["charRange"]
-                if end_inclusive:
-                    end += 1
-
-                # Clamp & sanity check
-                start = max(0, start)
-                end = min(len(out), end)
-                if start >= end:
-                    continue
-
-                # Use provided visible text if present, else slice from the string
-                visible = sp.get("text")
-                if not visible:
-                    visible = out[start:end]
-
-                ref = sp.get("ref", "").strip()
-                href = _ref_to_href(ref)
-                anchor = (
-                    f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'
-                    f'{escape(visible)}</a>'
-                )
-
-                out = out[:start] + anchor + out[end:]
-
-            return out
-
         # helper to build a segment-level link-wrapper once per version
         def build_link_wrapper(lang, version_text):
             marked_up_chunks = []
