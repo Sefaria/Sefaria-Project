@@ -3,6 +3,9 @@ from collections import defaultdict
 from functools import reduce
 from typing import List
 import django
+import re
+from typing import List, Dict
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -177,12 +180,23 @@ class TextRequestAdapter:
 
         # helper to build a segment-level link-wrapper once per version
         def build_link_wrapper(lang, version_text):
-            # Compile regex once for entire version to cover all titles that appear anywhere
-            reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(version_text, lang=lang, citing_only=True)
+            sections_to_chunk = {}
+            for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+                marked_up_chunk = MarkedUpTextChunk().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version['versionTitle'],
+                    "language": lang
+                })
+                if marked_up_chunk:
+                    sections_to_chunk[i] = marked_up_chunk
 
-            # Return a function that wraps refs in an individual segment using the precompiled regex
-            return lambda string, _: library.get_wrapped_refs_string(string, lang=lang, citing_only=True,
-                                                                      reg=reg, title_nodes=title_nodes)
+
+            def wrapper(string, sections):
+                chunk : MarkedUpTextChunk = sections_to_chunk.get(sections[0], None)
+                if chunk:
+                    string = chunk.apply_spans_to_text(string)
+                return string
+            return wrapper
 
         # Define text modification functions based on return format
         text_modification_funcs = []
