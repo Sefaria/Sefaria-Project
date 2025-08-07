@@ -321,10 +321,9 @@ class AddToSourceSheetBox extends Component {
             </div>
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
-              <div className="button small noselect" onClick={this.createSheet} >
-                <span className="int-en">Create</span>
-                <span className="int-he">יצירה</span>
-              </div>
+              <Button size="fillwidth" className="small noselect" onClick={this.createSheet} activeModule="sheets">
+                <InterfaceText text={{en: "Create", he: "יצירה"}} />
+              </Button>
              </div>
           </div>
           : null}
@@ -369,14 +368,14 @@ class ConfirmAddToSheet extends Component {
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">
-                  <a href={sref}>{srefTitles["en"]}</a>
+                  <a href={sref} data-attr-module={!!this.props.nodeRef ? "sheets" : "library"}>{srefTitles["en"]}</a>
                   &nbsp;has been added to&nbsp;
-                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
+                   <a href={"/sheets/" + this.props.sheet.id} data-attr-module="sheets">{this.props.sheet.title}</a>.
                 </span>
                 <span className="int-he">
                   <a href={sref}>{srefTitles["he"]}</a>
                    &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
-                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
+                  <a href={"/sheets/" + this.props.sheet.id} data-attr-module="sheets">{this.props.sheet.title}</a>.
                 </span>
               </div>
             </div>);

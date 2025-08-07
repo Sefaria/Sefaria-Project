@@ -902,9 +902,9 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"],
-          ["Innovating with a Digital Library", "", "https://www.sefaria.org/sheets/415628?lang=bi", ""],
-          ["Collections: A Home for Sermons and Classes", "", "https://www.sefaria.org/sheets/370836?lang=bi", ""]
+          ["Schedule A Workshop", "שאלות נפוצות", "https://sheets.sefaria.org/sheets/370615?lang=bi", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"],
+          ["Innovating with a Digital Library", "", "https://sheets.sefaria.org/sheets/415628?lang=bi", ""],
+          ["Collections: A Home for Sermons and Classes", "", "https://sheets.sefaria.org/sheets/370836?lang=bi", ""]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -930,9 +930,9 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Rabbi Newsletters", "", "https://www.sefaria.org/sheets/collections/T-5hbqOq?tab=sheets", ""],
-          ["Topics Tutorial", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
-          ["Studying With a Partner: A Chavruta Tutorial", "", "https://www.sefaria.org/sheets/263246?lang=bi", ""]
+          ["Past Rabbi Newsletters", "", "https://sheets.sefaria.org/sheets/collections/T-5hbqOq?tab=sheets", ""],
+          ["Topics Tutorial", "", "https://sheets.sefaria.org/sheets/231377?lang=bi", ""],
+          ["Studying With a Partner: A Chavruta Tutorial", "", "https://sheets.sefaria.org/sheets/263246?lang=bi", ""]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -956,8 +956,8 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "", "https://www.sefaria.org/sheets/collections/sefaria-faqs",""],
-          ["Webinars", "", "https://www.sefaria.org/sheets/228105?lang=bi",""],
+          ["Help Center", "", "https://sheets.sefaria.org/sheets/collections/sefaria-faqs",""],
+          ["Webinars", "", "https://sheets.sefaria.org/sheets/228105?lang=bi",""],
           ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD?typeform-source=www.sefaria.org",""]
       ].map(i =>
           <SimpleButton
@@ -1798,7 +1798,7 @@ const WordByWordPage = () => {
     
     const ctaText = "Learn more about our authors and their work.";
     const ctaButtonText = "Learn about our authors";
-    const ctaHref = "https://www.sefaria.org/sheets/485180?lang=bi";
+    const ctaHref = "https://sheets.sefaria.org/sheets/485180?lang=bi";
   
     return (
       <StaticPage optionalClass="donate wordbyword">
