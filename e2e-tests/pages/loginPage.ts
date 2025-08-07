@@ -1,7 +1,7 @@
 import { Page, expect } from "@playwright/test";
 import { LANGUAGES, testUser } from "../globals";
 import { HelperBase } from "./helperBase";
-import { changeLanguageLoggedIn } from "../utils";
+import { changeLanguage } from "../utils";
 
 export class LoginPage extends HelperBase{
     constructor(page: Page, language: string){

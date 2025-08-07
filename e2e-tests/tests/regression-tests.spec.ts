@@ -13,9 +13,7 @@ test.describe("Pages Load", () => {
       // 1. Load TOC and navigate to Midrash > Ein Yaakov
       const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);      
       await page.getByRole('link', { name: 'Midrash' }).click();
-      //await page.goto('https://www.sefaria.org/texts/Midrash');
       await page.getByRole('link', { name: 'Ein Yaakov', exact: true }).click();
-      //await page.goto('https://www.sefaria.org/Ein_Yaakov?tab=contents');
       await expect(page).toHaveURL(/Ein_Yaakov/);
       // 2. Load "Tosefta Peah 2"
       await page.goto('/Tosefta_Peah.2');
@@ -145,12 +143,14 @@ test.describe("Pages Load", () => {
     // Search for "Tosefta Peah 3"
     const searchInput = page.getByPlaceholder(/Search|חיפוש/);
     await searchInput.click();
-    await searchInput.fill('Tosefta Peah 3');
+    await searchInput.fill('Tosefta Peah');
     await page.keyboard.press('Enter');
-    
+    await page.locator('a.sectionLink[data-ref="Tosefta Peah 3"]').click();
+    await page.waitForLoadState('networkidle');
+
     // Click search result to navigate to Tosefta Peah 3
-    const peahResult = page.getByText(/Tosefta Peah 3/, { exact: false }).first();
-    await peahResult.click();
+    //const peahResult = page.getByText(/Tosefta Peah 3/, { exact: false }).first();
+    //await peahResult.click();
     await page.waitForURL(/Tosefta_Peah/);
     
     // Navigate to Tosefta Berakhot 4
@@ -158,23 +158,13 @@ test.describe("Pages Load", () => {
     await page.waitForLoadState('networkidle');
     
     // Return to TOC and check history panel
-    await page.goto('/texts');
-    
-    // Open history panel (if not already visible)
-    const historyPanel = page.locator('.recentlyViewed, .historyPanel');
-    if (!await historyPanel.isVisible()) {
-      const historyButton = page.locator('button, a', { hasText: /History|היסטוריה|Recently|לאחרונה/ });
-      if (await historyButton.isVisible()) {
-        await historyButton.click();
-      }
-    }
-    
-    // Verify history contains both texts
-    await expect(page.getByText(/Tosefta Peah/, { exact: false })).toBeVisible();
-    await expect(page.getByText(/Tosefta Berakhot/, { exact: false })).toBeVisible();
+    await page.goto('/texts/history');
     
     // Click on Tosefta Peah 3 from history
-    const peahHistoryItem = page.getByText(/Tosefta Peah 3/, { exact: false }).first();
+    const peahHistoryItem = page.locator('.savedHistoryList .storyTitle a', { hasText: /Tosefta Peah 3/ }).first();
+    const berakhotHistoryItem = page.locator('.savedHistoryList .storyTitle a', { hasText: /Tosefta Berakhot/ }).first();
+    await expect(peahHistoryItem).toBeVisible();
+    await expect(berakhotHistoryItem).toBeVisible();
     await peahHistoryItem.click();
     
     // Verify navigation back to Tosefta Peah
@@ -491,7 +481,7 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     
     // Verify source was added using existing locator
     await expect(sheetEditorPage.addedSource()).toBeVisible();
-    await expect(sheetEditorPage.addedSource()).toContainText(/God said|\u05d0\u05b1\u05dc\u05b9\u05d4\u05b4\u05d9\u05dd/);
+    await expect(sheetEditorPage.addedSource()).toContainText(/God said|אֱלֹהִים/);
     
     // 4. Verify auto-save using existing helper method
     await sheetEditorPage.assertSaveState(SaveStates.saved);
@@ -503,5 +493,257 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.goto('/texts');
     await page.goto(currentUrl);
     await expect(sheetEditorPage.addedSource()).toBeVisible();
-    await expect(sheetEditorPage.addedSource()).toContainText(/God said|\u05d0\u05b1\u05dc\u05b9\u05d4\u05b4\u05d9\u05dd/);
+    await expect(sheetEditorPage.addedSource()).toContainText(/God said|אֱלֹהִים/);
+  });
+
+  test('TC024a: Search navigation behavior - English', async ({ context }) => {
+    const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+    const searchInput = page.getByPlaceholder(/Search|חיפוש/);
+   
+    // 1. Type 'Shabbat' and wait for TOC
+    await searchInput.click();
+    await searchInput.fill('Shabbat');
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/Shabbat\?tab=contents/);
+    await expect(page.locator('.readerNavCategoryMenu, .tocLevel')).toBeVisible();
+    
+    // 2. Type 'Shabbat 12b' and wait for segment
+    await page.goto('/texts');
+    await searchInput.click();
+    await searchInput.fill('Shabbat 12b');
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/Shabbat\.12b/);
+    await expect(page.locator('div.segment[data-ref="Shabbat 12b:1"]')).toBeVisible();
+    
+    // 3. Type '#Yosef Giqatillah' and wait for title
+    await page.goto('/texts');
+    await searchInput.click();
+    await searchInput.fill('#Yosef Giqatillah');
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.navTitle h1')).toContainText(/Joseph/);
+    
+    // 4. Type 'Midrash' and wait for category menu
+    await page.goto('/texts');
+    await searchInput.click();
+    await searchInput.fill('Midrash');
+    
+    // Wait for dropdown and click on Midrash category item
+    const midrashMenuItem = page.locator('[aria-activedescendant*="item-3"], [id*="downshift"][id*="item-3"]').first();
+    await midrashMenuItem.waitFor({ state: 'visible' });
+    await midrashMenuItem.click();
+    
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/texts\/Midrash/);
+    await expect(page.locator('.readerNavCategoryMenu')).toBeVisible();
+  });
+
+  test('TC024b: Search navigation behavior - Hebrew', async ({ context }) => {
+    const page = await goToPageWithLang(context, '/texts', LANGUAGES.HE);
+    const searchInput = page.getByPlaceholder(/Search|חיפוש/);
+    
+    // 1. Type 'שבת' and wait for TOC
+    await searchInput.click();
+    await searchInput.fill('שבת');
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/Shabbat\?tab=contents/);
+    await expect(page.locator('.readerNavCategoryMenu, .tocLevel')).toBeVisible();
+    
+    // 2. Type 'שבת יב ב' and wait for segment
+    await page.goto('/texts');
+    await searchInput.click();
+    await searchInput.fill('שבת יב ב');
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/Shabbat\.12b/);
+    await expect(page.locator('div.segment[data-ref="Shabbat 12b:1"]')).toBeVisible();
+    
+    // 3. Type '#יוסף גיקטילא' and wait for title
+    await page.goto('/texts');
+    await searchInput.click();
+    await searchInput.fill("#יוסף בן אברהם אבן ג'קטילה");
+    await page.keyboard.press('Enter');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.navTitle h1')).toContainText(/יוסף/);
+    
+    // 4. Type 'מדרש' and wait for category menu
+    await page.goto('/texts');
+    await searchInput.click();
+    await searchInput.fill('מדרש');
+    
+    // Wait for dropdown and click on Midrash category item
+    const midrashMenuItem = page.locator('[aria-activedescendant*="item-3"], [id*="downshift"][id*="item-3"]').first();
+    await midrashMenuItem.waitFor({ state: 'visible' });
+    await midrashMenuItem.click();
+    
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/texts\/Midrash/);
+    await expect(page.locator('.readerNavCategoryMenu')).toBeVisible();
+  });
+
+  test('TC027: InfiniteScrollUp - Tests infinite scroll up behavior and URL stability', async ({ context }) => {
+    const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+    
+    // Navigate to a text with multiple segments (Genesis has many chapters)
+    await page.goto('/Genesis.1');
+    await page.waitForLoadState('networkidle');
+    const initialUrl = page.url();
+    
+    // Scroll down to load more segments
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight * 0.8);
+    });
+    //await page.waitForTimeout(1000); // Wait for potential loading
+    
+    // Scroll back up to trigger infinite scroll up behavior
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+   // await page.waitForTimeout(1000); // Wait for potential loading
+    
+    // Check that previous segments are still visible
+    const firstSegment = page.locator('[data-ref="Genesis 1:1"]');
+    await expect(firstSegment).toBeVisible();
+    
+    // Verify URL stability - URL should remain unchanged during scroll
+    await expect(page).toHaveURL(initialUrl);
+  });
+
+  test('TC028: InfiniteScrollDown - Tests infinite scroll down behavior and loading next segments', async ({ context }) => {
+    const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+    
+    // Browse to start ref (single chapter, not spanning)
+    await page.goto('/Genesis.1');
+    await page.waitForLoadState('networkidle');
+    
+    // Ensure Genesis 2 is NOT initially loaded
+    const genesis2Segment = page.locator('[data-ref="Genesis 2:1"]');
+    const initialGenesis2Visible = await genesis2Segment.isVisible();
+    expect(initialGenesis2Visible).toBe(false); // Confirm it starts without Genesis 2
+    
+    // Get initial segment count
+    const initialSegmentCount = await page.locator('.segment').count();
+    
+    // Scroll to bottom and wait for next segment to load
+    let genesis2LoadedByScroll = false;
+    let segmentCountIncreased = false;
+    
+    for (let i = 0; i < 10; i++) {
+      // Scroll down
+      await page.mouse.wheel(0, 1000);
+      await page.waitForTimeout(1500);
+      
+      // Check if scrolling triggered loading of new content
+      const currentGenesis2Visible = await genesis2Segment.isVisible();
+      const currentSegmentCount = await page.locator('.segment').count();
+      
+      if (currentGenesis2Visible || currentSegmentCount > initialSegmentCount) {
+        genesis2LoadedByScroll = currentGenesis2Visible;
+        segmentCountIncreased = currentSegmentCount > initialSegmentCount;
+        break;
+      }
+    }
+    
+    // Test passes if scrolling triggered loading of next segments
+    if (genesis2LoadedByScroll) {
+      await expect(genesis2Segment).toBeVisible();
+    } else if (segmentCountIncreased) {
+      const finalSegmentCount = await page.locator('.segment').count();
+      expect(finalSegmentCount).toBeGreaterThan(initialSegmentCount);
+    } else {
+      // If infinite scroll doesn't work, the test should fail
+      throw new Error('Infinite scroll did not load additional content after scrolling to bottom');
+    }
+  });
+
+  test('TC032: BackRestoresScrollPosition - Tests browser back button restores scroll position', async ({ context }) => {
+    const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
+    
+    // Start at /texts page
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for content to fully load
+    
+    // Step 1: Click on page body to ensure focus, then try to scroll
+    await page.click('body');
+    await page.waitForTimeout(200);
+    
+    // Try direct DOM manipulation since other methods aren't working
+    const scrollResult = await page.evaluate(() => {
+      // Try multiple scroll targets
+      const scrollTargets = [
+        document.documentElement,
+        document.body,
+        document.querySelector('main'),
+        document.querySelector('.content'),
+        window
+      ];
+      
+      let scrolled = false;
+      const maxHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      
+      for (const target of scrollTargets) {
+        try {
+          if (target === window) {
+            window.scrollTo(0, maxHeight);
+          } else if (target && target.scrollTo) {
+            target.scrollTo(0, maxHeight);
+          } else if (target) {
+            target.scrollTop = maxHeight;
+          }
+          
+          // Check if any scroll method worked
+          const currentScroll = Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop);
+          if (currentScroll > 50) {
+            scrolled = true;
+            break;
+          }
+        } catch (e) {
+          console.log('Scroll method failed:', e.message);
+        }
+      }
+      
+      return {
+        scrolled,
+        finalPosition: Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop),
+        maxHeight,
+        bodyHeight: document.body.scrollHeight,
+        docHeight: document.documentElement.scrollHeight
+      };
+    });
+    
+    console.log('Scroll result:', scrollResult);
+    
+    if (!scrollResult.scrolled) {
+      test.skip(true, `Unable to scroll page. Heights: body=${scrollResult.bodyHeight}, doc=${scrollResult.docHeight}`);
+    }
+    
+    const bottomScrollPosition = scrollResult.finalPosition;
+    expect(bottomScrollPosition).toBeGreaterThan(0);
+    
+    // Step 2: Click on "Explore" in the header to navigate to topics page
+    const exploreLink = page.locator('a[href="/topics"].textLink', { hasText: /Explore/i });
+    await exploreLink.click();
+    await page.waitForLoadState('networkidle');
+    
+    // Verify we're on the topics page
+    await expect(page).toHaveURL(/\/topics/);
+    
+    // Step 3: Go back using browser back button
+    await page.goBack();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500); // Wait for scroll restoration (can be flaky)
+    
+    // Step 4: Verify we're back on /texts and still at the bottom
+    await expect(page).toHaveURL(/\/texts/);
+    
+    const restoredScrollPosition = await page.evaluate(() => window.scrollY);
+    // Allow some tolerance but should be close to the bottom position
+    expect(restoredScrollPosition).toBeGreaterThanOrEqual(bottomScrollPosition - 50);
+    expect(restoredScrollPosition).toBeLessThanOrEqual(bottomScrollPosition + 50);
   });

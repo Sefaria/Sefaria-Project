@@ -68,7 +68,7 @@ test('TC004: Format text', async () => {
 });
 
 
-test('TC007: Add Image (followed by text)', async () => {
+test('TC005: Add Image (followed by text)', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.focusTextInput();
@@ -78,7 +78,7 @@ test('TC007: Add Image (followed by text)', async () => {
   await expect(textLocator).toBeVisible();
 });
 
-test('TC004: Add Source (followed by text)', async () => {
+test('TC006: Add Source (followed by text)', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.addSampleSource();
@@ -89,7 +89,7 @@ test('TC004: Add Source (followed by text)', async () => {
 
 });
 
-test('TC0: Format Source Text', async () => {
+test('TC007: Format Source Text', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.addSampleSource();
@@ -103,35 +103,7 @@ test('TC0: Format Source Text', async () => {
   await sheetEditorPage.italicSourceTextButton().click();
 });
 
-test('TC005: Add Media - Spotify (followed by text)', async () => {
-  await page.goto(sheetUrl);
-  await hideAllModalsAndPopups(page);
-  await sheetEditorPage.addSampleMedia('https://open.spotify.com/episode/4FJZFVPldsPmNZHWDjErc7?go=1&sp_cid=6ea9e4ea9774809d27158effbe0145a0&utm_source=embed_player_p&utm_medium=desktop&nd=1&dlsi=3457420a9c6e4dd7');
-  await expect(sheetEditorPage.addedSpotify()).toBeVisible();
-  await sheetEditorPage.addText('Text after Spotify');
-  const textLocator = await sheetEditorPage.getTextLocator('Text after Spotify');
-  await expect(textLocator).toBeVisible();
-});
-
-test('TC006: Add Media - Youtube (followed by text)', async () => {
-  await page.goto(sheetUrl);
-  await hideAllModalsAndPopups(page);
-  await sheetEditorPage.addSampleMedia('https://www.youtube.com/watch?v=Vmwc02Q7DEA');
-  await expect(sheetEditorPage.addedYoutube()).toBeVisible();
-  // Wait for YouTube iframe to be fully loaded and stable
-  await expect(sheetEditorPage.addedYoutube().locator('iframe')).toBeVisible();
-  await page.keyboard.press('Enter');   
-  await sheetEditorPage.addText('Text after YouTube');
-  const textLocator = await sheetEditorPage.getTextLocator('Text after YouTube');
-  await expect(textLocator).toBeVisible();
-});
-
-
-/**
- * Editor drag and drop tests (TC007-TC011) have been moved to file editor-drag-and-drop.spec.ts, to be worked on at a later point
- */
-
-test('TC012: Edit inside an Added Source', async () => {
+test('TC008: Edit inside an Added Source', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   
@@ -162,7 +134,30 @@ test('TC012: Edit inside an Added Source', async () => {
   expect(finalSourceText).not.toBe(originalSourceText);
 });
 
-test('TC013: Delete Text', async () => {
+test('TC009: Add Media - Spotify (followed by text)', async () => {
+  await page.goto(sheetUrl);
+  await hideAllModalsAndPopups(page);
+  await sheetEditorPage.addSampleMedia('https://open.spotify.com/episode/4FJZFVPldsPmNZHWDjErc7?go=1&sp_cid=6ea9e4ea9774809d27158effbe0145a0&utm_source=embed_player_p&utm_medium=desktop&nd=1&dlsi=3457420a9c6e4dd7');
+  await expect(sheetEditorPage.addedSpotify()).toBeVisible();
+  await sheetEditorPage.addText('Text after Spotify');
+  const textLocator = await sheetEditorPage.getTextLocator('Text after Spotify');
+  await expect(textLocator).toBeVisible();
+});
+
+test('TC010: Add Media - Youtube (followed by text)', async () => {
+  await page.goto(sheetUrl);
+  await hideAllModalsAndPopups(page);
+  await sheetEditorPage.addSampleMedia('https://www.youtube.com/watch?v=Vmwc02Q7DEA');
+  await expect(sheetEditorPage.addedYoutube()).toBeVisible();
+  // Wait for YouTube iframe to be fully loaded and stable
+  await expect(sheetEditorPage.addedYoutube().locator('iframe')).toBeVisible();
+  await page.keyboard.press('Enter');   
+  await sheetEditorPage.addText('Text after YouTube');
+  const textLocator = await sheetEditorPage.getTextLocator('Text after YouTube');
+  await expect(textLocator).toBeVisible();
+});
+
+test('TC011: Delete Text', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.focusTextInput();
@@ -174,7 +169,7 @@ test('TC013: Delete Text', async () => {
   await expect(textLocator).not.toBeVisible();
 });
 
-test('TC014: Delete Added Source', async () => {
+test('TC012: Delete Added Source', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.focusTextInput();
@@ -189,7 +184,7 @@ test('TC014: Delete Added Source', async () => {
   expect(finalCount).toBeLessThan(initialCount);
 });
 
-test('TC015: Delete Added Image', async () => {
+test('TC013: Delete Added Image', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   const imageCount = await sheetEditorPage.addedImage().count();
@@ -206,7 +201,7 @@ test('TC015: Delete Added Image', async () => {
   }
 });
 
-test('TC016a: Delete Added YouTube Media', async () => {
+test('TC014a: Delete Added YouTube Media', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   const youtubeCount = await sheetEditorPage.addedYoutube().count();
@@ -223,7 +218,7 @@ test('TC016a: Delete Added YouTube Media', async () => {
   }
 });
 
-test('TC016b: Delete Added Spotify Media', async () => {
+test('TC014b: Delete Added Spotify Media', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   const spotifyCount = await sheetEditorPage.addedSpotify().count();
@@ -240,7 +235,7 @@ test('TC016b: Delete Added Spotify Media', async () => {
   }
 });
 
-test('TC017: Click "X" and confirm sheet now appears in Account Profile', async () => {
+test('TC015: Click "X" and confirm sheet now appears in Account Profile', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.editTitle('Test Sheet Title');
@@ -255,7 +250,7 @@ test('TC017: Click "X" and confirm sheet now appears in Account Profile', async 
   await expect(sheetLink).toBeVisible();
 });
 
-test('TC018: Manually delete sheet from account profile', async () => {
+test('TC016: Manually delete sheet from account profile', async () => {
   await page.goto(sheetUrl);
   await hideAllModalsAndPopups(page);
   const uniqueTitle = `Delete Test Sheet ${Date.now()}`;
@@ -295,6 +290,10 @@ test('TC018: Manually delete sheet from account profile', async () => {
   const deletedSheetRow = page.locator('.sheet').filter({ has: page.locator(`a.sheetTitle:has-text("${uniqueTitle}")`) }).first();
   await expect(deletedSheetRow).not.toBeVisible({ timeout: 10000 });
 });
+
+/**
+ * Editor drag and drop tests have been moved to editor-drag-and-drop.spec.ts, to be worked on at a later point
+ */
 
 
 
