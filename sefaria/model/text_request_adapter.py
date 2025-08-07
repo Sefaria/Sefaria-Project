@@ -180,7 +180,6 @@ class TextRequestAdapter:
 
         # helper to build a segment-level link-wrapper once per version
         def build_link_wrapper(lang, version_text):
-            marked_up_chunks = []
             sections_to_chunk = {}
             for i, segment_ref in enumerate(self.oref.all_segment_refs()):
                 marked_up_chunk = MarkedUpTextChunk().load({
@@ -189,7 +188,6 @@ class TextRequestAdapter:
                     "language": lang
                 })
                 if marked_up_chunk:
-                    marked_up_chunks.append(marked_up_chunk)
                     sections_to_chunk[i] = marked_up_chunk
 
 
