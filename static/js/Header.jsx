@@ -11,7 +11,9 @@ import {
   InterfaceLanguageMenu,
   InterfaceText,
   getCurrentPage,
-  DonateLink
+  LanguageToggleButton,
+  DonateLink,
+  useOnceFullyVisible
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
@@ -156,42 +158,36 @@ const ModuleSwitcher = () => {
       </DropdownMenu>
 );
 }
-class Header extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      mobileNavMenuOpen: false,
-    };
-  }
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleFirstTab);
-  }
-  handleFirstTab(e) {
-    if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
-      document.body.classList.add('user-is-tabbing');
-      window.removeEventListener('keydown', this.handleFirstTab);
+
+const Header = (props) => {
+
+  useEffect(() => {
+    const handleFirstTab = (e) => {
+      if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
+        document.body.classList.add('user-is-tabbing');
+        window.removeEventListener('keydown', handleFirstTab);
+      }
     }
-  }
-  toggleMobileNavMenu() {
-    this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
-  }
-  render() {
-    if (this.props.hidden && !this.props.mobileNavMenuOpen) {
-      return null;
+
+    window.addEventListener('keydown', handleFirstTab);
+
+    return () => {
+      window.removeEventListener('keydown', handleFirstTab);
     }
-    const short_lang = Sefaria._getShortInterfaceLang();
+  }, []);
+  const short_lang = Sefaria._getShortInterfaceLang();
 
-    const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
-    const libraryLogo = (
-      <img src={`/static/img/${libraryLogoPath}`} className="home" alt="Sefaria Logo"/>
-    );
+  const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
+  const libraryLogo = (
+    <img src={`/static/img/${libraryLogoPath}`} className="home" alt="Sefaria Logo"/>
+  );
 
-    const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
-    const sheetsLogo = (
-      <img src={sheetsLogoPath} alt="Sefaria Sheets Logo" className="home"/>
-    );
+  const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
+  const sheetsLogo = (
+    <img src={sheetsLogoPath} alt="Sefaria Sheets Logo" className="home"/>
+  );
 
-    const logo = this.props.module === "library" ? libraryLogo : sheetsLogo;
+  const logo = props.module === "library" ? libraryLogo : sheetsLogo;
 
       const librarySavedIcon = <div className='librarySavedIcon'>
                                   <a href="/texts/saved" data-attr-module="library">
@@ -204,9 +200,17 @@ class Header extends Component {
                                         </a>
                                       </div>;
 
-    const headerContent = (
-      <>
+  const headerRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "regular_header" });
+    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
+  }, "sa.header_viewed");
 
+  if (props.hidden && !props.mobileNavMenuOpen) {
+    return null;
+  }
+  
+  const headerContent = (
+    <>
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
           {props.module === "library" && 
@@ -232,31 +236,31 @@ class Header extends Component {
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
-        <div className="headerLinksSection">
-        <HeaderAutocomplete
-            onRefClick={this.props.onRefClick}
-            showSearch={this.props.showSearch}
-            openTopic={this.props.openTopic}
-            openURL={this.props.openURL}
-        />
+      <div className="headerLinksSection">
+      <HeaderAutocomplete
+          onRefClick={props.onRefClick}
+          showSearch={props.showSearch}
+          openTopic={props.openTopic}
+          openURL={props.openURL}
+      />
 
-        {!Sefaria._uid && this.props.module === "library" && <SignUpButton/>}
-        {this.props.module === "sheets" && <CreateButton />}
+        {!Sefaria._uid && props.module === "library" && <SignUpButton/>}
+        {props.module === "sheets" && <CreateButton />}
         { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
-                translationLanguagePreference={this.props.translationLanguagePreference}
-                setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
+                translationLanguagePreference={props.translationLanguagePreference}
+                setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
-        { Sefaria._uid && (this.props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon) }
+        { Sefaria._uid && (props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon) }
 
           <ModuleSwitcher />
 
           { Sefaria._uid ?
-            <LoggedInDropdown module={this.props.module}/>
-            : <LoggedOutDropdown module={this.props.module}/>
+            <LoggedInDropdown module={props.module}/>
+            : <LoggedOutDropdown module={props.module}/>
           }
 
         </div>
@@ -266,7 +270,7 @@ class Header extends Component {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+          <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
             <i className="fa fa-bars"></i>
           </button>
         </div>
@@ -275,41 +279,41 @@ class Header extends Component {
           { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
         </div>
 
-        {this.props.hasLanguageToggle ?
-        <div className={this.props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
-          <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+        {props.hasLanguageToggle ?
+        <div className={props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+          <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
       </>
     );
 
-    const headerClasses = classNames({header: 1, mobile: !this.props.multiPanel});
+    const headerClasses = classNames({header: 1, mobile: !props.multiPanel});
     const headerInnerClasses = classNames({
       headerInner: 1,
-      boxShadow: this.props.hasBoxShadow,
-      mobile: !this.props.multiPanel
+      boxShadow: props.hasBoxShadow,
+      mobile: !props.multiPanel
     });
     return (
-      <div className={headerClasses} role="banner">
+      <div className={headerClasses} role="banner" ref={headerRef}>
         <div className={headerInnerClasses}>
-          {this.props.multiPanel ? headerContent : mobileHeaderContent}
+          {props.multiPanel ? headerContent : mobileHeaderContent}
         </div>
 
-        {this.props.multiPanel ? null :
+        {props.multiPanel ? null :
         <MobileNavMenu
-          visible={this.props.mobileNavMenuOpen}
-          onRefClick={this.props.onRefClick}
-          showSearch={this.props.showSearch}
-          openTopic={this.props.openTopic}
-          openURL={this.props.openURL}
-          close={this.props.onMobileMenuButtonClick}
-          module={this.props.module} />
+          visible={props.mobileNavMenuOpen}
+          onRefClick={props.onRefClick}
+          showSearch={props.showSearch}
+          openTopic={props.openTopic}
+          openURL={props.openURL}
+          close={props.onMobileMenuButtonClick}
+          module={props.module} />
         }
         <GlobalWarningMessage />
       </div>
     );
-  }
 }
+
 Header.propTypes = {
   multiPanel:   PropTypes.bool.isRequired,
   headerMode:   PropTypes.bool.isRequired,
@@ -668,4 +672,4 @@ const CreateButton = () => {
 };
 
 
-export default Header;
+export {Header};
