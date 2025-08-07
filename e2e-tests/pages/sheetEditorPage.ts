@@ -183,17 +183,17 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async clickAddSource() {
-        this.clickPlusButton();
+        await this.clickPlusButton();
         await this.addSourceButton().click();
     }
 
     async clickAddMedia() {
-      this.clickPlusButton();
+      await this.clickPlusButton();
       await this.addMediaButton().click();
     }
     
     async clickAddImage() {
-      this.clickPlusButton();
+      await this.clickPlusButton();
       await this.addImageButton().click();
     }
 
