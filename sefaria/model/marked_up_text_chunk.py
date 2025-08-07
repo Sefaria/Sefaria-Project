@@ -1,6 +1,10 @@
 from . import abstract as abst
 from sefaria.model.text import TextChunk, Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
+from typing import List, Dict
+import re
+from html import escape
+
 
 class MarkedUpTextChunk(abst.AbstractMongoRecord):
     """
@@ -84,3 +88,45 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
 
     def __str__(self):
         return "TextSpan: {}".format(self.ref)
+
+
+    def apply_spans_to_text(self, text):
+        """
+        Applies the spans defined in this MarkedUpTextChunk to the provided text.
+        Returns a text with HTML anchor tags inserted for each span.
+        """
+
+        spans = self.spans
+
+        if not spans:
+            return text
+
+        # Insert from the right so earlier insertions don't shift later indices.
+        spans_sorted = sorted(spans, key=lambda sp: sp["charRange"][0], reverse=True)
+
+        out = text
+        for sp in spans_sorted:
+            start, end = sp["charRange"]
+
+            # Clamp & sanity check
+            start = max(0, start)
+            end = min(len(out), end)
+            if start >= end:
+                continue
+
+            visible = sp.get("text")
+            if visible != out[start:end]:
+                raise InputError(
+                    f"MarkedUpTextChunk.apply_spans_to_text: Span text '{visible}' does not match text slice '{out[start:end]}' for span {sp}"
+                )
+
+            ref = sp.get("ref", "").strip()
+            href = Ref(ref).url()
+            anchor = (
+                f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'
+                f'{escape(visible)}</a>'
+            )
+
+            out = out[:start] + anchor + out[end:]
+
+        return out

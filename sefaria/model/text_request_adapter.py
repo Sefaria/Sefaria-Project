@@ -3,13 +3,9 @@ from collections import defaultdict
 from functools import reduce
 from typing import List
 import django
-from html import escape
 import re
 from typing import List, Dict
-
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
-from sefaria.model.tests.marked_up_text_chunk import marked_up_chunks
-
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -240,12 +236,6 @@ class TextRequestAdapter:
 
         # helper to build a segment-level link-wrapper once per version
         def build_link_wrapper(lang, version_text):
-            # Compile regex once for entire version to cover all titles that appear anywhere
-            reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(version_text, lang=lang, citing_only=True)
-
-            # Return a function that wraps refs in an individual segment using the precompiled regex
-            # return lambda string, _: library.get_wrapped_refs_string(string, lang=lang, citing_only=True,
-            #                                                           reg=reg, title_nodes=title_nodes)
             marked_up_chunks = []
             sections_to_chunk = {}
             for i, segment_ref in enumerate(self.oref.all_segment_refs()):
@@ -256,19 +246,16 @@ class TextRequestAdapter:
                 })
                 if marked_up_chunk:
                     marked_up_chunks.append(marked_up_chunk)
-                    # sections_to_chunk[tuple(segment_ref.sections)] = marked_up_chunk
                     sections_to_chunk[i] = marked_up_chunk
 
 
             print(marked_up_chunks)
             def wrapper(string, sections):
                 print(sections)
-                chunk = sections_to_chunk.get(sections[0], None)
+                chunk : MarkedUpTextChunk = sections_to_chunk.get(sections[0], None)
                 if chunk:
-                    string = wrap_citations_with_links(string, chunk.spans)
+                    string = chunk.apply_spans_to_text(string)
                 return string
-                # return library.get_wrapped_refs_string(string, lang=lang, citing_only=True,
-                #                                        reg=reg, title_nodes=title_nodes)
             return wrapper
 
         # Define text modification functions based on return format
