@@ -74,7 +74,7 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === 'sheets' && 
-                <DropdownMenuItem url={'/my/profile'} preventClose={true}>
+                <DropdownMenuItem url={'/my/profile'} preventClose={true} targetModule={'sheets'}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
               }
@@ -94,16 +94,16 @@ const LoggedInDropdown = ({module}) => {
 
               { module === 'sheets' && 
                 <>
-                <DropdownMenuItem url={'/my/profile'}>
+                <DropdownMenuItem url={'/my/profile'} targetModule={'sheets'}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/saved'}>
+                <DropdownMenuItem url={'/sheets/saved'} targetModule={'sheets'}>
                   <InterfaceText>Saved</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/history'}>
+                <DropdownMenuItem url={'/sheets/history'} targetModule={'sheets'}>
                   <InterfaceText>History</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/settings/account'}>
+                <DropdownMenuItem url={'/settings/account'} targetModule={'library'}>
                     <InterfaceText>Account Settings</InterfaceText>
                 </DropdownMenuItem>
                 </> 
@@ -137,11 +137,11 @@ const ModuleSwitcher = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== "library"}>
+              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== "library"} targetModule={'library'}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== "sheets"}>  
+              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== "sheets"} targetModule={'sheets'}>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
@@ -194,7 +194,7 @@ class Header extends Component {
     const logo = this.props.module === "library" ? libraryLogo : sheetsLogo;
 
       const librarySavedIcon = <div className='librarySavedIcon'>
-                                  <a href="/texts/saved" >
+                                  <a href="/texts/saved" data-attr-module="library">
                                     <img src='/static/icons/bookmarks.svg' alt='Saved items' />
                                   </a>
                                 </div>;
