@@ -115,17 +115,17 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
             if start >= end:
                 continue
 
-            visible = sp.get("text")
-            if visible != out[start:end]:
+            span_citation_text = sp.get("text")
+            if span_citation_text != out[start:end]:
                 raise InputError(
-                    f"MarkedUpTextChunk.apply_spans_to_text: Span text '{visible}' does not match text slice '{out[start:end]}' for span {sp}"
+                    f"MarkedUpTextChunk.apply_spans_to_text: Span text '{span_citation_text}' does not match text slice '{out[start:end]}' for span {sp}"
                 )
 
             ref = sp.get("ref", "").strip()
             href = Ref(ref).url()
             anchor = (
                 f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'
-                f'{escape(visible)}</a>'
+                f'{escape(span_citation_text)}</a>'
             )
 
             out = out[:start] + anchor + out[end:]
