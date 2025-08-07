@@ -192,7 +192,6 @@ class TextRequestAdapter:
 
 
             def wrapper(string, sections):
-                print(sections)
                 chunk : MarkedUpTextChunk = sections_to_chunk.get(sections[0], None)
                 if chunk:
                     string = chunk.apply_spans_to_text(string)
