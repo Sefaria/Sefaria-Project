@@ -249,7 +249,6 @@ class TextRequestAdapter:
                     sections_to_chunk[i] = marked_up_chunk
 
 
-            print(marked_up_chunks)
             def wrapper(string, sections):
                 print(sections)
                 chunk : MarkedUpTextChunk = sections_to_chunk.get(sections[0], None)
