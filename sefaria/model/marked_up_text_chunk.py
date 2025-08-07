@@ -121,7 +121,11 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
                     f"MarkedUpTextChunk.apply_spans_to_text: Span text '{span_citation_text}' does not match text slice '{out[start:end]}' for span {sp}"
                 )
 
-            ref = sp.get("ref", "").strip()
+            ref = sp.get("ref", None).strip()
+            if not ref:
+                raise InputError(
+                    f"MarkedUpTextChunk.apply_spans_to_text: Span does not have a 'ref' for span {sp}"
+                )
             href = Ref(ref).url()
             anchor = (
                 f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'
