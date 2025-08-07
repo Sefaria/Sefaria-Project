@@ -93,6 +93,7 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
     def apply_spans_to_text(self, text):
         """
         Applies the spans defined in this MarkedUpTextChunk to the provided text.
+        For now, we assume that all spans are "citation" spans, will extend it in the future to support "quote" spans.
         Returns a text with HTML anchor tags inserted for each span.
         """
 
