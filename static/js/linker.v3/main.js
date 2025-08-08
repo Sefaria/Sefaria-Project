@@ -381,7 +381,7 @@ import {LinkExcluder} from "./excluder";
 
     function getFindRefsUrl() {
         const params = {
-            with_text: 1,
+            with_text: ns.mode.startsWith("popup") ? 1 : 0,
             debug: 0 + ns.debug,
             max_segments: ns.maxParagraphs,
         }
@@ -500,8 +500,8 @@ import {LinkExcluder} from "./excluder";
         ns.maxParagraphs = 20;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (options.debug || true) { removeExistingSefariaLinks(); }
-        const mode = getMode(options);
-        ns.popupManager = new PopupManager({ mode, reportCitation, ...options });
+        ns.mode = getMode(options);
+        ns.popupManager = new PopupManager({ mode: ns.mode, reportCitation, ...options });
         ns.popupManager.setupPopup();
 
         getFullWhitelistSelectors(options.whitelistSelector)

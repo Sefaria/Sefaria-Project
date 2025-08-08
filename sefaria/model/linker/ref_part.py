@@ -3,7 +3,7 @@ from enum import Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import schema
-from sefaria.model.linker.ne_span import NESpan, NEDoc
+from ne_span import NESpan, NEDoc
 import structlog
 logger = structlog.get_logger(__name__)
 
