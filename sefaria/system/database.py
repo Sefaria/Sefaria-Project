@@ -177,6 +177,17 @@ def ensure_indices(active_db=None):
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
         ('vstate', ["title"], {}),
         ('vstate', ["flags.enComplete"], {}),
+        ('daily_mishnayot',["date"], {}),
+        ('dafyomi', ["date"], {}),
+        ('daily_rambam', ["date"], {}),
+        ('arukh_hashulchan', ["date"], {}),
+        ('daily_rambam_three', ["date"], {}),
+        ('tanakh_yomi', ["date"], {}),
+        ('daily_tikkunei_zohar', ["date"], {}),
+        ('daf_weekly', ["date"], {}),
+        ('halakhah_yomit', ["date"], {}),
+        ('parshiot', ["date"], {}), # Also parsha name?
+        ('tanya_yomi', ["date"],  {}),
     ]
 
     for col, args, kwargs in indices:
