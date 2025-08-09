@@ -1,0 +1,64 @@
+[data-active-module="library"]{
+  /* Define default theme variables */
+  --theme-primary: var(--sefaria-blue);
+  --theme-background: var(--lightest-grey); /** just an example **/
+  --theme-text: black;  /** just an example **/
+
+  /* font stacks */
+  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
+
+  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
+  --serif-small-font-size: 14px;
+
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
+
+    /** button colors **/
+  --theme-button-background: var(--theme-primary);
+  --theme-button-text: white;
+  --theme-button-icon-filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(106deg) brightness(101%) contrast(103%);  /* white */
+  --theme-button-border: transparent;
+  --theme-button-dropshadow: 0 1px 3px rgba(0,0,0,0.25);
+
+}
+
+[data-active-module="library"] .header img.home {
+  height: 25px;
+}
+
+/**
+either a secondary button inside active module or a button with active module on it explicitly
+**/
+[data-active-module="sheets"] button.secondary,
+button.secondary[data-active-module="sheets"]
+{
+  /** light button colors **/
+  --theme-button-background: white;
+  --theme-button-text: var(--dark-grey);
+  --theme-button-icon-filter: brightness(0) saturate(100%) invert(38%) sepia(1%) saturate(0%) hue-rotate(220deg) brightness(99%) contrast(84%);  /* --dark-grey */
+  --theme-button-border: transparent;
+  --theme-button-dropshadow: none;
+}
+[data-active-module="sheets"] button:disabled,
+[data-active-module="sheets"] button.secondary:disabled,
+button:disabled[data-active-module="sheets"],
+button.secondary:disabled[data-active-module="sheets"]{
+  /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
+  --theme-button-background: var(--lightest-grey);
+  --theme-button-text: var(--medium-grey);
+  --theme-button-icon-filter: brightness(0) saturate(100%) invert(66%) sepia(0%) saturate(1333%) hue-rotate(200deg) brightness(92%) contrast(91%);;  /* --medium-grey */
+  --theme-button-border: var(--light-grey);
+  --theme-button-dropshadow: none;
+}
+/* placeholder for dark theme colors */
+@media (prefers-color-scheme: dark) {}

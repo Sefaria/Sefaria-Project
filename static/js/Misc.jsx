@@ -24,6 +24,9 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
+import Button from "./common/Button";
 
 function useOnceFullyVisible(onVisible, key) {
   const targetRef = useRef(null);
@@ -125,8 +128,27 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={disallowedMarkdownElements}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+        : markdown ? 
+          <span className={elemclasses}>
+            <ReactMarkdown 
+                  className={'reactMarkdown'} 
+                  unwrapDisallowed={true} 
+                  components={{
+                                a: ({ href, children, ...props }) => (
+                                  <a 
+                                    href={href} 
+                                    target="_blank"  // forcibly open in new tab to avoid cases like /sheets/Isaiah.4.3 due to updateHistoryState modifying URL in sheets module
+                                    rel="noopener noreferrer"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </a>
+                                )
+                              }}
+                  disallowedElements={disallowedMarkdownElements}>
+                {textResponse}
+            </ReactMarkdown>
+          </span> : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -658,6 +680,10 @@ TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
 };
 
+
+const getCurrentPage = () => {
+  return encodeURIComponent(Sefaria.util.currentPath());
+}
 
 class LanguageToggleButton extends Component {
   toggle(e) {
@@ -1213,55 +1239,35 @@ DisplaySettingsButton.propTypes = {
 
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
+
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef(null);
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
-  const handleClick = (e) => {
-    e.stopPropagation();
-    setIsOpen(isOpen => !isOpen);
-  }
+
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
     setTranslationLanguagePreference(null);
   };
-  const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
-  };
-  const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
-  };
-
-  useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
-  }, []);
 
   return (
-      <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/></a>
-        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-          <div className="interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
-          </div>
-          <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-          </div>
-          { !!translationLanguagePreference ? (
+    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
+      <div className="dropdownLinks-options">
+        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header languageHeader">
+          <InterfaceText>Site Language</InterfaceText>
+        </div>
+        <DropdownMenuSeparator />
+        <div className='languageFlex'>
+          <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':'inactive'}`}>
+            עברית
+          </DropdownMenuItem>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : 'inactive'}`}>
+            English
+          </DropdownMenuItem>
+        </div>
+      </div>
+      { !!translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
                 <InterfaceText>Preferred Translation</InterfaceText>
@@ -1277,8 +1283,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               </div>
             </>
           ) : null}
-        </div>
-      </div>
+    </DropdownMenu>
   );
 }
 InterfaceLanguageMenu.propTypes = {
@@ -1286,22 +1291,34 @@ InterfaceLanguageMenu.propTypes = {
   translationLanguagePreference: PropTypes.string,
 };
 
+const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
+const getSaveButtonMessage = (selected) => selected ? "Remove" : "Save";
+const getSaveButtonImage = (selected) => {
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
+}
+const SaveButtonWithText = ({historyObject}) => {
+  const selected = isSaveButtonSelected(historyObject);
+  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
+}
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
-  if (!historyObject) { placeholder = true; }
-  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
-  const [selected, setSelected] = useState(placeholder || isSelected());
+  if (!historyObject) {
+    placeholder = true;
+  }
+  const [selected, setSelected] = useState(placeholder || isSaveButtonSelected(historyObject));
   useEffect(() => {
-    if (placeholder) { return; }
-    setSelected(isSelected())
+    if (placeholder) {
+      return;
+    }
+    setSelected(isSaveButtonSelected(historyObject));
   }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = getSaveButtonMessage(selected);
+  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1310,15 +1327,13 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .then(() => { setSelected(isSaveButtonSelected(historyObject)); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e === 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -1691,7 +1706,7 @@ const SheetListing = ({
   const collections = collectionsList.map((collection, i) => {
     const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
     return (
-      <a href={`/collections/${collection.slug}`}
+      <a href={`/sheets/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
@@ -1701,9 +1716,8 @@ const SheetListing = ({
       </a>
     );
   });
-
   const topics = sheet.topics.map((topic, i) => {
-    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
     return (
       <a href={`/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
@@ -1723,7 +1737,6 @@ const SheetListing = ({
       views,
       created,
       collections.length ? collections : undefined,
-      sheet.topics.length ? topics : undefined,
     ].filter(x => x !== undefined) : [topics];
 
 
@@ -1737,7 +1750,6 @@ const SheetListing = ({
       <div className="sheetLeft">
         {sheetInfo}
         <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1787,14 +1799,13 @@ const SheetListing = ({
 
 const CollectionListing = ({data}) => {
   const imageUrl = "/static/icons/collection.svg";
-  const collectionUrl = "/collections/" + data.slug;
+  const collectionUrl = "/sheets/collections/" + data.slug;
   return (
     <div className="collectionListing">
       <div className="left-content">
         <div className="collectionListingText">
 
           <a href={collectionUrl} className="collectionListingName">
-            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
             {data.name}
           </a>
 
@@ -2759,6 +2770,27 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim(); // It seems browsers insert a <br> tag when div content is deleted by user, so we need to trim it.
+    if (content === '') {
+      e.target.innerHTML = ''; 
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
+  >
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+}
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -2776,11 +2808,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/collections/" + slug}>
+        <a href={"/sheets/collections/" + slug}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/collections/" + slug}>{children ? children : name}</a>
+      <a href={"/sheets/collections/" + slug}>{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
@@ -2907,12 +2939,22 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+  return <div className="sheetMetaDataBox">
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
+    </div>
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
-);
+}
 
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
@@ -3153,9 +3195,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           className={inputClassNames}
 
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+      {showAddButton && <Button className={buttonClassNames} onClick={(e) => {handleSelection(inputValue, currentSuggestions)
+                }}><InterfaceText>{buttonTitle}</InterfaceText></Button>}
 
       <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popupsEl}>
         {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
@@ -3374,6 +3415,7 @@ export {
   MenuButton,
   SearchButton,
   SaveButton,
+  SaveButtonWithText,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
@@ -3388,6 +3430,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
@@ -3402,6 +3445,7 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  getCurrentPage,
   GuideButton,
   ArrowButton as Arrow,
   transformValues,
