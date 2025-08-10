@@ -3167,7 +3167,7 @@ def topics_list_api(request):
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
         task_ids = []
-        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.tasks.topic_prompts import generate_and_save_topic_prompts
         from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
         topic = Topic.init(slug)
         post_body = json.loads(request.body)

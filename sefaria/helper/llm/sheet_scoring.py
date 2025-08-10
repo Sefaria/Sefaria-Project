@@ -3,7 +3,7 @@ from typing import Any,Dict,Optional
 
 from bson import ObjectId
 from sefaria.system.database import db
-from sefaria_llm_interface.scoring_io import (
+from sefaria_llm_interface.sheet_scoring import (
     SheetScoringInput,
     SheetScoringOutput,
 )
@@ -31,7 +31,7 @@ def _prepare_update_data(result: SheetScoringOutput) -> Dict[str,Any]:
         "creativity_score": result.creativity_score,
     }
 
-    return {k: v for k,v in update_data.items() if v is not None}
+    return {k: v for k, v in update_data.items() if v is not None}
 
 
 def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:

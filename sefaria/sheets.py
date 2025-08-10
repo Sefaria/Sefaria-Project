@@ -18,7 +18,7 @@ from bson.son import SON
 from collections import defaultdict
 from pymongo.errors import DuplicateKeyError
 import uuid
-from sefaria.helper.llm.tasks import generate_and_save_sheet_scoring
+from sefaria.helper.llm.tasks.sheet_scoring import generate_and_save_sheet_scoring
 import sefaria.model as model
 import sefaria.model.abstract as abstract
 from sefaria.system.database import db
@@ -232,7 +232,6 @@ def sheet_to_dict(sheet):
         "options": sheet["options"] if "options" in sheet else [],
     }
     return sheet_dict
-
 
 
 def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displayedCollection=False):
