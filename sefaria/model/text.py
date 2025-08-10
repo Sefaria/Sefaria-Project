@@ -6101,6 +6101,21 @@ class Library(object):
                 new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
                                                                        citing_only, reg, title_nodes)
         return new_string
+    
+    def get_wrapped_from_marked_up(self, st, marked_up_text_chunk):
+        if marked_up_text_chunk is None:
+            return st
+        tasks = sorted([span for span in marked_up_text_chunk.spans], key=lambda x: x['charRange'][0], reverse=True)
+        for task in tasks:
+            if not task['text'] in st:
+                continue
+            if task['type'] == 'quote':
+                oref = Ref(task['ref'])
+                start, end = task['charRange']
+                st = st.replace(st[start:end], self._wrap_quote_from_marked_up(oref, st[start:end]))
+            else:
+                pass
+        return st
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
         """
@@ -6295,6 +6310,10 @@ class Library(object):
     def _wrap_ref_match(ref, match):
         return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
 
+    @staticmethod
+    def _wrap_quote_from_marked_up(ref, string):
+        return f'<span class="refQuote" data-ref="{ref.normal()}">{string}</span>'
+    
     def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
         try:
             gs = match.groupdict()

@@ -5,6 +5,7 @@ from typing import List
 import django
 django.setup()
 from sefaria.model import *
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.utils.hebrew import hebrew_term
 from sefaria.system.exceptions import InputError
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -179,7 +180,7 @@ class TextRequestAdapter:
 
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            text_modification_funcs = [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
+            text_modification_funcs = [lambda string, _: library.get_wrapped_from_marked_up(string, marked_up_text_chunk), lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
             if Link().load(query):
                 text_modification_funcs.append(lambda string, _: wrap_links(string))
 
@@ -202,7 +203,8 @@ class TextRequestAdapter:
                 language = 'he' if version['direction'] == 'rtl' else 'en'
                 version_title = version['versionTitle']
                 ne_by_secs = make_named_entities_dict()
-
+                # NEW: build MarkedUpTextChunk for this version and apply before wrap_links
+                marked_up_text_chunk = MarkedUpTextChunk().load({'ref': self.oref.normal(), 'language': language, 'versionTitle': version_title})
             ja = JaggedTextArray(version['text'])
             version['text'] = ja.modify_by_function(composed_func)
 
