@@ -8,7 +8,7 @@ metadata:
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
-  DOMAIN_MODULES: {{ .Values.localSettings.DOMAIN_MODULES | toJson | quote }}
+  DOMAIN_MODULES: {{ .Values.localSettings.DOMAIN_MODULES | quote }}
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
   FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
