@@ -151,11 +151,19 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('Before unknown error');
     
+    // Wait for initial save to complete
+    await editor.assertSaveState(SaveStates.saved, LANGUAGES.EN);
+    
     // Trigger catch-all error
     await page.evaluate(() => {
       (window as any).Sefaria.testUnkownNewEditorSaveError = true;
-    });    
-    await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.EN, 21000); //fifth state is triggered after 20 seconds
+    });
+    
+    // Trigger another save operation to activate the error
+    await editor.addText(' - triggering error');
+    
+    // Now wait for the error state (which appears after 20 seconds)
+    await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.EN, 23000);
     await editor.validateEditingIsBlocked();
     
     const promptTriggered = await page.evaluate(() => {
@@ -207,10 +215,19 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
     await page.reload();
     
     await editor.addText('Trigger unknown error');
+    
+    // Wait for initial save to complete
+    await editor.assertSaveState(SaveStates.saved, LANGUAGES.HE);
+    
     await page.evaluate(() => {
       (window as any).Sefaria.testUnkownNewEditorSaveError = true;
     });
-    await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.HE, 21000); //fifth state is triggered after 20 seconds
+    
+    // Trigger another save operation to activate the error
+    await editor.addText(' - triggering error');
+    
+    // Now wait for the error state (which appears after 20 seconds)
+    await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.HE, 23000);
     await editor.validateEditingIsBlocked();
   });
 });

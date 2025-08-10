@@ -83,7 +83,7 @@ test('TC032: Click on Title to open Resource Panel - Added Source in focus', asy
   await expect(sheetEditorPage.resourcePanel()).toContainText('Resources');
 });
 
-test('TC040: Click on sidebar toggle opens resource panel', async () => {
+test('TC033: Click on sidebar toggle opens resource panel', async () => {
   // Wait for the sidebar toggle to be available
   await expect(sheetEditorPage.sideBarToggleButton()).toBeVisible({ timeout: 10000 });
   await sheetEditorPage.clickSidebarToggle();
@@ -92,15 +92,18 @@ test('TC040: Click on sidebar toggle opens resource panel', async () => {
   await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });   
 });
 
-test('TC033: Clicking on text does not open resource panel', async () => {
+test('TC034: Clicking on text does not open resource panel', async () => {
   await sheetEditorPage.addText('This is test text');
   const textElement = await sheetEditorPage.getTextLocator('This is test text');
   await textElement.click();
   // Verify resource panel is not visible
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
+    await textElement.click({ clickCount: 3 }); // Triple click to select all text
+  await page.keyboard.press('Delete');
+  await expect(textElement).not.toBeVisible();
 });
 
-test('TC034: Clicking on Added Source does not open resource panel', async () => {
+test('TC035: Clicking on Added Source does not open resource panel', async () => {
   // Click on source
   await sheetEditorPage.addSampleSource();
   const sourceElement = sheetEditorPage.addedSource().first();
@@ -109,27 +112,27 @@ test('TC034: Clicking on Added Source does not open resource panel', async () =>
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
-test('TC035: Clicking on Image does not open resource panel', async () => {
+test('TC036: Clicking on Image does not open resource panel', async () => {
   await sheetEditorPage.addSampleImage();
   const imageElement = sheetEditorPage.addedImage().first();
   await imageElement.click();
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
-test('TC036: Clicking on Media does not open resource panel', async () => {
+test('TC037: Clicking on Media does not open resource panel', async () => {
   await sheetEditorPage.addSampleMedia('https://www.youtube.com/watch?v=Vmwc02Q7DEA');
   const mediaElement = sheetEditorPage.addedYoutube().first();
   await mediaElement.click();
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
-test('TC037: Clicking on [element] does not open resource panel', async () => {
+test('TC038: Clicking on [element] does not open resource panel', async () => {
   await sheetEditorPage.sourceSheetBody().click();
   // Verify resource panel is not visible
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
-test('TC038: Click "x" closes Resource Panel', async () => {
+test('TC039: Click "x" closes Resource Panel', async () => {
   await hideAllModalsAndPopups(page);
   await sheetEditorPage.addSampleSource();
   await page.waitForLoadState('networkidle');
@@ -141,7 +144,7 @@ test('TC038: Click "x" closes Resource Panel', async () => {
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
-test('TC039: Click on Added Source reference link to open Text reader panel', async () => {
+test('TC040: Click on Added Source reference link to open Text reader panel', async () => {
   await sheetEditorPage.addSampleSource();
   await page.waitForLoadState('networkidle');
   await expect(sheetEditorPage.sourceReferenceLink()).toBeVisible();

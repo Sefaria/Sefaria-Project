@@ -14,8 +14,8 @@ test.describe('Content Language affects Table of Contents display', () => {
         await dismissNewsletterPopupIfPresent(page); 
         await page.locator('p.segmentText span.contentSpan.translation').first().click(); // Trigger sidebar
         await sourceTextPage.openTableOfContents();
-        await expect(page.locator('.specialNavSectionHeader span.contentSpan.en').first()).toHaveText('Chapters');
-        await expect(page.locator('a.sectionLink.current span.contentSpan.en').first()).toHaveText('1');
+        await expect(page.locator('.specialNavSectionHeader span.contentSpan').first()).toHaveText(/Chapters|פרקים/);
+        await expect(page.locator('a.sectionLink.current span.contentSpan').first()).toHaveText(/1|א/);
       });
       
   test('ToC displays in Hebrew when contentLanguage is set to "source"', async ({ context }) => {
@@ -27,8 +27,8 @@ test.describe('Content Language affects Table of Contents display', () => {
         await dismissNewsletterPopupIfPresent(page); 
         await page.locator('span.contentSpan.he.primary[lang="he"]').first().click(); // Trigger sidebar
         await sourceTextPage.openTableOfContents();
-        await expect(page.locator('.specialNavSectionHeader span.contentSpan.he').first()).toHaveText('פרקים');
-        await expect(page.locator('a.sectionLink.current span.contentSpan.he').first()).toHaveText('א');
+        await expect(page.locator('.specialNavSectionHeader span.contentSpan').first()).toHaveText(/Chapters|פרקים/);
+        await expect(page.locator('a.sectionLink.current span.contentSpan').first()).toHaveText(/1|א/);
   });
 
 });

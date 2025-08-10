@@ -224,6 +224,7 @@ test.describe("Navigating To/Loading Book Pages", () => {
     await page.getByRole('link', { name: 'Genesis', exact: true }).click();
     await page.locator('.sectionLink').first().click();
     await page.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(page);
     await page.locator('header').getByRole('link', { name: 'Close' })
     //await page.getByRole('button', { name: '×' }).click();
     const genesisHebrew = page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃');
@@ -434,11 +435,13 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.goto('/Amos.3');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Amos\.3/);
+    await hideAllModalsAndPopups(page);
     const amosSegment = page.locator('[data-ref="Amos 3:1"]').first();
     await amosSegment.click();
     const connectionsPanel = page.locator('.readerPanelBox.sidebar');
     await expect(connectionsPanel).toBeVisible();
     await expect(page).toHaveURL(/\/Amos\.3\.1/);
+    await hideAllModalsAndPopups(page);
     const commentaryFilter = page.locator('.categoryFilter[data-name="Commentary"]');
     if (await commentaryFilter.isVisible()) {
       await commentaryFilter.click();
@@ -448,7 +451,7 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.goBack();
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Amos\.3\.1(?!.*with=Commentary)/);
-      await page.goBack();
+    await page.goBack();
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Amos\.3(?!\.1)/);
     // Use forward button
@@ -531,7 +534,7 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await searchInput.fill('Midrash');
     
     // Wait for dropdown and click on Midrash category item
-    const midrashMenuItem = page.locator('[aria-activedescendant*="item-3"], [id*="downshift"][id*="item-3"]').first();
+    const midrashMenuItem =   page.locator('a[href="/texts/Midrash"]');
     await midrashMenuItem.waitFor({ state: 'visible' });
     await midrashMenuItem.click();
     
@@ -575,7 +578,7 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await searchInput.fill('מדרש');
     
     // Wait for dropdown and click on Midrash category item
-    const midrashMenuItem = page.locator('[aria-activedescendant*="item-3"], [id*="downshift"][id*="item-3"]').first();
+    const midrashMenuItem =   page.locator('a[href="/texts/Midrash"]');
     await midrashMenuItem.waitFor({ state: 'visible' });
     await midrashMenuItem.click();
     
@@ -664,15 +667,10 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     
     // Start at /texts page
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Extra wait for content to fully load
-    
-    // Step 1: Click on page body to ensure focus, then try to scroll
+    await page.waitForTimeout(1000);
     await page.click('body');
     await page.waitForTimeout(200);
-    
-    // Try direct DOM manipulation since other methods aren't working
     const scrollResult = await page.evaluate(() => {
-      // Try multiple scroll targets
       const scrollTargets = [
         document.documentElement,
         document.body,
@@ -680,7 +678,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
         document.querySelector('.content'),
         window
       ];
-      
       let scrolled = false;
       const maxHeight = Math.max(
         document.body.scrollHeight,
@@ -694,9 +691,10 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
           } else if (target && target.scrollTo) {
             target.scrollTo(0, maxHeight);
           } else if (target) {
-            target.scrollTop = maxHeight;
+            if (target instanceof Element) {
+              target.scrollTop = maxHeight;
+            }
           }
-          
           // Check if any scroll method worked
           const currentScroll = Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop);
           if (currentScroll > 50) {
@@ -707,7 +705,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
           console.log('Scroll method failed:', e.message);
         }
       }
-      
       return {
         scrolled,
         finalPosition: Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop),
