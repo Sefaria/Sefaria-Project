@@ -191,7 +191,7 @@ class TextRequestAdapter:
                 chunks_queue.put(marked_up_chunk)
 
 
-            def wrapper(string):
+            def wrapper(string, sections):
                 chunk: MarkedUpTextChunk = chunks_queue.get()
                 if chunk:
                     string = chunk.apply_spans_to_text(string)
