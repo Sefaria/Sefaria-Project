@@ -563,7 +563,7 @@ class Link extends Component {
               href={this.props.href}
               onClick={this.handleClick}
               title={this.props.title}
-              data-attr-module={module || Sefaria.activeModule}
+              data-attr-module={this.props.module || Sefaria.activeModule}
               >
                 {this.props.children}</a>
   }
@@ -572,6 +572,7 @@ Link.propTypes = {
   href:    PropTypes.string.isRequired,
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
+  module:  PropTypes.string,
 };
 
 
