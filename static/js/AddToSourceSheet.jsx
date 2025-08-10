@@ -321,14 +321,14 @@ class AddToSourceSheetBox extends Component {
             </div>
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
-              <Button size="fillwidth" className="small noselect" onClick={this.createSheet} activeModule="sheets">
+              <Button size="fillwidth" className="small noselect" onClick={this.createSheet} activeModule={Sefaria.SHEETS_MODULE}>
                 <InterfaceText text={{en: "Create", he: "יצירה"}} />
               </Button>
              </div>
           </div>
           : null}
         </div>
-        <Button size="fillwidth" className="noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} activeModule="sheets">
+        <Button size="fillwidth" className="noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} activeModule={Sefaria.SHEETS_MODULE}>
           <InterfaceText text={{en: "Add to Sheet", he: "הוספה לדף המקורות"}} />
         </Button>
         {!this.props.hideGDocAdvert && <GDocAdvertBox/>}
