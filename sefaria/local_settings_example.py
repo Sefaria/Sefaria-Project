@@ -48,6 +48,10 @@ DOMAIN_MODULES = {
     "library": "http://localhost:8000",
     "sheets": "http://localhost:8000",
 }
+MODULE_ROUTES = {
+    "library": "/",
+    "sheets": "/sheets/",
+}
 
 ################ These are things you can change! ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
