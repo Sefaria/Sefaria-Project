@@ -198,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670" data-attr-module="sheets">
+            <a className="button get-start" href="/sheets/210670" data-attr-module={Sefaria.SHEETS_MODULE}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -800,13 +800,13 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
     return <Button variant="secondary" className="getStartedSheets">
-      <a href={href} data-attr-module="sheets">Get Started</a>
+      <a href={href} data-attr-module={Sefaria.SHEETS_MODULE}>Get Started</a>
     </Button>;
 }
 const CreateSheetsButton = () => {
   return (
     <Button icon={"new-sheet-black"}>
-      <a href="/sheets/new" data-attr-module="sheets">
+      <a href="/sheets/new" data-attr-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
       </a>
     </Button>
@@ -854,7 +854,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="button small" href="/sheets/collections/new" data-attr-module="sheets">
+      <a className="button small" href="/sheets/collections/new" data-attr-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -868,7 +868,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/sheets/collections" data-attr-module="sheets">
+      <a className="button small white" href="/sheets/collections" data-attr-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>

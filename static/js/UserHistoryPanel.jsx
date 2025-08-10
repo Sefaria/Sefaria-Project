@@ -66,11 +66,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const title = (
     <span className="sans-serif">
-      <a href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved } data-attr-module={dataSource} className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }>
+      <a href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved } data-attr-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history } data-attr-module={dataSource} className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}>
+      <a href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history } data-attr-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}>
         <img src="/static/icons/clock.svg" />
         <InterfaceText>History</InterfaceText>
       </a>

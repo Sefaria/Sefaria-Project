@@ -190,12 +190,12 @@ const Header = (props) => {
   const logo = props.module === "library" ? libraryLogo : sheetsLogo;
 
       const librarySavedIcon = <div className='librarySavedIcon'>
-                                  <a href="/texts/saved" data-attr-module="library">
+                                  <a href="/texts/saved" data-attr-module={Sefaria.LIBRARY_MODULE}>
                                     <img src='/static/icons/bookmarks.svg' alt='Saved items' />
                                   </a>
                                 </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
-                                        <a href="/sheets/notifications" data-attr-module="sheets">
+                                        <a href="/sheets/notifications" data-attr-module={Sefaria.SHEETS_MODULE}>
                                           <img src='/static/icons/notification.svg' />
                                         </a>
                                       </div>;
@@ -225,10 +225,10 @@ const Header = (props) => {
           }
           {props.module === "sheets" && 
           <>
-            <a href="/sheets/topics" data-attr-module="sheets" className="textLink">
+            <a href="/sheets/topics" data-attr-module={Sefaria.SHEETS_MODULE} className="textLink">
               <InterfaceText context="Header">Topics</InterfaceText>
             </a>
-            <a href="/sheets/collections" data-attr-module="sheets" className="textLink">
+            <a href="/sheets/collections" data-attr-module={Sefaria.SHEETS_MODULE} className="textLink">
               <InterfaceText context="Header">Collections</InterfaceText>
             </a>
           </>
@@ -422,11 +422,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       }
       {module === "sheets" && 
       <>
-        <a href="/sheets/topics" data-attr-module="sheets" onClick={close}>
+        <a href="/sheets/topics" data-attr-module={Sefaria.SHEETS_MODULE} onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText context="Header">Topics</InterfaceText>
         </a>
-        <a href="/sheets/collections" onClick={close} className="textsPageLink" data-attr-module="sheets">
+        <a href="/sheets/collections" onClick={close} className="textsPageLink" data-attr-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" />
         <InterfaceText context="Header">Collections</InterfaceText>
       </a>
@@ -445,23 +445,23 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <>
           {module === "library" && 
           <>
-            <a href="/texts/saved" onClick={close} data-attr-module="library">
+            <a href="/texts/saved" onClick={close} data-attr-module={Sefaria.LIBRARY_MODULE}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
             {<InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />}
           </a>
           </>}
           {module === "sheets" && 
           <>
-           <a href="/my/profile" onClick={close} data-attr-module="sheets">
+           <a href="/my/profile" onClick={close} data-attr-module={Sefaria.SHEETS_MODULE}>
             <div className="mobileProfileFlexContainer">
               <ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={25}/>
               <InterfaceText>Profile</InterfaceText>
             </div>
             </a>
-            <a href="/sheets/saved" onClick={close} data-attr-module="sheets">
+            <a href="/sheets/saved" onClick={close} data-attr-module={Sefaria.SHEETS_MODULE}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
             {<InterfaceText text={{en: "Saved & History", he: "שמורים והיסטוריה"}} />}
-            <a href="/sheets/notifications" data-attr-module="sheets">
+            <a href="/sheets/notifications" data-attr-module={Sefaria.SHEETS_MODULE}>
             <img src="/static/icons/notification.svg" />
             <InterfaceText>Notifications</InterfaceText>
             </a>
@@ -495,14 +495,14 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr />
         
         { module === "library" &&
-        <a href="/sheets/" data-attr-module="sheets">
+        <a href="/sheets/" data-attr-module={Sefaria.SHEETS_MODULE}>
           <img src="/static/icons/sheets-mobile-icon.svg" />
           <InterfaceText>Sheets</InterfaceText>
         </a>
         } 
 
       { module === "sheets" &&
-        <a href="/texts" data-attr-module="library">
+        <a href="/texts" data-attr-module={Sefaria.LIBRARY_MODULE}>
           <img src="/static/icons/book.svg" />
           <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
         </a>
@@ -587,10 +587,10 @@ const ProfilePicMenu = ({len, url, name}) => {
           <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile" data-attr-module="sheets">
+              <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile" data-attr-module={Sefaria.SHEETS_MODULE}>
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
-              <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new" data-attr-module="sheets">
+              <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new" data-attr-module={Sefaria.SHEETS_MODULE}>
                 <InterfaceText>Create a New Sheet</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
@@ -644,7 +644,7 @@ const HelpButton = () => {
   const url = Sefaria._v({he: "/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90", en:"/sheets/collections/sefaria-faqs"});
   return (
     <div className="help">
-      <a href={url} data-attr-module="sheets">
+      <a href={url} data-attr-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
@@ -664,7 +664,7 @@ const SignUpButton = () => {
 const CreateButton = () => {
   return (
     <Button>
-      <a href="/sheets/new" data-attr-module="sheets">
+      <a href="/sheets/new" data-attr-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
       </a>
     </Button>

@@ -161,7 +161,7 @@ const FeaturedSheet = ({sheet, showDate, trackClicks, toggleSignUpModal}) => {
         <InterfaceText text={heading} />
       </div>
       : null}
-      <a href={`/sheets/${id}`} className="navBlockTitle" data-attr-module="sheets" onClick={trackClicks ? trackClick : null}>
+      <a href={`/sheets/${id}`} className="navBlockTitle" data-attr-module={Sefaria.SHEETS_MODULE} onClick={trackClicks ? trackClick : null}>
         <InterfaceText>{title}</InterfaceText>
       </a>
       {summary ?
