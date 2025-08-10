@@ -75,7 +75,6 @@ class ConnectionsPanel extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadData();
-      this.onTextLoad(0);
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
@@ -111,6 +110,7 @@ class ConnectionsPanel extends Component {
 
       this.addScrollListener();
     }
+    this.onTextLoad(0);
   }
   isScrollMonitored() {
     return ["ConnectionsList", "WebPages", "Sheets"].includes(this.props.mode);
