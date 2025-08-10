@@ -272,16 +272,16 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL().origin}/about`}, 
-                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL().origin}/help`}, 
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/help`}, 
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
-                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL().origin}/newsletter`},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/newsletter`},
                                     {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
                                     {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
                                     {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
                                     {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
                                     {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
-                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL().origin}/ways-to-give`},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/ways-to-give`},
                                     {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
                                   ];
 

@@ -84,7 +84,7 @@ const LoggedInDropdown = ({module}) => {
 
               { module === 'library' && 
                 <>
-                <DropdownMenuItem url={'/settings/account'}>
+                <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
                     <InterfaceText>Account Settings</InterfaceText>
                 </DropdownMenuItem>
                 <DropdownMenuItem url={'/torahtracker'}>
@@ -471,7 +471,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         {Sefaria._uid &&
           <>
-            <a href="/settings/account">
+            <a href="/settings/account" data-attr-module={Sefaria.LIBRARY_MODULE}>
             <img src="/static/icons/settings.svg" />
             <InterfaceText>Account Settings</InterfaceText>
           </a>
@@ -593,7 +593,7 @@ const ProfilePicMenu = ({len, url, name}) => {
               <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new" data-attr-module={Sefaria.SHEETS_MODULE}>
                 <InterfaceText>Create a New Sheet</InterfaceText>
               </a></div>
-              <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account">
+              <div><a className="interfaceLinks-row" id="account-settings-link" href="/settings/account" data-attr-module={Sefaria.LIBRARY_MODULE}>
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
