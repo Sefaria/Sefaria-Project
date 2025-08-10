@@ -180,19 +180,19 @@ class TextRequestAdapter:
 
         # helper to build a segment-level link-wrapper once per version
         def build_link_wrapper(lang, version_text):
-            sections_to_chunk = {}
+            from collections import deque
+            chunks_queue = deque()
             for i, segment_ref in enumerate(self.oref.all_segment_refs()):
                 marked_up_chunk = MarkedUpTextChunk().load({
                     "ref": segment_ref.normal(),
                     "versionTitle": version['versionTitle'],
                     "language": lang
                 })
-                if marked_up_chunk:
-                    sections_to_chunk[i] = marked_up_chunk
+                chunks_queue.append(marked_up_chunk)
 
 
             def wrapper(string, sections):
-                chunk : MarkedUpTextChunk = sections_to_chunk.get(sections[0], None)
+                chunk: MarkedUpTextChunk = chunks_queue.popleft()
                 if chunk:
                     string = chunk.apply_spans_to_text(string)
                 return string
