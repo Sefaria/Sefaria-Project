@@ -1106,7 +1106,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return;
     }
     
-    const moduleTarget = linkTarget.getAttribute('data-attr-module');
+    const moduleTarget = linkTarget.getAttribute('data-attr-module');  // the module to open the URL in: currently either 'sheets', 'library' or null
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
@@ -1132,7 +1132,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
     }
 
-    const moduleURL = Sefaria.getModuleURL(moduleTarget);
+    const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
     
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? moduleURL.origin + href : href;   // modify href to include specified module URL if it's a relative link
@@ -1145,7 +1145,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
     if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
-      console.log("opening in new tab", url, moduleURL, moduleTarget, Sefaria.activeModule);
       window.open(url, '_blank')
       return true;
     }
@@ -1157,7 +1156,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setDefaultOption("language", lang)
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
-    console.log("no new tab", path, moduleTarget, Sefaria.activeModule);
     if (path === "/") {
       this.showLibrary();
 
