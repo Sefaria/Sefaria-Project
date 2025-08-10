@@ -1,8 +1,6 @@
 from . import abstract as abst
 from sefaria.model.text import TextChunk, Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
-from typing import List, Dict
-import re
 from html import escape
 
 
@@ -115,17 +113,13 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
             if start >= end:
                 continue
 
-            span_citation_text = sp.get("text")
+            span_citation_text = sp["text"]
             if span_citation_text != out[start:end]:
                 raise InputError(
                     f"MarkedUpTextChunk.apply_spans_to_text: Span text '{span_citation_text}' does not match text slice '{out[start:end]}' for span {sp}"
                 )
 
-            ref = sp.get("ref", None).strip()
-            if not ref:
-                raise InputError(
-                    f"MarkedUpTextChunk.apply_spans_to_text: Span does not have a 'ref' for span {sp}"
-                )
+            ref = sp["ref"]
             href = Ref(ref).url()
             anchor = (
                 f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'

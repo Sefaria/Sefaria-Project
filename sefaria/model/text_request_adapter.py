@@ -4,7 +4,6 @@ from functools import reduce
 from typing import List
 import django
 import re
-from typing import List, Dict
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 django.setup()
 from sefaria.model import *
