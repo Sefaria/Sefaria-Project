@@ -4648,7 +4648,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
   font-size: 45px;
-  color: var(--medium-grey);
+  color: #575757; /* Override with accessible color for 3:1 contrast */
   height: 20px;
   display: block;
   line-height: 20px;
