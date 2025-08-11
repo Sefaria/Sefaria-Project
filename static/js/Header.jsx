@@ -76,7 +76,7 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === 'sheets' && 
-                <DropdownMenuItem url={'/my/profile'} preventClose={true} targetModule={'sheets'}>
+                <DropdownMenuItem url={'/my/profile'} preventClose={true} targetModule={Sefaria.SHEETS_MODULE}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
               }
@@ -96,16 +96,16 @@ const LoggedInDropdown = ({module}) => {
 
               { module === 'sheets' && 
                 <>
-                <DropdownMenuItem url={'/my/profile'} targetModule={'sheets'}>
+                <DropdownMenuItem url={'/my/profile'} targetModule={Sefaria.SHEETS_MODULE}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/saved'} targetModule={'sheets'}>
+                <DropdownMenuItem url={'/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>Saved</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/history'} targetModule={'sheets'}>
+                <DropdownMenuItem url={'/sheets/history'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>History</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/settings/account'} targetModule={'library'}>
+                <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
                     <InterfaceText>Account Settings</InterfaceText>
                 </DropdownMenuItem>
                 </> 
