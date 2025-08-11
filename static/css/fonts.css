@@ -45,11 +45,11 @@ Notice that we are loading some fonts, and some with a restricted list of charac
   src: url('/static/fonts/SyrCOMBatnan.otf');
   unicode-range: U+0700-074F;
 }
-/*Cardo - Greek*/
+/*Noto Serif - Comprehensive Greek and Latin support including Greek numerals*/
 @font-face {
-  font-family: 'Cardo';
-  src: url('/static/fonts/Cardo-Regular.ttf');
-  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
+  font-family: 'Noto Serif';
+  src: url('/static/fonts/NotoSerif-Light.ttf');
+  unicode-range: U+2160-2169,U+2170-2179;
 }
 
 :root {
@@ -57,7 +57,7 @@ Notice that we are loading some fonts, and some with a restricted list of charac
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
   --english-serif-font-family:
-          "Cardo", /*Greek*/
+          "Noto Serif", /*Comprehensive Greek and Latin support including Greek numerals*/
           "Meltho", /*Syriac*/
           "adobe-garamond-pro", /*basic English font (including punctuation etc.)*/
           "Taamey Frank", /*Hebrew (punctuation was already caught by adobe-garamond-pro*/
@@ -66,7 +66,7 @@ Notice that we are loading some fonts, and some with a restricted list of charac
           "Times New Roman", serif, /*fallbacks*/
           "Noto Sans Samaritan"; /*Samaritan - this font is loaded in base.html for only Samaritan characters. it's here after adobe-garamond-pro because it has influence on font metrics*/
   --hebrew-serif-font-family:
-          "Cardo", /*Greek*/
+          "Noto Serif", /*Comprehensive Greek and Latin support including Greek numerals*/
           "Noto Color Emoji", /*flag emojis*/
           "Taamey Frank", /*basic Hebrew font (including punctuation etc., but no English)*/
           "adobe-garamond-pro", /*English*/
