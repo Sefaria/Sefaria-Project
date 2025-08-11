@@ -5651,6 +5651,14 @@ h1.topic-landing-header {
 }
 .readerNavMenuCloseButton {
   font-family: var(--english-serif-font-family);
+  color: #575757; /* Ensures 3:1 contrast ratio for accessibility */
+}
+
+/* Replacement for obsolete <big> tag - WCAG compliance */
+.big-text,
+big {
+  font-size: 1.2em;
+  line-height: 1.2;
 }
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;

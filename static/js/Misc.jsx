@@ -1312,7 +1312,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
   const message = getSaveButtonMessage(selected);
-  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
+  const altText = placeholder ? 'Save button' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {

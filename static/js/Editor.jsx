@@ -2426,7 +2426,7 @@ const Leaf = ({attributes, children, leaf}) => {
         children = <u>{children}</u>
     }
     if (leaf.big) {
-        children = <big>{children}</big>
+        children = <span className="big-text">{children}</span> // big-text is a replacement for the obsolete <big> tag that was used
     }
     if (leaf.small) {
         children = <small>{children}</small>
