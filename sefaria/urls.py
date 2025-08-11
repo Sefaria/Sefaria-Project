@@ -20,7 +20,6 @@ import api.views as api_views
 import guides.views as guides_views
 
 from sefaria.site.urls import site_urlpatterns
-from sefaria.settings import MODULE_ROUTES
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
@@ -355,8 +354,7 @@ urlpatterns += [
 
 
 # Registration and Login need to support both the main site and the sheets prefix.
-for prefix in MODULE_ROUTES.values():
-    prefix = prefix.lstrip('/') # remove the leading slash because it's not necessary in urlpatterns; see MODULE_ROUTES in local_settings.py
+for prefix in ('', 'sheets/'):
     urlpatterns += [
         url(fr'^{prefix}login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
         url(fr'^{prefix}register/?$', sefaria_views.register, name='register'),
