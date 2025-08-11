@@ -1,11 +1,12 @@
 from typing import Generator, Optional, Union, Any
-from functools import reduce
-from collections import defaultdict
+import time
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, RawNamedEntity, NamedEntityType
 from sefaria.helper.normalization import NormalizerComposer
-from sefaria.model.linker.named_entity_recognizer import AbstractNER
-from sefaria.model.linker.ne_span import NESpan, NEDoc
-
+from sefaria.settings import GPU_SERVER_URL
+import requests
+from ne_span import NESpan, NEDoc
+import structlog
+logger = structlog.get_logger(__name__)
 
 class LinkerEntityRecognizer:
     """
@@ -17,16 +18,12 @@ class LinkerEntityRecognizer:
     - groups of people
     """
 
-    def __init__(self, lang: str, named_entity_model: AbstractNER, raw_ref_part_model: AbstractNER):
+    def __init__(self, lang: str):
         """
 
         @param lang: language that the Recognizer understands (based on how the models were trained)
-        @param named_entity_model: NER model which takes a string and recognizes where entities are
-        @param raw_ref_part_model: NER model which takes a string raw ref and recognizes the parts of the ref
         """
         self._lang = lang
-        self._named_entity_model = named_entity_model
-        self._raw_ref_part_model = raw_ref_part_model
         self._normalizer = self.__init_normalizer()
 
     def __init_normalizer(self) -> NormalizerComposer:
@@ -44,100 +41,61 @@ class LinkerEntityRecognizer:
         @param inputs: List of strings to search for named entities in.
         @return: 2D list of RawNamedEntity's. Includes RawRefs which are a subtype of RawNamedEntity
         """
-        all_raw_named_entities = self._bulk_get_raw_named_entities_wo_raw_refs(inputs)
-        all_citations, all_non_citations = self._bulk_partition_named_entities_by_citation_type(all_raw_named_entities)
-        all_raw_refs = self._bulk_parse_raw_refs(all_citations)
+        normalized_inputs = self._normalize_input(inputs)
+        start_time = time.perf_counter()
+        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities",
+                             json={"texts": normalized_inputs, "lang": self._lang})
+        elapsed_time = time.perf_counter() - start_time
+        logger.info("bulk_recognize GPU server post completed", elapsed_time=elapsed_time, num_inputs=len(normalized_inputs))
+        data = resp.json()
         merged_entities = []
-        for inner_non_citations, inner_citations in zip(all_non_citations, all_raw_refs):
-            merged_entities += [inner_non_citations + inner_citations]
+        for input_str, result in zip(normalized_inputs, data['results']):
+            raw_refs, non_citations = self._parse_recognize_response(input_str, result)
+            merged_entities += [raw_refs + non_citations]
         return merged_entities
 
     def recognize(self, input_str: str) -> [list[RawRef], list[RawNamedEntity]]:
-        raw_named_entities = self._get_raw_named_entities_wo_raw_refs(input_str)
-        citations, non_citations = self._partition_named_entities_by_citation_type(raw_named_entities)
-        raw_refs = self._parse_raw_refs(citations)
+        normalized_input = self._normalize_input([input_str])[0]
+        start_time = time.perf_counter()
+        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities",
+                             json={"text": normalized_input, "lang": self._lang})
+        elapsed_time = time.perf_counter() - start_time
+        logger.info("recognize GPU server post completed", elapsed_time=elapsed_time)
+        data = resp.json()
+        return self._parse_recognize_response(normalized_input, data)
+
+    def _parse_recognize_response(self, input_str: str, data: dict) -> (list[RawRef], list[RawNamedEntity]):
+        all_citations, non_citations = [], []
+        all_raw_ref_parts = []
+        doc = NEDoc(input_str)
+        for raw_entity in data['entities']:
+            if NamedEntityType.span_label_to_enum(raw_entity['label']) == NamedEntityType.CITATION:
+                temp_cit, raw_ref_parts = self._deserialize_raw_ref(doc, raw_entity)
+                all_citations.append(temp_cit)
+                all_raw_ref_parts.append(raw_ref_parts)
+            else:
+                non_citations.append(self._deserialize_raw_named_entity(doc, raw_entity))
+        raw_refs = self._bulk_make_raw_refs(all_citations, all_raw_ref_parts)
         return raw_refs, non_citations
 
-    def _bulk_get_raw_named_entities_wo_raw_refs(self, inputs: list[str]) -> list[list[RawNamedEntity]]:
+    def _deserialize_raw_ref(self, doc: NEDoc, raw: dict) -> (RawNamedEntity, list[NESpan]):
         """
-        Finds RawNamedEntities in `inputs` but doesn't parse citations into RawRefs with RawRefParts
-        @param inputs:
-        @return:
+        Deserialize a RawRef from a dictionary representation.
+        @param raw: Dictionary representation of the RawRef.
+        @return: A RawRef object.
         """
-        normalized_inputs = self._normalize_input(inputs)
-        all_raw_named_entity_spans = list(self._bulk_get_raw_named_entity_spans(normalized_inputs))
-        all_raw_named_entities = []
-        for raw_named_entity_spans in all_raw_named_entity_spans:
-            temp_raw_named_entities = []
-            for span in raw_named_entity_spans:
-                ne_type = NamedEntityType.span_label_to_enum(span.label)
-                temp_raw_named_entities += [RawNamedEntity(span, ne_type)]
-            all_raw_named_entities += [temp_raw_named_entities]
-        return all_raw_named_entities
-
-    def _get_raw_named_entities_wo_raw_refs(self, input_str: str) -> list[RawNamedEntity]:
-        """
-        Finds RawNamedEntities in `input_str` but doesn't parse citations into RawRefs with RawRefParts
-        @param input_str:
-        @return:
-        """
-        normalized_input = self._normalize_input([input_str])[0]
-        raw_named_entity_spans = self._get_raw_named_entity_spans(normalized_input)
-        raw_named_entities = []
-        for span in raw_named_entity_spans:
-            ne_type = NamedEntityType.span_label_to_enum(span.label)
-            raw_named_entities += [RawNamedEntity(span, ne_type)]
-        return raw_named_entities
+        named_entity = self._deserialize_raw_named_entity(doc, raw)
+        span_doc = NEDoc(named_entity.span.text)
+        part_span_list = []
+        for part in raw['parts']:
+            part_span = NESpan(span_doc, part['range'][0], part['range'][1], part['label'])
+            part_span_list.append(part_span)
+        return named_entity, part_span_list
 
     @staticmethod
-    def _bulk_partition_named_entities_by_citation_type(
-            all_raw_named_entities: list[list[RawNamedEntity]]
-    ) -> [list[list[RawNamedEntity]], list[list[RawNamedEntity]]]:
-        """
-        Given named entities, partition them into two lists; list of entities that are citations and those that aren't.
-        @param all_raw_named_entities:
-        @return:
-        """
-        citations, non_citations = [], []
-        for sublist in all_raw_named_entities:
-            inner_citations, inner_non_citations = LinkerEntityRecognizer._partition_named_entities_by_citation_type(sublist)
-            citations += [inner_citations]
-            non_citations += [inner_non_citations]
-        return citations, non_citations
-
-    @staticmethod
-    def _partition_named_entities_by_citation_type(
-            raw_named_entities: list[RawNamedEntity]
-    ) -> [list[RawNamedEntity], list[RawNamedEntity]]:
-        citations, non_citations = [], []
-        for named_entity in raw_named_entities:
-            curr_list = citations if named_entity.type == NamedEntityType.CITATION else non_citations
-            curr_list += [named_entity]
-        return citations, non_citations
-
-    def _bulk_parse_raw_refs(self, all_citation_entities: list[list[RawNamedEntity]]) -> list[list[RawRef]]:
-        """
-        Runs models on inputs to locate all refs and ref parts
-        Note: takes advantage of bulk spaCy operations. It is more efficient to pass multiple strings in input than to
-        run this function multiple times
-        @param all_citation_entities: List of RawNamedEntity lists, where each inner list corresponds to the named entities found in a string of the input.
-        @return: 2D list of RawRefs. Each inner list corresponds to the refs found in a string of the input.
-        """
-        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_citation_entities), [])
-        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
-        all_raw_ref_part_span_map = defaultdict(list)
-        for ref_part_span, input_idx in all_raw_ref_part_spans:
-            all_raw_ref_part_span_map[input_idx] += [ref_part_span]
-
-        all_raw_refs = []
-        for input_idx, named_entities in enumerate(all_citation_entities):
-            raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
-            all_raw_refs += [self._bulk_make_raw_refs(named_entities, raw_ref_part_spans)]
-        return all_raw_refs
-
-    def _parse_raw_refs(self, citation_entities: list[RawNamedEntity]) -> list[RawRef]:
-        raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans([e.text for e in citation_entities]))
-        return self._bulk_make_raw_refs(citation_entities, raw_ref_part_spans)
+    def _deserialize_raw_named_entity(doc: NEDoc, raw: dict) -> RawNamedEntity:
+        span = NESpan(doc, raw['range'][0], raw['range'][1], raw['label'])
+        return RawNamedEntity(span, NamedEntityType.span_label_to_enum(raw['label']))
 
     def bulk_map_normal_output_to_original_input(self, input: list[str], raw_ref_list_list: list[list[RawRef]]):
         for temp_input, raw_ref_list in zip(input, raw_ref_list_list):
@@ -162,38 +120,11 @@ class LinkerEntityRecognizer:
             if isinstance(named_entity, RawRef):
                 named_entity.map_new_part_char_indices(temp_unnorm_part_inds)
 
-    @property
-    def named_entity_model(self):
-        return self._named_entity_model
-
-    @property
-    def raw_ref_part_model(self):
-        return self._raw_ref_part_model
-
     def _normalize_input(self, input: list[str]):
         """
         Normalize input text to match normalization that happened at training time
         """
         return [self._normalizer.normalize(s) for s in input]
-
-    def _get_raw_named_entity_spans(self, st: str) -> list[NESpan]:
-        return self._named_entity_model.predict(st)
-
-    def _get_raw_ref_part_spans(self, st: str) -> list[NESpan]:
-        return self._raw_ref_part_model.predict(st)
-
-    def _bulk_get_raw_named_entity_spans(self, inputs: Union[list[str], list[tuple[str, Any]]], batch_size=150, as_tuples=False) -> Generator[list[NESpan], None, None]:
-        if as_tuples:
-            yield from self._named_entity_model.bulk_predict_as_tuples(inputs, batch_size)
-        else:
-            yield from self._named_entity_model.bulk_predict(inputs, batch_size)
-
-    def _bulk_get_raw_ref_part_spans(self, inputs: Union[list[str], list[tuple[str, Any]]], batch_size=None, as_tuples=False) -> Generator[list[NESpan], None, None]:
-        batch_size = batch_size or len(inputs)
-        if as_tuples:
-            yield from self._raw_ref_part_model.bulk_predict_as_tuples(inputs, batch_size)
-        else:
-            yield from self._raw_ref_part_model.bulk_predict(inputs, batch_size)
 
     # TODO the following four functions are very loosely coupled to the LinkerEntityRecognizer and should be moved out
     def _bulk_make_raw_refs(self, named_entities: list[RawNamedEntity], raw_ref_part_spans: list[list[NESpan]]) -> list[RawRef]:
