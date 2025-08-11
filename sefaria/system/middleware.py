@@ -252,11 +252,6 @@ class ModuleMiddleware(MiddlewareURLMixin):
         '/static/',
     }
 
-    MODULE_ROUTES = {
-        '/sheets/': 'sheets',
-        # Add more route prefixes and their modules
-    }
-
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -269,9 +264,9 @@ class ModuleMiddleware(MiddlewareURLMixin):
             return self.get_response(request)
 
         # Find the matching route prefix
-        for route_prefix, module_name in self.MODULE_ROUTES.items():
+        for module_name, route_prefix in self.MODULE_ROUTES.items():
             route_base_path = route_prefix.removesuffix('/')
-            if request.path.startswith(route_prefix) or request.path == route_base_path:
+            if len(route_prefix) > 0 and (request.path.startswith(route_prefix) or request.path == route_base_path):
                 active_module = module_name
                 break
 
