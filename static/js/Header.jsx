@@ -134,16 +134,16 @@ const LoggedInDropdown = ({module}) => {
 }
 
 const ModuleSwitcher = () => {
-  const libraryURL = Sefaria.getModuleURL('library')?.origin;
-  const sheetsURL = Sefaria.getModuleURL('sheets')?.origin;
+  const libraryURL = Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE)?.origin;
+  const sheetsURL = Sefaria.getModuleURL(Sefaria.SHEETS_MODULE)?.origin;
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== "library"} targetModule={'library'}>
+              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== "library"} targetModule={Sefaria.LIBRARY_MODULE}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== "sheets"} targetModule={'sheets'}>  
+              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== "sheets"} targetModule={Sefaria.SHEETS_MODULE}>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
