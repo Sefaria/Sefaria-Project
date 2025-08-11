@@ -13360,7 +13360,7 @@ a.topicLexiconTitle.contentText {
   white-space: nowrap;
 }
 .highlightCitation {
-  background-color: rgba(255, 235, 59, 0.5);
+  background-color: rgb(230, 218, 188);
 }
 .hoverButton {
   padding: 10px;
