@@ -105,18 +105,13 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Sefaria unsaved changes popup appears after clicking x sheet button', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.focusTextInput();
-    
     let dialogTriggered = false;
-    
-    // Set up dialog handler first
+    // Set up dialog handler
     const dialogPromise = page.waitForEvent('dialog').then(async dialog => {
       dialogTriggered = true;
       await dialog.dismiss();
     });
-
-    // Type a longer text to ensure saving takes more time
     await page.keyboard.type('This is a longer text to ensure saving takes some time and we can click during the saving state');
-    
     // Use waitForFunction to immediately click when saving state appears
     await Promise.all([
       dialogPromise,
@@ -125,7 +120,6 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
         return message && message.textContent?.includes('Saving');
       }).then(() => editor.closeSheetEditorButton().click())
     ]);
-    
     expect(dialogTriggered).toBe(true);
   });
 
@@ -134,7 +128,6 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.focusTextInput();
     await page.keyboard.type('Leave before saving finishes');
     await expect(editor.statusMessage()).toContainText(SaveStates.saving.text);
-
     let dialogTriggered = false;
     await Promise.all([
       page.waitForEvent('dialog').then(async dialog => {
@@ -150,19 +143,13 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Show unknown error state and block editing', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('Before unknown error');
-    
     // Wait for initial save to complete
     await editor.assertSaveState(SaveStates.saved, LANGUAGES.EN);
-    
     // Trigger catch-all error
     await page.evaluate(() => {
       (window as any).Sefaria.testUnkownNewEditorSaveError = true;
     });
-    
-    // Trigger another save operation to activate the error
     await editor.addText(' - triggering error');
-    
-    // Now wait for the error state (which appears after 20 seconds)
     await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.EN, 23000);
     await editor.validateEditingIsBlocked();
     
@@ -179,7 +166,6 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
   let pageManager: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    // Create completely fresh context for each Hebrew test to avoid contamination
     page = await goToPageWithUser(context, '/sheets/new', LANGUAGES.HE);  
     await hideAllModalsAndPopups(page);  
     await changeLanguage(page, LANGUAGES.HE);
@@ -213,20 +199,12 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await simulateOnlineMode(page);
     await page.reload();
-    
     await editor.addText('Trigger unknown error');
-    
-    // Wait for initial save to complete
     await editor.assertSaveState(SaveStates.saved, LANGUAGES.HE);
-    
     await page.evaluate(() => {
       (window as any).Sefaria.testUnkownNewEditorSaveError = true;
     });
-    
-    // Trigger another save operation to activate the error
     await editor.addText(' - triggering error');
-    
-    // Now wait for the error state (which appears after 20 seconds)
     await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.HE, 23000);
     await editor.validateEditingIsBlocked();
   });

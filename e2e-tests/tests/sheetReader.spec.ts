@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { SheetReaderPage } from '../pages/sheetReaderPage';
 import { LANGUAGES } from '../globals';
-import { changeLanguage } from '../utils';
+import { changeLanguage, hideAllModalsAndPopups } from '../utils';
 
 // Reference sheet URL (public, not logged in)
 const SHEET_URL = 'https://www.sefaria.org/sheets/663402.1?lang=he';
@@ -20,6 +20,7 @@ test.describe('Read Public Sheet', () => {
 
   // TC041: Open the Sheet and confirm all expected elements are present
   test('TC041: Open Sheet and confirm expected elements', async ({ page }) => {
+    await hideAllModalsAndPopups(page);
     // Confirm sheet title
     await expect(page.locator('h1').first()).toContainText('Master Sheet for Testing');
     await expect(page.locator('.authorStatement')).toContainText('Test User');
@@ -48,6 +49,7 @@ test.describe('Read Public Sheet', () => {
   test('TC042-A: Embedded YouTube media is present and can be played', async ({ page }) => {
     await page.goto(SHEET_URL);
     await expect(sheet.youTubeIframe).toBeDefined();
+    await hideAllModalsAndPopups(page);
     if (await sheet.youTubeLargePlayButton().isVisible()) {
         await sheet.youTubeLargePlayButton().click();
       } 
@@ -55,6 +57,7 @@ test.describe('Read Public Sheet', () => {
 
     test('TC042-B: Embedded Spotify media is present and can be played', async ({ page }) => {
         await page.goto(SHEET_URL)
+        await hideAllModalsAndPopups(page);
         await expect(sheet.spotifyIframe()).toBeDefined();
         await expect(sheet.spotifyPlayPauseButton()).toBeVisible();
         await sheet.spotifyPlayPauseButton().click();
@@ -62,6 +65,7 @@ test.describe('Read Public Sheet', () => {
     });
   
   test('TC043: Outside text formatting is displayed correctly', async ({ page }) => {
+    await hideAllModalsAndPopups(page);
     // Check for bold
     await expect(sheet.outsideText().locator('b')).toHaveText('bolded');
     // Check for underline
@@ -96,6 +100,7 @@ test.describe('Read Public Sheet', () => {
   // TC051: Clicking on Title opens resource panel
   test('TC051: Clicking on title opens resource panel', async ({ page }) => {
     await page.waitForLoadState('domcontentloaded');
+    await hideAllModalsAndPopups(page);
     await sheet.topTitle().click();
     await expect(sheet.resourcePanel()).toBeVisible();
     await expect(sheet.resourcePanel()).toContainText('Tools');
@@ -105,6 +110,7 @@ test.describe('Read Public Sheet', () => {
   // TC052: Click "x" closes Resource Panel
   test('TC052: Click X closes resource panel', async ({ page }) => {
     await page.waitForLoadState('domcontentloaded');
+    await hideAllModalsAndPopups(page);
     await sheet.topTitle().click();
     await expect(sheet.resourcePanel()).toBeVisible();
     await sheet.closeResourcePanel();
@@ -112,8 +118,8 @@ test.describe('Read Public Sheet', () => {
 
   // TC053: Clicking on text opens resource panel (then close)
   test('TC053: Clicking on text opens resource panel', async ({ page }) => {
-    // Click on a text segment
     await page.waitForLoadState('domcontentloaded');
+    await hideAllModalsAndPopups(page);
     await sheet.outsideText().first().click();    
     await expect(sheet.resourcePanel()).toBeVisible();
     await expect(sheet.resourcePanel()).toContainText('Tools');
@@ -125,6 +131,7 @@ test.describe('Read Public Sheet', () => {
   // TC054: Clicking on Added Source opens resource panel (then close)
   test('TC054: Clicking on added source opens resource panel', async ({ page }) => {
     await page.waitForLoadState('domcontentloaded');
+    await hideAllModalsAndPopups(page);
     await sheet.sourceBox().first().click();
     await expect(sheet.resourcePanel()).toBeVisible();
     await expect(sheet.resourcePanel()).toContainText('About this Sheet');
@@ -137,6 +144,7 @@ test.describe('Read Public Sheet', () => {
   // TC055: Clicking on Image opens resource panel (then close)
   test('TC055: Clicking on image opens resource panel', async ({ page }) => {
     await page.waitForLoadState('domcontentloaded');
+    await hideAllModalsAndPopups(page);
     await sheet.addedImage().first().click();
     await expect(sheet.resourcePanel()).toBeVisible();
     await expect(sheet.resourcePanel()).toContainText('Tools');
@@ -147,12 +155,11 @@ test.describe('Read Public Sheet', () => {
 
   // TC056: Clicking on Media does not open resource panel. Instead it plays the media.
   test('TC056: Clicking on media plays media, does not open resource panel', async ({ page }) => {
-    // Click on the media iframe (YouTube or Spotify)
+    await hideAllModalsAndPopups(page);
     const mediaFrame = page.locator('iframe[src*="youtube"], iframe[src*="spotify"]').first();
     await expect(mediaFrame).toBeVisible();
     await mediaFrame.click();
     await expect(sheet.resourcePanel()).not.toBeVisible();
-    //check that the media is playing?
   });
 
 });

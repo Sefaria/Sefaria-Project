@@ -38,57 +38,40 @@ test.describe("Pages Load", () => {
       await expect(page).toHaveURL(/garden\/jerusalem/);
       // 7. Load People index and a specific person page
       await page.goto('/people');
-      await page.waitForSelector('.gridBoxItem'); // Wait for grid items to show
+      await page.waitForSelector('.gridBoxItem');
       await page.goto('/person/Meir%20Abulafia');
-      await page.waitForSelector('.topicDescription'); // Wait for description
+      await page.waitForSelector('.topicDescription');
       await expect(page.locator('.topicDescription')).toBeVisible();
     });
 
     test('TC002 Pages Load, User Logged In', async ({ context }) => {
       // Navigate to /Job.3.4 with the resource panel open (with=all opens the resource panel)
       const page = await goToPageWithLang(context, '/Job.3.4?with=all');
-    
-      // Click Commentary category filter by role or text
       await page.locator('div.categoryFilter[data-name="Commentary"]').click();
-    
-      // Select Rashi filter under Commentary
-      await page.getByText(/^(Rashi|רש"י)$/).click();       // await page.waitForSelector('text=Loading...', { state: 'detached' });
-    
-      //Assert URL and UI change indicating correct commentary loaded
+      await page.getByText(/^(Rashi|רש"י)$/).click(); 
       await expect(page).toHaveURL(/with=Rashi/);
       await expect(page.locator('div.recentFilterSet a[href*="with=Rashi"] div.textFilter.on')).toBeVisible();      
     });
 });
 
   test('TC009: Sidebar buttons load correctly', async ({ context }) => {
-    // Navigate to Ecclesiastes.1
     const page = await goToPageWithLang(context, '/Ecclesiastes.1', LANGUAGES.EN);
-    
-    // Click segment to open sidebar
     const segment = page.locator('p.segmentText').first();
     await segment.click();
-    
-    // Wait for connections panel to open
     const connectionsPanel = page.locator('.readerPanelBox.sidebar');
     const backToResources = page.locator('a.connectionsHeaderTitle', { hasText:/Resources|קישורים וכלים/ });
     await expect(connectionsPanel).toBeVisible();
-    
-    
-    // Test Commentary tab
     const commentaryTab = page.locator('.categoryFilter[data-name="Commentary"]');
     if (await commentaryTab.isVisible()) {
       await commentaryTab.click();
       await expect(page.locator('.categoryFilterGroup.withBooks').first()).toBeVisible();
     }
-    
-    // Test Sheets tab
     const sheetsTab = page.locator('a.toolsButton.sheets');
     if (await sheetsTab.isVisible()) {
       await sheetsTab.click();
       await expect(page.locator('.sheetList')).toBeVisible();
       await backToResources.click();
     }
-    
     // Test About this text tab
     const aboutTab = page.locator('a.toolsButton.aboutThisText');
     if (await aboutTab.isVisible()) {
@@ -96,7 +79,6 @@ test.describe("Pages Load", () => {
       await expect(page.locator('h2.aboutHeader')).toBeVisible();
       await backToResources.click();
     }
-    
     // Login for Notes tab test
     if (!await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible()) {
       const loginPage = new LoginPage(page, LANGUAGES.EN);
@@ -105,8 +87,6 @@ test.describe("Pages Load", () => {
       await page.goto('/Ecclesiastes.1');
       await segment.click();
     }
-    
-    // Test Notes tab (requires login)
     const notesTab = page.locator('.connectionsHeaderTitle', { hasText: /Notes|הערות/ });
     if (await notesTab.isVisible()) {
       await notesTab.click();
@@ -116,24 +96,16 @@ test.describe("Pages Load", () => {
 
   test('TC010: Interface language toggle', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
-    
-    // Verify initial English interface
+    // Verify initial English interface, switch to Hebrew
     await expect(page.getByRole('banner').getByRole('link', { name: 'Texts' })).toBeVisible();
     await expect(page.locator('body')).toHaveClass(/interface-english/);
-    
-    // Switch to Hebrew
     await page.locator('.interfaceLinks-button').click();
     await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click();
-    
-    // Verify Hebrew interface
+    // Verify Hebrew interface, switch back to English
     await expect(page.getByRole('banner').getByRole('link', { name: 'מקורות' })).toBeVisible();
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
-    
-    // Switch back to English
     await page.locator('.interfaceLinks-button').click();
     await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
-    
-    // Verify English interface restored
     await expect(page.getByRole('banner').getByRole('link', { name: 'Texts' })).toBeVisible();
     await expect(page.locator('body')).toHaveClass(/interface-english/);
   });
@@ -147,27 +119,17 @@ test.describe("Pages Load", () => {
     await page.keyboard.press('Enter');
     await page.locator('a.sectionLink[data-ref="Tosefta Peah 3"]').click();
     await page.waitForLoadState('networkidle');
-
-    // Click search result to navigate to Tosefta Peah 3
-    //const peahResult = page.getByText(/Tosefta Peah 3/, { exact: false }).first();
-    //await peahResult.click();
     await page.waitForURL(/Tosefta_Peah/);
-    
     // Navigate to Tosefta Berakhot 4
     await page.goto('/Tosefta_Berakhot.4');
     await page.waitForLoadState('networkidle');
-    
-    // Return to TOC and check history panel
+    // Return to TOC and check history panel; click on Tosefta Peah 3 from history
     await page.goto('/texts/history');
-    
-    // Click on Tosefta Peah 3 from history
     const peahHistoryItem = page.locator('.savedHistoryList .storyTitle a', { hasText: /Tosefta Peah 3/ }).first();
     const berakhotHistoryItem = page.locator('.savedHistoryList .storyTitle a', { hasText: /Tosefta Berakhot/ }).first();
     await expect(peahHistoryItem).toBeVisible();
     await expect(berakhotHistoryItem).toBeVisible();
     await peahHistoryItem.click();
-    
-    // Verify navigation back to Tosefta Peah
     await expect(page).toHaveURL(/Tosefta_Peah/);
     await expect(page.locator('.readerControlsTitle')).toContainText(/תוספתא פאה|Tosefta Peah/);
   });
@@ -179,34 +141,19 @@ test.describe("Reader - Commentary Filters", () => {
     test('TC012 Load Ibn Ezra for Job 3.4', async ({ context }) => {      
         // Navigate to /Job.3
         const page = await goToPageWithLang(context, '/Job.3');      
-      
-        // Click the Hebrew text of segment Job 3:4
         const job34Text = "הַיּ֥וֹם הַה֗וּא יְֽהִ֫י־חֹ֥שֶׁךְ אַֽל־יִדְרְשֵׁ֣הוּ אֱל֣וֹהַּ מִמַּ֑עַל וְאַל־תּוֹפַ֖ע עָלָ֣יו נְהָרָֽה׃";
         await page.getByText(job34Text).click();
-      
-        // Click Commentary category filter by role or text
         await page.locator('div.categoryFilter[data-name="Commentary"]').click();
-      
-        // Select Ibn Ezra filter under Commentary
-        await page.getByText(/^(Ibn Ezra|אבן עזרא)$/).click();       // await page.waitForSelector('text=Loading...', { state: 'detached' });
-      
-        // Assert URL and UI change indicating correct commentary loaded
+        await page.getByText(/^(Ibn Ezra|אבן עזרא)$/).click(); 
         await expect(page).toHaveURL(/Job[.\s]3[.\s]4.*with=Ibn(?:%20| )Ezra/);
         await expect(page.locator('div.recentFilterSet a[href*="with=Ibn Ezra"] div.textFilter.on')).toBeVisible();
-        //await page.getByText('Ibn Ezra').isVisible();
       });
 
       test('TC013 Load Rashi for Job 3.4 with=all', async ({ context }) => {
         // Navigate to /Job.3.4 with the resource panel open (with=all opens the resource panel)
         const page = await goToPageWithLang(context, '/Job.3.4?with=all');
-      
-        // Click Commentary category filter by role or text
         await page.locator('div.categoryFilter[data-name="Commentary"]').click();
-      
-        // Select Rashi filter under Commentary
-        await page.getByText(/^(Rashi|רש"י)$/).click();       // await page.waitForSelector('text=Loading...', { state: 'detached' });
-      
-        //Assert URL and UI change indicating correct commentary loaded
+        await page.getByText(/^(Rashi|רש"י)$/).click();       
         await expect(page).toHaveURL(/with=Rashi/);
         await expect(page.locator('div.recentFilterSet a[href*="with=Rashi"] div.textFilter.on')).toBeVisible();      
       });
@@ -216,7 +163,6 @@ test.describe("Navigating To/Loading Book Pages", () => {
 
   test('TC014 Navigate to different books through categories and titles', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts');      
-   // await page.goto('https://www.sefaria.org.il/texts');
     await page.locator('.interfaceLinks-button').click();
     await page.getByRole('banner').getByRole('link', { name: 'English' }).click();
     //Test Bereshit
@@ -226,25 +172,19 @@ test.describe("Navigating To/Loading Book Pages", () => {
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
     await page.locator('header').getByRole('link', { name: 'Close' })
-    //await page.getByRole('button', { name: '×' }).click();
     const genesisHebrew = page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃');
     const genesisEnglish = page.getByText('When God');
     await (await genesisHebrew.isVisible() ? genesisHebrew : genesisEnglish).click();
-    //await page.getByText('Bereshit').click();
-    //await page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃' || 'When God').click();
-    //await page.getByText(/בְּרֵאשִׁ֖ית*|When God/).click();
    //Test Mishneh Torah
     await page.getByRole('link', { name: 'Texts' }).click();
     await page.getByRole('link', { name: 'Halakhah' }).click();
     await page.getByRole('link', { name: 'Mishneh Torah' }).click();
     await page.getByRole('link', { name: 'Repentance' }).click();
     await page.getByRole('link', { name: '1', exact: true }).click();
-    //await page.getByText(/כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה|If a person transgresses/ ).click();
     const rambamHebrew = page.getByText('כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה');
     const rambamEnglish = page.getByText('If a person transgresses');
     await (await rambamHebrew.isVisible() ? rambamHebrew : rambamEnglish).click();
-   // await page.getByText('כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה').click();
-    //await page.getByText('If a person transgresses').click();
+    //Test Kedushat Levi
     await page.getByRole('link', { name: 'Texts' }).click();
     await page.getByRole('link', { name: 'Chasidut' }).click();
     await page.getByRole('link', { name: 'Kedushat Levi' }).click();
@@ -253,66 +193,39 @@ test.describe("Navigating To/Loading Book Pages", () => {
     const kedushatLeviHebrew = page.getByText('הכלל שהבורא ברוך הוא ברא הכל');
     const kedushatLeviEnglish = page.getByText('The first thing Gd embarked on');
     await (await kedushatLeviHebrew.isVisible() ? kedushatLeviHebrew : kedushatLeviEnglish).click();
-    //await page.getByText(/The first thing Gd embarked on|הכלל שהבורא ברוך הוא ברא הכל/).click();
   });
 
   test('TC015 Navigate to different books through titles', async ({ context }) => {
     const page = await goToPageWithLang(context, '/Genesis.1.1?lang=he&with=all&lang2=he'); 
     //Test Bereshit
-    //const genesisHebrew = page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃');
-    //const genesisEnglish = page.getByText('When God');
-    //await expect(page.locator('.segmentText .contentSpan')).toContainText(/בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים|When God/);
     await expect(page.getByText(/When God began to create|בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃/)).toBeVisible({ timeout: 5000 });
-    //const isHebrewVisible = await genesisHebrew.isVisible();
-    //const textToClick = isHebrewVisible ? genesisHebrew : genesisEnglish;
-    //await textToClick.click();
    //Test Mishneh Torah
-   await page.goto('/Mishneh_Torah%2C_Repentance.1.1?');
-    //const rambamHebrew = page.getByText('כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה');
-    //const rambamEnglish = page.getByText('If a person transgresses');
+    await page.goto('/Mishneh_Torah%2C_Repentance.1.1?');
     await expect(page.getByText(/כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה|If a person transgresses/)).toBeVisible({ timeout: 5000 });
-    //await (await rambamHebrew.isVisible() ? rambamHebrew : rambamEnglish).click();
-   // await page.getByText('כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה').click();
-    //await page.getByText('If a person transgresses').click();
     await page.goto('/Kedushat_Levi%2C_Genesis%2C_Bereshit?');
-    //const kedushatLeviHebrew = page.getByText('הכלל שהבורא ברוך הוא ברא הכל');
-    //const kedushatLeviEnglish = page.getByText('The first thing Gd embarked on');
     await expect(page.getByText(/הכלל שהבורא ברוך הוא ברא הכל|The first thing Gd embarked on/)).toBeVisible({ timeout: 5000 });
-   // await (await kedushatLeviHebrew.isVisible() ? kedushatLeviHebrew : kedushatLeviEnglish).click();
-    //await page.getByText(/The first thing Gd embarked on|הכלל שהבורא ברוך הוא ברא הכל/).click();
   });
-
 
 });
 
 test.describe('Navigating to/loading spanning references and opening connections', () => {
   test('TC016: Load spanning reference and open connections', async ({ context }) => {
-    //await page.goto('https://www.sefaria.org/Shabbat.2a-2b',{waitUntil: 'domcontentloaded'});
     const page = goToPageWithLang(context, '/Shabbat.2a-2b');
-  
     // Click the segment
     const englishText = (await page).getByText('The acts of carrying out', { exact: false });
     const hebrewText = (await page).getByText('מַתְנִי׳ יְצִיאוֹת הַשַּׁבָּת, שְׁתַּיִם שֶׁהֵן אַרְבַּע בִּפְנִים', { exact: false });
-    await (await page).waitForTimeout(1000); // fallback delay
-    if (await hebrewText.isVisible()) {
+    if (await hebrewText.isVisible({timeout: 1000})) {
       await hebrewText.click();
     } else {
       await englishText.click();
     }
-  
-    // Wait for the connections panel to open
     const connectionsPanel = (await page).locator('.readerPanelBox.sidebar');
     await expect(connectionsPanel).toBeVisible();
-  
-    // Confirm the panel relates to Shabbat 2a:1
     await expect(connectionsPanel).toContainText(/הקדמה למסכת שבת|Introduction to Shabbat/);
   });
 
   test('TC017: Search for spanning ref and open connections', async ({ context }) => {
-    //await page.goto('https://www.sefaria.org/texts');
     const page = goToPageWithLang(context, '/texts');
-
-    // Open search bar and type query
     const searchInput = (await page).getByPlaceholder(/Search|חיפוש/);
     await searchInput.click();
     await searchInput.fill('Shabbat 2a-2b');
@@ -328,31 +241,22 @@ test.describe('Navigating to/loading spanning references and opening connections
 
   test('TC018: Filters persist across ranged references', async ({ context }) => {
     const page = await goToPageWithLang(context, '/Shabbat.2a');      
-    //click 2a:1
     const englishText1 = (await page).getByText('The acts of carrying out', { exact: false });
     const hebrewText1 = (await page).getByText('מַתְנִי׳ יְצִיאוֹת הַשַּׁבָּת, שְׁתַּיִם שֶׁהֵן אַרְבַּע בִּפְנִים', { exact: false });
-    await (await page).waitForTimeout(1000); // fallback delay
-    if (await hebrewText1.isVisible()) {
+    if (await hebrewText1.isVisible({timeout: 1000})) {
       await hebrewText1.click();
     } else {
       await englishText1.click();
     }
     await hideAllModalsAndPopups(page)
-    
-    // Wait for the connections panel to open
     const connectionsPanel = (await page).locator('.readerPanelBox.sidebar');
     await expect(connectionsPanel).toBeVisible();
-
-    //locate the Mishnah filter (either Hebrew or English)
     let mishnahFilter = page.locator('.filterText', { hasText: /משנה|Mishnah/ }).first();
     if (!(await mishnahFilter.isVisible())) {
-      //Click "More" to reveal additional filters
         const moreButton = page.locator('a.toolsButton.more', { hasText: /More|עוד/ });
         if (await moreButton.isVisible()) {
         await moreButton.click();
-        //Re-fetch the Mishnah filter locator
         let mishnahFilter = page.locator('.filterText', { hasText: /משנה|Mishnah/ }).first();
-        //wait a moment or wait for it to become visible
         await expect(mishnahFilter).toBeVisible();
       }
     }
@@ -361,7 +265,6 @@ test.describe('Navigating to/loading spanning references and opening connections
     const mishnahShabbatFilter = page.getByRole('link', { name: /משנה שבת|Mishnah Shabbat/ });
     await mishnahShabbatFilter.click();
     await expect(page.locator('.title .titleBox .contentSpan').last()).toContainText(/משנה שבת|Mishnah Shabbat/);    
-    //click on 2a:2
     const hebrewSegment2 = page.locator('div.segment[data-ref="Shabbat 2a:2"] >> p.segmentText >> span.contentSpan.he.primary');
     const englishSegment2 = page.locator('div.segment[data-ref="Shabbat 2a:2"] >> span.contentSpan.en.translation');
     if (await hebrewSegment2.isVisible()) {
@@ -369,54 +272,33 @@ test.describe('Navigating to/loading spanning references and opening connections
     } else {
       await englishSegment2.click();
     }
-    //check that the Mishnah filter is still applied
-  //await expect(titleLocator).toBeVisible();
-  await expect(page.locator('.title .titleBox .contentSpan').last()).toContainText(/משנה שבת|Mishnah Shabbat/);    
+    await expect(page.locator('.title .titleBox .contentSpan').last()).toContainText(/משנה שבת|Mishnah Shabbat/);    
   });
   
 });
 
-test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
   test('TC019- Clicks on a versioned search result on desktop and navigates correctly', async ({ context }) => {
-    //Navigate to /texts (entry point for search)
     const page = await goToPageWithLang(context, '/texts');      
-
-    //Type search query
-    //const searchInput = page.locator('input.search[placeholder=Search"]');
     const searchInput = page.locator('input[placeholder="Search"], input[placeholder="חיפוש"]');
     await searchInput.fill('they howl like dogs');
     await searchInput.press('Enter');
-
-    //Wait for results and find versioned result link
     const versionedResult = page.locator( '.result.textResult:has(.version):has(.result-title span)').first();
     await versionedResult.click();
-    
-    // Assert it’s visible before clicking (optional safety check)
-    await expect(versionedResult).toBeVisible({ timeout: 5000 });
-    // Click the link inside the versioned result
+    await expect(versionedResult).toBeVisible({ timeout: 3000 });
     await versionedResult.locator('a').click();
-
-    //Validate navigation to a versioned text URL
     await expect(page).toHaveURL(/Psalms\.59\.7.*The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein.*lang=(en|he|bi)/);    
   });
-
-  test('TC020- Clicks on a versioned search result on mobile and navigates correctly', async ({ context }) => {
-      
-  });
-});
 
   test('TC021: Collections pages load and user collection creation', async ({ context }) => {
     // 1. Load '/collections'
     const page = await goToPageWithLang(context, '/collections', LANGUAGES.EN);
     await expect(page).toHaveURL(/\/collections/);
     await expect(page.getByRole('heading', { name: 'Collections', exact: true })).toBeVisible();
-    
     // 2. Load '/collections/bimbam'
     await page.goto('/collections/bimbam');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/collections\/bimbam/);
     await expect(page.locator('div').filter({ hasText: /^BimBam$/ }).first()).toBeVisible();
-    
     // 3. Login user and load '/collections/new'
     if (!await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible()) {
       const loginPage = new LoginPage(page, LANGUAGES.EN);
@@ -431,7 +313,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
 
   test('TC022: Browser back and forward navigation', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
-    
     await page.goto('/Amos.3');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Amos\.3/);
@@ -465,34 +346,22 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
   });
 
   test('TC023: Creates and saves a new source sheet', async ({ context }) => {
-    // 1. Login user and navigate to new sheet
     const page = await goToPageWithUser(context, '/texts', LANGUAGES.EN);
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
-    
     await page.locator('.myProfileBox .profile-pic').click();
     await page.locator('#new-sheet-link').click();
     await page.waitForURL(/\/sheets\/\d+/);
-    
-    // 2. Verify sheet editor is loaded
     await expect(sheetEditorPage.sourceSheetBody()).toBeVisible();
     await hideAllModalsAndPopups(page);
-    
-    // 3. Add reference 'Genesis 1:9' using helper method
     await sheetEditorPage.clickAddSource();
     await page.getByRole('textbox', { name: 'Search for a Text or' }).fill('Genesis 1:9');
     await page.getByRole('button', { name: 'Add Source' }).click();
-    
-    // Verify source was added using existing locator
     await expect(sheetEditorPage.addedSource()).toBeVisible();
     await expect(sheetEditorPage.addedSource()).toContainText(/God said|אֱלֹהִים/);
-    
-    // 4. Verify auto-save using existing helper method
     await sheetEditorPage.assertSaveState(SaveStates.saved);
-    
     // Verify sheet persistence
     const currentUrl = page.url();
     expect(currentUrl).toMatch(/\/sheets\/\d+/);
-    
     await page.goto('/texts');
     await page.goto(currentUrl);
     await expect(sheetEditorPage.addedSource()).toBeVisible();
@@ -502,7 +371,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
   test('TC024a: Search navigation behavior - English', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
     const searchInput = page.getByPlaceholder(/Search|חיפוש/);
-   
     // 1. Type 'Shabbat' and wait for TOC
     await searchInput.click();
     await searchInput.fill('Shabbat');
@@ -510,7 +378,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Shabbat\?tab=contents/);
     await expect(page.locator('.readerNavCategoryMenu, .tocLevel')).toBeVisible();
-    
     // 2. Type 'Shabbat 12b' and wait for segment
     await page.goto('/texts');
     await searchInput.click();
@@ -519,7 +386,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Shabbat\.12b/);
     await expect(page.locator('div.segment[data-ref="Shabbat 12b:1"]')).toBeVisible();
-    
     // 3. Type '#Yosef Giqatillah' and wait for title
     await page.goto('/texts');
     await searchInput.click();
@@ -527,17 +393,13 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.keyboard.press('Enter');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.navTitle h1')).toContainText(/Joseph/);
-    
     // 4. Type 'Midrash' and wait for category menu
     await page.goto('/texts');
     await searchInput.click();
     await searchInput.fill('Midrash');
-    
-    // Wait for dropdown and click on Midrash category item
     const midrashMenuItem =   page.locator('a[href="/texts/Midrash"]');
     await midrashMenuItem.waitFor({ state: 'visible' });
     await midrashMenuItem.click();
-    
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/texts\/Midrash/);
     await expect(page.locator('.readerNavCategoryMenu')).toBeVisible();
@@ -546,7 +408,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
   test('TC024b: Search navigation behavior - Hebrew', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.HE);
     const searchInput = page.getByPlaceholder(/Search|חיפוש/);
-    
     // 1. Type 'שבת' and wait for TOC
     await searchInput.click();
     await searchInput.fill('שבת');
@@ -554,7 +415,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Shabbat\?tab=contents/);
     await expect(page.locator('.readerNavCategoryMenu, .tocLevel')).toBeVisible();
-    
     // 2. Type 'שבת יב ב' and wait for segment
     await page.goto('/texts');
     await searchInput.click();
@@ -563,7 +423,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/Shabbat\.12b/);
     await expect(page.locator('div.segment[data-ref="Shabbat 12b:1"]')).toBeVisible();
-    
     // 3. Type '#יוסף גיקטילא' and wait for title
     await page.goto('/texts');
     await searchInput.click();
@@ -571,17 +430,13 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
     await page.keyboard.press('Enter');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.navTitle h1')).toContainText(/יוסף/);
-    
     // 4. Type 'מדרש' and wait for category menu
     await page.goto('/texts');
     await searchInput.click();
     await searchInput.fill('מדרש');
-    
-    // Wait for dropdown and click on Midrash category item
-    const midrashMenuItem =   page.locator('a[href="/texts/Midrash"]');
+    const midrashMenuItem = page.locator('a[href="/texts/Midrash"]');
     await midrashMenuItem.waitFor({ state: 'visible' });
     await midrashMenuItem.click();
-    
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/texts\/Midrash/);
     await expect(page.locator('.readerNavCategoryMenu')).toBeVisible();
@@ -589,87 +444,62 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
 
   test('TC027: InfiniteScrollUp - Tests infinite scroll up behavior and URL stability', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
-    
-    // Navigate to a text with multiple segments (Genesis has many chapters)
+    // Navigate to a text with multiple segments, scroll down to load more segments
     await page.goto('/Genesis.1');
     await page.waitForLoadState('networkidle');
     const initialUrl = page.url();
-    
-    // Scroll down to load more segments
     await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight * 0.8);
-    });
-    //await page.waitForTimeout(1000); // Wait for potential loading
-    
+    });    
     // Scroll back up to trigger infinite scroll up behavior
     await page.evaluate(() => {
       window.scrollTo(0, 0);
-    });
-   // await page.waitForTimeout(1000); // Wait for potential loading
-    
-    // Check that previous segments are still visible
+    });    
     const firstSegment = page.locator('[data-ref="Genesis 1:1"]');
     await expect(firstSegment).toBeVisible();
-    
-    // Verify URL stability - URL should remain unchanged during scroll
     await expect(page).toHaveURL(initialUrl);
   });
 
   test('TC028: InfiniteScrollDown - Tests infinite scroll down behavior and loading next segments', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
-    
     // Browse to start ref (single chapter, not spanning)
     await page.goto('/Genesis.1');
     await page.waitForLoadState('networkidle');
-    
     // Ensure Genesis 2 is NOT initially loaded
     const genesis2Segment = page.locator('[data-ref="Genesis 2:1"]');
     const initialGenesis2Visible = await genesis2Segment.isVisible();
     expect(initialGenesis2Visible).toBe(false); // Confirm it starts without Genesis 2
-    
-    // Get initial segment count
-    const initialSegmentCount = await page.locator('.segment').count();
-    
     // Scroll to bottom and wait for next segment to load
+    const initialSegmentCount = await page.locator('.segment').count();
     let genesis2LoadedByScroll = false;
     let segmentCountIncreased = false;
-    
     for (let i = 0; i < 10; i++) {
       // Scroll down
       await page.mouse.wheel(0, 1000);
       await page.waitForTimeout(1500);
-      
       // Check if scrolling triggered loading of new content
       const currentGenesis2Visible = await genesis2Segment.isVisible();
       const currentSegmentCount = await page.locator('.segment').count();
-      
       if (currentGenesis2Visible || currentSegmentCount > initialSegmentCount) {
         genesis2LoadedByScroll = currentGenesis2Visible;
         segmentCountIncreased = currentSegmentCount > initialSegmentCount;
         break;
       }
     }
-    
-    // Test passes if scrolling triggered loading of next segments
     if (genesis2LoadedByScroll) {
       await expect(genesis2Segment).toBeVisible();
     } else if (segmentCountIncreased) {
       const finalSegmentCount = await page.locator('.segment').count();
       expect(finalSegmentCount).toBeGreaterThan(initialSegmentCount);
     } else {
-      // If infinite scroll doesn't work, the test should fail
       throw new Error('Infinite scroll did not load additional content after scrolling to bottom');
     }
   });
 
   test('TC032: BackRestoresScrollPosition - Tests browser back button restores scroll position', async ({ context }) => {
     const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
-    
-    // Start at /texts page
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
     await page.click('body');
-    await page.waitForTimeout(200);
     const scrollResult = await page.evaluate(() => {
       const scrollTargets = [
         document.documentElement,
@@ -683,7 +513,6 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
         document.body.scrollHeight,
         document.documentElement.scrollHeight
       );
-      
       for (const target of scrollTargets) {
         try {
           if (target === window) {
@@ -713,32 +542,21 @@ test.describe('Click Versioned Search Result, Desktop and Mobile', () => {
         docHeight: document.documentElement.scrollHeight
       };
     });
-    
     console.log('Scroll result:', scrollResult);
-    
     if (!scrollResult.scrolled) {
       test.skip(true, `Unable to scroll page. Heights: body=${scrollResult.bodyHeight}, doc=${scrollResult.docHeight}`);
     }
-    
     const bottomScrollPosition = scrollResult.finalPosition;
     expect(bottomScrollPosition).toBeGreaterThan(0);
-    
-    // Step 2: Click on "Explore" in the header to navigate to topics page
+    //Click on "Explore" in the header to navigate to topics page
     const exploreLink = page.locator('a[href="/topics"].textLink', { hasText: /Explore/i });
     await exploreLink.click();
     await page.waitForLoadState('networkidle');
-    
-    // Verify we're on the topics page
     await expect(page).toHaveURL(/\/topics/);
-    
-    // Step 3: Go back using browser back button
+    //Go back using browser back button
     await page.goBack();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500); // Wait for scroll restoration (can be flaky)
-    
-    // Step 4: Verify we're back on /texts and still at the bottom
+    await page.waitForLoadState('networkidle');    
     await expect(page).toHaveURL(/\/texts/);
-    
     const restoredScrollPosition = await page.evaluate(() => window.scrollY);
     // Allow some tolerance but should be close to the bottom position
     expect(restoredScrollPosition).toBeGreaterThanOrEqual(bottomScrollPosition - 50);
