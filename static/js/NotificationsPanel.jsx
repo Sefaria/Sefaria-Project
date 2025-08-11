@@ -165,14 +165,14 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
 const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl} data-attr-module={Sefaria.SHEETS_MODULE} className="notificationUserName">{content.name}</a>&nbsp;
+      <a href={content.profileUrl} data-target-module={Sefaria.SHEETS_MODULE} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>published a new sheet</InterfaceText>
     </>
   );
 
   const body = (
     <>
-      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-attr-module={Sefaria.SHEETS_MODULE}>{content.sheet_title}</a>
+      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-target-module={Sefaria.SHEETS_MODULE}>{content.sheet_title}</a>
       {content.summary ?
       <div className="sheetSummary">
         {content.summary}
@@ -202,7 +202,7 @@ const SheetLikeNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-attr-module={Sefaria.SHEETS_MODULE}>{content.sheet_title}</a>
+      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-target-module={Sefaria.SHEETS_MODULE}>{content.sheet_title}</a>
     </>
   );
 
@@ -257,7 +257,7 @@ const CollectionAddNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="collectionName" data-attr-module={Sefaria.SHEETS_MODULE} href={"/sheets/collections/" + content.collection_slug}>
+      <a className="collectionName" data-target-module={Sefaria.SHEETS_MODULE} href={"/sheets/collections/" + content.collection_slug}>
         {content.collection_name}
       </a>
     </>

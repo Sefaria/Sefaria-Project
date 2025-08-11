@@ -14,7 +14,7 @@ const Button = ({ variant = '', size = '', icon, children, onClick, disabled=fal
   return (
     <button
       disabled={disabled}
-      {...(!!activeModule ? { 'data-attr-module': activeModule } : {})}
+      {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       className={`sefaria-common-button ${variant} ${size} ${className}`}
       onClick={onClick}
     >

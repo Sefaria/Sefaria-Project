@@ -420,7 +420,7 @@ class ConnectionsPanel extends Component {
           onCancel={() => this.props.setConnectionsMode("Notes")} />
         {Sefaria._uid ?
           <div>
-            <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth" data-attr-module={Sefaria.SHEETS_MODULE}>
+            <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth" data-target-module={Sefaria.SHEETS_MODULE}>
               <span className="int-en">Go to My Notes</span>
               <span className="int-he">הרשומות שלי</span>
             </a>

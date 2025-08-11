@@ -368,14 +368,14 @@ class ConfirmAddToSheet extends Component {
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">
-                  <a href={sref} data-attr-module={!!this.props.nodeRef ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE}>{srefTitles["en"]}</a>
+                  <a href={sref} data-target-module={!!this.props.nodeRef ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE}>{srefTitles["en"]}</a>
                   &nbsp;has been added to&nbsp;
-                   <a href={"/sheets/" + this.props.sheet.id} data-attr-module={Sefaria.SHEETS_MODULE}>{this.props.sheet.title}</a>.
+                   <a href={"/sheets/" + this.props.sheet.id} data-target-module={Sefaria.SHEETS_MODULE}>{this.props.sheet.title}</a>.
                 </span>
                 <span className="int-he">
                   <a href={sref}>{srefTitles["he"]}</a>
                    &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
-                  <a href={"/sheets/" + this.props.sheet.id} data-attr-module={Sefaria.SHEETS_MODULE}>{this.props.sheet.title}</a>.
+                  <a href={"/sheets/" + this.props.sheet.id} data-target-module={Sefaria.SHEETS_MODULE}>{this.props.sheet.title}</a>.
                 </span>
               </div>
             </div>);

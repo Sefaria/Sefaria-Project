@@ -23,7 +23,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
     <a className={cssClasses}
        href={url}
        target={newTab ? '_blank' : null}
-       data-attr-module={targetModule ? targetModule : undefined}
+       data-target-module={targetModule ? targetModule : undefined}
        data-prevent-close={preventClose}>
       {children}
     </a>

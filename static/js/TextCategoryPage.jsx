@@ -275,7 +275,7 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDes
         onClick     = {onClick}
         data-cat    = {cats ? cats.slice(-1) : null} // This is only used for Selenium test, would like to get rid of it
         key         = {keytype + "." + nestLevel + "." + title}
-        data-attr-module={module || Sefaria.activeModule}
+        data-target-module={module || Sefaria.activeModule}
       >
         <ContentText text={{en: title, he: heTitle}} />
       </a>

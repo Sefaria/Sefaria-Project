@@ -1106,7 +1106,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return;
     }
     
-    const moduleTarget = linkTarget.getAttribute('data-attr-module');  // the module to open the URL in: currently either 'sheets', 'library' or null
+    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either 'sheets', 'library' or null
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
