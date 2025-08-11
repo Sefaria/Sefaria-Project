@@ -8800,7 +8800,7 @@ a .button:hover {
   margin-inline-end: 7px;
 }
 .button.extraSmall.reviewState.reviewed {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
 
 }
 .button.extraSmall.reviewState.notReviewed {
@@ -14434,7 +14434,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #acceptButton {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
   border-radius: 6px;
   color: white;
   border: 0px;
