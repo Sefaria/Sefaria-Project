@@ -38,14 +38,8 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
 
 // Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
 export const hideModals = async (page: Page) => {
-    // Use a shorter timeout for networkidle to avoid hanging on heavy pages
-    try {
-        await page.waitForLoadState('networkidle', { timeout: 5000 });
-    } catch (error) {
-        // Continue if networkidle times out - page might still be usable
-    }
-    
-    try {
+    //await page.waitForLoadState('networkidle'); 
+      try {
         const closeButton = page.locator('#interruptingMessageClose');
         if (await closeButton.isVisible({ timeout: 2000 })) {
             await closeButton.click();
@@ -174,7 +168,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
 };
 
 /**
- * Bulletproof language change function with multiple fallback strategies
+ *language change function with multiple fallback strategies
  * 
  * @param page - The Playwright page object
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
