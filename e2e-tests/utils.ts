@@ -36,15 +36,24 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
  * rather than only calling hideAllModalsAndPopups()
 */
 
-// Dismisses the main modal interrupting message by injecting CSS to hide it.
+// Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
 export const hideModals = async (page: Page) => {
     await page.waitForLoadState('networkidle'); 
+      try {
+        const closeButton = page.locator('#interruptingMessageClose');
+        if (await closeButton.isVisible({ timeout: 2000 })) {
+            await closeButton.click();
+            return;
+        }
+    } catch (error) {
+    }
     await page.evaluate(() => {
         const style = document.createElement('style');
-        style.innerHTML = '#interruptingMessageBox {display: none !important;}';
+        style.innerHTML = '#interruptingMessageBox, #interruptingMessageOverlay, #interruptingMessage {display: none !important;}';
         document.head.appendChild(style); 
     });
 }
+
 //try clicking the close button, else hide the modal and overlay forcibly
 export const hideExploreTopicsModal = async (page: Page) => {
   await page.evaluate(() => {
