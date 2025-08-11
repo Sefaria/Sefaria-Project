@@ -66,6 +66,10 @@ test('TC004: Format text', async () => {
   await sheetEditorPage.underlineTextButton().click();
   await sheetEditorPage.makeTextLinkButton().click();
   await page.getByRole('textbox', { name: 'Enter link URL' }).fill('www.sefaria.org');
+  const formattedTextLocator = await sheetEditorPage.getTextLocator('format');
+  await formattedTextLocator.click({ clickCount: 3 });
+  await page.keyboard.press('Delete');
+  await expect(formattedTextLocator).not.toBeVisible();
 });
 
 test('TC005: Delete Text- Backwards, Forwards, All', async () => {
@@ -320,7 +324,6 @@ test('TC017: Manually delete sheet from account profile', async () => {
     }
     return false;
   });
-  // Wait for the sheet to be deleted by checking if it's no longer visible
   const deletedSheetRow = page.locator('.sheet').filter({ has: page.locator(`a.sheetTitle:has-text("${uniqueTitle}")`) }).first();
   await expect(deletedSheetRow).not.toBeVisible({ timeout: 10000 });
 });

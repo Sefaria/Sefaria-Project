@@ -38,8 +38,14 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
 
 // Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
 export const hideModals = async (page: Page) => {
-    await page.waitForLoadState('networkidle'); 
-      try {
+    // Use a shorter timeout for networkidle to avoid hanging on heavy pages
+    try {
+        await page.waitForLoadState('networkidle', { timeout: 5000 });
+    } catch (error) {
+        // Continue if networkidle times out - page might still be usable
+    }
+    
+    try {
         const closeButton = page.locator('#interruptingMessageClose');
         if (await closeButton.isVisible({ timeout: 2000 })) {
             await closeButton.click();

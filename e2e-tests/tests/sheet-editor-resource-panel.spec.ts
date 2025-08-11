@@ -3,7 +3,6 @@ import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { SheetEditorPage } from '../pages/sheetEditorPage';
 import { LANGUAGES } from '../globals';
 
-// Resource Panel Test Suite
 // Shared variables for all resource panel tests
 let browser: Browser;
 let context: BrowserContext;
@@ -31,7 +30,6 @@ test.beforeEach(async () => {
   // Ensure clean state for each test
   await page.goto(sheetUrl, { waitUntil: 'networkidle' });
   await hideAllModalsAndPopups(page);
-  // Close any open panels from previous tests
   const panelCount = await sheetEditorPage.resourcePanel().count();
   if (panelCount > 0) {
     const closeButton = page.locator('a.readerNavMenuCloseButton.circledX');
@@ -49,16 +47,10 @@ test.afterAll(async () => {
 // Resource Panel and Text Reader Panel Tests
 test('TC031: Click on Title to open Resource Panel - Added Source NOT in focus', async () => {
   await sheetEditorPage.addSampleSource();
-  await page.waitForLoadState('networkidle');
-  // Wait for the source to be fully loaded and rendered
+  // await page.waitForLoadState('networkidle');
   await expect(sheetEditorPage.addedSource().first()).toBeVisible();
   await sheetEditorPage.sourceSheetBody().click(); 
-  
-  // // Wait for the sheet editor's internal state to be ready
-  // await page.waitForFunction(() => {
-  //   return window.Sefaria && window.Sefaria.track && document.querySelector('.sheetContent');
-  // });
-  
+  await page.waitForLoadState('networkidle');
   await sheetEditorPage.topTitle().click();
   await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });
   await expect(sheetEditorPage.resourcePanel()).toContainText('Publish Settings');
@@ -67,14 +59,13 @@ test('TC031: Click on Title to open Resource Panel - Added Source NOT in focus',
 });
 
 test('TC032: Click on Title to open Resource Panel - Added Source in focus', async () => {
-  // Click on a source to put it in focus
   await sheetEditorPage.addSampleSource();
-  await page.waitForLoadState('networkidle');
+  //await page.waitForLoadState('networkidle');
   const sourceElement = sheetEditorPage.addedSource().first();
   await sourceElement.click();
   await expect(sourceElement).toHaveClass(/selected/);  
+  await page.waitForLoadState('networkidle');
   await sheetEditorPage.topTitle().click();
-  // Verify expected elements exist in Resource panel when source is in focus
   await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });
   await expect(sheetEditorPage.resourcePanel()).toContainText('Publish Settings');
   await expect(sheetEditorPage.resourcePanel()).toContainText('Share');
@@ -84,11 +75,8 @@ test('TC032: Click on Title to open Resource Panel - Added Source in focus', asy
 });
 
 test('TC033: Click on sidebar toggle opens resource panel', async () => {
-  // Wait for the sidebar toggle to be available
   await expect(sheetEditorPage.sideBarToggleButton()).toBeVisible({ timeout: 10000 });
   await sheetEditorPage.clickSidebarToggle();
-  
-  // Verify resource panel opens
   await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });   
 });
 
@@ -96,19 +84,16 @@ test('TC034: Clicking on text does not open resource panel', async () => {
   await sheetEditorPage.addText('This is test text');
   const textElement = await sheetEditorPage.getTextLocator('This is test text');
   await textElement.click();
-  // Verify resource panel is not visible
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
-    await textElement.click({ clickCount: 3 }); // Triple click to select all text
+  await textElement.click({ clickCount: 3 }); 
   await page.keyboard.press('Delete');
   await expect(textElement).not.toBeVisible();
 });
 
 test('TC035: Clicking on Added Source does not open resource panel', async () => {
-  // Click on source
   await sheetEditorPage.addSampleSource();
   const sourceElement = sheetEditorPage.addedSource().first();
   await sourceElement.click();
-  // Verify resource panel is not visible
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
@@ -128,7 +113,6 @@ test('TC037: Clicking on Media does not open resource panel', async () => {
 
 test('TC038: Clicking on [element] does not open resource panel', async () => {
   await sheetEditorPage.sourceSheetBody().click();
-  // Verify resource panel is not visible
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });
 
