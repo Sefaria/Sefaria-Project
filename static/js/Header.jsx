@@ -37,6 +37,7 @@ const Header = (props) => {
 
   const headerRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "regular_header" });
+    gtag("event", "header_viewed", { impression_type: "regular_header" });
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 

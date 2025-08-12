@@ -1547,6 +1547,7 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 const CategoryColorLine = ({ category }) => {
   const categoryColorLineRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "category_color_line" });
+    gtag("event", "header_viewed", { impression_type: "category_color_line" });
     if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
   }, "sa.header_viewed");
   return (
