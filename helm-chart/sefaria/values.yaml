@@ -19,6 +19,19 @@ previousServicesCount: "3"
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
 
+# enabling this feature creates an ephemeral database image prepopulated with test data
+# It is intended for use within the sefaria automated testing environment
+# For development environments
+# - install mongo using an upstream chart
+# - enable restore
+# - populate the settings with the appropriate connection details
+mongo:
+  enabled: false
+  image:
+    registry: us-east1-docker.pkg.dev/development-205018/sefaria-public
+    image: sefaria-mongo
+    tag: latest
+
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
 restore:
