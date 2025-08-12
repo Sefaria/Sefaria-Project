@@ -80,11 +80,17 @@ class _FindRefsText:
     lang: str
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class FindRefsInput:
     text: _FindRefsText
     options: _FindRefsTextOptions
     metadata: dict
+
+    def __post_init__(self):
+        if isinstance(self.text, dict):
+            self.text = _FindRefsText(**self.text)
+        if isinstance(self.options, dict):
+            self.options = _FindRefsTextOptions(**self.options)
 
 
 def unpack_find_refs_request(request):
