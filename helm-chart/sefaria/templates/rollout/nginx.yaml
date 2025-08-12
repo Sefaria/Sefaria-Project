@@ -106,6 +106,10 @@ spec:
           - name: LINKER_HOST
             value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           {{- end }}
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
