@@ -4,7 +4,7 @@ import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
 import { InterfaceText, DonateLink } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
-import { HELP_CENTER_URLS } from './constants';
+
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
@@ -38,7 +38,7 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    const helpURL = Sefaria.interfaceLang == "hebrew" ? HELP_CENTER_URLS.HE : HELP_CENTER_URLS.EN_US;
+    const helpURL = Sefaria.interfaceLang == "hebrew" ? Sefaria._siteSettings.HELP_CENTER_URLS.HE : Sefaria._siteSettings.HELP_CENTER_URLS.EN_US;
     let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <footer id="footer" className="static sans-serif">

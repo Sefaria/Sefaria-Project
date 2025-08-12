@@ -16,7 +16,7 @@ import {
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete';
-import { HELP_CENTER_URLS } from './constants';
+
 
 
 const Header = (props) => {
@@ -404,7 +404,7 @@ const MobileInterfaceLanguageToggle = () => {
 
 
 const HelpButton = () => {
-  const url = Sefaria._v({he: HELP_CENTER_URLS.HE, en: HELP_CENTER_URLS.EN_US});
+  const url = Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US});
   return (
     <div className="help">
       <a href={url}>

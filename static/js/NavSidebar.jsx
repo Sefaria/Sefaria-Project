@@ -6,7 +6,6 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
-import { HELP_CENTER_URLS } from './constants';
 
 const NavSidebar = ({sidebarModules}) => {
   return <div className="navSidebar sans-serif">
@@ -198,7 +197,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href={HELP_CENTER_URLS.GETTING_STARTED}>
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -268,7 +267,7 @@ const Resources = () => (
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url={Sefaria._v({he: HELP_CENTER_URLS.HE, en: HELP_CENTER_URLS.EN_US})} icon="help.svg" openInNewTab={true} />
+      <IconLink text="Help" url={Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US})} icon="help.svg" openInNewTab={true} />
     </div>
   </SidebarModule>
 );
