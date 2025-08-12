@@ -50,15 +50,17 @@ FIND_REFS_POST_SCHEMA = {
 }
 
 
-def make_find_refs_response(request):
-    request_text, options, meta_data = _unpack_find_refs_request(request)
-    if meta_data:
-        _add_webpage_hit_for_url(meta_data.get("url", None))
-    return _make_find_refs_response_with_cache(request_text, options, meta_data)
+def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
+    metadata = find_refs_input.metadata
+    if metadata:
+        _add_webpage_hit_for_url(metadata.get("url", None))
+    return _make_find_refs_response_with_cache(
+        find_refs_input.text, find_refs_input.options, metadata
+    )
 
 
 @dataclasses.dataclass
-class _FindRefsTextOptions:
+class _FindRefsTextOptions(frozen=True):
     """
     @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
     @attr max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
@@ -71,11 +73,18 @@ class _FindRefsTextOptions:
     version_preferences_by_corpus: dict = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class _FindRefsText:
     title: str
     body: str
     lang: str
+
+
+@dataclasses.dataclass(frozen=True)
+class FindRefsInput:
+    text: _FindRefsText
+    options: _FindRefsTextOptions
+    metadata: dict
 
 
 def _unpack_find_refs_request(request):

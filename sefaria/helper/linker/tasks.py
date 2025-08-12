@@ -7,7 +7,9 @@ from sefaria.model import library
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model.text import Ref
+from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class LinkingArgs:
@@ -16,6 +18,17 @@ class LinkingArgs:
     lang: str
     vtitle: str
 
+
+@app.task(name="linker.find_refs_api")
+def find_refs_api(raw_find_refs_input: dict) -> dict:
+    """
+    Celery task for the find-refs API endpoint.
+    @param raw_find_refs_input:
+    @return:
+    """
+    find_refs_input = FindRefsInput(**raw_find_refs_input)
+    # since output is already serialized, we can return it directly
+    return make_find_refs_response(find_refs_input)
 
 
 @app.task(name="linker.link_segment_with_worker")
