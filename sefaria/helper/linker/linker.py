@@ -59,8 +59,8 @@ def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
     )
 
 
-@dataclasses.dataclass
-class _FindRefsTextOptions(frozen=True):
+@dataclasses.dataclass(frozen=True)
+class _FindRefsTextOptions:
     """
     @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
     @attr max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
