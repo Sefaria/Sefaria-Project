@@ -34,7 +34,7 @@ data:
     set -e
 
     export ELASTIC_AUTH_HEADER=$(echo -n $ELASTIC_USERNAME:$ELASTIC_PASSWORD | base64)
-    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${SEARCH_PORT},${SEARCH_PATH},${SEARCH_SSL_ENABLE},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf 
+    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${SEARCH_PORT},${SEARCH_PATH},${SEARCH_SSL_ENABLE},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf
 
     nginx -c /nginx.conf -g 'daemon off;'
 
@@ -70,12 +70,6 @@ data:
         server ${VARNISH_HOST}:8040;
         keepalive 32;
       }
-
-      {{- if .Values.linker.enabled }}
-      upstream linker_upstream {
-        server ${LINKER_HOST}:80;
-      }
-      {{- end }}
 
       # Requests hitting the root domains should be redirected to the 'www' subdomain
       server {
@@ -191,14 +185,6 @@ data:
             add_header Content-Type  text/plain;
             return 204;
           }
-          proxy_send_timeout  300;
-          proxy_read_timeout  300;
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto https;
-          proxy_set_header X-Forwarded-Port 443;
-          proxy_pass http://linker_upstream;
         }
         {{- end }}
       } # server

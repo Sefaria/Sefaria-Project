@@ -102,10 +102,6 @@ spec:
               secretKeyRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 key: STRAPI_LOCATION
-          {{- if .Values.linker.enabled }}
-          - name: LINKER_HOST
-            value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
-          {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
             value: {{ .Values.deployEnv }}-mongo
