@@ -37,8 +37,6 @@ from . import search
 from sefaria.google_storage_manager import GoogleStorageManager
 import re
 from django.http import Http404
-import numpy as np
-from pymongo import UpdateOne
 
 logger = structlog.get_logger(__name__)
 
@@ -806,6 +804,44 @@ def annotate_sheets_with_collections(sheets):
     return sheets
 
 
+import math
+from typing import Iterable,Sequence,Union,List
+
+Number = Union[int,float]
+
+
+def percentile(data: Iterable[Number], q: Union[Number, Sequence[Number]]) -> \
+Union[float, List[float]]:
+    """
+    Compute percentile(s) of a 1D data iterable without NumPy.
+    Uses linear interpolation between closest ranks (like np.percentile default).
+    """
+    xs = [x for x in data if x is not None]
+    if not xs:
+        raise ValueError(
+            "percentile(): data must contain at least one number."
+            )
+    xs.sort()
+    n = len(xs)
+
+    def one(p: float) -> float:
+        if not (0.0 <= p <= 100.0):
+            raise ValueError("percentile q must be in [0, 100].")
+        if n == 1:
+            return float(xs[0])
+        r = (p / 100.0) * (n - 1)
+        lo = int(math.floor(r))
+        hi = int(math.ceil(r))
+        if lo == hi:
+            return float(xs[lo])
+        frac = r - lo
+        return xs[lo] * (1.0 - frac) + xs[hi] * frac
+
+    if isinstance(q, (int, float)):
+        return one(float(q))
+    return [one(float(p)) for p in q]
+
+
 def calculate_combined_score(sheets, pasuk_ref, title_weight=0.3, ref_weight=0.3,
                              creativity_weight=0.4):
     """
@@ -846,7 +882,7 @@ def calculate_combined_score(sheets, pasuk_ref, title_weight=0.3, ref_weight=0.3
 
         # Normalize ref scores using percentile method
         if len(ref_scores_raw) > 1:
-            p5, p95 = np.percentile(ref_scores_raw, [5, 95])
+            p5, p95 = percentile(ref_scores_raw, [5, 95])
             span = p95 - p5 or 1
             ref_scores = [
                 min(1, max(0, (score - p5) / span))
