@@ -312,14 +312,6 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew #bannerMessage {
   direction: rtl;
 }
-.genericBanner #bannerMessageClose {
-  font-size: 40px;
-  opacity: revert;
-  inset-inline-end: 60px;
-  top: revert;
-  border: none;
-  background: none;
-}
 #bannerMessageClose {
   position: absolute;
   top: -3px;
@@ -11903,46 +11895,6 @@ cursor: pointer;
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
-#staticContentWrapper .editorToggleHeader {
-  margin: revert;
-}
-.editorToggleHeader, .genericBanner {
-  padding-inline: 10%;
-  background-color: var(--sefaria-blue);
-  color: white;
-  height: 72px;
-  font-size: 16px;
-  margin-top: -60px;
-  margin-bottom: 80px;
-  display: flex;
-  justify-content: center;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  gap: 5px;
-  align-items: center;
-}
-
-.genericBanner {
-  margin-block: revert;
-}
-
-.interface-hebrew .editorToggleHeader, .interface-hebrew .genericBanner {
-  direction: rtl;
-}
-.editorToggleHeader .button, .genericBanner .button {
-  white-space: nowrap;
-  padding: 5px 8px;
-  height: 30px;
-  letter-spacing: 0;
-  margin-inline-end: 15px;
-}
-
-.editorToggleHeader .learnMore {
-  text-decoration: underline;
-  color: white;
-  white-space: nowrap;
-  margin-top: -5px;
-}
 .feedbackOverlay {
   position: fixed;
   width: 100%;
@@ -12216,9 +12168,6 @@ cursor: pointer;
   }
   .profile-page .profile-pic .profile-pic-button {
     top: calc(-1 * ((87px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
-  }
-  .profile-page .editorToggleHeader {
-    display: none !important;
   }
   .profile-page .profile-summary .profile-img {
     width: 87px !important;

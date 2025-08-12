@@ -64,6 +64,10 @@ spec:
             value: {{ .Values.localSettings.DEBUG | quote }}
           - name: NODE_OPTIONS
             value: "--max-old-space-size={{ .Values.nodejs.heapSize }}"
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           - configMapRef:
               name: local-settings-node-{{ .Values.deployEnv }}
