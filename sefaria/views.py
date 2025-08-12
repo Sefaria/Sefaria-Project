@@ -6,6 +6,7 @@ import json
 import re
 import bleach
 from datetime import datetime, timedelta
+from dataclasses import asdict
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
@@ -41,7 +42,7 @@ from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_QUEUES
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
@@ -352,11 +353,12 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker.linker import make_find_refs_response
-    try:
-        return jsonResponse(make_find_refs_response(request))
-    except APIInvalidInputException as e:
-        return e.to_json_response()
+    from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
+    from sefaria.helper.linker.tasks import find_refs_api_task
+    request_text, options, metadata = unpack_find_refs_request(request)
+    find_refs_input = FindRefsInput(request_text, options, metadata)
+    response = find_refs_api_task.apply_async(args=(asdict(find_refs_input),), queue=CELERY_QUEUES['tasks']).get(timeout=15)
+    return jsonResponse(response)
 
 
 @api_view(["GET"])

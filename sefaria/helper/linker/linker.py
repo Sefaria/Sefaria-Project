@@ -87,7 +87,7 @@ class FindRefsInput:
     metadata: dict
 
 
-def _unpack_find_refs_request(request):
+def unpack_find_refs_request(request):
     validator = Validator(FIND_REFS_POST_SCHEMA)
     post_body = json.loads(request.body)
     if not validator.validate(post_body):

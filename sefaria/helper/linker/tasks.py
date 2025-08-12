@@ -20,7 +20,7 @@ class LinkingArgs:
 
 
 @app.task(name="linker.find_refs_api")
-def find_refs_api(raw_find_refs_input: dict) -> dict:
+def find_refs_api_task(raw_find_refs_input: dict) -> dict:
     """
     Celery task for the find-refs API endpoint.
     @param raw_find_refs_input:
