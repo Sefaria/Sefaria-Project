@@ -268,7 +268,7 @@ const Resources = () => (
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url="/help" icon="help.svg" openInNewTab={true} />
+      <IconLink text="Help" url={Sefaria._v({he: HELP_CENTER_URLS.HE, en: HELP_CENTER_URLS.EN_US})} icon="help.svg" openInNewTab={true} />
     </div>
   </SidebarModule>
 );
