@@ -268,7 +268,7 @@ const Resources = () => (
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url="/help" icon="help.svg" />
+      <IconLink text="Help" url="/help" icon="help.svg" openInNewTab={true} />
     </div>
   </SidebarModule>
 );
@@ -868,10 +868,10 @@ const Wrapper = ({title, content}) => (
 );
 
 
-const IconLink = ({text, url, icon}) => (
+const IconLink = ({text, url, icon, openInNewTab}) => (
   <div className="navSidebarLink gray">
     <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("icon")}`} />
-    <a href={url}><InterfaceText>{text}</InterfaceText></a>
+    <a href={url} target={openInNewTab ? "_blank" : "_self"}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
 
