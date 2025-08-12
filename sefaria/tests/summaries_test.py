@@ -12,20 +12,17 @@ from sefaria.utils.testing_utils import *
 
 """ SOME SETUP """
 
-text_titles = None
+text_titles = model.IndexSet({}).distinct('title')
+model.library.rebuild_toc()
 
 
 """ THE TESTS """
 
-@pytest.fixture(scope='class', autouse=True)
-def setup_toc(django_db_setup, django_db_blocker):
-    with django_db_blocker.unblock():
-        global text_titles
-        text_titles = model.IndexSet({}).distinct('title')
-        model.library.rebuild_toc()
-
-@pytest.mark.django_db
 class Test_Toc(object):
+
+    @classmethod
+    def setup_class(cls):
+        model.library.rebuild_toc()
 
     @classmethod
     def teardown_class(cls):
