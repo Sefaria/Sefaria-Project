@@ -72,7 +72,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:100,200,300,400,500,600,700,800,900'],
-            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîїìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -94,6 +94,7 @@
 
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/fonts.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
         
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
@@ -158,6 +159,15 @@
         })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
     {% endif %}
+    
+    <!-- Simple Analytics -->
+    {# Allow queuing of events in case embed script hasn't loaded yet when calling sa_event #}
+    <script>
+      window.sa_event = window.sa_event || function () {
+        const a = [].slice.call(arguments);
+        window.sa_event.q ? window.sa_event.q.push(a) : window.sa_event.q = [a];
+      };
+    </script>
 
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
@@ -200,11 +210,6 @@
         </div>
     </div>
 
-    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-            <div id="footerContainer">{% include "elements/footer.html" %}</div>
-        {% endif %}
-    {% endblock %}
     {% endif %}
 
     <div id="overlay"></div>
@@ -266,5 +271,42 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+    
+    <!-- Default metadata for Simple Analytics -->
+    <script>
+      const SESSION_KEY = 'sa_custom_session_id';
+      if (sessionStorage.getItem(SESSION_KEY) === null) {
+        sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+      }
+      const SA_KEY = 'sa_id';
+      if (localStorage.getItem(SA_KEY) === null) {
+        localStorage.setItem(SA_KEY, crypto.randomUUID());
+      }
+      sa_metadata = {
+        logged_in: Boolean(DJANGO_VARS.props._uid),
+        interface_lang: DJANGO_VARS.props.interfaceLang === 'hebrew' ? 'he' : 'en',
+        device_type: DJANGO_VARS.props.multiPanel ? 'desktop' : 'mobile',
+        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
+        custom_session_id: sessionStorage.getItem(SESSION_KEY),
+        sefaria_id: localStorage.getItem(SA_KEY),
+        ...(DJANGO_VARS.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
+      };
+    </script>
+
+    {% if DEBUG %}
+    <script 
+      defer 
+      data-hostname="sa-dev.sefaria.org" 
+      data-collect-dnt="true" 
+      src="https://scripts.simpleanalyticscdn.com/latest.dev.js">
+    </script>
+    {% else %}
+    <script 
+      defer 
+      data-hostname="sefaria.org" 
+      data-collect-dnt="true" 
+      src="https://scripts.simpleanalyticscdn.com/latest.js">
+    </script>
+    {% endif %}
 </body>
 </html>

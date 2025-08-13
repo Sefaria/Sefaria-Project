@@ -130,13 +130,13 @@ class SalesforceConnectionManager(CrmConnectionManager):
         email: str, 
         first_name: Optional[str] = None, 
         last_name: Optional[str] = None, 
-        lang: str = "en", 
         educator: bool = False,
+        lang: str = "en",
         mailing_lists: Optional[list[str]] = None) -> Any:
 
         mailing_lists = mailing_lists or []
 
-        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
+        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang)
         if lang == "he":
             language = "Hebrew"
         else:

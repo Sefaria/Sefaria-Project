@@ -261,7 +261,6 @@ class UserProfile extends Component {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content noOverflowX">
-          {(this.props.profile.id === Sefaria._uid && this.props.profile.show_editor_toggle)  ? <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -615,7 +614,7 @@ const ProfileSummary = ({
       );
 
   const tempCollectionButton = (
-          <a href="/collections/new" className="resourcesLink sans-serif">
+          <a href="/sheets/collections/new" className="resourcesLink sans-serif">
               <InterfaceText>Create Collection</InterfaceText>
           </a>
       );

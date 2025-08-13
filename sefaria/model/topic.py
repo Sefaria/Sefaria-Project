@@ -64,7 +64,7 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
         return self._index.get_title(lang)
 
     def get_url(self):
-        return f'/{self._index.title.replace(" ", "_")}'
+        return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
 
 
 class AuthorCategoryAggregation(AuthorWorksAggregation):
@@ -493,14 +493,33 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return self.link_set('refTopic', query_kwargs, **kwargs)
 
     def contents(self, **kwargs):
-        mini = kwargs.get('minify', False)
-        d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
-        d['primaryTitle'] = {}
+        """
+        Returns a dictionary of the contents of this topic, including its primary title, description, and other attributes.
+        :param kwargs: optional arguments to control the output.  'minify' will return a minimal version of the contents.
+        When we build the topic TOC on server start, we don't want 'minify' to be True because we need 'slug', 'shouldDisplay', 'pools', and 'displayOrder' to be set.
+        """
+        d = {'primaryTitle': {}}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
         if not kwargs.get("with_html"):
             for k, v in d.get("description", {}).items():
                 d["description"][k] = re.sub("<[^>]+>", "", v or "")
+
+        mini = kwargs.get('minify', False)
+        if not mini:
+            d.update(super(Topic, self).contents(**kwargs))
+        else:
+            children = kwargs.get("children", [])
+            d.update({
+                'slug': self.slug,
+                "shouldDisplay": True if len(children) > 0 else self.should_display(),
+                "displayOrder": getattr(self, "displayOrder", 10000),
+                "pools": self.get_pools()})
+            if getattr(self, "categoryDescription", False):
+                d['categoryDescription'] = self.categoryDescription
+            description = getattr(self, "description", None)
+            if description is not None and getattr(self, "description_published", False):
+                d['description'] = description
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
@@ -1169,7 +1188,7 @@ def process_topic_delete(topic):
     IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]}).delete()
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     try:
         DjangoTopic.objects.get(slug=topic.slug).delete()
     except DjangoTopic.DoesNotExist:

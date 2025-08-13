@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 
 from django.utils.http import is_safe_url
+from django_topics.models import Topic as DjangoTopic
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
@@ -37,7 +38,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
@@ -50,7 +51,7 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
@@ -134,12 +135,11 @@ def render_react_component(component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.parse.urlencode({
-        "propsJSON": propsJSON,
-    }).encode("utf-8")
+    data = propsJSON.encode("utf-8")
+    headers = {"Content-Type": "application/json; charset=utf-8"}
     try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        req = urllib.request.Request(url, data=data, headers=headers)
+        response = urllib.request.urlopen(req, timeout=NODE_TIMEOUT)
         html = response.read().decode("utf-8")
         return html
     except Exception as e:
@@ -170,10 +170,10 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
+        active_module = getattr(request, "active_module", "library")
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -187,7 +187,7 @@ def base_props(request):
             "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
-            "notifications": profile.recent_notifications().client_contents(),
+            "notifications": profile.recent_notifications(scope=active_module).client_contents(),
             "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
             "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
         }
@@ -231,7 +231,6 @@ def base_props(request):
             "color":             request.COOKIES.get("color", "light"),
             "fontSize":          request.COOKIES.get("fontSize", 62.5),
         },
-        "trendingTopics": trending_topics(days=7, ntags=5),
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG
@@ -257,14 +256,18 @@ def user_credentials(request):
 
 def _reader_redirect_add_languages(request, tref):
     versions = Ref(tref).version_list()
-    query_params = QueryDict(mutable=True)
+    query_params = QueryDict(request.GET.urlencode(), mutable=True)
     for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
         version_title = request.GET.get(vlang)
         if version_title:
             version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title))
-            query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
+            if version is not None:
+                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
+            else:
+                query_params.pop(vlang)
     return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+
 
 
 @ensure_csrf_cookie
@@ -292,7 +295,7 @@ def catchall(request, tref, sheet=None):
         except InputError:
             raise Http404
 
-        uref = oref.url()
+        uref = oref.url(False)
         if uref and tref != uref:
             return reader_redirect(uref)
 
@@ -438,9 +441,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])
         sheet_id = int(sheet_id.split(".")[0])
-    sheet_id = int(sheet_id)
+    else:
+        sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet and sheet["error"] != "Sheet updated.":
         raise Http404
@@ -730,7 +734,7 @@ def topics_category_page(request, topicCategory):
         }
     }
 
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    short_lang = get_short_lang(request.interfaceLang)
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
 
@@ -820,7 +824,6 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
-        "initialSearchType": search_params["tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -831,22 +834,6 @@ def search(request):
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation."),
         "noindex": True
     })
-
-
-@login_required
-def enable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
-    profile.save()
-    return redirect(f"/sheets/profile/{profile.slug}")
-
-@login_required
-def disable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": False})
-    profile.save()
-    return redirect(f"/sheets/profile/{profile.slug}")
-
 
 def public_collections(request):
     props = base_props(request)
@@ -931,7 +918,8 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
+    # need to pass renderStatic so that s2 shows up in base template
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
 
 
 def groups_redirect(request, group):
@@ -1076,7 +1064,8 @@ def user_stats(request):
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    notifications = UserProfile(user_obj=request.user).recent_notifications()
+    active_module = getattr(request, 'active_module', 'library')
+    notifications = UserProfile(user_obj=request.user).recent_notifications(scope=active_module)
     props = {
         "notifications": notifications.client_contents(),
     }
@@ -1122,7 +1111,7 @@ def _crumb(pos, id, name):
 def sheet_crumbs(request, sheet=None):
     if sheet is None:
         return ""
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    short_lang = get_short_lang(request.interfaceLang)
     main_topic = get_top_topic(sheet)
     if main_topic is None:  # crumbs make no sense if there are no topics on sheet
         return ""
@@ -1177,7 +1166,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
             for snode in oref.index_node.ancestors()[1:] + [oref.index_node]:
                 if snode.is_default():
                     continue
-                name = snode.primary_title("he") if request.interfaceLang == "hebrew" else  snode.primary_title("en")
+                name = snode.primary_title(get_short_lang(request.interfaceLang))
                 breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
@@ -2300,7 +2289,7 @@ def visualize_parasha_colors(request):
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
+    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file, "renderStatic": True})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
@@ -2392,7 +2381,7 @@ def flag_text_api(request, title, lang, version):
         vobj.save()
         return jsonResponse({"status": "ok"})
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -2664,15 +2653,15 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, topic_override=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+def get_name_completions(name, limit, topic_override=False, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
     """
     Function to get completions (objects and titles) for a given name.
     :param name: string to get completions for
     :param limit: int number of items to return
     :param topic_override: bool
     :param type: string - get only completions of objects of this specific type
-    :param topic_pool: string - get completions of topic-objects of this specific topic pool
-    :param exact_continuations: bool - if ture get only completions of objects whose title contains an exact match to 'name'
+    :param active_module: string - filter out objects irrelevant for this module ('library' vs 'sheets').  If active_module is None, results for both modules are returned.
+    :param exact_continuations: bool - if true get only completions of objects whose title contains an exact match to 'name'
     :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
     """
     lang = "he" if has_hebrew(name) else "en"
@@ -2700,7 +2689,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+            completions, completion_objects = completer.complete(name, limit, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2710,7 +2699,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, topic_poo
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+        completions, completion_objects = completer.complete(name, limit, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         object_data = completer.get_object(name)
 
     return {
@@ -2732,10 +2721,10 @@ def name_api(request, name):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
     type = request.GET.get("type", None)
-    topic_pool = request.GET.get("topic_pool", None)
+    active_module = request.GET.get('active_module', None)
     exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
     order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
-    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {
@@ -2925,8 +2914,9 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
+    scope = str(request.GET.get("scope", "library"))
 
-    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
+    notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
     return jsonResponse({
         "notifications": notifications.client_contents(),
@@ -3102,49 +3092,55 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
+    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == "library" else "Explore Source Sheets by Topic on Sefaria"
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
-        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
+        "desc":           _(desc),
     })
 
 
-def topic_page_b(request, topic):
-    return topic_page(request, topic, test_version="b")
+def topic_page_b(request, slug):
+    return topic_page(request, slug, test_version="b")
 
 @sanitize_get_params
-def topic_page(request, topic, test_version=None):
+def topic_page(request, slug, test_version=None):
     """
     Page of an individual Topic
     """
-    topic_obj = Topic.init(topic)
-    if topic_obj is None:
-        # try to normalize
-        topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
-        if topic_obj is None:
-            raise Http404
-        topic = topic_obj.slug
+    slug = SluggedAbstractMongoRecord.normalize_slug(slug)
+    topic_obj = Topic.init(slug)
+    if topic_obj is None or request.active_module not in topic_obj.get_pools():
+        raise Http404
+
+    short_lang = get_short_lang(request.interfaceLang)
+    desc = title = ""
+    short_title = topic_obj.get_primary_title(short_lang)
+    if request.active_module == "library":
+        title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
+    elif request.active_module == "sheets":
+        title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
+
+    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
+    if topic_desc is not None:
+        desc += " " + topic_desc
 
     props = {
         "initialMenu": "topics",
-        "initialTopic": topic,
+        "initialTopic": slug,
         "initialTab": urllib.parse.unquote(request.GET.get('tab', 'notable-sources')),
         "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic, request.interfaceLang),
+        "topicData": _topic_page_data(slug, request.interfaceLang),
     }
 
     if test_version is not None:
         props["topicTestVersion"] = test_version
 
-    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
-    if topic_desc is not None:
-        desc += " " + topic_desc
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
@@ -3153,12 +3149,16 @@ def topic_page(request, topic, test_version=None):
 @catch_error_as_json
 def topics_list_api(request):
     """
-    API to get data for a particular topic.
+    API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
-    topics = get_all_topics(limit)
-    response = [t.contents() for t in topics]
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    all_topics = get_all_topics(limit, activeModule=request.active_module)
+    all_topics_json = []
+    for topic in all_topics:
+        topic_json = topic.contents(minify=True, with_html=True)
+        topic_json["titles"] = topic.titles
+        all_topics_json.append(topic_json)
+    response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
 
@@ -3387,7 +3387,7 @@ def topic_ref_api(request, tref):
     except Exception as e:
         data = json.loads(request.body)
     slug = data.get('topic')
-    interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
+    interface_lang = get_short_lang(data.get('interface_lang'))
     tref = Ref(tref).normal()  # normalize input
     linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
     annotate = bool(int(data.get("annotate", False)))
@@ -3412,7 +3412,7 @@ def topic_ref_api(request, tref):
 def reorder_sources(request):
     sources = json.loads(request.body).get("sources", [])
     slug = request.GET.get('topic')
-    lang = 'en' if request.GET.get('lang') == 'english' else 'he'
+    lang = get_short_lang(request.GET.get('lang'))
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
@@ -3998,6 +3998,7 @@ def edit_profile(request):
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
+      "renderStatic": True
     })
 
 
@@ -4473,6 +4474,7 @@ def annual_report(request, report_year):
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
         '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
+        '2024': STATIC_URL + 'files/Sefaria_Impact_Report_2024.pdf'
     }
     # Assume the most recent year as default when one is not provided
     if not report_year:

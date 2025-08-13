@@ -98,7 +98,6 @@ TEMPLATES = [
                     "sefaria.system.context_processors.cache_timestamp",
                     "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.footer_html",
                     "sefaria.system.context_processors.base_props",
                     "sefaria.system.context_processors.module_context",
             ],
@@ -140,6 +139,7 @@ ROOT_URLCONF = 'sefaria.urls'
 WSGI_APPLICATION = 'sefaria.wsgi.application'
 
 INSTALLED_APPS = (
+    'adminsortable',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -149,7 +149,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'sourcesheets',
+    'guides',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'captcha',

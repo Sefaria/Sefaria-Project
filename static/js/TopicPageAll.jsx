@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Component from 'react-class';
@@ -6,15 +6,11 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar } from './NavSidebar';
 import {
-  CategoryColorLine,
-  MenuButton,
-  DisplaySettingsButton,
-  LanguageToggleButton,
   LoadingMessage,
   ResponsiveNBox,
-  Link,
   InterfaceText,
 } from './Misc';
+import {TopicTOCCard} from "./common/TopicTOCCard";
 
 class TopicPageAll extends Component {
   constructor(props) {
@@ -51,9 +47,10 @@ class TopicPageAll extends Component {
     const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful
     const isHeInt = Sefaria.interfaceLang == "hebrew";
 
-    const topicList = this.state.topicList ? this.state.topicList.filter(item => {
-      if (item.shouldDisplay === false || item.numSources == 0) { return false; }
-      
+    const topicBlocks = this.state.topicList && this.state.topicList.filter(item => {
+      if (!Sefaria.shouldDisplayInActiveModule(item)) {
+        return false; // Exclude topics that are not valid for the current module
+      }
       if (!hasFilter) {
         const sortTitle = isHeInt ? item.primaryTitle.he : item.primaryTitle.en;
         return sortTitle.toLowerCase().startsWith(this.props.topicLetter);
@@ -65,24 +62,21 @@ class TopicPageAll extends Component {
       return false;
     
     }).sort((a, b) => {
-      const lang = Sefaria.interfaceLang.slice(0,2);
+      const lang = Sefaria._getShortInterfaceLang();
       if (!hasFilter) {
         return b.primaryTitle[lang].stripNikkud() > a.primaryTitle[lang].stripNikkud() ? -1 : 1; // Alphabetical if no filter
       } else {
         return (0 + (!!b.primaryTitle[lang])) - (0 + (!!a.primaryTitle[lang])); // Keep original order (# source), but sort current interface lang first
       }
-    
-    }).map(topic => {
-      const openTopic = e => {e.preventDefault(); this.props.setTopic(topic.slug, topic.primaryTitle)};
-      return (
-        <div className="navBlock">
-          <a href={`/topics/${topic.slug}`} className="navBlockTitle" onClick={openTopic}>
-            <InterfaceText text={topic.primaryTitle} />
-          </a>
-        </div>
-      );
-    }) : null;
-
+    })
+    const allTopicsList = <div className="allTopicsList">
+                          { topicBlocks ?
+                            (topicBlocks.length ?
+                                <div className="TOCCardsWrapper table">{topicBlocks.map((topic, i) => <TopicTOCCard topic={topic} setTopic={this.props.setTopic} key={i}/>)}</div>
+                              : <LoadingMessage message="There are no topics here." heMessage="" />)
+                            : <LoadingMessage />
+                          }
+                        </div>;
     const inputClasses = classNames({topicFilterInput: 1, en: !isHeInt, he: isHeInt});
     return (
       <div className="readerNavMenu">
@@ -103,19 +97,8 @@ class TopicPageAll extends Component {
                 </div>
                 : null }
               </div>
-
               <AlphabeticalTopicsNav />
-
-              <div className="allTopicsList">
-                { topicList ?
-                  (topicList.length ?
-                    <div>
-                      <ResponsiveNBox content={topicList} initialWidth={this.props.initialWidth} />
-                    </div>
-                    : <LoadingMessage message="There are no topics here." heMessage="" />)
-                  : <LoadingMessage />
-                }
-              </div>
+              {allTopicsList}
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>

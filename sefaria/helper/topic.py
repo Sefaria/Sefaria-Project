@@ -227,17 +227,18 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
         link['description'] = getattr(topic, 'description', {})
     else:
         link['description'] = {}
-    if not topic.should_display():
-        link['shouldDisplay'] = False
+    link['shouldDisplay'] = topic.should_display()
+    link['pools'] = topic.get_pools()
     link['order'] = link.get('order', None) or {}
     link['order']['numSources'] = getattr(topic, 'numSources', 0)
     return link
 
 
 @django_cache(timeout=24 * 60 * 60)
-def get_all_topics(limit=1000, displayableOnly=True):
+def get_all_topics(limit=1000, displayableOnly=True, activeModule='library'):
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
-    return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
+    topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
+    return [t for t in topic_list if activeModule in t.get_pools()]
 
 @django_cache(timeout=24 * 60 * 60)
 def get_num_library_topics():
@@ -1265,10 +1266,20 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
             # or (2) topic is an author (which means linkType is not 'about') as curated primacy is irrelevant to authors
             # this code sets the new source at the top of the topic page, because otherwise it can be hard to find.
             # curated primacy's default value for all links is 0 so set it to 1 + num of links in this language
-            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang})) + 1
+            curated_lang_query = {
+                "toTopic": slug,
+                "linkType": linkType,
+                f"order.curatedPrimacy.{interface_lang}": {"$exists": True}
+            }
+            links = RefTopicLinkSet(curated_lang_query)
+            primacies = [
+                link.order["curatedPrimacy"][interface_lang]
+                for link in links
+            ]
+            new_primacy = max(primacies, default=0) + 1
             if 'curatedPrimacy' not in link.order:
                 link.order['curatedPrimacy'] = {}
-            link.order['curatedPrimacy'][interface_lang] = num_curr_links
+            link.order['curatedPrimacy'][interface_lang] = new_primacy
 
     link.save()
     # process link for client-side, especially relevant in TopicSearch.jsx

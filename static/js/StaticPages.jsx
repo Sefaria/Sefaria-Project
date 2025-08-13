@@ -540,7 +540,7 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true}
-                    href="/collections/educator-newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/sheets/collections/educator-newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="דפי מקורות אקטואליים"
                     en="Educator Newsletters"
@@ -558,8 +558,8 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true}
-                    href="/collections/KGvMhYW3#?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="/collections/KGvMhYW3?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/sheets/collections/KGvMhYW3#?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/collections/KGvMhYW3?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="עשרת הדיברות ללמידה מרחוק"
                     en="Online Learning Resources"
                 />
@@ -590,7 +590,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/webinars-for-learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/sheets/collections/webinars-for-learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
                 en="Webinars for Learners"
@@ -599,7 +599,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/sefaria-faqs?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/sheets/collections/sefaria-faqs?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
                 en="Tutorials for Learners"
@@ -608,7 +608,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/sefaria-student-course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/sheets/collections/sefaria-student-course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/228260?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="הסודות של ספריא"
                 en="Student Course"
@@ -635,7 +635,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/webinars-for-educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/sheets/collections/webinars-for-educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
                 en="Webinars for Educators"
@@ -644,7 +644,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/collections/tutorials-for-educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/sheets/collections/tutorials-for-educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224923?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="קורס למורים: 'ספריא בכיתה'"
                 en="Tutorials for Educators"
@@ -713,8 +713,8 @@ const EducatorsPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
-          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/sheets/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/collections/KGMlHrvA"],
+          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -745,7 +745,7 @@ const EducatorsPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
-          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
           ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
@@ -774,7 +774,7 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", "/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Help Center", "אסופות מומלצות", "/sheets/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
           ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
@@ -902,7 +902,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"],
+          ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"],
           ["Innovating with a Digital Library", "", "https://www.sefaria.org/sheets/415628?lang=bi", ""],
           ["Collections: A Home for Sermons and Classes", "", "https://www.sefaria.org/sheets/370836?lang=bi", ""]
       ].map(i =>
@@ -930,7 +930,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Past Rabbi Newsletters", "", "https://www.sefaria.org/collections/T-5hbqOq?tab=sheets", ""],
+          ["Past Rabbi Newsletters", "", "https://www.sefaria.org/sheets/collections/T-5hbqOq?tab=sheets", ""],
           ["Topics Tutorial", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
           ["Studying With a Partner: A Chavruta Tutorial", "", "https://www.sefaria.org/sheets/263246?lang=bi", ""]
       ].map(i =>
@@ -956,7 +956,7 @@ const RabbisPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "", "https://www.sefaria.org/collections/sefaria-faqs",""],
+          ["Help Center", "", "https://www.sefaria.org/sheets/collections/sefaria-faqs",""],
           ["Webinars", "", "https://www.sefaria.org/sheets/228105?lang=bi",""],
           ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD?typeform-source=www.sefaria.org",""]
       ].map(i =>
@@ -1771,170 +1771,156 @@ const DonatePage = () => (
   </StaticPage>
 );
 
-const WordByWordPage = () => (
-  <StaticPage optionalClass="donate wordbyword">
-
-    <div className="staticPageHeader wordbyword">
-      <div className="staticPageBlockInner flexContainer">
-        <div className="staticPageHeaderTextBox donate">
-          <h1>
-            <span className="int-en">{"Word-by-Word: A Jewish Women's Writing Circle"}</span>
-          </h1>
-          <div className="staticPageHeaderText"><em>"...I am grateful to God for this gift, this possibility of developing myself and of writing, of expressing all that is in me."</em><br/>- Anne Frank</div>
-        </div>
-      </div>
-    </div>
-
-
-    <div className="staticPageCallToActionFooter">
-      <div className="staticPageBlockInner flexContainer light">
-          <div className="msgToSupportersEven">
-
-              <p>Word-by-Word: A Jewish Women’s Writing Circle will provide up to 20 Jewish women writers engaged in serious Torah scholarship the support and guidance to complete publishable books of Jewish textual analysis that will be significant contributions to any Jewish library. Word-by-Word will offer writers a three-year stipend and community to develop talent by providing skill-based workshops, professional coaching, peer mentoring, an annual retreat, and opportunities to network with publishers and experienced authors. Sefaria is proud to partner with Dr. Erica Brown on this new initiative, co-led by Sefaria’s Chief Learning Officer, Sara Wolkenfeld.</p>
-              <p><em>This program is generously funded by Micah Philanthropies, Walder Foundation, and the Arev Fund.</em></p>
-
+const WordByWordPage = () => {
+    const titleText = "Word-by-Word: A Jewish Women's Writing Circle";
+    const benefitsText = "<p>Fellows attend regular meetings that feature peer workshopping and a diverse roster of visiting speakers. Each writer is allotted 10 hours of one-on-one coaching per year with a professional of their choice. Every summer, fellows enjoy an in-person retreat that allows them to strengthen their relationships with each other as well as their work; participate in craft-specific workshops; hear from industry and creative professionals; and engage in intense, undisturbed writing time.</p>";
+    const fellowsText = "<p>The Word-by-Word cohort represents three different continents and includes writers with expertise in Tanakh, Talmud, medieval scholarship, and halakhah. Their manuscripts span a wide range of topics, voices, and target audiences.</p>";
+    const speakersText = "<p>Dan Friedman</p>\n<p>Sarah Hurwitz</p>\n<p>Sharon Mazel</p>\n<p>Mark Oppenheimer</p>\n<p>Eli Sacks</p>\n<p>Jeffrey Saks</p>\n<p>Penina Eilberg Schwartz</p>\n<p>Abraham Socher</p>\n<p>Elana Stein Hain</p>\n<p>Gillian Steinberg</p>\n<p>Reuven and Yael Ziegler</p>";
+    
+    const saraTitle = "Sara Wolkenfeld — Program Leader";
+    const saraText = "Sara Wolkenfeld is the Chief Learning Officer at Sefaria, an online database and interface for Jewish texts. Sara is a member of Class Six of the Wexner Field Fellowship and an alumna of the David Hartman Center at the Hartman Institute of North America. Her current research and writing focus on the intersection between Jewish ethics and advancements in technology. Sara's writing has been published in The Atlantic, First Things, and Religion Dispatches, as well as numerous Jewish publications.";
+    const saraImg = "/static/img/sara_circle.png";
+    const saraImgAlt = "Sara Wolkenfeld headshot";
+    
+    const ericaTitle = "Erica Brown — Program Leader";
+    const ericaText = "Dr. Erica Brown is the Vice Provost for Values and Leadership at Yeshiva University and the founding director of its Rabbi Lord Jonathan Sacks-Herenstein Center for Values and Leadership. Her latest book is Morning Has Broken: Faith After October 7th (Toby/Koren). She is also the author of The Torah of Leadership (Maggid), Kohelet and the Search for Meaning (Maggid), Happier Endings (Simon and Schuster), which received the Wilbur and Nautilus Awards for spiritual writing, and 13 other books, two of which were finalists for the National Jewish Book Award. She has been published in the New York Times, the Atlantic, Tablet, First Things, and the Jewish Review of Books. Erica was a Jerusalem Fellow, an Avi Chai Fellow, the recipient of the 2009 Covenant Award, and is a faculty member of the Wexner Foundation.";
+    const ericaImg = "/static/img/ericabrown_circle 1.png";
+    const ericaImgAlt = "Erica Brown headshot";
+    
+    const aliciaTitle = "Alicia Oltuski — Project Manager";
+    const aliciaText = "Alicia Oltuski is a writer and speaker. Her work has appeared on Esquire.com, NewYorker.com, W Magazine, and elsewhere. She holds an MFA from Columbia University and has lectured at the Johns Hopkins University Advanced Academic Programs Master of Arts in Writing program.";
+    
+    const aboutProgramText = "About the Program";
+    const benefitsTitleText = "Benefits";
+    const fellowsTitleText = "Fellows";
+    const speakersTitleText = "Selected Speakers";
+    const leadershipText = "Word-by-Word Leadership";
+    
+    const ctaText = "Learn more about our authors and their work.";
+    const ctaButtonText = "Learn about our authors";
+    const ctaHref = "https://www.sefaria.org/sheets/485180?lang=bi";
+  
+    return (
+      <StaticPage optionalClass="donate wordbyword">
+        {/* Make the text look proper on the Hebrew version of the page since there is no Hebrew currently */}
+        <style>
+            {`
+              #content.interface-hebrew * {
+                text-align: left;
+                direction: ltr;
+              }
+            `}
+        </style>
+        <div className="staticPageHeader wordbyword">
+          <div className="staticPageBlockInner flexContainer">
+            <div className="staticPageHeaderTextBox donate">
+              <h1>
+                <span className="int-en">{titleText}</span>
+                <span className="int-he">{titleText}</span>
+              </h1>
+              <div className="staticPageHeaderText"><em>"...I am grateful to God for this gift, this possibility of developing myself and of writing, of expressing all that is in me."</em><br/>- Anne Frank</div>
+            </div>
           </div>
-      </div>
-    </div>
-
-    <GreyBox>
-      <H2Block en="About the Program" he="" />
-      <div className="staticPageBlockInner flexContainer">
-          <ResponsiveNBox
-            threshold3={768}
-            threshold2={500}
-            gap="10px"
-            stretch={true}
-            content={[
-                <HeaderWithColorAccentBlockAndText
-                    enTitle="Requirements"
-                    heTitle=""
-                    enText="<p>Application must include a detailed synopsis of the proposed book (1,000 words), a detailed table of contents, and two published writing samples. </p>
-                            <p>The finished book must be written in English, must be at least 150 pages / 75,000 words.</p>
-                            <p>Participants should be located in a time zone that makes it reasonable for them to participate in programming on U.S. time zones.</p>"
-                    heText=""
-                    colorBar="#AB4E66"
-                />,
-                <HeaderWithColorAccentBlockAndText
-                    enTitle="Schedule"
-                    heTitle=""
-                    enText="<p>Applicants must be willing to commit to the following schedule:</p>
-                            <p>Annual writing retreat each June. The first retreat is provisionally scheduled for June 18-22, 2023</p>
-                            <p>Monthly online meetings of a 1.5 hour duration. Participants are required to attend 8 out of 10 of these meetings each year.</p>"
-                    heText=""
-                    colorBar="#D4896C"
-                />,
-                <HeaderWithColorAccentBlockAndText
-                    enTitle="Benefits"
-                    heTitle=""
-                    enText="<p>Each participant will receive a total stipend of $18,000 ($6,000/year over three years).</p>
-                            <p>Workshops with experts from the writing and publishing world.</p>
-                            <p>Each participant is entitled to 10-15 hours of coaching per year. Program leaders will work with each author to match her with an appropriate coach. Coaching sessions will be scheduled at the discretion of the participant.</p>"
-                    heText=""
-                    colorBar="#CCB479"
-                />
-            ]}
-          />
-      </div>
-      <Spacer/>
-    </GreyBox>
-
-    <CallToActionFooterWithButton
-        href="https://drive.google.com/file/d/1DXh0J-y0hHJTZuIdaoa2k3CrJBHeBdxK/view"
-        he_href=""
-        enText="Read the full schedule, requirements, and application information."
-        heText=""
-        enButtonText="Download"
-        heButtonText=""
-        newTab={true}
-    />
-    <GreyBox light={true}>
-    <H2Block en="Word-by-Word Leadership" he=""/>
-</GreyBox>
-    <Feature
-        enTitle="Sara Wolkenfeld"
-        enText="Sara Wolkenfeld is the Chief Learning Officer at Sefaria, an online database and interface for Jewish texts. Sara is also a fellow at the David Hartman Center at the Hartman Institute of North America, and is a member of Class Six of the Wexner Field Fellowship. She writes about Jewish texts and Jewish law, and her current projects focus on applying Talmudic ideas to questions of advancements in digital technology."
-        enImg="/static/img/sara_circle.png"
-        enImgAlt="Sara Wolkenfeld headshot"
-        heTitle=""
-        heText=""
-        heImg=""
-        heImgAlt=""
-        borderColor="#004E5F"
-    />
-
-    <Feature
-        enTitle="Erica Brown"
-        enText="Dr. Erica Brown is the Vice Provost for Values and Leadership at Yeshiva University and the founding director of its Rabbi Lord Jonathan Sacks-Herenstein Center for Values and Leadership. She previously served as the director of the Mayberg Center for Jewish Education and Leadership and an associate professor of curriculum and pedagogy at The George Washington University. Erica is the author or co-author of 15 books on leadership, the Hebrew Bible and spirituality. Erica has a daily podcast, “Take Your Soul to Work.” Her forthcoming book Kohelet and the Search for Meaning (Maggid) will be available in 2023. Her last book Esther: Power, Fate and Fragility in Exile (Maggid) was a finalist for the National Jewish Book Award."
-        enImg="/static/img/ericabrown_circle 1.png"
-        enImgAlt="Erica Brown headshot"
-        heTitle=""
-        heText=""
-        heImg=""
-        heImgAlt=""
-        borderColor="#004E5F"
-    />
-    <H1Block en="Get Your questions answered." he="" serif={true}/>
-    <div className="staticPageBlockInner">
-        <Accordian
-            enTitle="What’s the application deadline?"
-            heTitle=""
-            enText="<p>The deadline for applications is March 13, 2023. We will not consider applications submitted after this date.</p>"
-            heText=""
-            colorBar="#B8D4D3"
+        </div>
+  
+        <div className="staticPageCallToActionFooter">
+          <div className="staticPageBlockInner flexContainer light">
+              <div className="msgToSupportersEven">
+                  <p>Word-by-Word: A Jewish Women's Writing Circle supports a group of 20 talented Jewish women writers with resources, guidance, community, and a yearly stipend as they work toward the completion of a book of textual analysis that will be a significant contribution to any Jewish library. Led and created by Dr. Erica Brown and Sara Wolkenfeld, Word-by-Word offers its writers expert coaching, peer workshopping, and other opportunities that enrich and enable their writing process.</p>
+                  <p><em>This program is generously funded by Micah Philanthropies, Walder Foundation, The Covenant Foundation, and the Arev Fund.</em></p>
+              </div>
+          </div>
+        </div>
+  
+        <GreyBox>
+          <H2Block en={aboutProgramText} he={aboutProgramText} />
+          <div className="staticPageBlockInner flexContainer">
+              <ResponsiveNBox
+                threshold3={768}
+                threshold2={500}
+                gap="10px"
+                stretch={true}
+                content={[
+                    <HeaderWithColorAccentBlockAndText
+                        enTitle={benefitsTitleText}
+                        heTitle={benefitsTitleText}
+                        enText={benefitsText}
+                        heText={benefitsText}
+                        colorBar="#AB4E66"
+                    />,
+                    <HeaderWithColorAccentBlockAndText
+                        enTitle={fellowsTitleText}
+                        heTitle={fellowsTitleText}
+                        enText={fellowsText}
+                        heText={fellowsText}
+                        colorBar="#D4896C"
+                    />,
+                    <HeaderWithColorAccentBlockAndText
+                        enTitle={speakersTitleText}
+                        heTitle={speakersTitleText}
+                        enText={speakersText}
+                        heText={speakersText}
+                        colorBar="#CCB479"
+                    />
+                ]}
+              />
+          </div>
+          <Spacer/>
+        </GreyBox>
+  
+        <GreyBox light={true}>
+          <H2Block en={leadershipText} he={leadershipText}/>
+        </GreyBox>
+        
+        <Feature
+            enTitle={saraTitle}
+            enText={saraText}
+            enImg={saraImg}
+            enImgAlt={saraImgAlt}
+            heTitle={saraTitle}
+            heText={saraText}
+            heImg={saraImg}
+            heImgAlt={saraImgAlt}
+            borderColor="#004E5F"
         />
-
-        <Accordian
-            enTitle="How many women will be in the cohort?"
-            heTitle=""
-            enText="<p>We plan to welcome 20 women to this cohort.</p>"
-            heText=""
-            colorBar="#B8D4D3"
+  
+        <Feature
+            enTitle={ericaTitle}
+            enText={ericaText}
+            enImg={ericaImg}
+            enImgAlt={ericaImgAlt}
+            heTitle={ericaTitle}
+            heText={ericaText}
+            heImg={ericaImg}
+            heImgAlt={ericaImgAlt}
+            borderColor="#004E5F"
         />
-
-        <Accordian
-            enTitle="How does the stipend work?"
-            heTitle=""
-            enText="<p>Each woman will be awarded $6,000 per year, contingent on meeting the yearly writing requirements (15,000 words in the first year, 25,000 words in years two and three).</p>"
-            heText=""
-            colorBar="#B8D4D3"
+        
+        <Feature
+            enTitle={aliciaTitle}
+            enText={aliciaText}
+            enImg=""
+            enImgAlt=""
+            heTitle={aliciaTitle}
+            heText={aliciaText}
+            heImg=""
+            heImgAlt=""
+            borderColor="#004E5F"
         />
-
-        <Accordian
-            enTitle="How will the cohort support each other?"
-            heTitle=""
-            enText="<p>Through monthly meetings, a WhatsApp group, and regular check-ins, this cohort will build a supportive community in which women motivate each other, check in on progress, and share ideas. The monthly meetings will provide space to get to know one another, share drafts and get feedback, collaborate around best practices, and champion one another’s projects. The annual retreat will help cement these relationships and expose the cohort to developments in the field and veteran writers.</p>"
-            heText=""
-            colorBar="#B8D4D3"
+  
+        <CallToActionFooterWithButton
+            href={ctaHref}
+            he_href={ctaHref}
+            enText={ctaText}
+            heText={ctaText}
+            enButtonText={ctaButtonText}
+            heButtonText={ctaButtonText}
+            newTab={true}
         />
-
-        <Accordian
-            enTitle="I have more questions. How can I contact you?"
-            heTitle=""
-            enText="<p>Please email Rachel Buckman at <a href='mailto:rachel@sefaria.org'>rachel@sefaria.org</a></p>"
-            heText=""
-            colorBar="#B8D4D3"
-        />
-
-
-    </div>
-    <Spacer/>
-
-    <CallToActionFooterWithButton
-        href="https://sefaria.typeform.com/to/wJXgn9jL"
-        he_href=""
-        enText="Ready to Apply? Fill out your application by March 13, 2023."
-        heText=""
-        enButtonText="Apply Now"
-        heButtonText=""
-        newTab={true}
-    />
-
-
-
-  </StaticPage>
-);
-
+  
+      </StaticPage>
+    );
+  };
 
 const PoweredByPage = () => (
     <StaticPage optionalClass="englishOnly">
@@ -2684,7 +2670,7 @@ const partition = (arr, prop) =>
 
 // Defines a comparator to be used for sorting team members
 const byLastName = () => {
-    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    const locale = Sefaria._getShortInterfaceLang();
     return (a, b) => {
         const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
         const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();

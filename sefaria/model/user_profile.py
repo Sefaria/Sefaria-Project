@@ -393,10 +393,6 @@ class UserProfile(object):
         self.nationbuilder_id = None
         self.sf_app_user_id = None
 
-        # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = True
-
         # Fundraising
         self.is_sustainer = False
 
@@ -411,6 +407,8 @@ class UserProfile(object):
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
             # while maintaining separate profiles (e.g. Sefaria and S4D).
+            self.show_editor_toggle = False
+            self.uses_new_editor = True
             self.assign_slug()
             self.save()
 
@@ -500,8 +498,9 @@ class UserProfile(object):
 
         d = self.to_mongo_dict()
         if self._id:
-            d["_id"] = self._id
-        db.profiles.save(d)
+            db.profiles.replace_one({'_id': self._id}, d, upsert=True)
+        else:
+            db.profiles.insert_one(d)
 
         # store name changes on Django User object
         if self._name_updated:
@@ -592,13 +591,14 @@ class UserProfile(object):
         """Returns true if this user is followed by uid"""
         return uid in self.followers.uids
 
-    def recent_notifications(self):
+    def recent_notifications(self, scope="library"):
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().recent_for_user(self.id)
+        return NotificationSet().recent_for_user(self.id, scope=scope)
 
-    def unread_notification_count(self):
+    def unread_notification_count(self, scope="library"):
+        # TODO: Why do we not need to scope the notifications to the module here?
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().unread_for_user(self.id).count()
+        return NotificationSet().unread_for_user(self.id, scope=scope).count()
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
@@ -672,8 +672,6 @@ class UserProfile(object):
             "nationbuilder_id":      self.nationbuilder_id,
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
         }
 
     def to_api_dict(self, basic=False):
@@ -705,8 +703,6 @@ class UserProfile(object):
             return dictionary
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
             "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)

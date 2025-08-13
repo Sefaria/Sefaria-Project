@@ -70,56 +70,27 @@ def sheets_home_page(request):
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-	profile = UserProfile(id=request.user.id)
-	if getattr(profile, "uses_new_editor", False):
-		sheet = {
-				'status': 'unlisted',
-				'title': '',
-				'sources': [],
-				'nextNode': 1,
-				'options': {
-					'layout':    "stacked",
-					'boxed':  0,
-					'language':    "bilingual",
-					'numbered':    0,
-					'assignable':    0,
-					'divineNames':    "noSub",
-					'collaboration':    "none",
-					'highlightMode':    0,
-					'langLayout':    "heRight",
-					'bsd':    0,
-				}
-		}
+    profile = UserProfile(id=request.user.id)
+    sheet = {
+    'status': 'unlisted',
+    'title': '',
+    'sources': [],
+    'nextNode': 1,
+    'options': {
+        'layout':    "stacked",
+        'boxed':  0,
+        'language':    "bilingual",
+        'numbered':    0,
+        'assignable':    0,
+        'divineNames':    "noSub",
+        'collaboration':    "none",
+        'highlightMode':    0,
+        'langLayout':    "heRight",
+        'bsd':    0}
+    }
 
-		responseSheet = save_sheet(sheet, request.user.id)
-		return catchall(request, str(responseSheet["id"]), True)
-
-	"""
-	View an new, empty source sheet.
-	"""
-	if "assignment" in request.GET:
-		sheet_id  = int(request.GET["assignment"])
-
-		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
-		existingAssignment = db.sheets.find_one(query) or []
-		if "id" in existingAssignment:
-			return view_sheet(request,str(existingAssignment["id"]),True)
-
-		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
-			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
-				return assigned_sheet(request, sheet_id)
-
-	query         = {"owner": request.user.id or -1 }
-	hide_video    = db.sheets.count_documents(query) > 2
-
-	return render_template(request,'sheets.html', None, {
-        "can_edit": True,
-        "new_sheet": True,
-        "is_owner": True,
-        "hide_video": hide_video,
-        "current_url": request.get_full_path,
-    })
-
+    responseSheet = save_sheet(sheet, request.user.id)
+    return catchall(request, str(responseSheet["id"]), True)
 
 def can_edit(user, sheet):
     """
@@ -200,10 +171,9 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
-    if editor != '1' and embed !='1' and editorMode is False:
+    if embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
@@ -214,7 +184,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -277,7 +247,7 @@ def view_visual_sheet(request, sheet_id):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": int(sheet_id)}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -301,53 +271,6 @@ def view_visual_sheet(request, sheet_id):
         "is_public": sheet["status"] == "public",
         "current_url": request.get_full_path,
     })
-
-
-@ensure_csrf_cookie
-def assigned_sheet(request, assignment_id):
-    """
-    A new sheet prefilled with an assignment.
-    """
-    sheet = get_sheet(assignment_id)
-    if "error" in sheet:
-        return HttpResponse(sheet["error"])
-
-    sheet["sources"] = annotate_user_links(sheet["sources"])
-
-    # Remove keys from we don't want transferred
-    for key in ("id", "like", "views", "displayedCollection"):
-        if key in sheet:
-            del sheet[key]
-
-    assigner             = UserProfile(id=sheet["owner"])
-    assigner_id	         = assigner.id
-    sheet_class          = make_sheet_class_string(sheet)
-    can_edit_flag        = True
-    can_add_flag         = can_add(request.user, sheet)
-    embed_flag           = "embed" in request.GET
-    likes                = sheet.get("likes", [])
-    like_count           = len(likes)
-    viewer_is_liker      = request.user.id in likes
-
-    return render_template(request,'sheets.html', None, {
-        "sheetJSON": json.dumps(sheet),
-        "sheet": sheet,
-        "assignment_id": assignment_id,
-        "assigner_id": assigner_id,
-        "new_sheet": True,
-        "sheet_class": sheet_class,
-        "can_edit": can_edit_flag,
-        "can_add": can_add_flag,
-        "title": sheet["title"],
-        "is_owner": True,
-        "is_public": sheet["status"] == "public",
-        "sheet_collections": [],
-        "displayed_collection":  None,
-        "like_count": like_count,
-        "viewer_is_liker": viewer_is_liker,
-        "current_url": request.get_full_path,
-    })
-
 
 @csrf_exempt
 def delete_sheet_api(request, sheet_id):
@@ -378,7 +301,7 @@ def delete_sheet_api(request, sheet_id):
     if user.id != sheet["owner"]:
         return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
-    db.sheets.remove({"id": id})
+    db.sheets.delete_one({"id": id})
     process_sheet_deletion_in_collections(id)
     process_sheet_deletion_in_notifications(id)
 
@@ -646,10 +569,13 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
+                return jsonResponse(
+                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"},
+                    status=401
+                )
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
+                return jsonResponse({"error": "Unrecognized API key."}, status=401)
         else:
             apikey = None
 
@@ -692,6 +618,7 @@ def save_sheet_api(request):
 
         rebuild_nodes = request.POST.get('rebuildNodes', False)
         responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
+        responseSheet["topics"] = add_langs_to_topics(responseSheet.get("topics", [])) # add langs to topics for consistency.  GET requests already do this, but POST requests didn't before
         if "rebuild" in responseSheet and responseSheet["rebuild"]:
             # Don't bother adding user links if this data won't be used to rebuild the sheet
             responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
@@ -960,7 +887,11 @@ def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
     """
-    response = trending_topics(ntags=18)
+    try:
+        ntags = int(request.GET.get('n', 10))
+    except ValueError:
+        return jsonResponse({"error": "Invalid value for parameter 'n'. It must be an integer."})
+    response = trending_topics(ntags=ntags)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -1043,7 +974,6 @@ def sheets_with_ref(request, tref):
     search_params = get_search_params(request.GET)
 
     props={
-        "initialSearchType": "sheet",
         "initialSearchField": search_params["field"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],

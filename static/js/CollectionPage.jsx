@@ -123,7 +123,7 @@ class CollectionPage extends Component {
     filter = n(filter);
     
     //title and each topic in he and en
-    let filterableData  = sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)]).flat();
+    let filterableData  = sheet.topics.map(topic => [n(topic.primaryTitle.en), n(topic.primaryTitle.he), n(topic.asTyped)]).flat();
     filterableData.push(n(sheet.title.stripHtml()));
     
     //this may be confusing- in the exact case, "includes" is an array func and returns if any of the above match filter exactly, 
@@ -329,7 +329,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
       { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
     </div> }
 
-    <a className="collectionLabel" href="/collections">
+    <a className="collectionLabel" href="/sheets/collections">
       <InterfaceText>Collection</InterfaceText>
     </a>
 
@@ -349,7 +349,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a className="button small white" href={`/collections/${slug}/settings`}>
+  <a className="button small white" href={`/sheets/collections/${slug}/settings`}>
     <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
   </a>
 );
@@ -386,7 +386,7 @@ const CollectionContentsTab = ({collection, setFilter}) => {
             <InterfaceText text={tagGroup.label} />
           </div>}
           <ResponsiveNBox content={tagGroup.contents.map(tag => (
-            <a href={`/collections/${collection.slug}?tag=${tag}`} className="collectionContentsTag" onClick={(e) => {
+            <a href={`/sheets/collections/${collection.slug}?tag=${tag}`} className="collectionContentsTag" onClick={(e) => {
               e.preventDefault();
               setFilter(tag);}}>
               <InterfaceText>{tag}</InterfaceText>

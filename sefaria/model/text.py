@@ -19,6 +19,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
+from django_topics.models.topic import Topic as DjangoTopic
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
@@ -1359,7 +1360,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
         assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
-
+        if getattr(self, "direction", None) not in ["rtl", "ltr"]:
+            raise InputError("Version direction must be either 'rtl' or 'ltr'")
+        assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
+        assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
+        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
+        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+            raise InputError("There must be at least one version that is primary.")
         return True
 
     def _check_arrays_lengths(self, array1, array2):
@@ -4716,21 +4723,27 @@ class Ref(object, metaclass=RefCacheType):
         """
         return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
-    def url(self):
+    def url(self, encode_html=True):
         """
+        :param encode_html: boolean - True for encoding also HTML chars, or only our own things (like space to underscore)
         :return string: normal url form
         """
-        if not self._url:
-            self._url = self.normal().replace(" ", "_").replace(":", ".")
+        if not self._url or not encode_html:
+            url = self.normal()
+
+            html_encoding_map = {'?': '%3F'}
+            pretty_url_map = {' ': '_', ':': '.'}
+            replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
+            for key, value in replace_map.items():
+                url = url.replace(key, value)
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                last = self._url.rfind("_")
-                if last == -1:
-                    return self._url
-                lref = list(self._url)
-                lref[last] = "."
-                self._url = "".join(lref)
+                url = '.'.join(url.rsplit('_', 1))
+
+            if not encode_html:
+                return url
+            self._url = url
         return self._url
 
     def noteset(self, public=True, uid=None):
@@ -5152,22 +5165,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = {
-                "slug": topic.slug,
-                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
-                "en": topic.get_primary_title("en"),
-                "he": topic.get_primary_title("he"),
-                "displayOrder": getattr(topic, "displayOrder", 10000)
-            }
-
-            with_descriptions = True # TODO revisit for data size / performance
-            if with_descriptions:
-                if getattr(topic, "categoryDescription", False):
-                    topic_json['categoryDescription'] = topic.categoryDescription
-                description = getattr(topic, "description", None)
-                if description is not None and getattr(topic, "description_published", False):
-                    topic_json['description'] = description
-
+            topic_json = topic.contents(minify=True, children=children, with_html=True)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
@@ -5711,13 +5709,13 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_recognizer import NamedEntityRecognizer
-        from sefaria.helper.linker import load_spacy_model
+        from .linker.linker_entity_recognizer import LinkerEntityRecognizer
+        from .linker.named_entity_recognizer import NERFactory
 
-        return NamedEntityRecognizer(
+        return LinkerEntityRecognizer(
             lang,
-            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+            NERFactory.create('spacy', RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            NERFactory.create('spacy', RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
 
     def _build_category_resolver(self, lang: str):
@@ -5997,14 +5995,27 @@ class Library(object):
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
-        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags,
+        excluding refs that are already wrapped in the data
 
         :param string st: the input string
         :param lang: "he" or "en"
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
+            substrings = [st]
+        else:
+            html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
+            substrings = re.split(html_a_tag_reg, st)
+        new_string = ''
+        for i, substring in enumerate(substrings):
+            if i % 2 == 1:  # An <a> tag
+                new_string += substring
+            elif i % 2 == 0 and substring:
+                new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
+                                                                       citing_only, reg, title_nodes)
+        return new_string
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
         """
@@ -6421,7 +6432,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
 
 
 def process_index_delete_in_versions(indx, **kwargs):

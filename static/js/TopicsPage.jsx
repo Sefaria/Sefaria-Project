@@ -10,54 +10,29 @@ import $  from './sefaria/sefariaJquery';
 import { NavSidebar, SidebarModules } from './NavSidebar';
 import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
+import { TopicTOCCard } from "./common/TopicTOCCard";
+import {Card} from "./common/Card";
 
 // The root topics page listing topic categories to browse
-const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-  let categoryListings = Sefaria.topic_toc.map(cat => {
-  const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
-  return (
-      <div className="navBlock">
-        <a
-            href={`/topics/category/${cat.slug}`}
-            className="navBlockTitle"
-            onClick={openCat}
-            data-anl-event="navto_topic:click"
-            data-anl-link_type="category"
-            data-anl-text={cat.en}
-        >
-          <InterfaceText text={cat} />
-        </a>
-        <div className="navBlockDescription">
-          <InterfaceText text={cat.categoryDescription} />
-        </div>
-      </div>
-    );
-  });
+const TopicsPage = ({setNavTopic, multiPanel}) => {
+  let categoryListings = Sefaria.topic_toc.map((topic, i) => <TopicTOCCard topic={topic} setNavTopic={setNavTopic} key={i}/>);
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
-  categoryListings.push(
-    <div className="navBlock">
-      <a href={"/topics/all/" + letter} className="navBlockTitle">
-        <InterfaceText>All Topics A-Z</InterfaceText>
-      </a>
-      <div className="navBlockDescription">
-        <InterfaceText>Browse or search our complete list of topics.</InterfaceText>
-      </div>
-    </div>
-  );
-  categoryListings = (
-    <div className="readerNavCategories">
-      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
-    </div>
-  );
+  const description = {"en": "Browse or search our complete list of topics.", "he": Sefaria._("Browse or search our complete list of topics.")};
+  const prefix = Sefaria.activeModule === "sheets" ? "/sheets/" : "/"
+  const topicsA_Z = <Card cardTitleHref={`${prefix}topics/all/${letter}`}
+                                     cardTitle={{"en": "All Topics A-Z", "he": Sefaria._("All Topics A-Z")}}
+                                     cardText={description}
+                                     analyticsEventName="navto_topic:click"
+                                     analyticsLinkType={"topic"}
+                                     oncardTitleClick={()=>{}}/>;
+  categoryListings.push(topicsA_Z);
 
   const about = multiPanel ? null :
     <SidebarModules type={"AboutTopics"} props={{hideTitle: true}} />;
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
-    {type: "GetTheApp"},
-    {type: "SupportSefaria"},
+    {type: "JoinTheConversation"},
   ];
 
 
@@ -77,7 +52,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
                   </CategoryHeader>
               </div>
               { about }
-              { categoryListings }
+              { <div className="TOCCardsWrapper table">{categoryListings}</div> }
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>

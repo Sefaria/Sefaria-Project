@@ -294,7 +294,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
               {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
-          }
+        
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
@@ -808,7 +808,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
-        {isTopLevel ? essaySummary : null}
+        {isTopLevel && essaySummary}
         {connectionsSummary}
         {summaryToggle}
       </div>
@@ -961,21 +961,16 @@ WebPagesList.propTypes = {
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
     const {textsData} = useContext(ReaderPanelContext);
     const editText = canEditText && textsData ? function () {
-      let refString = srefs[0];
-      const {primaryDirection, translationDirection} = textsData;
-      const currVersionsLangCode = masterPanelLanguage.slice(0,2);
-      const versionTitle = currVersions[currVersionsLangCode]?.versionTitle;
-      const direction = (masterPanelLanguage === 'english') ? translationDirection : primaryDirection;
-      const langCode = direction === 'rtl' ? 'he': 'en';
-      if (versionTitle) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(versionTitle);
-      }
+      const isTranslation = masterPanelLanguage === 'english';
+      const versionType = isTranslation ? 'translation' : 'primary';
+      const langCode = textsData[`${versionType}Direction`] === 'ltr' ? 'en': 'he';
+      const versionTitle = isTranslation ? textsData.versionTitle : textsData.heVersionTitle;
+      const refString = `${srefs[0]}/${encodeURIComponent(langCode)}/${encodeURIComponent(versionTitle)}`;
 
       let path = "/edit/" + refString;
       let currentPath = Sefaria.util.currentPath();
       let nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
-      //console.log(path);
       Sefaria.track.event("Tools", "Edit Text Click", refString,
         { hitCallback: () => window.location = path }
       );
@@ -1138,19 +1133,6 @@ class ShareBox extends Component {
             <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
-          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
-            <div className="shareSettingsBox">
-              <InterfaceText>People with this link can</InterfaceText>
-              <select
-                className="shareDropdown"
-                name="Share"
-                onChange={this.updateShareOptions.bind(this)}
-                value={this.state.shareValue}>
-                <option value="none">{Sefaria._("View", "Sheet Share")}</option>
-                <option value="anyone-can-add">{Sefaria._("Add", "Sheet Share")}</option>
-                <option value="anyone-can-edit">{Sefaria._("Edit", "Sheet Share")}</option>
-              </select>
-            </div> : null}
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
@@ -1220,7 +1202,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }

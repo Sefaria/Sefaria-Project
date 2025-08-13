@@ -19,6 +19,54 @@ a, a:hover {
   color: inherit;
 }
 
+:root {
+  /* font stacks */
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
+  --serif-small-font-size: 14px;
+
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
+
+  /* colors */
+  --inline-link-blue: #4871bf;
+  --sefaria-blue: #18345D;
+  --highlight-blue: #DDEEFF;
+  --highlight-blue-light: #F0F7FF;
+  --beit-midrash-grey: #333333;
+  --darkest-grey: #333333;
+  --dark-grey: #666666;
+  --medium-grey: #999999;
+  --light-grey: #CCCCCC;
+  --lighter-grey: #EDEDEC;
+  --lightest-grey: #FBFBFA;
+  --commentary-blue: #4B71B7;
+  --essay-links-green: #3B5849;
+  --tanakh-teal: #004E5F;
+  --mishnah-blue: #5A99B7;
+  --talmud-gold: #CCB479;
+  --midrash-green: #5D956F;
+  --halakhah-red: #802F3E;
+  --kabbalah-purple: #594176;
+  --liturgy-rose: #AB4E66;
+  --philosophy-purple: #7F85A9;
+  --taanitic-green: #00827F;
+  --chasidut-green: #97B386;
+  --mussar-purple: #7C416F;
+  --responsa-red: #CB6158;
+  --apocrypha-pink: #C6A7B4;
+  --modern-works-blue: #B8D4D3;
+  --grammar-green: #B2B272;
+  --reference-orange: #D4896C;
+  --miscelaneous-green: #3B5849;
+  --selected-option: #000000;
+  --select-blue: #0B71E7;
+}
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -34,7 +82,7 @@ body, .sans-serif {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-body, .en, .int-en {
+body, .en, .int-en, .englishWithinHebrew {
   --is-hebrew: initial; /* false */
 }
 .he, .int-he {
@@ -265,14 +313,6 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew #bannerMessage {
   direction: rtl;
 }
-.genericBanner #bannerMessageClose {
-  font-size: 40px;
-  opacity: revert;
-  inset-inline-end: 60px;
-  top: revert;
-  border: none;
-  background: none;
-}
 #bannerMessageClose {
   position: absolute;
   top: -3px;
@@ -394,7 +434,7 @@ input.noselect {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerNavSection a {
+.headerInner .headerNavSection a, .header img.home {
   font-size: 16px;
   color: #666;
   margin-inline-end: 30px;
@@ -403,10 +443,13 @@ input.noselect {
   vertical-align: middle;
 }
 .headerInner .headerLinksSection {
-  display: flex;
-  justify-content: flex-end;
-  min-width: 40%;
-  align-items: center;
+	display: flex;
+	justify-content: flex-end;
+	min-width: 50%;
+	align-items: center;
+}
+.headerInner .headerLinksSection > * {
+  margin-inline-start: 2%;
 }
 .header .header-nav {
   margin-top: 1px;
@@ -452,7 +495,7 @@ input.noselect {
   text-align: inherit;
   background: #EDEDEC;
   border-radius: 250px;
-  width: 140px;
+  width: 250px;
   height: 30px;
 }
 .header .searchBox.searchFocused {
@@ -619,15 +662,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.header .home {
-  margin-top: 2px;
-}
-.header .home img {
-  vertical-align: middle;
-  height: 25px;
-  margin-top: -7px;
-  width: 92px;
-}
 .interface-hebrew .header .home img {
   width: 77px;
 }
@@ -671,8 +705,17 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   align-items: center;
   height: 100%;
   margin-top: 4px;
-  margin-inline-start: 4px;
 }
+.header .interfaceLinks.languageHeader {
+  padding-inline: 15px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--medium-grey);
+  padding-block-start: 5px;
+  padding-block-end: 2px;
+}
+
 .header .interfaceLinks {
   display: flex;
   justify-content: center;
@@ -777,6 +820,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header .interfaceLinks .interfaceLinks-option:hover {
   background-color: var(--lighter-grey);
 }
+.header .languageFlex .interfaceLinks-option:hover {
+  background-color: var(--lighter-grey);
+  text-decoration: none;
+}
 .header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
@@ -849,14 +896,23 @@ div.interfaceLinks-row a {
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
-  padding: 0 15px;
 }
 .header  .interfaceLinks-option.active {
   order: -1;
 }
+a.interfaceLinks-option.int-bi.inactive {
+  display: flex;
+}
+a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
+  padding: 7px;
+}
 .header .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
+}
+.header .interfaceLinks-option.inactive::before {
+  content: "";
+  padding: 0 15px;
 }
 @media screen and (max-width: 910px) {
   .header .headerInner {
@@ -1577,6 +1633,9 @@ div.interfaceLinks-row a {
 }
 .navSidebarModule + .dedication {
   margin-top: -30px;
+}
+.navSidebarModule .joinTheConversation {
+  margin-block-end: 20px;
 }
 .navTitle .languageToggle,
 .tocTitle .languageToggle,
@@ -2744,7 +2803,7 @@ display: none;
   color: var(--light-grey);
 }
 
-div.sheetsWrapper :nth-child(1 of .card) {
+div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
 .card {
@@ -2775,6 +2834,10 @@ a.cardTitle:hover {
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .hebrew .cardDescription {
   line-height: 24px;
@@ -2782,8 +2845,7 @@ a.cardTitle:hover {
 .navBlockTitle .int-he, .navBlockDescription .int-he, .cardTitle .int-he, .cardDescription .int-he{
   font-size: 122%;
 }
-.interface-english .navBlockDescription.clamped .int-en,
-.interface-hebrew .navBlockDescription.clamped .int-he {
+.interface-english .navBlockDescription.clamped .int-en, .interface-hebrew .navBlockDescription.clamped .int-he, .cardDescription {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -3244,6 +3306,7 @@ a.cardTitle:hover {
   display: flex;
 }
 .sheetContentSidebar {
+  margin: 30px 0;
   width: 33%;
 }
 .bookPage .currentSection,
@@ -3376,6 +3439,9 @@ a.cardTitle:hover {
 .bookPage .versionEditForm label#versionNotes_label {
   display: block;
 }
+.bookPage .versionEditForm label + input {
+  margin-inline-end: 30px;
+}
 .bookPage .versionEditForm #versionTitle,
 .bookPage .versionEditForm #versionSource,
 .bookPage .versionEditForm #versionNotes,
@@ -3389,9 +3455,6 @@ a.cardTitle:hover {
 }
 .bookPage .versionEditForm #priority {
   width: 25px;
-}
-.bookPage .versionEditForm #digitzedBySefaria {
-  margin-right: 10px;
 }
 .bookPage .versionEditForm #save_button,
 .bookPage .versionEditForm #delete_button {
@@ -3698,6 +3761,10 @@ a.cardTitle:hover {
   justify-content: start;
   align-items: flex-start;
   margin-bottom: 10px;
+}
+.versionBlock .error {
+  font-size: xx-large;
+  color: var(--halakhah-red);
 }
 .versionBlock .versionTitle {
   font-size: 18px;
@@ -4695,10 +4762,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.search-container{
-  position: relative;
-  padding-right: 10px;
-}
+
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
@@ -5738,6 +5802,7 @@ h1.topic-landing-header {
   height: 56px;
   cursor: pointer;
 }
+
 .saveButton img {
   height: 18px;
   width: 18px;
@@ -5750,6 +5815,50 @@ h1.topic-landing-header {
 .interface-hebrew .rightButtons .saveButton.tooltip-toggle::before {
   left: auto;
   right: -50px;
+}
+/* GuideButton styles */
+.rightButtons .guideButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 56px;
+  cursor: pointer;
+  margin-inline-end: 15px;
+  padding-top: 3px;
+}
+.rightButtons .guideButton.tooltip-toggle::before {
+  top: 47px;
+}
+
+/* Bulb icon alignment adjustments to match SaveButton */
+.rightButtons .guideButton img {
+  height: 18px;
+}
+
+/* ArrowButton styles for navigation arrows */
+.arrowButton {
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.arrowButton img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+/* flip both arrows horizontally */
+.interface-hebrew .arrowButton img {
+  transform: scaleX(-1);
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
@@ -7525,6 +7634,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #999;
   text-decoration: underline;
 }
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
@@ -8379,14 +8489,14 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .notification .sheetTitle,
 .notification .collectionName {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 24px;
   display: block;
 }
 .notification .sheetSummary {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 18px;
   margin-top: 10px;
@@ -8626,14 +8736,6 @@ a .button:hover {
   padding: 10px 14px;
   width: -moz-fit-content;
   width: fit-content;
-}
-.button.small.publish {
-  color: #666666;
-  background-color: white;
-  font-weight: 500;
-  min-height: 31px;
-  height: 31px;
-  padding: 0 10px;
 }
 .headerWithAdminButtonsContainer{
   display: flex;
@@ -9107,6 +9209,9 @@ a.sheetAuthorName:hover {
   pointer-events: none;
   width: auto;
 }
+.interface-hebrew .sheetMetaDataBox .summary:empty:before {
+  content: "הוסף תיאור";
+}
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
 }
@@ -9117,6 +9222,7 @@ a.sheetAuthorName:hover {
   max-width: 540px;
   font-size: 16px;
   color: #666;
+  height: 520px;
 }
 .publishBox .publishLabel {
   --english-font: var(--english-sans-serif-font-family);
@@ -9338,7 +9444,8 @@ body.interface-hebrew .publishBox textarea::placeholder {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
-  min-width: 300px;
+  min-width: 150px;
+  max-width: 100%;
 }
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
@@ -9370,10 +9477,52 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.5;
   cursor: auto;
 }
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
+.editorSaveStateIndicator{
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 1;
+  background: white;
+  padding: 3px;
+}
+
+.editorSaveStateIndicator.tooltip-toggle{
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 2px;
+  font-size: 16px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
+  direction: rtl;
+}
+.interface-hebrew .editorSaveStateIndicator {
+  flex-direction: row-reverse;
+}
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+  z-index: 1;
+}
+.interface-hebrew .floatingEditorIcons{
+    flex-direction: row-reverse;
+}
+
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9393,9 +9542,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;
@@ -9477,6 +9625,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   --hebrew-font: var(--hebrew-serif-font-family);
   --english-font: var(--english-serif-font-family);
 }
+
 .collectionPage .collectionDescription .en .dedication {
   font-style: italic;
   font-size: 18px;
@@ -10910,7 +11059,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -10925,7 +11074,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -11236,10 +11385,22 @@ background-color: white;
   position: relative;
 }
 
+.connectionsPanel .autocompleterPopups {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
 .addInterfaceInput .suggestionBoxContainer,
 .addInterfaceInput .textPreviewContainer {
   position: absolute;
   z-index: 1;
+}
+
+.editorContent .show-above .suggestionBoxContainer,
+.editorContent .show-above .textPreviewContainer {
+  top: auto;
+  bottom: 100%;
 }
 
 .addInterfaceInput .suggestionBox,
@@ -12070,6 +12231,10 @@ cursor: pointer;
   font-weight: 400;
   line-height: 18px;
   margin-block-end: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 10;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .sheetContentSidebar .title.sub-sub-title {
   margin-block-end: 20px;
@@ -12079,46 +12244,6 @@ cursor: pointer;
 }
 .profile-page .social-icon:hover img {
   opacity: 0.6;
-}
-#staticContentWrapper .editorToggleHeader {
-  margin: revert;
-}
-.editorToggleHeader, .genericBanner {
-  padding-inline: 10%;
-  background-color: var(--sefaria-blue);
-  color: white;
-  height: 72px;
-  font-size: 16px;
-  margin-top: -60px;
-  margin-bottom: 80px;
-  display: flex;
-  justify-content: center;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  gap: 5px;
-  align-items: center;
-}
-
-.genericBanner {
-  margin-block: revert;
-}
-
-.interface-hebrew .editorToggleHeader, .interface-hebrew .genericBanner {
-  direction: rtl;
-}
-.editorToggleHeader .button, .genericBanner .button {
-  white-space: nowrap;
-  padding: 5px 8px;
-  height: 30px;
-  letter-spacing: 0;
-  margin-inline-end: 15px;
-}
-
-.editorToggleHeader .learnMore {
-  text-decoration: underline;
-  color: white;
-  white-space: nowrap;
-  margin-top: -5px;
 }
 .feedbackOverlay {
   position: fixed;
@@ -12406,9 +12531,6 @@ cursor: pointer;
   }
   .profile-page .profile-pic .profile-pic-button {
     top: calc(-1 * ((87px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
-  }
-  .profile-page .editorToggleHeader {
-    display: none !important;
   }
   .profile-page .profile-summary .profile-img {
     width: 87px !important;
@@ -14621,13 +14743,16 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+.TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+.TOCCardsWrapper .card:nth-child(odd):last-child {
+  flex: 0 0 45%;
+}
+.sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -14645,7 +14770,7 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetsHomepage .navSidebarModule {
   padding: 0 10%;
 }
-.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+.singlePanel .sheetsHomepage .TOCCardsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
   flex-direction: column;
   margin-bottom: 10px;
 }
@@ -14727,13 +14852,11 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownHeader {
-  margin-bottom: 10px;
   font-family: Roboto;
   font-size: 16px;
   font-weight: 400;
   line-height: 18.75px;
   color: var(--selected-option);
-
 }
 
 .dropdownHeaderText {
@@ -14750,15 +14873,9 @@ span.ref-link-color-3 {color: blue}
   padding-right: 10px;
 }
 
-.dropdownItem {
-  padding: 10px 5px !important;
-  flex-direction: column;
-  margin-inline-start: 5px;
-
-}
-
 .dropdownSeparator {
   border: 1px solid var(--light-grey);
+  margin-block: 5px;
 }
 .sheetMetaDataBox .dropdownLinks-button {
   font-weight: bold;
@@ -14773,9 +14890,6 @@ span.ref-link-color-3 {color: blue}
   margin-bottom: 4px;
   color: #666;
   position: relative;
-  -webkit-margin-start: 20px;
-  -moz-margin-start: 20px;
-  margin-inline-start: 10px;
 }
 .headerDropdownMenu .toolsButtonContainer {
   margin: revert;
@@ -14803,9 +14917,6 @@ span.ref-link-color-3 {color: blue}
   color: var(--dark-grey);
   position: relative;
   line-height: 0;
-}
-.sheetsInPanel .dropdownHeader {
-  margin-bottom: revert;
 }
 .header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
   height: 18px;
@@ -14850,18 +14961,22 @@ span.ref-link-color-3 {color: blue}
   overflow:hidden;
 }
 
-.sheetsInPanel .dropdownItem:nth-child(n+2):nth-last-child(n+2) {
-  padding: 5px 5px !important;
+.dropdownItem {
+  padding-inline: 15px;
+  flex-direction: column;
+}
+.dropdownItem:nth-child(n+2):nth-last-child(n+2) {
+  padding-block: 5px 5px;
 }
 
-.sheetsInPanel .dropdownItem:first-child {
-  padding-block-start: 10px !important;
-  padding-block-end: 5px !important;
+.dropdownItem:first-child {
+  padding-block-start: 10px;
+  padding-block-end: 5px;
 }
 
-.sheetsInPanel .dropdownItem:last-child {
-  padding-block-start: 5px !important;
-  padding-block-end: 10px !important;
+.dropdownItem:last-child {
+  padding-block-start: 5px;
+  padding-block-end: 10px;
 }
 
 .sheetsInPanel .dropdownItem {
@@ -14904,13 +15019,20 @@ span.ref-link-color-3 {color: blue}
 .dropdownLinks-options {
   display: flex;
   flex-direction: column;
-  padding: 4px;
   max-width: 220px;
 }
 
-.sheetsInPanel .dropdownLinks-options {
-  padding: 0;
-}
+/*.dropdownLinks-options > * {*/
+/*  margin: 10px;*/
+/*}*/
+
+/*.dropdownLinks-options > :first-child {*/
+/*  margin: 20px; */
+/*}*/
+
+/*.dropdownLinks-options > :last-child {*/
+/*  margin: 5px; */
+/*}*/
 
 .header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
@@ -15193,26 +15315,13 @@ span.ref-link-color-3 {color: blue}
   color: #666666;
 }
 
-.languageHeader {
-  padding-right: 10px;
-  padding-left: 10px;
-  padding-top: 4px;
-  padding-bottom: 2px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  color: var(--medium-grey);
-
-}
-
-.languageToggleFlexContainer{
+.dropdownLanguageToggle{
   display: flex;
   flex-direction: row;
-  /* padding: 10px 0px; */
   align-items: baseline;
   line-height: 18px;
   height: 23px;
-  padding-bottom: 15px;
+  padding-inline: 15px;
 }
 
 .languageDot{
@@ -15220,9 +15329,11 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 2px;
 }
 
+
+
 .englishLanguageButton::after {
   content: "•";
-  padding: 0px 4px;
+  padding: 6px;
 }
 
 .profilePicAndButtonContainer {
@@ -15276,6 +15387,10 @@ span.ref-link-color-3 {color: blue}
   margin-top: 30px;
 }
 
+.notificationUserName {
+  color: var(--midrash-green) !important;
+}
+
 .emptyNotificationsTitle{
   font-family: Roboto;
   font-size: 16px;
@@ -15297,13 +15412,6 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
 }
 
-<<<<<<< HEAD
-.mobileProfileFlexContainer {
-  display: flex;
-  flex-direction: row;
-  align-items: end;
-}
-
 .mobileProfileFlexContainer {
   display: flex;
   flex-direction: row;
@@ -15320,7 +15428,6 @@ span.ref-link-color-3 {color: blue}
 .sheetsNotificationsHeaderIcon {
   width: 20px;
   height: 18px;
-  margin-inline-start: 6px;
   margin-top: 2px;
   margin-bottom: 2px;
 }
@@ -15337,8 +15444,6 @@ span.ref-link-color-3 {color: blue}
 .languageFlex {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
   direction:ltr;
 }
 
@@ -15363,3 +15468,308 @@ span.ref-link-color-3 {color: blue}
 87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
 }
 /* end css code for loading bezel */
+
+/* ========== GUIDE OVERLAY COMPONENT STYLES - START ========== */
+
+.guideOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 415px;
+  background-color: #fbfbfb;
+  box-shadow: 0px -1px 3px 0px #00000040;
+  border-top: 0.25px solid #CCCCCC;
+  z-index: 1000;
+  /* Force GuideOverlay to use sans-serif fonts in the contextual font system */
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.guideOverlayContent {
+  width: 100%;
+  height: 100%;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guideOverlayLoadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+}
+
+/* Shared container width for consistent layout */
+.guideOverlayHeader,
+.guideOverlayCenteredContent,
+.guideOverlayBody,
+.guideOverlayFooter {
+  width: 800px;
+}
+
+/* Header layout: title left, pagination center, close right */
+.guideOverlayHeader {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+/* Close button styles consolidated */
+.guideOverlayHeader .readerNavMenuCloseButton.circledX {
+  flex-shrink: 0;
+  height: 34px;
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guideOverlayHeader .readerNavMenuCloseButton.circledX img {
+  display: block;
+}
+
+/* Pagination and number styles */
+.guideOverlayPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 34px;
+}
+
+.cardsPaginationNumber {
+  font-weight: 500;
+  font-size: 16px;
+  color: #666666;
+  min-width: 40px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Title section and styles */
+.guideOverlayTitleSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  min-width: 180px;
+}
+
+.guideOverlayTitle {
+  margin: 0 !important; /* Remove inherited margin */
+  padding: 0 !important; /* Remove inherited padding */
+  display: flex;
+  align-items: center;
+  height: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.titlePrefix,
+.titleVariable {
+  font-size: 22px;
+  color: #333333;
+  display: inline-flex;
+  align-items: center;
+  text-transform: none;
+}
+
+.titlePrefix {
+  font-weight: 500;
+  margin-inline-end: 0.5rem;
+}
+
+.titleVariable {
+  font-weight: 300;
+}
+
+/* Main content layout */
+.guideOverlayCenteredContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guideOverlayBody {
+  display: flex;
+  gap: 20px;
+}
+
+/* Video and text containers */
+.guideOverlayVideoContainer {
+  width: 480px;
+  height: 270px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.guideOverlayVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guideOverlayTextContainer {
+  width: 300px;
+  height: 270px;
+  display: flex;
+  flex-direction: column;
+}
+
+.guideOverlayText {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #555555;
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 8px;
+  /* Modern scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Webkit scrollbar styles */
+.guideOverlayText::-webkit-scrollbar {
+  width: 6px;
+}
+
+.guideOverlayText::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.guideOverlayText::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.guideOverlayText::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Main text content styling */
+.guideOverlayText ul {
+  padding-inline-start: 18px;
+  margin: 16px 0;
+}
+
+/* Paragraph spacing - reduced from default 16px */
+.guideOverlayText p {
+  margin: 0 0 8px 0;
+}
+
+/* Tighter spacing between paragraphs and lists */
+.guideOverlayText p + ul {
+  margin-top: 4px;
+}
+
+.guideOverlayText p:last-child {
+  margin-bottom: 0;
+}
+
+.guideOverlayText li {
+  margin-bottom: 5px;
+}
+
+.guideOverlayText a {
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.guideOverlayText a:hover {
+  text-decoration: underline;
+}
+
+/* Footer with links */
+.guideOverlayFooter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 18px;
+}
+
+.guideOverlayFooterLink {
+  color: #666666;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.guideOverlayFooterLink:hover {
+  text-decoration: underline;
+}
+
+.footerDivider {
+  font-size: 12px;
+}
+
+/* Loading state */
+.guideOverlay .loadingMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666666;
+}
+
+/* RTL/Hebrew interface support */
+.interface-hebrew .guideOverlayBody {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .guideOverlayHeader {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .guideOverlayPagination {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .guideOverlayTitleSection {
+  direction: rtl;
+  text-align: right;
+}
+
+.interface-hebrew .guideOverlayTitle {
+  direction: rtl;
+  justify-content: flex-start;
+  text-align: start;
+  unicode-bidi: isolate;
+}
+
+.interface-hebrew .titlePrefix,
+.interface-hebrew .titleVariable {
+  direction: rtl;
+  text-align: right;
+  display: inline;
+}
+
+.interface-hebrew .guideOverlayText {
+  text-align: right;
+  direction: rtl;
+  padding-right: 0;
+  padding-left: 8px;
+}
+
+.interface-hebrew .guideOverlayFooter {
+  direction: rtl;
+}
+
+/* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */

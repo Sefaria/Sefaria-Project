@@ -87,7 +87,7 @@ function sortByTypeOrder(array) {
 
 const getURLForObject = function(type, key) {
     if (type === "Collection") {
-      return `/collections/${key}`;
+      return `/sheets/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
@@ -147,6 +147,7 @@ const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
                                 wrapperClasses,
                               universalIndex, highlightedIndex, getItemProps, onClick}) => {
   const isHebrew = Sefaria.hebrew.isHebrew(label);
+  url = url?.replace(/\?/g, '%3F');
   return (
       <a href={url} onClick={onClick} className={`search-suggestion-link-wrapper ${wrapperClasses}`}>
           <div
@@ -299,7 +300,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
     const _type_component_map = {
         search: {
-            onSuggestionClick: submitSearch,
+            onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
@@ -393,38 +394,45 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const clearSearchBox = function (onChange) {
         onChange({ target: { value: '' } });
   }
-   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion) => {
-      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search')
-       {
-              showSearchWrapper(query);
-              clearSearchBox(onChange);
-              return;
-       }
+  const search = (onChange, query) => {
+      //   Execute the actions for searching the query string
+      Sefaria.track.event("Search", "Search Box Search", query);
+      showSearchWrapper(query);
+      clearSearchBox(onChange);
+  }
+  const redirectOrSearch = (onChange, query) => {
+      //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
-
           if (queryType === 'Ref') {
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
-          }
-          else if (queryType === 'Topic') {
+          } else if (queryType === 'Topic') {
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
-          }
-          else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+          } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
               redirectToObject(queryType, queryId);
+          } else {
+              search(onChange, query);
           }
-          else {
-              Sefaria.track.event("Search", "Search Box Search", queryId);
-              showSearchWrapper(queryId);
+      })
+    }
+   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion, enforceSearch) => {
+      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search') {
+              showSearchWrapper(query);
               clearSearchBox(onChange);
-          }
+              return;
       }
-      )
+
+      if (enforceSearch) {
+          search(onChange, query);
+      } else {
+          redirectOrSearch(onChange, query);
+      }
     };
 
     const showSearchWrapper = (query) => {
@@ -442,7 +450,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
         clearSearchBox(onChange);
-        const url = item.url
+        const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
         if (!handled) {
           window.location = url;

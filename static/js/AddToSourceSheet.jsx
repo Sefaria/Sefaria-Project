@@ -1,4 +1,5 @@
 import {
+  InterfaceText,
   LoadingMessage,
   LoginPrompt,
 } from './Misc';
@@ -13,6 +14,7 @@ import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
 import * as sheetsUtils from './sefaria/sheetsUtils'
+import Button from './common/Button';
 
 
 
@@ -327,10 +329,9 @@ class AddToSourceSheetBox extends Component {
           </div>
           : null}
         </div>
-        <div className="button noselect fillWidth" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet}>
-          <span className="int-en noselect">Add to Sheet</span>
-          <span className="int-he noselect">הוספה לדף המקורות</span>
-        </div>
+        <Button size="fillwidth" className="noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} activeModule="sheets">
+          <InterfaceText text={{en: "Add to Sheet", he: "הוספה לדף המקורות"}} />
+        </Button>
         {!this.props.hideGDocAdvert && <GDocAdvertBox/>}
       </div>);
   }

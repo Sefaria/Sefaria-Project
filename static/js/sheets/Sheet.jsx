@@ -4,12 +4,14 @@ import classNames  from 'classnames';
 import Component from 'react-class'
 import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
-import SefariaEditor from '../Editor';
+import { SefariaEditor } from '../Editor';
 import SheetContentSidebar from "./SheetContentSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
 import { SheetContent } from "./SheetContent";
+import {shouldUseEditor} from '../sefaria/sheetsUtils';
+
 
 class Sheet extends Component {
   constructor(props) {
@@ -79,6 +81,7 @@ class Sheet extends Component {
                                   collections={sheet.collections}
                                   toggleSignUpModal={this.props.toggleSignUpModal}
                                   topics={sheet.topics}
+                                  editorSaveState={this.props.editorSaveState}
                               />;
         editor = <div className="sidebarLayout">
                   <div className="sheetContent">
@@ -96,6 +99,8 @@ class Sheet extends Component {
                         historyObject={this.props.historyObject}
                         editable={true}
                         handleCollectionsChange={this.handleCollectionsChange}
+                        editorSaveState={this.props.editorSaveState}
+                        setEditorSaveState={this.props.setEditorSaveState}
                     />
                   </div>
                   {sidebar}
@@ -127,12 +132,10 @@ class Sheet extends Component {
           </div>
       );
     }
+    const usingEditor = shouldUseEditor(sheet?.id);
     return (
       <div className={classes}>
-        { editable && Sefaria._uses_new_editor ?
-        editor
-        :
-        content }
+         { usingEditor ? editor : content }
       </div>
     );
   }

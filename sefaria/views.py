@@ -13,7 +13,7 @@ from random import choice
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -83,7 +83,13 @@ class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
-    pass
+
+    def get_next_page(self):
+        next_page = self.request.GET.get('next')
+        if next_page:
+            return resolve_url(next_page)
+        return super().get_next_page()
+
 
 class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
     pass
@@ -752,9 +758,10 @@ def reset_ref(request, tref):
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
-        vs = model.VersionState(index=oref.index)
+        index = model.library.get_index(tref)  # Get a fresh instance of the index
+        vs = model.VersionState(index=index)
         vs.refresh()
-        model.library.update_index_in_toc(oref.index)
+        model.library.update_index_in_toc(index)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
@@ -866,8 +873,8 @@ def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
     html  = ""
 
-    html += "Total Sheets: %d\n" % db.sheets.find().count()
-    html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
+    html += "Total Sheets: %d\n" % len(list(db.sheets.find()))
+    html += "Public Sheets: %d\n" % len(list(db.sheets.find({"status": "public"})))
 
 
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
@@ -879,10 +886,10 @@ def sheet_stats(request):
         start    = end - relativedelta(years=1)
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         cursor   = db.sheets.find(query)
-        total    = cursor.count()
+        total    = len(list(cursor.clone()))
         creators = len(cursor.distinct("owner"))
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
-        ptotal   = db.sheets.find(query).count()
+        ptotal   = len(list(db.sheets.find(query)))
         html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
 
     html += "\n\nUnique Source Sheet creators per month:\n\n"
@@ -1024,7 +1031,7 @@ def profile_spam_dashboard(request):
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
+            history_count = len(list(db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}})))
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
@@ -1042,7 +1049,7 @@ def delete_user_by_email(request):
     from sefaria.utils.user import delete_user_account
     if request.method == 'GET':
         form = SefariaDeleteUserForm()
-        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
+        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next, "renderStatic": True})
     elif request.method == 'POST':
         user = User.objects.get(id=request.user.id)
         email = request.POST.get("email")
@@ -1070,7 +1077,7 @@ def delete_sheet_by_id(request):
     from sefaria.utils.user import delete_user_account
     if request.method == 'GET':
         form = SefariaDeleteSheet()
-        return render_template(request, "delete-sheet.html", None, {'form': form, 'next': next})
+        return render_template(request, "delete-sheet.html", None, {'form': form, 'next': next, "renderStatic": True})
     elif request.method == 'POST':
         user = User.objects.get(id=request.user.id)
         sheet_id = request.POST.get("sid")
@@ -1088,7 +1095,7 @@ def delete_sheet_by_id(request):
             if not sheet:
                 return jsonResponse({"error": "Sheet %d not found." % id})
 
-            db.sheets.remove({"id": id})
+            db.sheets.delete_one({"id": id})
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
@@ -1130,7 +1137,7 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations

@@ -53,7 +53,8 @@ class NotificationsPanel extends Component {
     }
   }
   getMoreNotifications() {
-    $.getJSON("/api/notifications?page=" + this.state.page, this.loadMoreNotifications);
+    const activeModule = Sefaria.activeModule;
+    $.getJSON(`/api/notifications?page=${this.state.page}&scope=${activeModule}`, this.loadMoreNotifications);
     this.setState({loading: true});
   }
   loadMoreNotifications(data) {
@@ -81,13 +82,10 @@ class NotificationsPanel extends Component {
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
                 </div>
-                {(Sefaria._uid) ? (
-                     Sefaria.notificationCount > 0 && notifications
-                ) : (
-                  <LoginPrompt fullPanel={true} />
-                )}
+                {!Sefaria._uid && <LoginPrompt fullPanel={true} />}
               </div>
-              {Sefaria._uid && Sefaria.notificationCount < 1 && <EmptyNotificationsMessage /> } 
+              {Sefaria._uid && notifications.length < 1 && <EmptyNotificationsMessage /> } 
+              {Sefaria._uid && notifications.length > 0 && notifications}
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
@@ -167,7 +165,7 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
 const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>published a new sheet</InterfaceText>
     </>
   );
@@ -197,7 +195,7 @@ const SheetPublishNotification = ({date, content}) => {
 const SheetLikeNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>liked your sheet</InterfaceText>
     </>
   );
@@ -223,7 +221,7 @@ const FollowNotification = ({date, content}) => {
 
   const topLine = (
     <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
+      <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>is now following you</InterfaceText>
     </>
   );
@@ -259,7 +257,7 @@ const CollectionAddNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="collectionName" href={"/collections/" + content.collection_slug}>
+      <a className="collectionName" href={"/sheets/collections/" + content.collection_slug}>
         {content.collection_name}
       </a>
     </>

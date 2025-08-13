@@ -50,7 +50,7 @@ linker:
   resources:
     web:
       # gunicornWorkerCount: 1
-      # gunicornThreadCount: 1
+      gunicornThreadCount: 4
       resources:
         requests:
           memory: "3Gi"
@@ -86,6 +86,7 @@ nodejs:
     limits:
       memory: "1500Mi"
       cpu: "1500m"
+  heapSize: 1250
 varnish:
   logging: {}
   replicaCount: 1
