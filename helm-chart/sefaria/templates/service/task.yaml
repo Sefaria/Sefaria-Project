@@ -1,3 +1,4 @@
+{{- if or .Values.tasks.enabled .Values.tasks.gpuServer }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,3 +12,4 @@ spec:
   - port: 80
   selector:
     app: "tasks-{{ .Values.deployEnv }}"
+{{- end }}
