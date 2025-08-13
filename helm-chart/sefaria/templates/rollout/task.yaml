@@ -1,5 +1,5 @@
-{{- if .Values.tasks.enabled }}
- {{- $QueueConfig := (fromYaml (include "sefaria.tasks.queues" . )) -}}
+{{- if or .Values.tasks.enabled .Values.gpuServer }}
+{{- $QueueConfig := (fromYaml (include "sefaria.tasks.queues" . )) -}}
 ---
 # apiVersion: apps/v1
 # kind: Deployment
@@ -79,6 +79,12 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
+          {{- with .Values.gpuServer }}
+          - name: GPU_SERVER_HOST
+            value: "{{ . }}"
+          - name: ENABLE_LINKER
+            value: "True"
+          {{- end }}
           - name: SLACK_URL
             valueFrom:
               secretKeyRef:
@@ -106,10 +112,10 @@ spec:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
           - configMapRef:
-              name: local-settings-web-{{ .Values.deployEnv }}
+              name: local-settings-tasks-{{ .Values.deployEnv }}
               optional: true
           - secretRef:
-              name: local-settings-web-secrets-{{ .Values.deployEnv }}
+              name: local-settings-tasks-secrets-{{ .Values.deployEnv }}
               optional: true
         resources: {{ toYaml .Values.tasks.resources | nindent 10 }}
         volumeMounts:

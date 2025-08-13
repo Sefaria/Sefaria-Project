@@ -175,7 +175,6 @@ data:
           proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
         }
 
-        {{- if .Values.linker.enabled }}
         location /api/find-refs {
           if ($request_method = OPTIONS) {
             add_header Access-Control-Allow-Origin "*" always;
@@ -186,7 +185,7 @@ data:
             return 204;
           }
         }
-        {{- end }}
+
       } # server
 
       types {
