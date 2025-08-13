@@ -190,6 +190,7 @@ varnish:
     tag: 0.32.0
 
 tasks:
+  localsettings:
   enabled: false
   resources:
     requests:
