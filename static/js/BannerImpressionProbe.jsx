@@ -22,7 +22,7 @@ const BannerImpressionProbe = () => {
           console.log(`BannerImpressionProbe: Simulated Strapi data loaded after ${apiDelay.toFixed(0)}ms`);
         }
       }, apiDelay);
-    }, 2000); // Simulate rendering delay that real banners have
+    }, 2000);
 
     return () => {
       clearTimeout(renderTimer);
@@ -50,40 +50,20 @@ const BannerImpressionProbe = () => {
       style={{
         // Prevent from showing up in document flow
         position: "fixed",
-        top: "50vh", // Use viewport units for better cross-browser consistency
-        left: "50vw",
+        top: "50%",
+        left: "50%",
         width: "1px",
         height: "1px",
         opacity: 0.001, // Minimum opacity for IntersectionObserver to detect
         pointerEvents: "none", // Prevent all mouse/touch interactions
-        zIndex: -2147483648, // Minimum possible z-index (32-bit signed integer min)
-        overflow: "hidden",
-        // Ensure no visual artifacts
-        background: "transparent",
-        border: "none",
-        outline: "none",
-        boxShadow: "none",
-        transform: "translateZ(-1px)", // Push behind everything in 3D space
-        willChange: "auto", // Prevent browser optimization issues
-        contain: "layout style paint", // CSS containment - isolates rendering
         userSelect: "none", // Prevent text selection
+        zIndex: -1,
+        overflow: "hidden",
+        border: "none",
+        contain: "layout style paint", // CSS containment - prevent layout and style outside of it from being affected
       }}
       aria-hidden="true" // Hide from screen readers
-      role="presentation" // Additional accessibility hiding
-      tabIndex={-1} // Prevent keyboard focus
     >
-      {/* Minimal content for IntersectionObserver detection */}
-      <span
-        style={{
-          position: "absolute",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-        }}
-      >
-        .
-      </span>
     </div>
   );
 };
