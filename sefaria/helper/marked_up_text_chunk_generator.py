@@ -3,7 +3,7 @@ import structlog
 from typing import List, Tuple
 from sefaria.model.text import Ref, TextChunk
 from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs
+from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs, enqueue_linking_chain, enqueue_linking_chain_debug
 from dataclasses import asdict
 
 
@@ -47,7 +47,14 @@ class MarkedUpTextChunkGenerator:
 
     def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
         linking_args = LinkingArgs(ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle)
-        link_segment_with_worker.apply_async(args=[asdict(linking_args)], queue="linker")
+        # link_segment_with_worker.apply_async(args=[asdict(linking_args)], queue="linker")
+        # enqueue_linking_chain(
+        #     linking_args
+        #         # text_id="...optional...",
+        #         # user_id=42,  # or whatever your tracker expects
+        #         # tracker_kwargs={"skip_links": False},  # optional passthrough
+        #     )
+        enqueue_linking_chain_debug(linking_args)
 
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:
