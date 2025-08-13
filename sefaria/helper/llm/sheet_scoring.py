@@ -1,83 +1,83 @@
 import logging
-from typing import Any,Dict,Optional
-
+from typing import Any, Dict, Optional
+from dataclasses import asdict, is_dataclass
 from bson import ObjectId
 from sefaria.system.database import db
-from sefaria_llm_interface.sheet_scoring import (
-    SheetScoringInput,
-    SheetScoringOutput,
-)
+from sefaria_llm_interface.sheet_scoring import SheetScoringInput, SheetScoringOutput
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+LLM_SCORING_ROOT = "llm_scoring"
+SHEET_FIELD = f"{LLM_SCORING_ROOT}.sheet"
+UPDATED_AT_FIELD = f"{LLM_SCORING_ROOT}.processed_datetime"
 
-def _prepare_update_data(result: SheetScoringOutput) -> Dict[str,Any]:
+KEYS_TO_STORE_IN_DB = (
+    "ref_scores",
+    "title_interest_level",
+    "title_interest_reason",
+    "language",
+    "creativity_score",
+)
+
+
+def _prepare_sheet_payload(result: SheetScoringOutput) -> Dict[str, Any]:
     """
-    Prepare update data for database, filtering out None values.
-
-    Args:
-        result: Result dictionary from processing
-
-    Returns:
-        Filtered update data
+    Build the object to store under `llm_scoring.sheet` with ONLY the whitelisted fields.
+    Excludes None values.
     """
-    update_data = {
-        "ref_scores": result.ref_scores,
-        "ref_levels": result.ref_levels,
-        "language": result.language,
-        "title_interest_level": result.title_interest_level,
-        "title_interest_reason": result.title_interest_reason,
-        "processed_at": result.processed_at,
-        "creativity_score": result.creativity_score,
-    }
-
-    return {k: v for k, v in update_data.items() if v is not None}
+    payload: Dict[str, Any] = {}
+    for key in KEYS_TO_STORE_IN_DB:
+        val = getattr(result, key, None)
+        if val is not None:
+            payload[key] = val
+    return payload
 
 
 def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:
     """
-    Save sheet scoring output to database.
-
-    Args:
-        result: SheetScoringOutput object containing scoring data
-
-    Returns:
-        bool: True if update was successful, False otherwise
+    Save sheet scoring output under llm_scoring.sheet with a narrow payload.
     """
+    if result.request_status == 0:
+        logger.error(getattr(result, "request_status_message",
+                             "LLM scoring failed"))
+        return False
     sheet_id = result.sheet_id
-
     try:
         object_id = ObjectId(sheet_id)
-        update_data = _prepare_update_data(result)
+    except Exception:
+        logger.error("Invalid sheet_id (not an ObjectId): %s", sheet_id)
+        return False
+    try:
+        payload = _prepare_sheet_payload(result)
+        update_doc = {
+            "$set": {
+                SHEET_FIELD: payload,
+                UPDATED_AT_FIELD: result.processed_datetime,
+            }
+        }
 
-        update_result = db.sheets.update_one(
-            {"_id": object_id},
-            {"$set": update_data}
-        )
-
+        update_result = db.sheets.update_one({"_id": object_id}, update_doc)
         success = update_result.matched_count > 0
+
         if success:
-            logger.info(f"Updated sheet {sheet_id} with grading data")
+            logger.info("Updated %s for sheet %s", SHEET_FIELD, sheet_id)
         else:
-            logger.warning(f"Sheet {sheet_id} not found in database")
+            logger.warning("Sheet %s not found in database", sheet_id)
 
         return success
 
     except Exception as e:
-        logger.error(f"Error updating sheet {sheet_id}: {e}")
+        logger.exception("Error updating sheet %s: %s", sheet_id, e)
         return False
 
 
-def make_sheet_scoring_input(
-        sheet_content: Dict[str,Any]) -> SheetScoringInput:
+def make_sheet_scoring_input(sheet_content: Dict[str, Any]) -> SheetScoringInput:
     """
     Create SheetScoringInput from sheet content dictionary.
-
-    Args:
-        sheet_content: Dictionary containing sheet data
-
-    Returns:
-        SheetScoringInput object
     """
     sheet_content["_id"] = str(sheet_content["_id"])
-    return SheetScoringInput(sheet_content)
+    return SheetScoringInput(sheet_id=str(sheet_content["_id"]),
+                             title=sheet_content['title'],
+                             expanded_refs=sheet_content['expandedRefs'],
+                             sources=sheet_content['sources'])

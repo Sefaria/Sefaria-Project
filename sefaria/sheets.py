@@ -37,6 +37,8 @@ from . import search
 from sefaria.google_storage_manager import GoogleStorageManager
 import re
 from django.http import Http404
+import math
+from typing import Iterable, Sequence, Union, List
 
 logger = structlog.get_logger(__name__)
 
@@ -786,6 +788,7 @@ def get_top_sheets(limit=3):
     query = {"status": "public", "views": {"$gte": 100}}
     return sheet_list(query=query, limit=limit)
 
+
 def annotate_sheets_with_collections(sheets):
     """
     Annotate a list of `sheets` with a list of public collections that the sheet appears in.
@@ -804,102 +807,95 @@ def annotate_sheets_with_collections(sheets):
     return sheets
 
 
-import math
-from typing import Iterable,Sequence,Union,List
-
-Number = Union[int,float]
-
-
-def percentile(data: Iterable[Number], q: Union[Number, Sequence[Number]]) -> \
-Union[float, List[float]]:
-    """
-    Compute percentile(s) of a 1D data iterable without NumPy.
-    Uses linear interpolation between closest ranks (like np.percentile default).
-    """
-    xs = [x for x in data if x is not None]
-    if not xs:
-        raise ValueError(
-            "percentile(): data must contain at least one number."
-            )
-    xs.sort()
-    n = len(xs)
-
-    def one(p: float) -> float:
-        if not (0.0 <= p <= 100.0):
-            raise ValueError("percentile q must be in [0, 100].")
-        if n == 1:
-            return float(xs[0])
-        r = (p / 100.0) * (n - 1)
-        lo = int(math.floor(r))
-        hi = int(math.ceil(r))
-        if lo == hi:
-            return float(xs[lo])
-        frac = r - lo
-        return xs[lo] * (1.0 - frac) + xs[hi] * frac
-
-    if isinstance(q, (int, float)):
-        return one(float(q))
-    return [one(float(p)) for p in q]
+def _llm_sheet(d):
+    """Return the nested llm_scoring.sheet dict (or {})."""
+    return d.get("llm_scoring", {}).get("sheet", {}) or {}
 
 
-def calculate_combined_score(sheets, pasuk_ref, title_weight=0.3, ref_weight=0.3,
-                             creativity_weight=0.4):
+def _get_llm(d, key, default=None):
+    """Get value from llm_scoring.sheet first;
+    fallback to top-level for legacy data."""
+    s = _llm_sheet(d)
+    if key in s and s[key] is not None:
+        return s[key]
+    return d.get(key, default)
+
+
+def _clip01(x):
+    try:
+        return 0.0 if x is None else max(0.0, min(1.0, float(x)))
+    except Exception:
+        return 0.0
+
+
+def _percentile(values, p):
+    """Naive percentile without numpy. p in [0,100]. Linear interpolation."""
+    if not values:
+        return 0.0
+    vs = sorted(values)
+    if len(vs) == 1:  # avoid div by zero
+        return vs[0]
+    k = (len(vs) - 1) * (p / 100.0)
+    f = int(k)
+    c = min(f + 1, len(vs) - 1)
+    if f == c:
+        return vs[f]
+    return vs[f] + (vs[c] - vs[f]) * (k - f)
+
+
+def _p5_p95(values):
+    return _percentile(values, 5), _percentile(values, 95)
+
+
+def calculate_combined_score(
+    sheets, ref, title_weight=0.3, ref_weight=0.3, creativity_weight=0.4
+):
     """
     Calculate combined score for sheets based on title interest, ref relevance and creativity.
     Returns sheets with added combined_score field.
-
     """
     if not sheets:
         return sheets
 
     try:
-        # Convert pasuk_ref to Ref object and get all segments
-        target_ref = model.Ref(pasuk_ref) if isinstance(
-            pasuk_ref, str
-            ) else pasuk_ref
+        # Convert ref -> segments we should match against
+        target_ref = model.Ref(ref) if isinstance(ref, str) else ref
         segments = {seg.normal() for seg in target_ref.all_segment_refs()}
 
-        # Extract and normalize title scores
-        title_scores = [
-            max(0, sheet.get("title_interest_level", 0)) / 4.0
-            for sheet in sheets
-        ]
+        title_scores = []
+        for sheet in sheets:
+            lvl = _get_llm(sheet, "title_interest_level", 0) or 0
+            try:
+                lvl = int(lvl)
+            except Exception:
+                lvl = 0
+            lvl = max(0, min(4, lvl))
+            title_scores.append(lvl / 4.0)
 
+        # Ref scores: pick the max score across all matching segments
         def get_sheet_ref_score(sheet):
-            """Get maximum ref score across all matching segments for this
-            sheet."""
-            ref_map = sheet.get("ref_scores", {})
-            return max((ref_map.get(seg, 0) for seg in segments), default=0)
+            ref_map = _get_llm(sheet, "ref_scores", {}) or {}
+            if not isinstance(ref_map, dict):
+                return 0.0
+            return max((float(ref_map.get(seg, 0) or 0) for seg in segments), default=0.0)
 
-        # Extract raw ref scores
         ref_scores_raw = [get_sheet_ref_score(sheet) for sheet in sheets]
 
-        # Extract and clip creativity scores
-        creativity_scores = [
-            max(0, min(1, sheet.get("creativity_score", 0)))
-            for sheet in sheets
-        ]
+        # Creativity already expected in [0,1]
+        creativity_scores = [_clip01(_get_llm(sheet, "creativity_score", 0.0)) for sheet in sheets]
 
-        # Normalize ref scores using percentile method
+        # Normalize ref scores by 5–95 percentile to squash outliers → [0,1]
         if len(ref_scores_raw) > 1:
-            p5, p95 = percentile(ref_scores_raw, [5, 95])
-            span = p95 - p5 or 1
-            ref_scores = [
-                min(1, max(0, (score - p5) / span))
-                for score in ref_scores_raw
-            ]
+            p5, p95 = _p5_p95(ref_scores_raw)
+            span = (p95 - p5) or 1.0
+            ref_scores = [max(0.0, min(1.0, (val - p5) / span)) for val in ref_scores_raw]
         else:
+            # If only one item, pick a neutral 0.5 to avoid random extremes
             ref_scores = [0.5] * len(ref_scores_raw)
 
-        # Calculate and assign combined scores
-        for sheet, title_score, ref_score, creativity_score in zip(
-                sheets, title_scores, ref_scores, creativity_scores
-        ):
-            sheet["combined_score"] = (
-                    title_score * title_weight +
-                    ref_score * ref_weight +
-                    creativity_score * creativity_weight
-            )
+        # Weighted blend
+        for sheet, t, r, c in zip(sheets, title_scores, ref_scores, creativity_scores):
+            sheet["combined_score"] = (t * title_weight) + (r * ref_weight) + (c * creativity_weight)
 
         return sheets
 
@@ -915,100 +911,96 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
     If `uid` is present return user sheets, otherwise return public sheets.
     If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
     """
-    try:
-        oref = model.Ref(tref)
-        segment_refs = [r.normal() for r in oref.all_segment_refs()]
-        query = {"expandedRefs": {"$in": segment_refs}}
-        if uid:
-            query["owner"] = uid
-        else:
-            query["status"] = "public"
-        if in_collection:
-            collections = CollectionSet({"slug": {"$in": in_collection}})
-            sheets_list = [collection.sheets for collection in collections]
-            sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
-            query["id"] = {"$in": sheets_ids}
+    oref = model.Ref(tref)
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    query = {"expandedRefs": {"$in": segment_refs}}
+    if uid:
+        query["owner"] = uid
+    else:
+        query["status"] = "public"
+    if in_collection:
+        collections = CollectionSet({"slug": {"$in": in_collection}})
+        sheets_list = [collection.sheets for collection in collections]
+        sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
+        query["id"] = {"$in": sheets_ids}
 
-        projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
-             "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
-             "displayedCollection":1, "options":1, "ref_scores": 1, "title_interest_level":1, "creativity_score": 1}
-        sheetsObj = db.sheets.find(query, projection)
-        sheetsObj.hint("expandedRefs_1")
-        sheets = [s for s in sheetsObj]
-        sheets = calculate_combined_score(sheets, str(oref))
-        user_ids = list({s["owner"] for s in sheets})
-        django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
-        user_profiles = {item['id']: item for item in django_user_profiles}
-        mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
-        mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
-        for profile in user_profiles:
-            try:
-                user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
-            except:
-                user_profiles[profile]["slug"] = "/"
+    projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
+         "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
+         "displayedCollection":1, "options":1, "llm_scoring":1}
+    sheetsObj = db.sheets.find(query, projection)
+    sheetsObj.hint("expandedRefs_1")
+    sheets = [s for s in sheetsObj]
+    sheets = calculate_combined_score(sheets, str(oref))
+    user_ids = list({s["owner"] for s in sheets})
+    django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
+    user_profiles = {item['id']: item for item in django_user_profiles}
+    mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
+    mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
+    for profile in user_profiles:
+        try:
+            user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
+        except:
+            user_profiles[profile]["slug"] = "/"
 
-            try:
-                user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
-            except:
-                user_profiles[profile]["profile_pic_url_small"] = ""
+        try:
+            user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
+        except:
+            user_profiles[profile]["profile_pic_url_small"] = ""
 
-        results = []
-        for sheet in sheets:
-            anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
-            ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
+    results = []
+    for sheet in sheets:
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
+        ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
 
-            if "assigner_id" in sheet:
-                asignerData = public_user_data(sheet["assigner_id"])
-                sheet["assignerName"] = asignerData["name"]
-                sheet["assignerProfileUrl"] = asignerData["profileUrl"]
-            if "viaOwner" in sheet:
-                viaOwnerData = public_user_data(sheet["viaOwner"])
-                sheet["viaOwnerName"] = viaOwnerData["name"]
-                sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
+        if "assigner_id" in sheet:
+            asignerData = public_user_data(sheet["assigner_id"])
+            sheet["assignerName"] = asignerData["name"]
+            sheet["assignerProfileUrl"] = asignerData["profileUrl"]
+        if "viaOwner" in sheet:
+            viaOwnerData = public_user_data(sheet["viaOwner"])
+            sheet["viaOwnerName"] = viaOwnerData["name"]
+            sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-            if "displayedCollection" in sheet:
-                collection = Collection().load({"slug": sheet["displayedCollection"]})
-                sheet["collectionTOC"] = getattr(collection, "toc", None)
-            topics = add_langs_to_topics(sheet.get("topics", []))
-            for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
-                sheet_data = {
-                    "owner":           sheet["owner"],
-                    "_id":             str(sheet["_id"]),
-                    "id":              str(sheet["id"]),
-                    "public":          sheet["status"] == "public",
-                    "title":           strip_tags(sheet["title"]),
-                    "sheetUrl":        "/sheets/" + str(sheet["id"]),
-                    "anchorRef":       anchor_ref.normal(),
-                    "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
-                    "options": 		   sheet["options"],
-                    "collectionTOC":   sheet.get("collectionTOC", None),
-                    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
-                    "via":			   sheet.get("via", None),
-                    "viaOwnerName":	   sheet.get("viaOwnerName", None),
-                    "assignerName":	   sheet.get("assignerName", None),
-                    "viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
-                    "assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
-                    "ownerProfileUrl": "/sheets/profile/" + ownerData["slug"],
-                    "ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
-                    "status":          sheet["status"],
-                    "views":           sheet["views"],
-                    "topics":          topics,
-                    "likes":           sheet.get("likes", []),
-                    "summary":         sheet.get("summary", None),
-                    "attribution":     sheet.get("attribution", None),
-                    "is_featured":     sheet.get("is_featured", False),
-                    "category":        "Sheets", # ditto
-                    "type":            "sheet", # ditto
-                    "dateCreated":	   sheet.get("dateCreated", None),
-                    "combined_score": sheet.get("combined_score", 0),
+        if "displayedCollection" in sheet:
+            collection = Collection().load({"slug": sheet["displayedCollection"]})
+            sheet["collectionTOC"] = getattr(collection, "toc", None)
+        topics = add_langs_to_topics(sheet.get("topics", []))
+        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+            sheet_data = {
+                "owner":           sheet["owner"],
+                "_id":             str(sheet["_id"]),
+                "id":              str(sheet["id"]),
+                "public":          sheet["status"] == "public",
+                "title":           strip_tags(sheet["title"]),
+                "sheetUrl":        "/sheets/" + str(sheet["id"]),
+                "anchorRef":       anchor_ref.normal(),
+                "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
+                "options": 		   sheet["options"],
+                "collectionTOC":   sheet.get("collectionTOC", None),
+                "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+                "via":			   sheet.get("via", None),
+                "viaOwnerName":	   sheet.get("viaOwnerName", None),
+                "assignerName":	   sheet.get("assignerName", None),
+                "viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
+                "assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
+                "ownerProfileUrl": "/sheets/profile/" + ownerData["slug"],
+                "ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
+                "status":          sheet["status"],
+                "views":           sheet["views"],
+                "topics":          topics,
+                "likes":           sheet.get("likes", []),
+                "summary":         sheet.get("summary", None),
+                "attribution":     sheet.get("attribution", None),
+                "is_featured":     sheet.get("is_featured", False),
+                "category":        "Sheets", # ditto
+                "type":            "sheet", # ditto
+                "dateCreated":	   sheet.get("dateCreated", None),
+                "combined_score": sheet.get("combined_score", 0),
 
-                }
-                results.append(sheet_data)
-        return results
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise e
+            }
+            results.append(sheet_data)
+    return results
+
 
 
 def topic_list_diff(old, new):
