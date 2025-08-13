@@ -45,6 +45,7 @@ data:
 
     DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE", "{}"))
     DOMAIN_MODULES = json.loads(os.getenv("DOMAIN_MODULES", "{}"))
+    
     ADMINS = (
         ('Sefaria Developers', 'dev@sefaria.org'),
     )
