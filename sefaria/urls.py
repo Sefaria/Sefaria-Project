@@ -10,7 +10,7 @@ import django.contrib.auth.views as django_auth_views
 import sourcesheets
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH, MODULE_ROUTES
-
+import json
 import reader.views as reader_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
@@ -354,7 +354,7 @@ urlpatterns += [
 
 
 # Registration and Login need to support both the main site and the sheets prefix.
-for prefix in MODULE_ROUTES.values():
+for prefix in json.loads(MODULE_ROUTES).values():
     prefix = prefix.lstrip('/') # remove the first slash because it's not necessary in urlpatterns; see MODULE_ROUTES in local_settings.py
     urlpatterns += [
         url(fr'^{prefix}login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),

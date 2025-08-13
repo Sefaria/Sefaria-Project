@@ -18,6 +18,7 @@ from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote
 import structlog
+import json
 logger = structlog.get_logger(__name__)
 
 
@@ -264,7 +265,7 @@ class ModuleMiddleware(MiddlewareURLMixin):
             return self.get_response(request)
 
         # Find the matching route prefix
-        for module_name, route_prefix in MODULE_ROUTES.items():
+        for module_name, route_prefix in json.loads(MODULE_ROUTES).items():
             route_base_path = route_prefix.removesuffix('/')
             if len(route_prefix) > 0 and (request.path.startswith(route_prefix) or request.path == route_base_path):
                 active_module = module_name

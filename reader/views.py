@@ -218,8 +218,8 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": DOMAIN_MODULES,
-        "moduleRoutes": MODULE_ROUTES,
+        "domainModules": json.loads(DOMAIN_MODULES),
+        "moduleRoutes": json.loads(MODULE_ROUTES),
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
