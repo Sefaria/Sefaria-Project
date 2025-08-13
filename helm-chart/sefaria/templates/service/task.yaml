@@ -1,4 +1,4 @@
-{{- if or .Values.tasks.enabled .Values.tasks.gpuServer }}
+{{- if or .Values.tasks.enabled .Values.gpuServer }}
 apiVersion: v1
 kind: Service
 metadata:

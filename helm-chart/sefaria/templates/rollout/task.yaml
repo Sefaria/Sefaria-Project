@@ -1,4 +1,4 @@
-{{- if or .Values.tasks.enabled .Values.tasks.gpuServer }}
+{{- if or .Values.tasks.enabled .Values.gpuServer }}
 {{- $QueueConfig := (fromYaml (include "sefaria.tasks.queues" . )) -}}
 ---
 # apiVersion: apps/v1
