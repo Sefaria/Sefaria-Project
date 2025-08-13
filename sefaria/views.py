@@ -357,7 +357,7 @@ def find_refs_api(request):
     from sefaria.helper.linker.tasks import find_refs_api_task
     request_text, options, metadata = unpack_find_refs_request(request)
     find_refs_input = FindRefsInput(request_text, options, metadata)
-    response = find_refs_api_task.apply_async(args=(asdict(find_refs_input),), queue=CELERY_QUEUES['tasks']).get(timeout=15)
+    response = find_refs_api_task.apply_async(args=(asdict(find_refs_input),), queue=CELERY_QUEUES['tasks']).get(timeout=60)
     return jsonResponse(response)
 
 
