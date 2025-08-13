@@ -231,7 +231,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
         <InterfaceText context="SearchFilters">{name}</InterfaceText>
       </h2>
       {search}
-      {content}
+      <ul className="searchFilterList">{content}</ul>
     </div>
   );
 };
@@ -286,21 +286,9 @@ class SearchFilter extends Component {
   componentDidMount() {
     // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    if (this.props.filter.isPartial()) {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
-    }
-    else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
-    }
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    if (this.props.filter.isPartial()) {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
-    }
-    else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
-    }
   }
   handleFilterClick(evt) {
     this.props.updateSelected(this.props.filter)
@@ -332,11 +320,11 @@ class SearchFilter extends Component {
           <div className="checkboxAndText">
             <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
             <label 
-              onClick={this.handleFilterClick} 
-              id={"label-for-"+this.props.filter.aggKey} 
+              htmlFor={filter.aggKey}
+              onClick={this.handleFilterClick}
               tabIndex="0"
-              onKeyDown={this.handleKeyDown} 
-              onKeyPress={this.handleKeyPress} 
+              onKeyDown={this.handleKeyDown}
+              onKeyPress={this.handleKeyPress}
               aria-label={toggleMessage}>
               <span></span>
             </label>

@@ -4723,7 +4723,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: var(--midrash-green);
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
@@ -10397,7 +10397,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--dark-grey);
   margin-bottom: 11px;
 }
 .addToSourceSheetBox .selectedRef{
