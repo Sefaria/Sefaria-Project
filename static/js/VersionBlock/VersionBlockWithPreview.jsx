@@ -4,6 +4,7 @@ import VersionBlockHeader from "./VersionBlockHeader";
 import {VersionBlockUtils} from './VersionBlock';
 import VersionTitleAndSelector from './VersionTitleAndSelector';
 import VersionMetadata from "./VersionMetadata";
+import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import {OpenConnectionTabButton} from "../TextList";
 
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
@@ -21,28 +22,58 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
               link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, false)}
               direction={version.direction || 'ltr'}
              />
-            <details>
-                <summary>
-                    <VersionTitleAndSelector
-                      version={version}
-                      currentRef={currentRef}
-                      currObjectVersions={currObjectVersions}
-                      openVersionInReader={openVersionInReader}
-                      isSelected={isSelected}
-                    />
-                </summary>
-                <div className='version-block-with-preview-details'>
-                    <VersionMetadata
-                        currentRef={currentRef}
-                        version={version}
-                    />
-                    <OpenConnectionTabButton
-                        srefs={srefs}
-                        openInTabCallback={openInTabCallback}
-                        openStrings={['Open Text', 'פתיחת טקסט']}
-                    />
+            <div className='version-with-preview-header-row'>
+                <div className='version-with-preview-title-line version-with-preview-select-btn-container'>
+                    {
+                        (() => {
+                            const renderMode = 'translation';
+                            const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(
+                                null,
+                                currentRef,
+                                version,
+                                currObjectVersions,
+                                renderMode,
+                                null,
+                                openVersionInReader
+                            );
+                            const buttonText = isSelected ? 'Currently Selected' : 'Select';
+                            const link = VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, true);
+                            return (
+                                <VersionBlockSelectButton
+                                    isSelected={isSelected}
+                                    openVersionInMainPanel={openVersionInMainPanel}
+                                    text={buttonText}
+                                    link={link}
+                                />
+                            );
+                        })()
+                    }
                 </div>
-            </details>
+                <details>
+                    <summary>
+                        <VersionTitleAndSelector
+                          version={version}
+                          currentRef={currentRef}
+                          currObjectVersions={currObjectVersions}
+                          openVersionInReader={openVersionInReader}
+                          isSelected={isSelected}
+                        />
+                    </summary>
+                    <div className='version-block-with-preview-details'>
+                        <VersionMetadata
+                            currentRef={currentRef}
+                            version={version}
+                        />
+                        <OpenConnectionTabButton
+                            srefs={srefs}
+                            openInTabCallback={openInTabCallback}
+                            openStrings={['Open Text', 'פתיחת טקסט']}
+                        />
+                    </div>
+                </details>
+            </div>
+            
+            
         </div>
     );
 }
