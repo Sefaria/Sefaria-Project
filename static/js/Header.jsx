@@ -50,7 +50,7 @@ const LoggedOutDropdown = ({module}) => {
               <DropdownMenuSeparator/>
               <DropdownLanguageToggle/>
               <DropdownMenuSeparator/>
-              { module === 'library' &&
+              { module === Sefaria.LIBRARY_MODULE &&
                 <DropdownMenuItem url={'/updates'}>
                     <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
                 </DropdownMenuItem>
@@ -70,7 +70,7 @@ const LoggedInDropdown = ({module}) => {
                                                  name={Sefaria.full_name}
                                                  len={25}/>}>
           <div className='dropdownLinks-options'>
-              { module === 'library' && 
+              { module === Sefaria.LIBRARY_MODULE && 
                 <DropdownMenuItem preventClose={true}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
@@ -82,7 +82,7 @@ const LoggedInDropdown = ({module}) => {
               }
               <DropdownMenuSeparator/>
 
-              { module === 'library' && 
+              { module === Sefaria.LIBRARY_MODULE && 
                 <>
                 <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
                     <InterfaceText>Account Settings</InterfaceText>
@@ -115,7 +115,7 @@ const LoggedInDropdown = ({module}) => {
               <DropdownLanguageToggle/>
               <DropdownMenuSeparator/>
               
-              { module === 'library' && 
+              { module === Sefaria.LIBRARY_MODULE && 
                 <DropdownMenuItem url={'/updates'}>
                     <InterfaceText text={{'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא'}}/>
                 </DropdownMenuItem>
@@ -139,8 +139,8 @@ const ModuleSwitcher = () => {
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== "library"} targetModule={Sefaria.LIBRARY_MODULE}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
+              <DropdownMenuItem url={`${libraryURL}/`} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
+                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={Sefaria.LIBRARY_MODULE}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== Sefaria.SHEETS_MODULE} targetModule={Sefaria.SHEETS_MODULE}>  
@@ -187,7 +187,7 @@ const Header = (props) => {
     <img src={sheetsLogoPath} alt="Sefaria Sheets Logo" className="home"/>
   );
 
-  const logo = props.module === "library" ? libraryLogo : sheetsLogo;
+  const logo = props.module === Sefaria.LIBRARY_MODULE ? libraryLogo : sheetsLogo;
 
       const librarySavedIcon = <div className='librarySavedIcon'>
                                   <a href="/texts/saved" data-target-module={Sefaria.LIBRARY_MODULE}>
@@ -213,7 +213,7 @@ const Header = (props) => {
     <>
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
-          {props.module === "library" && 
+          {props.module === Sefaria.LIBRARY_MODULE && 
           <>
             <a href="/texts" className="textLink">
               <InterfaceText context="Header">Texts</InterfaceText>
@@ -244,7 +244,7 @@ const Header = (props) => {
           openURL={props.openURL}
       />
 
-        {!Sefaria._uid && props.module === "library" && <SignUpButton/>}
+        {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton/>}
         {props.module === Sefaria.SHEETS_MODULE && <CreateButton />}
         { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
@@ -254,7 +254,7 @@ const Header = (props) => {
                 translationLanguagePreference={props.translationLanguagePreference}
                 setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
-        { Sefaria._uid && (props.module ==="library" ? librarySavedIcon : sheetsNotificationsIcon) }
+        { Sefaria._uid && (props.module ===Sefaria.LIBRARY_MODULE ? librarySavedIcon : sheetsNotificationsIcon) }
 
           <ModuleSwitcher />
 
@@ -404,7 +404,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             hideHebrewKeyboard={true}
         />
       </div>
-      {module === "library" && 
+      {module === Sefaria.LIBRARY_MODULE && 
       <>
         <a href="/texts" onClick={close} className="textsPageLink">
           <img src="/static/icons/book.svg" />
@@ -443,7 +443,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         {Sefaria._uid &&
         <>
-          {module === "library" && 
+          {module === Sefaria.LIBRARY_MODULE && 
           <>
             <a href="/texts/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
@@ -494,7 +494,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <hr />
         
-        { module === "library" &&
+        { module === Sefaria.LIBRARY_MODULE &&
         <a href="/sheets/" data-target-module={Sefaria.SHEETS_MODULE}>
           <img src="/static/icons/sheets-mobile-icon.svg" />
           <InterfaceText>Sheets</InterfaceText>

@@ -1002,7 +1002,7 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        if (Sefaria.activeModule === 'library') {
+        if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
           menu = (
               <TopicsLandingPage openTopic={this.props.openTopic}/>
           );

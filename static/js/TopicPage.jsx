@@ -401,7 +401,7 @@ return (
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
-            {hasAiContentLinks && Sefaria.activeModule === 'library' && 
+            {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && 
                 <AiInfoTooltip/>
             }
         </div>
@@ -731,7 +731,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
         onClickFilterIndex = displayTabs.length - 1;
       }
 
-      if (displayTabs.length && tab !== "author-works-on-sefaria" && Sefaria.activeModule === 'library') {
+      if (displayTabs.length && tab !== "author-works-on-sefaria" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
         displayTabs.push({
           title: {
             en: "A",
