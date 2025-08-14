@@ -13,6 +13,7 @@ import {
   CategoryColorLine,
   InterfaceText,
   LoadingMessage,
+  AiInfoTooltip,
 } from './Misc';
 
 class SearchPage extends Component {
@@ -27,6 +28,8 @@ class SearchPage extends Component {
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
     const isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
+    const showAiBadge =    this.props.type === 'sheet' &&
+        (this.props.searchState?.sortType === 'relevance' || this.props.searchState?.sortType?.toLowerCase?.() === 'relevance');
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -70,12 +73,20 @@ class SearchPage extends Component {
               <div className="contentInner">
 
                 <div className="searchTopLine">
-                  <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                    <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
-                    <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
-                    {this.props.query}
-                    <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
-                  </h1>
+                  <div className="searchTopLineInner">
+                    <h1 className={classNames({
+                      "hebrewQuery": isQueryHebrew,
+                      "englishQuery": !isQueryHebrew
+                    })}>
+                      <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
+                      <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
+                      {this.props.query}
+                      <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
+                    </h1>
+                    {showAiBadge ? <AiInfoTooltip/> : null}
+                  </div>
+
+
                   {this.props.totalResults?.getValue() > 0 ?
                       <div className="searchResultCount sans-serif">
                         <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
@@ -88,7 +99,8 @@ class SearchPage extends Component {
               </div>
 
               {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
-                  <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
+                  <div
+                      className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
                     {this.props.totalResults?.getValue() > 0 ?
                         <SearchFilters
                             query={this.props.query}
