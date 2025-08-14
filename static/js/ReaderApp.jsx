@@ -798,13 +798,14 @@ class ReaderApp extends Component {
   }
   
   modifyURLbasedOnModule(url) {
+    const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
     if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!url.startsWith("/sheets"))) {
       // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-      return "/sheets" + url;
+      return sheetsPrefix + url;
     }
     else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && url.startsWith("/sheets")) {
       // If we are not in the sheets module, remove /sheets from the beginning of the URL
-      return url.replace(/^\/sheets/, "");
+      return url.replace(sheetsPrefix, "");
     }
     return url;
   }
