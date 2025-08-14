@@ -10,6 +10,7 @@ from dataclasses import asdict
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
+from celery.result import AsyncResult
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -357,8 +358,45 @@ def find_refs_api(request):
     from sefaria.helper.linker.tasks import find_refs_api_task
     request_text, options, metadata = unpack_find_refs_request(request)
     find_refs_input = FindRefsInput(request_text, options, metadata)
-    response = find_refs_api_task.apply_async(args=(asdict(find_refs_input),), queue=CELERY_QUEUES['tasks']).get(timeout=60)
-    return jsonResponse(response)
+    async_result = find_refs_api_task.apply_async(
+        args=(asdict(find_refs_input),),
+        queue=CELERY_QUEUES['tasks']
+    )
+    return jsonResponse({"task_id": async_result.id}, status=202)
+
+
+@api_view(["GET"])
+def async_task_status_api(request, task_id: str):
+    """
+    Poll the task. If complete, include the result.
+    Otherwise, return state (and any meta/progress).
+    """
+    result = AsyncResult(task_id)
+
+    state = result.state
+
+    payload = {
+        "task_id": task_id,
+        "state": state,
+        "ready": result.ready(),
+    }
+
+    # Include progress/meta if your task updates self.update_state(meta=...)
+    # Celery exposes that as `result.info` even while running
+    if result.info is not None and state not in ("SUCCESS", "FAILURE"):
+        payload["meta"] = result.info
+
+    if result.failed():
+        # result.result is the exception instance
+        payload["error"] = str(result.result)
+        return jsonResponse(payload, status=500)
+
+    if result.successful():
+        payload["result"] = result.result
+        return jsonResponse(payload, status=200)
+
+    # PENDING / STARTED / RETRY
+    return jsonResponse(payload, status=202)
 
 
 @api_view(["GET"])
