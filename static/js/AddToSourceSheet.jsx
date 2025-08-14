@@ -293,7 +293,18 @@ class AddToSourceSheetBox extends Component {
       let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
       let selectSheet = this.selectSheet.bind(this, sheet);
-      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
+      const isSelected = !!(this.state.selectedSheet && this.state.selectedSheet.id == sheet.id);
+      return (
+        <div
+          className={classes}
+          onClick={selectSheet}
+          key={sheet.id}
+          role="option"
+          aria-selected={isSelected}
+        >
+          {title}
+        </div>
+      );
     }) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     // Uses
