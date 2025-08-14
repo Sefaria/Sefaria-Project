@@ -99,10 +99,10 @@ const LoggedInDropdown = ({module}) => {
                 <DropdownMenuItem url={'/my/profile'} targetModule={Sefaria.SHEETS_MODULE}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={"/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={'/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>Saved</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={"/sheets/history'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={'/sheets/history'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>History</InterfaceText>
                 </DropdownMenuItem>
                 <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
