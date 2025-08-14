@@ -65,7 +65,7 @@ spec:
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
         command: ["celery"]
-        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $QueueConfig.tasks }}", "-l", "INFO"]
+        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $QueueConfig.tasks }}", "--concurrency=1", "-l", "INFO"]
         env:
           - name: ENV_NAME
             value: "{{ .Values.deployEnv }}"

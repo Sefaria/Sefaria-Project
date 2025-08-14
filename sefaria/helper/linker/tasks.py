@@ -6,7 +6,7 @@ from celery import signature
 from sefaria.model import library
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
-from sefaria.model.text import Ref
+from sefaria.model import Ref, text, library # Importing library to get it preloaded before workers start
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass
 
