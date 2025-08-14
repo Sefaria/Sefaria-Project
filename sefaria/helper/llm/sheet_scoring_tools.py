@@ -9,16 +9,6 @@ import os
 import django
 import logging
 
-PROJECT_ROOT = pathlib.Path(
-    __file__
-).resolve().parent.parent / "Sefaria-Project"
-LLM_IFACE_ROOT = "/Users/home/PycharmProjects/LLM/app/llm_interface"             # contains 'sefaria_llm_interface'
-sys.path.insert(0, str(LLM_IFACE_ROOT))        # make local interface override site-packages
-
-sys.path.append(str(PROJECT_ROOT))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE","sefaria.settings")
-django.setup()
-
 from sefaria.model import Ref  # adjust import if needed
 
 logger = logging.getLogger(__name__)
