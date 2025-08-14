@@ -7820,7 +7820,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--medium-grey);
   margin-inline-end: 15px;
   text-decoration: none;
   cursor: pointer;
