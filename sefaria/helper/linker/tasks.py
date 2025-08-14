@@ -4,7 +4,7 @@ Celery tasks for the LLM server
 
 from celery import signature, chain
 
-from sefaria.settings import USE_VARNISH, USERID
+from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
@@ -12,7 +12,7 @@ from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model.text import Ref
 from dataclasses import dataclass
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.varnish.wrapper import invalidate_ref
 
 
@@ -22,6 +22,7 @@ class LinkingArgs:
     text: str
     lang: str
     vtitle: str
+    user_id: str = None  # optional, for tracker
 
 
 
@@ -70,8 +71,7 @@ def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
         "linked_refs": linked_refs,
         "vtitle": linking_args.vtitle,
         "lang": linking_args.lang,
-        # "text_id": linking_args.text_id,
-        # "user_id": linking_args.user_id,
+        "user_id": linking_args.user_id,
         # "tracker_kwargs": linking_args.tracker_kwargs or {},
     }
 
@@ -116,8 +116,7 @@ def delete_and_save_new_links_logic(payload: [dict]):
     linked_orefs = [Ref(r) for r in payload.get("linked_refs", [])]
     # text_id = payload.get("text_id")
     text_id = Version().load({"versionTitle": payload.get("vtitle"), "language": payload.get("lang")})._id if payload.get("vtitle") and payload.get("lang") else None
-    # user = payload.get("user_id")     # pass-through for tracker
-    user = USERID
+    user = payload.get("user_id")     # pass-through for tracker
     kwargs = payload.get("tracker_kwargs", {})
 
     found = []   # normal refs discovered in this run
@@ -146,8 +145,11 @@ def delete_and_save_new_links_logic(payload: [dict]):
             links.append(link)
             if USE_VARNISH:
                 invalidate_ref(linked_oref)
+        except DuplicateRecordError as e:
+            # Link exists - skip
+            print(f"Existing Link no need to change: {e}")
         except InputError as e:
-            # Link exists or bad input — skip
+            # Other kinds of input error
             print(f"InputError: {e}")
 
     # Remove existing links that are no longer supported by the text
