@@ -17,17 +17,11 @@ export class SheetEditorPage extends HelperBase {
     statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
     maxSaveStateTimeout = 5000; //used in assertSaveState and a few other functions to allow for save state detection/update
 
-    async getHoverStatus() {
-      await this.statusIndicator().hover();
-    }
+    async getHoverStatus() { await this.statusIndicator().hover();}
 
-    async getStatusText() {
-        return await this.statusIndicator().innerText();
-    }
+    async getStatusText() { return await this.statusIndicator().innerText() }
 
-    async getTooltipText() {
-        return await this.statusTooltip().getAttribute('aria-label');
-    }
+    async getTooltipText() {return await this.statusTooltip().getAttribute('aria-label');}
 
     /**
      * Asserts the save state of the editor
@@ -51,11 +45,9 @@ export class SheetEditorPage extends HelperBase {
     async assertSaveStateIndicatorIsOnTop() {
       const target = this.page.locator('.editorSaveStateIndicator');
       await expect(target).toBeVisible();
-    
       const isOnTop = await target.evaluate((targetEl) => {
         const targetRect = targetEl.getBoundingClientRect();
         const targetZ = parseInt(getComputedStyle(targetEl).zIndex || '0', 10);
-    
         // Test multiple points to ensure comprehensive coverage
         const testPoints = [
           [targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2], 
@@ -64,24 +56,19 @@ export class SheetEditorPage extends HelperBase {
           [targetRect.left + 5, targetRect.bottom - 5],
           [targetRect.right - 5, targetRect.bottom - 5], 
         ];
-    
         for (const [x, y] of testPoints) {
           const topElement = document.elementFromPoint(x, y);
-          
           // If the top element isn't our target or contained within it, check z-index
           if (topElement && topElement !== targetEl && !targetEl.contains(topElement)) {
             const topElZ = parseInt(getComputedStyle(topElement).zIndex || '0', 10);
-            
             if (topElZ >= targetZ) {
               console.warn('Element with higher z-index found:', topElement, `z-index: ${topElZ} vs ${targetZ}`);
               return false;
             }
           }
         }
-        
         return true;
       });
-    
       expect(isOnTop).toBe(true);
     }
 
@@ -106,36 +93,89 @@ export class SheetEditorPage extends HelperBase {
     }
     
     // Source Sheet Buttons and Locators (source, text, media, comment)------------
-    closeSheetEditorButton = () => this.page.getByRole('link', { name: 'Close' }).first();
+    closeSheetEditorButton = () => this.page.locator('a.readerNavMenuCloseButton');
+    readerHeader = () => this.page.locator('header.readerControls.fullPanel.sheetReaderControls');
+    topTitle = () => this.page.locator('a[aria-label*="Show Connection Panel contents"]'); 
     title = () => this.page.locator('.title');
     loginLink= () => this.page.getByRole('link', { name: 'Log in' });
-    sideBarToggleButton = () => this.page.locator('.editorSideBarToggle');
-    addSomethingButton = () => this.page.locator('.editorAddLineButton');
+    sideBarToggleButton = () => this.page.locator('button.editorSidebarToggle');
+    resourcePanel = () => this.page.locator('.connectionsPanel');
+    textReaderPanel = () => this.page.locator('#panel-1.readerPanel');
+    resourcePanelCloseButton = () => this.page.locator('#panel-1').getByRole('link', { name: 'Close' });
+    
+    addSomethingButton = () => this.page.locator('.editorAddInterface');   
     addSourceButton = () => this.page.locator('#addSourceButton');
-    addImageButton = () => this.page.getByRole('button', { name: 'Add an image' });
-    addMediaButton = () => this.page.getByRole('button', { name: 'Add media' });  
+    addImageButton = () => this.page.locator('#addImageButton');
+    addMediaButton = () => this.page.locator('#addMediaButton');
+
+    //Text formatting locators - regular text
+    boldTextButton = () => this.page.locator('.hoverMenu i.fa.fa-bold');
+    italicTextButton = () => this.page.locator('.hoverMenu i.fa.fa-italic');
+    underlineTextButton = () => this.page.locator('.hoverMenu i.fa.fa-underline');
+    highlightTextButton = () => this.page.locator('.hoverMenu i.fa.fa-pencil');
+    makeTextLinkButton = () => this.page.locator('.hoverMenu i.fa.fa-link');
+    makeTextHeadingButton = () => this.page.locator('.hoverMenu i.fa.fa-header');
+    makeBulletedListButton = () => this.page.locator('.hoverMenu i.fa.fa-list-ul');
+    makeNumberedListButton = () => this.page.locator('.hoverMenu i.fa.fa-list-ol');
+
+    //Text formatting locators - source text (more specific)
+    boldSourceTextButton = () => this.page.locator('div:nth-child(3) > span > .fa.fa-bold');
+    underlineSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(3) > .fa.fa-underline');
+    highlightSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(4) > .fa.fa-pencil');
+    italicSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(2) > .fa.fa-italic');
     
     // Sheet Body---------------------------------------------
     sourceSheetBody = () => this.page.locator('.sheetContent'); 
     editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
+    addedSource = () => this.page.locator('.SheetSource.segment');
+    sourceReferenceLink = () => this.page.locator('.SheetSource .ref a[href^="/"]').first();
+    addedSpotify = () => this.page.locator('iframe[src*="open.spotify.com/embed/"]');
+    addedYoutube = () => this.page.locator('.youTubeContainer');
+    addedImage = () => this.page.locator('img.addedMedia');
 
     // Sheet Actions--------------------------------------------------
     async closeSheetEditor() {
       await this.closeSheetEditorButton().click();
+      // Wait for navigation to complete instead of using timeout
+      await this.page.waitForURL(/\/texts/);
     }
 
     async editTitle(newTitle: string): Promise<void> {
-        const title = this.title();
-        await expect(title).toBeVisible();
-        await title.click({ clickCount: 3 });
-        await this.page.keyboard.press('Backspace');
-        await this.page.keyboard.type(newTitle);
-      };
-    
-    async addText(text: string) {
-        await this.focusTextInput(); 
-        //delay is used to simulate user typing and ensure the save state is detected/updated
-        await this.page.keyboard.type(text, {delay: 100});
+      const title = this.title();
+      await expect(title).toBeVisible();
+      await title.click({ clickCount: 3 });
+      await this.page.keyboard.press('Backspace');
+      await this.page.keyboard.type(newTitle);
+    };
+
+    /**
+     * Methods to click buttons and interact with the sheet editor
+     */
+
+    async clickPlusButton() {
+      const editorInterface = this.page.locator('.editorAddInterface');
+      
+      try {
+        const box = await editorInterface.boundingBox({ timeout: 2000 });
+        if (box) {
+          await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
+          return;
+        }
+      } catch (error) {
+        // Fallback: position cursor at end and retry
+        await this.page.getByRole('textbox').first().click({ force: true });
+        await this.page.keyboard.press('End');
+        
+        try {
+          const box = await editorInterface.boundingBox({ timeout: 1000 });
+          if (box) {
+            await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
+          }
+        } catch (retryError) {
+          // Create new line if plus button unavailable
+          await this.page.keyboard.press('Enter');
+        }
+      }
     }
 
     async clickAddSomething() {
@@ -143,17 +183,18 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async clickAddSource() {
-        this.clickAddSomething();
+        await this.clickPlusButton();
         await this.addSourceButton().click();
     }
 
-    async clickAddText() {
-        await this.addSomethingButton().click();
-    }
-
     async clickAddMedia() {
-        this.clickAddSomething();
-        await this.addMediaButton().click();
+      await this.clickPlusButton();
+      await this.addMediaButton().click();
+    }
+    
+    async clickAddImage() {
+      await this.clickPlusButton();
+      await this.addImageButton().click();
     }
 
     async clickSidebarToggle() {
@@ -161,27 +202,72 @@ export class SheetEditorPage extends HelperBase {
     }
 
     async focusTextInput() {
-        await expect(this.page.locator('[data-slate-editor="true"][contenteditable="true"]')).toBeVisible();
-        await this.page.locator('[data-slate-editor="true"][contenteditable="true"]').click();
+      try {
+        await this.page.locator('.spacerSelected.spacer.empty').click({ timeout: 2000, force: true });
+      } catch (error) {
+        try {
+          await this.page.locator('.editorAddInterface').click({ timeout: 2000, force: true });
+        } catch (error2) {
+          // Use existing moveCursorToEnd helper
+          await this.moveCursorToEnd();
+        }
       }
+    }
 
     async getTextLocator(text: string): Promise<Locator> {
       return this.page.locator('span[data-slate-string="true"]', { hasText: text });
     }
 
+/**
+ * Methods to add components to the sheet editor
+ * Simulate user actions to add text, sources, images, and media.
+ */
+
+    async addText(text: string) {
+      await this.focusTextInput(); 
+      //delay is used to simulate user typing and ensure the save state is detected/updated
+      await this.page.keyboard.type(text, {delay: 100});
+    }
 
     async addSampleSource() {
-        console.log(await this.page.content());
-        await this.addSomethingButton().scrollIntoViewIfNeeded();
-        await expect(this.addSomethingButton()).toBeVisible();
-        await this.addSomethingButton().first().click({ force: true });
-        await this.addSomethingButton().first().click({ force: true });
-        await expect(this.addSourceButton()).toBeVisible();
-        await this.addSourceButton().click();
-        await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
-        await this.page.getByRole('button', { name: 'Add Source' }).click();
-      };
-    
+      await this.clickAddSource();
+      await this.page.getByRole('textbox', { name: 'Search for a Text or' }).fill('genesis 1:1');
+      await this.page.getByRole('button', { name: 'Add Source' }).click();
+    };
+
+    async addSampleImage() {
+      await this.clickAddImage();
+      const imagePath = 'e2e-tests/fixtures/test-image.jpg';
+      const fileInput = this.page.locator('#addImageFileSelector');
+      await fileInput.setInputFiles(imagePath);
+      await this.page.waitForSelector('img');
+      await expect(this.addedImage()).toBeVisible();
+    };
+
+    async addSampleMedia(link: string) {
+      await this.clickAddMedia();
+      await this.page.getByRole('textbox', { name: 'Paste a link to an image, video, or audio' }).fill(link);
+      await this.page.getByRole('button', { name: 'Add Media' }).click();
+    };   
+
+    async moveCursorToEnd() {
+      await this.page.evaluate(() => {
+        const elements = document.querySelectorAll('.spacerSelected .cursorHolder[contenteditable="true"]');
+        const lastElement = elements[elements.length - 1] as HTMLElement;
+        if (lastElement) {
+          lastElement.focus();
+          const range = document.createRange();
+          range.selectNodeContents(lastElement);
+          range.collapse(false); // Move to end
+              const selection = window.getSelection();
+              if (selection) {
+                  selection.removeAllRanges();
+                  selection.addRange(range);
+              }
+          }
+      });
+    }
+
     async sampleSourceNotEditable() {
         const sourceBox = this.page.locator('.sourceBox').last();
         await sourceBox.click();

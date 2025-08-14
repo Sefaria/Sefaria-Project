@@ -1,5 +1,5 @@
 import { Page } from "@playwright/test"
-import {changeLanguageIfNeeded} from "../utils"
+import {changeLanguage} from "../utils"
 import {LANGUAGES} from '../globals'
 import { Banner } from "./banner"
 import { TextsPage } from "./textsPage"
@@ -41,12 +41,6 @@ export class PageManager{
         this.userMenu = new UserMenu(page, language)
         this.sourceTextPage = new SourceTextPage(page, language)
         this.sheetEditorPage = new SheetEditorPage(page, language)
-    }
-
-    async toggleLanguage(newLanguage: any){
-        await changeLanguageIfNeeded(this.page, newLanguage)
-        this.banner.toggleLanguage(newLanguage)
-        this.textsPage.toggleLanguage(newLanguage)
     }
 
     navigateFromBannerTo(){
