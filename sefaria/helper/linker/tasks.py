@@ -10,6 +10,7 @@ from sefaria.model import Ref, text, library # Importing library to get it prelo
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass
 
+library.build_linker("he")
 
 @dataclass(frozen=True)
 class LinkingArgs:
