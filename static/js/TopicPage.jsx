@@ -856,7 +856,7 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory, module}) => {
-  const prefix = module === "sheets" ? "/sheets/" : "/";
+  const prefix = module === Sefaria.SHEETS_MODULE ? "/sheets/" : "/";
   const href = `${prefix}topics/${isCategory ? 'category/' : ''}${topic}`;
   return <div data-anl-event="related_click:click" data-anl-batch={
     JSON.stringify({

@@ -75,7 +75,7 @@ const LoggedInDropdown = ({module}) => {
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
               }
-               { module === 'sheets' && 
+               { module === Sefaria.SHEETS_MODULE && 
                 <DropdownMenuItem url={'/my/profile'} preventClose={true} targetModule={Sefaria.SHEETS_MODULE}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
@@ -94,15 +94,15 @@ const LoggedInDropdown = ({module}) => {
               }
 
 
-              { module === 'sheets' && 
+              { module === Sefaria.SHEETS_MODULE && 
                 <>
                 <DropdownMenuItem url={'/my/profile'} targetModule={Sefaria.SHEETS_MODULE}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={"/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>Saved</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/history'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={"/sheets/history'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>History</InterfaceText>
                 </DropdownMenuItem>
                 <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
@@ -143,7 +143,7 @@ const ModuleSwitcher = () => {
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== "sheets"} targetModule={Sefaria.SHEETS_MODULE}>  
+              <DropdownMenuItem url={`${sheetsURL}/sheets`} newTab={Sefaria.activeModule !== Sefaria.SHEETS_MODULE} targetModule={Sefaria.SHEETS_MODULE}>  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
@@ -223,7 +223,7 @@ const Header = (props) => {
             </a>
           </>
           }
-          {props.module === "sheets" && 
+          {props.module === Sefaria.SHEETS_MODULE && 
           <>
             <a href="/sheets/topics" data-target-module={Sefaria.SHEETS_MODULE} className="textLink">
               <InterfaceText context="Header">Topics</InterfaceText>
@@ -245,7 +245,7 @@ const Header = (props) => {
       />
 
         {!Sefaria._uid && props.module === "library" && <SignUpButton/>}
-        {props.module === "sheets" && <CreateButton />}
+        {props.module === Sefaria.SHEETS_MODULE && <CreateButton />}
         { Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
         { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -420,7 +420,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
       </>  
       }
-      {module === "sheets" && 
+      {module === Sefaria.SHEETS_MODULE && 
       <>
         <a href="/sheets/topics" data-target-module={Sefaria.SHEETS_MODULE} onClick={close}>
         <img src="/static/icons/topic.svg" />
@@ -450,7 +450,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             {<InterfaceText text={{en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות"}} />}
           </a>
           </>}
-          {module === "sheets" && 
+          {module === Sefaria.SHEETS_MODULE && 
           <>
            <a href="/my/profile" onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
             <div className="mobileProfileFlexContainer">
@@ -501,7 +501,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
         } 
 
-      { module === "sheets" &&
+      { module === Sefaria.SHEETS_MODULE &&
         <a href="/texts" data-target-module={Sefaria.LIBRARY_MODULE}>
           <img src="/static/icons/book.svg" />
           <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />

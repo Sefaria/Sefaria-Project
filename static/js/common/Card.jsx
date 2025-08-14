@@ -1,7 +1,7 @@
 import {InterfaceText} from "../Misc";
 import React from "react";
 const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl, analyticsEventName, analyticsLinkType}) => {
-    cardTitleHref = Sefaria.activeModule === "sheets" ? `/sheets/${cardTitleHref}` : cardTitleHref;
+    cardTitleHref = Sefaria.activeModule === Sefaria.SHEETS_MODULE ? `/sheets/${cardTitleHref}` : cardTitleHref;
     return <div className="card">
                 <a href={cardTitleHref} 
                 className="cardTitle" onClick={oncardTitleClick}

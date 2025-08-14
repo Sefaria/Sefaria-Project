@@ -1006,7 +1006,7 @@ class ReaderPanel extends Component {
           menu = (
               <TopicsLandingPage openTopic={this.props.openTopic}/>
           );
-        } else if (Sefaria.activeModule === "sheets") {
+        } else if (Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
           menu = <TopicsPage
                       key={"TopicsPage"}
                       setNavTopic={this.setNavigationTopic}

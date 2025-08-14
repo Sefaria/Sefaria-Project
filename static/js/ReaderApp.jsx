@@ -798,11 +798,11 @@ class ReaderApp extends Component {
   }
   
   modifyURLbasedOnModule(url) {
-    if (Sefaria.activeModule === "sheets" && (!url.startsWith("/sheets"))) {
+    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!url.startsWith("/sheets"))) {
       // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
       return "/sheets" + url;
     }
-    else if (Sefaria.activeModule !== "sheets" && url.startsWith("/sheets")) {
+    else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && url.startsWith("/sheets")) {
       // If we are not in the sheets module, remove /sheets from the beginning of the URL
       return url.replace(/^\/sheets/, "");
     }
