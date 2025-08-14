@@ -71,11 +71,6 @@ data:
         keepalive 32;
       }
 
-      map "$request_method:$uri" $is_findrefs_preflight {
-        default 0;
-        ~^OPTIONS:/(api/find-refs|api/find-refs/)$ 1;
-      }
-
       # Requests hitting the root domains should be redirected to the 'www' subdomain
       server {
         listen 80;
@@ -147,14 +142,6 @@ data:
         }
 
         location / {
-            if ($is_findrefs_preflight) {
-              add_header Access-Control-Allow-Origin "*" always;
-              add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
-              add_header Access-Control-Allow-Headers "Content-Type" always;
-              add_header Content-Length 0;
-              add_header Content-Type  text/plain;
-              return 204;
-            }
             {{- if .Values.instrumentation.enabled }}
             opentracing on;
             opentracing_propagate_context;
@@ -186,6 +173,29 @@ data:
         location /static/sitemaps/ {
           access_log off;
           proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
+        }
+
+        location /api/find-refs {
+          if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin "*" always;
+            add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Content-Type" always;
+            add_header Content-Length 0;
+            add_header Content-Type  text/plain;
+            return 204;
+          }
+            {{- if .Values.instrumentation.enabled }}
+            opentracing on;
+            opentracing_propagate_context;
+            {{- end }}
+            proxy_send_timeout  300;
+            proxy_read_timeout  300;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Port 443;
+            proxy_pass http://varnish_upstream;
         }
 
       } # server
