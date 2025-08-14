@@ -2424,6 +2424,8 @@ class Dropdown extends Component {
       optionsOpen: false,
       selected: null
     };
+    this.listboxRef = null;
+    this.triggerRef = null;
   }
 
   componentDidMount() {
@@ -2441,21 +2443,59 @@ class Dropdown extends Component {
   toggle() {
     this.setState({optionsOpen: !this.state.optionsOpen});
   }
+  componentDidUpdate(prevProps, prevState) {
+    // Move focus to the listbox when opened, back to trigger when closed
+    if (!prevState.optionsOpen && this.state.optionsOpen && this.listboxRef) {
+      this.listboxRef.focus();
+    } else if (prevState.optionsOpen && !this.state.optionsOpen && this.triggerRef) {
+      this.triggerRef.focus();
+    }
+  }
   render() {
     return (
         <div className="dropdown sans-serif">
-          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
+          <div
+            className={`dropdownMain noselect${this.state.selected ? " selected":""}`}
+            onClick={this.toggle}
+            role="button"
+            tabIndex="0"
+            aria-haspopup="listbox"
+            aria-expanded={this.state.optionsOpen}
+            aria-controls={`${this.props.name}-listbox`}
+            ref={(el) => { this.triggerRef = el; }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(); }
+              if (e.key === 'ArrowDown') { e.preventDefault(); if (!this.state.optionsOpen) { this.toggle(); } else if (this.listboxRef) { this.listboxRef.focus(); } }
+            }}
+          >
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
             <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt="Open dropdown"/>
 
           </div>
           {this.state.optionsOpen ?
             <div className="dropdownListBox noselect">
-              <div className="dropdownList noselect">
+              <div
+                className="dropdownList noselect"
+                tabIndex="0"
+                role="listbox"
+                aria-label={this.props.placeholder}
+                id={`${this.props.name}-listbox`}
+                ref={(el) => { this.listboxRef = el; }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') { e.preventDefault(); this.setState({optionsOpen: false}); }
+                  if (e.key === 'ArrowDown') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop += 30; } }
+                  if (e.key === 'ArrowUp') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop -= 30; } }
+                  if (e.key === 'PageDown') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop += this.listboxRef.clientHeight - 10; } }
+                  if (e.key === 'PageUp') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop -= this.listboxRef.clientHeight - 10; } }
+                  if (e.key === 'Home') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop = 0; } }
+                  if (e.key === 'End') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop = this.listboxRef.scrollHeight; } }
+                }}
+              >
                 {this.props.options.map(function(option) {
                   const onClick = this.select.bind(null, option);
-                  const classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
-                  return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
+                  const isSelected = this.state.selected && this.state.selected.value == option.value;
+                  const classes = classNames({dropdownOption: 1, selected: isSelected});
+                  return <div className={classes} onClick={onClick} key={option.value} role="option" aria-selected={!!isSelected}>{option.label}</div>
                 }.bind(this))}
               </div>
             </div>
@@ -2640,7 +2680,15 @@ class FeedbackBox extends Component {
                 <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
                 : null }
 
-             <div className="button" role="button" onClick={() => this.sendFeedback()}>
+            <div
+              className="button"
+              role="button"
+              tabIndex="0"
+              aria-label={Sefaria._("Send Feedback")}
+              onClick={() => this.sendFeedback()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.sendFeedback(); } }}
+            >
+              
                  <span className="int-en">Submit</span>
                  <span className="int-he">שליחה</span>
              </div>

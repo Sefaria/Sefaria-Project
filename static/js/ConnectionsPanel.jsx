@@ -1023,12 +1023,21 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
+  const isLink = !!url;
   const nameClass = en.camelize();
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
     <div className={classNames({toolsButtonContainer: 1, highlighted: highlighted})}>
-      <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
+      <a
+        href={isLink ? url : undefined}
+        className={wrapperClasses}
+        data-name={en}
+        onClick={clickHandler}
+        role={isLink ? undefined : "button"}
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clickHandler(e); } }}
+      >
         {iconElem}
         <span className="toolsButtonText">
           {control === "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
