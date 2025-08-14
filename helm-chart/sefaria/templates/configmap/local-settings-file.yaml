@@ -43,7 +43,9 @@ data:
     GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
 
-    DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
+    DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE", "{}"))
+    DOMAIN_MODULES = json.loads(os.getenv("DOMAIN_MODULES", "{}"))
+    
     ADMINS = (
         ('Sefaria Developers', 'dev@sefaria.org'),
     )
