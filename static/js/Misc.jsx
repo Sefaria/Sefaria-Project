@@ -23,8 +23,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
-
+import * as constants from './constants';
 function useOnceFullyVisible(onVisible, key) {
   const targetRef = useRef(null);
 
@@ -2914,6 +2913,32 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
+const DivineNameDepricationNotification = () => {
+
+  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+  const messages = constants.DEPRECATION_MESSAGES[lang];
+  const links = constants.DEPRECATION_LINKS[lang];
+
+  return (
+    <div className="divineNameDepricationNotification">
+      <p>
+        <strong>{messages.notice}</strong> {messages.mainMessage}
+      </p>
+      <p>
+        {messages.continuationMessage}{" "}
+        <a href={links.exportSheet}>
+          {messages.exportText}
+        </a>
+        {" "}{messages.andText}
+        <a href={links.extension}>
+          {messages.extensionText}
+        </a>
+        {messages.period}
+      </p>
+    </div>
+  );
+};
+
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
       <div className="divineNameReplacer">
@@ -2931,6 +2956,8 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
               onChange={(e) => setDivineNameReplacement((e.target.value))}
               preselected={divineNameReplacement}
             />
+            <DivineNameDepricationNotification />
+
       </div>
   )
 
