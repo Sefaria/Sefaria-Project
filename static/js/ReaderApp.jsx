@@ -12,13 +12,12 @@ import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
-  RemoteLearningPage,
+  SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
@@ -821,9 +820,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
     
-    console.log("Updating History - " + hist.url + " | " + currentUrl);
     hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
-    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -853,7 +850,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
@@ -2331,11 +2327,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
+            <a href="#main" className="skip-link">{Sefaria._("Skip to main content")}</a>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {panels}
+              <main id="main" role="main">
+                {panels}
+              </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />
@@ -2398,14 +2397,13 @@ export {
   unpackDataFromProps,
   loadServerData,
   EditCollectionPage,
-  RemoteLearningPage,
+  SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,

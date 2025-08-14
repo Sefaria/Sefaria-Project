@@ -114,6 +114,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
             className='topic-landing-search-input'
             id="searchInput"
             placeholder={placeHolder}
+            aria-label={placeHolder}
             onKeyDown={onKeyDownOverride}
             maxLength={75}
             {...otherInputDownshiftProps}

@@ -999,7 +999,7 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
     return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
-        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
+        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"} alt="Edit topic"/>;
 }
 
 const ReorderEditorWrapper = ({toggle, type, data}) => {
@@ -1146,7 +1146,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/iconmonstr-magnifier-2.svg" />
+      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt="Search" />
     </span>);
   }
 }
@@ -1216,18 +1216,12 @@ class DisplaySettingsButton extends Component {
       icon = <span className="textIcon">Aa</span>;
     }
     return (
-            <ToolTipped {...{ altText, classes}}>
-                <a
+            <ToolTipped {...{ altText, classes, onClick: this.props.onClick, style}}>
+                <span
                 className="readerOptions"
-                tabIndex="0"
-                role="button"
-                aria-haspopup="true"
-                aria-label="Toggle Reader Menu Display Settings"
-                style={style}
-                onClick={this.props.onClick}
-                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                aria-haspopup="true">
                 {icon}
-              </a>
+              </span>
             </ToolTipped>
             );
   }
@@ -1275,7 +1269,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               <div className="interfaceLinks-options trans-pref-header-container">
                 <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <img src="/static/img/circled-x.svg" className="reset-btn" alt="Reset" />
                   <span className="smallText">
                     <InterfaceText>Reset</InterfaceText>
                   </span>
@@ -1318,7 +1312,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
   const message = getSaveButtonMessage(selected);
-  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
+  const altText = placeholder ? 'Save button' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1409,11 +1403,18 @@ ArrowButton.propTypes = {
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
+  const handleClick = (e) => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { 
+      e.preventDefault(); 
+      handleClick(e);
+    }
+  };
   return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
-    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    style={style} onClick={handleClick}
+    onKeyDown={handleKeyDown}>
     { children }
   </div>
 )};
@@ -1732,7 +1733,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt="Not published"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1743,7 +1744,7 @@ const SheetListing = ({
   const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
   const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
                     pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
-  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
+  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} alt={pinMessage} />
 
   return (
     <div className="sheet" key={sheet.sheetUrl}>
@@ -1767,12 +1768,12 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           collectable ?
-            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} alt="Add to Collection" />
             : null
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} alt="Delete" />
             : null
         }
         {
@@ -1812,7 +1813,7 @@ const CollectionListing = ({data}) => {
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg"/>
+                <img src="/static/img/eye-slash.svg" alt="Unlisted"/>
                 <InterfaceText>Unlisted</InterfaceText>
               </span>) }
 
@@ -1846,7 +1847,7 @@ class Note extends Component {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt="Note author profile picture" />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
         </div>) : null;
@@ -1924,9 +1925,9 @@ class SignUpModal extends Component {
             <h2 className="serif sans-serif-in-hebrew">
               <InterfaceText text={modalContent.h2} />
             </h2>
-            <h3>
+            {modalContent.h3 && <h3> // conditional rendering to avoid empty h3 tags for WCAG compliance
               <InterfaceText text={modalContent.h3} />
-            </h3>
+            </h3>}
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
@@ -2423,6 +2424,8 @@ class Dropdown extends Component {
       optionsOpen: false,
       selected: null
     };
+    this.listboxRef = null;
+    this.triggerRef = null;
   }
 
   componentDidMount() {
@@ -2440,21 +2443,59 @@ class Dropdown extends Component {
   toggle() {
     this.setState({optionsOpen: !this.state.optionsOpen});
   }
+  componentDidUpdate(prevProps, prevState) {
+    // Move focus to the listbox when opened, back to trigger when closed
+    if (!prevState.optionsOpen && this.state.optionsOpen && this.listboxRef) {
+      this.listboxRef.focus();
+    } else if (prevState.optionsOpen && !this.state.optionsOpen && this.triggerRef) {
+      this.triggerRef.focus();
+    }
+  }
   render() {
     return (
         <div className="dropdown sans-serif">
-          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
+          <div
+            className={`dropdownMain noselect${this.state.selected ? " selected":""}`}
+            onClick={this.toggle}
+            role="button"
+            tabIndex="0"
+            aria-haspopup="listbox"
+            aria-expanded={this.state.optionsOpen}
+            aria-controls={`${this.props.name}-listbox`}
+            ref={(el) => { this.triggerRef = el; }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(); }
+              if (e.key === 'ArrowDown') { e.preventDefault(); if (!this.state.optionsOpen) { this.toggle(); } else if (this.listboxRef) { this.listboxRef.focus(); } }
+            }}
+          >
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
-            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt="Open dropdown"/>
 
           </div>
           {this.state.optionsOpen ?
             <div className="dropdownListBox noselect">
-              <div className="dropdownList noselect">
+              <div
+                className="dropdownList noselect"
+                tabIndex="0"
+                role="listbox"
+                aria-label={this.props.placeholder}
+                id={`${this.props.name}-listbox`}
+                ref={(el) => { this.listboxRef = el; }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') { e.preventDefault(); this.setState({optionsOpen: false}); }
+                  if (e.key === 'ArrowDown') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop += 30; } }
+                  if (e.key === 'ArrowUp') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop -= 30; } }
+                  if (e.key === 'PageDown') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop += this.listboxRef.clientHeight - 10; } }
+                  if (e.key === 'PageUp') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop -= this.listboxRef.clientHeight - 10; } }
+                  if (e.key === 'Home') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop = 0; } }
+                  if (e.key === 'End') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop = this.listboxRef.scrollHeight; } }
+                }}
+              >
                 {this.props.options.map(function(option) {
                   const onClick = this.select.bind(null, option);
-                  const classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
-                  return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
+                  const isSelected = this.state.selected && this.state.selected.value == option.value;
+                  const classes = classNames({dropdownOption: 1, selected: isSelected});
+                  return <div className={classes} onClick={onClick} key={option.value} role="option" aria-selected={!!isSelected}>{option.label}</div>
                 }.bind(this))}
               </div>
             </div>
@@ -2476,7 +2517,7 @@ class LoadingMessage extends Component {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
-    return (<div className={classes}>
+    return (<div className={classes} aria-live="polite" aria-label="Loading status">
               <InterfaceText>
                 <EnglishText>{message}</EnglishText>
                 <HebrewText>{heMessage}</HebrewText>
@@ -2611,7 +2652,7 @@ class FeedbackBox extends Component {
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
             {this.state.alertmsg ?
-                <div>
+                <div role="alert" aria-live="assertive">
                     <p className="int-en">{this.state.alertmsg}</p>
                     <p className="int-he">{this.state.alertmsg}</p>
                 </div>
@@ -2639,7 +2680,15 @@ class FeedbackBox extends Component {
                 <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
                 : null }
 
-             <div className="button" role="button" onClick={() => this.sendFeedback()}>
+            <div
+              className="button"
+              role="button"
+              tabIndex="0"
+              aria-label={Sefaria._("Send Feedback")}
+              onClick={() => this.sendFeedback()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.sendFeedback(); } }}
+            >
+              
                  <span className="int-en">Submit</span>
                  <span className="int-he">שליחה</span>
              </div>

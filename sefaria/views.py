@@ -385,7 +385,7 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response
+    from sefaria.helper.linker.linker import make_find_refs_response
     try:
         return jsonResponse(make_find_refs_response(request))
     except APIInvalidInputException as e:

@@ -57,7 +57,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
-        <img src={icon} />
+        <img src={icon} alt="Menu icon" />
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>
@@ -123,8 +123,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <div className="dropdownLinks-button" onClick={handleButtonClick}>
-              {buttonComponent}
+           <div className="dropdownLinks-button">
+              {React.cloneElement(buttonComponent, { onClick: handleButtonClick })}
           </div>
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}

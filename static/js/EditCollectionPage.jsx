@@ -138,7 +138,7 @@ class EditCollectionPage extends Component {
               <a className="button small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
-              <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
+              <div id="saveCollection" className="button small blue control-elem" onClick={this.save} role="button" tabIndex="0" aria-label="Save collection">
                   <InterfaceText>Save</InterfaceText>
               </div>
           </div>
@@ -237,7 +237,7 @@ class EditCollectionPage extends Component {
         : null }
 
         {this.props.initialData ?
-        <div className="deleteCollection" onClick={this.delete}>
+        <div className="deleteCollection" onClick={this.delete} role="button" tabIndex="0" aria-label="Delete collection">
           <InterfaceText>Delete Collection</InterfaceText>
         </div>
         : null}
