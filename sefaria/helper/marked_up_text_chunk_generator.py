@@ -3,7 +3,7 @@ import structlog
 from typing import List, Tuple
 from sefaria.model.text import Ref, TextChunk
 from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs
+from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs, enqueue_linking_chain, enqueue_linking_chain_debug
 from dataclasses import asdict
 
 
@@ -13,9 +13,8 @@ logger = structlog.get_logger(__name__)
 class MarkedUpTextChunkGenerator:
 
 
-    def __init__(self):
-        """Initialize the generator with necessary components."""
-        pass
+    def __init__(self, user_id=None):
+        self.user_id = user_id
 
     ## Public methods:
 
@@ -46,8 +45,9 @@ class MarkedUpTextChunkGenerator:
     ##  Private methods:
 
     def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
-        linking_args = LinkingArgs(ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle)
-        link_segment_with_worker.apply_async(args=[asdict(linking_args)], queue="linker")
+        linking_args = LinkingArgs(ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle, user_id=self.user_id)
+        enqueue_linking_chain(linking_args)
+        # enqueue_linking_chain_debug(linking_args)
 
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:
