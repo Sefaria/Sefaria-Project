@@ -78,6 +78,21 @@ entries:
     version: 0.67.0-remove-linker-pod-manifests.1
   - apiVersion: v2
     appVersion: v6.33.0
+    created: "2025-08-14T08:16:11.991603923Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 7a09a94ff397ab1d147fabd323f8e38c905653a4fdd43d0f7c5cb3d865a5fc78
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.67.0-remove-linker-pod.6.tgz
+    version: 0.67.0-remove-linker-pod.6
+  - apiVersion: v2
+    appVersion: v6.33.0
     created: "2025-08-14T03:23:33.719831802Z"
     description: Chart to deploy complete Sefaria environment
     digest: 19665844b42f1b6e49694467cba7acbb809d88fe97f77d0add32b159cb924fca
@@ -9015,4 +9030,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-08-14T03:23:33.717661707Z"
+generated: "2025-08-14T08:16:11.988737465Z"
