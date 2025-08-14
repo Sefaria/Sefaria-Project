@@ -1223,17 +1223,31 @@ class AddNoteBox extends Component {
     return (
       <div className="addNoteBox">
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
-        <div className="button fillWidth" onClick={this.saveNote}>
+        <div
+          className="button fillWidth"
+          role="button"
+          tabIndex="0"
+          aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
+          onClick={this.saveNote}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.saveNote(); } }}
+        >
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמירה" : "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
-          <div className="button white fillWidth" onClick={this.props.onCancel}>
+          <div
+            className="button white fillWidth"
+            role="button"
+            tabIndex="0"
+            aria-label={Sefaria._("Cancel")}
+            onClick={this.props.onCancel}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.onCancel(); } }}
+          >
             <span className="int-en">Cancel</span>
             <span className="int-he">בטל</span>
           </div> : null}
         {this.props.noteId ?
-          (<div className="deleteNote" onClick={this.deleteNote}>
+          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.deleteNote(); } }}>
             <span className="int-en">Delete Note</span>
             <span className="int-he">מחיקת הערה</span>
           </div>) : null}
