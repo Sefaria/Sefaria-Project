@@ -6,13 +6,14 @@ import json
 import re
 import bleach
 from datetime import datetime, timedelta
+from typing import Optional, Union, List
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -1195,6 +1196,182 @@ def index_sheets_by_timestamp(request):
         return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
+
+@csrf_exempt
+def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
+    """
+    Cache mediator for Strapi GraphQL queries with date parameters.
+    POST request with start_date, end_date GET params and GraphQL query in body.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with GraphQL data or error message
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+
+    try:
+        from datetime import datetime
+        from sefaria.system.cache import get_cache_elem, set_cache_elem
+
+        # Parse request parameters from URL query string
+        # Request parameters are used, because the parameters act as cache configuration for the request
+        start_date_raw: Union[str, List[str], None] = request.GET.get("start_date")
+        end_date_raw: Union[str, List[str], None] = request.GET.get("end_date")
+
+        # Validate that parameters are single strings, not lists or None
+        if not start_date_raw or isinstance(start_date_raw, list):
+            return jsonResponse(
+                {"error": "start_date parameter must be a single value"}, status=400
+            )
+        if not end_date_raw or isinstance(end_date_raw, list):
+            return jsonResponse(
+                {"error": "end_date parameter must be a single value"}, status=400
+            )
+
+        # They are strings!
+        start_date: str = start_date_raw
+        end_date: str = end_date_raw
+
+        # Validate date format (YYYY-MM-DD)
+        try:
+            datetime.strptime(start_date, "%Y-%m-%d")
+            datetime.strptime(end_date, "%Y-%m-%d")
+        except ValueError:
+            return jsonResponse(
+                {"error": "Dates must be in YYYY-MM-DD format"}, status=400
+            )
+
+        # Get GraphQL query from request body
+        # For simplicity, the GraphQL query is accepted as plain text instead of JSON, so client doesn't need to send a formatted
+        query: str = request.body.decode("utf-8")
+        if not query:
+            return jsonResponse(
+                {"error": "GraphQL query required in request body"}, status=400
+            )
+
+        # Create cache key from the specified dates. The query structure will be static while using the dates in its body
+        cache_key: str = f"strapi_graphql_{start_date}_{end_date}"
+
+        # Try to get from cache first
+        # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
+        cached_result: Optional[str] = get_cache_elem(cache_key, cache_type="default")
+        if cached_result:
+            return HttpResponse(cached_result, content_type="application/json")
+
+        # If not the query is not found in the cache, fetch from Strapi
+        import requests
+        from django.conf import settings
+
+        if settings.STRAPI_LOCATION is None or settings.STRAPI_PORT is None:
+            return jsonResponse(
+                {"error": "Strapi environment variables are not configured"}, status=500
+            )
+        else:
+            strapi_url = f"{settings.STRAPI_LOCATION}:{settings.STRAPI_PORT}"
+
+        # Make request to Strapi GraphQL endpoint
+        response = requests.post(
+            f"{strapi_url}/graphql",
+            json={"query": query},
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+
+        if response.status_code != 200:
+            return jsonResponse(
+                {"error": f"Strapi request failed with status {response.status_code}"},
+                status=500,
+            )
+
+        result_json = response.text
+
+        # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
+        set_cache_elem(
+            cache_key, result_json, timeout=7 * 24 * 60 * 60, cache_type="default"
+        )
+
+        return HttpResponse(result_json, content_type="application/json")
+
+    except Exception as e:
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
+
+
+@csrf_exempt
+@webhook_auth_or_staff_required
+def strapi_cache_invalidate(request: HttpRequest) -> HttpResponse:
+    """
+    Webhook endpoint to invalidate Strapi GraphQL cache when content changes on Strapi.
+    Strapi will call this endpoint with the correct token
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with success/error message and cache invalidation count
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+
+    try:
+        from sefaria.system.cache import get_cache_factory
+        from typing import Any
+
+        # Get cache instance
+        cache_instance: Any = get_cache_factory("default")
+
+        # For Redis cache backend using django-redis
+        try:
+            if hasattr(cache_instance, "delete_pattern"):
+                # django-redis provides delete_pattern method for Redis
+                deleted_count: int = cache_instance.delete_pattern("*strapi_graphql*")
+                logger.info(
+                    f"Invalidated {deleted_count} Strapi GraphQL cache entries via Redis pattern deletion"
+                )
+                return jsonResponse(
+                    {"success": f"Invalidated {deleted_count} cache entries"}
+                )
+
+            else:
+                # Fallback for other cache backends (FileBasedCache, etc.)
+                cache_backend = cache_instance.__class__.__name__
+                logger.info(f"Using fallback invalidation for {cache_backend}")
+
+                if hasattr(cache_instance, "clear"):
+                    # For FileBasedCache and other backends that support clear()
+                    # This could clear ALL entries for all environments without Redis
+                    logger.warning(
+                        f"No pattern deletion available for {cache_backend}, clearing entire cache"
+                    )
+                    cache_instance.clear()
+                    return jsonResponse(
+                        {
+                            "success": f"Entire cache cleared for {cache_backend} (no pattern support)"
+                        }
+                    )
+
+                else:
+                    # No supported invalidation method available
+                    logger.info(f"No supported invalidation method for {cache_backend}")
+                    return jsonResponse(
+                        {
+                            "success": f"Cache invalidation not supported for {cache_backend}"
+                        }
+                    )
+
+        except Exception as cache_error:
+            logger.error(f"Error during cache invalidation: {str(cache_error)}")
+            # Don't fail the webhook request if cache invalidation has issues
+            return jsonResponse(
+                {"success": "Cache invalidation attempted", "warning": str(cache_error)}
+            )
+
+    except Exception as e:
+        logger.error(f"Error in strapi_cache_invalidate: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")

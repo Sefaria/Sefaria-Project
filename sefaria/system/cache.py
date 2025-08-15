@@ -3,9 +3,11 @@ import hashlib
 import sys
 from datetime import datetime
 from functools import wraps
+from typing import Optional, Any, Union
 
 from django.http import HttpRequest
 from django.core.cache import DEFAULT_CACHE_ALIAS
+from django.core.cache.backends.base import BaseCache
 
 from sefaria import settings
 
@@ -25,7 +27,16 @@ LONG_TERM_CACHE_ALIAS = getattr(settings, 'LONG_TERM_CACHE_ALIAS', DEFAULT_CACHE
 # New cache instance reconnect-apparently
 
 
-def get_cache_factory(cache_type):
+def get_cache_factory(cache_type: Optional[str]) -> BaseCache:
+    """
+    Get a Django cache instance by cache type.
+    
+    Args:
+        cache_type: The cache backend type to retrieve. Defaults to 'default' if None.
+        
+    Returns:
+        BaseCache: The Django cache backend instance.
+    """
     if cache_type is None:
         cache_type = 'default'
     return caches[cache_type]
@@ -102,7 +113,17 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
 #-------------------------------------------------------------#
 
 
-def get_cache_elem(key, cache_type=None):
+def get_cache_elem(key: str, cache_type: Optional[str] = None) -> Any:
+    """
+    Retrieve an element from the cache.
+    
+    Args:
+        key: The cache key to retrieve.
+        cache_type: The cache backend type to use. Defaults to 'default' if None.
+        
+    Returns:
+        Any: The cached value, or None if not found.
+    """
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.get(key)
 
@@ -111,7 +132,19 @@ def get_shared_cache_elem(key):
     return get_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
-def set_cache_elem(key, value, timeout = None, cache_type=None):
+def set_cache_elem(key: str, value: Any, timeout: Optional[int] = None, cache_type: Optional[str] = None) -> bool:
+    """
+    Set an element in the cache.
+    
+    Args:
+        key: The cache key to set.
+        value: The value to cache.
+        timeout: Cache timeout in seconds. None means use default timeout.
+        cache_type: The cache backend type to use. Defaults to 'default' if None.
+        
+    Returns:
+        bool: True if the value was successfully cached, False otherwise.
+    """
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.set(key, value, timeout)
 
