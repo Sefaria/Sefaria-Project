@@ -90,6 +90,13 @@ def cors_allow_all(view_func):
             return _add_cors_headers(response)
         response = view_func(request, *args, **kwargs)
         return _add_cors_headers(response)
+    # Preserve or enforce CSRF exemption so POSTs from other origins aren't blocked
+    try:
+        from django.views.decorators.csrf import csrf_exempt as _csrf_exempt
+        _wrapped = _csrf_exempt(_wrapped)
+    except Exception:
+        # Fallback: set attribute directly if decorator import fails for any reason
+        setattr(_wrapped, 'csrf_exempt', True)
     return _wrapped
 
 
