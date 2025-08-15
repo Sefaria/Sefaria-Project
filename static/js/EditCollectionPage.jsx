@@ -119,11 +119,17 @@ class EditCollectionPage extends Component {
           alert(data.error);
         } else {
           this.changed = false;
-          window.location = "/sheets/collections/" + data.collection.slug;
+          window.location = `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/sheets/collections/${data.collection.slug}`; 
         }
     }.bind(this)).fail(function() {
         alert(Sefaria._("Unfortunately an error occurred saving your collection."));
     });
+  }
+  getCancelLink() {
+    if (this.props.initialData) {
+      return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/sheets/collections/${this.state.slug}`;
+    }
+    return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/my/profile`;
   }
   render() {
     const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
@@ -135,7 +141,7 @@ class EditCollectionPage extends Component {
             <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
-              <a className="button small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
+              <a className="button small transparent control-elem" href={this.getCancelLink()}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
               <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>

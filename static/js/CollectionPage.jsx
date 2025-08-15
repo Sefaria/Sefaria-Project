@@ -329,7 +329,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
       { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
     </div> }
 
-    <a className="collectionLabel" href="/sheets/collections">
+    <a className="collectionLabel" href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE}>
       <InterfaceText>Collection</InterfaceText>
     </a>
 
@@ -349,7 +349,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a className="button small white" href={`/sheets/collections/${slug}/settings`}>
+  <a className="button small white" href={`/sheets/collections/${slug}/settings`} data-target-module={Sefaria.SHEETS_MODULE}>
     <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
   </a>
 );
@@ -386,7 +386,7 @@ const CollectionContentsTab = ({collection, setFilter}) => {
             <InterfaceText text={tagGroup.label} />
           </div>}
           <ResponsiveNBox content={tagGroup.contents.map(tag => (
-            <a href={`/sheets/collections/${collection.slug}?tag=${tag}`} className="collectionContentsTag" onClick={(e) => {
+            <a href={`/sheets/collections/${collection.slug}?tag=${tag}`} data-target-module={Sefaria.SHEETS_MODULE} className="collectionContentsTag" onClick={(e) => {
               e.preventDefault();
               setFilter(tag);}}>
               <InterfaceText>{tag}</InterfaceText>

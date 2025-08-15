@@ -137,7 +137,6 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
                                 a: ({ href, children, ...props }) => (
                                   <a 
                                     href={href} 
-                                    target="_blank"  // forcibly open in new tab to avoid cases like /sheets/Isaiah.4.3 due to updateHistoryState modifying URL in sheets module
                                     rel="noopener noreferrer"
                                     {...props}
                                   >
@@ -563,13 +562,17 @@ class Link extends Component {
               className={this.props.className}
               href={this.props.href}
               onClick={this.handleClick}
-              title={this.props.title}>{this.props.children}</a>
+              title={this.props.title}
+              data-target-module={this.props.module || Sefaria.activeModule}
+              >
+                {this.props.children}</a>
   }
 }
 Link.propTypes = {
   href:    PropTypes.string.isRequired,
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
+  module:  PropTypes.string,
 };
 
 
@@ -628,7 +631,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} data-target-module={isSheet ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -745,7 +748,7 @@ SimpleContentBlock.propTypes = {
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
   <div className={classes} onClick={onClick}>
-    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.activeModule}>
       <InterfaceText text={{en, he}}/>
     </a>
     {children}
@@ -1580,7 +1583,7 @@ class ProfileListing extends Component {
     return (
       <div className={"authorByLine sans-serif" + (smallfonts ? " small" : "")}>
         <div className="authorByLineImage">
-          <a href={url}>
+          <a href={url} data-target-module={Sefaria.SHEETS_MODULE}>
             <ProfilePic
               len={smallfonts ? 30 : 40}
               url={image}
@@ -1686,7 +1689,7 @@ const SheetListing = ({
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
         <div className="sheetUser">
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.SHEETS_MODULE}>
             <ProfilePic
               outerStyle={{display: "inline-block"}}
               name={sheet.ownerName}
@@ -1694,7 +1697,7 @@ const SheetListing = ({
               len={26}
             />
           </a>
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
+          <a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
         {viewsIcon}
       </div>
@@ -1709,6 +1712,7 @@ const SheetListing = ({
       <a href={`/sheets/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
+        data-target-module={Sefaria.SHEETS_MODULE}
         key={i}
       >
         {collection.name}
@@ -1719,11 +1723,12 @@ const SheetListing = ({
   const topics = sheet.topics.map((topic, i) => {
     const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
     return (
-      <a href={`/topics/${topic.slug}`}
+      <a href={`/sheets/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
+        data-target-module={Sefaria.SHEETS_MODULE}
       >
         <InterfaceText text={topic} />
         {separator}
@@ -1733,7 +1738,7 @@ const SheetListing = ({
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
-      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
       collections.length ? collections : undefined,
@@ -1749,7 +1754,7 @@ const SheetListing = ({
     <div className="sheet" key={sheet.sheetUrl}>
       <div className="sheetLeft">
         {sheetInfo}
-        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+        <a href={sheet.sheetUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1805,7 +1810,7 @@ const CollectionListing = ({data}) => {
       <div className="left-content">
         <div className="collectionListingText">
 
-          <a href={collectionUrl} className="collectionListingName">
+          <a href={collectionUrl} className="collectionListingName" data-target-module={Sefaria.SHEETS_MODULE}>
             {data.name}
           </a>
 
@@ -1844,11 +1849,11 @@ class Note extends Component {
   // Public or private note in the Sidebar.
   render() {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
-        (<div className="noteAuthorInfo">
-          <a href={this.props.ownerProfileUrl}>
+        (        <div className="noteAuthorInfo">
+          <a href={this.props.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE}>
             <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
           </a>
-          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+          <a href={this.props.ownerProfileUrl} className="noteAuthor" data-target-module={Sefaria.SHEETS_MODULE}>{this.props.ownerName}</a>
         </div>) : null;
 
       var buttons = this.props.isMyNote ?
@@ -2514,7 +2519,7 @@ class SheetTopicLink extends Component {
   render() {
     const { slug, en, he } = this.props.topic;
     return (
-      <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
+      <a href={`/sheets/topics/${slug}`} onClick={this.handleTagClick} data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{en:en, he:he}} />
       </a>
     );
@@ -2808,11 +2813,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/sheets/collections/" + slug}>
+        <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/sheets/collections/" + slug}>{children ? children : name}</a>
+      <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
