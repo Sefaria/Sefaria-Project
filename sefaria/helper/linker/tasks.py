@@ -14,6 +14,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 library.build_linker("he")
+library.build_linker("en")
 
 @dataclass(frozen=True)
 class LinkingArgs:
