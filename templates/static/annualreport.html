@@ -14,8 +14,34 @@
             position:absolute; left: 0; right: 0; bottom: 0; top: 0px;
         }
     </style>
+    <script>
+      const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const frame = document.getElementById('pdfFrame');
+        if (!frame) return;
+
+        // Create a button to open the annual report PDF in a separate tab/window
+        // PDFs don't work in iFrames on iOS
+        // Remove the broken inline frame
+        if (isIOS()) {
+          const link = document.createElement('a');
+          link.href = frame.src;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = 'Tap here to open the annual report (PDF)';
+          link.style.display = 'block';
+          link.style.padding = '3rem';
+          link.style.fontSize = '4rem';
+          link.style.textAlign = 'center';
+          frame.replaceWith(link);
+        }
+      });
+    </script>
 </head>
 <body>
-    <iframe style="border: 1px solid #777;" src="{{ pdfURL }}" width="100%" height="100%" frameborder="0" allowfullscreen=""></iframe>
+  <div id="content">
+    <iframe id="pdfFrame" style="border: 1px solid #777;" src="{{ pdfURL }}" width="100%" height="100%" frameborder="0" allowfullscreen=""></iframe>
+  </div>
 </body>
 </html>

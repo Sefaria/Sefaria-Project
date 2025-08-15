@@ -53,7 +53,6 @@ class SefariaSiteMapGenerator(object):
         "/people/Talmud",
         "/william-davidson-talmud",
         "/nash-bravmann-collection",
-        "/remote-learning",
     ]
     sitemaps = []
 

@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import extend from 'extend';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import Header from './Header';
+import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
@@ -18,7 +18,6 @@ import {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
@@ -37,6 +36,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -114,8 +114,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      editorSaveState: 'saved',
     };
   }
+  setEditorSaveState = (nextState) => {
+    this.setState({ editorSaveState: nextState });
+    };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -203,6 +207,18 @@ class ReaderApp extends Component {
     } else if (Sefaria.isNewVisitor()) {
       // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
       Sefaria.markUserAsNewVisitor();
+    }
+
+    if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
+      sessionStorage.setItem("sa.reader_app_mounted", "true");
+      sa_event("reader_app_mounted");
+      if (Sefaria._debug) console.log("sa: reader app has loaded!");
+    }
+    if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
+      if (!('IntersectionObserver' in window)) {
+        sa_event("intersection_observer_not_supported");
+      }
+      localStorage.setItem("sa.intersection_observer_api_checked", "true");
     }
   }
   componentWillUnmount() {
@@ -780,6 +796,20 @@ class ReaderApp extends Component {
 
     return hist;
   }
+  
+  modifyURLbasedOnModule(url) {
+    const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
+    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!url.startsWith("/sheets"))) {
+      // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
+      return sheetsPrefix + url;
+    }
+    else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && url.startsWith("/sheets")) {
+      // If we are not in the sheets module, remove /sheets from the beginning of the URL
+      return url.replace(sheetsPrefix, "");
+    }
+    return url;
+  }
+  
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -790,6 +820,10 @@ class ReaderApp extends Component {
       currentUrl += window.location.hash;
       hist.url += window.location.hash;
     }
+    
+    console.log("Updating History - " + hist.url + " | " + currentUrl);
+    hist.url = this.modifyURLbasedOnModule(hist.url); 
+    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -1014,6 +1048,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       parent = parent.parentNode;
     }
   }
+  alertUnsavedChangesConfirmed() {
+    // If the user has unsaved changes, we want to prevent the default action of the click
+    // and show a confirmation dialog instead.
+    const ok = window.confirm(
+        "You have unsaved changes that may be lost. Continue?"
+    );
+    if (!ok) {
+        return false;
+    }
+    return true;
+  }
   handleInAppClickWithModifiers(e){
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
@@ -1055,30 +1100,42 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = linkTarget.getAttribute('href');
+
+    let href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
+    
+    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either 'sheets', Sefaria.LIBRARY_MODULE or null
+
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true);
+      const handled = this.openURL(href, true, false, moduleTarget);
       if (handled) {
         e.preventDefault();
       }
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(linkTarget.closest(".sheetItem"))
-    const replacePanel = !(isSheet)
+    const isSheet = !!(linkTarget.closest(".sheetItem"));
+    const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(href, replace=true, overrideContentLang=false) {
+
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
+
+    href = Sefaria.util.fullURL(href, moduleTarget);
+    
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
     try {
       url = new URL(href);
@@ -1087,7 +1144,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf("www.sefaria.org") === -1) {
+    if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
       return true;
     }
@@ -1123,7 +1180,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
-    } else if (path === "/collections") {
+    } else if (path === "/sheets/collections") {
       this.showCollections();
 
     } else if (path === "/community") {
@@ -1144,23 +1201,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.slice(8));
 
-    } else if (path === "/topics") {
+    } else if (path === "/topics" || path === "/sheets/topics") {
       this.showTopics();
 
-    } else if (path.match(/^\/topics\/category\/[^\/]/)) {
-      this.openTopicCategory(path.slice(17));
-
-    } else if (path.match(/^\/topics\/all\/[^\/]/)) {
-      this.openAllTopics(path.slice(12));
-
-    } else if (path.match(/^\/topics\/[^\/]+/)) {
-      this.openTopic(path.slice(8), params.get("tab"));
-
+    } else if (path.match(/^\/(sheets\/)?topics\/category\/[^\/]/)) {
+      this.openTopicCategory(path.replace(/^\/(sheets\/)?topics\/category\//, ''));
+      
+    } else if (path.match(/^\/(sheets\/)?topics\/all\/[^\/]/)) {
+      this.openAllTopics(path.replace(/^\/(sheets\/)?topics\/all\//, ''));
+      
+    } else if (path.match(/^\/(sheets\/)?topics\/[^\/]+/)) {
+      this.openTopic(path.replace(/^\/(sheets\/)?topics\//, ''), params.get("tab"));
+      
     } else if (path.match(/^\/sheets\/profile\/.+/)) {
       this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
 
-    } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(13), params.get("tag"));
+    } else if (path.match(/^\/sheets\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+      this.openCollection(path.slice(20), params.get("tag"));
 
     } else if (path.match(/^\/translations\/.+/)) {
       let slug = path.slice(14);
@@ -1662,7 +1719,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
+
+  shouldAlertBeforeCloseEditor() {
+    const sheetId = this.state.panels[0]?.sheetID;
+    return !!(sheetId &&
+        this.state.panels[0].mode === "Sheet" &&
+        this.state.editorSaveState && this.state.editorSaveState !== "saved")
+        && shouldUseEditor(sheetId);
+
+  }
   closePanel(n) {
+    // currently we assume that the editor is always the first panel,
+    // TODO: enforce this assumption
+    if (n===0 && this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return false;
+      }
+    }
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
       this.state.panels = [];
@@ -1672,8 +1745,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.refs = parent.refs.map(ref => Sefaria.ref(ref).sectionRef);
-        parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
@@ -2231,6 +2302,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      editorSaveState={this.state.editorSaveState}
+                      setEditorSaveState={this.setEditorSaveState}
                     />
                   </div>);
     }
@@ -2339,7 +2412,6 @@ export {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,

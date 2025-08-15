@@ -5,18 +5,13 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, SectionContext, ContextPart, TermContext
+from sefaria.model.linker.ne_span import NESpan
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
 logger = structlog.get_logger(__name__)
-try:
-    import spacy
-    from spacy.tokens import Span, Token, Doc
-    from spacy.language import Language
-except ImportError:
-    spacy = Doc = Span = Token = Language = None
 
 
 class ContextType(Enum):
@@ -73,30 +68,31 @@ class ResolvedRef(abst.Cloneable):
         new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
         return new_raw_ref_span.text
 
-    def _get_pretty_dh_span(self, curr_span) -> SpanOrToken:
-        curr_start, curr_end = span_inds(curr_span)
+    def _get_pretty_dh_span(self, curr_span: NESpan) -> NESpan:
+        curr_start, curr_end = curr_span.range
         for dh_span in self._matched_dh_map.values():
-            temp_start, temp_end = span_inds(dh_span)
+            temp_start, temp_end = dh_span.range
             curr_start = temp_start if temp_start < curr_start else curr_start
             curr_end = temp_end if temp_end > curr_end else curr_end
 
-        return curr_span.doc[curr_start:curr_end]
+        return curr_span.doc.subspan(slice(curr_start, curr_end))
 
-    def _get_pretty_end_paren_span(self, curr_span) -> SpanOrToken:
+    @staticmethod
+    def _get_pretty_end_paren_span(curr_span: NESpan) -> NESpan:
         import re
 
-        curr_start, curr_end = span_inds(curr_span)
+        curr_start, curr_end = curr_span.range
         if re.search(r'\([^)]+$', curr_span.text) is not None:
-            for temp_end in range(curr_end, curr_end+2):
-                if ")" not in curr_span.doc[temp_end].text: continue
-                curr_end = temp_end + 1
-                break
+            for temp_end in range(curr_end, curr_end+5):
+                if curr_span.doc.text[temp_end] == ")":
+                    curr_end = temp_end + 1
+                    break
 
-        return curr_span.doc[curr_start:curr_end]
+        return curr_span.doc.subspan(slice(curr_start, curr_end))
 
     def _set_matched_dh(self, part: RawRefPart, potential_dh_token_idx: int):
         if part.potential_dh_continuation is None: return
-        matched_dh_continuation = part.potential_dh_continuation[:potential_dh_token_idx]
+        matched_dh_continuation = part.potential_dh_continuation.subspan_by_word_indices(slice(0, potential_dh_token_idx))
         self._matched_dh_map[part] = matched_dh_continuation
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
@@ -169,7 +165,6 @@ class ResolvedRef(abst.Cloneable):
             return any([leaf_ref.contains(other.ref) for leaf_ref in self.node.leaf_refs()])
         except NotImplementedError:
             return False
-
 
     @property
     def order_key(self):

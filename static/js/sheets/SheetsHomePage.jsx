@@ -1,7 +1,6 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
-import Footer from "../Footer";
-import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsTopics";
+import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
      * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
@@ -31,11 +30,7 @@ const SheetsSidebar = () => {
 
 
 const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
-  const handleClick = (func) => (e, slug, en, he) => {
-      e.preventDefault();
-      func(slug, {en, he});  // setTopic or setNavTopic
-  }
-  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={handleClick(setNavTopic)}/>;
+  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
   return <div className="readerNavMenu sheetsHomepage" key="0">
             <div className="content">
                 <SheetsHeroBanner title="Join the Torah Conversation"
@@ -46,14 +41,13 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
                 <div className="sidebarLayout">
                     <div className="contentInner">
                         <div className="sheetsTopics">
-                            <SheetsTopicsCalendar handleClick={handleClick(setTopic)}/>
+                            <SheetsTopicsCalendar handleClick={setTopic}/>
                             {multiPanel && sheetsTopicsTOC}
                         </div>
                     </div>
                     <SheetsSidebar/>
                     {!multiPanel && sheetsTopicsTOC}
                 </div>
-                <Footer/>
             </div>
         </div>
 }

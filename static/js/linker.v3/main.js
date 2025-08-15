@@ -467,7 +467,7 @@ import {LinkExcluder} from "./excluder";
     function applyDefaultOptions(options) {
         const defaultOptions = {
             sefariaUrl: "https://www.sefaria.org",  // for configuring which backend linker communicates with
-            mode: "popup-click",
+            mode: "link",
             whitelistSelector: null,
             excludeFromLinking: null,    // CSS Selector
             popupStyles: {},
