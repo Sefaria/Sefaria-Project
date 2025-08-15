@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText, getCurrentPage } from '../Misc';
-
+import Sefaria from '../sefaria/sefaria';
 
 const DropdownMenuSeparator = () => {
 
@@ -18,12 +18,12 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
   }
 
   const cssClasses = customCSS ? customCSS : 'interfaceLinks-option int-bi dropdownItem';
+  const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
 
   return (
     <a className={cssClasses}
-       href={url}
+       href={fullURL}
        target={newTab ? '_blank' : null}
-       data-target-module={targetModule ? targetModule : undefined}
        data-prevent-close={preventClose}>
       {children}
     </a>

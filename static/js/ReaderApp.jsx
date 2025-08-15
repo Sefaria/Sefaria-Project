@@ -1125,6 +1125,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       e.preventDefault();
     }
   }
+
   openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
@@ -1132,10 +1133,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
     }
 
-    const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
+    href = Sefaria.util.fullURL(href, moduleTarget);
     
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? moduleURL.origin + href : href;   // modify href to include specified module URL if it's a relative link
     let url;
     try {
       url = new URL(href);

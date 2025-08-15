@@ -293,7 +293,11 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-
+    static fullURL(href, moduleTarget) {
+      const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
+      const newHref = href.startsWith("/") ? moduleURL.origin + href : href;   // modify href to include specified module URL if it's a relative link
+      return newHref;
+    }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
       return (res !== null)
