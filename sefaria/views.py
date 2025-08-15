@@ -362,6 +362,13 @@ def find_refs_api(request):
         args=(asdict(find_refs_input),),
         queue=CELERY_QUEUES['tasks']
     )
+    logger.info(
+        "find_refs_api:enqueued",
+        task_id=async_result.id,
+        lang=find_refs_input.text.lang,
+        title_len=len(find_refs_input.text.title or ""),
+        body_len=len(find_refs_input.text.body or ""),
+    )
     return jsonResponse({"task_id": async_result.id}, status=202)
 
 
@@ -389,13 +396,29 @@ def async_task_status_api(request, task_id: str):
     if result.failed():
         # result.result is the exception instance
         payload["error"] = str(result.result)
+        logger.error("async_task_status_api:failed", task_id=task_id, state=state, error=payload["error"]) 
         return jsonResponse(payload, status=500)
 
     if result.successful():
         payload["result"] = result.result
+        # summarize result shape if dict-like
+        try:
+            result_dict = result.result if isinstance(result.result, dict) else {}
+            title_results = len(result_dict.get("title", {}).get("results", []) if isinstance(result_dict.get("title"), dict) else [])
+            body_results = len(result_dict.get("body", {}).get("results", []) if isinstance(result_dict.get("body"), dict) else [])
+        except Exception:
+            title_results, body_results = None, None
+        logger.info(
+            "async_task_status_api:success",
+            task_id=task_id,
+            state=state,
+            title_results=title_results,
+            body_results=body_results,
+        )
         return jsonResponse(payload, status=200)
 
     # PENDING / STARTED / RETRY
+    logger.info("async_task_status_api:pending", task_id=task_id, state=state)
     return jsonResponse(payload, status=202)
 
 
