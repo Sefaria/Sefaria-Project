@@ -8,6 +8,9 @@ from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
 from api.api_errors import APIInvalidInputException
 from typing import List, Optional, Tuple
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 FIND_REFS_POST_SCHEMA = {
@@ -50,14 +53,35 @@ FIND_REFS_POST_SCHEMA = {
 }
 
 
-def make_find_refs_response(request):
-    request_text, options, meta_data = _unpack_find_refs_request(request)
-    if meta_data:
-        _add_webpage_hit_for_url(meta_data.get("url", None))
-    return _make_find_refs_response_with_cache(request_text, options, meta_data)
+def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
+    metadata = find_refs_input.metadata
+    if metadata:
+        _add_webpage_hit_for_url(metadata.get("url", None))
+    logger.info(
+        "make_find_refs_response:start",
+        lang=find_refs_input.text.lang,
+        title_len=len(find_refs_input.text.title or ""),
+        body_len=len(find_refs_input.text.body or ""),
+        with_text=find_refs_input.options.with_text,
+        debug=find_refs_input.options.debug,
+        max_segments=find_refs_input.options.max_segments,
+        has_version_prefs=find_refs_input.options.version_preferences_by_corpus is not None,
+        has_metadata=metadata is not None,
+    )
+    resp = _make_find_refs_response_with_cache(
+        find_refs_input.text, find_refs_input.options, metadata
+    )
+    title_results = len(resp.get("title", {}).get("results", []) if isinstance(resp.get("title"), dict) else [])
+    body_results = len(resp.get("body", {}).get("results", []) if isinstance(resp.get("body"), dict) else [])
+    logger.info(
+        "make_find_refs_response:done",
+        title_results=title_results,
+        body_results=body_results,
+    )
+    return resp
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class _FindRefsTextOptions:
     """
     @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
@@ -71,14 +95,27 @@ class _FindRefsTextOptions:
     version_preferences_by_corpus: dict = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class _FindRefsText:
     title: str
     body: str
     lang: str
 
 
-def _unpack_find_refs_request(request):
+@dataclasses.dataclass
+class FindRefsInput:
+    text: _FindRefsText
+    options: _FindRefsTextOptions
+    metadata: dict
+
+    def __post_init__(self):
+        if isinstance(self.text, dict):
+            self.text = _FindRefsText(**self.text)
+        if isinstance(self.options, dict):
+            self.options = _FindRefsTextOptions(**self.options)
+
+
+def unpack_find_refs_request(request):
     validator = Validator(FIND_REFS_POST_SCHEMA)
     post_body = json.loads(request.body)
     if not validator.validate(post_body):
@@ -113,6 +150,7 @@ def _add_webpage_hit_for_url(url):
 
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
+    logger.info("_make_find_refs_response_with_cache:start")
     response = _make_find_refs_response_linker_v3(request_text, options)
 
     if meta_data:
@@ -124,21 +162,34 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
         }, add_hit=False)
         if webpage:
             response['url'] = webpage.url
+    title_results = len(response.get("title", {}).get("results", []) if isinstance(response.get("title"), dict) else [])
+    body_results = len(response.get("body", {}).get("results", []) if isinstance(response.get("body"), dict) else [])
+    logger.info("_make_find_refs_response_with_cache:done", title_results=title_results, body_results=body_results)
     return response
 
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
+    logger.info("_make_find_refs_response_linker_v3:start", lang=request_text.lang)
     linker = library.get_linker(request_text.lang)
     title_doc = linker.link(request_text.title, type_filter='citation')
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
     body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
+    logger.info(
+        "_make_find_refs_response_linker_v3:linked",
+        title_resolved=len(title_doc.resolved_refs),
+        body_resolved=len(body_doc.resolved_refs),
+        has_context_ref=context_ref is not None,
+    )
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
         "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
     }
+    title_results = len(response.get("title", {}).get("results", []))
+    body_results = len(response.get("body", {}).get("results", []))
+    logger.info("_make_find_refs_response_linker_v3:done", title_results=title_results, body_results=body_results)
 
     return response
 
@@ -229,9 +280,9 @@ def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions)
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
-    he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
-    en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
     if options.with_text:
+        he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
+        en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
         res.update({
             'he': he,
             'en': en,

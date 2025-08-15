@@ -1,4 +1,4 @@
-{{- if .Values.cronJobs.rambiWebpagesWeekly.enabled }}
+{{- if and .Values.cronJobs.rambiWebpagesWeekly.enabled .Values.gpuServer }}
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -27,10 +27,8 @@ spec:
               value: "True"
             - name: DISABLE_AUTOCOMPLETER
               value: "True"
-            - name: RAW_REF_MODEL_BY_LANG_FILEPATH
-              value: '{{ toJson .Values.linker.model_paths }}'
-            - name: RAW_REF_PART_MODEL_BY_LANG_FILEPATH
-              value: '{{ toJson .Values.linker.part_model_paths }}'
+            - name: GPU_SERVER
+              value: {{ .Values.gpuServer }}
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
@@ -50,11 +48,6 @@ spec:
               "-c",
               "pip install pymarc==4.2.2 && /app/run /app/scripts/scheduled/parse_rambi_webpages.py"
             ]
-            resources:
-              requests:
-                nvidia.com/gpu: 1
-              limits:
-                nvidia.com/gpu: 1
           restartPolicy: Never
           volumes:
           - name: local-settings
