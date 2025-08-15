@@ -34,6 +34,7 @@ from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from functools import wraps
 
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
@@ -72,6 +73,24 @@ if USE_VARNISH:
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+def _add_cors_headers(response):
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+def cors_allow_all(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.method == "OPTIONS":
+            response = HttpResponse(status=204)
+            return _add_cors_headers(response)
+        response = view_func(request, *args, **kwargs)
+        return _add_cors_headers(response)
+    return _wrapped
 
 
 def process_register_form(request, auth_method='session'):
@@ -352,6 +371,7 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+@cors_allow_all
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
@@ -372,7 +392,8 @@ def find_refs_api(request):
     return jsonResponse({"task_id": async_result.id}, status=202)
 
 
-@api_view(["GET"])
+@cors_allow_all
+@api_view(["GET", "OPTIONS"])
 def async_task_status_api(request, task_id: str):
     """
     Poll the task. If complete, include the result.
