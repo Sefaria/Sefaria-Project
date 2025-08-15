@@ -181,6 +181,7 @@ class ReaderApp extends Component {
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null,
       filterRef:               state.filterRef               || null,
+      textColumnKey:           state.textColumnKey           || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -836,7 +837,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
@@ -1420,10 +1420,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       currentlyVisibleRef = ref;
       highlightedRefs = (panel.mode === "TextAndConnections") ? [ref] : [];
     }
-    let updatePanelObj = {refs, currentlyVisibleRef, highlightedRefs};
+    let updatePanelObj = {
+      refs, 
+      currentlyVisibleRef, 
+      highlightedRefs,
+      textColumnKey: this.generateTextColumnKey(ref) // Remount TextColumn when navigating to a new ref so the scroll state is reset
+    };
+    // Don't update dependent panel's textColumnKey:
     const { dependentPanel } = this._getDependentPanel(n);
     if (dependentPanel) {
-      Object.assign(dependentPanel, updatePanelObj);
+      Object.assign(dependentPanel, {refs, currentlyVisibleRef, highlightedRefs});
     }
     Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
@@ -1471,6 +1477,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
+  /**
+   * Generates a unique key for a new TextColumn
+   * @param {Array<string>} refs - Array of text references
+   * @returns {string} Unique key for TextColumn component
+   */
+  generateTextColumnKey(ref) {
+    if (!ref) {
+      return "empty-TextColumn"; // Maintains backward compatibility with old keys
+    } else {
+      // Clean up the ref from spaces
+      ref = ref.replace(/ /g, '');
+    }
+    
+    const navId = Date.now();
+    
+    return `${ref}-TextColumn-${navId}`;
+  }
   openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
               replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
     /* Open a new panel or replace existing panel. If book level, Open book toc
@@ -1489,8 +1512,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
     let panel, connectionPanel;
+
+    // Generate new key for replaced panels to force TextColumn remount
+    const textColumnKey = replace ? 
+      this.generateTextColumnKey(ref) : 
+      this.state.panels[n]?.textColumnKey || this.generateTextColumnKey(ref);
+
     if (index) {
-      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
+      panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title, textColumnKey});
     } else if (parsedRef.book === "Sheet") {
       const [sheetID, sheetNode] = parsedRef.sections;
       panel = this.makePanelState({
@@ -1529,6 +1558,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         filterRef,
         recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
+        textColumnKey,
         ...options
       };
       if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if convertCommentaryRefToBaseRef is true
@@ -1539,7 +1569,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
       panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     }
-
     const newPanels = this.state.panels.slice();
     newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
     if (connectionPanel) {
