@@ -76,7 +76,7 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === Sefaria.SHEETS_MODULE && 
-                <DropdownMenuItem url={'/my/profile'} preventClose={true} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={`/sheets/profile/${Sefaria.slug}`} preventClose={true} targetModule={Sefaria.SHEETS_MODULE}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
               }
@@ -96,7 +96,7 @@ const LoggedInDropdown = ({module}) => {
 
               { module === Sefaria.SHEETS_MODULE && 
                 <>
-                <DropdownMenuItem url={'/my/profile'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={`/sheets/profile/${Sefaria.slug}`} targetModule={Sefaria.SHEETS_MODULE}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
                 <DropdownMenuItem url={'/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
@@ -452,7 +452,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </>}
           {module === Sefaria.SHEETS_MODULE && 
           <>
-           <a href="/my/profile" onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
+           <a href={`/sheets/profile/${Sefaria.slug}`} onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
             <div className="mobileProfileFlexContainer">
               <ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={25}/>
               <InterfaceText>Profile</InterfaceText>
@@ -579,7 +579,7 @@ const ProfilePicMenu = ({len, url, name}) => {
   }, []);
   return (
     <div className="myProfileBox" ref={wrapperRef}>
-        <a href="/my/profile" className="my-profile" onClick={profilePicClick} data-target-module={Sefaria.SHEETS_MODULE}>
+        <a href={`/sheets/profile/${Sefaria.slug}`} className="my-profile" onClick={profilePicClick} data-target-module={Sefaria.SHEETS_MODULE}>
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
@@ -587,7 +587,7 @@ const ProfilePicMenu = ({len, url, name}) => {
           <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row" id="my-profile-link" href="/my/profile" data-target-module={Sefaria.SHEETS_MODULE}>
+              <div><a className="interfaceLinks-row" id="my-profile-link" href={`/sheets/profile/${Sefaria.slug}`} data-target-module={Sefaria.SHEETS_MODULE}>
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
