@@ -71,6 +71,17 @@ class CollectionPage extends Component {
     this.setState({sheetFilterTopic: filter, showFilterHeader: true});
     this.props.setTab("sheets");
   }
+  async navigateToProfile(profileUrl) {
+    if (this.props.setCentralState) {
+      const slug = profileUrl.split('/').pop();
+      const profile = await Sefaria.profileAPI(slug);
+      this.props.setCentralState({ 
+        menuOpen: "profile", 
+        profile,
+        tab: "sheets"
+      });
+    }
+  }
   memberList() {
     var collection = this.state.collectionData;
     if (!collection) { return null; }
@@ -216,6 +227,7 @@ class CollectionPage extends Component {
               isSelf={member.uid == Sefaria._uid}
               slug={this.props.slug}
               onDataChange={this.onDataChange}
+              navigateToProfile={this.navigateToProfile}
               key={i} />
           ))}
         </div>
@@ -312,6 +324,7 @@ CollectionPage.propTypes = {
   tag:                PropTypes.string,
   interfaceLang:      PropTypes.string,
   searchInCollection: PropTypes.func,
+  setCentralState:    PropTypes.func,
 };
 
 
@@ -478,9 +491,16 @@ class CollectionMemberListing extends Component {
         : null;
     }
 
+    const handleProfileClick = (e) => {
+      e.preventDefault();
+      if (this.props.navigateToProfile) {
+        this.props.navigateToProfile(this.props.member.profileUrl);
+      }
+    };
+
     return (
       <div className="collectionMemberListing">
-        <a href={this.props.member.profileUrl} className="collectionMemberListingPic">
+        <a href={this.props.member.profileUrl} className="collectionMemberListingPic" onClick={handleProfileClick}>
           <ProfilePic
             url={this.props.member.imageUrl}
             name={this.props.member.name}
@@ -488,7 +508,7 @@ class CollectionMemberListing extends Component {
           />
         </a>
         <div className="collectionMemberListingText">
-          <a href={this.props.member.profileUrl} className="collectionMemberListingName">
+          <a href={this.props.member.profileUrl} className="collectionMemberListingName" onClick={handleProfileClick}>
             {this.props.member.name}
           </a>
           <div className="collectionMemberListingRole">
@@ -512,6 +532,7 @@ CollectionMemberListing.propTypes ={
   isSelf:       PropTypes.bool,
   slug:         PropTypes.string,
   onDataChange: PropTypes.func.isRequired,
+  navigateToProfile: PropTypes.func,
 };
 
 
