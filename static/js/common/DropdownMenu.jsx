@@ -138,11 +138,16 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
         <div className={positioningClass} ref={wrapperRef}>
            <div
              className="dropdownLinks-button"
-             role="button"
-             tabIndex={0}
-             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleButtonClick(e); } }}
            >
-              {React.cloneElement(buttonComponent, { onClick: handleButtonClick })}
+              {React.cloneElement(buttonComponent, { 
+                onClick: handleButtonClick,
+                onKeyDown: (e) => { 
+                  if (e.key === 'Enter' || e.key === ' ') { 
+                    e.preventDefault(); 
+                    handleButtonClick(e); 
+                  }
+                }
+              })}
           </div>
           <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
               {children}

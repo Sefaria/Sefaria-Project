@@ -109,6 +109,13 @@ const ReaderDisplayOptionsMenu = () => {
             return;
         }
 
+        // Prevent arrow keys from closing the menu - let radio buttons handle them
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.stopPropagation();
+            // Don't prevent default - let the radio buttons handle arrow navigation
+            return;
+        }
+
         if (e.key === 'Tab') {
             // Let default tab behavior handle focus management within the dialog
             const focusableElements = menuRef.current.querySelectorAll(
