@@ -8691,6 +8691,7 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: center;
   color: var(--medium-grey);
 }
+/* DEPRECATED: Use Button component from static/js/common/Button.jsx instead */
 .button {
   display: inline-block;
   color: white;
@@ -8731,6 +8732,15 @@ a.button {
 a.button:hover {
   color: white;
   text-decoration: none;
+}
+
+/* Legacy Button Focus Styling - DEPRECATED: Use Button component instead */
+body.user-is-tabbing .button:focus,
+body.user-is-tabbing a.button:focus,
+body.user-is-tabbing div.button:focus,
+body.user-is-tabbing label.button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
 }
 .button.white {
   background-color: white;
