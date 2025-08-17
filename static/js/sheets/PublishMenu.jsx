@@ -194,7 +194,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
                     suggestions={suggestions}
                     onDelete={onTagDelete}
                     placeholderText={Sefaria._("Add a topic...")}
-                    delimiters={["Enter", "Tab", ","]}
+                    delimiters={["Enter", ","]}
                     onAddition={onTagAddition}
                     onValidate={onTagValidate}
                     onInput={updateSuggestedTags}

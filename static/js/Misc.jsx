@@ -3049,8 +3049,8 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
-                    delimiters={["Enter", "Tab"]}
+                    placeholderText={Sefaria._("Add a title and press 'enter'.")}
+                    delimiters={["Enter"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
                   />

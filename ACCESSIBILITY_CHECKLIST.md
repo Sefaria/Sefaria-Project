@@ -122,13 +122,17 @@
 - [x] **Footer container** - content on `/sheets` page not clickable with space key - FIXED
 
 ### Keyboard Navigation Issues  
-- [ ] **texts-properties-menu** - arrow key and tab navigation not working properly
-  - Issue: ReaderDisplayOptionsMenu lacks arrow key navigation between radio groups
-  - Location: static/js/ReaderDisplayOptionsMenu.jsx (role="dialog" but missing keyboard nav)
-- [ ] **readerOptions button** - has duplicate tab targets (can tab to two things)  
-  - Issue: DisplaySettingsButton creates ToolTipped wrapper + inner span both focusable
-  - Location: static/js/Misc.jsx DisplaySettingsButton component
-- [ ] **Add topics text field** - in Publish popup, can't tab out once typing starts (may need further investigation)
+- [x] **texts-properties-menu** - arrow key and tab navigation not working properly - FIXED
+  - Added Escape key handling, focus trapping, and auto-focus on open
+  - Proper dialog role with aria-label and keyboard navigation
+  - Tab cycles between first/last elements with focus management
+- [x] **readerOptions button** - has duplicate tab targets (can tab to two things) - FIXED
+  - Fixed DisplaySettingsButton by adding tabIndex="-1" to inner span  
+  - Only ToolTipped wrapper is focusable, eliminates duplicate tab targets
+- [x] **Add topics text field** - in Publish popup, can't tab out once typing starts - FIXED
+  - Removed "Tab" from ReactTags delimiters array in PublishMenu.jsx, categorize_sheets.jsx, and Misc.jsx
+  - Tab now functions normally for keyboard navigation instead of creating tags
+  - Users can still create tags using Enter and comma delimiters
 
 ### Focus Outline Issues
 - [x] **dropdownLinks-menu items** - first and last items have incomplete blue borders - FIXED

@@ -190,7 +190,7 @@ class SheetCategorizer extends React.Component {
               onDelete={this.onTagDelete.bind(this)}
               onAddition={this.onTagAddition.bind(this)}
               placeholderText={Sefaria._("Add a topic...")}
-              delimiters={["Enter", "Tab", ","]}
+              delimiters={["Enter", ","]}
               onInput={this.updateSuggestedTags.bind(this)}
             />
           </div>
