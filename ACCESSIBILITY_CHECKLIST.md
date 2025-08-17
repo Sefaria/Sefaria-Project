@@ -38,7 +38,11 @@
 - **Migration Progress**: 
   - ✅ Save/Share buttons → semantic `<button>` 
   - ✅ Source/Connection/Text/Media/Comment → semantic `<button>`
+  - ✅ Add Source/Browse Sources → semantic `<button>`
+  - ✅ Add to Sheet buttons (connections, media, comments) → semantic `<button>`
+  - ✅ Daf Yomi page → proper `<a>` (was div wrapping a)
   - ✅ "View in Library" remains `<a>` (navigation link)
+  - ⚠️ Upload Image button → needs special handling (label for file input)
 
 ## Big Decisions Needed
 - **Systematic Migration Timeline**: When to migrate all div.button → Button component?
