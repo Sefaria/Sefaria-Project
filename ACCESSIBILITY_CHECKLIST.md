@@ -8,9 +8,9 @@
 - [x] Make Add to Sheets dropdown selection match Feedback dropdown behavior
 
 ### Sheets
-- [ ] + button to add new block section - not reachable with tab
-- [ ] Topic textarea in publish modal - can't exit with tab/escape
-- [ ] ... menu dropdown - can't navigate into opened menu with tab
+- [x] + button to add new block section - not reachable with tab - FIXED
+- [x] Topic textarea in publish modal - can't exit with tab/escape - FIXED (ReactTags delimiter fix)
+- [x] ... menu dropdown - can't navigate into opened menu with tab - FIXED
 - [x] Button focus styling not working for sheets buttons
 
 ### Search & Filters
@@ -32,8 +32,8 @@
 
 ### General Interactive Elements
 - [x] Quick feedback Like/Dislike buttons - need role/tabIndex/keys
-- [ ] Compare Panel/Add Connection buttons - need keyboard access
-- [ ] Modal close buttons - keyboard access
+- [x] Compare Panel/Add Connection buttons - need keyboard access - FIXED
+- [x] Modal close buttons - keyboard access - FIXED
 - [x] Dropdown menu items - space key activation (fixed DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithCallback)
 - [x] Space key activation - buttons now respond to both Enter and Space keys
 

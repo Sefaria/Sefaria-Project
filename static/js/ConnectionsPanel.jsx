@@ -1414,7 +1414,13 @@ class AddConnectionBox extends Component {
           <span className="int-en">Choose a text to connect.</span>
           <span className="int-he">בחר טקסט לקישור</span>
 
-          <div className="button fillWidth" onClick={this.props.openComparePanel}>
+          <div 
+            className="button fillWidth" 
+            role="button"
+            tabIndex="0"
+            onClick={this.props.openComparePanel}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.openComparePanel(e); } }}
+          >
             <span className="int-en">Browse</span>
             <span className="int-he">סייר</span>
           </div>
