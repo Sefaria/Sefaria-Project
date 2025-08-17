@@ -44,7 +44,12 @@
   - ✅ Edit Profile Save button → semantic `<button>`
   - ✅ "View in Library" remains `<a>` (navigation link)
   - ⚠️ Upload Image button → needs special handling (label for file input)
-  - 🔍 React component buttons → many found, need evaluation
+  - ✅ React component buttons → 8 high-priority buttons migrated
+    - ✅ SmallBlueButton component → semantic `<button>` (reusable across site)
+    - ✅ Save Account Settings → semantic `<button>`
+    - ✅ Feedback Like/Dislike → semantic `<button>` (removed manual keyboard handling)
+    - ✅ Collection Save/Delete → semantic `<button>`
+    - ✅ MyNotesPanel Add to Sheet → semantic `<button>`
 
 ## Big Decisions Needed
 - **Systematic Migration Timeline**: When to migrate all div.button → Button component?

@@ -1562,9 +1562,9 @@ FollowButton.propTypes = {
 
 const SmallBlueButton = ({onClick, tabIndex, text}) => {
   return (
-      <div onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} role="button">
+      <button onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} type="button">
         <InterfaceText>{text}</InterfaceText>
-      </div>
+      </button>
   );
 };
 
@@ -2764,20 +2764,16 @@ class ReaderMessage extends Component {
       <div className="readerMessageBox">
         <div className="readerMessage">
           <div className="int-en">{this.props.message}</div>
-          <div 
+          <button 
             className="button small" 
-            role="button" 
-            tabIndex="0"
+            type="button"
             onClick={() => this.setFeedback('Like')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.setFeedback('Like'); } }}
-          >{this.props.buttonLikeText}</div>
-          <div 
+          >{this.props.buttonLikeText}</button>
+          <button 
             className="button small" 
-            role="button" 
-            tabIndex="0"
+            type="button"
             onClick={() => this.setFeedback('Dislike')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.setFeedback('Dislike'); } }}
-          >{this.props.buttonDislikeText}</div>
+          >{this.props.buttonDislikeText}</button>
         </div>
       </div>);
   }
@@ -2941,9 +2937,9 @@ const AdminToolHeader = function({title, validate, close}) {
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
                   <InterfaceText>Cancel</InterfaceText>
                 </a>
-                <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                <button onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" type="button">
                   <InterfaceText>Save</InterfaceText>
-                </div>
+                </button>
               </div>
             </div>
 }
