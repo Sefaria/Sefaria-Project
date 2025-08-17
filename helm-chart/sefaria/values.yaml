@@ -19,6 +19,19 @@ previousServicesCount: "3"
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
 
+# enabling this feature creates an ephemeral database image prepopulated with test data
+# It is intended for use within the sefaria automated testing environment
+# For development environments
+# - install mongo using an upstream chart
+# - enable restore
+# - populate the settings with the appropriate connection details
+mongo:
+  enabled: false
+  image:
+    registry: us-east1-docker.pkg.dev/development-205018/sefaria-public
+    image: sefaria-mongo
+    tag: latest
+
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
 restore:
@@ -262,39 +275,14 @@ tasks:
     llm: default-llm
 
 ingress:
- # You can set path: serviceName: and port: for each host. By default they are
- # set to '/*', 'nginx', '80' respectively for each. Do note that changing this
- # means you'll have to change the nginx service as well.
   hosts:
     - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
+      # Reference to existing secret for usecases like cloudflare origin cert
+      # Secret must also cover all subdomains
+      tlsRef: ""
   annotations: {}
-  secrets:
-    # This TLS is referenced for Prod and Democracy deployments. Use the ref: or
-    # data: fields for either deployments.
-    originTls:
-      # If you're using a refenrece to an existing secret then the data: section
-      # should be commented out and vice-versa.
-      # Reference to an existing secret in the cluster
-      # "cauldron-wildcard-letsencrypt" is for cauldrons, wildcard cert managed
-      # via infrastructure
-      ref:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      #   cert:
-      #   key:
-    # This TLS is referenced only for Prod deployments.
-    originIlTls:
-      # If you're using a refenrece to an existing secret then the data: section
-      # should be commented out and vice-versa.
-      # Reference to an existing secret in the cluster
-      ref:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      #   cert:
-      #   key:
+  # subdomain are specified as { subdomain: path } mapping a . subdomain to a path on the web pod
+  subdomains: {}
 
 nginx:
   containerImage:
@@ -469,7 +457,3 @@ instrumentation:
   enabled: false
   otelEndpoint: ""
   jaegerEndpoint: ""
-
-subdomains:
-  sheets:
-    enable: false

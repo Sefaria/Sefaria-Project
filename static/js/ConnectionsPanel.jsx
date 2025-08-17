@@ -294,7 +294,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
               {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
-          }
+        
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
@@ -420,7 +420,7 @@ class ConnectionsPanel extends Component {
           onCancel={() => this.props.setConnectionsMode("Notes")} />
         {Sefaria._uid ?
           <div>
-            <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
+            <a href="/texts/notes" className="allNotesLink button white transparent bordered fillWidth">
               <span className="int-en">Go to My Notes</span>
               <span className="int-he">הרשומות שלי</span>
             </a>
@@ -654,8 +654,9 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
+  const sheetsURL = Sefaria.getModuleURL(Sefaria.SHEETS_MODULE);
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
+  window.open(`${sheetsURL.origin}/sheets/sheets-with-ref/${normalizedRef}`, '_blank');
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
@@ -1202,7 +1203,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }

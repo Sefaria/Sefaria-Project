@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState, useCallback} from 'react';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import {CollectionsModal} from "./CollectionsWidget";
@@ -24,10 +24,35 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import { ReaderApp } from './ReaderApp';
-import { ToolsButton } from "./ConnectionsPanel";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
+import Button from "./common/Button";
 
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -67,14 +92,18 @@ const __filterChildrenByLanguage = (children, language) => {
 };
 
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
+const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=['p']}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
-   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
-   *  Otherwise:
+   * If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   * Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
-   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragraphs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
+   * `disallowedMarkdownElements` is an array of HTML element names to disallow when rendering markdown.
+   *   - Defaults to ['p'] to prevent paragraph tags (preserves inline-only behavior)
+   *   - Pass [] to allow all elements including paragraphs
+   *   - Pass ['p', 'a'] to disallow both paragraphs and links, etc.
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
@@ -108,7 +137,6 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
                                 a: ({ href, children, ...props }) => (
                                   <a 
                                     href={href} 
-                                    target="_blank"  // forcibly open in new tab to avoid cases like /sheets/Isaiah.4.3 due to updateHistoryState modifying URL in sheets module
                                     rel="noopener noreferrer"
                                     {...props}
                                   >
@@ -116,7 +144,7 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
                                   </a>
                                 )
                               }}
-                  disallowedElements={['p', ...disallowedMarkdownElements]}>
+                  disallowedElements={disallowedMarkdownElements}>
                 {textResponse}
             </ReactMarkdown>
           </span> : <span className={elemclasses}>{textResponse}</span>
@@ -131,7 +159,8 @@ InterfaceText.propTypes = {
   content: PropTypes.object,
   html: PropTypes.object,
   context: PropTypes.string,
-  className: PropTypes.string
+  className: PropTypes.string,
+  disallowedMarkdownElements: PropTypes.array
 };
 
 const LoadingRing = () => (
@@ -533,13 +562,17 @@ class Link extends Component {
               className={this.props.className}
               href={this.props.href}
               onClick={this.handleClick}
-              title={this.props.title}>{this.props.children}</a>
+              title={this.props.title}
+              data-target-module={this.props.module || Sefaria.activeModule}
+              >
+                {this.props.children}</a>
   }
 }
 Link.propTypes = {
   href:    PropTypes.string.isRequired,
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
+  module:  PropTypes.string,
 };
 
 
@@ -598,7 +631,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} data-target-module={isSheet ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -715,7 +748,7 @@ SimpleContentBlock.propTypes = {
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
   <div className={classes} onClick={onClick}>
-    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.activeModule}>
       <InterfaceText text={{en, he}}/>
     </a>
     {children}
@@ -1143,16 +1176,28 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    if (this.props.icon == "circledX"){
-      var icon = <img src="/static/icons/circled-x.svg" />;
-    } else if (this.props.icon == "chevron") {
-      var icon = <i className="fa fa-chevron-left"></i>
+    const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
+    
+    if (icon == "circledX"){
+      var iconElement = <img src="/static/icons/circled-x.svg" alt="" />;
+    } else if (icon == "chevron") {
+      var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
-      var icon = "×";
+      var iconElement = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
-    var url = this.props.url || "";
-    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
+    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    
+    return (
+      <a 
+        href={url} 
+        className={classes} 
+        onClick={this.onClick}
+        aria-label={altText}
+        title={altText}
+      >
+        {iconElement}
+      </a>
+    );
   }
 }
 
@@ -1217,10 +1262,10 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
         </div>
         <DropdownMenuSeparator />
         <div className='languageFlex'>
-          <DropdownMenuItem  url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':''}`}>
+          <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':'inactive'}`}>
             עברית
           </DropdownMenuItem>
-          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : ''}`}>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : 'inactive'}`}>
             English
           </DropdownMenuItem>
         </div>
@@ -1305,6 +1350,65 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+/**
+ * A button that shows a guide for the given guide type
+ * @param {function} onShowGuide - A function to call when the button is clicked
+ * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
+ */
+function GuideButton({onShowGuide}) {
+  const classes = classNames({guideButton: 1, "tooltip-toggle": true});
+  const altText = Sefaria._("Show guide", "Guide");
+
+  function onClick(event) {
+    event.preventDefault();
+    
+    if (onShowGuide) {
+      onShowGuide();
+    }
+  }
+
+  return (
+    <ToolTipped {...{ altText, classes, onClick }}>
+      <img src="/static/img/bulb.svg" alt={altText}/>
+    </ToolTipped>
+  );
+}
+GuideButton.propTypes = {
+  onShowGuide: PropTypes.func.isRequired,
+};
+
+/**
+ * ArrowButton component for navigation buttons (next/previous arrows)
+ * @param {string} direction - "next" or "previous" 
+ * @param {function} onClick - Function to call when arrow is clicked
+ * @param {string} altText - Alt text for accessibility
+ * @param {string} className - Additional CSS classes
+ */
+function ArrowButton({ direction, onClick, altText = "", className = "" }) {
+
+  // Use appropriate arrow icons for each direction
+  const imageSrc = direction === "next" 
+    ? `/static/img/arrow-right-bold.svg`
+    : `/static/img/arrow-left-bold.svg`;
+  const buttonClass = className ? `arrowButton arrowButton--${direction} ${className}` : `arrowButton arrowButton--${direction}`; // Use CSS transforms to handle RTL direction reversal
+  
+  return (
+    <button 
+      onClick={onClick} 
+      className={buttonClass}
+      aria-label={altText}
+      title={altText}
+    >
+      <img src={imageSrc} alt={altText} />
+    </button>
+  );
+}
+ArrowButton.propTypes = {
+  direction: PropTypes.oneOf(["next", "previous"]).isRequired,
+  onClick: PropTypes.func.isRequired,
+  altText: PropTypes.string.isRequired,
+  className: PropTypes.string,
+};
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
@@ -1458,8 +1562,19 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 };
 
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) => {
+  const categoryColorLineRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "category_color_line" });
+    if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
+  }, "sa.header_viewed");
+  return (
+    <div
+      className="categoryColorLine"
+      style={{ background: Sefaria.palette.categoryColor(category) }}
+      ref={categoryColorLineRef}
+    />
+  );
+};
 
 
 class ProfileListing extends Component {
@@ -1468,7 +1583,7 @@ class ProfileListing extends Component {
     return (
       <div className={"authorByLine sans-serif" + (smallfonts ? " small" : "")}>
         <div className="authorByLineImage">
-          <a href={url}>
+          <a href={url} data-target-module={Sefaria.SHEETS_MODULE}>
             <ProfilePic
               len={smallfonts ? 30 : 40}
               url={image}
@@ -1574,7 +1689,7 @@ const SheetListing = ({
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
         <div className="sheetUser">
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.SHEETS_MODULE}>
             <ProfilePic
               outerStyle={{display: "inline-block"}}
               name={sheet.ownerName}
@@ -1582,7 +1697,7 @@ const SheetListing = ({
               len={26}
             />
           </a>
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
+          <a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
         {viewsIcon}
       </div>
@@ -1597,6 +1712,7 @@ const SheetListing = ({
       <a href={`/sheets/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
+        data-target-module={Sefaria.SHEETS_MODULE}
         key={i}
       >
         {collection.name}
@@ -1607,11 +1723,12 @@ const SheetListing = ({
   const topics = sheet.topics.map((topic, i) => {
     const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
     return (
-      <a href={`/topics/${topic.slug}`}
+      <a href={`/sheets/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
+        data-target-module={Sefaria.SHEETS_MODULE}
       >
         <InterfaceText text={topic} />
         {separator}
@@ -1621,7 +1738,7 @@ const SheetListing = ({
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
-      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
       collections.length ? collections : undefined,
@@ -1637,7 +1754,7 @@ const SheetListing = ({
     <div className="sheet" key={sheet.sheetUrl}>
       <div className="sheetLeft">
         {sheetInfo}
-        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+        <a href={sheet.sheetUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1693,7 +1810,7 @@ const CollectionListing = ({data}) => {
       <div className="left-content">
         <div className="collectionListingText">
 
-          <a href={collectionUrl} className="collectionListingName">
+          <a href={collectionUrl} className="collectionListingName" data-target-module={Sefaria.SHEETS_MODULE}>
             {data.name}
           </a>
 
@@ -1732,11 +1849,11 @@ class Note extends Component {
   // Public or private note in the Sidebar.
   render() {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
-        (<div className="noteAuthorInfo">
-          <a href={this.props.ownerProfileUrl}>
+        (        <div className="noteAuthorInfo">
+          <a href={this.props.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE}>
             <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
           </a>
-          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+          <a href={this.props.ownerProfileUrl} className="noteAuthor" data-target-module={Sefaria.SHEETS_MODULE}>{this.props.ownerName}</a>
         </div>) : null;
 
       var buttons = this.props.isMyNote ?
@@ -1888,10 +2005,10 @@ const transformValues = (obj, callback) => {
   return newObj;
 };
 
-const replaceNewLinesWithLinebreaks = (content) => {
+export const replaceNewLinesWithLinebreaks = (content) => {
   return transformValues(
     content,
-    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
+    (s) => s.replace(/\n(?!\n)/g, "  \n")
   );
 }
 
@@ -2070,52 +2187,6 @@ const InterruptingMessage = ({
   }
 };
 InterruptingMessage.displayName = "InterruptingMessage";
-
-const GenericBanner = ({message, children}) => {
-  return (
-      <div className="genericBanner">
-        {<InterfaceText>{message}</InterfaceText> }
-        {children}
-      </div>);
-}
-
-const LearnAboutNewEditorBanner = () => {
-  const cookieName = "learned_about_new_editor";
-  const initialShouldShowNotification = !$.cookie(cookieName);
-  const [showNotification, setShowNotification] = useState(false);
-  const [enURL, heURL] = ["/sheets/393695", "/sheets/399333"];
-  const linkURL = Sefaria._v({en: enURL, he: heURL});
-
-  useEffect(() => {
-    // Force rerendering of the component when initially rendered by ssr
-    setShowNotification(initialShouldShowNotification);
-  }, [initialShouldShowNotification]);
-
-  const handleLearnMoreClick = () => {
-    window.open(linkURL, '_blank');
-  };
-
-  const setCookie = () => {
-    $.cookie(cookieName, 1, {path: "/", expires: 20*365});
-    setShowNotification(false);
-  }
-
-  if (!showNotification) {
-    return null;
-  }
-  return (
-    <GenericBanner
-      message="Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface."
-    >
-      {
-        <button className="button white" onClick={() => {handleLearnMoreClick(); setCookie();}}>
-          <InterfaceText>Get Started</InterfaceText>
-        </button>
-      }
-      <button id="bannerMessageClose" onClick={setCookie}>×</button>
-    </GenericBanner>
-  );
-};
 
 const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
@@ -2448,7 +2519,7 @@ class SheetTopicLink extends Component {
   render() {
     const { slug, en, he } = this.props.topic;
     return (
-      <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
+      <a href={`/sheets/topics/${slug}`} onClick={this.handleTagClick} data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{en:en, he:he}} />
       </a>
     );
@@ -2742,11 +2813,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/sheets/collections/" + slug}>
+        <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/sheets/collections/" + slug}>{children ? children : name}</a>
+      <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
@@ -2930,8 +3001,46 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const [showAddButton, setShowAddButton] = useState(false);
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
   const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
+  const popupsEl = useRef(null);
+
+  const checkSpaceBelow = useCallback(() => {
+    const input = inputEl.current;
+    const pops = popupsEl.current;
+    if (!input || !pops) return;
+
+    // Calculate the visible space
+    const inputRect = input.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - inputRect.bottom
+    const spaceAbove = inputRect.top;
+    const popsTop = Math.min(...Array.from(pops.children).map(c => c.getBoundingClientRect().top))
+    const popsBottom = Math.max(...Array.from(pops.children).map(c => c.getBoundingClientRect().bottom))
+    const popsHeight = popsBottom - popsTop;
+    setShouldShowAbove(spaceBelow < popsHeight && spaceAbove >= popsHeight);
+  }, []);
+
+  useEffect(
+    () => {
+         const element = document.querySelector('.textPreviewSegment.highlight');
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+    }, [previewText]
+  )
+  useEffect(() => {
+    window.addEventListener('resize', checkSpaceBelow);
+    window.addEventListener('scroll', checkSpaceBelow, true);
+    return () => {
+      window.removeEventListener('resize', checkSpaceBelow);
+      window.removeEventListener('scroll', checkSpaceBelow, true);
+    };
+  }, []);
+  useEffect(() => {
+    checkSpaceBelow()
+  }, [currentSuggestions, showCurrentSuggestions, previewText]);
+
+
   const buttonClassNames = classNames({button: 1, small: 1});
 
   const getWidthOfInput = () => {
@@ -2960,13 +3069,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     document.body.removeChild(tmp);
     return theWidth;
   }
-
-  useEffect(
-    () => {
-         const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
-    }, [previewText]
-  )
 
   const resizeInputIfNeeded = () => {
     const currentWidth = getWidthOfInput();
@@ -3052,7 +3154,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     }
   }
 
-
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            let segments = Sefaria.makeSegments(text, true);
@@ -3099,11 +3200,11 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           className={inputClassNames}
 
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+      {showAddButton && <Button className={buttonClassNames} onClick={(e) => {handleSelection(inputValue, currentSuggestions)
+                }}><InterfaceText>{buttonTitle}</InterfaceText></Button>}
 
-      {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
+      <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popupsEl}>
+        {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
@@ -3119,15 +3220,15 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       }
 
       {previewText ?
-          <div className="textPreviewContainer">
+          <div className="textPreviewContainer" onMouseDown={(e) => e.preventDefault()}>
             <div className="textPreview">
               <div className="inner">{previewText}</div>
             </div>
           </div>
 
           : null
-
       }
+      </div>
 
     </div>
     )
@@ -3349,6 +3450,9 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
-  LearnAboutNewEditorBanner,
-  getCurrentPage
+  getCurrentPage,
+  GuideButton,
+  ArrowButton as Arrow,
+  transformValues,
+  useOnceFullyVisible
 };

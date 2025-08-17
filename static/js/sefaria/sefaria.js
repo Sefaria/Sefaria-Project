@@ -515,6 +515,20 @@ Sefaria = extend(Sefaria, {
 
     return result;
 },
+SHEETS_MODULE: "sheets",
+LIBRARY_MODULE: "library",
+getModuleURL: function(module=null) {
+  // returns a URL object with the href of the module's subdomain.  
+  // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
+  // example: module = "sheets" -> returns URL object with href of "https://sheets.sefaria.org"
+  module = module || Sefaria.activeModule;
+  const href = Sefaria?.domainModules?.[module] || Sefaria.apiHost;
+  try {
+    return new URL(href);
+  } catch {
+    return false;
+  }
+},
 
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
@@ -691,6 +705,14 @@ Sefaria = extend(Sefaria, {
       url: `${Sefaria.apiHost}/api/v2/sheets/bulk/${idStr}`,
       key: idStr,
       store: this._bulkSheets
+    });
+  },
+  _guides: {},
+  getGuide: function(guideKey = "editor") {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/guides/${guideKey}`,
+      key: `guide_${guideKey}`,
+      store: this._guides
     });
   },
   text: function(ref, settings = null, cb = null) {
@@ -1326,13 +1348,12 @@ Sefaria = extend(Sefaria, {
   _lookups: {},
 
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, limit = undefined, type=undefined, topicPool=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
+  getName: function(name, limit = undefined, type=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
-    let params = {};
+    let params = {active_module: this.activeModule};
     // if (refOnly) { params["ref_only"] = 1; }
     if (limit != undefined) { params["limit"] = limit; }
     if (type != undefined) { params["type"] = type; }
-    if (topicPool != undefined) { params["topic_pool"] = topicPool; }
     if (exactContinuations) { params["exact_continuations"] = 1; }
     if (orderByMatchedLength) { params["order_by_matched_length"] = 1; }
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
@@ -2744,13 +2765,12 @@ _media: {},
           return d;
         });
   },
-  shouldDisplayTopic: function(topic) {
+  shouldDisplayInActiveModule: function(topic) {
     /*
-    Returns true if topic should be displayed in the topic list or TOC.
-    'topic' is a topic object in this.topicList or this.topic_toc
+    Returns true if topic should be displayed in the topic list, topic TOC, or topic page side column.
      */
     const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
-    return !!topic.shouldDisplay && inActiveModule;
+    return !!topic?.shouldDisplay && inActiveModule;
   },
   sortTopicsCompareFn: function(a, b) {
     // a compare function that is useful for sorting topics
@@ -2844,22 +2864,25 @@ _media: {},
      In the sheets module, every source is under the "Sheets" tab.
      */
     let tabKey, title;
-    if (refObj.is_sheet && Sefaria.activeModule === 'sheets') {
+    if (Sefaria.activeModule === 'sheets' && refObj.is_sheet) {
       tabKey = 'sheets';
       title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
-    } else if (linkType === 'popular-writing-of' && Sefaria.activeModule === 'library') {
-      tabKey = linkType;
-      title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
-    } else if (linkType === 'about' && Sefaria.activeModule === 'library') {
-      const lang = Sefaria._getShortInterfaceLang();
-      const desc = refObj.descriptions?.[lang];
-      const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
-      if (isNotableSource) {
-        tabKey = 'notable-sources';
-        title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
-      } else {
-        tabKey = 'sources';
-        title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+    } 
+    else if (Sefaria.activeModule === 'library' && !refObj?.is_sheet) {
+      if (linkType === 'popular-writing-of') {
+        tabKey = linkType;
+        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
+      } else if (linkType === 'about') {
+        const lang = Sefaria._getShortInterfaceLang();
+        const desc = refObj.descriptions?.[lang];
+        const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
+        if (isNotableSource) {
+          tabKey = 'notable-sources';
+          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
+        } else {
+          tabKey = 'sources';
+          title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+        }
       }
     }
     return {tabKey, title};
@@ -3600,6 +3623,8 @@ Sefaria.unpackBaseProps = function(props){
       "trendingTopics",
       "numLibraryTopics",
       "_siteSettings",
+      "domainModules",
+      "moduleRoutes",
       "_debug"
   ];
   for (const element of dataPassedAsProps) {

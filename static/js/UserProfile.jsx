@@ -505,13 +505,13 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const learn_more_link = Sefaria._v({"en": "https://www.sefaria.org/sheets/621008", "he": "https://www.sefaria.org/sheets/621013"})
+ const learn_more_link = Sefaria._v({"en": "https://sheets.sefaria.org/sheets/621008", "he": "https://sheets.sefaria.org/sheets/621013"})
 
  return (
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
-       <a href={learn_more_link} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
+       <a href={learn_more_link} data-target-module={Sefaria.SHEETS_MODULE} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
    {feedbackHeaderState !== "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
@@ -588,7 +588,7 @@ const ProfileSummary = ({
                              </div>;
     const profileButtons = Sefaria._uid === p.id ? (
                                     <div className="profile-actions">
-                                        <a href="/settings/profile" className="resourcesLink sans-serif">
+                                        <a href="/settings/profile" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
                                             <span className="int-en">Edit Profile</span>
                                             <span className="int-he">עריכת פרופיל</span>
                                         </a>
@@ -607,14 +607,14 @@ const ProfileSummary = ({
                                 </div>;
 
     const tempSheetButton = (
-          <a href="/sheets/new" className="resourcesLink sans-serif">
+          <a href="/sheets/new" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
             <span className="int-en">Create Sheet</span>
             <span className="int-he">יצירת דף מקורות</span>
           </a>
       );
 
   const tempCollectionButton = (
-          <a href="/sheets/collections/new" className="resourcesLink sans-serif">
+          <a href="/sheets/collections/new" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
               <InterfaceText>Create Collection</InterfaceText>
           </a>
       );

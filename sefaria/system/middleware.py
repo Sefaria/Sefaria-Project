@@ -16,8 +16,9 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-
+from urllib.parse import quote
 import structlog
+import json
 logger = structlog.get_logger(__name__)
 
 
@@ -168,12 +169,13 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
+            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
+            path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
-            response = redirect(domain + request.path + params_string)
+            response = redirect(domain + path + params_string)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
@@ -251,11 +253,6 @@ class ModuleMiddleware(MiddlewareURLMixin):
         '/static/',
     }
 
-    MODULE_ROUTES = {
-        '/sheets/': 'sheets',
-        # Add more route prefixes and their modules
-    }
-
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -268,9 +265,9 @@ class ModuleMiddleware(MiddlewareURLMixin):
             return self.get_response(request)
 
         # Find the matching route prefix
-        for route_prefix, module_name in self.MODULE_ROUTES.items():
+        for module_name, route_prefix in json.loads(MODULE_ROUTES).items():
             route_base_path = route_prefix.removesuffix('/')
-            if request.path.startswith(route_prefix) or request.path == route_base_path:
+            if len(route_base_path) > 0 and (request.path.startswith(route_prefix) or request.path == route_base_path):
                 active_module = module_name
                 break
 

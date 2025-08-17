@@ -32,11 +32,11 @@ const sheet_item_els = {
 };
 
 const voidElements = [
-    "ProfilePic",
-    "SheetMedia",
-    "SheetSource",
-    "SheetOutsideBiText",
-    "horizontal-line"
+  "ProfilePic",
+  "SheetMedia",
+  "SheetSource",
+  "SheetOutsideBiText",
+  "horizontal-line"
 ];
 
 
@@ -204,13 +204,14 @@ const insertNewLine = (editor) => {
 }
 
 export const deserialize = el => {
-    if (el.nodeType === 3) {
-        return el.textContent
-    } else if (el.nodeType !== 1) {
-        return null
-    } else if (el.nodeName === 'BR') {
-        return null
-    }
+  if (el.nodeType === 3) {
+    const t = el.textContent ?? '';
+    return t.trim() === '' ? null : t;      //ignore pure whitespace
+  } else if (el.nodeType !== 1) {
+      return null
+  } else if (el.nodeName === 'BR') {
+      return null
+  }
 
     const checkForStyles = () => {
         if (el.getAttribute("style")) {
@@ -308,7 +309,10 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
+        const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
+
+        return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
+
     }
 
     if (content.type) {
@@ -536,12 +540,22 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
+function replaceDivWithBr(html){
+     return html
+    .replace(/<div[^>]*>/g, '')     // remove opening <div> tags (with or without attributes)
+    .replace(/<\/div>/g, '<br>');   // replace closing </div> tags with <br>
+}
+function replaceBrWithNewLine(html) {
+  return html.replace(/<br\s*\/?>\s*/gi, '\n');
+  }
 
 function parseSheetItemHTML(rawhtml) {
+    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
-    let preparseHtml = rawhtml
-      .replace(/\u00A0/g, ' ')
-      .replace(/(\r\n|\n|\r|\t)/gm, " ");
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
+
+    preparseHtml = replaceDivWithBr(preparseHtml);
+    preparseHtml = replaceBrWithNewLine(preparseHtml);
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
@@ -678,7 +692,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
-  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText);
   const [unsavedChanges, setUnsavedChanges] = useState(false)
   const [sourceActive, setSourceActive] = useState(false)
   const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
@@ -688,23 +702,38 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
 
-    useEffect(
-        () => {
-            const replacement = divineName || "noSub"
-            const editors = [sheetSourceHeEditor, sheetSourceEnEditor]
-            for (const editor of editors) {
-                const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-                for (const [node, path] of nodes) {
-                    if (node.text) {
-                        const newStr = replaceDivineNames(node.text, replacement)
-                        if (newStr != node.text) {
-                            Transforms.insertText(editor, newStr, {at: path})
-                        }
-                    }
-                }
+
+    useEffect(() => {
+      const replacement = divineName || "noSub";
+      const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
+
+      for (const editor of editors) {
+        Editor.withoutNormalizing(editor, () => {
+          for (const [node, path] of Editor.nodes(editor, {
+            at: [],                 // whole document
+            match: Text.isText,     // only text nodes
+            reverse: true           // bottom-up keeps paths stable
+          })) {
+            const newText = replaceDivineNames(node.text, replacement);
+            if (newText !== node.text) {
+              // Split out any existing marks (bold/italic/…)
+              const { text: _old, ...marks } = node;
+
+              // Remove the old leaf node
+              Transforms.removeNodes(editor, { at: path });
+
+              // Insert a new leaf with updated text + same marks
+              Transforms.insertNodes(
+                editor,
+                { text: newText, ...marks },
+                { at: path }
+              );
             }
-        }, [divineName]
-    )
+          }
+        });
+      }
+    }, [divineName]);
+
 
 
   const onHeChange = (value) => {
@@ -748,6 +777,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
 
   }
 
+
   const suppressParentContentEditable = (toggle) => {
       // Chrome treats nested contenteditables as one giant editor so keyboard shortcuts like `Control + A` or `Alt + Up`
       // Don't work as expected -- this hack fixes that
@@ -755,13 +785,17 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   }
 
   const onClick = (e) => {
-
-    if ((e.target).closest('.he') && sourceActive) {
+    if (e.target.closest('.hoverButton')) {  // if the click is on a hover button, don't do anything
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if ((e.target).closest('.he .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('he')
         if (window.chrome) {suppressParentContentEditable(false)}
 
     }
-    else if ((e.target).closest('.en') && sourceActive) {
+    else if ((e.target).closest('.en .sourceContentText') && sourceActive) {
         setActiveSourceLangContent('en')
         if (window.chrome) {suppressParentContentEditable(false)}
     }
@@ -770,7 +804,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         if (window.chrome) {suppressParentContentEditable(true)}
     }
     setSourceActive(true)
-
   }
 
   const onBlur = (e) => {
@@ -851,7 +884,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         )
     }
 
-
   return (
       <div
           draggable={true}
@@ -862,6 +894,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           onDragEnter={(e)=>{e.preventDefault()}}
           onDragOver={(e)=>{dragOver(e)}}
           onDrop={(e)=> {drop(e)}}
+          tabIndex={0}
           {...attributes}
       >
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
@@ -870,7 +903,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
           {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -883,7 +916,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
-          {canUseDOM ? <HoverMenu buttons="basic"/> : null }
+            {canUseDOM ? <HoverMenu buttons="basic"/> : null }
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -1035,7 +1068,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 getSuggestions={getSuggestions}
                 inputValue={inputValue}
                 changeInputValue={setInputValue}
-                inputPlaceholder="Search for a Text or Commentator."
+                inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
                 showSuggestionsOnSelect={true}
@@ -1136,10 +1169,10 @@ const AddInterface = ({ attributes, children, element }) => {
     }
 
     return (
-      <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
+      <div role="button" title={active ? Sefaria._("Close menu") : Sefaria._("Add a source, image, or other media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+              <div role="button" title={Sefaria._("Add source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title={Sefaria._("Add image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
@@ -1298,7 +1331,7 @@ const Element = (props) => {
 
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning
+                <div role="button" ontentEditable suppressContentEditableWarning
                      aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
                      onClick={(event) => handleClick(event, editor)}
                 >
@@ -1347,13 +1380,19 @@ const Element = (props) => {
 }
 
 const getClosestSheetElement = (editor, path, elementType) => {
-    for(const node of Node.ancestors(editor, path)) {
-        if (node[0].type == elementType) {
+    for (const node of Node.ancestors(editor, path)) {
+        if (node[0].type === elementType) {
             return node;
-            break
         }
     }
-    return(null);
+    return null;
+}
+
+const sourceBoxIsClosestSelectedElement = (editor) => {
+    /**
+     * Returns true if BoxedSheetElement is the closest selected element to the cursor.
+     */
+    return getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource");
 }
 
 const activeSheetSources = editor => {
@@ -1429,14 +1468,22 @@ const withSefariaSheet = editor => {
     };
 
     editor.isVoid = element => {
-        return (voidElements.includes(element.type)) ? true : isVoid(element)
+      return (voidElements.includes(element.type)) ? true : isVoid(element);
     };
 
-    editor.deleteForward = () => {
+    editor.deleteForward = (fromOnKeyDown) => {
+        // Slate doesn't trigger deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteForward()
+        if (fromOnKeyDown !== true) { return; }
         deleteForward(editor);
     }
 
-    editor.deleteBackward = () => {
+    editor.deleteBackward = (fromOnKeyDown) => {
+        // Slate doesn't trigger deleteBackward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        // and ignore all other calls to deleteBackward()
+        if (fromOnKeyDown !== true) { return; }
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0, 0]));
         const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0, 0]));
         if (atStartOfDoc) {
@@ -1444,9 +1491,9 @@ const withSefariaSheet = editor => {
         }
 
         //if selected element is sheet source, delete it as normal
-        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+        if (sourceBoxIsClosestSelectedElement(editor)) {
             deleteBackward();
-            return
+            return;
         } else {
             //check to see if we're in a spacer to apply special delete rules
             let inSpacer = false;
@@ -1461,11 +1508,11 @@ const withSefariaSheet = editor => {
 
             //we do a dance to see if we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, {reverse: true})
-            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            if (sourceBoxIsClosestSelectedElement(editor)) {
                 //deletes the extra spacer space that would otherwise be left behind
                 if (inSpacer) {
                     Transforms.move(editor, {distance: 2});
-                    if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+                    if (sourceBoxIsClosestSelectedElement(editor)) {
                             Transforms.move(editor, {reverse: true, distance: 2})
                     }
                     else {
@@ -2412,18 +2459,15 @@ const HoverMenu = (opt) => {
     useEffect(() => {
         const el = ref.current;
         const {selection} = editor;
-
         if (!el) {
             return
         }
-
-
+        const isNotFocused = !ReactEditor.isFocused(editor);
+        const isCollapsed = selection && Range.isCollapsed(selection);
+        const isEmpty = selection && Editor.string(editor, selection) === '';
+        const isLink = isLinkActive(editor);
         if (
-            !selection ||
-            !ReactEditor.isFocused(editor) ||
-            Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === '' ||
-            isLinkActive(editor)
+            !selection || isNotFocused || isCollapsed || isEmpty || isLink
         ) {
             el.removeAttribute('style');
             return
@@ -2449,8 +2493,8 @@ const HoverMenu = (opt) => {
             <FormatButton editor={editor} format="bold"/>
             <FormatButton editor={editor} format="italic"/>
             <FormatButton editor={editor} format="underline"/>
+            <HighlightButton/>
             {buttons == "basic" ? null : <>
-                <HighlightButton/>
                 <AddLinkButton/>
                 <BlockButton editor={editor} format="header" icon="header"/>
                 <BlockButton editor={editor} format="numbered-list" icon="list-ol"/>
@@ -2505,7 +2549,6 @@ const FormatButton = ({format}) => {
     )
 };
 
-
 const HighlightButton = () => {
     const editor = useSlate();
     const ref = useRef();
@@ -2513,16 +2556,26 @@ const HighlightButton = () => {
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
     const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
-    const colorButtons = <>{colors.map(color => <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onClick={e => {
-        const isActive = isFormatActive(editor, "background-color", color);
-        if (isActive) {
-            Editor.removeMark(editor, "background-color")
-        } else {
-            Editor.addMark(editor, "background-color", color)
-        }
-  }}><div className="highlightDot" style={{"background-color":color}}></div></button>
-    )}</>
-
+    const colorButtons = <>{colors.map(color =>
+      <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
+            e.preventDefault();
+            const isActive = isFormatActive(editor, "background-color", color);
+            if (isActive) {
+                Editor.removeMark(editor, "background-color");
+            } else {
+                Editor.addMark(editor, "background-color", color);
+            }
+            }}><div className="highlightDot" style={{"backgroundColor":color}}></div>
+      </button>
+    )}</>;
+    const portal = <div className="highlightMenu" ref={ref} contentEditable={false}>
+                                  {colorButtons}
+                                  <button className="highlightButton" onMouseDown={e => {
+                                      Editor.removeMark(editor, "background-color")
+                                  }}>
+                                    <i className="fa fa-ban highlightCancel"></i>
+                                  </button
+                    ></div>;
     useEffect(() => {
         const el = ref.current;
         if (el) {
@@ -2549,13 +2602,7 @@ const HighlightButton = () => {
         >
       <i className={classNames(classes)}/>
     </span>
-    {showPortal ? <div className="highlightMenu" ref={ref}>
-    {colorButtons}
-    <button className="highlightButton" onClick={e => {
-        Editor.removeMark(editor, "background-color")
-    }}>
-    <i className="fa fa-ban highlightCancel"></i>
-  </button></div> : null}
+    {showPortal && portal}
     </>
     )
 };
@@ -3173,6 +3220,14 @@ const SefariaEditor = (props) => {
         if (event.key === " " || Node.get(editor, editor.selection.focus.path).isRef) {
             getRefInText(editor, false)
         }
+
+        // Slate doesn't trigger deleteBackward() or deleteForward() in certain cases,
+        // To migigate this, we handle Backspace and Delete keys manually in onKeyDown()
+        if (event.key === 'Backspace' ) {
+            editor.deleteBackward(true);
+        } else if (event.key === 'Delete') {
+            editor.deleteForward(true);
+        }
     };
 
     const whereIsElementInViewport = (element) => {
@@ -3225,8 +3280,6 @@ const SefariaEditor = (props) => {
                                        />;
     return (
           <div ref={editorContainer} onClick={props.handleClick} className="text">
-              {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
-
               <span ref={editorTitleContainer}> 
               <SheetMetaDataBox authorStatement={sheet.ownerName}
                             authorUrl={sheet.ownerProfileUrl}
@@ -3265,4 +3318,4 @@ const SefariaEditor = (props) => {
     )
 };
 
-export default SefariaEditor;
+export { EditorSaveStateIndicator, SefariaEditor };

@@ -25,6 +25,7 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 
 RUN apt-get update -qq \
  && apt-get install --no-install-recommends -y \
+    cuda-toolkit-12-2 \
     cuda-libraries-12-2 \
     libnpp-12-2 \
     cuda-nvtx-12-2 \

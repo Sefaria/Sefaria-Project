@@ -198,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670">
+            <a className="button get-start" href="/sheets/210670" data-target-module={Sefaria.SHEETS_MODULE}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -272,18 +272,19 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': 'www.example.com'}, 
-                                    {'he': 'עזרה','en':'Help', 'url': 'www.example.com'}, 
-                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'www.example.com'},
-                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': 'www.example.com'},
-                                    {'he': 'בלוג','en':'Blog', 'url': 'www.example.com'},
-                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'www.example.com'},
-                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'www.example.com'},
-                                    {'he': 'יוטיוב','en':'YouTube', 'url':'www.example.com'},
-                                    {'he': 'חנות','en':'Shop', 'url': 'www.example.com'},
-                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': 'www.example.com'},
-                                    {'he': 'תרומות','en':'Donate', 'url': 'www.example.com'},
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/help`}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/newsletter`},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/ways-to-give`},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
                                   ];
+
 
 const SidebarFooter = () => {
 
@@ -798,14 +799,18 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
-    return <Button variant="secondary" className="getStartedSheets" onClick={() => window.location.href=href}>Get Started</Button>;
+    return <Button variant="secondary" className="getStartedSheets">
+      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+    </Button>;
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"} onClick={() => window.location.href="/sheets/new"}>
-      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+    <Button icon={"new-sheet-black"}>
+      <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
+        <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+      </a>
     </Button>
-  ) // hebrew is placeholder
+  ) 
 }
 const CreateASheet = () => (
   <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
@@ -849,7 +854,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="button small" href="/sheets/collections/new">
+      <a className="button small" href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -863,7 +868,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/sheets/collections">
+      <a className="button small white" href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>

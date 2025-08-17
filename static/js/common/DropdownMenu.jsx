@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText, getCurrentPage } from '../Misc';
-
+import Sefaria from '../sefaria/sefaria';
 
 const DropdownMenuSeparator = () => {
 
@@ -11,17 +11,18 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null}) => {
 
   if (!newTab){
     newTab = false;
   }
 
   const cssClasses = customCSS ? customCSS : 'interfaceLinks-option int-bi dropdownItem';
+  const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
 
   return (
     <a className={cssClasses}
-       href={url}
+       href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}>
       {children}
@@ -146,11 +147,11 @@ const DropdownLanguageToggle = () => (
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a href={`/interface/english?next=${getCurrentPage()}`} target="_blank">
+        <a href={`/interface/english?next=${getCurrentPage()}`}>
           English
         </a>
       </span>
-      <a href={`/interface/hebrew?next=${getCurrentPage()}`} target="_blank">
+      <a href={`/interface/hebrew?next=${getCurrentPage()}`}>
         עברית
       </a>
       </div>

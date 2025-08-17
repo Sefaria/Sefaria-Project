@@ -278,21 +278,21 @@ def annotate_user_collections(sheets, user_id):
 
 
 def annotate_displayed_collections(sheets):
-	"""
-	Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
-	"""
-	slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
-	if len(slugs) == 0:
-		return sheets
-	displayed_collections = CollectionSet({"slug": {"$in": slugs}})
-	for sheet in sheets:
-		if not sheet.get("displayedCollection", None):
-			continue
-		for collection in displayed_collections:
-			if sheet["displayedCollection"] == collection.slug:
-				sheet["displayedCollectionName"] = collection.name
+    """
+    Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
+    """
+    slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
+    if len(slugs) == 0:
+        return sheets
+    displayed_collections = CollectionSet({"slug": {"$in": slugs}})
+    for sheet in sheets:
+        if not sheet.get("displayedCollection", None):
+            continue
+        for collection in displayed_collections:
+            if sheet["displayedCollection"] == collection.slug:
+                sheet["displayedCollectionName"] = collection.name
 
-	return sheets
+    return sheets
 
 
 
@@ -456,6 +456,7 @@ def rebuild_sheet_nodes(sheet):
 
 
 def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
+    from pathlib import Path
     """
     Saves sheet to the db, with user_id as owner.
     """
@@ -538,7 +539,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
                 nextNode += 1
             if "media" in source and source["media"].startswith(GoogleStorageManager.BASE_URL):
                 old_file = (re.findall(r"/([^/]+)$", source["media"])[0])
-                to_file = f"{user_id}-{uuid.uuid1()}.{source['media'][-3:].lower()}"
+                source_path = source['media']
+                path_suffix = Path(source_path).suffix.strip(".")
+                to_file = f"{user_id}-{uuid.uuid1()}.{path_suffix}"
                 bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
                 duped_image_url = GoogleStorageManager.duplicate_file(old_file, to_file, bucket_name)
                 source["media"] = duped_image_url
@@ -659,7 +662,7 @@ def test():
     for s in ss:
         lang = get_sheet_language(s)
         if lang == "some hebrew":
-            print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+            print("{}\thttps://sheets.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
 
 
 

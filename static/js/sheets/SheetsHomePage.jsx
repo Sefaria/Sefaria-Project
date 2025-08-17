@@ -1,6 +1,5 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
-import Footer from "../Footer";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
@@ -49,7 +48,6 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
                     <SheetsSidebar/>
                     {!multiPanel && sheetsTopicsTOC}
                 </div>
-                <Footer/>
             </div>
         </div>
 }

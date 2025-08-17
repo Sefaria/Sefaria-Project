@@ -3,8 +3,9 @@ import { ProfilePic } from "../ProfilePic";
 import Sefaria from "../sefaria/sefaria";
 import React, { useEffect, useState } from "react";
 import { UserBackground } from "../UserProfile";
+import { EditorSaveStateIndicator } from "../Editor";
 
-const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics}) => {
+const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics, editorSaveState}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
@@ -17,6 +18,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
                                     {Sefaria._(authorStatement)}
                                 </a>;
     return <div className="sheetContentSidebar">
+            {Sefaria.multiPanel && <EditorSaveStateIndicator state={editorSaveState}/>}
             <ProfilePic
                 url={authorImage}
                 len={100}
@@ -52,13 +54,13 @@ const SheetSidebarList = ({items, type}) => {
       if (type === "topics") {
         return items.map((item, i) => (
             <li key={i}><a
-                href={"/sheets/topics/" + item.slug}><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
+                href={"/sheets/topics/" + item.slug} data-target-module={Sefaria.SHEETS_MODULE}><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
             </li>
         ))
       } else {
         return items.map((item, i) => (
             <li key={i}><a
-                href={"/sheets/collections/" + item.slug}><InterfaceText>{item.name}</InterfaceText></a>
+                href={"/sheets/collections/" + item.slug} data-target-module={Sefaria.SHEETS_MODULE}><InterfaceText>{item.name}</InterfaceText></a>
             </li>
         ))
       }
