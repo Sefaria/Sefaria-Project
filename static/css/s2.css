@@ -10378,6 +10378,13 @@ body.user-is-tabbing div[role="button"]:focus {
   outline: 2px solid #1976d2;
   outline-offset: 2px;
 }
+
+/* Add focus styling for dropdown menu items - only for keyboard navigation */
+body.user-is-tabbing .interfaceLinks-option:focus,
+body.user-is-tabbing .dropdownItem:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
