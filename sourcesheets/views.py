@@ -18,7 +18,6 @@ from django.http import Http404
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as _
-from sefaria.site.site_settings import SITE_SETTINGS
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -171,18 +170,19 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    sheet_redirects = SITE_SETTINGS.get('SHEET_REDIRECTS', {})
-    
-    if sheet_id in sheet_redirects[request.LANGUAGE_CODE]:
-        return redirect(sheet_redirects[request.LANGUAGE_CODE][sheet_id], permanent=True)
-
     embed = request.GET.get('embed', '0')
 
     if embed != '1' and editorMode is False:
+        sheet = get_sheet(sheet_id)
+        if "redirect" in sheet:
+            return redirect(sheet["redirect"][request.LANGUAGE_CODE], permanent=False)
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+    if "redirect" in sheet:
+        return redirect(sheet["redirect"][request.LANGUAGE_CODE], permanent=True)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 
