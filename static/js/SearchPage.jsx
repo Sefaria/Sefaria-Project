@@ -30,6 +30,10 @@ class SearchPage extends Component {
     const isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     const showAiBadge =    this.props.type === 'sheet' &&
         (this.props.searchState?.sortType === 'relevance' || this.props.searchState?.sortType?.toLowerCase?.() === 'relevance');
+    const aiBadgeTexts = {
+      en: 'These sheet results are ranked by AI relevance.',
+      he: 'תוצאות הדפים מסודרות לפי רלוונטיות על בסיס בינה מלאכותית.',
+    };
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -83,7 +87,12 @@ class SearchPage extends Component {
                       {this.props.query}
                       <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
                     </h1>
-                    {showAiBadge ? <AiInfoTooltip/> : null}
+                    {showAiBadge ? (
+                    <AiInfoTooltip
+                      enText={aiBadgeTexts.en}
+                      heText={aiBadgeTexts.he}
+                    />
+                  ) : null}
                   </div>
 
 
