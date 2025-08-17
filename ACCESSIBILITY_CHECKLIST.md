@@ -23,6 +23,7 @@
 ### Headers & Navigation  
 - [ ] Header dropdowns - keyboard navigation
 - [ ] Mobile menu - keyboard navigation
+- [ ] Versions tab not reachable with keyboard navigation on book page
 
 ### General Interactive Elements
 - [x] Quick feedback Like/Dislike buttons - need role/tabIndex/keys
@@ -31,29 +32,15 @@
 - [ ] Dropdown menu items (DropdownMenuItemWithCallback) - may need tabIndex
 - [x] Space key activation - buttons now respond to both Enter and Space keys
 
-## Decisions Made
-- **Button Strategy**: ✅ **UPDATED** - Migrate all interactive buttons to semantic `<button>` elements for native accessibility. Legacy `.button` CSS works with both `<a>` and `<button>`.
-- **Focus Strategy**: Use browser defaults + custom outline. Semantic buttons handle space/enter keys automatically.
-- **Dropdown Pattern**: Standardize on listbox with arrow navigation
-- **Migration Progress**: 
-  - ✅ Save/Share buttons → semantic `<button>` 
-  - ✅ Source/Connection/Text/Media/Comment → semantic `<button>`
-  - ✅ Add Source/Browse Sources → semantic `<button>`
-  - ✅ Add to Sheet buttons (connections, media, comments, custom text) → semantic `<button>`
-  - ✅ Daf Yomi page → all 3 buttons now proper `<a>` (were div wrapping a)
-  - ✅ Edit Profile Save button → semantic `<button>`
-  - ✅ "View in Library" remains `<a>` (navigation link)
-  - ⚠️ Upload Image button → needs special handling (label for file input)
-  - ✅ React component buttons → 8 high-priority buttons migrated
-    - ✅ SmallBlueButton component → semantic `<button>` (reusable across site)
-    - ✅ Save Account Settings → semantic `<button>`
-    - ✅ Feedback Like/Dislike → semantic `<button>` (removed manual keyboard handling)
-    - ✅ Collection Save/Delete → semantic `<button>`
-    - ✅ MyNotesPanel Add to Sheet → semantic `<button>`
+## Standards
+- **Button Strategy**: Use semantic `<button>` elements for actions, `<a>` for navigation
+- **Focus Strategy**: Browser defaults + consistent outline styling  
+- **Dropdown Pattern**: Listbox with arrow navigation
 
-## Big Decisions Needed
-- **Systematic Migration Timeline**: When to migrate all div.button → Button component?
-- **Focus Trap Strategy**: How to handle modal/overlay focus management consistently?
+## Remaining Work
+- Upload Image buttons - special handling needed (labels for file inputs)
+- Complex editor interface buttons - evaluate on case-by-case basis
+- Focus trap management for modals/overlays
 
 ---
 *Simplified tracking focused on actionable tasks*
