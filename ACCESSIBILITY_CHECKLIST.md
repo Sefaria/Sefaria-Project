@@ -25,6 +25,7 @@
 - [x] Main navigation links - space key activation (fixed Texts, Topics, Donate links)
 - [x] Header icons - space key activation (fixed librarySavedIcon, sheetsNotificationsIcon)
 - [x] Header dropdowns - keyboard navigation (fixed ModuleSwitcher double tab, dropdown menu items space key)
+- [x] Focus outline behavior - fixed mouse clicks showing outline (consistent user-is-tabbing system)
 - [ ] Mobile menu - keyboard navigation
 - [ ] Versions tab not reachable with keyboard navigation on book page
 - [x] Navigation tabs - space key activation (fixed navTitleTab in UserHistoryPanel, LanguageToggleButton)
