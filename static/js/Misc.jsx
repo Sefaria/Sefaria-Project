@@ -2180,7 +2180,7 @@ const InterruptingMessage = ({
                   </div>
                   <div className="buttons">
                     <a
-                      className="button int-en"
+                      className="sefaria-common-button legacy int-en"
                       target="_blank"
                       href={strapi.modal.buttonURL.en}
                       onClick={() => {
@@ -2192,7 +2192,7 @@ const InterruptingMessage = ({
                       </span>
                     </a>
                     <a
-                      className="button int-he"
+                      className="sefaria-common-button legacy int-he"
                       target="_blank"
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
@@ -2743,18 +2743,14 @@ class FeedbackBox extends Component {
                 <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
                 : null }
 
-            <div
-              className="button"
-              role="button"
-              tabIndex="0"
-              aria-label={Sefaria._("Send Feedback")}
+            <Button
+              variant="legacy"
+              ariaLabel={Sefaria._("Send Feedback")}
               onClick={() => this.sendFeedback()}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.sendFeedback(); } }}
             >
-              
                  <span className="int-en">Submit</span>
                  <span className="int-he">שליחה</span>
-             </div>
+            </Button>
         </div>
     );
   }
