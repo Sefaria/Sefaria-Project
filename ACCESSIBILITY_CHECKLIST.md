@@ -45,7 +45,12 @@
 - [x] Feedback buttons - migrated to Button component (Like/Dislike)
 - [x] Cookie notification - converted spans to proper Button elements
 - [x] Banner buttons - updated to new button styling
-- [ ] Priority 2 Files - Other files with button patterns (15 files identified)
+- [x] Priority 2 Files - Major button pattern files migrated (20 instances total)
+  - [x] NavSidebar.jsx - 10 button instances (navigation, social, download)
+  - [x] MyNotesPanel.jsx - 2 button instances (Add to Sheet buttons)
+  - [x] UserProfile.jsx - 4 button instances (feedback and navigation)
+  - [x] EditCollectionPage.jsx - 4 button instances (save, cancel, upload)
+- [ ] Priority 3 Files - Remaining files with button patterns (SearchFilters.jsx, etc.)
 - [ ] Template files - HTML templates with .button classes
 
 ## Standards
