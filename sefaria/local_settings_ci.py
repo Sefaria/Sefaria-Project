@@ -2,7 +2,7 @@
 from datetime import timedelta
 import structlog
 import os
-
+import json
 
 DATABASES = {
     'default': {
@@ -22,14 +22,16 @@ DOMAIN_LANGUAGES = {
     "http://hebrew.example.org": "hebrew",
     "http://english.example.org": "english",
 }
-DOMAIN_MODULES = {
+
+# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
+DOMAIN_MODULES = json.dumps({
     "library": "http://localhost:8000",
-    "sheets": "http://localhost:8000/sheets",
-}
-MODULE_ROUTES = {
+    "sheets": "http://localhost:8000",
+})
+MODULE_ROUTES = json.dumps({
     "library": "/",
     "sheets": "/sheets/",
-}
+})
 
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
