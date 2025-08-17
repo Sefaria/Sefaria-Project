@@ -550,7 +550,7 @@
                 <div class="sheetsMenuBarButtons">
 
                 {% if new_sheet %}
-                <button id="save" class="button" data-mode="editing" type="button">
+                <button id="save" class="sefaria-common-button legacy" data-mode="editing" type="button">
                     <i class="fa fa-floppy-o"></i>
                     <span id="doSave">
                         <span class="int-en">Save</span>
@@ -562,17 +562,17 @@
                     </span>
                 </button>
                 {% elif is_owner %}
-                <button id="share" class="button" type="button">
+                <button id="share" class="sefaria-common-button legacy" type="button">
                     <img src="{% static 'img/share.png' %}" alt="Share Icon">
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
                 </button>
-                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" tabIndex="0">
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="sefaria-common-button legacy" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
                 </a>
                 {% else %}
-                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" tabIndex="0">
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="sefaria-common-button legacy" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
                 </a>
