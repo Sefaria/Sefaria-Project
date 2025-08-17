@@ -800,16 +800,17 @@ class ReaderApp extends Component {
     return hist;
   }
   
-  modifyURLbasedOnModule(hist) {
-    if (Sefaria.activeModule === "sheets" && (!hist.url.startsWith("/sheets"))) {
+  modifyURLbasedOnModule(url) {
+    const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
+    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!url.startsWith("/sheets"))) {
       // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-      return "/sheets" + hist.url;
+      return sheetsPrefix + url;
     }
-    else if (Sefaria.activeModule !== "sheets" && hist.url.startsWith("/sheets")) {
+    else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && url.startsWith("/sheets")) {
       // If we are not in the sheets module, remove /sheets from the beginning of the URL
-      return hist.url.replace(/^\/sheets/, "");
+      return url.replace(sheetsPrefix, "");
     }
-    return hist.url;
+    return url;
   }
   
   updateHistoryState(replace) {
@@ -824,7 +825,7 @@ class ReaderApp extends Component {
     }
     
     console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = this.modifyURLbasedOnModule(hist);  // relevant for modularization QA
+    hist.url = this.modifyURLbasedOnModule(hist.url); 
     console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
@@ -1102,35 +1103,42 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = linkTarget.getAttribute('href');
+
+    let href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
+    
+    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either 'sheets', Sefaria.LIBRARY_MODULE or null
+
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true);
+      const handled = this.openURL(href, true, false, moduleTarget);
       if (handled) {
         e.preventDefault();
       }
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(linkTarget.closest(".sheetItem"))
-    const replacePanel = !(isSheet)
+    const isSheet = !!(linkTarget.closest(".sheetItem"));
+    const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(href, replace=true, overrideContentLang=false) {
+
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
         return true;
       }
     }
+
+    href = Sefaria.util.fullURL(href, moduleTarget);
+    
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
     try {
       url = new URL(href);
@@ -1139,7 +1147,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf("www.sefaria.org") === -1) {
+    if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
       return true;
     }

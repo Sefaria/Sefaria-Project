@@ -658,7 +658,7 @@ def test():
 	for s in ss:
 		lang = get_sheet_language(s)
 		if lang == "some hebrew":
-			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+			print("{}\thttps://sheets.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
 
 
 

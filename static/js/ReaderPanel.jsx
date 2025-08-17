@@ -1002,11 +1002,11 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        if (Sefaria.activeModule === 'library') {
+        if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
           menu = (
               <TopicsLandingPage openTopic={this.props.openTopic}/>
           );
-        } else if (Sefaria.activeModule === "sheets") {
+        } else if (Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
           menu = <TopicsPage
                       key={"TopicsPage"}
                       setNavTopic={this.setNavigationTopic}
@@ -1407,7 +1407,7 @@ class ReaderControls extends Component {
       <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
-            <a href={url} aria-label={"Show Connection Panel contents for " + title} >
+            <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
               <div className="readerControlsTitle">
                 { this.props.sheetID ?
                 <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}

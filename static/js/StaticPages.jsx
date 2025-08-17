@@ -35,7 +35,7 @@ import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
             heImgAlt=""
             heActionURL={null}
             heActionText={null}
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <H2Block
@@ -88,7 +88,7 @@ const ContestLandingPage = () => (
             heImgAlt=""
             heActionURL="#"
             heActionText="הרשמה לתחרות"
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <H2Block en="The Contest" he="התחרות"/>
@@ -269,7 +269,7 @@ const RambanLandingPage = () => {
             heActionText="Read the Text"
             enImg=""
             heImg=""
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
@@ -385,7 +385,7 @@ const SheetsLandingPage = () => (
             heImgAlt="דפי מקורות"
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
         <GreyBox light={true}>
             <H2Block
@@ -727,7 +727,7 @@ const PBSC2020LandingPage = () => (
             heText="הכירו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <GreyBox>
@@ -1479,7 +1479,7 @@ const WordByWordPage = () => {
     
     const ctaText = "Learn more about our authors and their work.";
     const ctaButtonText = "Learn about our authors";
-    const ctaHref = "https://www.sefaria.org/sheets/485180?lang=bi";
+    const ctaHref = "https://sheets.sefaria.org/sheets/485180?lang=bi";
   
     return (
       <StaticPage optionalClass="donate wordbyword">
@@ -1615,7 +1615,7 @@ const PoweredByPage = () => (
             heActionURL="https://developers.sefaria.org/"
             heActionText="Create Something New"
             newTab={true}
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
         <GreyBox>
             <H2Block en="Open Source Torah" he="Open Source Torah"/>
@@ -1744,7 +1744,7 @@ const PBSC2021LandingPage = () => (
             heText="גלו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
-            module="library"
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <GreyBox>
