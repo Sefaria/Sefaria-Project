@@ -136,7 +136,9 @@ const LoggedInDropdown = ({module}) => {
 const ModuleSwitcher = () => {
   const shouldOpenNewTab = (newModule) => Sefaria.activeModule !== newModule;
   return (
-              <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg' alt="Switch between library and sheets"/>}>
+              <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
+                <img src='/static/icons/module_switcher_icon.svg' alt="Switch between library and sheets"/>
+              }>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={'/'} newTab={shouldOpenNewTab('library')}>
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={'Library'}/>
@@ -189,12 +191,20 @@ const Header = (props) => {
   const logo = props.module === "library" ? libraryLogo : sheetsLogo;
 
   const librarySavedIcon = <div className='librarySavedIcon'>
-                                <a href="/texts/saved" >
+                                <a 
+                                  href="/texts/saved"
+                                  onClick={(e) => { /* Let browser handle navigation naturally */ }}
+                                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+                                >
                                   <img src='/static/icons/bookmarks.svg' alt='Saved items' />
                                 </a>
                               </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
-                                        <a href="/sheets/notifications" >
+                                        <a 
+                                          href="/sheets/notifications"
+                                          onClick={(e) => { /* Let browser handle navigation naturally */ }}
+                                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+                                        >
                                           <img src='/static/icons/notification.svg' alt="Notifications" />
                                         </a>
                                       </div>;
@@ -213,9 +223,31 @@ const Header = (props) => {
     <>
         <nav className="headerNavSection" aria-label="Primary navigation">
           { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
-          <a href={props.module === 'library' ? '/texts' : '/sheets/topics'} className="textLink"><InterfaceText context="Header">{props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText></a>
-          <a href={props.module === 'library' ? '/topics' : '/sheets/collections'} className="textLink"><InterfaceText>{props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+          <a 
+            href={props.module === 'library' ? '/texts' : '/sheets/topics'} 
+            className="textLink"
+            onClick={(e) => { /* Let browser handle navigation naturally */ }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+          >
+            <InterfaceText context="Header">{props.module === 'library' ? 'Texts' : 'Topics'}</InterfaceText>
+          </a>
+          <a 
+            href={props.module === 'library' ? '/topics' : '/sheets/collections'} 
+            className="textLink"
+            onClick={(e) => { /* Let browser handle navigation naturally */ }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+          >
+            <InterfaceText>{props.module === 'library' ? 'Topics' : 'Collections'}</InterfaceText>
+          </a>
+          <a 
+            href={`${Sefaria._v({en: "https://donate.sefaria.org/give/451346/#!/donation/checkout", he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"})}?c_src=Header`} 
+            className="textLink donate" 
+            target="_blank"
+            onClick={(e) => { /* Let browser handle navigation naturally */ }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+          >
+            <InterfaceText>Donate</InterfaceText>
+          </a>
         </nav>
 
       <div className="headerLinksSection">
@@ -618,9 +650,20 @@ const MobileInterfaceLanguageToggle = () => {
 
 const HelpButton = () => {
   const url = Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US});
+  
+  const handleClick = (e) => {
+    e.preventDefault();
+    window.open(url, '_blank');
+  };
+  
   return (
     <div className="help">
-      <a href={url}>
+      <a 
+        href={url} 
+        onClick={handleClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); } }}
+        aria-label={Sefaria._("Help")}
+      >
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
@@ -628,19 +671,30 @@ const HelpButton = () => {
 };
 
 const SignUpButton = () => {
+  const handleClick = (e) => {
+    e.preventDefault();
+    window.location.href = "/register";
+  };
+  
   return (
-    <Button>
-      <a href="/register">
-        <InterfaceText>Sign Up</InterfaceText>
-      </a>
-    </Button>
+    <a 
+      href="/register" 
+      className="button small"
+      onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); } }}
+    >
+      <InterfaceText>Sign Up</InterfaceText>
+    </a>
   )
 }
 
 const CreateButton = () => {
+  const handleCreate = () => {
+    window.location.href = "/sheets/new";
+  };
+  
   return (
-    <Button onClick={() => window.location.href="/sheets/new"}>
-      {/* Hebrew is a placeholder */}
+    <Button onClick={handleCreate}>
       <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
     </Button>
   );

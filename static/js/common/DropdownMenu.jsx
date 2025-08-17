@@ -23,7 +23,10 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
     <a className={cssClasses}
        href={url}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       onClick={(e) => { /* Let browser handle navigation naturally */ }}
+       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+    >
       {children}
     </a>
 
@@ -39,7 +42,10 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
     <a className={`interfaceLinks-option int-bi dropdownItem`}
        href={url}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       onClick={(e) => { /* Let browser handle navigation naturally */ }}
+       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+    >
       {children}
     </a>
   );
@@ -47,7 +53,14 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
 
 const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
   return (
-    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
+    <div 
+      className={'interfaceLinks-option int-bi dropdownItem'} 
+      onClick={onClick} 
+      data-prevent-close={preventClose}
+      role="button"
+      tabIndex="0"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e); } }}
+    >
         {children}
     </div>
   );

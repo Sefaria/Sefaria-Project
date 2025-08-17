@@ -21,7 +21,10 @@
 - [x] Close "×" button in widget header - needs keyboard access
 
 ### Headers & Navigation  
-- [ ] Header dropdowns - keyboard navigation
+- [x] Header buttons - space key activation (fixed SignUpButton, HelpButton, ModuleSwitcher, CreateButton)
+- [x] Main navigation links - space key activation (fixed Texts, Topics, Donate links)
+- [x] Header icons - space key activation (fixed librarySavedIcon, sheetsNotificationsIcon)
+- [x] Header dropdowns - keyboard navigation (fixed ModuleSwitcher double tab, dropdown menu items space key)
 - [ ] Mobile menu - keyboard navigation
 - [ ] Versions tab not reachable with keyboard navigation on book page
 
@@ -29,18 +32,21 @@
 - [x] Quick feedback Like/Dislike buttons - need role/tabIndex/keys
 - [ ] Compare Panel/Add Connection buttons - need keyboard access
 - [ ] Modal close buttons - keyboard access
-- [ ] Dropdown menu items (DropdownMenuItemWithCallback) - may need tabIndex
+- [x] Dropdown menu items - space key activation (fixed DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithCallback)
 - [x] Space key activation - buttons now respond to both Enter and Space keys
 
 ## Standards
 - **Button Strategy**: Use semantic `<button>` elements for actions, `<a>` for navigation
 - **Focus Strategy**: Browser defaults + consistent outline styling  
-- **Dropdown Pattern**: Listbox with arrow navigation
+- **Dropdown Pattern**: Established - all dropdown menu items respond to Enter and Space keys
 
 ## Remaining Work
 - Upload Image buttons - special handling needed (labels for file inputs)
 - Complex editor interface buttons - evaluate on case-by-case basis
 - Focus trap management for modals/overlays
+- Mobile menu keyboard navigation
+- Compare Panel/Add Connection buttons
+- Modal close buttons
 
 ---
 *Simplified tracking focused on actionable tasks*
