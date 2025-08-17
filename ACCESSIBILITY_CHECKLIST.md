@@ -50,13 +50,70 @@
   - [x] MyNotesPanel.jsx - 2 button instances (Add to Sheet buttons)
   - [x] UserProfile.jsx - 4 button instances (feedback and navigation)
   - [x] EditCollectionPage.jsx - 4 button instances (save, cancel, upload)
-- [ ] Priority 3 Files - Remaining files with button patterns (SearchFilters.jsx, etc.)
+- [x] Priority 3 Files - SearchFilters.jsx (2 instances) + Misc.jsx cleanup (3 instances)
 - [ ] Template files - HTML templates with .button classes
 
 ## Standards
 - **Button Strategy**: Use semantic `<button>` elements for actions, `<a>` for navigation
 - **Focus Strategy**: Browser defaults + consistent outline styling  
 - **Dropdown Pattern**: Established - all dropdown menu items respond to Enter and Space keys
+
+## Manual Testing Required
+*Remove items from this list after testing them manually*
+
+### Focus Behavior Testing
+- [ ] **Focus outline behavior** - Tab through buttons (should show blue outline) vs. mouse clicks (no outline)
+- [ ] **Focus sequence** - Tab navigation follows logical order through interface elements
+
+### Button Functionality Testing
+**Priority 1 Files (Misc.jsx + Header.jsx):**
+- [ ] **SmallBlueButton component** - test all instances work as before
+- [ ] **Login/Register buttons** - test navigation and styling in LoginPrompt  
+- [ ] **Modal action buttons** - test Cancel/Save in AdminToolHeader
+- [ ] **Feedback buttons** - test Like/Dislike in ReaderMessage
+- [ ] **Cookie notification buttons** - test OK button (EN/HE)
+- [ ] **Banner buttons** - test banner link buttons (EN/HE)
+- [ ] **Modal buttons** - test modal navigation buttons (EN/HE)
+- [ ] **Feedback submit button** - test feedback form submission
+- [ ] **Header signup button** - test signup navigation
+
+**Priority 2 Files:**
+- [ ] **NavSidebar buttons** - test all 10 instances:
+  - [ ] Study Companion signup button
+  - [ ] Getting Started video buttons (EN/HE)
+  - [ ] Community explore button
+  - [ ] Social media buttons (Facebook, Instagram, YouTube)
+  - [ ] Collection creation button
+  - [ ] Collection exploration button
+  - [ ] Download version button
+- [ ] **MyNotesPanel buttons** - test Add to Sheet buttons (EN/HE)
+- [ ] **UserProfile buttons** - test all 4 instances:
+  - [ ] Submit Feedback button
+  - [ ] Back to Profile buttons (enable/disable editor)
+  - [ ] Feedback toggle white button
+- [ ] **EditCollectionPage buttons** - test all 4 instances:
+  - [ ] Cancel button (navigation)
+  - [ ] Save collection button
+  - [ ] Upload collection image button
+  - [ ] Upload header image button
+
+**Priority 3 Files:**
+- [ ] **SearchFilters buttons** - test both instances:
+  - [ ] Mobile "Show Results" button
+  - [ ] Clear input button (X icon)
+
+### Accessibility Testing
+- [ ] **Screen reader compatibility** - buttons properly announced with correct roles
+- [ ] **Keyboard navigation** - all buttons accessible via Tab key
+- [ ] **Button activation** - Enter and Space keys trigger button actions
+- [ ] **ARIA labels** - icon-only buttons have proper accessible labels
+- [ ] **Focus management** - focus moves logically through interface
+
+### Visual Consistency Testing
+- [ ] **Button styling** - all migrated buttons have consistent appearance
+- [ ] **Hover states** - buttons respond to mouse hover appropriately
+- [ ] **Active states** - buttons show appropriate feedback when clicked
+- [ ] **Disabled states** - disabled buttons display correctly
 
 ## Remaining Work
 - Upload Image buttons - special handling needed (labels for file inputs)
