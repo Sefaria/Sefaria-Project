@@ -3,28 +3,28 @@
 ## By Page/Component
 
 ### Sidepanel - Tools & Resources  
-- [ ] Edit note pencil - not reachable with tab
-- [ ] Make Add to Sheets dropdown selection match Feedback dropdown behavior
+- [x] Edit note pencil - not reachable with tab
+- [x] Make Add to Sheets dropdown selection match Feedback dropdown behavior
 
 ### Sheets
 - [ ] + button to add new block section - not reachable with tab
 - [ ] Topic textarea in publish modal - can't exit with tab/escape
 - [ ] ... menu dropdown - can't navigate into opened menu with tab
-- [ ] Button focus styling not working for sheets buttons
+- [x] Button focus styling not working for sheets buttons
 
 ### Search & Filters
 - [ ] Filter checkboxes - verify keyboard accessibility
 - [ ] Search autocomplete - keyboard navigation
 
 ### Collections
-- [ ] Close "×" button in widget header - needs keyboard access
+- [x] Close "×" button in widget header - needs keyboard access
 
 ### Headers & Navigation  
 - [ ] Header dropdowns - keyboard navigation
 - [ ] Mobile menu - keyboard navigation
 
 ### General Interactive Elements
-- [ ] Quick feedback Like/Dislike buttons - need role/tabIndex/keys
+- [x] Quick feedback Like/Dislike buttons - need role/tabIndex/keys
 - [ ] Compare Panel/Add Connection buttons - need keyboard access
 - [ ] Modal close buttons - keyboard access
 - [ ] Dropdown menu items (DropdownMenuItemWithCallback) - may need tabIndex

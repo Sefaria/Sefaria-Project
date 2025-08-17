@@ -999,7 +999,16 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
     return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
-        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"} alt="Edit topic"/>;
+        <img 
+          className={classes} 
+          id={"editTopic"} 
+          onClick={toggleAddSource} 
+          src={"/static/icons/editing-pencil.svg"} 
+          alt="Edit topic"
+          role="button"
+          tabIndex="0"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAddSource(); } }}
+        />;
 }
 
 const ReorderEditorWrapper = ({toggle, type, data}) => {
@@ -1855,7 +1864,14 @@ class Note extends Component {
 
       var buttons = this.props.isMyNote ?
                     (<div className="noteButtons">
-                      <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
+                      <i 
+                        className="editNoteButton fa fa-pencil" 
+                        title="Edit Note" 
+                        onClick={this.props.editNote}
+                        role="button"
+                        tabIndex="0"
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.editNote(); } }}
+                      ></i>
                     </div>) : null;
 
       var text = Sefaria.util.linkify(this.props.text);
@@ -2748,8 +2764,20 @@ class ReaderMessage extends Component {
       <div className="readerMessageBox">
         <div className="readerMessage">
           <div className="int-en">{this.props.message}</div>
-          <div className="button small" role="button" onClick={() => this.setFeedback('Like')}>{this.props.buttonLikeText}</div>
-          <div className="button small" role="button" onClick={() => this.setFeedback('Dislike')}>{this.props.buttonDislikeText}</div>
+          <div 
+            className="button small" 
+            role="button" 
+            tabIndex="0"
+            onClick={() => this.setFeedback('Like')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.setFeedback('Like'); } }}
+          >{this.props.buttonLikeText}</div>
+          <div 
+            className="button small" 
+            role="button" 
+            tabIndex="0"
+            onClick={() => this.setFeedback('Dislike')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.setFeedback('Dislike'); } }}
+          >{this.props.buttonDislikeText}</div>
         </div>
       </div>);
   }

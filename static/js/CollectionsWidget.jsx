@@ -119,7 +119,14 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       <span className={"collectionsWidgetTitle"}>
         <InterfaceText>Collections</InterfaceText>
       </span>
-      <div className="collectionsWidgetClose" onClick={onClose}>×</div>
+      <div 
+        className="collectionsWidgetClose" 
+        onClick={onClose}
+        role="button"
+        tabIndex="0"
+        aria-label="Close collections"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
+      >×</div>
     </div>
     <div className="collectionsWidgetList serif">
       {!dataLoaded ? null :
