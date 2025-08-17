@@ -1237,7 +1237,8 @@ class DisplaySettingsButton extends Component {
             <ToolTipped {...{ altText, classes, onClick: this.props.onClick, style}}>
                 <span
                 className="readerOptions"
-                aria-haspopup="true">
+                aria-haspopup="true"
+                tabIndex="-1">
                 {icon}
               </span>
             </ToolTipped>

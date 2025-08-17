@@ -1,4 +1,4 @@
-import React, {useContext} from "react";
+import React, {useContext, useRef, useEffect} from "react";
 import Sefaria from "./sefaria/sefaria";
 import PropTypes from "prop-types";
 import SourceTranslationsButtons from "./SourceTranslationsButtons";
@@ -9,6 +9,7 @@ import ToggleSwitchLine from "./common/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
+    const menuRef = useRef(null);
 
     const isPanelModeSheet = panelMode === 'Sheet';
     const isSidePanel = !isPanelModeSheet && panelMode !== 'Text';
@@ -87,8 +88,56 @@ const ReaderDisplayOptionsMenu = () => {
         setOption('punctuationTalmud', newValue);
     };
 
+    useEffect(() => {
+        // Focus the first focusable element when menu opens
+        if (menuRef.current) {
+            const firstFocusable = menuRef.current.querySelector('[role="radiogroup"], button, [tabindex="0"]');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        }
+    }, []);
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            // Close the menu by clicking outside or triggering close mechanism
+            const dropdownMenu = e.target.closest('.readerDropdownMenu');
+            if (dropdownMenu) {
+                // Simulate click outside to close
+                document.body.click();
+            }
+            return;
+        }
+
+        if (e.key === 'Tab') {
+            // Let default tab behavior handle focus management within the dialog
+            const focusableElements = menuRef.current.querySelectorAll(
+                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
+                'textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [role="radio"]:not([disabled])'
+            );
+            
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey && document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    };
+
     return (
-        <div className="texts-properties-menu" role="dialog">
+        <div 
+            className="texts-properties-menu" 
+            role="dialog" 
+            aria-label="Text display options"
+            ref={menuRef}
+            onKeyDown={handleKeyDown}
+            tabIndex="-1"
+        >
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons
                     showPrimary={showPrimary}
