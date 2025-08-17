@@ -19,7 +19,8 @@ button.sefaria-common-button {
 }
 
 button.sefaria-common-button:focus {
-    outline: none; /* Remove focus outline */
+    outline: 2px solid #1976d2; /* Accessible focus outline */
+    outline-offset: 2px;
 }
 
 button.sefaria-common-button::-moz-focus-inner {

@@ -305,7 +305,7 @@ class AddToSourceSheetBox extends Component {
       let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
       let selectSheet = this.selectSheet.bind(this, sheet);
       const isSelected = !!(this.state.selectedSheet && this.state.selectedSheet.id == sheet.id);
-      const isActive = i === this.state.focusedSheetIndex;
+      const isFocused = i === this.state.focusedSheetIndex;
       return (
         <div
           className={classes}
@@ -315,8 +315,8 @@ class AddToSourceSheetBox extends Component {
           aria-selected={isSelected}
           id={`user-sheet-option-${i}`}
           tabIndex={-1}
-          aria-current={isActive ? "true" : undefined}
-          ref={el => { if (isActive) { this.activeOptionRef = el; } }}
+          ref={el => { if (isFocused) { this.activeOptionRef = el; } }}
+          style={isFocused ? {backgroundColor: '#e3f2fd', outline: '2px solid #1976d2', outlineOffset: '-2px'} : {}}
         >
           {title}
         </div>
