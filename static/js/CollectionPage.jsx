@@ -449,7 +449,13 @@ class CollectionInvitationBox extends Component {
     return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
-                <div className="button small" onClick={this.onInviteClick}>
+                <div
+                  className="button small"
+                  role="button"
+                  tabIndex="0"
+                  onClick={this.onInviteClick}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.onInviteClick(); } }}
+                >
                   <InterfaceText>Invite</InterfaceText>
                 </div>
               </div>

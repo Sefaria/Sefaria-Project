@@ -145,14 +145,26 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       <div className="collectionsWidgetCreateInputBox">
         <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} aria-label={Sefaria._("Create new collection")} type="text" value={newName} onChange={onNameChange} />
       </div>
-      {newName.length ?
-      <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
+       {newName.length ?
+      <div
+        className="button extraSmall white collectionsWidgetCreateButton"
+        role="button"
+        tabIndex="0"
+        onClick={onCreateClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCreateClick(); } }}
+      >
         <InterfaceText>Create</InterfaceText>
       </div>
       : null}
     </div>
     <div className="collectionsWidgetDone">
-       <div className="button large fillWidth" onClick={onClose}>
+       <div
+        className="button large fillWidth"
+        role="button"
+        tabIndex="0"
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
+       >
         <InterfaceText>Done</InterfaceText>
       </div>     
     </div>

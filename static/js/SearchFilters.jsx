@@ -101,7 +101,13 @@ class SearchFilters extends Component {
           {filters}
         </div>
         <div className="mobileSearchFiltersFooter">
-          <div className="button fillWidth" onClick={this.props.closeMobileFilters}>
+          <div
+            className="button fillWidth"
+            role="button"
+            tabIndex="0"
+            onClick={this.props.closeMobileFilters}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.closeMobileFilters(); } }}
+          >
             <InterfaceText>Show Results</InterfaceText>
           </div>
         </div>
