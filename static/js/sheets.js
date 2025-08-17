@@ -1316,6 +1316,14 @@ $(function() {
       e.stopImmediatePropagation();
     });
 
+    // Add keyboard support for inlineAddButtonIcon
+    $(".sheetItem").on("keydown", ".inlineAddButtonIcon", function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        $(this).click();
+      }
+    });
+
     function cleanupActiveSource(target) {
       $(".inlineAddButtonIcon").removeClass("active");
       $(".activeSource").removeClass("activeSource");
@@ -1333,6 +1341,13 @@ $(function() {
       $(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
         $("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
         $(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+      });
+      // Re-add keyboard support after re-binding
+      $(".sheetItem").on("keydown", ".inlineAddButtonIcon", function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          $(this).click();
+        }
       });
       $("#sourceButton").click();
     }
@@ -3105,7 +3120,7 @@ function buildSource($target, source, appendOrInsert) {
 
 function appendInlineAddButton(source) {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
+			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon' role='button' tabindex='0' aria-label='" + Sefaria._("Add content") + "'></i></div>";
 		}
 		else {
 			button = "";
@@ -3340,6 +3355,13 @@ function rebuildUpdatedSheet(data) {
 		$(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
 			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
 			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+		});
+		// Add keyboard support for inlineAddButtonIcon
+		$(".sheetItem").on("keydown", ".inlineAddButtonIcon", function(e) {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				$(this).click();
+			}
 		});
 	}
 
