@@ -14,6 +14,7 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
+import Button from './common/Button';
 import Component          from 'react-class';
 
 
@@ -115,14 +116,14 @@ class NoteListing extends Component {
     var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
 
     return (<div className="noteListing">
-              <button className="addToSheetButton sans-serif he" onClick={this.showSheetModal} type="button" aria-label="Add to Sheet">
+              <Button className="sans-serif he" onClick={this.showSheetModal} ariaLabel="Add to Sheet">
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
-              </button>
-              <button className="addToSheetButton sans-serif en" onClick={this.showSheetModal} type="button" aria-label="Add to Sheet">
+              </Button>
+              <Button className="sans-serif en" onClick={this.showSheetModal} ariaLabel="Add to Sheet">
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
-              </button>
+              </Button>
               <a href={url}>
                 {this.props.showText ?
                   <TextRange sref={data.ref} /> :
