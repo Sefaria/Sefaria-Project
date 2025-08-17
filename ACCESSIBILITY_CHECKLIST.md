@@ -4,7 +4,7 @@
 
 ### Sidepanel - Tools & Resources  
 - [x] Edit note pencil - not reachable with tab
-- [ ] Edit note pencil visibility - only tabbable after mouse hover makes it visible
+- [x] Edit note pencil visibility - only tabbable after mouse hover makes it visible - FIXED
 - [x] Make Add to Sheets dropdown selection match Feedback dropdown behavior
 
 ### Sheets
@@ -14,8 +14,8 @@
 - [x] Button focus styling not working for sheets buttons
 
 ### Search & Filters
-- [ ] Filter checkboxes - verify keyboard accessibility
-- [ ] Search autocomplete - keyboard navigation
+- [x] Filter checkboxes - verify keyboard accessibility - VERIFIED (already accessible)
+- [x] Search autocomplete - keyboard navigation - VERIFIED (already accessible)
 
 ### Collections
 - [x] Close "×" button in widget header - needs keyboard access
@@ -27,7 +27,7 @@
 - [x] Header dropdowns - keyboard navigation (fixed ModuleSwitcher double tab, dropdown menu items space key)
 - [x] Focus outline behavior - fixed mouse clicks showing outline (consistent user-is-tabbing system)
 - [ ] Mobile menu - keyboard navigation
-- [ ] Versions tab not reachable with keyboard navigation on book page
+- [x] Versions tab not reachable with keyboard navigation on book page - FIXED
 - [x] Navigation tabs - space key activation (fixed navTitleTab in UserHistoryPanel, LanguageToggleButton)
 
 ### General Interactive Elements

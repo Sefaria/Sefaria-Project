@@ -441,8 +441,38 @@ class TabView extends Component {
   }
   renderTab(tab, index) {
     const currTabIndex = this.getTabIndex();
+    const isActive = currTabIndex === index;
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}>
+      <div 
+        className={classNames({active: isActive, justifyright: tab.justifyright})} 
+        key={tab.id} 
+        data-tab-index={index} 
+        role="tab"
+        tabIndex={isActive ? "0" : "-1"}
+        aria-selected={isActive}
+        onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.onClickTab(e, tab.clickTabOverride);
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const direction = e.key === 'ArrowLeft' ? -1 : 1;
+            const newIndex = (index + direction + this.props.tabs.length) % this.props.tabs.length;
+            const newTab = this.props.tabs[newIndex];
+            if (this.props.setTab) {
+              this.props.setTab(newTab.id);
+            } else {
+              this.openTab(newIndex);
+            }
+            // Focus the newly active tab
+            setTimeout(() => {
+              const newTabElement = document.querySelector(`[data-tab-index="${newIndex}"]`);
+              if (newTabElement) newTabElement.focus();
+            }, 0);
+          }
+        }}
+      >
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -452,10 +482,12 @@ class TabView extends Component {
     const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
       <div className={classes}>
-        <div className="tab-list sans-serif">
+        <div className="tab-list sans-serif" role="tablist">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        { React.Children.toArray(this.props.children)[currTabIndex] }
+        <div role="tabpanel" aria-labelledby={`tab-${this.props.tabs[currTabIndex]?.id}`}>
+          { React.Children.toArray(this.props.children)[currTabIndex] }
+        </div>
       </div>
     );
   }
