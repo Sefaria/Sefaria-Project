@@ -31,17 +31,17 @@ export const DEPRECATION_MESSAGES = {
     en: {
     notice: "Please note:",
     mainMessage: `The divine name substitution tool will no longer be available in the Sefaria Sheet Editor after ${DEPRECATION_DATE}.`,
-    continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing,",
-    exportText: "export your sheet to Google Docs",
-    andText: "and use the 'Transform Divine Names' feature in the",
+    continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing, ",
+    exportText: "export your sheet to Google Docs ",
+    andText: "and use the 'Transform Divine Names' feature in the ",
     extensionText: "Sefaria for Google Docs extension",
     period: "."
     },
     he: {
     notice: "שימו לב:",
     mainMessage: `החל מה-${DEPRECATION_DATE_HEBREW}, לא יהיה ניתן לשנות שמות קודש בדפי מקורות באמצעות העורך של ספריא.`,
-    continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף,",
-    exportText: "יש לייצא את הדף ל-Google Docs",
+    continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף, ",
+    exportText: "יש לייצא את הדף ל-Google Docs ",
     andText: "ולבצע את השינוי באמצעות הכלי המיועד לכך ב",
     extensionText: "תוסף של ספריא ל-Google Docs",
     period: "."

@@ -8185,16 +8185,13 @@ But not to use a display block directive that might break continuous mode for ot
   line-height: 19px;
   color: #666666;
 }
-.divineNameDepricationNotification strong {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+
+.divineNameDepricationNotification {
+  padding-top: 10px;
 }
 
 .divineNameDepricationNotification p a {
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  line-height: 19px;
   color: var(--inline-link-blue);
-  text-decoration: none;
 }
 
 .divineNameDepricationNotification p a:hover {

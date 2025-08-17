@@ -2920,16 +2920,16 @@ const DivineNameDepricationNotification = () => {
   const links = constants.DEPRECATION_LINKS[lang];
 
   return (
-    <div className="divineNameDepricationNotification">
+    <div className="divineNameDepricationNotification sans-serif">
       <p>
         <strong>{messages.notice}</strong> {messages.mainMessage}
       </p>
       <p>
-        {messages.continuationMessage}{" "}
+        {messages.continuationMessage}
         <a href={links.exportSheet}>
           {messages.exportText}
         </a>
-        {" "}{messages.andText}
+        {messages.andText}
         <a href={links.extension}>
           {messages.extensionText}
         </a>
