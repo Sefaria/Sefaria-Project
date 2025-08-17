@@ -1571,9 +1571,15 @@ FollowButton.propTypes = {
 
 const SmallBlueButton = ({onClick, tabIndex, text}) => {
   return (
-      <button onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} type="button">
-        <InterfaceText>{text}</InterfaceText>
-      </button>
+    <Button 
+      onClick={onClick} 
+      size="extraSmall" 
+      variant="legacy" 
+      className="control-elem" 
+      tabIndex={tabIndex}
+    >
+      <InterfaceText>{text}</InterfaceText>
+    </Button>
   );
 };
 
@@ -1915,11 +1921,11 @@ class LoginPrompt extends Component {
           <span className="int-en">Please log in to use this feature.</span>
           <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
         </div>
-        <a className="button" href={"/login" + nextParam}>
+        <a className="sefaria-common-button legacy" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
           <span className="int-he">התחברות</span>
         </a>
-        <a className="button" href={"/register" + nextParam}>
+        <a className="sefaria-common-button legacy" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
           <span className="int-he">הרשמה</span>
         </a>
@@ -1957,7 +1963,7 @@ class SignUpModal extends Component {
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
-            <a className="button white control-elem" href={"/register" + nextParam}>
+            <a className="sefaria-common-button legacy white control-elem" href={"/register" + nextParam}>
               <InterfaceText>Sign Up</InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
@@ -2338,7 +2344,7 @@ const Banner = ({ onClose }) => {
             </div>
             <div id="bannerButtonBox">
               <a
-                className="button white int-en"
+                className="sefaria-common-button legacy white int-en"
                 href={strapi.banner.buttonURL.en}
                 onClick={() => {
                   closeBanner("banner_button_clicked");
@@ -2347,7 +2353,7 @@ const Banner = ({ onClose }) => {
                 <span>{strapi.banner.buttonText.en}</span>
               </a>
               <a
-                className="button white int-he"
+                className="sefaria-common-button legacy white int-he"
                 href={strapi.banner.buttonURL.he}
                 onClick={() => {
                   closeBanner("banner_button_clicked");
@@ -2773,16 +2779,16 @@ class ReaderMessage extends Component {
       <div className="readerMessageBox">
         <div className="readerMessage">
           <div className="int-en">{this.props.message}</div>
-          <button 
-            className="button small" 
-            type="button"
+          <Button 
+            size="small" 
+            variant="legacy"
             onClick={() => this.setFeedback('Like')}
-          >{this.props.buttonLikeText}</button>
-          <button 
-            className="button small" 
-            type="button"
+          >{this.props.buttonLikeText}</Button>
+          <Button 
+            size="small" 
+            variant="legacy"
             onClick={() => this.setFeedback('Dislike')}
-          >{this.props.buttonDislikeText}</button>
+          >{this.props.buttonDislikeText}</Button>
         </div>
       </div>);
   }
@@ -2813,13 +2819,13 @@ class CookiesNotification extends Component {
 
           <span className="int-en">
             <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <span className='int-en button small white' onClick={this.setCookie}>OK</span>
+            <Button size="small" variant="legacy white" className="int-en" onClick={this.setCookie}>OK</Button>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
               <a href="/privacy-policy">קראו עוד בנושא</a>
             </span>
-            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
+            <Button size="small" variant="legacy white" className="int-he" onClick={this.setCookie}>לחצו כאן לאישור</Button>
           </span>
 
        </div>
@@ -2943,12 +2949,12 @@ const AdminToolHeader = function({title, validate, close}) {
                 <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
-                <a onClick={close} id="cancel" className="button small transparent control-elem">
+                <Button onClick={close} size="small" variant="legacy transparent" className="control-elem" id="cancel">
                   <InterfaceText>Cancel</InterfaceText>
-                </a>
-                <button onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" type="button">
+                </Button>
+                <Button onClick={validate} size="small" variant="legacy blue" className="control-elem" id="saveAccountSettings" tabIndex="0">
                   <InterfaceText>Save</InterfaceText>
-                </button>
+                </Button>
               </div>
             </div>
 }
