@@ -12,6 +12,7 @@ import {
   CloseButton,
   ToggleSet,
 } from './Misc';
+import Button from './common/Button';
 
 class SearchFilters extends Component {
   constructor(props) {
@@ -101,15 +102,13 @@ class SearchFilters extends Component {
           {filters}
         </div>
         <div className="mobileSearchFiltersFooter">
-          <div
-            className="button fillWidth"
-            role="button"
-            tabIndex="0"
+          <Button
+            size="fillWidth"
+            variant="legacy"
             onClick={this.props.closeMobileFilters}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.closeMobileFilters(); } }}
           >
             <InterfaceText>Show Results</InterfaceText>
-          </div>
+          </Button>
         </div>
       </>
     );
@@ -228,7 +227,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const clearInputButton = <Button ariaLabel="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></Button>;
   const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} aria-label={`Search ${name}`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
