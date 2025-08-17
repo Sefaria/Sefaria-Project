@@ -2427,7 +2427,8 @@ class Dropdown extends Component {
     super(props);
     this.state = {
       optionsOpen: false,
-      selected: null
+      selected: null,
+      focusedIndex: -1
     };
     this.listboxRef = null;
     this.triggerRef = null;
@@ -2441,12 +2442,16 @@ class Dropdown extends Component {
   }
 
   select(option) {
-    this.setState({selected: option, optionsOpen: false});
+    this.setState({selected: option, optionsOpen: false, focusedIndex: -1});
     const event = {target: {name: this.props.name, value: option.value}}
     this.props.onChange && this.props.onChange(event);
   }
   toggle() {
-    this.setState({optionsOpen: !this.state.optionsOpen});
+    const opening = !this.state.optionsOpen;
+    this.setState({
+      optionsOpen: opening,
+      focusedIndex: opening ? 0 : -1
+    });
   }
   componentDidUpdate(prevProps, prevState) {
     // Move focus to the listbox when opened, back to trigger when closed
@@ -2487,20 +2492,42 @@ class Dropdown extends Component {
                 id={`${this.props.name}-listbox`}
                 ref={(el) => { this.listboxRef = el; }}
                 onKeyDown={(e) => {
+                  const maxIndex = this.props.options.length - 1;
                   if (e.key === 'Escape') { e.preventDefault(); this.setState({optionsOpen: false}); }
-                  if (e.key === 'ArrowDown') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop += 30; } }
-                  if (e.key === 'ArrowUp') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop -= 30; } }
-                  if (e.key === 'PageDown') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop += this.listboxRef.clientHeight - 10; } }
-                  if (e.key === 'PageUp') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop -= this.listboxRef.clientHeight - 10; } }
-                  if (e.key === 'Home') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop = 0; } }
-                  if (e.key === 'End') { e.preventDefault(); if (this.listboxRef) { this.listboxRef.scrollTop = this.listboxRef.scrollHeight; } }
+                  if (e.key === 'ArrowDown') { 
+                    e.preventDefault(); 
+                    const newIndex = Math.min(this.state.focusedIndex + 1, maxIndex);
+                    this.setState({ focusedIndex: newIndex });
+                  }
+                  if (e.key === 'ArrowUp') { 
+                    e.preventDefault(); 
+                    const newIndex = Math.max(this.state.focusedIndex - 1, 0);
+                    this.setState({ focusedIndex: newIndex });
+                  }
+                  if (e.key === 'Home') { e.preventDefault(); this.setState({ focusedIndex: 0 }); }
+                  if (e.key === 'End') { e.preventDefault(); this.setState({ focusedIndex: maxIndex }); }
+                  if (e.key === 'Enter' || e.key === ' ') { 
+                    e.preventDefault(); 
+                    if (this.state.focusedIndex >= 0 && this.props.options[this.state.focusedIndex]) {
+                      this.select(this.props.options[this.state.focusedIndex]);
+                    }
+                  }
                 }}
               >
-                {this.props.options.map(function(option) {
+                {this.props.options.map(function(option, index) {
                   const onClick = this.select.bind(null, option);
                   const isSelected = this.state.selected && this.state.selected.value == option.value;
-                  const classes = classNames({dropdownOption: 1, selected: isSelected});
-                  return <div className={classes} onClick={onClick} key={option.value} role="option" aria-selected={!!isSelected}>{option.label}</div>
+                  const isFocused = this.state.focusedIndex === index;
+                  const classes = classNames({dropdownOption: 1, selected: isSelected, focused: isFocused});
+                  return <div 
+                    className={classes} 
+                    onClick={onClick} 
+                    key={option.value} 
+                    role="option" 
+                    aria-selected={!!isSelected}
+                    data-index={index}
+                    style={isFocused ? {backgroundColor: '#e3f2fd', outline: '2px solid #1976d2', outlineOffset: '-2px'} : {}}
+                  >{option.label}</div>
                 }.bind(this))}
               </div>
             </div>

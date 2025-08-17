@@ -1,7 +1,7 @@
 /**
  *
- * @param variant can be empty or "secondary"
- * @param size can be empty or "large" or "fullwidth"
+ * @param variant can be empty or "secondary" or "legacy"
+ * @param size can be empty or "large" or "fullwidth" or "small" or "extraSmall" or "fillWidth"
  * @param icon only the name of the icon without the extension
  * @param children you can pass additional html or just <InterfaceText>
  * @param onClick callback func to trigger

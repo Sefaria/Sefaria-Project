@@ -10363,6 +10363,11 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .dropdown .dropdownList:focus {
   outline: none; /* hide focus ring on container; focus is shown on the active option */
 }
+/* Add focus styling for div buttons with role="button" */
+div[role="button"]:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
