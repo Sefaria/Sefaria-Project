@@ -295,7 +295,8 @@ const SidebarFooter = () => {
         <h3/>
         <div className="footerContainer">
           {data.map(footerLink =>
-            <a href={footerLink.url}>
+            <a href={footerLink.url} 
+               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}>
               <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
             </a>
           )}
