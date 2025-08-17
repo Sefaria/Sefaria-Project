@@ -4,6 +4,7 @@
 
 ### Sidepanel - Tools & Resources  
 - [x] Edit note pencil - not reachable with tab
+- [ ] Edit note pencil visibility - only tabbable after mouse hover makes it visible
 - [x] Make Add to Sheets dropdown selection match Feedback dropdown behavior
 
 ### Sheets
@@ -30,7 +31,7 @@
 - [ ] Dropdown menu items (DropdownMenuItemWithCallback) - may need tabIndex
 
 ## Decisions Made
-- **Button Strategy**: Created legacy Button variant for gradual migration
+- **Button Strategy**: Created `Button` component with `variant="legacy"` that matches old `.button` CSS. Use for gradual migration from `div.button` → semantic `<button>` while keeping identical styling.
 - **Focus Strategy**: Use browser defaults + custom outline for div[role="button"]
 - **Dropdown Pattern**: Standardize on listbox with arrow navigation
 
