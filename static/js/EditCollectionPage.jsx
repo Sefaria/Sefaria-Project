@@ -4,6 +4,7 @@ import Component from 'react-class';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import Button from './common/Button';
 
 
 class EditCollectionPage extends Component {
@@ -135,12 +136,12 @@ class EditCollectionPage extends Component {
             <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
-              <a className="button small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
+              <a className="sefaria-common-button legacy small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
-              <button id="saveCollection" className="button small blue control-elem" onClick={this.save} type="button" aria-label="Save collection">
+              <Button id="saveCollection" size="small" variant="legacy blue" className="control-elem" onClick={this.save} ariaLabel="Save collection">
                   <InterfaceText>Save</InterfaceText>
-              </button>
+              </Button>
           </div>
         </div>
 
@@ -176,7 +177,7 @@ class EditCollectionPage extends Component {
              name="collectionImage"
              accept="image/*"
              text={Sefaria._("Upload Image")}
-             className="button white"
+             className="sefaria-common-button legacy white"
              onChange={this.handleImageChange} />
           <div className="helperText">
             <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
@@ -199,7 +200,7 @@ class EditCollectionPage extends Component {
              name="collectionHeader"
              accept="image/*"
              text="Upload Image"
-             className="button white"
+             className="sefaria-common-button legacy white"
              onChange={this.handleImageChange} />
           <div className="helperText">
             <InterfaceText>Recommended size: 1000px width to fill sheet, smaller images align right</InterfaceText>
