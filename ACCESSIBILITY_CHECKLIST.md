@@ -134,6 +134,17 @@
   - Tab now functions normally for keyboard navigation instead of creating tags
   - Users can still create tags using Enter and comma delimiters
 
+### Additional Navigation Issues (December 2024)
+- [x] **readerOptions triple tab stop** - requires 3 tab presses to pass button - FIXED
+  - Removed duplicate tabIndex from DropdownMenu wrapper div in DropdownMenu.jsx
+  - Only the inner ToolTipped button is now focusable (single tab stop)
+  - Moved keyboard handling to cloned buttonComponent instead of wrapper
+- [x] **readerOptions arrow key navigation** - arrow keys close menu immediately - FIXED
+  - Added proper arrow key handling in RadioButton component
+  - Arrow keys now navigate between radio options without closing menu
+  - Used e.stopPropagation() to prevent event bubbling to menu handlers
+  - Enhanced ReaderDisplayOptionsMenu with arrow key protection
+
 ### Focus Outline Issues
 - [x] **dropdownLinks-menu items** - first and last items have incomplete blue borders - FIXED
   - Added proper focus styling for interfaceLinks-option and dropdownItem elements
