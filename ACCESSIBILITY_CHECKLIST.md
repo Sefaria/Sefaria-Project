@@ -29,11 +29,16 @@
 - [ ] Compare Panel/Add Connection buttons - need keyboard access
 - [ ] Modal close buttons - keyboard access
 - [ ] Dropdown menu items (DropdownMenuItemWithCallback) - may need tabIndex
+- [x] Space key activation - buttons now respond to both Enter and Space keys
 
 ## Decisions Made
-- **Button Strategy**: Created `Button` component with `variant="legacy"` that matches old `.button` CSS. Use for gradual migration from `div.button` → semantic `<button>` while keeping identical styling.
-- **Focus Strategy**: Use browser defaults + custom outline for div[role="button"]
+- **Button Strategy**: ✅ **UPDATED** - Migrate all interactive buttons to semantic `<button>` elements for native accessibility. Legacy `.button` CSS works with both `<a>` and `<button>`.
+- **Focus Strategy**: Use browser defaults + custom outline. Semantic buttons handle space/enter keys automatically.
 - **Dropdown Pattern**: Standardize on listbox with arrow navigation
+- **Migration Progress**: 
+  - ✅ Save/Share buttons → semantic `<button>` 
+  - ✅ Source/Connection/Text/Media/Comment → semantic `<button>`
+  - ✅ "View in Library" remains `<a>` (navigation link)
 
 ## Big Decisions Needed
 - **Systematic Migration Timeline**: When to migrate all div.button → Button component?

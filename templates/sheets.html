@@ -550,7 +550,7 @@
                 <div class="sheetsMenuBarButtons">
 
                 {% if new_sheet %}
-                <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
+                <button id="save" class="button" data-mode="editing" type="button">
                     <i class="fa fa-floppy-o"></i>
                     <span id="doSave">
                         <span class="int-en">Save</span>
@@ -560,13 +560,13 @@
                         <span class="int-en">Saving...</span>
                         <span class="int-he">שמירה מתבצעת...</span>
                     </span>
-                </a>
+                </button>
                 {% elif is_owner %}
-                <a id="share" class="button" role="button" tabIndex="0">
+                <button id="share" class="button" type="button">
                     <img src="{% static 'img/share.png' %}" alt="Share Icon">
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
-                </a>
+                </button>
                 <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
@@ -732,30 +732,30 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img src="{% static 'img/source.png' %}" alt="Add Source Icon">
+            <button class="addInterfaceButton" id="sourceButton" type="button"><img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                 <span class="int-en">Source</span>
                 <span class="int-he">מקור</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="connectionButton" type="button">
                 <img src="{% static 'img/connection.png' %}" alt="Add Connections Icon">
                 <span class="int-en">Connection</span>
                 <span class="int-he">קישור</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="customTextButton" type="button">
                 <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
                 <span class="int-en">Text</span>
                 <span class="int-he">טקסט חופשי</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="mediaButton" type="button">
                 <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
                 <span class="int-en">Media</span>
                 <span class="int-he">מדיה</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="commentButton" type="button">
                 <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
                 <span class="int-en">Comment</span>
                 <span class="int-he">הערה</span>
-            </div>
+            </button>
         </div>
         <div class="contentDiv">
             <div id="addsourceDiv">

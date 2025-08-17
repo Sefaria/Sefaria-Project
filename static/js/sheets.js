@@ -805,19 +805,9 @@ $(function() {
 
 	// ---------- Save Sheet --------------
 	$("#save").click(handleSave);
-	$("#save").keydown(function(e){
-		if (e.which == 13) {
-			handleSave();
-		}
-	});
 
 	// ---------- Share Sheet --------------
 	$("#share").click(showShareModal);
-	$("#share").keydown(function(e){
-		if (e.which == 13) {
-			showShareModal();
-		}
-	});
 	$("#sheetMetadata span.editButton").click(showShareModal);
 
 	// ---------- Copy Sheet ----------------
@@ -1042,11 +1032,8 @@ $(function() {
       toggleAddInterface(e, $(this), "click");
     });
 
-    $("#addInterface").on("keydown", ".buttonBar .addInterfaceButton", function(e) {
-      if (e.which == 13) {
-        toggleAddInterface(e, $(this), "keyboard");
-      }
-    });
+    // addInterfaceButton elements are now semantic <button> elements 
+    // Space and Enter keys are handled automatically by the browser
 
     $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
       $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
