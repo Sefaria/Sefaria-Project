@@ -467,9 +467,10 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         else:
             sheet_id = 1
         return sheet_id
-
+    scored_by_llm = False
     sheet["dateModified"] = datetime.now().isoformat()
     status_changed = False
+    # Updating an existing sheet
     if "id" in sheet:
         new_sheet = False
         existing = db.sheets.find_one({"id": sheet["id"]})
@@ -518,6 +519,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         sheet = existing
 
     else:
+        # creating a new sheet
         new_sheet = True
         sheet["dateCreated"] = datetime.now().isoformat()
         if "status" not in sheet:
@@ -547,8 +549,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
                 source["media"] = duped_image_url
             checked_sources.append(source)
         sheet["sources"] = checked_sources
-
+    # ---------Handle publication/unpublication changes ----
     if status_changed and not new_sheet:
+        # if status first time changes to 'public'
         if sheet["status"] == "public" and "datePublished" not in sheet:
             # PUBLISH
             sheet["datePublished"] = datetime.now().isoformat()
@@ -556,6 +559,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
             broadcast_sheet_publication(user_id, sheet["id"])
             # RUN SHEET SCORING
             generate_and_save_sheet_scoring(sheet)
+            scored_by_llm = True
         if sheet["status"] != "public":
             # UNPUBLISH
             if SEARCH_INDEX_ON_SAVE and not search_override:
@@ -587,8 +591,16 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
             except DuplicateKeyError:
                 pass
 
+        if sheet["status"] == "public" and not scored_by_llm:
+            generate_and_save_sheet_scoring(sheet)
+            scored_by_llm = True
+
     else:
+        sheet.pop("_id", None)
         db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
+
+    if not scored_by_llm and not new_sheet and sheet["status"] == "public":
+        generate_and_save_sheet_scoring(sheet)
 
     if len(topics_diff["added"]) or len(topics_diff["removed"]):
         update_sheet_topics(sheet["id"], sheet.get("topics", []), old_topics)
