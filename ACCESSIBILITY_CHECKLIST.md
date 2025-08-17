@@ -118,19 +118,23 @@
 ## Newly Discovered Issues (From Manual Testing)
 
 ### Space Key Activation Issues
-- [ ] **Card titles** - `<a href="/sheets/topics/parashat-reeh" class="cardTitle">` not clickable with space key
-- [ ] **Footer container** - content on `/sheets` page not clickable with space key
+- [x] **Card titles** - `<a href="/sheets/topics/parashat-reeh" class="cardTitle">` not clickable with space key - FIXED
+- [x] **Footer container** - content on `/sheets` page not clickable with space key - FIXED
 
 ### Keyboard Navigation Issues  
 - [ ] **texts-properties-menu** - arrow key and tab navigation not working properly
-- [ ] **readerOptions button** - has duplicate tab targets (can tab to two things)
+  - Issue: ReaderDisplayOptionsMenu lacks arrow key navigation between radio groups
+  - Location: static/js/ReaderDisplayOptionsMenu.jsx (role="dialog" but missing keyboard nav)
+- [ ] **readerOptions button** - has duplicate tab targets (can tab to two things)  
+  - Issue: DisplaySettingsButton creates ToolTipped wrapper + inner span both focusable
+  - Location: static/js/Misc.jsx DisplaySettingsButton component
 - [ ] **Add topics text field** - in Publish popup, can't tab out once typing starts (may need further investigation)
 
 ### Focus Outline Issues
-- [ ] **dropdownLinks-menu items** - first and last items have incomplete blue borders:
-  - First item: only has blue line below (missing top border)
-  - Last item: only has blue line above (missing bottom border)  
-  - Middle items: correctly show blue lines above and below
+- [x] **dropdownLinks-menu items** - first and last items have incomplete blue borders - FIXED
+  - Added proper focus styling for interfaceLinks-option and dropdownItem elements
+  - Consistent blue outline appears only during keyboard navigation
+  - Uses established user-is-tabbing system for keyboard vs mouse interaction
 
 ## Remaining Work
 - Upload Image buttons - special handling needed (labels for file inputs)
