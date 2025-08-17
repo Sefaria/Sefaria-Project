@@ -37,6 +37,17 @@
 - [x] Dropdown menu items - space key activation (fixed DropdownMenuItem, DropdownMenuItemLink, DropdownMenuItemWithCallback)
 - [x] Space key activation - buttons now respond to both Enter and Space keys
 
+### Button Migration to New Component System
+- [x] Priority 1 Files - Misc.jsx and Header.jsx migrated to new Button component
+- [x] SmallBlueButton component - converted to use Button component
+- [x] LoginPrompt buttons - updated to new button styling
+- [x] Modal action buttons - migrated to Button component (Cancel/Save)
+- [x] Feedback buttons - migrated to Button component (Like/Dislike)
+- [x] Cookie notification - converted spans to proper Button elements
+- [x] Banner buttons - updated to new button styling
+- [ ] Priority 2 Files - Other files with button patterns (15 files identified)
+- [ ] Template files - HTML templates with .button classes
+
 ## Standards
 - **Button Strategy**: Use semantic `<button>` elements for actions, `<a>` for navigation
 - **Focus Strategy**: Browser defaults + consistent outline styling  
