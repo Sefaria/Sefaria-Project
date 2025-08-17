@@ -1207,6 +1207,7 @@ class CloseButton extends Component {
         href={url} 
         className={classes} 
         onClick={this.onClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.onClick(e); } }}
         aria-label={altText}
         title={altText}
       >
@@ -2158,9 +2159,13 @@ const InterruptingMessage = ({
             <div id="interruptingMessageContentBox" className="hasColorLine">
               <div
                 id="interruptingMessageClose"
+                role="button"
+                tabIndex="0"
+                aria-label={Sefaria._("Close")}
                 onClick={() => {
                   closeModal("close_clicked");
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal("close_clicked"); } }}
               >
                 ×
               </div>
