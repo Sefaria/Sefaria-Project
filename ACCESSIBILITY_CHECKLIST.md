@@ -27,6 +27,7 @@
 - [x] Header dropdowns - keyboard navigation (fixed ModuleSwitcher double tab, dropdown menu items space key)
 - [ ] Mobile menu - keyboard navigation
 - [ ] Versions tab not reachable with keyboard navigation on book page
+- [x] Navigation tabs - space key activation (fixed navTitleTab in UserHistoryPanel, LanguageToggleButton)
 
 ### General Interactive Elements
 - [x] Quick feedback Like/Dislike buttons - need role/tabIndex/keys

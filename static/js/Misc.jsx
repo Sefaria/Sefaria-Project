@@ -686,13 +686,22 @@ const getCurrentPage = () => {
 }
 
 class LanguageToggleButton extends Component {
+  constructor(props) {
+    super(props);
+    this.toggle = this.toggle.bind(this);
+  }
   toggle(e) {
     e.preventDefault();
     this.props.toggleLanguage();
   }
   render() {
     var url = this.props.url || "";
-    return (<a href={url} className="languageToggle" onClick={this.toggle}>
+    return (<a 
+              href={url} 
+              className="languageToggle" 
+              onClick={this.toggle}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(e); } }}
+            >
               <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
               <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
             </a>);
