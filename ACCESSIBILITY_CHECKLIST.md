@@ -39,10 +39,12 @@
   - ✅ Save/Share buttons → semantic `<button>` 
   - ✅ Source/Connection/Text/Media/Comment → semantic `<button>`
   - ✅ Add Source/Browse Sources → semantic `<button>`
-  - ✅ Add to Sheet buttons (connections, media, comments) → semantic `<button>`
-  - ✅ Daf Yomi page → proper `<a>` (was div wrapping a)
+  - ✅ Add to Sheet buttons (connections, media, comments, custom text) → semantic `<button>`
+  - ✅ Daf Yomi page → all 3 buttons now proper `<a>` (were div wrapping a)
+  - ✅ Edit Profile Save button → semantic `<button>`
   - ✅ "View in Library" remains `<a>` (navigation link)
   - ⚠️ Upload Image button → needs special handling (label for file input)
+  - 🔍 React component buttons → many found, need evaluation
 
 ## Big Decisions Needed
 - **Systematic Migration Timeline**: When to migrate all div.button → Button component?
