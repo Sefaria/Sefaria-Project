@@ -97,7 +97,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
      */
 
     const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef(null);
     const wrapperRef = useRef(null);
+    const buttonRef = useRef(null);
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
@@ -134,6 +136,46 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
         };
     }, []);
 
+    useEffect(() => {
+        if (isOpen && menuRef.current) {
+            // Focus the first focusable element when menu opens
+            const firstFocusable = menuRef.current.querySelector('[tabindex="0"], button:not([disabled]), [href], input:not([disabled])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        }
+    }, [isOpen]);
+
+    const handleMenuKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            setIsOpen(false);
+            // Return focus to the button
+            if (buttonRef.current) {
+                buttonRef.current.focus();
+            }
+            return;
+        }
+
+        if (e.key === 'Tab' && menuRef.current) {
+            // Implement focus trapping within the menu
+            const focusableElements = menuRef.current.querySelectorAll(
+                '[tabindex="0"], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+            );
+            
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey && document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    };
+
     return (
         <div className={positioningClass} ref={wrapperRef}>
            <div
@@ -141,6 +183,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
            >
               {React.cloneElement(buttonComponent, { 
                 onClick: handleButtonClick,
+                ref: buttonRef,
                 onKeyDown: (e) => { 
                   if (e.key === 'Enter' || e.key === ' ') { 
                     e.preventDefault(); 
@@ -149,7 +192,12 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
                 }
               })}
           </div>
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
+          <div 
+            className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} 
+            onClick={handleContentsClick}
+            ref={menuRef}
+            onKeyDown={handleMenuKeyDown}
+          >
               {children}
           </div>
         </div>
