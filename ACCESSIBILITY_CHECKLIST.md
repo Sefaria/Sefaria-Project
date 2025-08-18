@@ -11,10 +11,10 @@
 ## 🔍 CURRENT ISSUES
 
 ### Verse Text Navigation
-- [ ] **Verse text segments** - Only respond to Enter key, not Space key for activation
-  - Element: `<div tabindex="0" class="segment">` with click handlers
-  - Expected: Both Enter and Space keys should work for verse selection
-  - Location: Reader text segments in main content area
+- [x] **Verse text segments** - ✅ FIXED: Now respond to both Enter and Space keys  
+  - Fixed: Changed `onKeyPress` → `onKeyDown` with proper keyCode handling (13=Enter, 32=Space)
+  - Components: TextRange.jsx, TextSegment, SheetContent.jsx, SheetContentSegments.jsx
+  - Added: `preventDefault()` on Space key to prevent page scrolling
 
 ### Note Editing  
 - [ ] **Note edit pencil inconsistency** - Only some notes show edit pencil
