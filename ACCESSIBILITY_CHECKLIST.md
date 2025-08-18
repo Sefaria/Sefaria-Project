@@ -17,10 +17,10 @@
   - Added: `preventDefault()` on Space key to prevent page scrolling
 
 ### Note Editing  
-- [ ] **Note edit pencil inconsistency** - Only some notes show edit pencil
-  - Expected: All user's own notes should show edit pencil on hover/focus
-  - Actual: Only some notes show pencil (reported as "only second note")
-  - Location: `ConnectionsPanel.jsx` MyNotes vs PublicNotes rendering
+- [x] **Note edit pencil inconsistency** - ✅ FIXED: All user notes now show edit pencil consistently
+  - Fixed: JavaScript closure bug in MyNotes component where editNote functions all referred to last note
+  - Changed: `function()` declarations → arrow functions for proper closure capture  
+  - Result: All user's own notes show edit pencil and work correctly
 
 ## 📋 ACCESSIBILITY STANDARDS & PATTERNS
 
