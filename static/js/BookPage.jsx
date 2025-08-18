@@ -169,11 +169,19 @@ class BookPage extends Component {
 
     const readButton = !this.state.indexDetails || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
-        <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
+        <a 
+          className="button small readButton" 
+          href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
+          onKeyDown={(e) => { if (e.key === ' ') { e.preventDefault(); window.location.href = e.target.href; } }}
+        >
           <InterfaceText>Continue Reading</InterfaceText>
         </a>
         :
-        <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
+        <a 
+          className="button small readButton" 
+          href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}
+          onKeyDown={(e) => { if (e.key === ' ') { e.preventDefault(); window.location.href = e.target.href; } }}
+        >
           <InterfaceText>Start Reading</InterfaceText>
         </a>
 

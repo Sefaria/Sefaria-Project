@@ -44,7 +44,13 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
     return (
       <div className="navBlock withColorLine" style={style}>
-        <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
+        <a 
+          href={`/texts/${cat.category}`} 
+          className="navBlockTitle" 
+          data-cat={cat.category} 
+          onClick={openCat}
+          onKeyDown={(e) => { if (e.key === ' ') { e.preventDefault(); openCat(e); } }}
+        >
           <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
         </a>
         <div className="navBlockDescription">

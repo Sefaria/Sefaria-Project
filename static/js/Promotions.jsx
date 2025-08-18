@@ -179,8 +179,15 @@ const GDocAdvertBox = React.memo(() => {
         <OnInView onVisible={() => trackSidebarAdImpression(gdocsCampaignAd)}>
             <div className="gDocAdvertBox">
               <GDocAdvertText/>
-              <div id="installNow"><a href={installNowLink}
-                                      onClick={handleInstall}><InterfaceText>Install Now</InterfaceText></a></div>
+              <div id="installNow">
+                <a 
+                  href={installNowLink}
+                  onClick={handleInstall}
+                  onKeyDown={(e) => { if (e.key === ' ') { e.preventDefault(); handleInstall(e); } }}
+                >
+                  <InterfaceText>Install Now</InterfaceText>
+                </a>
+              </div>
             </div>
           </OnInView>;
 });
