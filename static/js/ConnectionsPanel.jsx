@@ -1297,10 +1297,10 @@ class MyNotes extends Component {
   }
   render() {
     const myNotesData = Sefaria.privateNotes(this.props.srefs);
-    const myNotes = myNotesData ? myNotesData.map(function (note) {
-      let editNote = function () {
+    const myNotes = myNotesData ? myNotesData.map((note) => {
+      const editNote = () => {
         this.props.editNote(note);
-      }.bind(this);
+      };
       return (<Note
         text={note.text}
         isPrivate={!note.public}
@@ -1310,7 +1310,7 @@ class MyNotes extends Component {
         ownerImageUrl={note.ownerImageUrl}
         editNote={editNote}
         key={note._id} />);
-    }.bind(this)) : null;
+    }) : null;
 
     return myNotes ? (
       <div className="noteList myNoteList">
