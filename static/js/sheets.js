@@ -1040,7 +1040,8 @@ $(function() {
     });
 
     $("#addconnectionDiv").on("keydown", ".sourceConnection", function(e) {
-      if (e.which == 13) {
+      if (e.which == 13 || e.which == 32) { // Enter or Space
+        e.preventDefault(); // Prevent page scroll on Space
         $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
       }
     });

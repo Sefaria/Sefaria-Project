@@ -8,19 +8,35 @@
   - Result: Meets WCAG 2.2 AA standard (4.5:1 contrast ratio)
   - Files: Systematically replaced across all CSS files (s2.css, sheets.css, common.css, keyboard.css)
 
-## 🔍 CURRENT ISSUES
-
 ### Verse Text Navigation
-- [x] **Verse text segments** - ✅ FIXED: Now respond to both Enter and Space keys  
+- [x] **Verse text segments** - Fixed to respond to both Enter and Space keys  
   - Fixed: Changed `onKeyPress` → `onKeyDown` with proper keyCode handling (13=Enter, 32=Space)
   - Components: TextRange.jsx, TextSegment, SheetContent.jsx, SheetContentSegments.jsx
   - Added: `preventDefault()` on Space key to prevent page scrolling
 
 ### Note Editing  
-- [x] **Note edit pencil inconsistency** - ✅ FIXED: All user notes now show edit pencil consistently
+- [x] **Note edit pencil inconsistency** - Fixed for consistent edit pencil display
   - Fixed: JavaScript closure bug in MyNotes component where editNote functions all referred to last note
   - Changed: `function()` declarations → arrow functions for proper closure capture  
   - Result: All user's own notes show edit pencil and work correctly
+
+### Source Connection Elements
+- [x] **Sheet source connections** - Fixed to respond to both Enter and Space keys
+  - Fixed: Added Space key (keyCode 32) support to `.sourceConnection` keydown handler
+  - Location: `sheets.js` - Add Connection interface
+  - Added: `preventDefault()` on Space key to prevent page scrolling
+
+## 🔍 VERIFIED - ALREADY ACCESSIBLE
+
+### Reading Navigation
+- [x] **Continue Reading/Start Reading buttons** - ✅ Already have proper Space key support
+  - Implementation: `onKeyDown` handlers with Space key and `preventDefault()`
+  - Location: `BookPage.jsx` - Book page navigation buttons
+
+### Interface Buttons  
+- [x] **Add Interface buttons** - ✅ Now use semantic `<button>` elements 
+  - Implementation: Automatic Space and Enter key handling by browser
+  - Location: `sheets.js` - Sheet editing interface
 
 ## 📋 ACCESSIBILITY STANDARDS & PATTERNS
 
