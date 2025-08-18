@@ -150,6 +150,14 @@
   - Added proper focus styling for interfaceLinks-option and dropdownItem elements
   - Consistent blue outline appears only during keyboard navigation
   - Uses established user-is-tabbing system for keyboard vs mouse interaction
+- [x] **Header dropdown menu** - button not focusable and items had incomplete blue borders - FIXED
+  - Added tabIndex: 0 to DropdownMenu component to make dropdown buttons focusable via Tab navigation
+  - Fixed ProfilePic component to properly handle onClick, tabIndex, and onKeyDown props from DropdownMenu
+  - Replaced outline-based focus styling with background color + left border approach
+  - Light blue background (#e3f2fd) with blue left border (3px solid #1976d2) for menu items
+  - Proper focus outline for dropdown button itself with rounded corners
+  - Eliminates side borders, clipping issues, and provides consistent visual feedback
+  - Both ModuleSwitcher and ProfilePic dropdowns now work with mouse and keyboard navigation
 
 ## Remaining Work
 - Upload Image buttons - special handling needed (labels for file inputs)

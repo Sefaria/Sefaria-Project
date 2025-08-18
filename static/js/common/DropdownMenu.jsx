@@ -184,6 +184,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
               {React.cloneElement(buttonComponent, { 
                 onClick: handleButtonClick,
                 ref: buttonRef,
+                tabIndex: 0,
                 onKeyDown: (e) => { 
                   if (e.key === 'Enter' || e.key === ' ') { 
                     e.preventDefault(); 

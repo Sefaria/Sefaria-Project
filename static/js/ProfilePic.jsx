@@ -64,7 +64,7 @@ export class ProfilePic extends Component {
         this.setState({ uploading: false });
     }
     render() {
-        const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
+        const { name, url, len, hideOnDefault, showButtons, outerStyle, onClick, tabIndex, onKeyDown, ...otherProps } = this.props;
         const { showDefault} = this.state;
         const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
         const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
@@ -73,7 +73,14 @@ export class ProfilePic extends Component {
         const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
 
         return (
-            <div style={outerStyle} className="profile-pic">
+            <div 
+                style={outerStyle} 
+                className="profile-pic"
+                onClick={onClick}
+                tabIndex={tabIndex}
+                onKeyDown={onKeyDown}
+                {...otherProps}
+            >
                 <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
                      style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
                     { showButtons ? null : `${initials}` }
@@ -115,4 +122,7 @@ ProfilePic.propTypes = {
     len:           PropTypes.number,
     hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
     showButtons:   PropTypes.bool,  // show profile pic action buttons
+    onClick:       PropTypes.func,  // click handler for dropdown functionality
+    tabIndex:      PropTypes.number, // for keyboard accessibility
+    onKeyDown:     PropTypes.func,  // keyboard handler for dropdown functionality
 };
