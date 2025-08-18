@@ -24,7 +24,6 @@ spec:
         - www.{{ tpl $i.host $ }}
     {{- range $k, $v := $.Values.ingress.subdomains }}
         - {{ $k }}.{{ tpl $i.host $ }}
-        - www.{{ $k }}.{{ tpl $i.host $ }}
     {{- end }}
     {{- end }}
   rules:
@@ -49,15 +48,6 @@ spec:
                   number: 80
     {{- range $k, $v := $.Values.ingress.subdomains }}
     - host: {{ $k }}.{{ tpl $i.host $ }}
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            backend:
-              service:
-                name: nginx-{{ $.Values.deployEnv }}
-                port:
-                  number: 80
-    - host: www.{{ $k }}.{{ tpl $i.host $ }}
       http:
         paths:
           - pathType: ImplementationSpecific
