@@ -44,7 +44,8 @@ class Link(abst.AbstractMongoRecord):
         "score",             # int. represents how "good"/accurate the link is. introduced for quotations finder
         "inline_citation",    # bool acts as a flag for wrapped refs logic to run on the segments where this citation is inline.
         "versions",          # only for cases when type is `essay`: list of versionTitles corresponding to `refs`, where first versionTitle corresponds to Index of first ref, and each value is a dictionary of language and title of version
-        "displayedText"       # only for cases when type is `essay`: dictionary of en and he strings to be displayed
+        "displayedText",       # only for cases when type is `essay`: dictionary of en and he strings to be displayed
+        "relevance_score", # float. represents relevance score for sorting quoting commentaries
     ]
 
     def _normalize(self):
