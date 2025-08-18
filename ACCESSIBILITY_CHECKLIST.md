@@ -55,13 +55,13 @@
 
 ## 🧪 TESTING PRIORITIES
 
-### Manual Testing Required
-1. **Note pencil issue** - Test note editing in connections panel
-2. **Category navigation** - Test space key on category links in Add Connection
-3. **Reading buttons** - Test space key on Continue Reading/Start Reading  
-4. **Install Now button** - Test space key on promotion links
-5. **Tab navigation** - Verify no regressions in existing tab flows
-6. **Dropdown functionality** - Verify header dropdowns work with keyboard and mouse
+### Manual Testing - Ready for Verification ✅  
+1. ✅ **Note pencil issue** - Fixed: All user notes now show edit pencil consistently
+2. ✅ **Category navigation** - Fixed: Source connections in Add Connection support Space key
+3. ✅ **Reading buttons** - Already working: Continue/Start Reading buttons have Space key support  
+4. ⏳ **Install Now button** - Requires manual testing: Check promotion links for Space key support
+5. ⏳ **Tab navigation** - Requires manual testing: Verify no regressions in existing tab flows
+6. ⏳ **Dropdown functionality** - Requires manual testing: Header dropdowns with keyboard and mouse
 
 ### Accessibility Testing Checklist
 - [ ] **Keyboard navigation** - All interactive elements accessible via Tab key
