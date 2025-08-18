@@ -1986,7 +1986,15 @@ class SignUpModal extends Component {
       this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
         <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
         <div id="interruptingMessage" className="sefariaModalContentBox">
-          <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
+          <div 
+            id="interruptingMessageClose" 
+            className="sefariaModalClose" 
+            role="button"
+            tabIndex="0"
+            aria-label={Sefaria._("Close")}
+            onClick={this.props.onClose}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.onClose(); } }}
+          >×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
               <InterfaceText text={modalContent.h2} />
