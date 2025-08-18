@@ -164,14 +164,7 @@ http {
     listen 80;
     listen [::]:80;
     server_name {{ $k }}.{{ tpl $i.host $ }};
-    return 301 https://www.$host$request_uri;
-  }
 
-  server {
-    # TODO add `default` below
-    listen 80;
-    listen [::]:80;
-    server_name www.{{ $k }}.{{ tpl $i.host $ }};
     # parameterize line below
     # Look into security cost of simply serving every host
     resolver 8.8.8.8 8.8.4.4;
