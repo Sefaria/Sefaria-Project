@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import Button from "./common/Button";
 
 
 const NavSidebar = ({sidebarModules}) => {
@@ -800,14 +801,17 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
-    return <a href={href} className="button secondary getStartedSheets" data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>;
+    return <Button variant="secondary" className="getStartedSheets">
+      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+    </Button>;
 }
 const CreateSheetsButton = () => {
   return (
-    <a href="/sheets/new" className="button" data-target-module={Sefaria.SHEETS_MODULE}>
-      <img src="/static/icons/new-sheet-black.svg" className="button-icon" alt="new-sheet-black" />
-      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
-    </a>
+    <Button icon={"new-sheet-black"}>
+      <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
+        <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+      </a>
+    </Button>
   ) // hebrew is placeholder
 }
 const CreateASheet = () => (

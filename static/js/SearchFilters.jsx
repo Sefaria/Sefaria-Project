@@ -12,7 +12,6 @@ import {
   CloseButton,
   ToggleSet,
 } from './Misc';
-import Button from './common/Button';
 
 class SearchFilters extends Component {
   constructor(props) {
@@ -75,7 +74,7 @@ class SearchFilters extends Component {
     }));
 
     return Sefaria.multiPanel && !this.props.compare ? (
-      <div className="searchFilters navSidebarModule" role="search" aria-label="Search filters">
+      <div className="searchFilters navSidebarModule">
         {filters}
       </div>
     ) : (
@@ -85,7 +84,7 @@ class SearchFilters extends Component {
           <InterfaceText>Filters</InterfaceText>
           <div></div>
         </div>
-        <div className="searchFilters navSidebarModule" role="search" aria-label="Search filters">
+        <div className="searchFilters navSidebarModule">
           <div className="searchFilterGroup">
             <h2>
               <InterfaceText>Sort by</InterfaceText>
@@ -102,13 +101,9 @@ class SearchFilters extends Component {
           {filters}
         </div>
         <div className="mobileSearchFiltersFooter">
-          <Button
-            size="fillWidth"
-            variant="legacy"
-            onClick={this.props.closeMobileFilters}
-          >
+          <div className="button fillWidth" onClick={this.props.closeMobileFilters}>
             <InterfaceText>Show Results</InterfaceText>
-          </Button>
+          </div>
         </div>
       </>
     );
@@ -227,8 +222,8 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <Button ariaLabel="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></Button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} aria-label={`Search ${name}`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const clearInputButton = <button aria-label="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
     <div className="searchFilterGroup">
@@ -256,10 +251,7 @@ class SearchFilterExactBox extends Component {
       <li>
         <div className="checkboxAndText">
           <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-          <label htmlFor="searchFilterExactBox" tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}>
-            <span></span>
-            <span className="sr-only">Exact Matches Only</span>
-          </label>
+          <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
         
          <span className={"filter-title"}>
             <InterfaceText>Exact Matches Only</InterfaceText>

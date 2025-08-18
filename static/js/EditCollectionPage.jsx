@@ -4,7 +4,6 @@ import Component from 'react-class';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
-import Button from './common/Button';
 
 
 class EditCollectionPage extends Component {
@@ -120,11 +119,17 @@ class EditCollectionPage extends Component {
           alert(data.error);
         } else {
           this.changed = false;
-          window.location = "/sheets/collections/" + data.collection.slug;
+          window.location = `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/sheets/collections/${data.collection.slug}`; 
         }
     }.bind(this)).fail(function() {
         alert(Sefaria._("Unfortunately an error occurred saving your collection."));
     });
+  }
+  getCancelLink() {
+    if (this.props.initialData) {
+      return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/sheets/collections/${this.state.slug}`;
+    }
+    return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/my/profile`;
   }
   render() {
     const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
@@ -136,12 +141,12 @@ class EditCollectionPage extends Component {
             <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
-              <a className="button small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
+              <a className="button small transparent control-elem" href={this.getCancelLink()}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
-              <Button id="saveCollection" size="small" variant="legacy blue" className="control-elem" onClick={this.save} ariaLabel="Save collection">
+              <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
                   <InterfaceText>Save</InterfaceText>
-              </Button>
+              </div>
           </div>
         </div>
 
@@ -238,9 +243,9 @@ class EditCollectionPage extends Component {
         : null }
 
         {this.props.initialData ?
-        <button className="deleteCollection" onClick={this.delete} type="button" aria-label="Delete collection">
+        <div className="deleteCollection" onClick={this.delete}>
           <InterfaceText>Delete Collection</InterfaceText>
-        </button>
+        </div>
         : null}
 
       </div>);
