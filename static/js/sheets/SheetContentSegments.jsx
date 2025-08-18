@@ -24,7 +24,7 @@ class SheetSource extends Component {
           data-node={this.props.source.node}
           aria-label={"Click to see connections to this source"}
           tabIndex="0"
-          onKeyPress={this.props.handleKeyPress} >
+          onKeyDown={this.props.handleKeyDown} >
           {this.props.source.title ?
           <div className="customSourceTitle" role="heading" aria-level="3">
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>

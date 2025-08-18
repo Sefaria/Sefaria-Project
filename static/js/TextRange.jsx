@@ -97,8 +97,9 @@ class TextRange extends Component {
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
+  handleKeyDown(event) {
+    if (event.keyCode === 13 || event.keyCode === 32) { // Enter or Space
+      event.preventDefault(); // Prevent page scroll on Space
       this.handleClick(event);
     }
   }
@@ -394,7 +395,7 @@ class TextRange extends Component {
       </div>;
     } else { sidebarNum = null;}
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
+      <div className={classes} onClick={this.handleClick} onKeyDown={this.handleKeyDown} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -523,8 +524,9 @@ class TextSegment extends Component {
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
+  handleKeyDown(event) {
+    if (event.keyCode === 13 || event.keyCode === 32) { // Enter or Space
+      event.preventDefault(); // Prevent page scroll on Space
       this.handleClick(event);
     }
   }
@@ -653,7 +655,7 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
+           className={classes} onClick={this.handleClick} onKeyDown={this.handleKeyDown}
            data-ref={this.props.sref}
            aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>

@@ -144,7 +144,7 @@ class SheetContent extends Component {
         key={source.node}
         source={source}
         sheetSourceClick={() => sheetSourceClick(source)}
-        handleKeyPress={(e) => e.charCode === 13 && sheetSourceClick(e)}
+        handleKeyDown={(e) => (e.keyCode === 13 || e.keyCode === 32) && (e.preventDefault(), sheetSourceClick(e))}
         highlighted={highlighted}
         addToSheetButton={addToSheetButton}/>;
     });
