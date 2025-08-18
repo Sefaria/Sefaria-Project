@@ -1955,11 +1955,11 @@ class LoginPrompt extends Component {
           <span className="int-en">Please log in to use this feature.</span>
           <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
         </div>
-        <a className="sefaria-common-button legacy" href={"/login" + nextParam}>
+        <a className="button" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
           <span className="int-he">התחברות</span>
         </a>
-        <a className="sefaria-common-button legacy" href={"/register" + nextParam}>
+        <a className="button" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
           <span className="int-he">הרשמה</span>
         </a>
@@ -2005,7 +2005,7 @@ class SignUpModal extends Component {
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
-            <a className="sefaria-common-button legacy white control-elem" href={"/register" + nextParam}>
+            <a className="button white control-elem" href={"/register" + nextParam}>
               <InterfaceText>Sign Up</InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
@@ -2226,7 +2226,7 @@ const InterruptingMessage = ({
                   </div>
                   <div className="buttons">
                     <a
-                      className="sefaria-common-button legacy int-en"
+                      className="button int-en"
                       target="_blank"
                       href={strapi.modal.buttonURL.en}
                       onClick={() => {
@@ -2238,7 +2238,7 @@ const InterruptingMessage = ({
                       </span>
                     </a>
                     <a
-                      className="sefaria-common-button legacy int-he"
+                      className="button int-he"
                       target="_blank"
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
@@ -2390,7 +2390,7 @@ const Banner = ({ onClose }) => {
             </div>
             <div id="bannerButtonBox">
               <a
-                className="sefaria-common-button legacy white int-en"
+                className="button white int-en"
                 href={strapi.banner.buttonURL.en}
                 onClick={() => {
                   closeBanner("banner_button_clicked");
@@ -2399,7 +2399,7 @@ const Banner = ({ onClose }) => {
                 <span>{strapi.banner.buttonText.en}</span>
               </a>
               <a
-                className="sefaria-common-button legacy white int-he"
+                className="button white int-he"
                 href={strapi.banner.buttonURL.he}
                 onClick={() => {
                   closeBanner("banner_button_clicked");

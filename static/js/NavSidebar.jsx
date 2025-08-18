@@ -164,7 +164,7 @@ const StudyCompanion = () => (
     <SidebarModule>
         <SidebarModuleTitle>Study Companion</SidebarModuleTitle>
         <div><InterfaceText>Get the Weekly Parashah Study Companion in your inbox.</InterfaceText></div>
-        <a className="sefaria-common-button legacy small"
+        <a className="button small"
            data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
            data-anl-promotion_name="Parashah Email Signup - Topic TOC"
            href="https://learn.sefaria.org/weekly-parashah/">
@@ -198,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="sefaria-common-button legacy get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED}>
+            <a className="button get-start" href="/sheets/210670" data-target-module={Sefaria.SHEETS_MODULE}>
                 <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -206,7 +206,7 @@ const AboutSefaria = ({hideTitle}) => (
             </a>
           </EnglishText>
           <HebrewText>
-            <a className="sefaria-common-button legacy get-start" href="https://youtu.be/rCADxtqPqnw">
+            <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
                 <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   הכירו את ספריא (2 דק')
@@ -733,7 +733,7 @@ const JoinTheCommunity = ({wide}) => {
         <InterfaceText>People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
       </div>
       <div>
-        <a className="sefaria-common-button legacy small" href="/community">
+        <a className="button small" href="/community">
           <img src="/static/icons/community-black.svg" alt="make a sheet icon" />
           <InterfaceText>Explore the Community</InterfaceText>
         </a>
@@ -784,13 +784,13 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <br />
       <NewsletterSignUpForm context="sidebar" />
 
-      <a target="_blank" className="sefaria-common-button legacy small white appButton iconOnly" href={fbURL}>
+      <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
         <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
       </a>
-      <a target="_blank" className="sefaria-common-button legacy small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
+      <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
         <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
       </a>
-      <a target="_blank" className="sefaria-common-button legacy small white appButton iconOnly" href="https://www.youtube.com/user/SefariaProject">
+      <a target="_blank" className="button small white appButton iconOnly" href="https://www.youtube.com/user/SefariaProject">
         <img src="/static/icons/youtube.svg" alt={Sefaria._("Sefaria on YouTube")} />
       </a>
 
@@ -851,7 +851,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="sefaria-common-button legacy small" href="/sheets/collections/new">
+      <a className="button small" href="/sheets/collections/new">
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -865,7 +865,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="sefaria-common-button legacy small white" href="/sheets/collections">
+      <a className="button small white" href="/sheets/collections">
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>
@@ -992,7 +992,7 @@ const DownloadVersions = ({sref}) => {
               placeholder={Sefaria._("Select Format", "DownloadVersions")}
               onChange={handleInputChange}
           />
-          <a className={`sefaria-common-button legacy fillWidth${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("Download")}</a>
+          <a className={`button fillWidth${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("Download")}</a>
         </div>
         </SidebarModule>
     );

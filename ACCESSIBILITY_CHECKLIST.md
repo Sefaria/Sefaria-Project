@@ -1,46 +1,15 @@
 # Accessibility Issues - WCAG 2.2 Level A
 
-## ✅ COMPLETED ACCESSIBILITY IMPROVEMENTS
+## 🔍 CURRENT ISSUES
 
-### Dropdown Menu Navigation
-- [x] **Header dropdown keyboard navigation** - ModuleSwitcher and ProfilePic dropdowns now fully keyboard accessible
-  - Tab navigation to dropdown triggers  
-  - Enter/Space key to open dropdowns
-  - Tab navigation within dropdown menus
-  - Improved focus styling with background + left border (avoids outline clipping)
+### Verse Text Navigation
+- [ ] **Verse text segments** - Only respond to Enter key, not Space key for activation
+  - Element: `<div tabindex="0" class="segment">` with click handlers
+  - Expected: Both Enter and Space keys should work for verse selection
+  - Location: Reader text segments in main content area
 
-### Tab Component Navigation  
-- [x] **TabView keyboard navigation** - Full WCAG 2.2 compliance for tab components
-  - ARIA attributes: `role="tab"`, `role="tablist"`, `role="tabpanel"`, `aria-selected`
-  - Enter/Space key activation for tab switching
-  - Arrow key navigation between tabs with proper focus management
-  - `tabIndex` management (0 for active, -1 for inactive)
-
-### Modal and Button Accessibility
-- [x] **Modal close button keyboard support** - All modal close buttons keyboard accessible
-  - InterruptingMessage close button: `role="button"`, `tabIndex="0"`, Enter/Space keys
-  - CloseButton component: Enter/Space key handlers  
-  - Modal Escape key support for consistent close behavior
-
-- [x] **Compare Panel Browse button** - Add Connection panel fully keyboard accessible
-  - `role="button"`, `tabIndex="0"` on Browse button
-  - Enter/Space key handlers for activation
-
-### Note Editing Accessibility  
-- [x] **Edit note pencil visibility** - Edit buttons visible on keyboard focus
-  - CSS `:focus` selector ensures edit pencil appears on Tab navigation
-  - No longer requires mouse hover for keyboard users
-
-### Link and Navigation Space Key Support
-- [x] **Text category navigation** - Category links in Add Connection/Browse work with space key
-  - `TextsPage.jsx` category navigation links support space key activation
-  - `BookPage.jsx` Continue Reading and Start Reading buttons support space key  
-  - `Promotions.jsx` Install Now link supports space key activation
-
-## 🔍 CURRENT ISSUES TO INVESTIGATE
-
-### Note Editing
-- [ ] **Note edit pencil inconsistency** - Only some notes show edit pencil, investigate note ownership logic
+### Note Editing  
+- [ ] **Note edit pencil inconsistency** - Only some notes show edit pencil
   - Expected: All user's own notes should show edit pencil on hover/focus
   - Actual: Only some notes show pencil (reported as "only second note")
   - Location: `ConnectionsPanel.jsx` MyNotes vs PublicNotes rendering

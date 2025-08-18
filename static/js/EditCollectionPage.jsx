@@ -136,7 +136,7 @@ class EditCollectionPage extends Component {
             <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
-              <a className="sefaria-common-button legacy small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
+              <a className="button small transparent control-elem" href={this.props.initialData ? "/sheets/collections/" + this.state.slug : "/my/profile"}>
                   <InterfaceText>Cancel</InterfaceText>
               </a>
               <Button id="saveCollection" size="small" variant="legacy blue" className="control-elem" onClick={this.save} ariaLabel="Save collection">
@@ -177,7 +177,7 @@ class EditCollectionPage extends Component {
              name="collectionImage"
              accept="image/*"
              text={Sefaria._("Upload Image")}
-             className="sefaria-common-button legacy white"
+             className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
             <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
@@ -200,7 +200,7 @@ class EditCollectionPage extends Component {
              name="collectionHeader"
              accept="image/*"
              text="Upload Image"
-             className="sefaria-common-button legacy white"
+             className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
             <InterfaceText>Recommended size: 1000px width to fill sheet, smaller images align right</InterfaceText>

@@ -679,7 +679,7 @@ const SignUpButton = () => {
   return (
     <a 
       href="/register" 
-      className="sefaria-common-button legacy small"
+      className="button small"
       onClick={handleClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); } }}
     >
