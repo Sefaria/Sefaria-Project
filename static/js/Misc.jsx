@@ -23,7 +23,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import * as constants from './constants';
+
 function useOnceFullyVisible(onVisible, key) {
   const targetRef = useRef(null);
 
@@ -2915,9 +2915,45 @@ const SheetMetaDataBox = (props) => (
 
 const DivineNameDepricationNotification = () => {
 
+  // Constants for the deprecation notification
+  const DEPRECATION_DATE = "October 15, 2025";
+  const DEPRECATION_DATE_HEBREW = "15 באוקטובר 2025";
+
+  const DEPRECATION_LINKS = {
+      en: {
+      exportSheet: "https://help.sefaria.org/hc/en-us/articles/20532656851228-How-to-Export-Print-or-Share-a-Sheet",
+      extension: "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+      },
+      he: {
+      exportSheet: "https://help.sefaria.org/hc/he/articles/20532656851228-ייצוא-הדפסה-ושיתוף-דף-מקורות-בספריא",
+      extension: "https://help.sefaria.org/hc/he/sections/20235182393244-התוסף-של-ספריא-ל-Google-Docs"
+      }
+  };
+
+  const DEPRECATION_MESSAGES = {
+      en: {
+      notice: "Please note:",
+      mainMessage: `The divine name substitution tool will no longer be available in the Sefaria Sheet Editor after ${DEPRECATION_DATE}.`,
+      continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing, ",
+      exportText: "export your sheet to Google Docs ",
+      andText: "and use the 'Transform Divine Names' feature in the ",
+      extensionText: "Sefaria for Google Docs extension",
+      period: "."
+      },
+      he: {
+      notice: "שימו לב:",
+      mainMessage: `החל מה-${DEPRECATION_DATE_HEBREW}, לא יהיה ניתן לשנות שמות קודש בדפי מקורות באמצעות העורך של ספריא.`,
+      continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף, ",
+      exportText: "יש לייצא את הדף ל-Google Docs ",
+      andText: "ולבצע את השינוי באמצעות הכלי המיועד לכך ב",
+      extensionText: "תוסף של ספריא ל-Google Docs",
+      period: "."
+      }
+  };
+
   const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
-  const messages = constants.DEPRECATION_MESSAGES[lang];
-  const links = constants.DEPRECATION_LINKS[lang];
+  const messages = DEPRECATION_MESSAGES[lang];
+  const links = DEPRECATION_LINKS[lang];
 
   return (
     <div className="divineNameDepricationNotification sans-serif">
