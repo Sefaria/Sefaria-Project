@@ -157,6 +157,12 @@ http {
       proxy_pass http://linker_upstream;
     }
     {{- end }}
+
+    {{- range $k, $v := $.Values.ingress.subdomains }}
+    location ~ ^/{{ $v }}(/.*|$) {
+        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$2;
+    }
+    {{- end }}
   } # server
 
   {{- range $k, $v := $.Values.ingress.subdomains }}
@@ -235,7 +241,7 @@ http {
       proxy_pass http://varnish_upstream;
     }
 
-    location ~ ^/{{ $v }}(/|$) {
+    location ~ ^/{{ $v }}(/.*|$) {
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
