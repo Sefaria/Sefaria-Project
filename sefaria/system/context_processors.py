@@ -42,9 +42,25 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if request.path == "/sefaria.js" or request.path.startswith("/data.") or request.path.startswith("/sheets/"):
+        path = request.path
+        active_module = getattr(request, 'active_module', 'library')
+        
+        # Log the request details
+        logger.info(f"data_only decorator - path: {path}, active_module: {active_module}")
+        
+        # Check conditions
+        is_sefaria_js = path == "/sefaria.js"
+        is_data_path = path.startswith("/data.")
+        is_sheets_path = path.startswith("/sheets/")
+        
+        # Log each condition
+        logger.info(f"data_only conditions - is_sefaria_js: {is_sefaria_js}, is_data_path: {is_data_path}, is_sheets_path: {is_sheets_path}")
+        
+        if is_sefaria_js or is_data_path or is_sheets_path:
+            logger.info(f"data_only: ALLOWING request for path: {path}")
             return view(request)
         else:
+            logger.info(f"data_only: BLOCKING request for path: {path}")
             return {}
     return wrapper
 
