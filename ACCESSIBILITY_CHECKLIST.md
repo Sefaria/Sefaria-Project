@@ -1,5 +1,13 @@
 # Accessibility Issues - WCAG 2.2 Level A
 
+## ✅ RECENTLY FIXED
+
+### Color Contrast Issues  
+- [x] **Filter navigation text** - Fixed insufficient color contrast in Talmud filters
+  - Changed: `#999999` (2.75:1 ratio) → `var(--medium-grey)` (#6f6f6f)
+  - Result: Meets WCAG 2.2 AA standard (4.5:1 contrast ratio)
+  - Files: Systematically replaced across all CSS files (s2.css, sheets.css, common.css, keyboard.css)
+
 ## 🔍 CURRENT ISSUES
 
 ### Verse Text Navigation
