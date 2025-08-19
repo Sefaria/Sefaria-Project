@@ -40,15 +40,15 @@ def run_on_all_sheets(force_update: bool = False, limit: Optional[int] = None) -
             logger.info("Limit reached (%d), stopping early", limit)
             break
         count += 1
-        sid = str(sheet.get("_id"))
+        sheet_id = str(sheet.get("id"))
 
         if _already_scored(sheet) and not force_update:
             skipped += 1
             if skipped % 500 == 0:
-                logger.debug("[SKIP] %s (already scored) — skipped so far: %d", sid, skipped)
+                logger.debug("[SKIP] %s (already scored) — skipped so far: %d", sheet_id, skipped)
             continue
 
-        logger.info("[RUN] %s — title=%r", sid, sheet.get('title', ''))
+        logger.info("[RUN] %s — title=%r", sheet_id, sheet.get('title', ''))
         _dispatch(sheet)
         scored += 1
 

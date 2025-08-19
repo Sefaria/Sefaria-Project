@@ -27,7 +27,7 @@ def _already_scored(sheet: Dict[str, Any]) -> bool:
 
 def _fetch_sheet_by_id(sheet_id: str) -> Optional[Dict[str, Any]]:
     try:
-        return db.sheets.find_one({"_id": ObjectId(sheet_id)})
+        return db.sheets.find_one({"id": int(sheet_id)})
     except Exception as e:
         logger.error("Invalid sheet_id=%s: %s", sheet_id, e)
         return None

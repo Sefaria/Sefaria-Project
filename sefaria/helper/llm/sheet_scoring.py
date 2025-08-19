@@ -44,11 +44,6 @@ def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:
         return False
     sheet_id = result.sheet_id
     try:
-        object_id = ObjectId(sheet_id)
-    except Exception:
-        logger.error("Invalid sheet_id (not an ObjectId): %s", sheet_id)
-        return False
-    try:
         payload = _prepare_sheet_payload(result)
         update_doc = {
             "$set": {
@@ -56,14 +51,13 @@ def save_sheet_scoring_output(result: SheetScoringOutput) -> bool:
                 UPDATED_AT_FIELD: result.processed_datetime,
             }
         }
-
-        update_result = db.sheets.update_one({"_id": object_id}, update_doc)
+        update_result = db.sheets.update_one({"id": int(sheet_id)}, update_doc)
         success = update_result.matched_count > 0
 
         if success:
-            logger.info("Updated %s for sheet %s", SHEET_FIELD, sheet_id)
+            logger.info("Updated %s for sheet with id=%s", SHEET_FIELD, sheet_id)
         else:
-            logger.warning("Sheet %s not found in database", sheet_id)
+            logger.warning("Sheet with id=%s not found in database", sheet_id)
 
         return success
 
@@ -76,8 +70,7 @@ def make_sheet_scoring_input(sheet_content: Dict[str, Any]) -> SheetScoringInput
     """
     Create SheetScoringInput from sheet content dictionary.
     """
-    sheet_content["_id"] = str(sheet_content["_id"])
-    return SheetScoringInput(sheet_id=str(sheet_content["_id"]),
+    return SheetScoringInput(sheet_id=str(sheet_content["id"]),
                              title=sheet_content['title'],
                              expanded_refs=sheet_content['expandedRefs'],
                              sources=sheet_content['sources'])

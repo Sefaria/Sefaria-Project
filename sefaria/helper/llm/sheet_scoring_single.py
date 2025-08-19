@@ -35,7 +35,7 @@ def run_on_ref(tref: str, force_update: bool = False) -> None:
 
     for sheet in _find_sheets_for_ref(tref):
         count += 1
-        sid = str(sheet.get("_id"))
+        sid = str(sheet.get("id"))
         if _already_scored(sheet) and not force_update:
             skipped += 1
             logger.debug("Skipping sheet %s (already scored)", sid)
@@ -55,7 +55,7 @@ def run_on_ref(tref: str, force_update: bool = False) -> None:
 if __name__ == "__main__":
     # # --- quick-edit mode (uncomment one of the blocks) ---
     # run on single sheet
-    # sheet_id = "5ed6d2f57a0c75daf0ce5582"
+    # sheet_id = "1"
     # run_on_single_sheet(sheet_id=sheet_id, force_update=True)
 
     # run on single ref
