@@ -4763,12 +4763,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
+.search-container {
+  position: relative; /* Ensure dropdown positions relative to this container */
+}
+
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
   top: 45px;
   width: auto;
-  max-width: 130%;
+  max-width: 400px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 0px 0px 6px 4px;
   z-index: 2;
