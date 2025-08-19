@@ -2896,6 +2896,7 @@ _media: {},
 
 
     data.tabs = tabs;
+    console.log(tabs["notable-sources"]);
     return data;
   },
   getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
