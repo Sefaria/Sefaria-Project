@@ -4262,7 +4262,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .searchTopLineInner .ai-info-tooltip {
   position: relative;
-  margin-left: 10px; /* LTR spacing */
+  margin-left: 10px;
+  margin-top: -10px;
 }
 
 .hebrewQuery ~ .ai-info-tooltip {
