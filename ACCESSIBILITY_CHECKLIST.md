@@ -3,10 +3,8 @@
 ## ✅ RECENTLY FIXED
 
 ### Color Contrast Issues  
-- [x] **Connections header "Resources" text** - Fixed insufficient color contrast in panel header
+- [ ] **Connections header "Resources" text** - Fixed insufficient color contrast in panel header
   - Issue: `var(--medium-grey)` (#6f6f6f) on `#ededed` background = 4.29:1 ratio (failed 4.5:1 requirement)
-  - Fixed: Added specific CSS rule `.connectionsHeaderTitle .int-en, .connectionsHeaderTitle .int-he { color: #5c5c5c; }`
-  - Result: Darker text color achieves required 4.5:1 contrast ratio on light background
   - File: `static/css/s2.css` lines 5695-5697
 
 - [x] **Filter navigation text** - Fixed insufficient color contrast in Talmud filters
