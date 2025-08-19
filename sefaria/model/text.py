@@ -29,7 +29,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 
@@ -5724,13 +5724,8 @@ class Library(object):
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
         from .linker.linker_entity_recognizer import LinkerEntityRecognizer
-        from .linker.named_entity_recognizer import NERFactory
 
-        return LinkerEntityRecognizer(
-            lang,
-            NERFactory.create('spacy', RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            NERFactory.create('spacy', RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
-        )
+        return LinkerEntityRecognizer(lang)
 
     def _build_category_resolver(self, lang: str):
         from sefaria.model.category import CategorySet, Category

@@ -132,6 +132,7 @@ linker:
     tag: latest
   replicaCount: 1
   serviceAccount: linker
+  gpuServer: gpu-server
   resources:
     web:
       gunicornWorkerCount: 1
@@ -140,11 +141,9 @@ linker:
         requests:
           memory: "2Gi"
           cpu: "100m"
-          nvidia.com/gpu: 1
         limits:
           memory: "3Gi"
           cpu: "1000m"
-          nvidia.com/gpu: 1
     djangoLog:
       requests:
         memory: "100Mi"
