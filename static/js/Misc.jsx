@@ -1439,7 +1439,7 @@ const AiFeedbackLink = ({lang}) => {
   );
 }
 
-const AiInfoTooltip = () => {
+const AiInfoTooltip = ({ enText, heText }) => {
   const [showMessage, setShowMessage] = useState(false);
   const aiInfoIcon = (
       <img
@@ -1454,11 +1454,9 @@ const AiInfoTooltip = () => {
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
             <div className="ai-info-first-message">
             <InterfaceText>
-                <EnglishText>Some of the text on this page has been AI generated.
-                  &nbsp;<AiLearnMoreLink lang="english" />
-                </EnglishText>
-                <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.&nbsp;
-                  <AiLearnMoreLink lang="hebrew" />
+              <EnglishText>{enText}&nbsp;<AiLearnMoreLink lang="english" /></EnglishText>
+            <HebrewText>
+              {heText}&nbsp;<AiLearnMoreLink lang="hebrew" />
                 </HebrewText>
             </InterfaceText>
 
@@ -1483,6 +1481,15 @@ const AiInfoTooltip = () => {
   );
 };
 
+AiInfoTooltip.propTypes = {
+  enText: PropTypes.string,
+  heText: PropTypes.string,
+};
+
+AiInfoTooltip.defaultProps = {
+  enText: 'Some of the text on this page has been AI generated.',
+  heText: 'חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.',
+};
 
 class FollowButton extends Component {
   constructor(props) {
