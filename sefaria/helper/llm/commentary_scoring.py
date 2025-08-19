@@ -16,11 +16,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 from collections import defaultdict
-# from sefaria.helper.llm.commentary_scoring import make_commentary_scoring_input, save_commentary_scoring_output
-
-
-
-from sefaria.model import Ref, Link
+from sefaria.model import Ref
 from sefaria_llm_interface.commentary_scoring import (
     CommentaryScoringInput,
     CommentaryScoringOutput,
@@ -59,7 +55,7 @@ def _build_log_index():
     return idx
 
 
-def extract_text_from_ref(ref: Ref,prefer_english: bool = True) -> Optional[
+def extract_text_from_ref(ref: Ref, prefer_english: bool = True) -> Optional[
     str]:
     """
     Extract text from a Sefaria reference, with language preference.
@@ -77,7 +73,7 @@ def extract_text_from_ref(ref: Ref,prefer_english: bool = True) -> Optional[
             return None
 
         # Handle list case - join segments with space
-        if isinstance(text,list):
+        if isinstance(text, list):
             # Filter out empty/None elements and join
             text_segments = [str(segment).strip() for segment in text if
                              segment]
@@ -86,7 +82,7 @@ def extract_text_from_ref(ref: Ref,prefer_english: bool = True) -> Optional[
             return None
 
         # Handle string case
-        if isinstance(text,str) and len(text.strip()) > 0:
+        if isinstance(text, str) and len(text.strip()) > 0:
             return text.strip()
 
         return None
@@ -116,7 +112,8 @@ def extract_text_from_ref(ref: Ref,prefer_english: bool = True) -> Optional[
         return None
 
 
-def save_commentary_scoring_output(result: CommentaryScoringOutput) -> bool:
+def save_commentary_scoring_output(result: CommentaryScoringOutput,
+                                   save_score_explanations=True) -> bool:
     """
     Save commentary scoring results:
       - Update DB only for cited refs that are NOT already in the log.
@@ -133,54 +130,32 @@ def save_commentary_scoring_output(result: CommentaryScoringOutput) -> bool:
         return False
 
     # Build index once to know what's already persisted
-    log_index = _build_log_index()
-    already = log_index.get(commentary_ref_str, set())
-
-    # Prepare a log entry that will include ONLY new refs we actually persist
-    log_entry = {
-        "commentary_ref": commentary_ref_str,
-        "processed_datetime": result.processed_datetime,
-        "request_status": result.request_status,
-        "request_status_message": result.request_status_message,
-        "total_refs_scored": len(result.ref_scores),
-        "explanations": {}
-    }
-
+    if save_score_explanations:
+        log_entry = {
+            "commentary_ref": commentary_ref_str,
+            "processed_datetime": result.processed_datetime,
+            "request_status": result.request_status,
+            "request_status_message": result.request_status_message,
+            "explanations": {}
+        }
     success_new = 0
-    attempted_new = 0
 
     for cited_ref_str, score in result.ref_scores.items():
-        try:
-            cited_norm = Ref(cited_ref_str).normal()
-        except Exception:
-            cited_norm = cited_ref_str
-
-        # Skip if we already have this commentary→cited pair in the log
-        if cited_norm in already:
-            continue
-
-        attempted_new += 1
         explanation = result.scores_explanation.get(cited_ref_str, "")
-
-        # Update DB (score only)
         try:
             link_doc = db.links.find_one({"refs": {"$all": [commentary_ref_str, cited_ref_str]}})
             if not link_doc:
-                logger.warning(
-                    f"No link found between '{commentary_ref_str}' and '{cited_ref_str}'"
-                )
+                logger.warning(f"No link found between '{commentary_ref_str}' and '{cited_ref_str}'")
                 continue
-
             link_id = link_doc["_id"]
             update_result = db.links.update_one(
                 {"_id": link_id},
                 {"$set": {"relevance_score": score}}
             )
-
             if update_result.matched_count > 0:
                 success_new += 1
-                # Only log explanations for the ones we successfully updated
-                log_entry["explanations"][cited_ref_str] = explanation
+                if save_score_explanations:
+                    log_entry["explanations"][cited_ref_str] = explanation
             else:
                 logger.warning(f"Failed to update link {link_id}")
 
@@ -191,71 +166,25 @@ def save_commentary_scoring_output(result: CommentaryScoringOutput) -> bool:
             continue
 
     # Append to JSONL only if we actually persisted something new
-    if log_entry["explanations"]:
+    if save_score_explanations and log_entry["explanations"]:
         try:
             with open(LOG_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
             logger.debug(f"Logged {len(log_entry['explanations'])} new explanations to: {LOG_FILE}")
         except Exception as e:
-            logger.error(
-                f"Error logging explanations for '{commentary_ref_str}': {e}"
-            )
+            logger.error(f"Error logging explanations for '{commentary_ref_str}': {e}")
 
     logger.info(
         f"Score saving completed for {commentary_ref_str}: "
-        f"{success_new}/{attempted_new} newly-updated links "
-        f"(skipped {len(result.ref_scores) - attempted_new} already-logged)."
+        f"{success_new}/{len(result.ref_scores.items())} newly-updated links "
     )
-
-    # Return True if at least one new item was saved; False if everything was already present
+    logger.info(
+        f"Log entry: {log_entry}: "
+    )
     return success_new > 0
 
 
-def retrieve_commentary_scores(commentary_ref_str: str) -> Dict[
-    str, Dict[str, Any]]:
-    """
-    Retrieve all stored scoring data for a commentary.
-    """
-    try:
-        commentary_ref = Ref(commentary_ref_str)
-    except Exception as e:
-        logger.error(
-            f"Invalid commentary reference '{commentary_ref_str}': {e}"
-        )
-        raise
-
-    scores_data = {}
-    link_count = 0
-
-    for link in commentary_ref.linkset():
-        link_count += 1
-        try:
-            other_ref = find_other_ref(link.refs,commentary_ref)
-
-            # Check if link has scoring data stored
-            if hasattr(
-                    link, 'data'
-            ) and link.data and 'relevance_score' in link.data:
-                scores_data[str(other_ref)] = {
-                    'score': link.data.get('relevance_score'),
-                    'explanation': link.data.get('score_explanation', ''),
-                    'scored_datetime': link.data.get('scored_datetime', ''),
-                }
-        except Exception as e:
-            logger.warning(
-                f"Error processing link for {commentary_ref_str}: {e}"
-            )
-            continue
-
-    logger.info(
-        f"Retrieved scores for {commentary_ref_str}: "
-        f"{len(scores_data)} scored out of {link_count} total links"
-    )
-
-    return scores_data
-
-
-def find_other_ref(refs: List[str],base: Ref) -> Ref:
+def find_other_ref(refs: List[str], base: Ref) -> Ref:
     """
     Find the reference in a link that is not the base commentary reference.
     """
@@ -275,7 +204,7 @@ def find_other_ref(refs: List[str],base: Ref) -> Ref:
     return Ref(refs[-1])
 
 
-def extract_all_refs_from_commentary(commentary_obj: Ref) -> Dict[str,str]:
+def extract_all_refs_from_commentary(commentary_obj: Ref) -> Dict[str, str]:
     """
     Extract all non-commentary references cited by a commentary.
     """
@@ -312,9 +241,7 @@ def make_commentary_scoring_input(commentary_ref: str) -> Optional[
     Create input data structure for commentary scoring.
     """
     base = Ref(commentary_ref)
-    # Extract cited references
     cited_refs = extract_all_refs_from_commentary(base)
-    # Get commentary text using the dedicated text extraction function
     base_text = extract_text_from_ref(base, prefer_english=True)
 
     if not base_text:
@@ -324,12 +251,6 @@ def make_commentary_scoring_input(commentary_ref: str) -> Optional[
             commentary_ref='',
             cited_refs={}
         )
-
-    logger.info(
-        f"Created scoring input for {commentary_ref}: "
-        f"{len(cited_refs)} cited refs, {len(base_text)} chars of text"
-    )
-
     return CommentaryScoringInput(
         commentary_text=base_text,
         commentary_ref=commentary_ref,

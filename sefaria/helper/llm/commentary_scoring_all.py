@@ -19,13 +19,12 @@ Usage:
 You can also import the `run_for_all_quoting_commentaries()` function in notebooks.
 """
 
-import sys
 import time
 import argparse
-from typing import Optional, Set, Tuple
+from typing import Optional, Set
 
 from sefaria.helper.llm.tasks.commentary_scoring import generate_and_save_commentary_scoring
-from sefaria.model import library, Ref
+from sefaria.model import library
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from commentary_scoring_tools import parse_link_for_base

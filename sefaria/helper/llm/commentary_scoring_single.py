@@ -89,7 +89,7 @@ def grade_sefaria_commentary_links_optimized(
 if __name__ == "__main__":
     # OPTION 1: Grade a single link by ObjectId
     # Uncomment the line below and replace with actual link ID
-    grade_single_link("4fde272eedbab43f7f000022")
+    grade_single_link("4fde272eedbab43f7f000022", force_update=True)
 
     # OPTION 2: Grade all commentary links for a specific reference
     # Uncomment the line below and modify the reference as needed
