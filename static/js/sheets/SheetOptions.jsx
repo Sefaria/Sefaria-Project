@@ -11,6 +11,7 @@ import Button from "../common/Button";
 import { SignUpModalKind } from "../sefaria/signupModalContent";
 import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
 import PublishModal from "./PublishMenu";
+import { InterfaceText } from "../Misc";
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
@@ -95,7 +96,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
+  const publishModalButton = <Button className="small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}

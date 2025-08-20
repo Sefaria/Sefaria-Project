@@ -152,15 +152,19 @@ const Strings = {
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
 
+    "Close menu": "סגירת תפריט",
+    "Add a source, image, or other media": "הוספת מקור, תמונה או מדיה אחרת",
+    "Add source": "הוספת מקור",
+    "Add image": "הוספת תמונה",
+    "Add media": "הוספת מדיה",
+
     // Sheets
     "Sheet": "דף מקורות",
     "About this Sheet": "אודות דף המקורות",
     "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
+    "Search for a Text or Commentator.": "לחיפוש מקור",
     "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
-    "Add media": "הוסף מדיה",
-    "Add an image": "הוסף תמונה",
-    "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Sheets": "דפי מקורות",
@@ -548,6 +552,9 @@ const Strings = {
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
+    "Export to Google Docs": "ייצוא לגוגל דוקס",
+    "Delete Sheet": "מחיקת דף מקורות",
+    "Share": "שיתוף",
 
     //TextTableofContents
     "Contents": "תוכן",
@@ -619,6 +626,19 @@ const Strings = {
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
     },
+    "EditorSaveIndicator": {
+      "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
+      "Saving…": "שומר...",
+      "Saved": "נשמר",
+      "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+      "Trying to connect…": "ניסיון התחברות...",
+      "No internet connection detected": "לא זוהה חיבור לאינטרנט",
+      "User Logged out": "בוצעה התנתקות מהמערכת",
+      "Log in": "התחברות",
+      "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
+      "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
+      "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
+    },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
     },
@@ -670,12 +690,8 @@ const Strings = {
       "Tanakh": "",
       "Talmud": ""
     },
-    "Share": "שיתוף",
     "Library": "ספריה",
-    "Delete Sheet": "מחיקת דף מקורות",
     "Developers": "מפתחים",
-    "Export to Google Docs": "ייצוא לגוגל דוקס",
-
     "Sheet Share": {
       "View": "לצפות",
       "Add": "להוסיף",
@@ -683,6 +699,16 @@ const Strings = {
     },
     "WebPageList": {
       'Author': 'מחבר'
+    },
+    "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
+    "Loading guide...": "טוען מדריך...",
     }
   },
 };
