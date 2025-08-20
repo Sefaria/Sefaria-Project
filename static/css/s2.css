@@ -5690,7 +5690,7 @@ big {
   margin-left: 10px;
 }
 .connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .readerControls .readerControlsInner {
   position: relative;

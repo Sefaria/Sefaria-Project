@@ -3,40 +3,10 @@
 ## ✅ RECENTLY FIXED
 
 ### Color Contrast Issues  
-- [ ] **Connections header "Resources" text** - Fixed insufficient color contrast in panel header
-  - Issue: `var(--medium-grey)` (#6f6f6f) on `#ededed` background = 4.29:1 ratio (failed 4.5:1 requirement)
-  - File: `static/css/s2.css` lines 5695-5697
-
-- [x] **Filter navigation text** - Fixed insufficient color contrast in Talmud filters
-  - Changed: `#999999` (2.75:1 ratio) → `var(--medium-grey)` (#6f6f6f)
-  - Result: Meets WCAG 2.2 AA standard (4.5:1 contrast ratio)
-  - Files: Systematically replaced across all CSS files (s2.css, sheets.css, common.css, keyboard.css)
-
-### Verse Text Navigation
-- [x] **Verse text segments** - Fixed to respond to both Enter and Space keys  
-  - Fixed: Changed `onKeyPress` → `onKeyDown` with proper keyCode handling (13=Enter, 32=Space)
-  - Components: TextRange.jsx, TextSegment, SheetContent.jsx, SheetContentSegments.jsx
-  - Added: `preventDefault()` on Space key to prevent page scrolling
-
-### Note Editing  
-- [x] **Note edit pencil inconsistency** - Fixed for consistent edit pencil display
-  - Fixed: JavaScript closure bug in MyNotes component where editNote functions all referred to last note
-  - Changed: `function()` declarations → arrow functions for proper closure capture  
-  - Result: All user's own notes show edit pencil and work correctly
-
-### Source Connection Elements
-- [x] **Sheet source connections** - Fixed to respond to both Enter and Space keys
-  - Fixed: Added Space key (keyCode 32) support to `.sourceConnection` keydown handler
-  - Location: `sheets.js` - Add Connection interface
-  - Added: `preventDefault()` on Space key to prevent page scrolling
-
-### Header Navigation
-- [x] **Header dropdown buttons** - Fixed keyboard accessibility for last two buttons in headerLinksSection
-  - Fixed: ModuleSwitcher and LoggedOutDropdown now use proper `<button>` elements instead of bare `<img>` elements
-  - Changed: Wrapped images in semantic buttons with `aria-label` attributes
-  - Added: `.header-dropdown-button` CSS class with proper focus styling and button reset styles
-  - Result: All header dropdown buttons now reachable via Tab key with visible focus indicators
-  - Location: `Header.jsx` ModuleSwitcher and LoggedOutDropdown components, `s2.css` focus styling
+- [x] **Connections header chevron icons** - Fixed insufficient color contrast in panel header navigation
+  - Fixed: Changed `var(--medium-grey)` (#6f6f6f) → `var(--dark-grey)` (#666666) for better contrast
+  - Improved contrast ratio on `#EDEDED` background to meet WCAG 2.2 Level A requirements
+  - Location: `static/css/s2.css` lines 5692-5694 - `.connectionsHeaderTitle .fa-chevron-left, .fa-chevron-right`
 
 ## 🔍 VERIFIED - ALREADY ACCESSIBLE
 
