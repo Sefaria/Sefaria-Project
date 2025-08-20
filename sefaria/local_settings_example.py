@@ -5,7 +5,7 @@ import sys
 import structlog
 import sefaria.system.logging as sefaria_logging
 import os
-
+import json
 # These are things you need to change!
 
 ################
@@ -44,14 +44,15 @@ DOMAIN_LANGUAGES = {
     "http://english.example.org": "english",
 }
 
-DOMAIN_MODULES = {
+# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
+DOMAIN_MODULES = json.dumps({
     "library": "http://localhost:8000",
     "sheets": "http://localhost:8000",
-}
-MODULE_ROUTES = {
+})
+MODULE_ROUTES = json.dumps({
     "library": "/",
     "sheets": "/sheets/",
-}
+})
 
 ################ These are things you can change! ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
