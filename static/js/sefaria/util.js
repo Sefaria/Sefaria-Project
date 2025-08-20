@@ -294,10 +294,6 @@ class Util {
                 window.location.pathname + window.location.search;
     }
     static modifyRelativePathbasedOnModule(path) {
-      const excluded = ['/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", '/static/'];
-      if (excluded.some(x => path.startsWith(x))) {
-        return path;
-      }
       const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
       if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!path.startsWith(sheetsPrefix))) {
         // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
