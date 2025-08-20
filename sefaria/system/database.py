@@ -177,7 +177,6 @@ def ensure_indices(active_db=None):
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
         ('vstate', ["title"], {}),
         ('vstate', ["flags.enComplete"], {}),
-
     ]
 
     for col, args, kwargs in indices:

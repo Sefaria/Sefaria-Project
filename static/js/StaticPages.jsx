@@ -715,7 +715,7 @@ const EducatorsPage = () => (
       { [
           ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
           ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
-          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", Sefaria._siteSettings.HELP_CENTER_URLS.HE]
+          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -775,7 +775,7 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,"https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Help Center", "אסופות מומלצות", "/sheets/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
           ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
