@@ -294,15 +294,20 @@ class Util {
                 window.location.pathname + window.location.search;
     }
     static modifyRelativePathbasedOnModule(path, moduleTarget=null) {
+      /*
+      This function modifies the path based on the module target and module route settings.
+      1. Cleans up paths if there's "/sheets" in the path when the user is not in the sheets module (or adds "/sheets" if the user is in the sheets module)
+      2. If the path is excluded from modification, it will just return the path.
+      */
       if (!moduleTarget) {
         moduleTarget = Sefaria.activeModule;
       }
       const excluded = ['/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", '/static/'];
+      const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix since path is relative andstarts with "/"
       if (excluded.some(x => path.startsWith(x))) {
         return path;
       }
-      const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix since path is relative andstarts with "/"
-      if (moduleTarget === Sefaria.SHEETS_MODULE && (!path.startsWith(sheetsPrefix))) {
+      else if (moduleTarget === Sefaria.SHEETS_MODULE && (!path.startsWith(sheetsPrefix))) {
         // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
         return sheetsPrefix + path;
       }
@@ -310,19 +315,20 @@ class Util {
         // If we are not in the sheets module, remove /sheets from the beginning of the URL
         return path.replace(sheetsPrefix, "");
       }
-      return path;
+      else {
+        return path;
+      }
     }
     static fullURL(path, moduleTarget) {
-      const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')  
       if (path.startsWith("/")) { 
         // if the path is relative, prepend the module URL
-        const modifiedPath = this.modifyRelativePathbasedOnModule(path, moduleTarget); // modify the path based on the module target
+        const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')  
+        const modifiedPath = this.modifyRelativePathbasedOnModule(path, moduleTarget); // modify the path based on the module target and module route settings
         return moduleURL.origin + modifiedPath;
       }
       else {
-         // if the path is absolute, just modify the URL origin based on the module target
-        const url = new URL(path);
-        return moduleURL.origin + url.pathname; 
+         // if the path is absolute, just return it
+        return path;
       }
     }
     static isUrl(string) {
