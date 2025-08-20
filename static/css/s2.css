@@ -10400,6 +10400,23 @@ body.user-is-tabbing .dropdownLinks-button img:focus {
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* Header dropdown button styling */
+.header-dropdown-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Focus styling for header dropdown buttons */
+body.user-is-tabbing .header-dropdown-button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }

@@ -39,7 +39,11 @@ const LoggedOutDropdown = ({module}) => {
   })
   
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg' alt="Account menu"/>}>
+      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
+        <button className="header-dropdown-button" aria-label="Account menu">
+          <img src='/static/icons/logged_out.svg' alt=""/>
+        </button>
+      }>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={loginLink}>
                   <InterfaceText text={{'en': 'Log in', 'he': 'התחברות'}}/>
@@ -138,7 +142,9 @@ const ModuleSwitcher = () => {
   const sheetsURL = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE];
   return (
               <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-                <img src='/static/icons/module_switcher_icon.svg' alt="Switch between library and sheets"/>
+                <button className="header-dropdown-button" aria-label="Switch between library and sheets">
+                  <img src='/static/icons/module_switcher_icon.svg' alt=""/>
+                </button>
               }>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={libraryURL} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>

@@ -30,6 +30,14 @@
   - Location: `sheets.js` - Add Connection interface
   - Added: `preventDefault()` on Space key to prevent page scrolling
 
+### Header Navigation
+- [x] **Header dropdown buttons** - Fixed keyboard accessibility for last two buttons in headerLinksSection
+  - Fixed: ModuleSwitcher and LoggedOutDropdown now use proper `<button>` elements instead of bare `<img>` elements
+  - Changed: Wrapped images in semantic buttons with `aria-label` attributes
+  - Added: `.header-dropdown-button` CSS class with proper focus styling and button reset styles
+  - Result: All header dropdown buttons now reachable via Tab key with visible focus indicators
+  - Location: `Header.jsx` ModuleSwitcher and LoggedOutDropdown components, `s2.css` focus styling
+
 ## 🔍 VERIFIED - ALREADY ACCESSIBLE
 
 ### Reading Navigation
@@ -65,7 +73,7 @@
 3. ✅ **Reading buttons** - Already working: Continue/Start Reading buttons have Space key support  
 4. ⏳ **Install Now button** - Requires manual testing: Check promotion links for Space key support
 5. ⏳ **Tab navigation** - Requires manual testing: Verify no regressions in existing tab flows
-6. ⏳ **Dropdown functionality** - Requires manual testing: Header dropdowns with keyboard and mouse
+6. ✅ **Header dropdown functionality** - Fixed: Header dropdowns now accessible via keyboard navigation
 
 ### Accessibility Testing Checklist
 - [ ] **Keyboard navigation** - All interactive elements accessible via Tab key
