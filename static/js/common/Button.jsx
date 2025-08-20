@@ -11,7 +11,6 @@
  * @constructor
  */
 const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null }) => {
-
   return (
     <button
       disabled={disabled}
