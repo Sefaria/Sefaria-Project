@@ -313,11 +313,17 @@ class Util {
       return path;
     }
     static fullURL(path, moduleTarget) {
-      if (path.startsWith("/")) { // if the path is relative, prepend the module URL
-        const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
-        return moduleURL.origin + this.modifyRelativePathbasedOnModule(path, moduleTarget);
+      const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')  
+      if (path.startsWith("/")) { 
+        // if the path is relative, prepend the module URL
+        const modifiedPath = this.modifyRelativePathbasedOnModule(path, moduleTarget); // modify the path based on the module target
+        return moduleURL.origin + modifiedPath;
       }
-      return path;  // if the path is absolute, return it as is
+      else {
+         // if the path is absolute, just modify the URL origin based on the module target
+        const url = new URL(path);
+        return moduleURL.origin + url.pathname; 
+      }
     }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
