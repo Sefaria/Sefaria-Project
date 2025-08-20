@@ -530,7 +530,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    return Object.values(Sefaria.domainModules).some(subdomain => url.hostname.indexOf(subdomain) !== -1);
+    return Object.values(Sefaria.domainModules).some(subdomain => subdomain.includes(url.hostname));
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
