@@ -277,7 +277,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
 
 
-        <a href="/help">
+        <a href={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} target="_blank">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
@@ -364,7 +367,10 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
+              <div><a className="interfaceLinks-row bottom" id="help-link" href={Sefaria._v({
+                he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+                en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+              })} target="_blank">
                 <InterfaceText>Help</InterfaceText>
               </a></div>
             </div>
@@ -405,10 +411,13 @@ const MobileInterfaceLanguageToggle = () => {
 
 
 const HelpButton = () => {
-  const url = Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US});
+  const url = Sefaria._v({
+    he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+    en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+  });
   return (
     <div className="help">
-      <a href={url}>
+      <a href={url} target="_blank">
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
