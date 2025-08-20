@@ -797,19 +797,6 @@ class ReaderApp extends Component {
     return hist;
   }
   
-  modifyURLbasedOnModule(url) {
-    const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
-    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!url.startsWith("/sheets"))) {
-      // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-      return sheetsPrefix + url;
-    }
-    else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && url.startsWith("/sheets")) {
-      // If we are not in the sheets module, remove /sheets from the beginning of the URL
-      return url.replace(sheetsPrefix, "");
-    }
-    return url;
-  }
-  
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -822,7 +809,7 @@ class ReaderApp extends Component {
     }
     
     console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = this.modifyURLbasedOnModule(hist.url); 
+    hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url); 
     console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
@@ -1144,7 +1131,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
+    if (!Sefaria.isSefariaURL(url) || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
       return true;
     }
