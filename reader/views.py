@@ -55,7 +55,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, DOMAIN_MODULES, MODULE_ROUTES
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -218,6 +218,8 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
+        "domainModules": json.loads(DOMAIN_MODULES),
+        "moduleRoutes": json.loads(MODULE_ROUTES),
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),

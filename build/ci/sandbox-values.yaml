@@ -58,6 +58,8 @@ secrets:
 localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {}
+  DOMAIN_MODULES: '{"library": "https://mod-subdomains.cauldron.sefaria.org", "sheets": "https://sheets.mod-subdomains.cauldron.sefaria.org"}'
+  MODULE_ROUTES: '{"library": "/", "sheets": "/sheets/"}'
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://${NAME}.cauldron.sefaria.org" 

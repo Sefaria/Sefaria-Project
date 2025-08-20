@@ -420,7 +420,7 @@ class ConnectionsPanel extends Component {
           onCancel={() => this.props.setConnectionsMode("Notes")} />
         {Sefaria._uid ?
           <div>
-            <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
+            <a href="/texts/notes" className="allNotesLink button white transparent bordered fillWidth">
               <span className="int-en">Go to My Notes</span>
               <span className="int-he">הרשומות שלי</span>
             </a>
@@ -654,8 +654,9 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
+  const sheetsURL = Sefaria.getModuleURL(Sefaria.SHEETS_MODULE);
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
+  window.open(`${sheetsURL.origin}/sheets/sheets-with-ref/${normalizedRef}`, '_blank');
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {

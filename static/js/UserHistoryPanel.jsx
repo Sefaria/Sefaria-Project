@@ -68,6 +68,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     <span className="sans-serif">
       <a 
         href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved } 
+        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
         onClick={(e) => { /* Let browser handle navigation naturally */ }}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
@@ -77,6 +78,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       </a>
       <a 
         href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history } 
+        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
         onClick={(e) => { /* Let browser handle navigation naturally */ }}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}

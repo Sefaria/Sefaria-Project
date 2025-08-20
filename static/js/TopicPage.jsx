@@ -401,7 +401,7 @@ return (
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
-            {hasAiContentLinks && Sefaria.activeModule === 'library' && 
+            {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && 
                 <AiInfoTooltip/>
             }
         </div>
@@ -418,13 +418,13 @@ return (
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}}/>
+              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}} disallowedMarkdownElements={['p']}/>
             </div>
        : null}
        {tpTopImg}
        {topicData && topicData.ref &&
            <div>
-               <a href={`/${topicData.ref.url}`} target="_blank" className="resourcesLink button blue">
+               <a href={`/${topicData.ref.url}`} data-target-module={Sefaria.LIBRARY_MODULE} className="resourcesLink button blue">
                    <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
                    <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
                    <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
@@ -449,7 +449,7 @@ const AuthorIndexItem = ({
 }) => {
     return (
         <div className="authorIndex">
-            <a href={url} target="_blank" className="navBlockTitle">
+            <a href={url} data-target-module={Sefaria.LIBRARY_MODULE} className="navBlockTitle">
                 <InterfaceText text={title} defaultToInterfaceOnBilingual/>
             </a>
             <div className="navBlockDescription">
@@ -731,7 +731,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
         onClickFilterIndex = displayTabs.length - 1;
       }
 
-      if (displayTabs.length && tab !== "author-works-on-sefaria" && Sefaria.activeModule === 'library') {
+      if (displayTabs.length && tab !== "author-works-on-sefaria" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
         displayTabs.push({
           title: {
             en: "A",
@@ -855,8 +855,8 @@ const TopicPageTab = ({
 }
 
 
-const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => {
-  const prefix = Sefaria.activeModule === "sheets" ? "/sheets/" : "/";
+const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory, module}) => {
+  const prefix = module === Sefaria.SHEETS_MODULE ? "/sheets/" : "/";
   const href = `${prefix}topics/${isCategory ? 'category/' : ''}${topic}`;
   return <div data-anl-event="related_click:click" data-anl-batch={
     JSON.stringify({
@@ -864,9 +864,12 @@ const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) 
       feature_name: "related topic",
     })
   }>
-    <Link className="relatedTopic" href={href}
-          onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-          title={topicTitle.en}>
+    <Link className="relatedTopic" 
+          href={href}
+          onClick={onClick.bind(null, topic, topicTitle)} 
+          key={topic}
+          title={topicTitle.en}
+          module={module}>
       <InterfaceText text={{en: topicTitle.en, he: topicTitle.he}}/>
     </Link>
   </div>
@@ -998,6 +1001,7 @@ const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tre
               onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
               isTransliteration={l.titleIsTransliteration}
               isCategory={l.isCategory}
+              module={Sefaria.activeModule}
             />
           ))
         }
@@ -1075,7 +1079,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
             <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={'/' + tref.url} target="_blank" className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+            <a href={'/' + tref.url} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
         {
@@ -1084,7 +1088,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
                let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
                let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
                return (
-                  <a className="sectionLink" target="_blank" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                  <a className="sectionLink" data-target-module={Sefaria.LIBRARY_MODULE} href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
                     <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
                   </a>
                 );
@@ -1100,7 +1104,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
                     <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-                    <a href={'/' + h.url} target="_blank" className="contentText" key={h.url}>
+                    <a href={'/' + h.url} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
                 </div>

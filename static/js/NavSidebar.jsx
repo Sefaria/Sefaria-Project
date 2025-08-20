@@ -273,16 +273,16 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.apiHost}/about`}, 
-                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.apiHost}/help`}, 
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/help`}, 
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
-                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.apiHost}/newsletter`},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/newsletter`},
                                     {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
                                     {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
                                     {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
                                     {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
                                     {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
-                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.apiHost}/ways-to-give`},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/ways-to-give`},
                                     {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
                                   ];
 
@@ -812,7 +812,7 @@ const CreateSheetsButton = () => {
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
       </a>
     </Button>
-  ) // hebrew is placeholder
+  ) 
 }
 const CreateASheet = () => (
   <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
@@ -856,7 +856,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
     {hideTitle ? null :
     <div>
-      <a className="button small" href="/sheets/collections/new">
+      <a className="button small" href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
@@ -870,7 +870,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/sheets/collections">
+      <a className="button small white" href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>
