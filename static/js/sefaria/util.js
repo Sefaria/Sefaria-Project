@@ -293,28 +293,31 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-    static modifyRelativePathbasedOnModule(path) {
+    static modifyRelativePathbasedOnModule(path, moduleTarget=null) {
+      if (!moduleTarget) {
+        moduleTarget = Sefaria.activeModule;
+      }
       const excluded = ['/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", '/static/'];
       if (excluded.some(x => path.startsWith(x))) {
         return path;
       }
-      const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
-      if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!path.startsWith(sheetsPrefix))) {
+      const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix since path is relative andstarts with "/"
+      if (moduleTarget === Sefaria.SHEETS_MODULE && (!path.startsWith(sheetsPrefix))) {
         // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
         return sheetsPrefix + path;
       }
-      else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && path.startsWith(sheetsPrefix)) {
+      else if (moduleTarget !== Sefaria.SHEETS_MODULE && path.startsWith(sheetsPrefix)) {
         // If we are not in the sheets module, remove /sheets from the beginning of the URL
         return path.replace(sheetsPrefix, "");
       }
       return path;
     }
-    static fullURL(relativePath, moduleTarget) {
-      if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
+    static fullURL(path, moduleTarget) {
+      if (path.startsWith("/")) { // if the path is relative, prepend the module URL
         const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
-        return moduleURL.origin + this.modifyRelativePathbasedOnModule(relativePath);
+        return moduleURL.origin + this.modifyRelativePathbasedOnModule(path, moduleTarget);
       }
-      return relativePath;  // if the path is absolute, return it as is
+      return path;  // if the path is absolute, return it as is
     }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
