@@ -4,7 +4,6 @@ from django.conf.urls import url
 from django.http import HttpResponseRedirect
 import reader.views as reader_views
 from sefaria.settings import STATIC_URL
-from sites.sefaria.site_settings import SITE_SETTINGS
 
 
 static_pages = [
@@ -37,7 +36,6 @@ static_pages = [
     "torah-tab",
     "dicta-thanks",
     "daf-yomi",
-    "sheets",
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
