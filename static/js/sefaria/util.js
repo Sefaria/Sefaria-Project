@@ -308,7 +308,7 @@ class Util {
     static fullURL(relativePath, moduleTarget) {
       if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
         const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
-        return moduleURL.origin + this.modifyRelativePathbasedOnModule(relativePath);
+        return moduleURL.origin + relativePath;
       }
     }
     static isUrl(string) {
