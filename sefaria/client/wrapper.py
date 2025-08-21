@@ -44,6 +44,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["sourceHeRef"]       = linkRef.he_normal()
     com["anchorVerse"]       = anchorRef.sections[-1] if len(anchorRef.sections) else 0
     com["sourceHasEn"]       = "en" in linkLangs
+    com["relevance_score"]   = getattr(link, "relevance_score", 0)
+
     # com["anchorText"]        = getattr(link, "anchorText", "") # not currently used
     if getattr(link, "inline_reference", None):
         com["inline_reference"]  = getattr(link, "inline_reference", None)
@@ -169,7 +171,6 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     nRef = oref.normal()
     lenRef = len(nRef)
     reRef = oref.regex() if oref.is_range() else None
-
     # for storing all the section level texts that need to be looked up
     texts = {}
 
