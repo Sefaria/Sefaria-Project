@@ -6,41 +6,35 @@ from unittest.mock import Mock, patch
 from django.test.client import Client
 from django.contrib.auth.models import User
 from django.test import override_settings
-
-# Override cache settings to use Redis for the tests
-REDIS_TEST_CACHE_SETTINGS = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/0',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'TIMEOUT': 60 * 60 * 24 * 30,
-    },
-    'shared': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'SERIALIZER': 'sefaria.system.serializers.JSONSerializer',
-        },
-        'TIMEOUT': None,
-    }
-}
+from django.core.cache import cache
 
 pytestmark = pytest.mark.django_db
+
+
+def pytest_configure(config):
+    validate_redis_cache_backend()
+
+def validate_redis_cache_backend():
+    # Validate that the Django cache backend is using Redis
+    # Fail all tests if Redis backend is not configured
+    from django.core.cache import caches
+    
+    default_cache = caches['default']
+    cache_backend = default_cache.__class__.__module__ + '.' + default_cache.__class__.__name__
+    
+    if cache_backend != 'django_redis.cache.RedisCache':
+        error_message = f"""
+STRAPI CACHE TESTS REQUIRE REDIS BACKEND
+
+Current cache backend: {cache_backend}
+        """.strip()
+        
+        pytest.fail(error_message)
 
 
 @pytest.fixture
 def client():
     return Client()
-
-@pytest.fixture(autouse=True)
-def setup_redis_cache():
-    # Setup Redis cache for all tests in the module
-    with override_settings(CACHES=REDIS_TEST_CACHE_SETTINGS):
-        yield
-
 
 @pytest.fixture(autouse=True)
 def clear_cache(cache):
