@@ -34,22 +34,9 @@ MANAGERS = ADMINS
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
 CACHES = {
-    "shared": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "TIMEOUT": None,
-    },
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}/0",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "TIMEOUT": None,
-    },
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
 }
 
 SITE_PACKAGE = "sites.sefaria"
@@ -133,8 +120,8 @@ CLOUDFLARE_TOKEN = ""
 
 # Multiserver
 MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = os.getenv("REDIS_HOST", "127.0.0.1")
-MULTISERVER_REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+MULTISERVER_REDIS_SERVER = "127.0.0.1"
+MULTISERVER_REDIS_PORT = 6379
 MULTISERVER_REDIS_DB = 0
 MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
 MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
@@ -161,7 +148,7 @@ SIMPLE_JWT = {
 }
 
 # Celery
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_PORT = 26379
 REDIS_PASSWORD = None
 CELERY_REDIS_BROKER_DB_NUM = 0
 CELERY_REDIS_RESULT_BACKEND_DB_NUM = 1
@@ -170,7 +157,7 @@ CELERY_QUEUES = {}
 SENTINEL_HEADLESS_URL = None
 SENTINEL_TRANSPORT_OPTS = {}
 SENTINEL_PASSWORD = None
-REDIS_URL = f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}"
+REDIS_URL = "redis://127.0.0.1"
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
