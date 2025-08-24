@@ -1608,15 +1608,14 @@ FollowButton.propTypes = {
 
 const SmallBlueButton = ({onClick, tabIndex, text}) => {
   return (
-    <Button 
+    <div 
       onClick={onClick} 
-      size="extraSmall" 
-      variant="legacy" 
-      className="control-elem" 
+      className="button extraSmall control-elem" 
       tabIndex={tabIndex}
+      role="button"
     >
       <InterfaceText>{text}</InterfaceText>
-    </Button>
+    </div>
   );
 };
 
@@ -2789,14 +2788,16 @@ class FeedbackBox extends Component {
                 <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
                 : null }
 
-            <Button
-              variant="legacy"
-              ariaLabel={Sefaria._("Send Feedback")}
+            <div
+              className="button"
+              aria-label={Sefaria._("Send Feedback")}
               onClick={() => this.sendFeedback()}
+              role="button"
+              tabIndex="0"
             >
                  <span className="int-en">Submit</span>
                  <span className="int-he">שליחה</span>
-            </Button>
+            </div>
         </div>
     );
   }
@@ -2821,16 +2822,18 @@ class ReaderMessage extends Component {
       <div className="readerMessageBox">
         <div className="readerMessage">
           <div className="int-en">{this.props.message}</div>
-          <Button 
-            size="small" 
-            variant="legacy"
+          <div 
+            className="button small"
             onClick={() => this.setFeedback('Like')}
-          >{this.props.buttonLikeText}</Button>
-          <Button 
-            size="small" 
-            variant="legacy"
+            role="button"
+            tabIndex="0"
+          >{this.props.buttonLikeText}</div>
+          <div 
+            className="button small"
             onClick={() => this.setFeedback('Dislike')}
-          >{this.props.buttonDislikeText}</Button>
+            role="button"
+            tabIndex="0"
+          >{this.props.buttonDislikeText}</div>
         </div>
       </div>);
   }
@@ -2861,13 +2864,13 @@ class CookiesNotification extends Component {
 
           <span className="int-en">
             <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <Button size="small" variant="legacy white" className="int-en" onClick={this.setCookie}>OK</Button>
+            <div className="button small white int-en" onClick={this.setCookie} role="button" tabIndex="0">OK</div>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
               <a href="/privacy-policy">קראו עוד בנושא</a>
             </span>
-            <Button size="small" variant="legacy white" className="int-he" onClick={this.setCookie}>לחצו כאן לאישור</Button>
+            <div className="button small white int-he" onClick={this.setCookie} role="button" tabIndex="0">לחצו כאן לאישור</div>
           </span>
 
        </div>
@@ -2991,12 +2994,12 @@ const AdminToolHeader = function({title, validate, close}) {
                 <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
-                <Button onClick={close} size="small" variant="legacy transparent" className="control-elem" id="cancel">
+                <div onClick={close} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
-                </Button>
-                <Button onClick={validate} size="small" variant="legacy blue" className="control-elem" id="saveAccountSettings" tabIndex="0">
+                </div>
+                <div onClick={validate} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
                   <InterfaceText>Save</InterfaceText>
-                </Button>
+                </div>
               </div>
             </div>
 }
