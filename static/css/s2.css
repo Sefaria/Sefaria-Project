@@ -79,6 +79,7 @@ a, a:hover {
   --darkest-grey: #333333;
   --dark-grey: #666666;
   --medium-grey: #6f6f6f;
+  --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
@@ -4729,7 +4730,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 14px;
 }
 .searchContent .sheetResult .date {
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4942,7 +4943,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
   margin-top: 6px;
   width: 20%;
   padding-inline-end: 10px;
@@ -7717,7 +7718,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
 }
 .manuscript {
   border-bottom: 1px solid #DDDDDD;
@@ -14052,7 +14053,7 @@ span.ref-link-color-3 {color: blue}
   height: 30px;
   border-radius: 6px;
   z-index: 1;
-  background-color: var(--medium-grey);
+  background-color: var(--medium-grey-legacy);
   opacity: 0.5;
   left: -8.5px;
   top: -3px;
@@ -14387,7 +14388,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .chatNameAndTime {
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
   font-size: 14px;
   font-weight: 500px;
 }

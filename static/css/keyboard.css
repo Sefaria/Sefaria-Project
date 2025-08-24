@@ -64,7 +64,7 @@
 
 #keyboardInputMaster thead tr th {
   padding:0.3em 0.3em 0.1em 0.3em;
-  background-color:var(--medium-grey);
+  background-color:var(--medium-grey-legacy);
   white-space:nowrap;
   text-align:right;
   -webkit-border-radius:0.6em 0.6em 0px 0px;
