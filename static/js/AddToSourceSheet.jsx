@@ -14,7 +14,7 @@ import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
 import * as sheetsUtils from './sefaria/sheetsUtils'
-import Button from './common/Button';
+
 
 
 
@@ -32,7 +32,10 @@ class AddToSourceSheetBox extends Component {
       sheetListOpen: false,
       showConfirm: false,
       showLogin: false,
+      focusedSheetIndex: 0,
     };
+    this.dropdownTriggerRef = null;
+    this.listboxRef = null;
   }
   componentDidMount() {
     this.loadSheets();
@@ -71,7 +74,15 @@ class AddToSourceSheetBox extends Component {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     } else {
-      this.setState({sheetListOpen: !this.state.sheetListOpen});
+      const opening = !this.state.sheetListOpen;
+      let focusedSheetIndex = this.state.focusedSheetIndex;
+      if (opening) {
+        const sheets = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : [];
+        const selectedId = this.state.selectedSheet && this.state.selectedSheet.id;
+        const idx = selectedId && sheets ? sheets.findIndex(s => s.id === selectedId) : 0;
+        focusedSheetIndex = idx >= 0 ? idx : 0;
+      }
+      this.setState({sheetListOpen: opening, focusedSheetIndex});
     }
   }
   selectSheet(sheet) {
@@ -289,11 +300,27 @@ class AddToSourceSheetBox extends Component {
     }
     const titleRef = this.makeTitleRef();
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
-    let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
+    let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet, i) => {
       let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
       let selectSheet = this.selectSheet.bind(this, sheet);
-      return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
+      const isSelected = !!(this.state.selectedSheet && this.state.selectedSheet.id == sheet.id);
+      const isFocused = i === this.state.focusedSheetIndex;
+      return (
+        <div
+          className={classes}
+          onClick={selectSheet}
+          key={sheet.id}
+          role="option"
+          aria-selected={isSelected}
+          id={`user-sheet-option-${i}`}
+          tabIndex={-1}
+          ref={el => { if (isFocused) { this.activeOptionRef = el; } }}
+          style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--select-blue')}`, outlineOffset: '2px'} : {}}
+        >
+          {title}
+        </div>
+      );
     }) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     // Uses
@@ -303,7 +330,7 @@ class AddToSourceSheetBox extends Component {
           <span className="int-en">Selected Citation</span>
           <span className="int-he">מקור להוספה</span>
         </div>
-        <div className="selectedRef">
+        <div className="selectedRef" role="status" aria-live="polite">
           <span className="en">{titleRef["en"]}</span>
           <span className="he">{titleRef["he"]}</span>
         </div>
@@ -312,25 +339,65 @@ class AddToSourceSheetBox extends Component {
           <span className="int-he">יעד להוספה</span>
         </div>
         <div className="dropdown">
-          <div className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`} onClick={this.toggleSheetList}>
+          <div
+            className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`}
+            onClick={this.toggleSheetList}
+            role="button"
+            tabIndex="0"
+            aria-haspopup="listbox"
+            aria-expanded={this.state.sheetListOpen}
+            aria-controls="user-sheets-listbox"
+            ref={(el) => { this.dropdownTriggerRef = el; }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggleSheetList(); }
+              if (e.key === 'ArrowDown') { e.preventDefault(); if (!this.state.sheetListOpen) { this.toggleSheetList(); } else if (this.listboxRef) { this.listboxRef.focus(); } }
+            }}
+          >
             {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}          </div>
           {this.state.sheetListOpen ?
           <div className="dropdownListBox noselect">
-            <div className="dropdownList noselect">
+            <div
+              className="dropdownList noselect"
+              tabIndex="0"
+              role="listbox"
+              aria-label="Your sheets list"
+              id="user-sheets-listbox"
+              ref={(el) => { this.listboxRef = el; }}
+              aria-activedescendant={`user-sheet-option-${Math.min(Math.max(this.state.focusedSheetIndex, 0), (sheets ? sheets.length - 1 : 0))}`}
+              onKeyDown={(e) => {
+                const total = sheets ? sheets.length : 0;
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setState({sheetListOpen: false}); if (this.dropdownTriggerRef) { this.dropdownTriggerRef.focus(); } }
+                if (e.key === 'ArrowDown') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.min(this.state.focusedSheetIndex + 1, total - 1) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
+                if (e.key === 'ArrowUp') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.max(this.state.focusedSheetIndex - 1, 0) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
+                if (e.key === 'PageDown') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.min(this.state.focusedSheetIndex + 5, total - 1) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
+                if (e.key === 'PageUp') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.max(this.state.focusedSheetIndex - 5, 0) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
+                if (e.key === 'Home') { e.preventDefault(); this.setState({ focusedSheetIndex: 0 }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); }
+                if (e.key === 'End') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: total - 1 }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (sheets && sheets[this.state.focusedSheetIndex]) { this.selectSheet(sheets[this.state.focusedSheetIndex]); } }
+              }}
+            >
               {sheetsList}
             </div>
             <div className="newSheet noselect">
-              <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
-              <Button size="fillwidth" className="small noselect" onClick={this.createSheet} activeModule={Sefaria.SHEETS_MODULE}>
+              <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")} aria-label={Sefaria._("Name New Sheet")} type="text"/>
+              <div 
+                className="button fillWidth small noselect" 
+                onClick={this.createSheet} 
+                data-active-module={Sefaria.SHEETS_MODULE}
+                aria-label={Sefaria._("Create Sheet")}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.createSheet(); } }}
+                role="button"
+                tabIndex="0"
+              >
                 <InterfaceText text={{en: "Create", he: "יצירה"}} />
-              </Button>
+              </div>
              </div>
           </div>
           : null}
         </div>
-        <Button size="fillwidth" className="noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} activeModule={Sefaria.SHEETS_MODULE}>
+        <div className="button fillWidth noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} data-active-module={Sefaria.SHEETS_MODULE} role="button" tabIndex="0">
           <InterfaceText text={{en: "Add to Sheet", he: "הוספה לדף המקורות"}} />
-        </Button>
+        </div>
         {!this.props.hideGDocAdvert && <GDocAdvertBox/>}
       </div>);
   }

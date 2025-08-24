@@ -8,8 +8,9 @@ import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
+
 const NavSidebar = ({sidebarModules}) => {
-  return <div className="navSidebar sans-serif">
+  return <aside className="navSidebar sans-serif" role="complementary" aria-label="Sidebar navigation">
     {sidebarModules.map((m, i) =>
       <SidebarModules
         type={m.type}
@@ -17,7 +18,7 @@ const NavSidebar = ({sidebarModules}) => {
         key={i} />
     )}
     <SidebarFooter />
-  </div>
+  </aside>
 };
 
 
@@ -199,7 +200,7 @@ const AboutSefaria = ({hideTitle}) => (
       {!hideTitle && <InterfaceText>
           <EnglishText>
             <a className="button get-start" href="/sheets/210670" data-target-module={Sefaria.SHEETS_MODULE}>
-                <img src="/static/icons/vector.svg"/>
+                <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   Getting Started (2 min)
                 </div>
@@ -207,7 +208,7 @@ const AboutSefaria = ({hideTitle}) => (
           </EnglishText>
           <HebrewText>
             <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
-                <img src="/static/icons/vector.svg"/>
+                <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   הכירו את ספריא (2 דק')
                 </div>
@@ -295,7 +296,8 @@ const SidebarFooter = () => {
         <h3/>
         <div className="footerContainer">
           {data.map(footerLink =>
-            <a href={footerLink.url}>
+            <a href={footerLink.url} 
+               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}>
               <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
             </a>
           )}
@@ -888,7 +890,7 @@ const WhoToFollow = ({toggleSignUpModal}) => (
 
 const Image = ({url}) => (
   <SidebarModule>
-    <img className="imageModuleImage" src={url} />
+    <img className="imageModuleImage" src={url} alt="Module image" />
   </SidebarModule>
 );
 
@@ -901,10 +903,10 @@ const Wrapper = ({title, content}) => (
 );
 
 
-const IconLink = ({text, url, icon}) => (
+const IconLink = ({text, url, icon, openInNewTab}) => (
   <div className="navSidebarLink gray">
     <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("icon")}`} />
-    <a href={url}><InterfaceText>{text}</InterfaceText></a>
+    <a href={url} target={openInNewTab ? "_blank" : "_self"}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
 

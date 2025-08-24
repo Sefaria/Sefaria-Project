@@ -4,6 +4,7 @@ import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
 import { InterfaceText, DonateLink } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
+
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (

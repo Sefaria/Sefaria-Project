@@ -24,6 +24,7 @@ const Strings = {
     "A": "א",
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
+    "Skip to main content": "דלגו לתוכן האתר",
 
     //HeaderAutocomplete
     "Books": "ספרים",
@@ -69,6 +70,7 @@ const Strings = {
     "Hebrew Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים עברית",
     "Choose a Category": "בחר קטגוריה",
     "Main Menu": "תפריט ראשי",
+    "Menu": "תפריט",
     "Saving topic information.": "מעדכן נתוני נושא",
     "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
     "Add a short description.": "הוסף תיאור קצר",
@@ -151,6 +153,8 @@ const Strings = {
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
+    "Search Topics": "חיפוש נושאים",
+    "Search Collections": "חיפוש באסופות",
 
     "Close menu": "סגירת תפריט",
     "Add a source, image, or other media": "הוספת מקור, תמונה או מדיה אחרת",
@@ -609,6 +613,14 @@ const Strings = {
     'Notifications': 'עדכונים',
     'Bookmarks': 'שמורים',
     'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
+    'book icon': 'סמל ספר',
+    'visualization icon': 'סמל תרשים גרפי',
+    'icon': 'סמל',
+    'Sefaria app on IOS': 'אפליקציית ספריא לאייפון',
+    'Sefaria app on Android': 'אפליקציית ספריא לאנדרואיד',
+    'Sefaria on Facebook': 'ספריא בפייסבוק',
+    'Sefaria on Instagram': 'ספריא באינסטגרם',
+    'Sefaria on YouTube': 'ספריא ביוטיוב',
   },
 
   _i18nInterfaceStringsWithContext: {

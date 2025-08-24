@@ -15,6 +15,43 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+
+/* Skip Link for Accessibility */
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 10px;
+  z-index: 9999;
+  padding: 10px 20px;
+  background-color: var(--sefaria-blue);
+  color: white !important;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 16px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: top 0.3s ease;
+  line-height: 19px;
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  font-family: var(--hebrew-font-conditional, var(--english-font));
+}
+
+.skip-link:focus {
+  top: 10px;
+  background-color: var(--sefaria-blue);
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.skip-link:hover {
+  text-decoration: none;
+}
+
 a, a:hover {
   color: inherit;
 }
@@ -41,7 +78,8 @@ a, a:hover {
   --beit-midrash-grey: #333333;
   --darkest-grey: #333333;
   --dark-grey: #666666;
-  --medium-grey: #999999;
+  --medium-grey: #6f6f6f;
+  --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
@@ -65,7 +103,7 @@ a, a:hover {
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
-  --select-blue: #0B71E7;
+  --select-blue: #0056b3;
 }
 /* Font Family */
 body, .sans-serif {
@@ -181,7 +219,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: #666;
+  color: var(--medium-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -190,7 +228,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .systemText .int-en,
 .systemText .int-he.enInHe {
@@ -234,7 +272,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: #666;
+  color: var(--medium-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -243,7 +281,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .systemText .int-he,
 .systemText .int-en.heInEn {
@@ -436,7 +474,7 @@ input.noselect {
 }
 .headerInner .headerNavSection a, .header img.home {
   font-size: 16px;
-  color: #666;
+  color: var(--medium-grey);
   margin-inline-end: 30px;
   font-weight: 500;
   line-height: 26px;
@@ -470,7 +508,7 @@ input.noselect {
 .header .my-profile,
 .header .readerNavMenuSearchButton {
   display: inline-block;
-  color: #999;
+  color: var(--medium-grey);
   border: none;
   background: transparent;
   padding: 0;
@@ -569,7 +607,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
   display: block;
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
   padding: 15px;
 }
@@ -647,10 +685,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-size: 13px;
 }
 .mobileInterfaceLanguageToggle .inactive {
-  color: #999;
+  color: var(--medium-grey);
 }
 .mobileNavMenu .logout {
-  color: #999;
+  color: var(--medium-grey);
 }
 .ui-autocomplete .ui-menu-item.search-override {
   border-bottom: solid 1px #ccc;
@@ -670,7 +708,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   align-items: center;
   font-size: 16px;
   margin-top: 2px;
-  color: #666;
+  color: var(--medium-grey);
 }
 .header .accountLinks > * {
   margin-inline-start: 17px;
@@ -720,7 +758,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #666;
+  color: var(--medium-grey);
   cursor: pointer;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
@@ -786,7 +824,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey);
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
@@ -813,7 +851,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: #666666;
+  color: var(--medium-grey);
   padding: 5px;
   direction: ltr;
 }
@@ -845,7 +883,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px 17px 5px 17px;
   font-size: 14px;
-  text-decoration-color: #666666;
+  text-decoration-color: var(--dark-grey);
   height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-row:hover {
@@ -867,7 +905,7 @@ div.interfaceLinks-row a.active::after {
   padding: 0 4px;
 }
 div.interfaceLinks-row a {
-  color: #666666;
+  color: var(--medium-grey);
   display: flex;
 }
 .header .interfaceLinks .interfaceLinks-row.bottom {
@@ -881,18 +919,18 @@ div.interfaceLinks-row a {
 }
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
-  color: #666666;
+  color: var(--medium-grey);
   padding-top: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
 .header .profile-menu-he {
-  color: #666666;
+  color: var(--medium-grey);
 }
 .header .interfaceLinks-option::before {
   content: "";
   font-family: FontAwesome;
-  color: #999;
+  color: var(--medium-grey);
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
@@ -955,7 +993,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   position: absolute;
 }
 .header .login {
-  color: #666;
+  color: var(--medium-grey);
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
@@ -1040,7 +1078,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border: 1px solid #E6E6E6;
   background-color: #FBFBFA;
   text-align: center;
-  color: #666;
+  color: var(--medium-grey);
 }
 #interruptingMessage.sefariaModalContentBox {
   background-color: var(--sefaria-blue);
@@ -1102,7 +1140,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 #interruptingMessage.beitMidrashModalContentBox button.light-grey {
   background-color: var(--lighter-grey);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 #interruptingMessage.beitMidrashModalContentBox button.dark-grey {
@@ -1159,7 +1197,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .sefariaModalBottomContent {
   font-size: 16px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .sefariaModalContent .button {
   width: 100%;
@@ -1445,7 +1483,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .textColumn .loadingMessage.base,
 .sheetsInPanel .loadingMessage {
   margin: 30px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
   font-style: normal;
   text-align: center;
@@ -1655,7 +1693,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .navTitleTab {
   margin-inline-end: 26px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .navTitleTab:hover {
   color: inherit;
@@ -1721,7 +1759,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 .navSidebarModule {
   font-size: 16px;
-  color: #666;
+  color: var(--medium-grey);
   margin-bottom: 34px;
   padding: 0 44px;
 }
@@ -1784,7 +1822,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   font-weight: 400;
   line-height: 19px;
   letter-spacing: 0em;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .gDocAdvertBox span #newExtension {
   font-weight: 600;
@@ -1802,7 +1840,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border-radius: 6px;
   text-align: center;
   background: #FFFFFF;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   text-decoration: none;
   padding: 4px 9px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1856,7 +1894,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   color: black;
 }
 .navSidebarLink.gray a {
-  color: #666;
+  color: var(--medium-grey);
 }
 
 .navSidebarLink > ul, .sheetTopicsList > ul {
@@ -1958,7 +1996,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   display: block;
 }
 .navSidebar a.allLink {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
 }
 .navSidebar a.moreLink:hover {
@@ -2065,7 +2103,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavTop .readerOptions {
   text-align: left;
   box-sizing: border-box;
-  color: #999;
+  color: var(--medium-grey);
   float: left;
   font-size: 20px;
   cursor: pointer;
@@ -2152,7 +2190,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border-bottom-color: rgb(204, 204, 204);
   border-bottom-style: solid;
   border-bottom-width: 0.833333px;
-  color: #666666;
+  color: var(--medium-grey);
   cursor: default;
   font-size: 14px;
   font-style: normal;
@@ -2191,7 +2229,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   align-items: center;
   display: flex;
   line-height: 18px;
-  color: #666666;
+  color: var(--medium-grey);
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 2px 12px 2px 12px;
   font-size: 14px;
@@ -2229,7 +2267,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   font-size: var(--serif-body-font-size);
   border-top: 1px solid var(--lighter-grey);
   margin-top: 14px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .sidebarSearch .similar-results {
@@ -2259,7 +2297,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenu h1,
 .readerNavMenu h2.styledH1 {
   text-align: start;
-  color: #666;
+  color: var(--medium-grey);
   position: relative;
   font-size: 22px;
   font-weight: 500;
@@ -2296,7 +2334,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .readings .parasha-date > span:first-child::after {
   content: '•';
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   margin: 0 5px;
 }
@@ -2363,7 +2401,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .topicPanel h2 span {
   font-size: 22px;
   font-weight: normal;
-  color: #666;
+  color: var(--medium-grey);
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
@@ -2391,7 +2429,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .sideColumn .sideList .topicMetaData .int-en,
 .topicPanel .sideColumn .sideList .topicMetaData .int-he {
-  color: #666;
+  color: var(--medium-grey);
 }
 .topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -2404,7 +2442,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
-  color: #666;
+  color: var(--medium-grey);
 }
 .story .storyTitle {
   --english-font: var(--english-serif-font-family);
@@ -2452,7 +2490,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
-  color: #666;
+  color: var(--medium-grey);
 }
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
@@ -2506,7 +2544,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   font-weight: 400;
   line-height: 15px;
   letter-spacing: 0em;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   width: 100%;
 }
 .topicImage{
@@ -2546,7 +2584,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     font-weight: 400;
     line-height: 15px;
     letter-spacing: 0em;
-    color: var(--dark-grey);
+    color: var(--medium-grey);
     width: 80vw;
     margin-bottom: 30px;
     text-align: center;
@@ -2668,7 +2706,7 @@ h1 .languageToggle .he {
   margin-inline-end: 12px;
   display: inline-block;
   text-transform: uppercase;
-  color: #666;
+  color: var(--medium-grey);
   font-size: 13px;
   font-weight: lighter;
   cursor: pointer;
@@ -2683,7 +2721,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
-  color: #666;
+  color: var(--medium-grey);
   margin: 30px 0 0 0;
   font-weight: normal;
 }
@@ -2712,7 +2750,7 @@ input.resourcesLink {
   font-size:  18px;
 }
 .savedHistoryList .story .storyBody {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .savedHistoryList .saveButton {
   visibility: hidden;
@@ -2726,7 +2764,7 @@ input.resourcesLink {
   margin-inline-start: 10px;
 }
 .savedHistoryMessage {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .readerNavCategories {
   width: 100%;
@@ -2765,10 +2803,10 @@ a.navBlockTitle {
 }
 a.navBlockTitle:hover {
   text-decoration: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .navBlockTitle .subtitle {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 5px;
 }
 .interface-english .calendarListing .subtitle::before {
@@ -2780,7 +2818,7 @@ a.navBlockTitle:hover {
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--medium-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2792,7 +2830,7 @@ a.navBlockTitle:hover {
 display: none;
 }
 .sidebarDescription{
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-small-font-size);
@@ -2825,12 +2863,12 @@ div.TOCCardsWrapper :nth-child(1 of .card) {
 }
 a.cardTitle:hover {
   text-decoration: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .cardDescription {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--medium-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2868,7 +2906,7 @@ a.cardTitle:hover {
   margin-bottom: 0px;
 }
 .sidebarPromo {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   padding-right: 44px;
   padding-left: 44px;
 }
@@ -2935,7 +2973,7 @@ a.cardTitle:hover {
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;
-  color: #666;
+  color: var(--medium-grey);
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -2965,7 +3003,7 @@ a.cardTitle:hover {
   margin-top: 20px;
 }
 .communityPage .readingLinksHeader {
-  color: #666;
+  color: var(--medium-grey);
   font-size: 14px;
   margin-bottom: 4px;
 }
@@ -2974,11 +3012,11 @@ a.cardTitle:hover {
 }
 .communityPage .calendarDate {
   font-size: 14px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 15px;
 }
 .featuredSheetHeading {
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
   margin-bottom: 10px;
 }
@@ -3050,12 +3088,12 @@ a.cardTitle:hover {
   border-radius: 7px;
 }
 .resourcesLink.faded {
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3068,7 +3106,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .resourcesLink .fa {
   margin: 0 6px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerNavMenu .resourcesLink img {
   width: 16px;
@@ -3098,7 +3136,7 @@ a.cardTitle:hover {
 }
 .readerNavCategoryMenu h2 {
   font-size: 18px;
-  color: #666;
+  color: var(--medium-grey);
   margin: 0 0 20px;
 }
 .readerNavCategoryMenu .categoryDescription.top {
@@ -3113,7 +3151,7 @@ a.cardTitle:hover {
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;
   font-size: 14px;
-  color: #666;
+  color: var(--medium-grey);
 }
 .readerNavCategoryMenu .categoryDescription.long {
   margin: -8px 0 20px 0;
@@ -3123,7 +3161,7 @@ a.cardTitle:hover {
   margin-bottom: 40px;
 }
 .readerNavCategoryMenu .categoryAttribution {
-  color: #666;
+  color: var(--medium-grey);
   text-align: start;
   font-size: 24px;
   font-style: italic;
@@ -3220,7 +3258,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .dedication {
   text-align: start;
-  color: #666;
+  color: var(--medium-grey);
   background-color: #FBFBFA;
   padding: 26px 19px;
   font-size: 18px;
@@ -3260,7 +3298,7 @@ a.cardTitle:hover {
   padding-bottom: 15px;
 }
 .bookPage .tocCategory{
-  color:#999;
+  color: var(--medium-grey);
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -3300,7 +3338,7 @@ a.cardTitle:hover {
   font-weight: 400;
   line-height: 18.75px;
   margin-block-end: 20px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .sheetViewer {
   display: flex;
@@ -3312,7 +3350,7 @@ a.cardTitle:hover {
 .bookPage .currentSection,
 .bookPage .authorStatement {
   font-size: 17px;
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -3346,12 +3384,12 @@ a.cardTitle:hover {
   margin-top: 10px;
 }
 .fullBookPage .categoryAttribution {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 24px;
 }
 .bookPage .sheetMeta {
   font-size: 14px;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3377,7 +3415,7 @@ a.cardTitle:hover {
   margin-top:40px;
   font-size: 16px;
   line-height: 19px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   text-align: start;
 }
 .bookPage .tocDetails h3{
@@ -3396,7 +3434,7 @@ a.cardTitle:hover {
 }
 .bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
-  color: #666;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 .bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
@@ -3423,7 +3461,7 @@ a.cardTitle:hover {
   font-size: 18px;
 }
 .bookPage .moderatorSection .button .fa {
-  color: #999;
+  color: var(--medium-grey);
   margin-right: 4px;
 }
 .bookPage .versionEditForm {
@@ -3470,7 +3508,7 @@ a.cardTitle:hover {
 .bookPage .versionEditForm #delete_button {
   float: right;
   background: white;
-  color: #999;
+  color: var(--medium-grey);
   border: 1px solid #999;
   width: 100px;
   margin: 0;
@@ -3478,7 +3516,7 @@ a.cardTitle:hover {
 .bookPage .versionTitle .fa,
 .bookPage .versionEditForm .fa {
   font-size: 10px;
-  color: #666;
+  color: var(--medium-grey);
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
@@ -3526,7 +3564,7 @@ a.cardTitle:hover {
   text-decoration: none;
 }
 .textTableOfContents .structToggles .altStructToggle {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   cursor: pointer;
   text-align: start;
   font-style: normal;
@@ -3537,7 +3575,7 @@ a.cardTitle:hover {
 }
 .textTableOfContents .structToggles .altStructToggleBox:not(:last-child):after{
   content: "•";
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 5px;
   margin-inline-end: 5px;
 }
@@ -3562,7 +3600,7 @@ a.cardTitle:hover {
   margin: 3px;
   text-align: center;
   background-color: #FBFBFA;
-  color: #666;
+  color: var(--medium-grey);
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
@@ -3598,7 +3636,7 @@ a.cardTitle:hover {
 .textTableOfContents .tocSection > .sectionName {
   font-size: 24px;
   margin: 0 3px 4px;
-  color: #666;
+  color: var(--medium-grey);
   display: block;
 }
 .bookPage .content .tab-view.largeTabs {
@@ -3716,7 +3754,7 @@ a.cardTitle:hover {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   margin-bottom: 10px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .textTableOfContents .torahNavParshiot{
   margin-top: 30px;
@@ -3743,7 +3781,7 @@ a.cardTitle:hover {
   direction: rtl;
 }
 .bookPage .button.allVersionsButton {
-  color: #999;
+  color: var(--medium-grey);
   text-transform: uppercase;
   font-size: 15px;
   padding: 12px 50px;
@@ -3831,6 +3869,7 @@ a.cardTitle:hover {
   /*hide marker for chrome*/
   list-style: none;
   cursor: pointer;
+  display: inline; /* allow adjacent button to sit inline */
 }
 details .open-details::before {
   margin-inline-end: 5px;
@@ -3849,6 +3888,9 @@ details .open-details::before {
   margin-inline-end: 5px;
   color: var(--medium-grey);
 }
+/* Ensure button placed outside summary keeps same inline positioning */
+.version-with-preview-header-row { display: block; }
+.version-with-preview-select-btn-container { display: inline; }
 .version-block-with-preview-details {
   background-color: var(--lighter-grey);
   border-radius: 6px;
@@ -3898,7 +3940,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
+  color: var(--medium-grey);
   background: #EDEDEC;
   border-radius: 25px;
   padding: 5px 10px;
@@ -3918,7 +3960,7 @@ details .open-details::before {
   padding: 5px;
 }
 .versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
-  color: #666666;
+  color: var(--medium-grey);
   cursor: pointer;
 }
 .versionBlock .versionSelect{
@@ -3930,7 +3972,7 @@ details .open-details::before {
 .versionBlock .versionNotes a {
   font-style: normal;
   font-weight: normal;
-  color: #666666;
+  color: var(--medium-grey);
   text-decoration: underline;
 }
 .versionBlock .versionDetails {
@@ -3941,7 +3983,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 20px;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .bookPage .versionBlock .versionDetails{
   line-height: 20px;
@@ -3974,7 +4016,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: #666666;
+  color: var(--medium-grey);
   margin: 10px 0;
   text-align: start;
 }
@@ -4016,7 +4058,7 @@ details .open-details::before {
 .modTools .dlSectionTitle,
 .bookPage .content h2 {
     text-transform: uppercase;
-    color: #999;
+    color: var(--medium-grey);
     padding: 10px 0;
     margin-bottom: 14px;
 }
@@ -4100,7 +4142,7 @@ select {
   color: black;
 }
 .modTools .workflowy-tool .modtoolsButton:hover{
-  background-color: #999;
+  background-color: var(--medium-grey);
 }
 .modTools .workflowy-tool textarea {
   width: 100%;
@@ -4153,7 +4195,7 @@ select {
 .dictionarySearchBox input::placeholder{
   font-size: 16px;
   line-height: 19px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 body .ui-autocomplete.dictionary-toc-autocomplete {
   margin-top: 40px;
@@ -4201,7 +4243,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 40px;
 }
 .searchContent .searchResultCount {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .searchContent .searchTopMatter {
   position: relative;
@@ -4218,7 +4260,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchTopMatter .search-dropdown-button {
   font-size: 22px;
-  color: #999;
+  color: var(--medium-grey);
   cursor: pointer;
   padding: 10px 0;
   -webkit-touch-callout: none; /* iOS Safari */
@@ -4275,7 +4317,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
-  color: #666666;
+  color: var(--medium-grey);
 }
 
 @media (min-width: 701px) {
@@ -4290,7 +4332,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 22px;
   text-transform: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   border-bottom: 1px solid var(--light-grey);
   padding-bottom: 10px;
   margin: 0 0 10px 0;
@@ -4306,7 +4348,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 12px;
   border: 1px solid #DADADA;
   font-size: 13px;
-  color: #666;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -4325,7 +4367,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   padding-top: 5px;
@@ -4337,7 +4379,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: unset;
 }
 .dropdown-button {
-  color: #666;
+  color: var(--medium-grey);
   margin-left: 5px;
   margin-right: 5px;
   font-size: 18px;
@@ -4467,7 +4509,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 .searchContent .searchFilterBoxes li .filter-count {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .searchContent .searchFilterBoxes li .fa {
   color:  var(--medium-grey);
@@ -4611,7 +4653,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
   font-size: 45px;
-  color: var(--medium-grey);
+  color: #575757; /* Override with accessible color for 3:1 contrast */
   height: 20px;
   display: block;
   line-height: 20px;
@@ -4657,7 +4699,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000000;
 }
 .sheetResult .snippet.en {
-  color: #666666;
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4671,7 +4713,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content:flex-start;
   align-items: center;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   margin: 15px 0 5px;
 }
@@ -4682,13 +4724,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: var(--midrash-green);
+  color: var(--medium-grey);
   margin-inline-start: 10px;
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
 }
 .searchContent .sheetResult .date {
-  color: #999999;
+  color: var(--medium-grey-legacy);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4727,7 +4769,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .version,
 .sidebarSearch .result .version {
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   margin: 15px 0 5px;
@@ -4739,7 +4781,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .similar-trigger-box,
 .sidebarSearch .result .similar-trigger-box {
-  color: #999;
+  color: var(--medium-grey);
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -4865,7 +4907,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 3px;
 
   /* Dark Grey */
-  color: #666666;
+  color: var(--medium-grey);
 }
 .autocomplete-dropdown .type-icon{
   display: inline-block;
@@ -4905,7 +4947,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey-legacy);
   margin-top: 6px;
   width: 20%;
   padding-inline-end: 10px;
@@ -4940,7 +4982,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 h1.topic-landing-header {
   font-size: 32px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin: 0;
 }
 .singlePanel h1.topic-landing-header{
@@ -5125,7 +5167,7 @@ h1.topic-landing-header {
 .featuredTopicText .int-he {
   display: flex;
   flex-direction: column;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 30px;
 }
 .singlePanel .featuredTopicText .int-en,
@@ -5375,7 +5417,7 @@ h1.topic-landing-header {
 }
 
 .topic-landing-calendar .calendar-header{
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -5396,7 +5438,7 @@ h1.topic-landing-header {
 .topic-landing-temporal .learn-more-prompt{
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--medium-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5500,7 +5542,7 @@ h1.topic-landing-header {
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--medium-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5558,7 +5600,7 @@ h1.topic-landing-header {
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   margin-bottom: 6px;
   letter-spacing: 1px;
@@ -5569,7 +5611,7 @@ h1.topic-landing-header {
   unicode-bidi: plaintext;
 }
 .readerNavMenu .sheet .sheetViews {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -5618,6 +5660,14 @@ h1.topic-landing-header {
 }
 .readerNavMenuCloseButton {
   font-family: var(--english-serif-font-family);
+  color: #575757; /* Ensures 3:1 contrast ratio for accessibility */
+}
+
+/* Replacement for obsolete <big> tag - WCAG compliance */
+.big-text,
+big {
+  font-size: 1.2em;
+  line-height: 1.2;
 }
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
@@ -5645,7 +5695,7 @@ h1.topic-landing-header {
   margin-left: 10px;
 }
 .connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
-  color: #999;
+  color: var(--dark-grey);
 }
 .readerControls .readerControlsInner {
   position: relative;
@@ -5672,7 +5722,7 @@ h1.topic-landing-header {
   align-items: center;
   line-height: initial;
   height: 100%;
-  color: #666;
+  color: var(--medium-grey);
 }
 .readerControls.transLangPrefSuggBann .transLangPrefCentered {
   display: flex;
@@ -5757,7 +5807,7 @@ h1.topic-landing-header {
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--medium-grey);
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -5766,7 +5816,7 @@ h1.topic-landing-header {
 .readerControls .readerTextToc .categoryAttribution {
   font-style: italic;
   font-size: 15px;
-  color: #999;
+  color: var(--medium-grey);
   margin: 0 2px;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -5899,7 +5949,7 @@ h1.topic-landing-header {
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #666666;
+  color: var(--medium-grey);
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
@@ -5995,10 +6045,10 @@ h1.topic-landing-header {
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerControls .readerTextToc .fa {
-  color: #999;
+  color: var(--medium-grey);
   font-weight: bold;
   margin: 0 7px;
   vertical-align: 0;
@@ -6037,7 +6087,7 @@ h1.topic-landing-header {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  color: #999;
+  color: var(--medium-grey);
 }
 .toggleSet {
   display: inline-block;
@@ -6048,7 +6098,7 @@ h1.topic-landing-header {
   display: flex;
 }
 #accountSettingsPage .additional-info {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 /* #accountSettingsPage .saveCancel {
   display: flex;
@@ -6222,7 +6272,7 @@ h1.topic-landing-header {
   font-weight: 500;
   line-height: 25.78px;
   text-align: center;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   padding-block-end: 15px;
   border-bottom: 1px solid var(--lighter-grey);
 }
@@ -6273,7 +6323,7 @@ h1.topic-landing-header {
   padding: 0 6px 3px;
 }
 .dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
-  border-bottom: 4px solid #666;
+  border-bottom: 4px solid var(--dark-grey);
 }
 .bilingual .sheetContent .title .he {
   display: none;
@@ -6425,7 +6475,7 @@ h1.topic-landing-header {
 .stacked.bilingual .basetext .segment > .translation ,
 .stacked.bilingual .basetext .segment > p > .translation {
   margin: 10px 0 20px;
-  color: #666;
+  color: var(--medium-grey);
 }
 .stacked.bilingual .basetext .segment > p > .he.translation {
   color: black;
@@ -6557,7 +6607,7 @@ h1.topic-landing-header {
   position: relative;
 }
 .textRange.lowlight .text {
-  color: #999;
+  color: var(--medium-grey);
 }
 .segment {
 }
@@ -6740,10 +6790,10 @@ But not to use a display block directive that might break continuous mode for ot
 .segment.showNamedEntityLinks .namedEntityLink:hover {
   /* only show named entity underline when class showNamedEntityLinks exists */
   cursor: pointer;
-  border-bottom: 2px dotted #666;
+  border-bottom: 2px dotted var(--dark-grey);
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
-  border-bottom-color: #666;
+  border-bottom-color: var(--dark-grey);
 }
 .textRange .actionLinks {
   text-align: right;
@@ -6815,7 +6865,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #666;
+  color: var(--medium-grey);
   font-style: normal;
 }
 .segment img {
@@ -6903,7 +6953,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 30px;
   text-align: left;
 }
@@ -7029,7 +7079,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: #EDEDED;
 }
 .topFilters .textFilter {
-  color: #999;
+  color: var(--medium-grey);
   display: inline-block;
   padding: 16px 8px;
 }
@@ -7052,7 +7102,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   margin: 6px 14px;
   background-color: transparent;
-  color: #999999;
+  color: var(--medium-grey);
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
@@ -7088,7 +7138,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
   padding: 5px;
   margin-bottom: 5px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
@@ -7120,7 +7170,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: var(--category-color);
 }
 .connectionsPanel .toolsButton.more{
-  color: #666666;
+  color: var(--medium-grey);
 }
 .connectionsPanel .toolsButton.seeLess{
   margin-inline-start: 33px;
@@ -7128,7 +7178,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey);
   align-items: center;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
@@ -7157,7 +7207,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-inline-end: 34px;
 }
 .connectionsCount {
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -7168,7 +7218,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   align-self: flex-start;
-  color: #999;
+  color: var(--medium-grey);
   border: 1px solid #CCC;
   border-radius: 3px;
   font-size: 12px;
@@ -7239,10 +7289,10 @@ But not to use a display block directive that might break continuous mode for ot
   color: white;
 }
 .textFilter.lowlight {
-  color: #999;
+  color: var(--medium-grey);
 }
 .topFilters .textFilter.showMoreFilters {
-  color: #999;
+  color: var(--medium-grey);
 }
 .bilingual .textFilter .he,
 .bilingual .categoryFilter .he {
@@ -7251,7 +7301,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList .textListTop > .loadingMessage,
 .textList .texts .contentInner > .loadingMessage {
   padding: 22px 10px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   text-align: center;
 }
@@ -7283,7 +7333,7 @@ But not to use a display block directive that might break continuous mode for ot
   border-bottom: 1px solid #eee;
 }
 .textList .texts .textRange .title {
-  color: #999;
+  color: var(--medium-grey);
 }
 .textList .texts .segment .queryTextHighlight {
   padding: 0;
@@ -7334,12 +7384,12 @@ But not to use a display block directive that might break continuous mode for ot
   vertical-align: -8px;
 }
 .textList .sheet .sheetViews {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 12px;
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
   margin: auto 14px;
 }
@@ -7364,7 +7414,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: left;
 }
 .textList .sheet .sheetTag {
@@ -7414,7 +7464,7 @@ But not to use a display block directive that might break continuous mode for ot
 .sheetTag.button:active {
   background-color: #EDEDED;
   border-color: #ccc;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   margin: 4px;
 }
@@ -7454,7 +7504,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-  color: #666;
+  color: var(--medium-grey);
 	padding-bottom: 15px;
 }
 .mediaList .mediaTitle .he {
@@ -7465,7 +7515,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #000;
 }
 .mediaList .media a {
-	color: #999;
+	color: var(--medium-grey);
 }
 .mediaList .media .description {
 	margin: 10px 0;
@@ -7473,7 +7523,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   flex-flow: row;
   justify-content: space-between;
-  color: #666;
+  color: var(--medium-grey);
 }
 .mediaList .media .panel{
 	background: #e6e6e6;
@@ -7587,18 +7637,18 @@ But not to use a display block directive that might break continuous mode for ot
 .webpageList .webpage .domain {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
-  color: #666;
+  color: var(--medium-grey);
   margin-bottom: 10px;
 }
 .webpageList .webpage .description {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .webpageList .webpage .webpageMetadata,
 .mediaList .media .meta,
 .manuscript .meta {
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 5px;
 }
 .interface-hebrew .webpageList .webpage .webpageMetadata {
@@ -7627,7 +7677,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .webpageList .webpagesLinkerMessage {
   padding: 20px 0px;
-  color: #999;
+  color: var(--medium-grey);
   border-top: 1px solid #E5E5E5;
   font-size: 13px;
 }
@@ -7635,7 +7685,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 20px 34px;
 }
 .webpageList .webpagesLinkerMessage a {
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: underline;
 }
 
@@ -7672,7 +7722,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999
+  color: var(--medium-grey-legacy);
 }
 .manuscript {
   border-bottom: 1px solid #DDDDDD;
@@ -7721,14 +7771,14 @@ But not to use a display block directive that might break continuous mode for ot
   color: #4871bf;
 }
 .textRange.lowlight .numberLabel {
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerPanel.bilingual .connectionsPanel .he {
   display: none;
 }
 .connectionsSummaryLoading {
   padding: 20px 34px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .connectionsPanel .connectionPanelSectionHeader{
   margin-inline-start: 34px;
@@ -7745,7 +7795,7 @@ But not to use a display block directive that might break continuous mode for ot
   line-height: 18px;
   letter-spacing: 0em;
   text-align: justified;
-  color: #666666;
+  color: var(--medium-grey);
   text-transform: uppercase;
 
 }
@@ -7775,7 +7825,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--medium-grey);
   margin-inline-end: 15px;
   text-decoration: none;
   cursor: pointer;
@@ -7785,7 +7835,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .version-block-with-preview-details .connection-button {
   font-size: 14px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-top: 15px;
 }
 .version-block-with-preview-details img {
@@ -7880,7 +7930,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .toolsSecondaryButton {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   height: var(--sans-serif-small-font-size);
@@ -7890,7 +7940,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .toolsButtonContainer.highlighted .experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 11px;
   text-transform: uppercase;
   border: 1px solid var(--light-grey);
@@ -7907,7 +7957,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .toolsButton .toolsButtonText .connectionsCount::before{
   content: " ";
@@ -7980,13 +8030,13 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .topicButton .smallText .he {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .toolsButton:hover {
   text-decoration: none;
@@ -8013,7 +8063,7 @@ But not to use a display block directive that might break continuous mode for ot
   filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 20px;
   width: 20px;
   margin-top: -1px;
@@ -8074,7 +8124,7 @@ But not to use a display block directive that might break continuous mode for ot
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--medium-grey);
   padding: 20px 20px;
   margin: 19px 33px;
 }
@@ -8085,7 +8135,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--medium-grey);
   text-overflow: ellipsis;
 }
 
@@ -8108,7 +8158,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin: 20px 34px;
 }
 .addToSourceSheetBox {
@@ -8180,11 +8230,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 18px;
   line-height: 25px;
   text-decoration-line: none;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .confirmAddToSheet.addToSourceSheetBox .message span a{
   text-decoration: underline;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .confirmAddToSheet .button {
   width: 100%;
@@ -8241,7 +8291,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .notePrivateButton.active,
 .connectionsPanel .notePublicButton.active {
   background-color: white;
-  color: #666;
+  color: var(--medium-grey);
 }
 .connectionsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
@@ -8264,7 +8314,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   cursor: pointer;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8291,7 +8341,8 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .editNoteButton {
   visibility: hidden;
 }
-.connectionsPanel .note:hover .editNoteButton {
+.connectionsPanel .note:hover .editNoteButton,
+.connectionsPanel .editNoteButton:focus {
   visibility: visible;
 }
 .connectionsPanel .noteButtons .fa {
@@ -8311,8 +8362,21 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;
-  color: #666666;
+  color: var(--medium-grey);
 }
+
+.divineNameDepricationNotification {
+  padding-top: 10px;
+}
+
+.divineNameDepricationNotification p a {
+  color: var(--inline-link-blue);
+}
+
+.divineNameDepricationNotification p a:hover {
+  text-decoration: underline;
+}
+
 
 .addConnectionBox {
   font-size: 18px;
@@ -8501,7 +8565,7 @@ But not to use a display block directive that might break continuous mode for ot
 .notification .sheetSummary {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 18px;
   margin-top: 10px;
 }
@@ -8644,8 +8708,9 @@ But not to use a display block directive that might break continuous mode for ot
 .emptyDesktop {
   margin-top: 200px;
   text-align: center;
-  color: #999;
+  color: var(--medium-grey);
 }
+/* DEPRECATED: Use Button component from static/js/common/Button.jsx instead */
 .button {
   display: inline-block;
   color: white;
@@ -8687,16 +8752,25 @@ a.button:hover {
   color: white;
   text-decoration: none;
 }
+
+/* Legacy Button Focus Styling - DEPRECATED: Use Button component instead */
+body.user-is-tabbing .button:focus,
+body.user-is-tabbing a.button:focus,
+body.user-is-tabbing div.button:focus,
+body.user-is-tabbing label.button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
 .button.white {
   background-color: white;
   color: #333;
 }
 a.button.white {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .button.grey {
   background-color:  var(--lighter-grey);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   box-shadow: none;
   border: none;
 }
@@ -8711,7 +8785,7 @@ a.button.mini {
   float: left;
 }
 .button.transparent {
-  color: #666;
+  color: var(--medium-grey);
   background-color: transparent;
   border: 1px solid transparent;
 }
@@ -8759,7 +8833,7 @@ a .button:hover {
   margin-inline-end: 7px;
 }
 .button.extraSmall.reviewState.reviewed {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
 
 }
 .button.extraSmall.reviewState.notReviewed {
@@ -8794,7 +8868,7 @@ a .button:hover {
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
   border-radius: revert;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .headerWithAdminButtons {
   display: flex;
@@ -8875,7 +8949,7 @@ a .button:hover {
 }
 .named-entity-ambiguous .systemText .int-en,
 .named-entity-ambiguous .systemText .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 .named-entity-title-bar {
   display: flex;
@@ -8900,7 +8974,7 @@ a .button:hover {
 }
 .lexicon-results .named-entity-description .en,
 .lexicon-results .named-entity-description .he {
-  color: #666;
+  color: var(--medium-grey);
 }
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
@@ -8923,7 +8997,7 @@ a .button:hover {
 }
 .lexicon-results .entry .morphology {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
   display: inline;
   margin-right: 5px;
 }
@@ -8986,7 +9060,7 @@ a .button:hover {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  color: #666;
+  color: var(--medium-grey);
   font-weight: 300;
 }
 .splitHeader .en {
@@ -9057,7 +9131,7 @@ a .button:hover {
   display: none;
   float:right;
   cursor: pointer;
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: none;
 }
 .sheetButton:hover {
@@ -9071,11 +9145,11 @@ a .button:hover {
 }
 .tagString a {
   text-decoration: none;
-  color: #999;
+  color: var(--medium-grey);
 }
 .tagString a:after {
   content: ", ";
-  color: #999;
+  color: var(--medium-grey);
 }
 .tagString a:last-child:after {
   content: "";
@@ -9184,7 +9258,7 @@ a.sheetAuthorName:hover {
   font-size: 16px;
   font-weight: 500;
   line-height: 18.75px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-block-end: 25px;
   text-align: initial;
 }
@@ -9201,14 +9275,14 @@ a.sheetAuthorName:hover {
 
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
-  color: #999;
+  color: var(--medium-grey);
   position: relative;
   pointer-events: none;
   width: auto;
 }
 .sheetMetaDataBox .summary:empty:before {
   content: "Add a description...";
-  color: #999;
+  color: var(--medium-grey);
   position: relative;
   pointer-events: none;
   width: auto;
@@ -9225,7 +9299,7 @@ a.sheetAuthorName:hover {
   padding: 10px 20px;
   max-width: 540px;
   font-size: 16px;
-  color: #666;
+  color: var(--medium-grey);
   height: 520px;
 }
 .publishBox .publishLabel {
@@ -9236,7 +9310,7 @@ a.sheetAuthorName:hover {
   line-height: 18px;
   text-underline-position: from-font;
   text-decoration-skip-ink: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-bottom: 10px;
 }
 
@@ -9248,7 +9322,7 @@ div.transparentBackground.publishBox {
 }
 
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
-  color: #666;
+  color: var(--medium-grey);
 }
 .publishBox p.error {
   color: red;
@@ -9299,7 +9373,7 @@ div.transparentBackground.publishBox {
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
-  color: #666;
+  color: var(--medium-grey);
   margin-top: 12px;
   margin-bottom: 14px;
   text-transform: none;
@@ -9313,7 +9387,7 @@ div.transparentBackground.publishBox {
   margin-top: 20px;
 }
 .publishBox .smallText {
-  color: #666666
+  color: var(--dark-grey)
 }
 .publishBox .react-tags {
   position: relative;
@@ -9324,7 +9398,7 @@ div.transparentBackground.publishBox {
   /* shared font styles */
   font-size: 16px;
   line-height: 1.2;
-  color: #666;
+  color: var(--medium-grey);
   /* clicking anywhere will focus the input */
   cursor: text;
 }
@@ -9394,7 +9468,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
 .publishBox .publishButton .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
-  color: #666666
+  color: var(--dark-grey)
 }
 
 .publishBox .publishButton .button {
@@ -9418,7 +9492,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .publishSettingsEditMode .publishButton .publishedText .publishedTextBold {
@@ -9429,7 +9503,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
 .publishSettingsEditMode .button.published {
   background-color: #FFFFFF;
   border: 1px solid #CCCCCC;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   height: fit-content;
   align-self: center;
   border-radius: 6px;
@@ -9604,7 +9678,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .collectionLabel {
   text-transform: uppercase;
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
   letter-spacing: 2px;
   display: block;
@@ -9622,7 +9696,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  color: #666;
+  color: var(--medium-grey);
   line-height: 1.3;
 }
 .collectionPage .collectionDescription .dedication {
@@ -9656,7 +9730,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-bottom:  30px;
 }
 .collectionPage .collectionContentsSectionLabel {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   size: 16px;
   margin: 30px 0 12px 0;
 }
@@ -9671,7 +9745,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .searchInCollectionLink {
   font-size:  16px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-top: 20px;
   display: block;
 }
@@ -9727,7 +9801,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   padding-bottom: 24px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
-  color: #666;
+  color: var(--medium-grey);
   display: flex;
   flex-direction: row;
   justify-content: start;
@@ -9747,7 +9821,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   color: black;
 }
 .collectionMemberListingRole {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -9762,7 +9836,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionMemberListingActions .collectionMemberListingActionsButton {
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 8px;
 }
 .collectionMemberListingActionsMenu {
@@ -9773,7 +9847,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   z-index: 1;
 }
@@ -9797,7 +9871,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-right: 4px;
 }
 .collectionMemberListingActionsMenu .role.current {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .collectionInvitationListing {
   display: inline-block;
@@ -9843,7 +9917,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   vertical-align: -2px;
 }
 .alphabeticalTopicsNav {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-bottom: 5px;
 }
 .alphabeticalTopicsNav a {
@@ -9869,7 +9943,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   font-size: 16px;
   line-height: 26px;
-  color: #666;
+  color: var(--medium-grey);
 }
 .topicPanel .sideColumnMore:hover {
   cursor: pointer;
@@ -9930,7 +10004,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .sheetContentSidebar h3 {
   text-transform: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: var(--sans-serif-h3-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -9948,7 +10022,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .translationsHeader h3 {
   text-transform: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: var(--sans-serif-h3-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -9958,7 +10032,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .translationsHeader .translationsDesc {
   font-size: var(--sans-serif-body-font-size);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .aboutSheetPanel hr {
@@ -10012,7 +10086,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 }
 .noteListing .textRange .title {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 10px;
 }
 .noteListing .textRange .title:hover {
@@ -10021,7 +10095,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing .textRange .text {
   font-size: 18px;
   font-style: italic;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 18px;
 }
 .noteListing .textRange .text .he {
@@ -10150,7 +10224,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .calendarRef {
   font-size: 18px;
-  color: #666;
+  color: var(--medium-grey);
   display: flex;
   margin: 2px 0;
 }
@@ -10191,7 +10265,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .field > label {
   display: block;
   margin-bottom: 15px;
-  color: #666;
+  color: var(--medium-grey);
 }
 #editCollectionPage input,
 #editCollectionPage textarea {
@@ -10224,7 +10298,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
 }
 #editCollectionPage .helperText {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   width: 500px;
 }
@@ -10240,7 +10314,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .deleteCollection {
   cursor: pointer;
   margin: 30px 10px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: right;
 }
 #editCollectionPage .deleteCollection:hover {
@@ -10258,7 +10332,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
   line-height: 19px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   display: flex;
   justify-content: space-between;
   flex-direction: row;
@@ -10272,16 +10346,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 0 22px;
   margin: 26px 0;
   border: none;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-style: normal;
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
 }
+
 .dropdown .dropdownOpenButton {
   margin-inline-start: 6px;
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 18px;
 }
 .interface-hebrew .dropdownOpenButton {
@@ -10300,7 +10375,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom-right-radius: 7px;
 }
 .dropdown .dropdownList {
-  color: #999;
+  color: var(--medium-grey);
   background-color: white;
   box-sizing: border-box;
   padding: 0;
@@ -10310,6 +10385,37 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom-left-radius: 7px;
   border-bottom-right-radius: 7px;
 }
+.dropdown .dropdownList:focus {
+  outline: none; /* hide focus ring on container; focus is shown on the active option */
+}
+
+/* Apply default browser focus outline to dropdown elements when tabbing - matches header dropdown pattern */
+body:not(.user-is-tabbing) .dropdownItem:focus,
+body:not(.user-is-tabbing) .dropdownOption:focus,
+body:not(.user-is-tabbing) div[role="button"]:focus,
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
+body:not(.user-is-tabbing) .header-dropdown-button:focus {
+  outline: none;
+}
+
+/* Add browser-like focus outline for dropdown buttons when tabbing */
+body.user-is-tabbing div[role="button"]:focus,
+body.user-is-tabbing .dropdownLinks-button img:focus,
+body.user-is-tabbing .header-dropdown-button:focus {
+  outline: 2px solid var(--select-blue);
+  outline-offset: 2px;
+}
+
+/* Reset button styling for header dropdown buttons to match original image appearance */
+.header-dropdown-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-block;
+}
+
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
@@ -10352,17 +10458,18 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--medium-grey);
   margin-bottom: 11px;
 }
 .addToSourceSheetBox .selectedRef{
-  padding: 16px 22px;
+  padding: 0;
   font-size: 16px;
   margin-bottom: 15px;
-  cursor: pointer;
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
+  cursor: default;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
   text-align: start;
 }
 .addToSourceSheetBox .selectedRef span{
@@ -10371,7 +10478,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 18px;
   line-height: 25px;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -10392,14 +10499,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: #999;
+  color: var(--medium-grey);
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
 }
 #footer a {
   display: block;
-  color: #666;
+  color: var(--medium-grey);
 }
 .interface-hebrew #footer{
   direction: rtl;
@@ -10503,10 +10610,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 4px;
 }
 #footer .section.connect .socialLinks a {
-  color: #666;
+  color: var(--medium-grey);
 }
 #footer #siteLanguageToggle {
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 30px;
   font-size: 15px;
 }
@@ -10519,7 +10626,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer a#siteLanguageHebrew {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
-  color: #666;
+  color: var(--medium-grey);
   display: inline;
   margin: 0 3px;
 }
@@ -10547,7 +10654,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -10562,7 +10669,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 40px;
 }
 .aboutBox .aboutHeader {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
@@ -10589,14 +10696,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 19px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
@@ -10604,7 +10711,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .aboutAuthor{
   font-size: 16px;
   line-height: 19px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-bottom: 22px;
   display: flex;
 }
@@ -10621,7 +10728,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .aboutBox .aboutComposed{
   font-size: 14px;
@@ -10629,7 +10736,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: var(--medium-grey);
 }
 .guideBox .guideHeader {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
@@ -10736,7 +10843,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  color: #666666;
+  color: var(--medium-grey);
 }
 .interface-hebrew .versionsBox .versionLanguage {
   direction: rtl;
@@ -10745,13 +10852,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding-top: 25px;
 }
 .versionsBox .versionLanguage .versionCount {
-  color: #999;
+  color: var(--medium-grey);
 }
 .versionsBox a.selectButton:not(.version-with-preview-title-line .selectButton) {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
-  color: #666666;
+  color: var(--medium-grey);
   box-shadow: 0 1px 2px #999;
   padding: 2px 8px;
   background-color: white;
@@ -10812,11 +10919,11 @@ span.purim-emoji img{
 }
 .sheetContent .ref {
   cursor: pointer;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 1em;
 }
 .sheetContent .ref a {
-  color: #999;
+  color: var(--medium-grey);
 }
 .sheetContent img {
   max-width: 100%;
@@ -11054,7 +11161,7 @@ span.purim-emoji img{
   font-size: 16px;
   font-weight: 400;
   line-height: 18.75px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 10px;
   cursor: pointer;
 }
@@ -11154,7 +11261,7 @@ span.purim-emoji img{
 }
 
 .sheetNotice {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   background: var(--lighter-grey);
   border: 1px solid var(--light-grey);
   box-sizing: border-box;
@@ -11261,7 +11368,7 @@ span.purim-emoji img{
 }
 .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .sheetContent .spacer:only-of-type.empty:before {
-  color: #999;
+  color: var(--medium-grey);
   position: absolute;
   pointer-events: none;
 }
@@ -11576,7 +11683,7 @@ background-color: white;
 .editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
 }
 .cookiesNotification {
   position: fixed;
@@ -12051,13 +12158,13 @@ cursor: pointer;
   margin: 0 6px 1px 0;
 }
 .tab-view .tab-list .applink a {
-    color: #666;
+    color: var(--medium-grey);
 }
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
-    color: #666;
+    color: var(--medium-grey);
 }
 .tab-view.largeTabs .tab-list {
     border-bottom: 1px solid #CCC;
@@ -12138,7 +12245,7 @@ cursor: pointer;
     background-color: #fff;
     width: 20px;
     height: 20px;
-    border: 2px solid var(--medium-grey);
+    border: 2px solid var(--dark-grey);
     border-radius: 20px;
     display: inline-grid;
     place-content: center;
@@ -12182,7 +12289,7 @@ cursor: pointer;
 }
 .profile-page .textRange {
   font-size: 18px;
-  color: #666;
+  color: var(--medium-grey);
 }
 .profile-page .note-text {
   font-size: 18px;
@@ -12303,7 +12410,7 @@ cursor: pointer;
 .feedbackOverlay textarea::placeholder {
   font-size: 16px;
   font-style: normal;
-  color: #666;
+  color: var(--medium-grey);
 }
 .feedbackOverlay a {
   color: #4871bf;
@@ -12326,7 +12433,7 @@ cursor: pointer;
   flex-direction: column;
 }
 .sheetList .sheet .sheetTags {
-  color: #999;
+  color: var(--medium-grey);
 }
 .sheetsProfileList .sheet .sheetTags .bullet {
   padding: 0 5px;
@@ -12354,7 +12461,7 @@ cursor: pointer;
 .default-profile-img {
   width: 175px;
   height: 175px;
-  background-color: #999;
+  background-color: var(--medium-grey);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -12404,11 +12511,11 @@ cursor: pointer;
   align-items: center;
 }
 .filterable-list .filter-bar-new .filter-input ::placeholder {
-  color: #999;
+  color: var(--medium-grey);
 }
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
@@ -12479,7 +12586,7 @@ cursor: pointer;
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {
-  color: #666;
+  color: var(--medium-grey);
   padding: 16px 15px;
 }
 .profile-page .profile-summary {
@@ -12557,7 +12664,7 @@ cursor: pointer;
 }
 
 .profile-page .profile-summary .follow {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   letter-spacing: 1px;
 }
@@ -12566,7 +12673,7 @@ cursor: pointer;
 }
 
 .profile-page .resourcesLink.faded {
-  color: #666;
+  color: var(--medium-grey);
 }
 .resourcesLink.blue {
   color: white;
@@ -12601,7 +12708,7 @@ cursor: pointer;
   padding-bottom: 10px;
 }
 .profile-page .follow-header .follow-count {
-  color: #999;
+  color: var(--medium-grey);
 }
 .profile-page .resourcesLink,
 .profile-pic-cropper-button.resourcesLink {
@@ -12622,7 +12729,7 @@ cursor: pointer;
 .profile-page .emptyList .emptyListText {
   font-size: 16px;
   margin: 30px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 1.5;
 }
@@ -12644,7 +12751,7 @@ cursor: pointer;
   font-size: 16px;
 }
 .profile-page .profile-summary .sub-sub-title {
-  color: #666;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
 }
@@ -12664,7 +12771,7 @@ cursor: pointer;
   top: 0;
   transform: translateY(-35%);
   left: 30px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
@@ -12725,7 +12832,7 @@ cursor: pointer;
   color: black;
 }
 .largeFollowButton.following span {
-  color: #666;
+  color: var(--medium-grey);
 }
 .smallFollowButton {
   height: 20px;
@@ -12919,7 +13026,7 @@ body .homeFeedWrapper .content {
 }
 
 .story .subHeading .int-en, .story .subHeading .int-he  {
-  color: #666;
+  color: var(--medium-grey);
 }
 .story .learningPrompt {
   padding: 20px 0 20px;
@@ -13057,7 +13164,7 @@ body .homeFeedWrapper .content {
     margin-left: 26px;
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-family: var(--english-sans-serif-font-family);
   font-size: 15px;
 }
@@ -13098,7 +13205,7 @@ body .homeFeedWrapper .content {
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 .authorByLine {
   display: flex;
@@ -13123,7 +13230,7 @@ body .homeFeedWrapper .content {
   bottom: 12px;
 }
 .authorOrganization {
-  color: #999;
+  color: var(--medium-grey);
 }
 .authorByLine.small {
   font-size: 14px;
@@ -13207,10 +13314,10 @@ body .homeFeedWrapper.userStats {
   padding: 10px;
 }
  .editTextInfo #newIndex .default::placeholder {
-   color: #666;
+   color: var(--medium-grey);
  }
 .button.small.deleteTopic {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   float: right;
   margin-top: 30px;
   background-color: var(--lightest-grey);
@@ -13335,7 +13442,7 @@ body .homeFeedWrapper.userStats {
   font-family: revert;
 }
 .editTextInfo #newIndex input::placeholder {
-  color: #666;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 .editTextInfo #newIndex #heTitle {
@@ -13372,7 +13479,7 @@ body .homeFeedWrapper.userStats {
 	margin: -5px 11px 0 -32px;
 }
 .editTextInfo #newIndex .headerWithButtons a {
-    color: #666;
+    color: var(--medium-grey);
 }
 .editTextInfo .nodeTemplate {
 	display: none;
@@ -13443,7 +13550,7 @@ body .homeFeedWrapper.userStats {
   font-size: 22px;
   vertical-align: middle;
   display: block;
-  color: #666;
+  color: var(--medium-grey);
 }
 .collectionsWidgetClose {
   font-size: 40px;
@@ -13466,7 +13573,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidgetList .emptyMessage {
   display: block;
-  color: #666;
+  color: var(--medium-grey);
   padding: 20px 0px;
   line-height: 1.5;
   text-align: start;
@@ -13489,7 +13596,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .collectionsWidgetPlus {
-  color: #666;
+  color: var(--medium-grey);
   font-size: 25px;
   margin-inline-end: 13px;
   margin-top: -5px;
@@ -13508,7 +13615,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-style: normal;
-  color: #666;
+  color: var(--medium-grey);
 }
 .interface-hebrew .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-family: "Heebo", sans-serif;
@@ -13569,7 +13676,7 @@ body .homeFeedWrapper.userStats {
   text-align: center;
 }
 .userStats .statHeader span {
-  color: #666;
+  color: var(--medium-grey);
   letter-spacing: 0.7px;
   line-height: 23px;
 }
@@ -13603,7 +13710,7 @@ body .homeFeedWrapper.userStats {
 }
 .userStatModeButton {
   background-color: #fff;
-  color: #666;
+  color: var(--medium-grey);
   border-radius: 5px;
   height: 50px;
   width: 120px;
@@ -13655,7 +13762,7 @@ a.topicLexiconTitle.contentText {
   height: 30px;
   background: #fff;
   border: #ccc solid 1px;
-  color: #666;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   box-sizing: border-box;
@@ -13931,7 +14038,7 @@ span.ref-link-color-3 {color: blue}
   height: 30px;
   border-radius: 6px;
   z-index: 1;
-  background-color: #999999;
+  background-color: var(--medium-grey-legacy);
   opacity: 0.5;
   left: -8.5px;
   top: -3px;
@@ -14044,7 +14151,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
   margin: 10px 30px;
-  border-top: 1px solid #999999;
+  border-top: 1px solid var(--light-grey);
 }
 
 .peopleInBeitMidrashInnerContainer {
@@ -14188,7 +14295,7 @@ span.ref-link-color-3 {color: blue}
     width: calc(100% - 22px);
     padding: 15px 11px;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    color: #666;
+    color: var(--medium-grey);
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
@@ -14206,7 +14313,7 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   padding-top: 20px;
   margin: 10px 30px 20px;
-  border-top: 1px solid #999999;
+  border-top: 1px solid var(--light-grey);
 
 }
 
@@ -14266,7 +14373,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .chatNameAndTime {
-  color: #999999;
+  color: var(--medium-grey-legacy);
   font-size: 14px;
   font-weight: 500px;
 }
@@ -14393,7 +14500,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #acceptButton {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
   border-radius: 6px;
   color: white;
   border: 0px;
@@ -14607,7 +14714,7 @@ span.ref-link-color-3 {color: blue}
   background-color: #fff;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--medium-grey);
+  border: 2px solid var(--dark-grey);
   border-radius: 20px;
   margin-top: 0;
   margin-inline-end: 10px;
@@ -14668,7 +14775,7 @@ span.ref-link-color-3 {color: blue}
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: 100% 100%;
-  background-color: var(--medium-grey);
+  background-color: var(--dark-grey);
   cursor: pointer;
   appearance: unset;
   transition: border 0.3s ease, outline 0.3s ease, background-color 0.3s ease;
@@ -14892,7 +14999,7 @@ span.ref-link-color-3 {color: blue}
   align-items: center;
   margin-top: 2px;
   margin-bottom: 4px;
-  color: #666;
+  color: var(--medium-grey);
   position: relative;
 }
 .headerDropdownMenu .toolsButtonContainer {
@@ -14912,13 +15019,13 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 500;
   line-height: 18px;
-  color: #666666;
+  color: var(--medium-grey);
   margin-inline-start: 10px;
   padding: revert;
 }
 .sheetsInPanel .headerDropdownMenu {
   margin-top: 7px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   position: relative;
   line-height: 0;
 }
@@ -15081,7 +15188,7 @@ span.ref-link-color-3 {color: blue}
 
 .productInner .productsDesc {
   font: var(--english-sans-serif-font-family);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 16px;
 }
 
@@ -15114,7 +15221,7 @@ span.ref-link-color-3 {color: blue}
 
 .productsHeader .productsTitle {
   font: var(--english-sans-serif-font-family);
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 22px;
   font-weight: 500px;
 }
@@ -15127,7 +15234,7 @@ span.ref-link-color-3 {color: blue}
   background-color: var(--lighter-grey);
   border-radius: 6px;
   padding: 0.01px 5px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 3%;
 }
 
@@ -15161,7 +15268,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 500;
   line-height: 25.78px;
   text-align: left;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .productsCTA::after {
@@ -15171,7 +15278,7 @@ span.ref-link-color-3 {color: blue}
 
 .productsDevBox {
     background: var(--lighter-grey);
-    color: var(--dark-grey);
+    color: var(--medium-grey);
     font-family: var(--english-sans-serif-font-family);
     font-size: 16px;
     font-weight: 400;
@@ -15213,7 +15320,7 @@ span.ref-link-color-3 {color: blue}
     font-weight: 400;
     font-size: 14px;
     line-height: 18px;
-    color: #666666;
+    color: var(--medium-grey);
 }
 
 @media (max-width: 480px) {
@@ -15274,7 +15381,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .noteText{
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .footerContainer {
@@ -15316,7 +15423,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
+  color: var(--medium-grey);
 }
 
 .dropdownLanguageToggle{
@@ -15552,7 +15659,7 @@ span.ref-link-color-3 {color: blue}
 .cardsPaginationNumber {
   font-weight: 500;
   font-size: 16px;
-  color: #666666;
+  color: var(--medium-grey);
   min-width: 40px;
   height: 34px;
   display: flex;
@@ -15709,7 +15816,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .guideOverlayFooterLink {
-  color: #666666;
+  color: var(--medium-grey);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -15730,7 +15837,7 @@ span.ref-link-color-3 {color: blue}
   justify-content: center;
   padding: 40px;
   font-size: 16px;
-  color: #666666;
+  color: var(--medium-grey);
 }
 
 /* RTL/Hebrew interface support */

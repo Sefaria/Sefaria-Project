@@ -808,9 +808,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
     
-    console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url); 
-    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
+    hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url);
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -840,7 +838,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
@@ -1949,7 +1946,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 
   handlePrint(e) {
-      gtag("event", "print");
   }
 
   handleGACopyEvents(e, selectedEls, textOnly) {
@@ -1967,18 +1963,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         "category": category,
       }
 
-      gtag("event", "copy_text", params);
-
       // check if selection is spanning or bilingual
       if (book) {
         const selectedEnEls = selectedEls.querySelectorAll('.en')
         const selectedHeEls = selectedEls.querySelectorAll('.he')
-        if ((selectedEnEls.length > 0) && (selectedHeEls.length > 0)) {
-          gtag("event", "bilingual_copy_text", params);
-        }
-        if ((selectedEnEls.length > 1) || (selectedHeEls.length > 1)) {
-          gtag("event", "spanning_copy_text", params);
-        }
       }
   }
 
@@ -2325,11 +2313,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
+            <a href="#main" className="skip-link">{Sefaria._("Skip to main content")}</a>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {panels}
+              <main id="main" role="main">
+                {panels}
+              </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />

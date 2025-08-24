@@ -8,6 +8,7 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                 data-anl-text={cardTitle?.en}
                 data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
                 data-target-module={Sefaria.activeModule}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                 >
                     <InterfaceText text={cardTitle}/>
                 </a>
@@ -20,6 +21,7 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                         data-anl-text={bottomLinkText.en}
                         data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
                         data-target-module={Sefaria.activeModule}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                       >
                       <InterfaceText markdown={{en: bottomLinkText.en, he: bottomLinkText.he}} disallowedMarkdownElements={['p', 'a']}/>
                       </a>

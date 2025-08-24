@@ -18,8 +18,9 @@ button.sefaria-common-button {
     appearance: none; /* Remove default appearance */
 }
 
-button.sefaria-common-button:focus {
-    outline: none; /* Remove focus outline */
+body.user-is-tabbing button.sefaria-common-button:focus {
+    outline: 2px solid #1976d2; /* Accessible focus outline */
+    outline-offset: 2px;
 }
 
 button.sefaria-common-button::-moz-focus-inner {
@@ -60,6 +61,17 @@ button.sefaria-common-button.fullwidth {
     height: 53px;
     width: 100%;
 }
+/** fillwidth button (alias for fullwidth) **/
+button.sefaria-common-button.fillwidth {
+    height: 53px;
+    width: 100%;
+}
+/** small button **/
+button.sefaria-common-button.small {
+    padding: 10px 14px;
+    width: fit-content;
+    height: fit-content;
+}
 /** button children **/
 button.sefaria-common-button,
 button.sefaria-common-button *{
@@ -73,5 +85,4 @@ button.sefaria-common-button img.button-icon {
     height: 18px;
     vertical-align: -15%;
 }
-
 

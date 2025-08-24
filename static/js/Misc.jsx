@@ -440,8 +440,38 @@ class TabView extends Component {
   }
   renderTab(tab, index) {
     const currTabIndex = this.getTabIndex();
+    const isActive = currTabIndex === index;
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}>
+      <div 
+        className={classNames({active: isActive, justifyright: tab.justifyright})} 
+        key={tab.id} 
+        data-tab-index={index} 
+        role="tab"
+        tabIndex={isActive ? "0" : "-1"}
+        aria-selected={isActive}
+        onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.onClickTab(e, tab.clickTabOverride);
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const direction = e.key === 'ArrowLeft' ? -1 : 1;
+            const newIndex = (index + direction + this.props.tabs.length) % this.props.tabs.length;
+            const newTab = this.props.tabs[newIndex];
+            if (this.props.setTab) {
+              this.props.setTab(newTab.id);
+            } else {
+              this.openTab(newIndex);
+            }
+            // Focus the newly active tab
+            setTimeout(() => {
+              const newTabElement = document.querySelector(`[data-tab-index="${newIndex}"]`);
+              if (newTabElement) newTabElement.focus();
+            }, 0);
+          }
+        }}
+      >
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -451,10 +481,12 @@ class TabView extends Component {
     const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
     return (
       <div className={classes}>
-        <div className="tab-list sans-serif">
+        <div className="tab-list sans-serif" role="tablist">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        { React.Children.toArray(this.props.children)[currTabIndex] }
+        <div role="tabpanel" aria-labelledby={`tab-${this.props.tabs[currTabIndex]?.id}`}>
+          { React.Children.toArray(this.props.children)[currTabIndex] }
+        </div>
       </div>
     );
   }
@@ -689,13 +721,22 @@ const getCurrentPage = () => {
 }
 
 class LanguageToggleButton extends Component {
+  constructor(props) {
+    super(props);
+    this.toggle = this.toggle.bind(this);
+  }
   toggle(e) {
     e.preventDefault();
     this.props.toggleLanguage();
   }
   render() {
     var url = this.props.url || "";
-    return (<a href={url} className="languageToggle" onClick={this.toggle}>
+    return (<a 
+              href={url} 
+              className="languageToggle" 
+              onClick={this.toggle}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(e); } }}
+            >
               <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
               <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
             </a>);
@@ -1002,7 +1043,16 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
     return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
-        <img className={classes} id={"editTopic"} onClick={toggleAddSource} src={"/static/icons/editing-pencil.svg"}/>;
+        <img 
+          className={classes} 
+          id={"editTopic"} 
+          onClick={toggleAddSource} 
+          src={"/static/icons/editing-pencil.svg"} 
+          alt="Edit topic"
+          role="button"
+          tabIndex="0"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAddSource(); } }}
+        />;
 }
 
 const ReorderEditorWrapper = ({toggle, type, data}) => {
@@ -1149,7 +1199,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/iconmonstr-magnifier-2.svg" />
+      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt="Search" />
     </span>);
   }
 }
@@ -1192,6 +1242,7 @@ class CloseButton extends Component {
         href={url} 
         className={classes} 
         onClick={this.onClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.onClick(e); } }}
         aria-label={altText}
         title={altText}
       >
@@ -1219,18 +1270,13 @@ class DisplaySettingsButton extends Component {
       icon = <span className="textIcon">Aa</span>;
     }
     return (
-            <ToolTipped {...{ altText, classes}}>
-                <a
+            <ToolTipped {...{ altText, classes, onClick: this.props.onClick, style}}>
+                <span
                 className="readerOptions"
-                tabIndex="0"
-                role="button"
                 aria-haspopup="true"
-                aria-label="Toggle Reader Menu Display Settings"
-                style={style}
-                onClick={this.props.onClick}
-                onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+                tabIndex="-1">
                 {icon}
-              </a>
+              </span>
             </ToolTipped>
             );
   }
@@ -1278,7 +1324,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               <div className="interfaceLinks-options trans-pref-header-container">
                 <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-                  <img src="/static/img/circled-x.svg" className="reset-btn" />
+                  <img src="/static/img/circled-x.svg" className="reset-btn" alt="Reset" />
                   <span className="smallText">
                     <InterfaceText>Reset</InterfaceText>
                   </span>
@@ -1321,7 +1367,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
   const message = getSaveButtonMessage(selected);
-  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
+  const altText = placeholder ? 'Save button' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1412,11 +1458,18 @@ ArrowButton.propTypes = {
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
+  const handleClick = (e) => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { 
+      e.preventDefault(); 
+      handleClick(e);
+    }
+  };
   return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
-    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    style={style} onClick={handleClick}
+    onKeyDown={handleKeyDown}>
     { children }
   </div>
 )};
@@ -1555,9 +1608,14 @@ FollowButton.propTypes = {
 
 const SmallBlueButton = ({onClick, tabIndex, text}) => {
   return (
-      <div onClick={onClick} className="button extraSmall blue control-elem" tabIndex={tabIndex} role="button">
-        <InterfaceText>{text}</InterfaceText>
-      </div>
+    <div 
+      onClick={onClick} 
+      className="button extraSmall control-elem" 
+      tabIndex={tabIndex}
+      role="button"
+    >
+      <InterfaceText>{text}</InterfaceText>
+    </div>
   );
 };
 
@@ -1737,7 +1795,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt="Not published"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1748,7 +1806,7 @@ const SheetListing = ({
   const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
   const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
                     pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
-  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
+  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} alt={pinMessage} />
 
   return (
     <div className="sheet" key={sheet.sheetUrl}>
@@ -1772,12 +1830,12 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           collectable ?
-            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} alt="Add to Collection" />
             : null
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} alt="Delete" />
             : null
         }
         {
@@ -1817,7 +1875,7 @@ const CollectionListing = ({data}) => {
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg"/>
+                <img src="/static/img/eye-slash.svg" alt="Unlisted"/>
                 <InterfaceText>Unlisted</InterfaceText>
               </span>) }
 
@@ -1849,16 +1907,23 @@ class Note extends Component {
   // Public or private note in the Sidebar.
   render() {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
-        (        <div className="noteAuthorInfo">
+        (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt="Note author profile picture" />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor" data-target-module={Sefaria.SHEETS_MODULE}>{this.props.ownerName}</a>
         </div>) : null;
 
       var buttons = this.props.isMyNote ?
                     (<div className="noteButtons">
-                      <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
+                      <i 
+                        className="editNoteButton fa fa-pencil" 
+                        title="Edit Note" 
+                        onClick={this.props.editNote}
+                        role="button"
+                        tabIndex="0"
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.editNote(); } }}
+                      ></i>
                     </div>) : null;
 
       var text = Sefaria.util.linkify(this.props.text);
@@ -1924,14 +1989,22 @@ class SignUpModal extends Component {
       this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
         <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
         <div id="interruptingMessage" className="sefariaModalContentBox">
-          <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
+          <div 
+            id="interruptingMessageClose" 
+            className="sefariaModalClose" 
+            role="button"
+            tabIndex="0"
+            aria-label={Sefaria._("Close")}
+            onClick={this.props.onClose}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.onClose(); } }}
+          >×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
               <InterfaceText text={modalContent.h2} />
             </h2>
-            <h3>
+            {modalContent.h3 && <h3> // conditional rendering to avoid empty h3 tags for WCAG compliance
               <InterfaceText text={modalContent.h3} />
-            </h3>
+            </h3>}
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
@@ -2127,9 +2200,13 @@ const InterruptingMessage = ({
             <div id="interruptingMessageContentBox" className="hasColorLine">
               <div
                 id="interruptingMessageClose"
+                role="button"
+                tabIndex="0"
+                aria-label={Sefaria._("Close")}
                 onClick={() => {
                   closeModal("close_clicked");
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal("close_clicked"); } }}
               >
                 ×
               </div>
@@ -2426,8 +2503,11 @@ class Dropdown extends Component {
     super(props);
     this.state = {
       optionsOpen: false,
-      selected: null
+      selected: null,
+      focusedIndex: -1
     };
+    this.listboxRef = null;
+    this.triggerRef = null;
   }
 
   componentDidMount() {
@@ -2438,28 +2518,92 @@ class Dropdown extends Component {
   }
 
   select(option) {
-    this.setState({selected: option, optionsOpen: false});
+    this.setState({selected: option, optionsOpen: false, focusedIndex: -1});
     const event = {target: {name: this.props.name, value: option.value}}
     this.props.onChange && this.props.onChange(event);
   }
   toggle() {
-    this.setState({optionsOpen: !this.state.optionsOpen});
+    const opening = !this.state.optionsOpen;
+    this.setState({
+      optionsOpen: opening,
+      focusedIndex: opening ? 0 : -1
+    });
+  }
+  componentDidUpdate(prevProps, prevState) {
+    // Move focus to the listbox when opened, back to trigger when closed
+    if (!prevState.optionsOpen && this.state.optionsOpen && this.listboxRef) {
+      this.listboxRef.focus();
+    } else if (prevState.optionsOpen && !this.state.optionsOpen && this.triggerRef) {
+      this.triggerRef.focus();
+    }
   }
   render() {
     return (
         <div className="dropdown sans-serif">
-          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
+          <div
+            className={`dropdownMain noselect${this.state.selected ? " selected":""}`}
+            onClick={this.toggle}
+            role="button"
+            tabIndex="0"
+            aria-haspopup="listbox"
+            aria-expanded={this.state.optionsOpen}
+            aria-controls={`${this.props.name}-listbox`}
+            ref={(el) => { this.triggerRef = el; }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(); }
+              if (e.key === 'ArrowDown') { e.preventDefault(); if (!this.state.optionsOpen) { this.toggle(); } else if (this.listboxRef) { this.listboxRef.focus(); } }
+            }}
+          >
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
-            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt="Open dropdown"/>
 
           </div>
           {this.state.optionsOpen ?
             <div className="dropdownListBox noselect">
-              <div className="dropdownList noselect">
-                {this.props.options.map(function(option) {
+              <div
+                className="dropdownList noselect"
+                tabIndex="0"
+                role="listbox"
+                aria-label={this.props.placeholder}
+                id={`${this.props.name}-listbox`}
+                ref={(el) => { this.listboxRef = el; }}
+                onKeyDown={(e) => {
+                  const maxIndex = this.props.options.length - 1;
+                  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setState({optionsOpen: false}); }
+                  if (e.key === 'ArrowDown') { 
+                    e.preventDefault(); 
+                    const newIndex = Math.min(this.state.focusedIndex + 1, maxIndex);
+                    this.setState({ focusedIndex: newIndex });
+                  }
+                  if (e.key === 'ArrowUp') { 
+                    e.preventDefault(); 
+                    const newIndex = Math.max(this.state.focusedIndex - 1, 0);
+                    this.setState({ focusedIndex: newIndex });
+                  }
+                  if (e.key === 'Home') { e.preventDefault(); this.setState({ focusedIndex: 0 }); }
+                  if (e.key === 'End') { e.preventDefault(); this.setState({ focusedIndex: maxIndex }); }
+                  if (e.key === 'Enter' || e.key === ' ') { 
+                    e.preventDefault(); 
+                    if (this.state.focusedIndex >= 0 && this.props.options[this.state.focusedIndex]) {
+                      this.select(this.props.options[this.state.focusedIndex]);
+                    }
+                  }
+                }}
+              >
+                {this.props.options.map(function(option, index) {
                   const onClick = this.select.bind(null, option);
-                  const classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
-                  return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
+                  const isSelected = this.state.selected && this.state.selected.value == option.value;
+                  const isFocused = this.state.focusedIndex === index;
+                  const classes = classNames({dropdownOption: 1, selected: isSelected, focused: isFocused});
+                  return <div 
+                    className={classes} 
+                    onClick={onClick} 
+                    key={option.value} 
+                    role="option" 
+                    aria-selected={!!isSelected}
+                    data-index={index}
+                    style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--select-blue')}`, outlineOffset: '2px'} : {}}
+                  >{option.label}</div>
                 }.bind(this))}
               </div>
             </div>
@@ -2481,7 +2625,7 @@ class LoadingMessage extends Component {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
-    return (<div className={classes}>
+    return (<div className={classes} aria-live="polite" aria-label="Loading status">
               <InterfaceText>
                 <EnglishText>{message}</EnglishText>
                 <HebrewText>{heMessage}</HebrewText>
@@ -2616,7 +2760,7 @@ class FeedbackBox extends Component {
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
             {this.state.alertmsg ?
-                <div>
+                <div role="alert" aria-live="assertive">
                     <p className="int-en">{this.state.alertmsg}</p>
                     <p className="int-he">{this.state.alertmsg}</p>
                 </div>
@@ -2644,10 +2788,16 @@ class FeedbackBox extends Component {
                 <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
                 : null }
 
-             <div className="button" role="button" onClick={() => this.sendFeedback()}>
+            <div
+              className="button"
+              aria-label={Sefaria._("Send Feedback")}
+              onClick={() => this.sendFeedback()}
+              role="button"
+              tabIndex="0"
+            >
                  <span className="int-en">Submit</span>
                  <span className="int-he">שליחה</span>
-             </div>
+            </div>
         </div>
     );
   }
@@ -2672,8 +2822,18 @@ class ReaderMessage extends Component {
       <div className="readerMessageBox">
         <div className="readerMessage">
           <div className="int-en">{this.props.message}</div>
-          <div className="button small" role="button" onClick={() => this.setFeedback('Like')}>{this.props.buttonLikeText}</div>
-          <div className="button small" role="button" onClick={() => this.setFeedback('Dislike')}>{this.props.buttonDislikeText}</div>
+          <div 
+            className="button small"
+            onClick={() => this.setFeedback('Like')}
+            role="button"
+            tabIndex="0"
+          >{this.props.buttonLikeText}</div>
+          <div 
+            className="button small"
+            onClick={() => this.setFeedback('Dislike')}
+            role="button"
+            tabIndex="0"
+          >{this.props.buttonDislikeText}</div>
         </div>
       </div>);
   }
@@ -2704,13 +2864,13 @@ class CookiesNotification extends Component {
 
           <span className="int-en">
             <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <span className='int-en button small white' onClick={this.setCookie}>OK</span>
+            <div className="button small white int-en" onClick={this.setCookie} role="button" tabIndex="0">OK</div>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
               <a href="/privacy-policy">קראו עוד בנושא</a>
             </span>
-            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
+            <div className="button small white int-he" onClick={this.setCookie} role="button" tabIndex="0">לחצו כאן לאישור</div>
           </span>
 
        </div>
@@ -2834,10 +2994,10 @@ const AdminToolHeader = function({title, validate, close}) {
                 <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
-                <a onClick={close} id="cancel" className="button small transparent control-elem">
+                <div onClick={close} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
-                </a>
-                <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                </div>
+                <div onClick={validate} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
                   <InterfaceText>Save</InterfaceText>
                 </div>
               </div>
@@ -2937,8 +3097,8 @@ const TitleVariants = function({titles, update, options}) {
                     allowNew={true}
                     tags={titles}
                     onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title and press 'enter' or 'tab'.")}
-                    delimiters={["Enter", "Tab"]}
+                    placeholderText={Sefaria._("Add a title and press 'enter'.")}
+                    delimiters={["Enter"]}
                     onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
                     onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
                   />
@@ -2961,6 +3121,68 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
   </div>
 }
 
+const DivineNameDepricationNotification = () => {
+
+  // Constants for the deprecation notification
+  const DEPRECATION_DATE = "October 15, 2025";
+  const DEPRECATION_DATE_HEBREW = "15 באוקטובר 2025";
+
+  const DEPRECATION_LINKS = {
+      en: {
+      exportSheet: "https://help.sefaria.org/hc/en-us/articles/20532656851228-How-to-Export-Print-or-Share-a-Sheet",
+      extension: "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+      },
+      he: {
+      exportSheet: "https://help.sefaria.org/hc/he/articles/20532656851228-ייצוא-הדפסה-ושיתוף-דף-מקורות-בספריא",
+      extension: "https://help.sefaria.org/hc/he/sections/20235182393244-התוסף-של-ספריא-ל-Google-Docs"
+      }
+  };
+
+  const DEPRECATION_MESSAGES = {
+      en: {
+      notice: "Please note:",
+      mainMessage: `The divine name substitution tool will no longer be available in the Sefaria Sheet Editor after ${DEPRECATION_DATE}.`,
+      continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing, ",
+      exportText: "export your sheet to Google Docs ",
+      andText: "and use the 'Transform Divine Names' feature in the ",
+      extensionText: "Sefaria for Google Docs extension",
+      period: "."
+      },
+      he: {
+      notice: "שימו לב:",
+      mainMessage: `החל מה-${DEPRECATION_DATE_HEBREW}, לא יהיה ניתן לשנות שמות קודש בדפי מקורות באמצעות העורך של ספריא.`,
+      continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף, ",
+      exportText: "יש לייצא את הדף ל-Google Docs ",
+      andText: "ולבצע את השינוי באמצעות הכלי המיועד לכך ב",
+      extensionText: "תוסף של ספריא ל-Google Docs",
+      period: "."
+      }
+  };
+
+  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+  const messages = DEPRECATION_MESSAGES[lang];
+  const links = DEPRECATION_LINKS[lang];
+
+  return (
+    <div className="divineNameDepricationNotification sans-serif">
+      <p>
+        <strong>{messages.notice}</strong> {messages.mainMessage}
+      </p>
+      <p>
+        {messages.continuationMessage}
+        <a href={links.exportSheet}>
+          {messages.exportText}
+        </a>
+        {messages.andText}
+        <a href={links.extension}>
+          {messages.extensionText}
+        </a>
+        {messages.period}
+      </p>
+    </div>
+  );
+};
+
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
       <div className="divineNameReplacer">
@@ -2978,6 +3200,8 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
               onChange={(e) => setDivineNameReplacement((e.target.value))}
               preselected={divineNameReplacement}
             />
+            <DivineNameDepricationNotification />
+
       </div>
   )
 
