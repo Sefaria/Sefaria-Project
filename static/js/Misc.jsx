@@ -2570,7 +2570,7 @@ class Dropdown extends Component {
                 ref={(el) => { this.listboxRef = el; }}
                 onKeyDown={(e) => {
                   const maxIndex = this.props.options.length - 1;
-                  if (e.key === 'Escape') { e.preventDefault(); this.setState({optionsOpen: false}); }
+                  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setState({optionsOpen: false}); }
                   if (e.key === 'ArrowDown') { 
                     e.preventDefault(); 
                     const newIndex = Math.min(this.state.focusedIndex + 1, maxIndex);
@@ -2603,7 +2603,7 @@ class Dropdown extends Component {
                     role="option" 
                     aria-selected={!!isSelected}
                     data-index={index}
-                    style={isFocused ? {backgroundColor: '#e3f2fd', outline: '2px solid #1976d2', outlineOffset: '-2px'} : {}}
+                    style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--select-blue')}`, outlineOffset: '2px'} : {}}
                   >{option.label}</div>
                 }.bind(this))}
               </div>

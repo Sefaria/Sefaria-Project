@@ -316,7 +316,7 @@ class AddToSourceSheetBox extends Component {
           id={`user-sheet-option-${i}`}
           tabIndex={-1}
           ref={el => { if (isFocused) { this.activeOptionRef = el; } }}
-          style={isFocused ? {backgroundColor: '#e3f2fd', outline: '2px solid #1976d2', outlineOffset: '-2px'} : {}}
+          style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--select-blue')}`, outlineOffset: '2px'} : {}}
         >
           {title}
         </div>
@@ -366,7 +366,7 @@ class AddToSourceSheetBox extends Component {
               aria-activedescendant={`user-sheet-option-${Math.min(Math.max(this.state.focusedSheetIndex, 0), (sheets ? sheets.length - 1 : 0))}`}
               onKeyDown={(e) => {
                 const total = sheets ? sheets.length : 0;
-                if (e.key === 'Escape') { e.preventDefault(); this.setState({sheetListOpen: false}); if (this.dropdownTriggerRef) { this.dropdownTriggerRef.focus(); } }
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setState({sheetListOpen: false}); if (this.dropdownTriggerRef) { this.dropdownTriggerRef.focus(); } }
                 if (e.key === 'ArrowDown') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.min(this.state.focusedSheetIndex + 1, total - 1) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
                 if (e.key === 'ArrowUp') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.max(this.state.focusedSheetIndex - 1, 0) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }
                 if (e.key === 'PageDown') { e.preventDefault(); if (total) { this.setState({ focusedSheetIndex: Math.min(this.state.focusedSheetIndex + 5, total - 1) }, () => { this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); }); } }

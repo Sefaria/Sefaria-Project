@@ -10348,11 +10348,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 16px;
   line-height: 19px;
 }
-.dropdown .dropdownList .dropdownOption[aria-current="true"] {
-  outline: 2px solid var(--link-blue, #1a73e8);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
+
 .dropdown .dropdownOpenButton {
   margin-inline-start: 6px;
   cursor: pointer;
@@ -10388,34 +10384,25 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .dropdown .dropdownList:focus {
   outline: none; /* hide focus ring on container; focus is shown on the active option */
 }
-/* Add focus styling for div buttons with role="button" - only for keyboard navigation */
-body.user-is-tabbing div[role="button"]:focus {
-  outline: 2px solid #1976d2;
-  outline-offset: 2px;
-}
 
-/* Add focus styling for dropdown menu items - only for keyboard navigation */
-body.user-is-tabbing .interfaceLinks-option:focus,
-body.user-is-tabbing .dropdownItem:focus {
-  background-color: #e3f2fd;
-  border-left: 3px solid #1976d2;
+/* Apply default browser focus outline to dropdown elements when tabbing - matches header dropdown pattern */
+body:not(.user-is-tabbing) .dropdownItem:focus,
+body:not(.user-is-tabbing) .dropdownOption:focus,
+body:not(.user-is-tabbing) div[role="button"]:focus,
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
+body:not(.user-is-tabbing) .header-dropdown-button:focus {
   outline: none;
 }
 
-/* Remove left padding to accommodate the focus border */
-body.user-is-tabbing .header .headerDropdownMenu .dropdownLinks-menu .interfaceLinks-option:focus,
-body.user-is-tabbing .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu .interfaceLinks-option:focus {
-  padding-left: 12px; /* 15px - 3px for border */
-}
-
-/* Focus styling for dropdown button */
-body.user-is-tabbing .dropdownLinks-button img:focus {
-  outline: 2px solid #1976d2;
+/* Add browser-like focus outline for dropdown buttons when tabbing */
+body.user-is-tabbing div[role="button"]:focus,
+body.user-is-tabbing .dropdownLinks-button img:focus,
+body.user-is-tabbing .header-dropdown-button:focus {
+  outline: 2px solid var(--select-blue);
   outline-offset: 2px;
-  border-radius: 3px;
 }
 
-/* Header dropdown button styling */
+/* Reset button styling for header dropdown buttons to match original image appearance */
 .header-dropdown-button {
   background: none;
   border: none;
@@ -10425,12 +10412,6 @@ body.user-is-tabbing .dropdownLinks-button img:focus {
   display: inline-block;
 }
 
-/* Focus styling for header dropdown buttons */
-body.user-is-tabbing .header-dropdown-button:focus {
-  outline: 2px solid #1976d2;
-  outline-offset: 2px;
-  border-radius: 3px;
-}
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
