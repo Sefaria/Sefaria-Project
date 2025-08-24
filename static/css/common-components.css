@@ -61,6 +61,17 @@ button.sefaria-common-button.fullwidth {
     height: 53px;
     width: 100%;
 }
+/** fillwidth button (alias for fullwidth) **/
+button.sefaria-common-button.fillwidth {
+    height: 53px;
+    width: 100%;
+}
+/** small button **/
+button.sefaria-common-button.small {
+    padding: 10px 14px;
+    width: fit-content;
+    height: fit-content;
+}
 /** button children **/
 button.sefaria-common-button,
 button.sefaria-common-button *{

@@ -14,7 +14,7 @@ import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import { GDocAdvertBox } from './Promotions';
 import * as sheetsUtils from './sefaria/sheetsUtils'
-import Button from './common/Button';
+
 
 
 
@@ -380,23 +380,24 @@ class AddToSourceSheetBox extends Component {
             </div>
             <div className="newSheet noselect">
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")} aria-label={Sefaria._("Name New Sheet")} type="text"/>
-              <Button 
-                size="fillwidth" 
-                className="small noselect" 
+              <div 
+                className="button fillWidth small noselect" 
                 onClick={this.createSheet} 
-                activeModule={Sefaria.SHEETS_MODULE}
+                data-active-module={Sefaria.SHEETS_MODULE}
                 aria-label={Sefaria._("Create Sheet")}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.createSheet(); } }}
+                role="button"
+                tabIndex="0"
               >
                 <InterfaceText text={{en: "Create", he: "יצירה"}} />
-              </Button>
+              </div>
              </div>
           </div>
           : null}
         </div>
-        <Button size="fillwidth" className="noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} activeModule={Sefaria.SHEETS_MODULE}>
+        <div className="button fillWidth noselect" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet} data-active-module={Sefaria.SHEETS_MODULE} role="button" tabIndex="0">
           <InterfaceText text={{en: "Add to Sheet", he: "הוספה לדף המקורות"}} />
-        </Button>
+        </div>
         {!this.props.hideGDocAdvert && <GDocAdvertBox/>}
       </div>);
   }
