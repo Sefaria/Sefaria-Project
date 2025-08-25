@@ -8310,6 +8310,19 @@ But not to use a display block directive that might break continuous mode for ot
   color: #666666;
 }
 
+.divineNameDepricationNotification {
+  padding-top: 10px;
+}
+
+.divineNameDepricationNotification p a {
+  color: var(--inline-link-blue);
+}
+
+.divineNameDepricationNotification p a:hover {
+  text-decoration: underline;
+}
+
+
 .addConnectionBox {
   font-size: 18px;
   text-align: center;
