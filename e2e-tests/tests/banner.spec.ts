@@ -40,8 +40,9 @@ test('Banner links exist - English', async ({ context }) => {
     await page2.close();
     
     // Testing Help link
-    await page.getByRole('banner').getByRole('link', { name: 'Help' }).click();
-    expect(getPathAndParams(page.url())).toContain("/collections/sefaria-faqs")
+    const helpLink = page.getByRole('banner').getByRole('link', { name: 'Help' });
+    const helpHref = await helpLink.getAttribute('href');
+    expect(helpHref).toContain("/hc/en-us");
 
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('banner').getByRole('link', { name: 'Donate' }).click();
@@ -97,8 +98,9 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3Dlove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
     
     // Testing Help link
-    await page.getByRole('banner').getByRole('link', { name: 'עזרה' }).click();
-    expect(getPathAndParams(page.url())).toContain("/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90");
+    const heHelpLink = page.getByRole('banner').getByRole('link', { name: 'עזרה' });
+    const heHelpHref = await heHelpLink.getAttribute('href');
+    expect(heHelpHref).toContain("/hc/he");
 
 });
 
