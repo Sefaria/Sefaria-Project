@@ -452,6 +452,14 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
+  SESSION_COOKIE_DOMAIN: ".sefaria.org"
+  SESSION_COOKIE_SECURE: true
+  SESSION_COOKIE_HTTPONLY: true
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_DOMAIN: ".sefaria.org"
+  CSRF_COOKIE_SECURE: true
+  CSRF_COOKIE_HTTPONLY: false
+  CSRF_COOKIE_SAMESITE: "Lax"
 
 instrumentation:
   enabled: false
