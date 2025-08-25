@@ -57,9 +57,29 @@ $(function() {
 
   if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
     // Render a specifc component to a container
+    console.log('🔍 Attempting to render specific component...');
+    console.log('Container ID:', DJANGO_VARS.containerId);
+    console.log('Component Name:', DJANGO_VARS.reactComponentName);
+    console.log('Props:', DJANGO_VARS.props);
+    
     container = document.getElementById(DJANGO_VARS.containerId);
-    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
-    renderFunc(component, container);
+    console.log('Container element:', container);
+    
+    if (SefariaReact[DJANGO_VARS.reactComponentName]) {
+      console.log('✅ Component found, creating React element...');
+      component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
+      console.log('React element created:', component);
+      
+      try {
+        renderFunc(component, container);
+        console.log('✅ Component rendered successfully');
+      } catch (error) {
+        console.error('❌ Error rendering component:', error);
+      }
+    } else {
+      console.error('❌ Component not found:', DJANGO_VARS.reactComponentName);
+      console.log('Available components:', Object.keys(SefariaReact));
+    }
   }
 
 });
