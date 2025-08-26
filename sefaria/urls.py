@@ -92,7 +92,6 @@ urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
     url(r'^sheets/profile/(?P<username>[^/]+)?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
-    url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^settings/account/user$', reader_views.account_user_update),
     url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
@@ -368,6 +367,7 @@ for prefix in json.loads(MODULE_ROUTES).values():
         url(fr'^{prefix}api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
         url(fr'^{prefix}api/account/delete$', reader_views.delete_user_account_api),
         url(fr'^{prefix}interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
+        url(r'^settings/profile?$', reader_views.edit_profile),
     ]
 
 # Compare Page
