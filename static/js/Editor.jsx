@@ -311,7 +311,6 @@ export const serialize = (content) => {
         }, {preTags: "", postTags: ""});
 
         const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
-
         return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
 
     }
@@ -336,7 +335,7 @@ export const serialize = (content) => {
                 if (content["text-align"] == "center") {
                     return `<div style='text-align: center'>${paragraphHTML}</div>`
                 }
-                return `<div>${paragraphHTML}</div>`
+                return `${paragraphHTML}`
             }
 
             case 'list-item': {
@@ -551,7 +550,6 @@ function replaceBrWithNewLine(html) {
   }
 
 function parseSheetItemHTML(rawhtml) {
-    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
 
