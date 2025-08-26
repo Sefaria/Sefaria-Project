@@ -447,7 +447,7 @@ input.noselect {
 	align-items: center;
 }
 .headerInner .headerLinksSection > * {
-  margin-inline-start: 2%;
+  margin-inline-start: 3%;
 }
 .header .header-nav {
   margin-top: 1px;
@@ -15280,24 +15280,12 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding-top: 25px;
+  padding-top: 15px;
 }
 
 .footerContainer a {
-  padding: 3px 10px;
-}
-
-
-.footerContainer {
-  max-width: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding-top: 25px;
-}
-
-.footerContainer a {
-  padding: 3px 10px;
+  padding-top: 10px;
+  padding-inline-end: 6px;
 }
 
 .stickySidebarFooter {

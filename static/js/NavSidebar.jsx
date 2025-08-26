@@ -292,7 +292,7 @@ const SidebarFooter = () => {
 
   return (
     <div className = "stickySidebarFooter navSidebarModule">
-        <h3/>
+        <h1/>
         <div className="footerContainer">
           {data.map(footerLink =>
             <a href={footerLink.url}>
