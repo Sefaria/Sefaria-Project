@@ -26,43 +26,9 @@ body {
 
 <script>
     {% autoescape off %}
-      DJANGO_VARS.props.initialData = {{ initialData|jsonify }};
-      DJANGO_VARS.containerId = 'editCollectionPageContainerInner',
-      DJANGO_VARS.reactComponentName = 'EditCollectionPage',
+      DJANGO_VARS.containerId = 'editCollectionPageContainerInner';
+      DJANGO_VARS.reactComponentName = 'EditCollectionPage';
       DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
     {% endautoescape %}
-
-    // Debug: Check if the component is available and being rendered
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, checking for React component...');
-        
-        // Wait for the bundle to load
-        setTimeout(function() {
-            console.log('DJANGO_VARS:', DJANGO_VARS);
-            
-            if (typeof SefariaReact !== 'undefined') {
-                console.log('SefariaReact available:', Object.keys(SefariaReact));
-                
-                if (SefariaReact.EditCollectionPage) {
-                    console.log('✅ EditCollectionPage component found');
-                    
-                    // Check if the container exists
-                    const container = document.getElementById(DJANGO_VARS.containerId);
-                    if (container) {
-                        console.log('✅ Container found:', container);
-                        console.log('Container innerHTML:', container.innerHTML);
-                    } else {
-                        console.error('❌ Container not found:', DJANGO_VARS.containerId);
-                    }
-                } else {
-                    console.error('❌ EditCollectionPage component NOT found in SefariaReact');
-                    console.log('Available components:', Object.keys(SefariaReact));
-                }
-            } else {
-                console.error('❌ SefariaReact is not defined');
-            }
-        }, 2000); // Wait 2 seconds for bundle to load
-    });
-
 </script>
 {% endblock %}
