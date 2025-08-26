@@ -663,7 +663,7 @@ const SignUpButton = () => {
 
 const CreateButton = () => {
   return (
-    <Button>
+    <Button className="small">
       <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
       </a>
