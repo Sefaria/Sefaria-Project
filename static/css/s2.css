@@ -718,7 +718,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #666;
+  color: #000000;
   cursor: pointer;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
@@ -811,7 +811,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: #666666;
+  color: #000000;
   padding: 5px;
   direction: ltr;
 }
@@ -1923,14 +1923,17 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   filter: none;
   opacity: .6;
 }
-.navSidebar .button.appButton.white img {
+.navSidebar button.appButton.white img {
   opacity: 1;
 }
-.navSidebar .button.appButton.ios img {
+.navSidebar button.appButton.ios img {
   margin-top: -5px;
 }
 .navSidebar .button + .button {
   margin-inline-start: 7px;
+}
+.navSidebar button {
+  margin-block-start: 15px;
 }
 .navSidebar .button.get-start {
   height: 39px;
@@ -2820,6 +2823,8 @@ div.TOCCardsWrapper :nth-child(1 of .card) {
   line-height: 1.3;
   flex: 1;
   font-weight: 400;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 a.cardTitle:hover {
   text-decoration: none;
@@ -4186,14 +4191,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 30px;
   color: #000;
   margin-bottom: 5px;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font:  var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font:  var(--hebrew-sans-serif-font-family);
 }
 .searchContent h1.englishQuery {
   font-size: 30px;
 }
 .searchContent h1.hebrewQuery {
-  font-family: var(--hebrew-serif-font-family);
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 .searchContent .searchTopLine {
   margin-bottom: 40px;
@@ -4205,7 +4210,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   display: flex;
   border-bottom: 1px solid var(--light-grey);
-  flex-direction: row;
+  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
 }
@@ -8820,15 +8825,15 @@ a .button:hover {
   width: 14px;
   margin-top: -3px;
 }
-.button.appButton {
+button.appButton {
   box-shadow: none;
   border: 2px solid var(--sefaria-blue);
   color: var(--sefaria-blue);
 }
-.button.appButton img {
+button.appButton img {
   margin-inline-end: 5px;
 }
-.button.appButton.iconOnly {
+button.appButton.iconOnly {
   width: 40px;
   height: 40px;
   box-sizing: border-box;
@@ -8837,7 +8842,7 @@ a .button:hover {
   justify-content: center;
   align-items: center;
 }
-.button.appButton.iconOnly img {
+button.appButton.iconOnly img {
   width: 18px;
   height: 18px;
   margin: 0;
@@ -13045,6 +13050,8 @@ body .homeFeedWrapper .content {
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 /*HACK to make English text of sources in topic pages ltr*/
 .interface-hebrew .storyBody {
@@ -13056,7 +13063,6 @@ body .homeFeedWrapper .content {
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
   color: var(--dark-grey);
-  font-family: var(--english-sans-serif-font-family);
   font-size: 15px;
 }
 .story .storyBody .en {
@@ -14943,6 +14949,9 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
+.header .headerDropdownMenu .dropdownLinks-menu a {
+  color: #000000;
+}
 .sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
   height: 10px;
@@ -15039,6 +15048,7 @@ span.ref-link-color-3 {color: blue}
 .header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
 }
+
 
 .productsFlexWrapper {
   display: flex;
@@ -15312,6 +15322,10 @@ span.ref-link-color-3 {color: blue}
   line-height: 18px;
   height: 23px;
   padding-inline: 15px;
+}
+.interface-english .dropdownLanguageToggle a.hebrewLanguageLink,
+.interface-hebrew .dropdownLanguageToggle a.englishLanguageLink {
+  color: #666666;
 }
 
 .languageDot{

@@ -150,11 +150,11 @@ const DropdownLanguageToggle = () => {
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a href={englishLink}>
+        <a className="englishLanguageLink" href={englishLink}>
           English
         </a>
       </span>
-      <a href={hebrewLink}>
+      <a className="hebrewLanguageLink" href={hebrewLink}>
         עברית
       </a>
       </div>

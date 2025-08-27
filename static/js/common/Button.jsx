@@ -10,7 +10,8 @@
  * @returns {JSX.Element}
  * @constructor
  */
-const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null }) => {
+const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, 
+  className = '', activeModule=null, alt=''}) => {
   return (
     <button
       disabled={disabled}
@@ -18,7 +19,7 @@ const Button = ({ variant = '', size = '', icon, children, onClick, disabled=fal
       className={`sefaria-common-button ${variant} ${size} ${className}`}
       onClick={onClick}
     >
-      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
+      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
       {children}
     </button>
   );
