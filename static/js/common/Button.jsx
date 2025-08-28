@@ -14,12 +14,27 @@
 const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null, href }) => {
   const buttonClasses = `sefaria-common-button ${variant} ${size} ${className}`;
   
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (onClick && !disabled) {
+        onClick(e);
+      } else if (href && !disabled) {
+        // For href-based buttons without onClick, trigger the default link behavior
+        e.target.click();
+      }
+    }
+  };
+  
   if (href) { // For accessibility we can't have nested buttons
     return (
       <a
         href={href}
         className={buttonClasses}
         onClick={onClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
         {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
@@ -34,6 +49,7 @@ const Button = ({ variant = '', size = '', icon, children, onClick, disabled=fal
       {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
     >
       {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
       {children}
