@@ -10160,6 +10160,102 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .calendarRef img {
   margin-top: 2px;
 }
+#editCollectionPage {
+  width: 90%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 80px 0 100px;
+}
+.onoffswitch {
+  position: relative;
+  width: 70px;
+  display: inline-block;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select: none;
+}
+.readerNavMenu .content #editCollectionPage .onoffswitch-checkbox {
+  display: none;
+}
+.readerNavMenu .content #editCollectionPage .onoffswitch-label {
+  display: block;
+  height: auto;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 20px;
+}
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.interface-hebrew .onoffswitch-inner {
+  margin-right: -100%;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 36px;
+  padding: 0;
+  line-height: 36px;
+  font-size: 14px;
+  color: white;
+  box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+  content: "Yes";
+  padding-left: 10px;
+  background-color: #212D4F;
+  color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+  content: "לא";
+  padding-right: 10px;
+}
+.onoffswitch-inner:after {
+  content: "No";
+  padding-right: 10px;
+  background-color: #212D4F;
+  color: #fff;
+  text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after {
+  text-align: left;
+  padding-left: 10px;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "כן";
+}
+.onoffswitch-switch {
+  display: block;
+  width: 31px;
+  margin: 1px;
+  background: #FFFFFF;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 30px;
+  right: 36px;
+  border: 2px solid #999999;
+  border-radius: 26px;
+  transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-right: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0px;
+}
+.readerNavMenu .content #editCollectionPage {
+  padding: 20px 0 40px;
+  min-height: auto;
+  overflow: visible;
+}
 #editCollectionPageContainerInner {
   position: relative;
 }
