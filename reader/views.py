@@ -919,14 +919,10 @@ def edit_collection_page(request, slug=None):
         del collectionData["lastModified"]
     else:
         collectionData = None
-
-    # Pass initialData through app_props so it's available in DJANGO_VARS.props
-    app_props = {"initialData": collectionData} if collectionData else {}
-
+           
     # need to pass renderStatic so that s2 shows up in base template
-    return render_template(request, 'edit_collection.html', app_props, {"renderStatic": True})
-
-
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
+    
 def groups_redirect(request, group):
     """
     Redirect legacy groups URLs to collections.

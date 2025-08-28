@@ -147,7 +147,6 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             translation_language_preference_suggestion = None
 
         # VERSION PREFERENCE
-        import json
         from urllib.parse import unquote
         version_preferences_by_corpus_cookie = json.loads(unquote(request.COOKIES.get("version_preferences_by_corpus", "null")))
         request.version_preferences_by_corpus = (profile is not None and getattr(profile, "version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie or {}

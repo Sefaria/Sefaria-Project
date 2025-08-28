@@ -26,6 +26,7 @@ body {
 
 <script>
     {% autoescape off %}
+      DJANGO_VARS.props.initialData = {{ initialData|jsonify }};
       DJANGO_VARS.containerId = 'editCollectionPageContainerInner';
       DJANGO_VARS.reactComponentName = 'EditCollectionPage';
       DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
