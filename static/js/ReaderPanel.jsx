@@ -1072,7 +1072,6 @@ class ReaderPanel extends Component {
       menu = (
         <EditCollectionPage
           initialData={this.state.collectionData}
-          openURL={this.props.openURL}
         />
       );
     }
@@ -1282,7 +1281,6 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
-  openURL:                     PropTypes.func,
 };
 
 

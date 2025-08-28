@@ -530,6 +530,16 @@ class ReaderApp extends Component {
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
             break;
+          case "editCollection":
+            if (state.collectionData && state.collectionData.slug) {
+              hist.url   = "collections/" + state.collectionData.slug + "/settings";
+              hist.title = Sefaria._("Edit Collection") + " | " + Sefaria._(siteName + " Collections");
+            } else {
+              hist.url   = "collections/new";
+              hist.title = Sefaria._("Create Collection") + " | " + Sefaria._(siteName + " Collections");
+            }
+            hist.mode  = "editCollection";
+            break;
           case "collectionsPublic":
             hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
             hist.url = "collections";
@@ -2291,7 +2301,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
-                      openURL={this.openURL.bind(this)}
                       editorSaveState={this.state.editorSaveState}
                       setEditorSaveState={this.setEditorSaveState}
                     />
