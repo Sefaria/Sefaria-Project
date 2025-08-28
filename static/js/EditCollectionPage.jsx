@@ -134,6 +134,8 @@ class EditCollectionPage extends Component {
   render() {
     const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
     return (
+      <div className="readerNavMenu" key="0">
+      <div className="content">
       <div id="editCollectionPage">
         <div className="headerWithButtons">
           <div className="start"></div>
@@ -248,7 +250,10 @@ class EditCollectionPage extends Component {
         </div>
         : null}
 
-      </div>);
+      </div>
+      </div>
+      </div>
+      );
   }
 }
 EditCollectionPage.propTypes = {

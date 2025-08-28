@@ -55,8 +55,9 @@ $(function() {
     }
   }
 
+  // Handle template-specific component rendering (for pages that don't use ReaderApp)
   if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
-    // Render a specifc component to a container
+    // Render a specific component to a container
     console.log('🔍 Attempting to render specific component...');
     console.log('Container ID:', DJANGO_VARS.containerId);
     console.log('Component Name:', DJANGO_VARS.reactComponentName);
