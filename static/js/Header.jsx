@@ -692,20 +692,10 @@ const HelpButton = () => {
 };
 
 const SignUpButton = () => {
-  const handleClick = (e) => {
-    e.preventDefault();
-    window.location.href = "/register";
-  };
-  
   return (
-    <a 
-      href="/register" 
-      className="button small"
-      onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); } }}
-    >
+    <Button href="/register">
       <InterfaceText>Sign Up</InterfaceText>
-    </a>
+    </Button>
   )
 }
 
