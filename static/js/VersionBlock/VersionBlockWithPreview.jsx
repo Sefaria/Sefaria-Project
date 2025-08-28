@@ -4,7 +4,6 @@ import VersionBlockHeader from "./VersionBlockHeader";
 import {VersionBlockUtils} from './VersionBlock';
 import VersionTitleAndSelector from './VersionTitleAndSelector';
 import VersionMetadata from "./VersionMetadata";
-import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import {OpenConnectionTabButton} from "../TextList";
 
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
@@ -23,32 +22,6 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
               direction={version.direction || 'ltr'}
              />
             <div className='version-with-preview-header-row'>
-                <div className='version-with-preview-title-line version-with-preview-select-btn-container'>
-                    {
-                        (() => {
-                            const renderMode = 'translation';
-                            const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(
-                                null,
-                                currentRef,
-                                version,
-                                currObjectVersions,
-                                renderMode,
-                                null,
-                                openVersionInReader
-                            );
-                            const buttonText = isSelected ? 'Currently Selected' : 'Select';
-                            const link = VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, true);
-                            return (
-                                <VersionBlockSelectButton
-                                    isSelected={isSelected}
-                                    openVersionInMainPanel={openVersionInMainPanel}
-                                    text={buttonText}
-                                    link={link}
-                                />
-                            );
-                        })()
-                    }
-                </div>
                 <details>
                     <summary>
                         <VersionTitleAndSelector

@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import VersionBlockSelectButton from "./VersionBlockSelectButton";
+import {VersionBlockUtils} from './VersionBlock';
 import Sefaria from "../sefaria/sefaria";
 
 function VersionTitleAndSelector({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
@@ -10,11 +12,21 @@ function VersionTitleAndSelector({currentRef, version, currObjectVersions, openV
         }
         return shortVersionTitle;
     }
+    const renderMode = 'translation'; //for now this component is only rendered from TranslationsBox
+    const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, renderMode,
+        null, openVersionInReader);
+    const buttonText = isSelected ? 'Currently Selected' : 'Select';
     return (
         <div className='version-with-preview-title-line'>
             <div className='open-details'>
                 {makeShortVersionTitle()}
             </div>
+            <VersionBlockSelectButton
+                isSelected={isSelected}
+                openVersionInMainPanel={openVersionInMainPanel}
+                text={buttonText}
+                link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, true)}
+            />
         </div>
     );
 }
