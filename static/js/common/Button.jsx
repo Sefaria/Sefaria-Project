@@ -12,6 +12,7 @@
  * @constructor
  */
 const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null, href }) => {
+  const buttonClasses = `sefaria-common-button ${variant} ${size} ${className}`;
   
   if (href) { // For accessibility we can't have nested buttons
     return (
@@ -31,7 +32,7 @@ const Button = ({ variant = '', size = '', icon, children, onClick, disabled=fal
     <button
       disabled={disabled}
       {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
-      className={`sefaria-common-button ${variant} ${size} ${className}`}
+      className={buttonClasses}
       onClick={onClick}
     >
       {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
