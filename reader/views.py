@@ -920,8 +920,17 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
            
-    # need to pass renderStatic so that s2 shows up in base template
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
+    props = base_props(request)
+    props.update({
+        "initialMenu": "editCollection",
+        "initialCollectionData": collectionData,
+    })
+    
+    return render_template(request, 'base.html', props, {
+        "title": "Edit Collection" if collectionData else "Create Collection" + " | " + _("Sefaria Collections"),
+        "desc": "Edit your collection settings and details",
+        "noindex": True
+    })
     
 def groups_redirect(request, group):
     """

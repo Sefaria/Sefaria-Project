@@ -19,6 +19,7 @@ import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
+import EditCollectionPage from "./EditCollectionPage";
 import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
 import {SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper}  from './UserHistoryPanel';
@@ -1067,6 +1068,13 @@ class ReaderPanel extends Component {
       menu = <TranslationsPage
         translationsSlug={this.state.translationsSlug}
       />
+    } else if (this.state.menuOpen === "editCollection") {
+      menu = (
+        <EditCollectionPage
+          initialData={this.state.collectionData}
+          openURL={this.props.openURL}
+        />
+      );
     }
     else if (this.state.menuOpen === "community") {
       menu = (
@@ -1274,6 +1282,7 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
+  openURL:                     PropTypes.func,
 };
 
 

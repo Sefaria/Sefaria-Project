@@ -73,6 +73,7 @@ class ReaderApp extends Component {
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
+        collectionData:          props.initialCollectionData,
       };
     }
 
@@ -150,6 +151,7 @@ class ReaderApp extends Component {
       collectionSlug:          state.collectionSlug          || null,
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
+      collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -2289,6 +2291,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      openURL={this.openURL.bind(this)}
                       editorSaveState={this.state.editorSaveState}
                       setEditorSaveState={this.setEditorSaveState}
                     />
@@ -2348,6 +2351,7 @@ ReaderApp.propTypes = {
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
   initialCollection:           PropTypes.string,
+  initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
