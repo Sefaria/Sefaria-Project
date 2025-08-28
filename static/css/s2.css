@@ -3847,7 +3847,6 @@ a.cardTitle:hover {
   /*hide marker for chrome*/
   list-style: none;
   cursor: pointer;
-  display: inline; /* allow adjacent button to sit inline */
 }
 details .open-details::before {
   margin-inline-end: 5px;
@@ -3866,9 +3865,7 @@ details .open-details::before {
   margin-inline-end: 5px;
   color: var(--medium-grey);
 }
-/* Ensure button placed outside summary keeps same inline positioning */
-.version-with-preview-header-row { display: block; }
-.version-with-preview-select-btn-container { display: inline; }
+
 .version-block-with-preview-details {
   background-color: var(--lighter-grey);
   border-radius: 6px;
