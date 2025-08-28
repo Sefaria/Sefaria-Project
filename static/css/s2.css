@@ -30,6 +30,11 @@ body:not(.user-is-tabbing) *:focus {
   top: 10px !important;
 }
 
+/* Prevent any hover color changes for skip link - This is a patch. We should find the root cause of this and fix it. */
+.sefaria-common-button.skip-link:hover {
+  color: var(--theme-button-text) !important;
+}
+
 a, a:hover {
   color: inherit;
 }
