@@ -32,6 +32,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
+import Button from './common/Button';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -2313,7 +2314,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
-            <a href="#main" className="skip-link">{Sefaria._("Skip to main content")}</a>
+            <Button href="#main" className="skip-link">{Sefaria._("Skip to main content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>

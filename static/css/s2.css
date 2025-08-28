@@ -16,40 +16,18 @@ body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
 
-/* Skip Link for Accessibility */
-.skip-link {
-  position: fixed;
-  top: -80px;
-  left: 10px;
-  z-index: 9999;
-  padding: 10px 20px;
-  background-color: var(--sefaria-blue);
-  color: white !important;
-  text-decoration: none;
-  border-radius: 6px;
-  font-size: 16px;
-  border: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-  transition: top 0.3s ease;
-  line-height: 19px;
-  text-align: center;
-  cursor: pointer;
-  box-sizing: border-box;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
-  font-family: var(--hebrew-font-conditional, var(--english-font));
+/* Skip Link for Accessibility - Override Button positioning to hide off-screen by default */
+.sefaria-common-button.skip-link {
+  position: fixed !important;
+  top: -80px !important;
+  left: 10px !important;
+  z-index: 9999 !important;
+  transition: top 0.3s ease !important;
 }
 
-.skip-link:focus {
-  top: 10px;
-  background-color: var(--sefaria-blue);
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-.skip-link:hover {
-  text-decoration: none;
+/* Show skip link when focused - let Button handle the blue border and styling */
+.sefaria-common-button.skip-link:focus {
+  top: 10px !important;
 }
 
 a, a:hover {
