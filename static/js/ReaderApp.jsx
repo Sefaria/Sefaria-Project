@@ -201,6 +201,9 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    
+    // Handle right-clicks on links with data-target-module to ensure correct domain
+    document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -228,6 +231,7 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -1122,6 +1126,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
     if (handled) {
       e.preventDefault();
+    }
+  }
+
+  handleModuleLinkRightClick(e) {
+    const link = e.target.closest('a[data-target-module]');
+    if (link) {
+      const href = link.getAttribute('href');
+      const targetModule = link.getAttribute('data-target-module');
+      
+      const fullUrl = Sefaria.util.fullURL(href, targetModule);
+      link.setAttribute('href', fullUrl);
     }
   }
 
