@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siddur Sefard, Weekday Shacharit, The Shema 1 | Sefaria</title>
+    <meta name="description" content="Read Siddur Sefard, Weekday Shacharit, The Shema 1 with Hebrew text, English translation, and transliteration on Sefaria">
+    <style>
+        /* Authentic Sefaria Styling */
+        :root {
+            --sefaria-blue: #0088cc;
+            --sefaria-gray: #999;
+            --sefaria-border: #ddd;
+            --sefaria-text: #333;
+            --sefaria-background: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Crimson Text", Georgia, serif;
+            line-height: 1.6;
+            color: var(--sefaria-text);
+            background: var(--sefaria-background);
+        }
+
+        /* Header */
+        .sefaria-header {
+            background: white;
+            border-bottom: 1px solid var(--sefaria-border);
+            padding: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .header-inner {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+
+        .sefaria-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--sefaria-blue);
+            text-decoration: none;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--sefaria-gray);
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--sefaria-blue);
+        }
+
+        /* Reader Panel - Full width */
+        .reader-app {
+            width: 100%;
+            padding: 20px 0; /* Only top/bottom padding */
+        }
+
+        .reader-panel {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .reader-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--sefaria-border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .text-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--sefaria-text);
+            margin: 0;
+        }
+
+        .reader-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .language-toggle {
+            background: var(--sefaria-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .language-toggle:hover {
+            background: #0077bb;
+        }
+
+        .display-options select {
+            padding: 8px 12px;
+            border: 1px solid var(--sefaria-border);
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .schema-selector select {
+            padding: 8px 12px;
+            border: 1px solid var(--sefaria-border);
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            min-width: 140px;
+        }
+
+        /* Text Content */
+        .text-content {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        /* Language Modes */
+        .hebrew-mode .english-text,
+        .hebrew-mode .transliteration-text {
+            display: none;
+        }
+
+        .english-mode .hebrew-text,
+        .english-mode .transliteration-text {
+            display: none;
+        }
+
+        .bilingual-mode .transliteration-text {
+            display: none;
+        }
+
+        .bilingual-mode {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        /* Trilingual Mode - Row-based Layout for Perfect Verse Alignment */
+        .trilingual-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        /* Trilingual Word-by-Word Layout Headers */
+        .trilingual-headers {
+            display: flex;
+            gap: 0px;
+            padding: 8px 0px;
+            background: #f8f9fa;
+            border-bottom: 2px solid var(--sefaria-border);
+            font-weight: 600;
+            margin-bottom: 8px;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+
+        .trilingual-headers h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--sefaria-text);
+            text-align: center;
+            padding: 2px 1px;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .trilingual-headers h3:last-child {
+            border-right: none;
+        }
+        
+        /* Make vertical lines continuous from header to bottom of page */
+        .reader-app::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to right, transparent 33.33%, #e0e0e0 33.33%, #e0e0e0 33.35%, transparent 33.35%, transparent 66.66%, #e0e0e0 66.66%, #e0e0e0 66.68%, transparent 66.68%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Word-by-word verse containers */
+        .verse-container {
+            margin-bottom: 0px;
+            padding: 6px 0px;
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
+        }
+        
+        /* Verse number styling */
+        .verse-number {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9em;
+            margin-right: 8px;
+            display: inline-block;
+            min-width: 20px;
+        }
+
+        .verse-container:last-child {
+            border-bottom: none;
+        }
+
+        /* Three-column layout: Hebrew | Transliteration | English */
+        .verse-three-columns {
+            display: flex;
+            gap: 0px; /* Remove gap - columns define their own margins */
+            align-items: flex-start;
+            min-height: 30px;
+        }
+
+        /* Hebrew column (RTL) - Fixed width based on maximum line length */
+        .hebrew-column {
+            /* Width set dynamically by JavaScript based on longest line */
+            direction: rtl;
+            text-align: right;
+            padding: 2px 1px 2px 3px; /* Minimal left padding, slightly more right */
+            border-right: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        /* Transliteration column (LTR) - Fixed width based on maximum line length */  
+        .transliteration-column {
+            /* Width set dynamically by JavaScript based on longest line */
+            direction: ltr;
+            text-align: left;
+            padding: 2px 1px 2px 3px; /* Minimal right padding, slightly more left */
+            border-right: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        /* English column - Dynamic width */
+        .english-column {
+            /* Will be set dynamically by JavaScript */
+            direction: ltr;
+            text-align: left;
+            padding: 2px 3px;
+        }
+
+        /* Word styling within columns */
+        .hebrew-word-line {
+            margin-bottom: 4px;
+            font-family: "SBL Hebrew", "Times New Roman", serif;
+            font-size: 16px;
+            line-height: 20px;
+            color: var(--sefaria-text);
+            word-wrap: break-word;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .transliteration-word-line {
+            margin-bottom: 4px;
+            font-family: "Crimson Text", Georgia, serif;
+            font-size: 16px;
+            line-height: 20px;
+            color: var(--sefaria-text);
+            word-wrap: break-word;
+            font-weight: 400;
+            text-align: left;
+        }
+
+        /* English translation - line-by-line structure */
+        .english-word-line {
+            margin-bottom: 4px;
+            font-family: "Crimson Text", Georgia, serif;
+            font-size: 16px;
+            line-height: 20px;
+            color: var(--sefaria-text);
+            word-wrap: break-word;
+            font-style: italic;
+            font-weight: 400;
+            text-align: left;
+        }
+
+        /* Legacy English verse text (fallback) */
+        .english-verse-text {
+            font-family: "Crimson Text", Georgia, serif;
+            font-size: 16px;
+            line-height: 24px;
+            color: var(--sefaria-text);
+            font-style: italic;
+            vertical-align: top;
+        }
+
+        /* Hide old column-based layout in trilingual mode */
+        .trilingual-mode .text-column {
+            display: none;
+        }
+
+        /* Hide trilingual word-by-word layout in non-trilingual modes */
+        .hebrew-mode .trilingual-headers,
+        .english-mode .trilingual-headers,
+        .bilingual-mode .trilingual-headers,
+        .hebrew-mode .verse-container,
+        .english-mode .verse-container,
+        .bilingual-mode .verse-container {
+            display: none;
+        }
+
+        /* Show appropriate columns for each mode */
+        .hebrew-mode .text-column:not(.hebrew-text) {
+            display: none;
+        }
+
+        .english-mode .text-column:not(.english-text) {
+            display: none;
+        }
+
+        .bilingual-mode .text-column.transliteration-text {
+            display: none;
+        }
+
+        .text-column {
+            padding: 0 10px;
+        }
+
+        .text-column h3 {
+            font-size: 16px;
+            color: var(--sefaria-gray);
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--sefaria-border);
+            padding-bottom: 10px;
+            /* Ensure consistent header height for alignment */
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Hebrew Text Styling */
+        .hebrew-text {
+            direction: rtl;
+            text-align: right;
+            font-family: "SBL Hebrew", "Times New Roman", serif;
+            font-size: 22px;
+            line-height: 1.8;
+            /* Fix Hebrew alignment to match other columns */
+            vertical-align: baseline;
+        }
+
+        /* Ensure Hebrew text segments align with other columns */
+        .trilingual-mode .hebrew-text .text-segment {
+            vertical-align: top;
+            line-height: 1.8; /* Match other columns */
+        }
+
+        /* Transliteration Text Styling */
+        .transliteration-text {
+            direction: ltr;
+            text-align: left;
+            font-family: "Crimson Text", Georgia, serif;
+            font-size: 18px;
+            line-height: 1.8;
+            color: var(--sefaria-text);
+        }
+
+        /* English Text Styling */
+        .english-text {
+            direction: ltr;
+            text-align: left;
+            font-family: "Crimson Text", Georgia, serif;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .text-segment {
+            margin-bottom: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            /* Ensure consistent top alignment across all columns */
+            vertical-align: top;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        /* Fix text segment alignment in trilingual mode */
+        .trilingual-mode .text-segment {
+            min-height: 60px; /* Consistent minimum height for alignment */
+            display: block; /* Override flex for text segments in trilingual */
+            /* Ensure all text segments start at exactly the same position */
+            margin-top: 0;
+            padding-top: 15px;
+            vertical-align: top;
+            box-sizing: border-box;
+        }
+
+        /* Force consistent baseline alignment for all trilingual text */
+        .trilingual-mode .text-segment div {
+            vertical-align: top;
+            line-height: 1.8;
+        }
+
+        .text-segment:last-child {
+            border-bottom: none;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            color: var(--sefaria-gray);
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-inner {
+                padding: 15px;
+            }
+
+            .sefaria-logo {
+                font-size: 24px;
+            }
+
+            .reader-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .text-title {
+                font-size: 20px;
+            }
+
+            .bilingual-mode {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            /* Mobile responsive for trilingual rows */
+            .trilingual-headers,
+            .verse-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .trilingual-headers h3 {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+            .verse-hebrew,
+            .verse-transliteration, 
+            .verse-english {
+                padding: 10px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .verse-row {
+                margin-bottom: 30px;
+                padding: 10px 0;
+            }
+
+            .text-column h3 {
+                font-size: 14px;
+            }
+
+            .hebrew-text {
+                font-size: 20px;
+            }
+
+            .transliteration-text,
+            .english-text {
+                font-size: 16px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            /* Remove margins and padding for full page printing */
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                background: white !important;
+                font-size: 12pt;
+                line-height: 1.4;
+            }
+
+            /* Hide navigation and controls */
+            .sefaria-header,
+            .reader-controls,
+            .nav-link,
+            button {
+                display: none !important;
+            }
+
+            /* Ensure page title is visible */
+            .text-title {
+                font-size: 18pt;
+                margin-bottom: 20pt;
+                page-break-after: avoid;
+            }
+
+            /* Print-optimized container */
+            .reader-app {
+                width: 100% !important;
+                max-width: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .reader-panel {
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            /* Print-optimized headers */
+            .trilingual-headers {
+                width: 100% !important;
+                margin-left: 0 !important;
+                background: #f8f9fa !important;
+                border-bottom: 2pt solid #ddd !important;
+                padding: 8pt 0 !important;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                display: flex !important;
+                gap: 0 !important;
+            }
+
+            .trilingual-headers h3 {
+                font-size: 12pt;
+                font-weight: bold;
+                padding: 4pt 2pt;
+                border-right: 1pt solid #e0e0e0;
+                border-bottom: 1pt solid #e0e0e0; /* Connect headers to columns visually */
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                /* Don't override JavaScript-set width - let inline styles win */
+            }
+
+            .trilingual-headers h3:last-child {
+                border-right: none !important;
+            }
+
+            /* Print-optimized verses */
+            .verse-container {
+                page-break-inside: avoid;
+                border-bottom: 1pt solid #f0f0f0 !important;
+                margin-bottom: 0 !important;
+                padding: 4pt 0 !important;
+            }
+            
+            /* Preserve three-column layout structure */
+            .verse-three-columns {
+                display: flex !important;
+                gap: 0 !important;
+                align-items: flex-start !important;
+            }
+
+            .verse-container:last-child {
+                border-bottom: none !important;
+            }
+
+            /* Print-optimized columns */
+            /* Print layout: Collect Hebrew+Trans on left pages, English on right pages */
+            .verse-three-columns {
+                display: block !important;
+                page-break-inside: avoid;
+                margin-bottom: 4pt;
+            }
+            
+            /* Hebrew and Transliteration columns - keep together */
+            .hebrew-column,
+            .transliteration-column {
+                display: inline-block;
+                border-right: 1pt solid #e0e0e0;
+                padding: 2pt;
+                vertical-align: top;
+                page-break-inside: avoid;
+                /* Don't override JavaScript-set width - let inline styles win */
+            }
+            
+            .transliteration-column {
+                border-right: none;
+            }
+            
+            /* Hide English columns from Hebrew+Trans pages */
+            .english-column {
+                display: none !important;
+            }
+            
+            /* Create English section after all Hebrew+Trans content */
+            .trilingual-content {
+                position: relative;
+            }
+            
+            .trilingual-content::after {
+                content: '';
+                display: block;
+                page-break-before: always;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 1px;
+            }
+            
+            /* English print section - show only in print */
+            .english-print-section {
+                display: block !important;
+                page-break-before: always;
+                padding: 4pt;
+            }
+            
+            .english-print-verse {
+                margin-bottom: 6pt;
+                font-size: 10pt;
+                line-height: 1.3;
+                page-break-inside: avoid;
+            }
+
+            /* Print-optimized text */
+            .hebrew-word-line,
+            .transliteration-word-line,
+            .english-word-line {
+                font-size: 11pt !important;
+                line-height: 1.3 !important;
+                margin-bottom: 2pt !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+
+            .hebrew-word-line {
+                font-weight: 500 !important;
+            }
+
+            .english-word-line {
+                font-style: italic !important;
+            }
+
+            /* Hide non-trilingual content in print */
+            .text-column {
+                display: none !important;
+            }
+
+            /* Ensure proper page breaks with inside margins for binding */
+            @page {
+                size: A4;
+                margin: 0.25in 0.25in 0.25in 1.25in; /* top, right, bottom, left - 1.25in inside margin */
+            }
+            
+            @page :left {
+                margin: 0.25in 0.25in 0.25in 1.25in; /* Hebrew+Transliteration pages: 1.25in inside margin on left */
+            }
+            
+            @page :right {
+                margin: 0.25in 1.25in 0.25in 0.25in; /* English pages: 1.25in inside margin on right */
+            }
+            
+            /* Print headers with page numbers */
+            @page :left {
+                @top-left {
+                    content: counter(page);
+                    font-size: 10pt;
+                    font-weight: normal;
+                }
+            }
+            
+            @page :right {
+                @top-right {
+                    content: counter(page);
+                    font-size: 10pt;
+                    font-weight: normal;
+                }
+            }
+
+            /* Prevent orphaned headers */
+            .trilingual-headers {
+                orphans: 2;
+                widows: 2;
+            }
+
+            /* Keep verse content together */
+            .verse-container {
+                orphans: 2;
+                widows: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentic Sefaria Header -->
+    <header class="sefaria-header">
+        <div class="header-inner">
+            <a href="/" class="sefaria-logo">Sefaria</a>
+            <nav class="header-nav">
+                <a href="/texts" class="nav-link">Texts</a>
+                <a href="/sheets" class="nav-link">Sheets</a>
+                <a href="/topics" class="nav-link">Topics</a>
+                <a href="/collections" class="nav-link">Collections</a>
+                <a href="/donate" class="nav-link">Donate</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Reader Application -->
+    <div class="reader-app">
+        <div class="reader-panel">
+            <!-- Reader Header with Controls -->
+            <div class="reader-header">
+                <h1 class="text-title">Siddur Sefard, Weekday Shacharit, The Shema 1</h1>
+                <div class="reader-controls">
+                    <button class="language-toggle" onclick="toggleLanguage()">
+                        <span id="current-lang">Hebrew</span>
+                    </button>
+                    <div class="display-options">
+                        <select onchange="changeDisplayMode(this.value)">
+                            <option value="hebrew">Hebrew</option>
+                            <option value="english">English</option>
+                            <option value="bilingual">Bilingual</option>
+                            <option value="trilingual" selected>Trilingual</option>
+                        </select>
+                    </div>
+                    <div class="schema-selector">
+                        <select onchange="changeTransliterationSchema(this.value)">
+                            <option value="default">Default Schema</option>
+                            <option value="ashkenazi">Ashkenazi Style</option>
+                            <option value="sephardic">Sephardic Style</option>
+                            <option value="academic">Academic Style</option>
+                            <option value="modern">Modern Hebrew</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Text Content Area -->
+            <div class="text-content trilingual-mode" id="text-content">
+                <!-- Trilingual Headers -->
+                <div class="trilingual-headers">
+                    <h3>Hebrew</h3>
+                    <h3>Transliteration</h3>
+                    <h3>English Translation</h3>
+                </div>
+
+                <!-- Word-by-Word Aligned Verses -->
+                <!-- Genesis Chapter 1 -->
+                <div class="verse-container" data-hebrew="בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ:" data-transliteration="B'reishit bara Elohim et hashamayim v'et ha'aretz:" data-english="When God began to create heaven and earth—">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ עַל־פְּנֵי תְהוֹם וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל־פְּנֵי הַמָּיִם:" data-transliteration="V'ha'aretz hay'tah tohu vavohu v'choshech al-p'nei t'hom v'ruach Elohim m'rachefet al-p'nei hamayim:" data-english="the earth being unformed and void, with darkness over the surface of the deep and a wind from God sweeping over the water—">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר:" data-transliteration="Vayomer Elohim y'hi or vay'hi-or:" data-english="God said, 'Let there be light'; and there was light.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב וַיַּבְדֵּל אֱלֹהִים בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ:" data-transliteration="Vayar Elohim et-ha'or ki-tov vayavdel Elohim bein ha'or uvein hachoshech:" data-english="God saw that the light was good, and God separated the light from the darkness.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם וְלַחֹשֶׁךְ קָרָא לָיְלָה וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם אֶחָד:" data-transliteration="Vayikra Elohim la'or yom v'lachoshech kara laylah vay'hi-erev vay'hi-voker yom echad:" data-english="God called the light Day and called the darkness Night. And there was evening and there was morning, a first day.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים יְהִי רָקִיעַ בְּתוֹךְ הַמָּיִם וִיהִי מַבְדִּיל בֵּין מַיִם לָמָיִם:" data-transliteration="Vayomer Elohim y'hi raki'a b'toch hamayim vihi mavdil bein mayim lamayim:" data-english="God said, 'Let there be an expanse in the midst of the water, that it may separate water from water.'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיַּעַשׂ אֱלֹהִים אֶת־הָרָקִיעַ וַיַּבְדֵּל בֵּין הַמַּיִם אֲשֶׁר מִתַּחַת לָרָקִיעַ וּבֵין הַמַּיִם אֲשֶׁר מֵעַל לָרָקִיעַ וַיְהִי־כֵן:" data-transliteration="Vaya'as Elohim et-haraki'a vayavdel bein hamayim asher mitachat laraki'a uvein hamayim asher me'al laraki'a vay'hi-chen:" data-english="God made the expanse, and it separated the water which was below the expanse from the water which was above the expanse. And it was so.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיִּקְרָא אֱלֹהִים לָרָקִיעַ שָׁמָיִם וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם שֵׁנִי:" data-transliteration="Vayikra Elohim laraki'a shamayim vay'hi-erev vay'hi-voker yom sheini:" data-english="God called the expanse Sky. And there was evening and there was morning, a second day.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים יִקָּווּ הַמַּיִם מִתַּחַת הַשָּׁמַיִם אֶל־מָקוֹם אֶחָד וְתֵרָאֶה הַיַּבָּשָׁה וַיְהִי־כֵן:" data-transliteration="Vayomer Elohim yikavu hamayim mitachat hashamayim el-makom echad v'tera'eh hayabashah vay'hi-chen:" data-english="God said, 'Let the water below the sky be gathered into one area, that the dry land may appear.' And it was so.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיִּקְרָא אֱלֹהִים לַיַּבָּשָׁה אֶרֶץ וּלְמִקְוֵה הַמַּיִם קָרָא יַמִּים וַיַּרְא אֱלֹהִים כִּי־טוֹב:" data-transliteration="Vayikra Elohim layabashah eretz ul'mikveh hamayim kara yamim vayar Elohim ki-tov:" data-english="God called the dry land Earth and called the gathering of waters Seas. And God saw that this was good.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים תַּדְשֵׁא הָאָרֶץ דֶּשֶׁא עֵשֶׂב מַזְרִיעַ זֶרַע עֵץ פְּרִי עֹשֶׂה פְּרִי לְמִינוֹ אֲשֶׁר זַרְעוֹ־בוֹ עַל־הָאָרֶץ וַיְהִי־כֵן:" data-transliteration="Vayomer Elohim tadshe ha'aretz deshe esev mazri'a zera etz p'ri oseh p'ri l'mino asher zar'o-vo al-ha'aretz vay'hi-chen:" data-english="And God said, 'Let the earth sprout vegetation: seed-bearing plants, fruit trees of every kind on earth that bear fruit with the seed in it.' And it was so.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַתּוֹצֵא הָאָרֶץ דֶּשֶׁא עֵשֶׂב מַזְרִיעַ זֶרַע לְמִינֵהוּ וְעֵץ עֹשֶׂה־פְּרִי אֲשֶׁר זַרְעוֹ־בוֹ לְמִינֵהוּ וַיַּרְא אֱלֹהִים כִּי־טוֹב:" data-transliteration="Vatotze ha'aretz deshe esev mazri'a zera l'minehu v'etz oseh-p'ri asher zar'o-vo l'minehu vayar Elohim ki-tov:" data-english="The earth brought forth vegetation: seed-bearing plants of every kind, and trees of every kind bearing fruit with the seed in it. And God saw that this was good.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם שְׁלִישִׁי:" data-transliteration="Vay'hi-erev vay'hi-voker yom sh'lishi:" data-english="And there was evening and there was morning, a third day.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים יְהִי מְאֹרֹת בִּרְקִיעַ הַשָּׁמַיִם לְהַבְדִּיל בֵּין הַיּוֹם וּבֵין הַלָּיְלָה וְהָיוּ לְאֹתֹת וּלְמוֹעֲדִים וּלְיָמִים וְשָׁנִים:" data-transliteration="Vayomer Elohim y'hi m'orot birki'a hashamayim l'havdil bein hayom uvein halaylah v'hayu l'otot ul'mo'adim ul'yamim v'shanim:" data-english="God said, 'Let there be lights in the expanse of the sky to separate day from night; they shall serve as signs for the set times—the days and the years;'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְהָיוּ לִמְאוֹרֹת בִּרְקִיעַ הַשָּׁמַיִם לְהָאִיר עַל־הָאָרֶץ וַיְהִי־כֵן:" data-transliteration="V'hayu lim'orot birki'a hashamayim l'ha'ir al-ha'aretz vay'hi-chen:" data-english="and they shall serve as lights in the expanse of the sky to shine upon the earth.' And it was so.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיַּעַשׂ אֱלֹהִים אֶת־שְׁנֵי הַמְּאֹרֹת הַגְּדֹלִים אֶת־הַמָּאוֹר הַגָּדֹל לְמֶמְשֶׁלֶת הַיּוֹם וְאֶת־הַמָּאוֹר הַקָּטֹן לְמֶמְשֶׁלֶת הַלַּיְלָה וְאֵת הַכּוֹכָבִים:" data-transliteration="Vaya'as Elohim et-sh'nei ham'orot hag'dolim et-hama'or hagadol l'memshelet hayom v'et-hama'or hakaton l'memshelet halaylah v'et hakochavim:" data-english="God made the two great lights, the greater light to dominate the day and the lesser light to dominate the night, and the stars.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיִּתֵּן אֹתָם אֱלֹהִים בִּרְקִיעַ הַשָּׁמָיִם לְהָאִיר עַל־הָאָרֶץ:" data-transliteration="Vayiten otam Elohim birki'a hashamayim l'ha'ir al-ha'aretz:" data-english="And God set them in the expanse of the sky to shine upon the earth,">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְלִמְשֹׁל בַּיּוֹם וּבַלַּיְלָה וּלְהַבְדִּיל בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ וַיַּרְא אֱלֹהִים כִּי־טוֹב:" data-transliteration="V'limshol bayom uvalaylah ul'havdil bein ha'or uvein hachoshech vayar Elohim ki-tov:" data-english="to dominate the day and the night, and to separate light from darkness. And God saw that this was good.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם רְבִיעִי:" data-transliteration="Vay'hi-erev vay'hi-voker yom r'vi'i:" data-english="And there was evening and there was morning, a fourth day.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים יִשְׁרְצוּ הַמַּיִם שֶׁרֶץ נֶפֶשׁ חַיָּה וְעוֹף יְעוֹפֵף עַל־הָאָרֶץ עַל־פְּנֵי רְקִיעַ הַשָּׁמָיִם:" data-transliteration="Vayomer Elohim yishtz'u hamayim sheretz nefesh chayah v'of y'ofef al-ha'aretz al-p'nei r'ki'a hashamayim:" data-english="God said, 'Let the waters bring forth swarms of living creatures, and birds that fly above the earth across the expanse of the sky.'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיִּבְרָא אֱלֹהִים אֶת־הַתַּנִּינִם הַגְּדֹלִים וְאֵת כָּל־נֶפֶשׁ הַחַיָּה הָרֹמֶשֶׂת אֲשֶׁר שָׁרְצוּ הַמַּיִם לְמִינֵהֶם וְאֵת כָּל־עוֹף כָּנָף לְמִינֵהוּ וַיַּרְא אֱלֹהִים כִּי־טוֹב:" data-transliteration="Vayivra Elohim et-hataninim hag'dolim v'et kol-nefesh hachayah haromeset asher sharatz'u hamayim l'mineihem v'et kol-of kanaf l'minehu vayar Elohim ki-tov:" data-english="God created the great sea monsters, and all the living creatures of every kind that creep, which the waters brought forth in swarms, and all the winged birds of every kind. And God saw that this was good.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיְבָרֶךְ אֹתָם אֱלֹהִים לֵאמֹר פְּרוּ וּרְבוּ וּמִלְאוּ אֶת־הַמַּיִם בַּיַּמִּים וְהָעוֹף יִרֶב בָּאָרֶץ:" data-transliteration="Vayvarech otam Elohim lemor p'ru urvu umil'u et-hamayim bayamim v'ha'of yirev ba'aretz:" data-english="God blessed them, saying, 'Be fertile and increase, fill the waters in the seas, and let the birds increase on the earth.'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם חֲמִישִׁי:" data-transliteration="Vay'hi-erev vay'hi-voker yom chamishi:" data-english="And there was evening and there was morning, a fifth day.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים תּוֹצֵא הָאָרֶץ נֶפֶשׁ חַיָּה לְמִינָהּ בְּהֵמָה וָרֶמֶשׂ וְחַיְתוֹ־אֶרֶץ לְמִינָהּ וַיְהִי־כֵן:" data-transliteration="Vayomer Elohim totze ha'aretz nefesh chayah l'minah b'heimah varemes v'chayto-eretz l'minah vay'hi-chen:" data-english="God said, 'Let the earth bring forth every kind of living creature: cattle, creeping things, and wild beasts of every kind.' And it was so.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיַּעַשׂ אֱלֹהִים אֶת־חַיַּת הָאָרֶץ לְמִינָהּ וְאֶת־הַבְּהֵמָה לְמִינָהּ וְאֵת כָּל־רֶמֶשׂ הָאֲדָמָה לְמִינֵהוּ וַיַּרְא אֱלֹהִים כִּי־טוֹב:" data-transliteration="Vaya'as Elohim et-chayat ha'aretz l'minah v'et-hab'heimah l'minah v'et kol-remes ha'adamah l'minehu vayar Elohim ki-tov:" data-english="God made wild beasts of every kind and cattle of every kind, and all kinds of creeping things of the earth. And God saw that this was good.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים נַעֲשֶׂה אָדָם בְּצַלְמֵנוּ כִּדְמוּתֵנוּ וְיִרְדּוּ בִדְגַת הַיָּם וּבְעוֹף הַשָּׁמַיִם וּבַבְּהֵמָה וּבְכָל־הָאָרֶץ וּבְכָל־הָרֶמֶשׂ הָרֹמֵשׂ עַל־הָאָרֶץ:" data-transliteration="Vayomer Elohim na'aseh adam b'tzalmenu kidmutenu v'yirdu vidgat hayam uv'of hashamayim uvab'heimah uv'chol-ha'aretz uv'chol-haremes haromes al-ha'aretz:" data-english="And God said, 'Let us make humankind in our image, after our likeness. They shall rule the fish of the sea, the birds of the sky, the cattle, the whole earth, and all the creeping things that creep on earth.'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיִּבְרָא אֱלֹהִים אֶת־הָאָדָם בְּצַלְמוֹ בְּצֶלֶם אֱלֹהִים בָּרָא אֹתוֹ זָכָר וּנְקֵבָה בָּרָא אֹתָם:" data-transliteration="Vayivra Elohim et-ha'adam b'tzalmo b'tzelem Elohim bara oto zachar un'keivah bara otam:" data-english="And God created humankind in the divine image, creating it in the image of God—creating them male and female.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיְבָרֶךְ אֹתָם אֱלֹהִים וַיֹּאמֶר לָהֶם אֱלֹהִים פְּרוּ וּרְבוּ וּמִלְאוּ אֶת־הָאָרֶץ וְכִבְשֻׁהָ וּרְדוּ בִּדְגַת הַיָּם וּבְעוֹף הַשָּׁמַיִם וּבְכָל־חַיָּה הָרֹמֶשֶׂת עַל־הָאָרֶץ:" data-transliteration="Vayvarech otam Elohim vayomer lahem Elohim p'ru urvu umil'u et-ha'aretz v'chivshuhah ur'du bidgat hayam uv'of hashamayim uv'chol-chayah haromeset al-ha'aretz:" data-english="God blessed them and God said to them, 'Be fertile and increase, fill the earth and master it; and rule the fish of the sea, the birds of the sky, and all the living things that creep on earth.'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיֹּאמֶר אֱלֹהִים הִנֵּה נָתַתִּי לָכֶם אֶת־כָּל־עֵשֶׂב זֹרֵעַ זֶרַע אֲשֶׁר עַל־פְּנֵי כָל־הָאָרֶץ וְאֶת־כָּל־הָעֵץ אֲשֶׁר־בּוֹ פְרִי־עֵץ זֹרֵעַ זָרַע לָכֶם יִהְיֶה לְאָכְלָה:" data-transliteration="Vayomer Elohim hineh natati lachem et-kol-esev zorei'a zera asher al-p'nei chol-ha'aretz v'et-kol-ha'etz asher-bo p'ri-etz zorei'a zara lachem yih'yeh l'ochlah:" data-english="God said, 'See, I give you every seed-bearing plant that is upon all the earth, and every tree that has seed-bearing fruit; they shall be yours for food.'">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וּלְכָל־חַיַּת הָאָרֶץ וּלְכָל־עוֹף הַשָּׁמַיִם וּלְכֹל רוֹמֵשׂ עַל־הָאָרֶץ אֲשֶׁר־בּוֹ נֶפֶשׁ חַיָּה אֶת־כָּל־יֶרֶק עֵשֶׂב לְאָכְלָה וַיְהִי־כֵן:" data-transliteration="Ul'chol-chayat ha'aretz ul'chol-of hashamayim ul'chol romes al-ha'aretz asher-bo nefesh chayah et-kol-yerek esev l'ochlah vay'hi-chen:" data-english="And to all the animals on land, to all the birds of the sky, and to everything that creeps on earth, in which there is the breath of life, [I give] all the green plants for food.' And it was so.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וַיַּרְא אֱלֹהִים אֶת־כָּל־אֲשֶׁר עָשָׂה וְהִנֵּה־טוֹב מְאֹד וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם הַשִּׁשִּׁי:" data-transliteration="Vayar Elohim et-kol-asher asah v'hineh-tov m'od vay'hi-erev vay'hi-voker yom hashishi:" data-english="And God saw all that had been made, and found it very good. And there was evening and there was morning, the sixth day.">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְאָהַבְתָּ אֵת ה' אֱלֹהֶיךָ בְּכָל לְבָבְךָ וּבְכָל נַפְשְׁךָ וּבְכָל מְאֹדֶךָ:" data-transliteration="V'ahavta et Adonai Eloheicha b'chol l'vavcha uv'chol nafsh'cha uv'chol m'odecha:" data-english="And you shall love the Lord your God with all your heart, and with all your soul, and with all your might:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְהָיוּ הַדְּבָרִים הָאֵלֶּה אֲשֶׁר אָנֹכִי מְצַוְּךָ הַיּוֹם עַל לְבָבֶךָ:" data-transliteration="V'hayu had'varim ha'eileh asher anochi m'tzav'cha hayom al l'vavecha:" data-english="And these words, which I command you this day, shall be upon your heart:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְשִׁנַּנְתָּם לְבָנֶיךָ וְדִבַּרְתָּ בָּם בְּשִׁבְתְּךָ בְּבֵיתֶךָ וּבְלֶכְתְּךָ בַדֶּרֶךְ וּבְשָׁכְבְּךָ וּבְקוּמֶךָ:" data-transliteration="V'shinan'tam l'vaneicha v'dibar'ta bam b'shiv't'cha b'veitecha uv'lech't'cha vaderech uv'shach'b'cha uv'kumecha:" data-english="And you shall teach them diligently unto your children, and shall talk of them when you sit in your house, and when you walk by the way, and when you lie down, and when you rise up:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וּקְשַׁרְתָּם לְאוֹת עַל יָדֶךָ וְהָיוּ לְטֹטָפֹת בֵּין עֵינֶיךָ:" data-transliteration="Uk'shartem l'ot al yadecha v'hayu l'totafot bein eineicha:" data-english="And you shall bind them for a sign upon your hand, and they shall be for frontlets between your eyes:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וּכְתַבְתָּם עַל מְזֻזוֹת בֵּיתֶךָ וּבִשְׁעָרֶיךָ:" data-transliteration="Uch'tavtam al m'zuzot beitecha uvish'areicha:" data-english="And you shall write them upon the doorposts of your house, and upon your gates:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְהָיָה אִם שָׁמֹעַ תִּשְׁמְעוּ אֶל מִצְוֹתַי אֲשֶׁר אָנֹכִי מְצַוֶּה אֶתְכֶם הַיּוֹם לְאַהֲבָה אֶת ה' אֱלֹהֵיכֶם וּלְעָבְדוֹ בְּכָל לְבַבְכֶם וּבְכָל נַפְשְׁכֶם:" data-transliteration="V'hayah im shamo'a tish'm'u el mitzvotai asher anochi m'tzaveh etchem hayom l'ahavah et Adonai Eloheichem ul'ovdo b'chol l'vavchem uv'chol nafshechem:" data-english="And it shall come to pass, if you shall hearken diligently unto My commandments which I command you this day, to love the Lord your God, and to serve Him with all your heart and with all your soul:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְנָתַתִּי מְטַר אַרְצְכֶם בְּעִתּוֹ יוֹרֶה וּמַלְקוֹשׁ וְאָסַפְתָּ דְגָנֶךָ וְתִירֹשְׁךָ וְיִצְהָרֶךָ:" data-transliteration="V'natati m'tar artz'chem b'ito yoreh umalosh v'asaf'ta d'ganecha v'tirosh'cha v'yitz'harecha:" data-english="That I will give you the rain of your land in its due season, the first rain and the latter rain, that you may gather in your grain, and your wine, and your oil:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְנָתַתִּי עֵשֶׂב בְּשָׂדְךָ לִבְהֶמְתֶּךָ וְאָכַלְתָּ וְשָׂבָעְתָּ:" data-transliteration="V'natati eisev b'sad'cha livhemtecha v'achalta v'savata:" data-english="And I will send grass in your fields for your cattle, that you may eat and be full:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="הִשָּׁמְרוּ לָכֶם פֶּן יִפְתֶּה לְבַבְכֶם וְסַרְתֶּם וַעֲבַדְתֶּם אֱלֹהִים אֲחֵרִים וְהִשְׁתַּחֲוִיתֶם לָהֶם:" data-transliteration="Hisham'ru lachem pen yifteh l'vavchem v'sartem va'avadtem elohim acherim v'hishtachavitem lahem:" data-english="Take heed to yourselves, that your heart be not deceived, and you turn aside, and serve other gods, and worship them:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְחָרָה אַף ה' בָּכֶם וְעָצַר אֶת הַשָּׁמַיִם וְלֹא יִהְיֶה מָטָר וְהָאֲדָמָה לֹא תִתֵּן אֶת יְבוּלָהּ וַאֲבַדְתֶּם מְהֵרָה מֵעַל הָאָרֶץ הַטֹּבָה אֲשֶׁר ה' נֹתֵן לָכֶם:" data-transliteration="V'charah af Adonai bachem v'atzar et hashamayim v'lo yih'yeh matar v'ha'adamah lo titein et y'vulah va'avad'tem m'heirah mei'al ha'aretz hatovah asher Adonai notein lachem:" data-english="And then the Lord's wrath be kindled against you, and He shut up the heaven, that there be no rain, and that the land yield not her fruit; and lest you perish quickly from off the good land which the Lord gives you:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְשַׂמְתֶּם אֶת דְּבָרַי אֵלֶּה עַל לְבַבְכֶם וְעַל נַפְשְׁכֶם וּקְשַׁרְתֶּם אֹתָם לְאוֹת עַל יֶדְכֶם וְהָיוּ לְטוֹטָפֹת בֵּין עֵינֵיכֶם:" data-transliteration="V'sam'tem et d'varai eileh al l'vavchem v'al nafshechem uk'shartem otam l'ot al yed'chem v'hayu l'totafot bein eineichem:" data-english="Therefore shall you lay up these My words in your heart and in your soul, and bind them for a sign upon your hand, that they may be as frontlets between your eyes:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וְלִמַּדְתֶּם אֹתָם אֶת בְּנֵיכֶם לְדַבֵּר בָּם בְּשִׁבְתְּךָ בְּבֵיתֶךָ וּבְלֶכְתְּךָ בַדֶּרֶךְ וּבְשָׁכְבְּךָ וּבְקוּמֶךָ:" data-transliteration="V'limad'tem otam et b'neichem l'dabeir bam b'shiv't'cha b'veitecha uv'lech't'cha vaderech uv'shach'b'cha uv'kumecha:" data-english="And you shall teach them your children, speaking of them when you sit in your house, and when you walk by the way, when you lie down, and when you rise up:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="וּכְתַבְתָּם עַל מְזוּזוֹת בֵּיתֶךָ וּבִשְׁעָרֶיךָ:" data-transliteration="Uch'tavtam al m'zuzot beitecha uvish'areicha:" data-english="And you shall write them upon the doorposts of your house, and upon your gates:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <div class="verse-container" data-hebrew="לְמַעַן יִרְבּוּ יְמֵיכֶם וִימֵי בְנֵיכֶם עַל הָאֲדָמָה אֲשֶׁר נִשְׁבַּע ה' לַאֲבֹתֵיכֶם לָתֵת לָהֶם כִּימֵי הַשָּׁמַיִם עַל הָאָרֶץ:" data-transliteration="L'ma'an yirbu y'meichem vimei v'neichem al ha'adamah asher nishba Adonai la'avoteichem latet lahem kimei hashamayim al ha'aretz:" data-english="That your days may be multiplied, and the days of your children, in the land which the Lord swore unto your fathers to give them, as the days of heaven upon the earth:">
+                    <!-- This will be populated by JavaScript -->
+                </div>
+
+                <!-- Old Column-based Layout (hidden in trilingual, shown in other modes) -->
+                <div class="text-column hebrew-text">
+                    <h3>Hebrew</h3>
+                    <div class="text-segment"><div>בָּרְכוּ אֶת ה' הַמְבֹרָךְ:</div></div>
+                    <div class="text-segment"><div>בָּרוּךְ ה' הַמְבֹרָךְ לְעוֹלָם וָעֶד:</div></div>
+                    <div class="text-segment"><div>בָּרוּךְ אַתָּה ה' אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ, עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל:</div></div>
+                    <div class="text-segment"><div>שְׁמַע יִשְׂרָאֵל ה' אֱלֹהֵינוּ ה' אֶחָד:</div></div>
+                    <div class="text-segment"><div>בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד:</div></div>
+                </div>
+
+                <div class="text-column transliteration-text">
+                    <h3>Transliteration</h3>
+                    <div class="text-segment"><div>Bar'chu et Adonai hamevorach:</div></div>
+                    <div class="text-segment"><div>Baruch Adonai hamevorach l'olam va'ed:</div></div>
+                    <div class="text-segment"><div>Baruch atah Adonai, Eloheinu melech ha'olam, yotzer or uvorei choshech, oseh shalom uvorei et hakol:</div></div>
+                    <div class="text-segment"><div>Shema Yisrael Adonai Eloheinu Adonai echad:</div></div>
+                    <div class="text-segment"><div>Baruch shem k'vod malchuto l'olam va'ed:</div></div>
+                </div>
+
+                <div class="text-column english-text">
+                    <h3>English Translation</h3>
+                    <div class="text-segment"><div>Bless the Lord who is blessed:</div></div>
+                    <div class="text-segment"><div>Blessed is the Lord who is blessed for all eternity:</div></div>
+                    <div class="text-segment"><div>Blessed are You, Lord our God, King of the universe, who forms light and creates darkness, makes peace and creates everything:</div></div>
+                    <div class="text-segment"><div>Hear, O Israel: The Lord our God, the Lord is one:</div></div>
+                    <div class="text-segment"><div>Blessed is the name of His glorious kingdom for all eternity:</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Authentic Sefaria-style Language Toggle
+        const languages = ['Hebrew', 'English', 'Bilingual', 'Trilingual'];
+        let currentLangIndex = 3; // Start with Trilingual
+
+        function toggleLanguage() {
+            currentLangIndex = (currentLangIndex + 1) % languages.length;
+            const newLang = languages[currentLangIndex];
+            document.getElementById('current-lang').textContent = newLang;
+            
+            // Update select dropdown
+            const select = document.querySelector('select');
+            select.value = newLang.toLowerCase();
+            
+            changeDisplayMode(newLang.toLowerCase());
+        }
+
+        function changeDisplayMode(mode) {
+            const content = document.getElementById('text-content');
+            
+            // Remove all mode classes
+            content.classList.remove('hebrew-mode', 'english-mode', 'bilingual-mode', 'trilingual-mode');
+            
+            // Add new mode class
+            content.classList.add(mode + '-mode');
+            
+            // Update button text
+            const langNames = {
+                'hebrew': 'Hebrew',
+                'english': 'English', 
+                'bilingual': 'Bilingual',
+                'trilingual': 'Trilingual'
+            };
+            
+            document.getElementById('current-lang').textContent = langNames[mode];
+            currentLangIndex = Object.keys(langNames).indexOf(mode);
+            
+            // Simulate transliteration API call for trilingual mode
+            if (mode === 'trilingual') {
+                simulateTransliterationLoading();
+            }
+        }
+
+        function simulateTransliterationLoading() {
+            const transliterationElements = document.querySelectorAll('.transliteration-text .text-segment');
+            
+            transliterationElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.remove('loading');
+                }, index * 300);
+            });
+        }
+
+        // Transliteration schemas
+        const transliterationSchemas = {
+            'default': {
+                'בָּרְכוּ אֶת ה\' הַמְבֹרָךְ:': 'Bar\'chu et Adonai hamevorach:',
+                'בָּרוּךְ ה\' הַמְבֹרָךְ לְעוֹלָם וָעֶד:': 'Baruch Adonai hamevorach l\'olam va\'ed:',
+                'בָּרוּךְ אַתָּה ה\' אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ, עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל:': 'Baruch atah Adonai, Eloheinu melech ha\'olam, yotzer or uvorei choshech, oseh shalom uvorei et hakol:',
+                'שְׁמַע יִשְׂרָאֵל ה\' אֱלֹהֵינוּ ה\' אֶחָד:': 'Shema Yisrael Adonai Eloheinu Adonai echad:',
+                'בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד:': 'Baruch shem k\'vod malchuto l\'olam va\'ed:'
+            },
+            'ashkenazi': {
+                'בָּרְכוּ אֶת ה\' הַמְבֹרָךְ:': 'Borchu es Hashem hamevoirach:',
+                'בָּרוּךְ ה\' הַמְבֹרָךְ לְעוֹלָם וָעֶד:': 'Boruch Hashem hamevoirach l\'oilom vo\'ed:',
+                'בָּרוּךְ אַתָּה ה\' אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ, עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל:': 'Boruch atoh Hashem, Eloihenu melech ho\'oilom, yoitzer oir uvoirei choisech, oseh sholom uvoirei es hakol:',
+                'שְׁמַע יִשְׂרָאֵל ה\' אֱלֹהֵינוּ ה\' אֶחָד:': 'Shma Yisroeil Hashem Eloihenu Hashem echod:',
+                'בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד:': 'Boruch shem k\'void malchuso l\'oilom vo\'ed:'
+            },
+            'sephardic': {
+                'בָּרְכוּ אֶת ה\' הַמְבֹרָךְ:': 'Barechu et Adonai hamevorach:',
+                'בָּרוּךְ ה\' הַמְבֹרָךְ לְעוֹלָם וָעֶד:': 'Baruch Adonai hamevorach le\'olam va\'ed:',
+                'בָּרוּךְ אַתָּה ה\' אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ, עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל:': 'Baruch ata Adonai, Elohenu melech ha\'olam, yotser or uvoré choshech, osé shalom uvoré et hakol:',
+                'שְׁמַע יִשְׂרָאֵל ה\' אֱלֹהֵינוּ ה\' אֶחָד:': 'Shema Israel Adonai Elohenu Adonai echad:',
+                'בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד:': 'Baruch shem kevod malchuto le\'olam va\'ed:'
+            },
+            'academic': {
+                'בָּרְכוּ אֶת ה\' הַמְבֹרָךְ:': 'bārǝḵû ʾeṯ yhwh hamǝḇōrāḵ:',
+                'בָּרוּךְ ה\' הַמְבֹרָךְ לְעוֹלָם וָעֶד:': 'bārûḵ yhwh hamǝḇōrāḵ lǝʿôlām wāʿeḏ:',
+                'בָּרוּךְ אַתָּה ה\' אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ, עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל:': 'bārûḵ ʾattā yhwh ʾĕlōhênû meleḵ hāʿôlām, yôṣēr ʾôr ûḇôrēʾ ḥōšeḵ, ʿōśeh šālôm ûḇôrēʾ ʾeṯ hakkōl:',
+                'שְׁמַע יִשְׂרָאֵל ה\' אֱלֹהֵינוּ ה\' אֶחָד:': 'šǝmaʿ yiśrāʾēl yhwh ʾĕlōhênû yhwh ʾeḥāḏ:',
+                'בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד:': 'bārûḵ šēm kǝḇôḏ malḵûṯô lǝʿôlām wāʿeḏ:'
+            },
+            'modern': {
+                'בָּרְכוּ אֶת ה\' הַמְבֹרָךְ:': 'Barechu et Adonai hame\'vorach:',
+                'בָּרוּךְ ה\' הַמְבֹרָךְ לְעוֹלָם וָעֶד:': 'Baruch Adonai hame\'vorach le\'olam va\'ed:',
+                'בָּרוּךְ אַתָּה ה\' אֱלֹהֵינוּ מֶלֶךְ הָעוֹלָם, יוֹצֵר אוֹר וּבוֹרֵא חֹשֶׁךְ, עֹשֶׂה שָׁלוֹם וּבוֹרֵא אֶת הַכֹּל:': 'Baruch ata Adonai, Eloheinu melech ha\'olam, yotzer or uvorei choshech, oseh shalom uvorei et hakol:',
+                'שְׁמַע יִשְׂרָאֵל ה\' אֱלֹהֵינוּ ה\' אֶחָד:': 'Shema Yisrael Adonai Eloheinu Adonai echad:',
+                'בָּרוּךְ שֵׁם כְּבוֹד מַלְכוּתוֹ לְעוֹלָם וָעֶד:': 'Baruch shem kevod malchuto le\'olam va\'ed:'
+            }
+        };
+
+        function changeTransliterationSchema(schemaType) {
+            console.log('Changing transliteration schema to:', schemaType);
+            
+            // Update the data attributes and recreate word alignment
+            const containers = document.querySelectorAll('.verse-container');
+            const schema = transliterationSchemas[schemaType];
+            
+            if (!schema) {
+                console.error('Schema not found:', schemaType);
+                return;
+            }
+            
+            containers.forEach((container, index) => {
+                const hebrewText = container.getAttribute('data-hebrew');
+                const newTranslit = schema[hebrewText];
+                
+                if (newTranslit) {
+                    // Update data attribute
+                    container.setAttribute('data-transliteration', newTranslit);
+                    
+                    // Add loading animation
+                    container.style.opacity = '0.5';
+                    
+                    setTimeout(() => {
+                        container.style.opacity = '1';
+                    }, 200 + index * 100); // Stagger the updates
+                }
+            });
+            
+            // Recreate word alignment with new schema
+            setTimeout(() => {
+                createWordAlignment();
+            }, 500);
+            
+            // Show feedback
+            const status = document.querySelector('.schema-selector');
+            const originalBg = status.style.background;
+            status.style.background = '#d4edda';
+            setTimeout(() => {
+                status.style.background = originalBg;
+            }, 1000);
+        }
+
+        // Three-Column Word Alignment System
+        function createWordAlignment() {
+            const containers = document.querySelectorAll('.verse-container');
+            
+            // Calculate average word lengths and total English length
+            let totalHebrewChars = 0, totalTranslitChars = 0, totalEnglishChars = 0;
+            let totalHebrewWords = 0, totalTranslitWords = 0, totalEnglishVerses = 0;
+            
+            containers.forEach(container => {
+                // Remove any newline characters and normalize spaces for natural wrapping
+                const hebrew = container.getAttribute('data-hebrew').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                const transliteration = container.getAttribute('data-transliteration').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                const english = container.getAttribute('data-english').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                
+                const hebrewWords = hebrew.split(/\s+/).filter(w => w.length > 0);
+                const translitWords = transliteration.split(/\s+/).filter(w => w.length > 0);
+                
+                hebrewWords.forEach(word => totalHebrewChars += word.length);
+                translitWords.forEach(word => totalTranslitChars += word.length);
+                totalEnglishChars += english.length;
+                
+                totalHebrewWords += hebrewWords.length;
+                totalTranslitWords += translitWords.length;
+                totalEnglishVerses++;
+            });
+            
+            // Calculate averages
+            const avgHebrewWordLength = totalHebrewChars / totalHebrewWords;
+            const avgTranslitWordLength = totalTranslitChars / totalTranslitWords;
+            const avgEnglishVerseLength = totalEnglishChars / totalEnglishVerses;
+            
+            // Step 1: Balance Hebrew vs Transliteration
+            const hebrewTranslitTotal = avgHebrewWordLength + avgTranslitWordLength;
+            const hebrewRatio = avgHebrewWordLength / hebrewTranslitTotal;
+            const translitRatio = avgTranslitWordLength / hebrewTranslitTotal;
+            
+            // Step 2: Balance (Hebrew + Translit) vs English
+            // Estimate total characters for Hebrew+Translit per verse
+            const avgWordsPerVerse = (totalHebrewWords + totalTranslitWords) / (totalEnglishVerses * 2);
+            const avgHebrewTranslitPerVerse = avgWordsPerVerse * hebrewTranslitTotal;
+            
+            const totalAvgCharsPerVerse = avgHebrewTranslitPerVerse + avgEnglishVerseLength;
+            const hebrewTranslitBlockRatio = avgHebrewTranslitPerVerse / totalAvgCharsPerVerse;
+            const englishBlockRatio = avgEnglishVerseLength / totalAvgCharsPerVerse;
+            
+            // Final column ratios
+            const finalHebrewRatio = hebrewTranslitBlockRatio * hebrewRatio;
+            const finalTranslitRatio = hebrewTranslitBlockRatio * translitRatio;
+            const finalEnglishRatio = englishBlockRatio;
+            
+            console.log(`📊 Three-Column Analysis:`);
+            console.log(`   Hebrew avg: ${avgHebrewWordLength.toFixed(1)} chars/word`);
+            console.log(`   Translit avg: ${avgTranslitWordLength.toFixed(1)} chars/word`);
+            console.log(`   English avg: ${avgEnglishVerseLength.toFixed(1)} chars/verse`);
+            console.log(`   Final ratios: ${(finalHebrewRatio*100).toFixed(1)}% | ${(finalTranslitRatio*100).toFixed(1)}% | ${(finalEnglishRatio*100).toFixed(1)}%`);
+            
+            // FIRST: Calculate maximum line widths across ALL verses for consistent alignment
+            let globalMaxHebrewWidth = 0;
+            let globalMaxTranslitWidth = 0;
+            let globalMaxEnglishWidth = 0;
+            const allVerseData = [];
+            
+            containers.forEach(container => {
+                // Remove any newline characters and normalize spaces for natural wrapping
+                const hebrew = container.getAttribute('data-hebrew').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                const transliteration = container.getAttribute('data-transliteration').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                const english = container.getAttribute('data-english').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                
+                const hebrewWords = hebrew.split(/\s+/).filter(w => w.length > 0);
+                const translitWords = transliteration.split(/\s+/).filter(w => w.length > 0);
+                const englishWords = english.split(/\s+/).filter(w => w.length > 0);
+                
+                // LINE BALANCE FIX: Use the balanced word packing algorithm
+                const alignedLines = packWordsWithCorrespondence(hebrewWords, translitWords, englishWords, finalHebrewRatio, finalTranslitRatio);
+                
+                // NOTE: Previous override that forced English to one line has been removed
+                // alignedLines.english now contains properly distributed English lines for balance
+                
+                // Track maximum widths across all verses
+                if (alignedLines.maxHebrewWidth > globalMaxHebrewWidth) {
+                    globalMaxHebrewWidth = alignedLines.maxHebrewWidth;
+                }
+                if (alignedLines.maxTranslitWidth > globalMaxTranslitWidth) {
+                    globalMaxTranslitWidth = alignedLines.maxTranslitWidth;
+                }
+                if (alignedLines.maxEnglishWidth > globalMaxEnglishWidth) {
+                    globalMaxEnglishWidth = alignedLines.maxEnglishWidth;
+                }
+                
+                // Store verse data for second pass
+                allVerseData.push({
+                    container: container,
+                    hebrew: hebrew,
+                    transliteration: transliteration,
+                    english: english,
+                    alignedLines: alignedLines
+                });
+            });
+            
+            // SMART PROPORTIONAL COLUMN SIZING: Eliminate white space with optimal proportions
+            const maxViewportWidth = window.innerWidth - 40; // Minimal safety margin
+            
+            console.log(`🎯 COLUMN PROPORTION ALGORITHM: Starting with viewport ${maxViewportWidth}px`);
+            console.log(`📏 Natural widths: H:${globalMaxHebrewWidth}px T:${globalMaxTranslitWidth}px E:${globalMaxEnglishWidth}px`);
+            
+            // STEP 1: Determine Hebrew:Transliteration proportion
+            const hebrewTranslitRatio = globalMaxHebrewWidth / globalMaxTranslitWidth;
+            const normalizedHebrewRatio = hebrewTranslitRatio / (hebrewTranslitRatio + 1); // Hebrew portion
+            const normalizedTranslitRatio = 1 - normalizedHebrewRatio; // Transliteration portion
+            
+            console.log(`📊 Hebrew:Transliteration ratio = ${hebrewTranslitRatio.toFixed(2)}:1`);
+            console.log(`📊 Normalized ratios: Hebrew ${(normalizedHebrewRatio * 100).toFixed(1)}%, Translit ${(normalizedTranslitRatio * 100).toFixed(1)}%`);
+            
+            // STEP 2: Determine Hebrew-Transliteration block vs English proportion
+            const hebrewTranslitCombinedWidth = globalMaxHebrewWidth + globalMaxTranslitWidth;
+            const blockToEnglishRatio = hebrewTranslitCombinedWidth / globalMaxEnglishWidth;
+            const normalizedBlockRatio = blockToEnglishRatio / (blockToEnglishRatio + 1); // HT block portion
+            const normalizedEnglishRatio = 1 - normalizedBlockRatio; // English portion
+            
+            console.log(`📊 Hebrew-Translit-Block:English ratio = ${blockToEnglishRatio.toFixed(2)}:1`);
+            console.log(`📊 Final proportions: HT-Block ${(normalizedBlockRatio * 100).toFixed(1)}%, English ${(normalizedEnglishRatio * 100).toFixed(1)}%`);
+            
+            // STEP 3: Apply proportional widths to available space
+            const availableWidth = maxViewportWidth - 20; // Minimal column gaps
+            
+            const hebrewTranslitBlockWidth = availableWidth * normalizedBlockRatio;
+            const englishWidth = availableWidth * normalizedEnglishRatio;
+            
+            // Distribute Hebrew-Transliteration block proportionally
+            globalMaxHebrewWidth = hebrewTranslitBlockWidth * normalizedHebrewRatio;
+            globalMaxTranslitWidth = hebrewTranslitBlockWidth * normalizedTranslitRatio;
+            globalMaxEnglishWidth = englishWidth;
+            
+            console.log(`✅ FINAL COLUMN WIDTHS: Hebrew ${globalMaxHebrewWidth.toFixed(0)}px, Translit ${globalMaxTranslitWidth.toFixed(0)}px, English ${globalMaxEnglishWidth.toFixed(0)}px`);
+            console.log(`✅ Total used: ${(globalMaxHebrewWidth + globalMaxTranslitWidth + globalMaxEnglishWidth).toFixed(0)}px of ${maxViewportWidth}px available`);
+            
+            const htCombined = globalMaxHebrewWidth + globalMaxTranslitWidth;
+            const balanceRatio = htCombined / globalMaxEnglishWidth;
+            
+            console.log(`📏 Balanced column widths: Hebrew ${globalMaxHebrewWidth.toFixed(1)}px, Translit ${globalMaxTranslitWidth.toFixed(1)}px, English ${globalMaxEnglishWidth.toFixed(1)}px`);
+            console.log(`⚖️ Balance achieved: HT-combined ${htCombined.toFixed(1)}px vs English ${globalMaxEnglishWidth.toFixed(1)}px (ratio: ${balanceRatio.toFixed(2)}:1)`);
+            
+            // Update header widths to match column widths
+            const headers = document.querySelectorAll('.trilingual-headers h3');
+            if (headers.length >= 3) {
+                headers[0].style.width = `${globalMaxHebrewWidth + 4}px`; // Hebrew header
+                headers[1].style.width = `${globalMaxTranslitWidth + 4}px`; // Transliteration header  
+                headers[2].style.width = `${globalMaxEnglishWidth + 4}px`; // English header
+                headers[0].style.flexShrink = '0';
+                headers[1].style.flexShrink = '0';
+                headers[2].style.flexShrink = '0';
+            }
+            
+            // Collect all English text for print layout
+            const allEnglishVerses = [];
+            
+            // SECOND: Create all verses using consistent column widths
+            allVerseData.forEach(verseData => {
+                const { container, hebrew, transliteration, english, alignedLines } = verseData;
+                
+                // Collect English for print
+                allEnglishVerses.push(english);
+                
+                // Create three-column structure
+                const threeColumns = document.createElement('div');
+                threeColumns.className = 'verse-three-columns';
+                
+                // Hebrew column with consistent width
+                const hebrewColumn = document.createElement('div');
+                hebrewColumn.className = 'hebrew-column';
+                hebrewColumn.style.width = `${globalMaxHebrewWidth + 4}px`; // +4px for minimal padding
+                hebrewColumn.style.flexShrink = '0';
+                hebrewColumn.style.flex = 'none';
+                
+                // Hebrew lines
+                alignedLines.hebrew.forEach(line => {
+                    const wordLine = document.createElement('div');
+                    wordLine.className = 'hebrew-word-line';
+                    wordLine.textContent = line.join(' '); // Use textContent to avoid any HTML interpretation
+                    hebrewColumn.appendChild(wordLine);
+                });
+                
+                // Transliteration column with consistent width
+                const translitColumn = document.createElement('div');
+                translitColumn.className = 'transliteration-column';
+                translitColumn.style.width = `${globalMaxTranslitWidth + 4}px`; // +4px for minimal padding
+                translitColumn.style.flexShrink = '0';
+                translitColumn.style.flex = 'none';
+                
+                // Transliteration lines (corresponding to Hebrew lines)
+                alignedLines.transliteration.forEach(line => {
+                    const wordLine = document.createElement('div');
+                    wordLine.className = 'transliteration-word-line';
+                    wordLine.textContent = line.join(' '); // Use textContent to avoid any HTML interpretation
+                    translitColumn.appendChild(wordLine);
+                });
+                
+                // English column with consistent width and line-by-line structure
+                const englishColumn = document.createElement('div');
+                englishColumn.className = 'english-column';
+                englishColumn.style.width = `${globalMaxEnglishWidth + 4}px`; // +4px for minimal padding
+                englishColumn.style.flexShrink = '0';
+                englishColumn.style.flex = 'none';
+                
+                // English lines (corresponding to Hebrew+Transliteration lines)
+                console.log(`🔍 RENDERING DEBUG: Creating ${alignedLines.english.length} English lines for verse`);
+                alignedLines.english.forEach((line, lineIndex) => {
+                    const wordLine = document.createElement('div');
+                    wordLine.className = 'english-word-line';
+                    const lineText = line.join(' ');
+                    wordLine.textContent = lineText; // Use textContent to avoid any HTML interpretation
+                    englishColumn.appendChild(wordLine);
+                    console.log(`🔍 RENDER: English Line ${lineIndex + 1}: "${lineText}" (${line.length} words)`);
+                });
+                
+                // Assemble columns
+                threeColumns.appendChild(hebrewColumn);
+                threeColumns.appendChild(translitColumn);
+                threeColumns.appendChild(englishColumn);
+                
+                // Clear container and add new content
+                container.innerHTML = '';
+                container.appendChild(threeColumns);
+            });
+            
+            // Create hidden English print section
+            const englishPrintSection = document.createElement('div');
+            englishPrintSection.className = 'english-print-section';
+            englishPrintSection.style.display = 'none'; // Hidden on screen
+            
+            allEnglishVerses.forEach((english, index) => {
+                const englishVerse = document.createElement('div');
+                englishVerse.className = 'english-print-verse';
+                englishVerse.textContent = english;
+                englishPrintSection.appendChild(englishVerse);
+            });
+            
+            // Add English print section to body
+            document.body.appendChild(englishPrintSection);
+        }
+
+        // Create measurement canvas for accurate text width calculation
+        function createTextMeasurer() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            return {
+                ctx: ctx, // Expose context for English measurement
+                measureHebrew: function(text) {
+                    ctx.font = '16px "SBL Hebrew", "Times New Roman", serif';
+                    return ctx.measureText(text).width;
+                },
+                measureTranslit: function(text) {
+                    ctx.font = '16px "Crimson Text", Georgia, serif';
+                    return ctx.measureText(text).width;
+                },
+                measureEnglish: function(text) {
+                    ctx.font = '16px "Crimson Text", Georgia, serif';
+                    return ctx.measureText(text).width;
+                }
+            };
+        }
+
+        function packWordsWithCorrespondence(hebrewWords, translitWords, englishWords, hebrewRatio, translitRatio) {
+            const measurer = createTextMeasurer();
+            
+            console.log(`🔄 LINE BALANCE FIX: Starting with ${hebrewWords.length} Hebrew, ${translitWords.length} transliteration, ${englishWords.length} English words`);
+            
+            // PHASE 1: Determine optimal number of lines - MINIMIZE line count for readability
+            const totalWords = Math.max(hebrewWords.length, translitWords.length, englishWords.length);
+            
+            // Start with minimal lines: aim for 6-10 words per line (readable chunks)
+            let minLineCount = Math.ceil(totalWords / 10); // Fewer lines, more words per line
+            let maxReasonableLines = Math.ceil(totalWords / 4); // Maximum 4 words per line
+            
+            // Prefer fewer lines - start from minimum and find first acceptable balance
+            let bestLineCount = minLineCount;
+            let bestBalance = Infinity;
+            
+            for (let testLineCount = minLineCount; testLineCount <= maxReasonableLines; testLineCount++) {
+                const testResult = distributeWordsEqually(hebrewWords, translitWords, englishWords, testLineCount, measurer);
+                const balance = testResult.balanceScore;
+                
+                // Accept first reasonable balance (prefer fewer lines)
+                if (balance < 0.5 || testLineCount === maxReasonableLines) {
+                    bestLineCount = testLineCount;
+                    bestBalance = balance;
+                    break;
+                }
+                
+                if (balance < bestBalance) {
+                    bestBalance = balance;
+                    bestLineCount = testLineCount;
+                }
+            }
+            
+            console.log(`🎯 LINE BALANCE: Optimal line count determined: ${bestLineCount} lines (balance score: ${bestBalance.toFixed(2)})`);
+            
+            // PHASE 2: Create final distribution with optimal line count
+            return distributeWordsEqually(hebrewWords, translitWords, englishWords, bestLineCount, measurer);
+        }
+        
+        function distributeWordsEqually(hebrewWords, translitWords, englishWords, targetLineCount, measurer) {
+            const hebrewLines = [];
+            const translitLines = [];
+            const englishLines = [];
+            const hebrewLineWidths = [];
+            const translitLineWidths = [];
+            const englishLineWidths = [];
+            
+            // Calculate words per line for each language
+            const hebrewWordsPerLine = Math.ceil(hebrewWords.length / targetLineCount);
+            const translitWordsPerLine = Math.ceil(translitWords.length / targetLineCount);
+            const englishWordsPerLine = Math.ceil(englishWords.length / targetLineCount);
+            
+            console.log(`📊 Distribution: ${hebrewWordsPerLine} Hebrew, ${translitWordsPerLine} transliteration, ${englishWordsPerLine} English words per line`);
+            
+            // CRITICAL: Distribute words evenly across target number of lines
+            for (let lineIndex = 0; lineIndex < targetLineCount; lineIndex++) {
+                // Hebrew distribution - maintain 1:1 correspondence with transliteration
+                const hebrewStartIndex = lineIndex * hebrewWordsPerLine;
+                const hebrewEndIndex = Math.min(hebrewStartIndex + hebrewWordsPerLine, hebrewWords.length);
+                const hebrewLineWords = hebrewWords.slice(hebrewStartIndex, hebrewEndIndex);
+                
+                // Transliteration distribution - MUST match Hebrew exactly for 1:1 correspondence
+                const translitLineWords = translitWords.slice(hebrewStartIndex, hebrewEndIndex);
+                
+                // English distribution - independent but balanced
+                const englishStartIndex = lineIndex * englishWordsPerLine;
+                const englishEndIndex = Math.min(englishStartIndex + englishWordsPerLine, englishWords.length);
+                const englishLineWords = englishWords.slice(englishStartIndex, englishEndIndex);
+                
+                // Measure line widths
+                const hebrewText = hebrewLineWords.join(' ');
+                const translitText = translitLineWords.join(' ');
+                const englishText = englishLineWords.join(' ');
+                
+                const hebrewWidth = hebrewText ? measurer.measureHebrew(hebrewText) : 0;
+                const translitWidth = translitText ? measurer.measureTranslit(translitText) : 0;
+                const englishWidth = englishText ? measurer.measureEnglish(englishText) : 0;
+                
+                // Store lines and widths
+                hebrewLines.push(hebrewLineWords);
+                translitLines.push(translitLineWords);
+                englishLines.push(englishLineWords);
+                hebrewLineWidths.push(hebrewWidth);
+                translitLineWidths.push(translitWidth);
+                englishLineWidths.push(englishWidth);
+                
+                console.log(`📏 Line ${lineIndex + 1}: H:${hebrewLineWords.length}w(${hebrewWidth.toFixed(0)}px) T:${translitLineWords.length}w(${translitWidth.toFixed(0)}px) E:${englishLineWords.length}w(${englishWidth.toFixed(0)}px)`);
+            }
+            
+            // Calculate balance score (lower is better)
+            const hebrewTranslitCombinedWidths = hebrewLineWidths.map((hw, i) => hw + translitLineWidths[i]);
+            const maxHTWidth = Math.max(...hebrewTranslitCombinedWidths);
+            const maxEnglishWidth = Math.max(...englishLineWidths);
+            const balanceScore = Math.abs(maxHTWidth - maxEnglishWidth) / Math.max(maxHTWidth, maxEnglishWidth);
+            
+            // Calculate maximum widths for consistent column alignment
+            const maxHebrewLineWidth = Math.max(...hebrewLineWidths);
+            const maxTranslitLineWidth = Math.max(...translitLineWidths);
+            const maxEnglishLineWidth = Math.max(...englishLineWidths);
+            
+            console.log(`✅ LINE BALANCE ACHIEVED: ${targetLineCount} lines, Hebrew-Transliteration max ${maxHTWidth.toFixed(0)}px vs English max ${maxEnglishLineWidth.toFixed(0)}px`);
+            
+            return {
+                hebrew: hebrewLines,
+                transliteration: translitLines,
+                english: englishLines,
+                maxHebrewWidth: maxHebrewLineWidth,
+                maxTranslitWidth: maxTranslitLineWidth,
+                maxEnglishWidth: maxEnglishLineWidth,
+                balanceScore: balanceScore,
+                lineCount: targetLineCount
+            };
+        }
+
+        // Sefaria API Integration
+        const SEFARIA_BASE_URL = 'http://localhost:8000/api'; // Local Sefaria instance
+        
+        async function fetchSefariaText(ref) {
+            try {
+                console.log(`🔗 Fetching from local Sefaria: ${ref}`);
+                
+                // Fetch Hebrew text
+                const hebrewResponse = await fetch(`${SEFARIA_BASE_URL}/v3/texts/${ref}?version=hebrew`);
+                const hebrewData = await hebrewResponse.json();
+                
+                // Fetch English text
+                const englishResponse = await fetch(`${SEFARIA_BASE_URL}/v3/texts/${ref}?version=english`);
+                const englishData = await englishResponse.json();
+                
+                // Extract texts from the first available version
+                const hebrewTexts = hebrewData.versions?.[0]?.text || [];
+                const englishTexts = englishData.versions?.[0]?.text || [];
+                
+                return {
+                    hebrew: hebrewTexts,
+                    english: englishTexts,
+                    success: true
+                };
+                
+            } catch (error) {
+                console.error('❌ Failed to fetch from local Sefaria:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // Generate basic transliteration from Hebrew text
+        function generateTransliteration(hebrewText) {
+            const transliterationMap = {
+                'א': '', 'ב': 'b', 'ג': 'g', 'ד': 'd', 'ה': 'h', 'ו': 'v', 'ז': 'z', 
+                'ח': 'ch', 'ט': 't', 'י': 'y', 'כ': 'k', 'ך': 'ch', 'ל': 'l', 'מ': 'm', 
+                'ם': 'm', 'ן': 'n', 'נ': 'n', 'ס': 's', 'ע': '', 'פ': 'p', 'ף': 'f', 
+                'צ': 'tz', 'ץ': 'tz', 'ק': 'k', 'ר': 'r', 'ש': 'sh', 'ת': 't',
+                'ְ': '', 'ֱ': 'e', 'ֲ': 'a', 'ֳ': 'o', 'ִ': 'i', 'ֵ': 'e', 'ֶ': 'e',
+                'ַ': 'a', 'ָ': 'a', 'ֹ': 'o', 'ֻ': 'u', 'ּ': '', 'ֽ': '', 'ֿ': '',
+                '׀': ' ', '׃': ':', '־': '-'
+            };
+            
+            return hebrewText.split('').map(char => transliterationMap[char] || char).join('')
+                .replace(/\s+/g, ' ').trim();
+        }
+        
+        // Create verse containers from API data
+        function createVersesFromAPI(hebrewTexts, englishTexts) {
+            const versesContainer = document.querySelector('.reader-app');
+            
+            // Clear existing hardcoded verses but keep headers
+            const existingVerses = versesContainer.querySelectorAll('.verse-container');
+            existingVerses.forEach(verse => verse.remove());
+            
+            // Create new verses from API data
+            for (let i = 0; i < Math.max(hebrewTexts.length, englishTexts.length); i++) {
+                const hebrew = hebrewTexts[i] || '';
+                const english = englishTexts[i] || '';
+                const transliteration = generateTransliteration(hebrew);
+                
+                // Clean HTML tags from texts
+                const cleanHebrew = hebrew.replace(/<[^>]*>/g, '');
+                const cleanEnglish = english.replace(/<[^>]*>/g, '');
+                const cleanTranslit = transliteration.replace(/<[^>]*>/g, '');
+                
+                const verseContainer = document.createElement('div');
+                verseContainer.className = 'verse-container';
+                verseContainer.setAttribute('data-hebrew', cleanHebrew);
+                verseContainer.setAttribute('data-transliteration', cleanTranslit);
+                verseContainer.setAttribute('data-english', cleanEnglish);
+                verseContainer.setAttribute('data-verse-number', i + 1);
+                
+                // Add verse number display
+                const verseNumber = document.createElement('span');
+                verseNumber.className = 'verse-number';
+                verseNumber.textContent = `${i + 1}. `;
+                verseContainer.appendChild(verseNumber);
+                
+                versesContainer.appendChild(verseContainer);
+            }
+            
+            console.log(`✅ Created ${Math.max(hebrewTexts.length, englishTexts.length)} verses from API data`);
+        }
+        
+        // Preserve existing verses for fallback
+        function preserveExistingVerses() {
+            const existingVerses = document.querySelectorAll('.verse-container');
+            const verseData = [];
+            
+            existingVerses.forEach(verse => {
+                verseData.push({
+                    hebrew: verse.getAttribute('data-hebrew'),
+                    transliteration: verse.getAttribute('data-transliteration'),
+                    english: verse.getAttribute('data-english')
+                });
+            });
+            
+            return verseData;
+        }
+        
+        // Restore preserved verses if API fails
+        function restorePreservedVerses(preservedData) {
+            const versesContainer = document.querySelector('.reader-app');
+            
+            // Clear any failed attempts
+            const existingVerses = versesContainer.querySelectorAll('.verse-container');
+            existingVerses.forEach(verse => verse.remove());
+            
+            // Restore preserved verses
+            preservedData.forEach((data, index) => {
+                const verseContainer = document.createElement('div');
+                verseContainer.className = 'verse-container';
+                verseContainer.setAttribute('data-hebrew', data.hebrew);
+                verseContainer.setAttribute('data-transliteration', data.transliteration);
+                verseContainer.setAttribute('data-english', data.english);
+                verseContainer.setAttribute('data-verse-number', index + 1);
+                
+                // Add verse number display
+                const verseNumber = document.createElement('span');
+                verseNumber.className = 'verse-number';
+                verseNumber.textContent = `${index + 1}. `;
+                verseContainer.appendChild(verseNumber);
+                
+                versesContainer.appendChild(verseContainer);
+            });
+            
+            console.log(`🔄 Restored ${preservedData.length} preserved verses from fallback`);
+        }
+        
+        // Initialize with API data
+        async function initializeWithAPI() {
+            console.log('🚀 Initializing with Sefaria API...');
+            
+            // Preserve existing verses BEFORE trying API
+            const preservedVerses = preserveExistingVerses();
+            console.log(`💾 Preserved ${preservedVerses.length} existing verses as fallback`);
+            
+            // Show loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #ccc; z-index: 1000;';
+            loadingDiv.innerHTML = '<h3>Loading Genesis Chapter 1...</h3><p>Fetching from local Sefaria API</p>';
+            document.body.appendChild(loadingDiv);
+            
+            try {
+                // Fetch Genesis Chapter 1
+                const result = await fetchSefariaText('Genesis.1');
+                
+                if (result.success) {
+                    console.log(`📚 Retrieved ${result.hebrew.length} Hebrew verses and ${result.english.length} English verses`);
+                    
+                    // Create verse containers from API data
+                    createVersesFromAPI(result.hebrew, result.english);
+                    
+                    // Remove loading indicator
+                    loadingDiv.remove();
+                    
+                    // Create word-by-word alignment
+                    createWordAlignment();
+                    
+                    // Start in trilingual mode and simulate loading
+                    setTimeout(simulateTransliterationLoading, 500);
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                console.error('❌ API initialization failed:', error);
+                console.log('🔄 Falling back to preserved hardcoded verses...');
+                
+                // Remove loading indicator immediately
+                loadingDiv.remove();
+                
+                // Restore preserved verses
+                restorePreservedVerses(preservedVerses);
+                
+                // Create word-by-word alignment with restored verses
+                createWordAlignment();
+                
+                // Start in trilingual mode and simulate loading
+                setTimeout(simulateTransliterationLoading, 500);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with API data
+            initializeWithAPI();
+            
+            // Recalculate on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    console.log('🔄 Recalculating layout for new viewport size...');
+                    createWordAlignment();
+                }, 150); // Debounce resize events
+            });
+        });
+    </script>
+</body>
+</html>
