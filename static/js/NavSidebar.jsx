@@ -773,7 +773,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => { // TODO: remove? looks like we are not using this
+const StayConnected = () => { 
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (
@@ -783,9 +783,9 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <br />
       <NewsletterSignUpForm context="sidebar" />
       <div className="social-links">
-        <Button icon={"facebook"} className="appButton iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
-        <Button icon={"instagram"} className="appButton iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
-        <Button icon={"youtube"} className="appButton iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
+        <Button icon={"facebook"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
+        <Button icon={"instagram"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
+        <Button icon={"youtube"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
       </div>
 
     </SidebarModule>
