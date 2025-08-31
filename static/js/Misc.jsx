@@ -2002,7 +2002,7 @@ class SignUpModal extends Component {
             <h2 className="serif sans-serif-in-hebrew">
               <InterfaceText text={modalContent.h2} />
             </h2>
-            {modalContent.h3 && <h3> // conditional rendering to avoid empty h3 tags for WCAG compliance
+            {modalContent.h3 && <h3>
               <InterfaceText text={modalContent.h3} />
             </h3>}
             <div className="sefariaModalInnerContent">
