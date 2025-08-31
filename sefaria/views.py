@@ -1255,7 +1255,8 @@ def text_download_api(request, format, title, lang, versionTitle):
         "json": "application/json; charset=utf-8",
         "csv": "text/csv; charset=utf-8",
         "txt": "text/plain; charset=utf-8",
-        "plain.txt": "text/plain; charset=utf-8"
+        "plain.txt": "text/plain; charset=utf-8",
+        "brf": "application/x-brf; charset=utf-8"
     }
     response = HttpResponse(content, content_type=content_types[format])
     response["Content-Disposition"] = "attachment"
@@ -1308,10 +1309,10 @@ def bulk_download_versions_api(request):
 
 
 def _get_text_version_file(format, title, lang, versionTitle):
-    from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
+    from sefaria.export import text_is_copyright, make_json, make_text, make_brf, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
     assert lang in ["en", "he"]
-    assert format in ["json", "csv", "txt", "plain.txt"]
+    assert format in ["json", "csv", "txt", "plain.txt", "brf"]
     merged = versionTitle == "merged"
     index = library.get_index(title)
 
@@ -1327,6 +1328,9 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
         elif format == "plain.txt" and merged:
             content = make_text(prepare_merged_text_for_export(title, lang=lang), strip_html=True)
+        
+        elif format == "brf" and merged:
+            content = make_brf(prepare_merged_text_for_export(title, lang=lang))
 
     else:
         version_query = {"title": title, "language": lang, "versionTitle": versionTitle}
@@ -1349,6 +1353,9 @@ def _get_text_version_file(format, title, lang, versionTitle):
 
             elif format == "plain.txt":
                 content = make_text(prepare_text_for_export(version_object), strip_html=True)
+            
+            elif format == "brf":
+                content = make_brf(prepare_text_for_export(version_object))
 
     return content
 

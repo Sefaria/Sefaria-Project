@@ -6,6 +6,11 @@ WORKDIR /app/
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
+# Install build tools and liblouis
+RUN apt-get update && apt-get install -y gcc make
+COPY scripts/setup/install_liblouis.py /app/scripts/setup/
+RUN python3 /app/scripts/setup/install_liblouis.py
+
 COPY package*.json /app/
 RUN npm install --unsafe-perm
 

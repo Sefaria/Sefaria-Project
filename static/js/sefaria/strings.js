@@ -659,6 +659,7 @@ const Strings = {
       "Select Format": "בחירת פורמט הורדה",
       "Text (with Tags)": "טקסט (עם תיוגים)",
       "Text (without Tags)": "טקסט (ללא תיוגים)",
+      "BRF (Braille)": "BRF (ברייל)",
       "Select Version": "בחירת מהדורה/תרגום",
       "Merged Version": "גרסה משולבת"
     },

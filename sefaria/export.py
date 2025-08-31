@@ -9,9 +9,8 @@ import io
 import unicodecsv as csv
 import re
 import json
+import louis
 from shutil import rmtree
-from random import random
-from pprint import pprint
 from datetime import datetime
 from collections import Counter
 from copy import deepcopy
@@ -248,6 +247,104 @@ def make_cltk_flat(doc):
     cltk_doc["meta"] = '-'.join(best_sec_names)
     cltk_doc["work"] = doc["title"]
     return json.dumps(cltk_doc, indent=4, ensure_ascii=False)
+
+def make_brf(doc, strip_html=True):
+    """
+    Export doc into BRF (Braille Ready Format) using liblouis.
+    
+    BRF uses ASCII characters that embossers interpret as braille dots.
+    For example, ASCII 'A' represents the braille pattern ⠁ (dots 1).
+    
+    HEBREW TABLE CHOICE (hbo.utb):
+    We use the International Hebrew Braille Code (IHBC) standard from 1944,
+    which is universally recognized for biblical Hebrew. This table properly
+    handles vowels (nikkud), cantillation marks (ta'amim), and dagesh - all
+    essential for biblical texts. This is the same standard used by JBI for
+    the first Braille Tanakh (1950) and all subsequent biblical publications.
+    """
+    # Ensure liblouis is installed
+    from .liblouis_check import ensure_liblouis_installed
+    ensure_liblouis_installed(auto_install=True)
+    
+    # Import louis after ensuring it's installed
+    import louis
+    
+    # Get text content with all structure preserved
+    text_content = make_text(doc, strip_html=strip_html)
+    
+    if not text_content:
+        raise ValueError(f"No text content for {doc.get('title', 'unknown')}")
+    
+    # Select braille table based on document language
+    language = doc.get("language", "en")
+    table = ["hbo.utb"] if language == "he" else ["en-ueb-g2.ctb"]
+    
+    try:
+        # Translate to Unicode braille
+        unicode_braille = louis.translateString(table, text_content)
+        
+        # Convert Unicode braille to ASCII BRF
+        # BRF standard mapping: Unicode braille base (U+2800) maps to ASCII starting at space (0x20)
+        brf_text = ''.join(
+            chr((ord(char) - 0x2800) + 0x20) if 0x2800 <= ord(char) <= 0x28FF else char
+            for char in unicode_braille
+        )
+        
+        # Apply BRF formatting standards
+        return format_brf(brf_text)
+        
+    except Exception as e:
+        raise Exception(
+            f"LibLouis translation failed for '{doc.get('title', 'unknown')}':\n"
+            f"  Language: {language}, Table: {table}\n"
+            f"  Error: {str(e)}"
+        ) from e
+
+
+def format_brf(text, line_width=40, lines_per_page=25):
+    """
+    Format text according to BRF standards.
+    - 40 characters per line (standard embosser width)
+    - 25 lines per page (standard US letter)
+    - No word breaks across lines
+    - Form feed (ASCII 12) for page breaks
+    """
+    paragraphs = text.split('\n\n')
+    formatted_lines = []
+    
+    for paragraph in paragraphs:
+        if not paragraph.strip():
+            continue
+            
+        # Keep short lines (headers) intact
+        if len(paragraph) <= line_width and '\n' not in paragraph:
+            formatted_lines.extend([paragraph, ''])
+        else:
+            # Word wrap longer paragraphs
+            words = paragraph.replace('\n', ' ').split()
+            current_line = []
+            
+            for word in words:
+                # Check if word fits on current line
+                line_length = sum(len(w) for w in current_line) + len(current_line) - 1
+                if current_line and line_length + 1 + len(word) > line_width:
+                    formatted_lines.append(' '.join(current_line))
+                    current_line = [word]
+                else:
+                    current_line.append(word)
+            
+            if current_line:
+                formatted_lines.append(' '.join(current_line))
+            formatted_lines.append('')  # Blank line after paragraph
+    
+    # Add page breaks
+    pages = []
+    for i in range(0, len(formatted_lines), lines_per_page):
+        page_lines = formatted_lines[i:i + lines_per_page]
+        pages.append('\n'.join(page_lines))
+    
+    return '\f'.join(pages)  # \f = form feed (page break)
+
 """
 List of export formats, consisting of a name and function.
 The name is used as a top level directory and file suffix, unless there are three elements.
@@ -257,6 +354,7 @@ The function takes a document and returns the text to output.
 export_formats = (
     ('json', make_json),
     ('txt', make_text),
+    ('brf', make_brf),
     ('cltk-full',make_cltk_full,'json'), #cltk format with fully nested structure
     ('cltk-flat',make_cltk_flat,'json')  #cltk format, flattened
 )

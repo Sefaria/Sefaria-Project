@@ -991,6 +991,7 @@ const DownloadVersions = ({sref}) => {
                 {value: "plain.txt", label: Sefaria._( "Text (without Tags)", "DownloadVersions")},
                 {value: "csv",       label: "CSV"},
                 {value: "json",      label: "JSON"},
+                {value: "brf",       label: Sefaria._("BRF (Braille)", "DownloadVersions")},
               ]}
               placeholder={Sefaria._("Select Format", "DownloadVersions")}
               onChange={handleInputChange}
