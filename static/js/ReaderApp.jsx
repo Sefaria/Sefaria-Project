@@ -1130,6 +1130,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 
   handleModuleLinkRightClick(e) {
+    /*
+    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    */
     const link = e.target.closest('a[data-target-module]');
     if (link) {
       const href = link.getAttribute('href');
