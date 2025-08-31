@@ -9600,14 +9600,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .collectionInfo .en {
   display: none;
 }
-.collectionPage div.navTitle h1 {
-  color: black;
-  font-size: 30px;
-  margin-bottom: 5px;
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --english-font: var(--english-sans-serif-font-family);
-  margin-bottom: 5px;
-}
+
 .collectionPage .collectionLabel {
   text-transform: uppercase;
   color: #666;
