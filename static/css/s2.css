@@ -2807,7 +2807,11 @@ display: none;
 div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
-.card {
+
+div.TOCCardsWrapper div.card:nth-last-child(1 of div.card):nth-child(2n+1 of div.card):not(:nth-child(1 of div.card)) {
+  flex: 0 0 45%;
+}
+div.card {
   flex: 1 1 45%;
   position: relative;
   padding-bottom: 12px;
@@ -14852,9 +14856,6 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
-}
-.TOCCardsWrapper .card:nth-child(odd):last-child {
-  flex: 0 0 45%;
 }
 .sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
