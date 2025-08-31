@@ -1,32 +1,36 @@
 /**
  *
- * @param variant can be empty or "secondary"
- * @param size can be empty or "large" or "fullwidth"
+ * @param variant defaults to "sefaria-common-button"
+ * @param size is a css class
  * @param icon only the name of the icon without the extension
  * @param children you can pass additional html or just <InterfaceText>
  * @param onClick callback func to trigger
  * @param disabled whether the button is to be disabled or not
  * @param className additional class names in case they are needed (preferrably not)
  * @param href if provided, renders as anchor tag instead of button
+ * @param activeModule if provided, sets data-target-module attribute
  * @returns {JSX.Element}
  * @constructor
  */
-const Button = ({ variant = '', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null, href }) => {
-  const buttonClasses = `sefaria-common-button ${variant} ${size} ${className}`;
+const Button = ({ variant = 'sefaria-common-button', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null, href }) => {
+  const buttonClasses = `${variant} ${size} ${className}`;
   
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      if (onClick && !disabled) {
-        onClick(e);
-      } else if (href && !disabled) {
-        // For href-based buttons without onClick, trigger the default link behavior
-        e.target.click();
+  // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
+  // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
+  if (href) { 
+    const handleKeyDown = (e) => {
+      // For links: only Space activates (Enter is handled by default link behavior)
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (onClick && !disabled) {
+          onClick(e);
+        } else if (!disabled) {
+          // For href-based buttons without onClick, trigger the default link behavior
+          e.target.click();
+        }
       }
-    }
-  };
-  
-  if (href) { // For accessibility we can't have nested buttons
+    };
+
     return (
       <a
         href={href}
@@ -35,7 +39,7 @@ const Button = ({ variant = '', size = '', icon, children, onClick, disabled=fal
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
+        {...(!!activeModule ? { 'data-target-module': activeModule } : {})}
       >
         {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
         {children}
@@ -43,10 +47,20 @@ const Button = ({ variant = '', size = '', icon, children, onClick, disabled=fal
     );
   }
   
+  const handleKeyDown = (e) => {
+    // For buttons: both Enter and Space activate
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (onClick && !disabled) {
+        onClick(e);
+      }
+    }
+  };
+
   return (
     <button
       disabled={disabled}
-      {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
+      {...(!!activeModule ? { 'data-target-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
       onKeyDown={handleKeyDown}

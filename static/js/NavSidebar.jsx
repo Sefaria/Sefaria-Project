@@ -801,16 +801,14 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
 
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
-    return <Button variant="secondary" className="getStartedSheets">
-      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+    return <Button variant="secondary sefaria-common-button" className="getStartedSheets" href={href} activeModule={Sefaria.SHEETS_MODULE}>
+      Get Started
     </Button>;
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"}>
-      <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
-        <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
-      </a>
+    <Button icon={"new-sheet-black"} href="/sheets/new" activeModule={Sefaria.SHEETS_MODULE}>
+      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
     </Button>
   ) 
 }
