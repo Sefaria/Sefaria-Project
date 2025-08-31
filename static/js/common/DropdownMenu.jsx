@@ -150,6 +150,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     const handleMenuKeyDown = (e) => {
         if (e.key === 'Escape') {
             e.preventDefault();
+            e.stopPropagation();
             setIsOpen(false);
             // Return focus to the button
             if (buttonRef.current) {
