@@ -8831,7 +8831,7 @@ a .button:hover {
 }
 button.appButton {
   box-shadow: none;
-  border: 2px solid var(--sefaria-blue);
+  border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
 button.appButton img {
@@ -8843,6 +8843,7 @@ button.appButton.iconOnly {
   box-sizing: border-box;
   display: inline-flex;
   padding: 0;
+  margin-inline-end: 5px;
   justify-content: center;
   align-items: center;
 }
@@ -9599,14 +9600,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .collectionInfo .en {
   display: none;
 }
-.collectionPage h1 {
+.collectionPage div.navTitle h1 {
   color: black;
   font-size: 30px;
   margin-bottom: 5px;
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --english-font: var(--english-serif-font-family);
-}
-.collectionPage .navTitle {
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
   margin-bottom: 5px;
 }
 .collectionPage .collectionLabel {
