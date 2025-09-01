@@ -140,7 +140,7 @@ const ReaderDisplayOptionsMenu = () => {
         <div 
             className="texts-properties-menu" 
             role="dialog" 
-            aria-label="Text display options"
+            aria-label={Sefaria._("Text display options")}
             ref={menuRef}
             onKeyDown={handleKeyDown}
             tabIndex="-1"

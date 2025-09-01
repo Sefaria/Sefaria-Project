@@ -506,6 +506,49 @@ const Strings = {
     "All history ": "כל ההסטוריה ",
     "All History": "כל ההסטוריה",
 
+    // UI Elements
+    "text layout toggle": "החלפת עימוד טקסט",
+
+    // Form Elements
+    "Email address": "כתובת אימייל",
+    "First Name": "שם פרטי",
+    "Last Name": "שם משפחה",
+    "Index Title": "כותרת אינדקס",
+    "Version Title": "כותרת גרסה",
+    "Index Title Pattern": "תבנית כותרת אינדקס",
+    "Version Title Pattern": "תבנית כותרת גרסה",
+    "Version Language": "שפת הגרסה",
+
+    // Actions & Buttons
+    "Add new category": "הוספת קטגוריה חדשה",
+    "Reset topic filter": "איפוס מסנן נושאים",
+    "Clear input": "ניקוי קלט",
+    "Download language selection": "בחירת שפת הורדה",
+
+    // Content & Status
+    "Loading status": "סטטוס טעינה",
+    "Text display options": "אפשרויות תצוגת טקסט",
+    "Audio playback position": "מיקום השמעה",
+    "New Category": "קטגוריה חדשה",
+    "Update type": "סוג עדכון",
+
+    // Notifications
+    "No notifications message title": "כותרת הודעת אין התראות",
+    "No notifications message body": "גוף הודעת אין התראות",
+
+    // Buttons & Actions
+    "Decrease font size": "הקטן גופן",
+    "Increase font size": "הגדל גופן",
+    "See More": "ראה עוד",
+    "Save and Next": "שמירה והמשך",
+    "Skip this sheet": "דלג על דף מקורות זה",
+    "Collapse": "כווץ",
+    "Expand": "הרחב",
+
+    //Accessibility UI
+    "Reset topic filter": "איפוס מסנן נושאים",
+    "Clear input": "ניקוי קלט",
+    "Download language selection": "בחירת שפת הורדה",
 
      //About
     "What is Sefaria?": "מהי ספריא",
@@ -555,6 +598,7 @@ const Strings = {
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
+    "Submit": "שלח",
     "Thank you!": "תודה רבה!",
     "Export to Google Docs": "ייצוא לגוגל דוקס",
     "Delete Sheet": "מחיקת דף מקורות",
@@ -600,6 +644,10 @@ const Strings = {
     "Get Help": "עזרה", //already has a similar string here but with different capitalization, maybe fix bug when not right before a launch?
     "About Sefaria": "אודות ספריא",
     "Saved & History": "היסטורית קריאה ושמורים",
+    "Sidebar navigation": "ניווט בסרגל הצד",
+    "Site search": "חיפוש באתר",
+    "Account menu": "תפריט חשבון",
+    "submenu": "תת-תפריט",
 
     //Misc
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
@@ -621,6 +669,10 @@ const Strings = {
     'Sefaria on Facebook': 'ספריא בפייסבוק',
     'Sefaria on Instagram': 'ספריא באינסטגרם',
     'Sefaria on YouTube': 'ספריא ביוטיוב',
+    'Sefaria Logo': 'לוגו ספריא',
+    'Sefaria Sheets Logo': 'לוגו ספריא שיטס',
+    'donation icon': 'סמל תרומה',
+    'Notification icon': 'סמל התראה',
   },
 
   _i18nInterfaceStringsWithContext: {

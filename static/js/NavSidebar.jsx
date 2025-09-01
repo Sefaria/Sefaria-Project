@@ -10,7 +10,7 @@ import Button from "./common/Button";
 
 
 const NavSidebar = ({sidebarModules}) => {
-  return <aside className="navSidebar sans-serif" role="complementary" aria-label="Sidebar navigation">
+  return <aside className="navSidebar sans-serif" role="complementary" aria-label={Sefaria._("Sidebar navigation")}>
     {sidebarModules.map((m, i) =>
       <SidebarModules
         type={m.type}

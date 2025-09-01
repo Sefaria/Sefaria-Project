@@ -78,7 +78,7 @@ class NotificationsPanel extends Component {
               <div className="notificationsTopContainer">
                 <div className="notificationsHeaderBox">
                   <h1>
-                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt={Sefaria._("Notification icon")}/>
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
                 </div>
@@ -119,11 +119,11 @@ const Notifications = ({type, props}) => {
 const EmptyNotificationsMessage = () => {
   return (
         <div className="emptyNotificationPage">
-          <div className="emptyNotificationsTitle" aria-label="No notifications message title">
+          <div className="emptyNotificationsTitle" aria-label={Sefaria._("No notifications message title")}>
             <InterfaceText en={"Looks like you don’t have any notifications yet."} 
                            he={"נראה שעדיין אין לך התראות"}/>
           </div>
-          <div className="emptyNotificationsMessage" aria-label="No notifications message body">
+          <div className="emptyNotificationsMessage" aria-label={Sefaria._("No notifications message body")}>
             <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
                            he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
           </div>

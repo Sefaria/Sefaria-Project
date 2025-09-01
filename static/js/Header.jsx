@@ -40,8 +40,8 @@ const LoggedOutDropdown = ({module}) => {
   
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-        <button className="header-dropdown-button" aria-label="Account menu">
-          <img src='/static/icons/logged_out.svg' alt=""/>
+        <button className="header-dropdown-button" aria-label={Sefaria._("Account menu")}>
+          <img src='/static/icons/logged_out.svg' alt={Sefaria._("Login")}/>
         </button>
       }>
           <div className='dropdownLinks-options'>
@@ -142,8 +142,8 @@ const ModuleSwitcher = () => {
   const sheetsURL = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE];
   return (
               <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-                <button className="header-dropdown-button" aria-label="Switch between library and sheets">
-                  <img src='/static/icons/module_switcher_icon.svg' alt=""/>
+                <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
+                  <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")}/>
                 </button>
               }>
           <div className='dropdownLinks-options'>
@@ -187,12 +187,12 @@ const Header = (props) => {
 
   const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
   const libraryLogo = (
-    <img src={`/static/img/${libraryLogoPath}`} className="home" alt="Sefaria Logo"/>
+    <img src={`/static/img/${libraryLogoPath}`} className="home" alt={Sefaria._("Sefaria Logo")}/>
   );
 
   const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
   const sheetsLogo = (
-    <img src={sheetsLogoPath} alt="Sefaria Sheets Logo" className="home"/>
+    <img src={sheetsLogoPath} alt={Sefaria._("Sefaria Sheets Logo")} className="home"/>
   );
 
   const logo = props.module === Sefaria.LIBRARY_MODULE ? libraryLogo : sheetsLogo;
@@ -204,7 +204,7 @@ const Header = (props) => {
                                   onClick={(e) => { /* Let browser handle navigation naturally */ }}
                                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                                 >
-                                  <img src='/static/icons/bookmarks.svg' alt='Saved items' />
+                                  <img src='/static/icons/bookmarks.svg' alt={Sefaria._('Saved items')} />
                                 </a>
                               </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
@@ -447,15 +447,15 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       {module === Sefaria.LIBRARY_MODULE && 
       <>
         <a href="/texts" onClick={close} className="textsPageLink">
-          <img src="/static/icons/book.svg" alt="Texts" />
+          <img src="/static/icons/book.svg" alt={Sefaria._("Texts")} />
           <InterfaceText context="Header">Texts</InterfaceText>
         </a>
         <a href={"/topics"} onClick={close}>
-          <img src="/static/icons/topic.svg" alt="Topics" />
+          <img src="/static/icons/topic.svg" alt={Sefaria._("Topics")} />
           <InterfaceText context="Header">Explore</InterfaceText>
         </a>
         <a href="/calendars" onClick={close}>
-          <img src="/static/icons/calendar.svg" alt="Learning Schedules" />
+          <img src="/static/icons/calendar.svg" alt={Sefaria._("Learning Schedules")} />
           <InterfaceText>Learning Schedules</InterfaceText>
         </a>
       </>  

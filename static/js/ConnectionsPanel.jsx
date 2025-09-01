@@ -1020,7 +1020,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
     classes[iconName] = 1;
     iconElem = (<i className={classNames(classes)} />)
   } else if (image) {
-    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
+    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt={en} />);
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;

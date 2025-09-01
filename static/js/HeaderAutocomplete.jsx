@@ -254,7 +254,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       <div id="searchBox"
            className={searchBoxClasses}
            role="search"
-           aria-label="Site search">
+           aria-label={Sefaria._("Site search")}>
         <SearchButton onClick={handleSearchButtonClick} />
         <input
           className={inputClasses}

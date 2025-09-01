@@ -49,7 +49,7 @@ export function NewsletterSignUpForm({
         <input
             className="newsletterInput"
             placeholder={emailPlaceholder.en}
-            aria-label="Email address"
+            aria-label={Sefaria._("Email address")}
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -65,13 +65,13 @@ export function NewsletterSignUpForm({
             onChange={e => setEmail(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>
       </span>
-            {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" alt="Submit" onClick={handleSubscribe}/> : null}
+            {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
                 <><span className="int-en">
         <input
             className="newsletterInput firstNameInput"
             placeholder="First Name"
-            aria-label="First Name"
+            aria-label={Sefaria._("First Name")}
             type="text"
             value={firstName}
             autoFocus
@@ -92,7 +92,7 @@ export function NewsletterSignUpForm({
         <input
             className="newsletterInput"
             placeholder="Last Name"
-            aria-label="Last Name"
+            aria-label={Sefaria._("Last Name")}
             type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
@@ -110,7 +110,7 @@ export function NewsletterSignUpForm({
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck}/> : null}
-                    <img src="/static/img/circled-arrow-right.svg" alt="Submit" onClick={handleSubscribe}/>
+                    <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>
                 </>
                 : null}
             {subscribeMessage ?

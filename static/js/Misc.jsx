@@ -543,7 +543,7 @@ const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
   return (
     <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
       <InterfaceText text={{en: enText, he: heText}} />
-      {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+      {isOpen ? <img src="/static/img/arrow-up.png" alt={Sefaria._("Collapse")} aria-hidden="true"/> : <img src="/static/img/arrow-down.png" alt={Sefaria._("Expand")} aria-hidden="true"/>}
     </div>
   );
 };
@@ -812,7 +812,7 @@ class BlockLink extends Component {
     cn[linkClass] = 1;
     var classes = classNames(cn);
       return (<a className={classes} href={this.props.target}>
-              {this.props.image ? <img src={this.props.image} alt="" /> : null}
+              {this.props.image ? <img src={this.props.image} alt={this.props.title} /> : null}
               <span className={`${interfaceClass}en`}>{this.props.title}</span>
               <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
            </a>);
@@ -1229,7 +1229,7 @@ class CloseButton extends Component {
     const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
     
     if (icon == "circledX"){
-      var iconElement = <img src="/static/icons/circled-x.svg" alt="" />;
+      var iconElement = <img src="/static/icons/circled-x.svg" alt={Sefaria._("Close")} aria-hidden="true"/>;
     } else if (icon == "chevron") {
       var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
@@ -2625,7 +2625,7 @@ class LoadingMessage extends Component {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
-    return (<div className={classes} aria-live="polite" aria-label="Loading status">
+    return (<div className={classes} aria-live="polite" aria-label={Sefaria._("Loading status")}>
               <InterfaceText>
                 <EnglishText>{message}</EnglishText>
                 <HebrewText>{heMessage}</HebrewText>
