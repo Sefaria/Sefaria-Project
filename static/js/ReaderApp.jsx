@@ -1135,6 +1135,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   handleModuleLinkRightClick(e) {
     /*
     Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
     if (link) {
