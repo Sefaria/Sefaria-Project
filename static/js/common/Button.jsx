@@ -1,13 +1,13 @@
 /**
  *
- * @param variant defaults to "sefaria-common-button"
- * @param size is a css class
+ * @param variant can be empty or "secondary"
+ * @param size can be empty or "large" or "fullwidth"
  * @param icon only the name of the icon without the extension
  * @param children you can pass additional html or just <InterfaceText>
  * @param onClick callback func to trigger
  * @param disabled whether the button is to be disabled or not
  * @param className additional class names in case they are needed (preferrably not)
- * @param href if provided, renders as anchor tag instead of button
+ * @param href if provided, renders as <a> tag instead of button
  * @param activeModule if provided, sets data-target-module attribute
  * @returns {JSX.Element}
  * @constructor
