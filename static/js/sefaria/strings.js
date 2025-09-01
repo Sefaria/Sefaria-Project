@@ -670,7 +670,7 @@ const Strings = {
     'Sefaria on Instagram': 'ספריא באינסטגרם',
     'Sefaria on YouTube': 'ספריא ביוטיוב',
     'Sefaria Logo': 'לוגו ספריא',
-    'Sefaria Sheets Logo': 'לוגו ספריא שיטס',
+    'Sefaria Sheets Logo': 'לוגו ספריא דפי מקורות',
     'donation icon': 'סמל תרומה',
     'Notification icon': 'סמל התראה',
   },
