@@ -2807,7 +2807,11 @@ display: none;
 div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
-.card {
+
+div.TOCCardsWrapper div.card:nth-last-child(1 of div.card):nth-child(2n+1 of div.card):not(:nth-child(1 of div.card)) {
+  flex: 0 0 45%;
+}
+div.card {
   flex: 1 1 45%;
   position: relative;
   padding-bottom: 12px;
@@ -8827,7 +8831,7 @@ a .button:hover {
 }
 button.appButton {
   box-shadow: none;
-  border: 2px solid var(--sefaria-blue);
+  border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
 button.appButton img {
@@ -8839,6 +8843,7 @@ button.appButton.iconOnly {
   box-sizing: border-box;
   display: inline-flex;
   padding: 0;
+  margin-inline-end: 5px;
   justify-content: center;
   align-items: center;
 }
@@ -9595,16 +9600,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .collectionInfo .en {
   display: none;
 }
-.collectionPage h1 {
-  color: black;
-  font-size: 30px;
-  margin-bottom: 5px;
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --english-font: var(--english-serif-font-family);
-}
-.collectionPage .navTitle {
-  margin-bottom: 5px;
-}
+
 .collectionPage .collectionLabel {
   text-transform: uppercase;
   color: #666;
@@ -14852,9 +14848,6 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
-}
-.TOCCardsWrapper .card:nth-child(odd):last-child {
-  flex: 0 0 45%;
 }
 .sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;

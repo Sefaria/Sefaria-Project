@@ -60,5 +60,14 @@ button.secondary:disabled[data-active-module="sheets"]{
   --theme-button-border: var(--light-grey);
   --theme-button-dropshadow: none;
 }
+
+[data-active-module="library"] .topicPanel .navTitle h1 {
+  color: black;
+  font-size: 30px;
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
+  margin-bottom: 5px;
+}
+
 /* placeholder for dark theme colors */
 @media (prefers-color-scheme: dark) {}
