@@ -66,31 +66,28 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const title = (
     <span className="sans-serif">
-      <a 
-        href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved } 
+      <a
+        href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved }
         data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
-        onClick={(e) => { /* Let browser handle navigation naturally */ }}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
       >
         <img src="/static/icons/bookmark.svg" alt="Saved" />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a 
-        href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history } 
+      <a
+        href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history }
         data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
-        onClick={(e) => { /* Let browser handle navigation naturally */ }}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
       >
         <img src="/static/icons/clock.svg" alt="History" />
         <InterfaceText>History</InterfaceText>
       </a>
       { dataSource === "library" &&
-        <a 
-          href="/texts/notes" 
+        <a
+          href="/texts/notes"
           className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
-          onClick={(e) => { /* Let browser handle navigation naturally */ }}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
         >
         <img src="/static/icons/notes-icon.svg" alt="Notes" />

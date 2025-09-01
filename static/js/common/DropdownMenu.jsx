@@ -25,7 +25,6 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onClick={(e) => { /* Let browser handle navigation naturally */ }}
        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
     >
       {children}
@@ -44,7 +43,6 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onClick={(e) => { /* Let browser handle navigation naturally */ }}
        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
     >
       {children}

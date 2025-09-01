@@ -198,20 +198,18 @@ const Header = (props) => {
   const logo = props.module === Sefaria.LIBRARY_MODULE ? libraryLogo : sheetsLogo;
 
   const librarySavedIcon = <div className='librarySavedIcon'>
-                                <a 
+                                <a
                                   href="/texts/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
-                                  onClick={(e) => { /* Let browser handle navigation naturally */ }}
                                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                                 >
                                   <img src='/static/icons/bookmarks.svg' alt={Sefaria._('Saved items')} />
                                 </a>
                               </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
-                                        <a 
+                                        <a
                                           href="/sheets/notifications"
                                           data-target-module={Sefaria.SHEETS_MODULE}
-                                          onClick={(e) => { /* Let browser handle navigation naturally */ }}
                                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                                         >
                                           <img src='/static/icons/notification.svg' alt="Notifications" />
@@ -233,18 +231,16 @@ const Header = (props) => {
           { Sefaria._siteSettings.TORAH_SPECIFIC && logo }
           {props.module === Sefaria.LIBRARY_MODULE && 
           <>
-            <a 
-              href="/texts" 
+            <a
+              href="/texts"
               className="textLink"
-              onClick={(e) => { /* Let browser handle navigation naturally */ }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
             >
               <InterfaceText context="Header">Texts</InterfaceText>
             </a>
-            <a 
-              href="/topics" 
+            <a
+              href="/topics"
               className="textLink"
-              onClick={(e) => { /* Let browser handle navigation naturally */ }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
             >
               <InterfaceText context="Header">Topics</InterfaceText>
@@ -253,20 +249,18 @@ const Header = (props) => {
           }
           {props.module === Sefaria.SHEETS_MODULE && 
           <>
-            <a 
-              href="/sheets/topics" 
-              data-target-module={Sefaria.SHEETS_MODULE} 
+            <a
+              href="/sheets/topics"
+              data-target-module={Sefaria.SHEETS_MODULE}
               className="textLink"
-              onClick={(e) => { /* Let browser handle navigation naturally */ }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
             >
               <InterfaceText context="Header">Topics</InterfaceText>
             </a>
-            <a 
-              href="/sheets/collections" 
-              data-target-module={Sefaria.SHEETS_MODULE} 
+            <a
+              href="/sheets/collections"
+              data-target-module={Sefaria.SHEETS_MODULE}
               className="textLink"
-              onClick={(e) => { /* Let browser handle navigation naturally */ }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
             >
               <InterfaceText context="Header">Collections</InterfaceText>
