@@ -199,7 +199,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670" data-target-module={Sefaria.SHEETS_MODULE}>
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.SHEETS_MODULE}>
                 <img src="/static/icons/vector.svg" alt="Play video"/>
                 <div className="get-start">
                   Getting Started (2 min)

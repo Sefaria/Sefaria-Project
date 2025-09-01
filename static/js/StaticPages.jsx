@@ -93,9 +93,9 @@ const ContestLandingPage = () => (
 
         <H2Block en="The Contest" he="התחרות"/>
         <EnBlock padded={true}>
-            <p>Sefaria offers a free digital dataset of Jewish texts, translations, and interconnections that is open for anyone to reuse in novel ways. Last year, we received over 50 innovative Powered by Sefaria projects using our open data or API (<a href="/powered-by-sefaria-contest-2020">see the winners and honorable mentions!</a>). We’re eager to see what else our community can dream up to advance the frontiers of Torah and technology in this year’s contest!</p>
+            <p>Sefaria offers a free digital dataset of Jewish texts, translations, and interconnections that is open for anyone to reuse in novel ways. Last year, we received over 50 innovative Powered by Sefaria projects using our open data or API (<a href="/powered-by-sefaria-contest-2020">see the winners and honorable mentions!</a>). We're eager to see what else our community can dream up to advance the frontiers of Torah and technology in this year's contest!</p>
             <p>What you create is up to you. It could be a functioning web app or just a compelling demo; an interactive visualization, or just a question that digs into data quantitatively in search of an answer; something useful and impactful to the world of learning, or just a crazy experiment that fascinates you without a clear application. <b>The only requirement is that your project must prominently make use of the data that Sefaria has to offer</b>.</p>
-            <p>To get your ideas flowing, here are three great examples from last year’s Powered by Sefaria contest. You can find dozens more projects on our <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria list</a> on GitHub and on the <a href="https://www.sefaria.org/powered-by-sefaria-contest-2020">Powered by Sefaria 2020 Winners & Honorable Mentions page</a>.</p>
+            <p>To get your ideas flowing, here are three great examples from last year's Powered by Sefaria contest. You can find dozens more projects on our <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria list</a> on GitHub and on the <a href="https://www.sefaria.org/powered-by-sefaria-contest-2020">Powered by Sefaria 2020 Winners & Honorable Mentions page</a>.</p>
         </EnBlock>
         <HeBlock padded={true}>
             <p>ספריא מציעה לציבור מסד נתונים דיגיטלי וחופשי של מקורות יהודיים, תרגומים וקישורים בין־טקסטואליים.  בשנה שעברה הגיעו לפתחנו יותר מ־50 מיזמים חדשניים שהשתמשו במסד הנתונים הפתוח  או ב־API שלנו (<a href="/powered-by-sefaria-contest-2020">ראו את המיזמים הזוכים ואת המיזמים שזכו להערכה מיוחדת</a>). אנו מלאי ציפייה לראות מה עוד מסוגלת הקהילה שלנו לעשות כדי לחצות את הגבולות המוכרים של התורה והטכנולוגיה?</p>
@@ -157,9 +157,7 @@ const ContestLandingPage = () => (
 
         <GreyBox>
             <ImageWithText
-                enText="<i>“By open-sourcing a vast array of Jewish texts, Sefaria's API makes programmatic analysis of Jewish tradition simple for the everyday programmer. talmud.page began as my own hand-tailored UI for learning Daf Yomi. The more developers use Sefaria's API to solve creative questions, the richer Jewish learning will be worldwide.”
-                    <br/><br/>
-                    - Ron Shapiro, <a href='https://talmud.page'>talmud.page</a></i></div>"
+                enText="<i>By open-sourcing a vast array of Jewish texts, Sefaria's API makes programmatic analysis of Jewish tradition simple for the everyday programmer. talmud.page began as my own hand-tailored UI for learning Daf Yomi. The more developers use Sefaria's API to solve creative questions, the richer Jewish learning will be worldwide.</i></div>"
                 enImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 enImgAlt=""
                 heText='<i>"על-ידי אספקת גישה למגוון עצום של טקסטים יהודיים, ה-API של ספריא מאפשר למתכנת הפשוט לבצע ניתוח פרוגרמטי של המסורת היהודי. talmud.page החל כממשק משתמש אישי לצורך לימוד דף יומי. ככל שמפתחים ישתמשו יותר  ב-API של ספריא לפתרון שאלות יצירתיות- הלימוד היהודי בכל העולם- יזכה"
@@ -179,7 +177,7 @@ const ContestLandingPage = () => (
                 <li>Potential for impact or inspiration</li>
                 <li>Creativity</li>
             </ol>
-            <p>Projects that existed prior to the call for submission may enter on the basis of additional work added since the time the contest began. Judges will evaluate the projects on the basis of the additional work. Projects don’t have to be 100% complete or polished to enter either; our judges will be happy to see the potential in a promising start. </p>
+            <p>Projects that existed prior to the call for submission may enter on the basis of additional work added since the time the contest began. Judges will evaluate the projects on the basis of the additional work. Projects don't have to be 100% complete or polished to enter either; our judges will be happy to see the potential in a promising start. </p>
         </EnBlock>
         <HeBlock padded={true}>
             <p>הזוכים ייבחרו על ידי פאנל של שלושה שופטים. השופטים יבחנו כל פרויקט על בסיס הקריטריונים הבאים:</p>
@@ -317,8 +315,8 @@ const RambanLandingPage = () => {
             ['Metzora', 'Anne Germanacos', 'In honor of Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.', '/Leviticus.14.1?with=Ramban'],
             ['Achrei Mot', 'Anne Germanacos', 'In honor of Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.', '/Leviticus.16.1?with=Ramban'],
             ['Kedoshim', 'Karine and Michael Bloch', 'In honor of our children Eitan, Yoel, and Tali'], ['Emor', 'Joshua and Dinah Foer', '', '/Leviticus.19.1?with=Ramban'],
-            ['Behar ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf', '/Leviticus.25.1?with=Ramban'],
-            ['Bechukotai ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf', '/Leviticus.26.3?with=Ramban']]
+            ['Behar ', 'Tamar and Eric Goldstein', 'In honor of Aryeh's aufruf', '/Leviticus.25.1?with=Ramban'],
+            ['Bechukotai ', 'Tamar and Eric Goldstein', 'In honor of Aryeh's aufruf', '/Leviticus.26.3?with=Ramban']]
             .map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]}/>)}/>
         </div>
 
@@ -372,9 +370,86 @@ const RambanLandingPage = () => {
 
 const SheetsLandingPage = () => (
     <StaticPage>
+        <HeaderForEducatorsPage/>
+        <GreyBox>
+            <H2Block en="Empower and Engage" he="מסע של גילוי"/>
+            <EnBlock padded={true}>
+                <p>Whether you're teaching in a classroom, leading a community, or learning on your own, Sefaria offers powerful tools to enhance Jewish education and engagement.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>בין אם אתם מלמדים בכיתה, מובילים קהילה או לומדים לבד, ספריא מציעה כלים חזקים להעצמת החינוך היהודי והמעורבות.</p>
+            </HeBlock>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Resources for Educators" he="משאבים למחנכים"/>
+            <EnBlock padded={true}>
+                <p>Access curated collections, lesson plans, and teaching resources created by educators around the world.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>גשו לאסופות מעוצבות, תכניות שיעורים ומשאבי הוראה שנוצרו על ידי מחנכים ברחבי העולם.</p>
+            </HeBlock>
+        </GreyBox>
+
+        <ButtonRow light={true} enTitle="Get Started" heTitle="התחילו כאן">
+            { [
+                ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
+                ["Past Educator Newsletter", "ספריא לתלמידים", "/sheets/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://sheets.sefaria.org.il/sheets/collections/KGMlHrvA"],
+                ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", Sefaria._siteSettings.HELP_CENTER_URLS.HE]
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href={i[2]}
+                    he_href={i[3]}
+                    he={i[1]}
+                    en={i[0]}
+                />
+            )}
+        </ButtonRow>
+
+        <GreyBox>
+            <H2Block en="Community & Support" he="קהילה ותמיכה"/>
+            <EnBlock padded={true}>
+                <p>Connect with other educators, share your experiences, and get support from our team.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>התחברו למחנכים אחרים, שתפו את החוויות שלכם וקבלו תמיכה מהצוות שלנו.</p>
+            </HeBlock>
+        </GreyBox>
+
+        <ButtonRow white={true} enTitle="" heTitle="">
+            { [
+                ["Help Center", "אסופות מומלצות", Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,"https://sheets.sefaria.org.il/sheets/360599?lang=he"],
+                ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
+                ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href={i[2]}
+                    he_href={i[3]}
+                    he={i[1]}
+                    en={i[0]}
+                />
+            )}
+        </ButtonRow>
+
+        <CallToActionFooterWithNewsletter
+            enText="Stay updated with the latest resources and tips for Jewish educators."
+            heText="הישארו מעודכנים עם המשאבים והטיפים העדכניים ביותר למחנכים יהודים."
+            includeEducatorOption={true}
+        />
+    </StaticPage>
+);
+
+const SheetsLandingPage = () => (
+    <StaticPage>
         <Header
             enTitle="Create with Sefaria"
-            enText="Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos."
+            enText="Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos."
             enImg="/static/img/sheets-landing-page/sheetspage_headerimage.png"
             enImgAlt="Sefaria Sheets"
             enActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
@@ -406,7 +481,7 @@ const SheetsLandingPage = () => (
         />
         <Feature
             enTitle="Add Your Commentary"
-            enText="Make it more than sources. You can easily add your own commentary or texts from outside our library to create something new. You can also add images and videos to enhance your reader’s experience even more. "
+            enText="Make it more than sources. You can easily add your own commentary or texts from outside our library to create something new. You can also add images and videos to enhance your reader's experience even more. "
             enImg="/static/img/sheets-landing-page/commentary_sheet.jpg"
             enImgAlt="Add Your Commentary"
             heTitle="הוסיפו הערות משלכם"
@@ -514,7 +589,6 @@ const SheetsLandingPage = () => (
             enButtonText="How to Create a Sheet"
             heButtonText="איך יוצרים דף מקורות"
         />
-
     </StaticPage>
 );
 
@@ -571,7 +645,7 @@ const RemoteLearningPage = () => (
         </GreyBox>
         <Feature
             enTitle="Learners"
-            enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. <a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Create a free account</a> to track your learning, save texts, and follow users creating things that interest you."
+            enText="Whether you're a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. <a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Create a free account</a> to track your learning, save texts, and follow users creating things that interest you."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_learners.png"
             enImgAlt="Source Sheet - Pesach 101"
             heTitle="לומדים עם ספריא"
@@ -662,7 +736,7 @@ const RemoteLearningPage = () => (
         </ButtonRow>
         <Feature
             enTitle="Institutions & Organizations"
-            enText="Is it time to start incorporating digital texts into your website, blog, or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons – meaning you can use anything we have for your own projects. Take a look at these resources and get in touch with your web/app developer to start including Sefaria’s texts on your site."
+            enText="Is it time to start incorporating digital texts into your website, blog, or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons – meaning you can use anything we have for your own projects. Take a look at these resources and get in touch with your web/app developer to start including Sefaria's texts on your site."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_developers.png"
             enImgAlt="Source Sheet - Link Sefaria to your Site"
             heTitle="מוסדות וארגונים"
@@ -673,7 +747,7 @@ const RemoteLearningPage = () => (
         />
         <ButtonRow light={true}>
             <SimpleButton white={true} tall={true} rounded={false} href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
-            <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
+            <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע"י ספריא" en="Powered by Sefaria"/>
             <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
@@ -684,120 +758,85 @@ const RemoteLearningPage = () => (
     </StaticPage>
 );
 
-const EducatorsPage = () => (
-  <StaticPage>
-    <HeaderForEducatorsPage/>
-    <GreyBox>
-      <H2Block en="Empower and Engage" he="מסע של גילוי"/>
-      <EnBlock padded={true}>
-        <p>Empower your students with Sefaria’s free library of digital texts — in Hebrew, English, and many other languages — and use our resources to spark creativity and foster learners’ facility in the Jewish library. Discover new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts.</p>
-      </EnBlock>
-      <HeBlock padded={true}>
-        <p>            דמיינו את התלמידים שלכם  מטיילים במסדרונות ספריית ענק ושולפים ספרים עתיקים וחדשים בהם מתגלים דמויות, רעיונות ומחשבות מתוך העולם היהודי שנכתבו במשך 3000 שנה. בספריא החלום הופך למציאות. הובילו את התלמידים למסע של גילוי ולמידה בין המקורות של ארון הספרים היהודי.</p>
-      </HeBlock>
-      <Spacer/>
-    </GreyBox>
+const PoweredBySefariaContestPage = () => (
+    <StaticPage>
+        <Header
+            enTitle="Powered by Sefaria Contest"
+            enText="Sefaria offers a free digital dataset of Jewish texts, translations, and interconnections that is open for anyone to reuse in novel ways. Last year, we received over 50 innovative Powered by Sefaria projects using our open data or API (<a href="/powered-by-sefaria-contest-2020">see the winners and honorable mentions!</a>). We're eager to see what else our community can dream up to advance the frontiers of Torah and technology in this year's contest!"
+            enImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
+            enImgAlt=""
+            enActionURL={null}
+            enActionText={null}
+            heTitle="התחרות פרויקטים מופעלים ע"י ספריא"
+            heText="ספריא מציעה לציבור מסד נתונים דיגיטלי וחופשי של מקורות יהודיים, תרגומים וקישורים בין־טקסטואליים.  בשנה שעברה הגיעו לפתחנו יותר מ־50 מיזמים חדשניים שהשתמשו במסד הנתונים הפתוח  או ב־API שלנו (<a href="/powered-by-sefaria-contest-2020">ראו את המיזמים הזוכים ואת המיזמים שזכו להערכה מיוחדת</a>). אנו מלאי ציפייה לראות מה עוד מסוגלת הקהילה שלנו לעשות כדי לחצות את הגבולות המוכרים של התורה והטכנולוגיה?</p>
+            heImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
+            heImgAlt=""
+            heActionURL={null}
+            heActionText={null}
+            module={Sefaria.LIBRARY_MODULE}
+        />
+        <GreyBox>
+            <H2Block en="The Contest" he="התחרות"/>
+            <EnBlock padded={true}>
+                <p>What you create is up to you. It could be a functioning web app or just a compelling demo; an interactive visualization, or just a question that digs into data quantitatively in search of an answer; something useful and impactful to the world of learning, or just a crazy experiment that fascinates you without a clear application. <b>The only requirement is that your project must prominently make use of the data that Sefaria has to offer</b>.</p>
+                <p>To get your ideas flowing, here are three great examples from last year's Powered by Sefaria contest. You can find dozens more projects on our <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria list</a> on GitHub and on the <a href="https://www.sefaria.org/powered-by-sefaria-contest-2020">Powered by Sefaria 2020 Winners & Honorable Mentions page</a>.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>המיזם תלוי רק בכם: זה יכול להיות יישומון רשת פעיל או דמו משכנע; ויזואליזציה אינטראקטיבית או שאלה שיורדת לעומקם של הנתונים הכמותיים של המערכת; כלי שימושי ויעיל לעולם הלימוד או ניסוי מדליק ללא תוצר ברור שפשוט מרתק אתכם. <b>הדרישה היחידה היא שבמיזם ייעשה שימוש מובהק במסד הנתונים של ספריא</b>.</p>
+                <p>כדי להתחיל לחשוב ברעיונות, אתם מוזמנים להתבסם בשלושה דוגמאות משנת האחרונה מהתחרות פרויקטים מופעלים ע"י ספריא. תוכלו למצוא עוד עשרות פרויקטים ברשימת <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">פרויקטים מופעלים ע"י ספריא</a> שלנו בגיטהאב ובדף <a href="https://www.sefaria.org/powered-by-sefaria-contest-2020">הזוכים והמומלצים בתחרות פרויקטים מופעלים ע"י ספריא 2020</a>.</p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
 
 
-    <Feature
-      enTitle="Educator Spotlight"
-      enText="<p>Shifra Elman uses translations and topic pages to widen the lens.</p> <p><b>Who?</b> Shifra Elman, Director of Jewish Life and Learning at Gideon Hausner Jewish Day School in Palo Alto, CA</p><p><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don’t know Hebrew avoid over-reliance on a single definition.</p><p><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they’re not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</p>"
-      enImg="/static/img/educators-landing-page/shifra-elman-headshot.png"
-      enImgAlt="Shifra Elman Headshot"
-      heTitle="איך להשתמש באתר?"
-      heText='נתחיל בהתחלה: "המדריך למשתמש בספריא" מורכב מיחידות מודרכות בהן נלמדות צעד אחר צעד האפשרויות השונות באתר ספריא. באסופה "ספריא לתלמידים" נמצאות הדרכות על השימוש באתר שמותאמות במיוחד עבור למידה עצמאית של תלמידים. כדי ללמוד ולהכיר חלק מסוים באתר תוכלו להשתמש באסופה של "שאלות נפוצות".'
-      heImg="/static/img/educators-landing-page/teaching-with-sefaria-library-heb.png"
-      heImgAlt="Professional Development"
-      borderColor={palette.colors.darkblue}
-    />
+        <Feature
+            enTitle="Educator Spotlight"
+            enText="<p>Shifra Elman uses translations and topic pages to widen the lens.</p> <p><b>Who?</b> Shifra Elman, Director of Jewish Life and Learning at Gideon Hausner Jewish Day School in Palo Alto, CA</p><p><b>How?</b> In our introductory ninth-grade class, we emphasize the many Torah translations available on Sefaria. This helps students who don't know Hebrew avoid over-reliance on a single definition.</p><p><b>Shifra's Top Tip:</b> Topic pages are a valuable starting point for my students. Even if they're not sure where to begin with a topic, seeing the base text alongside a variety of commentaries and other resources from the Jewish bookshelf helps guide their research.</p>"
+            enImg="/static/img/educators-landing-page/shifra-elman-headshot.png"
+            enImgAlt="Shifra Elman Headshot"
+            heTitle="איך להשתמש באתר?"
+            heText='נתחיל בהתחלה: "המדריך למשתמש בספריא" מורכב מיחידות מודרכות בהן נלמדות צעד אחר צעד האפשרויות השונות באתר ספריא. באסופה "ספריא לתלמידים" נמצאות הדרכות על השימוש באתר שמותאמות במיוחד עבור למידה עצמאית של תלמידים. כדי ללמוד ולהכיר חלק מסוים באתר תוכלו להשתמש באסופה של "שאלות נפוצות".'
+            heImg="/static/img/educators-landing-page/teaching-with-sefaria-library-heb.png"
+            heImgAlt="Professional Development"
+            borderColor={palette.colors.darkblue}
+        />
 
-    <ButtonRow white={true} enTitle="" heTitle="">
-      { [
-          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
-          ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
-      ].map(i =>
-          <SimpleButton
-              white={true}
-              rounded={false}
-              tall={true}
-              newTab={true}
-              href={i[2]}
-              he_href={i[3]}
-              he={i[1]}
-              en={i[0]}
-          />)
-      }
-    </ButtonRow>
+        <ButtonRow white={true} enTitle="" heTitle="">
+            { [
+                ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
+                ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+                ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", "https://www.sefaria.org.il/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"]
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href={i[2]}
+                    he_href={i[3]}
+                    he={i[1]}
+                    en={i[0]}
+                />
+            )}
+        </ButtonRow>
 
-     <Feature
-      enTitle="Resources for Educators"
-      enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Get informed about all of the new texts added to the library and teach your students to be effective Sefaria users using the student course."
-      enImg="/static/img/educators-landing-page/sefaria-for-educators.png"
-      enImgAlt="Resources for Educators"
-      heTitle="מערכי שיעור וחומרי הוראה"
-      heText="צוות החינוך של ספריא יצר ואסף עבורכם המורים, חומרי הוראה בעזרתם תוכלו להעשיר ולהעמיק את הלמידה. <br><br>לפניכם אסופה של מערכי שיעור בנושאים שונים, הצעה לתהליך של עבודת חקר באמצעות ספריא ורעיונות להערכה חלופית."
-      heImg="/static/img/educators-landing-page/369968.png"
-      heImgAlt=""
-      borderColor={palette.colors.gold}
-      link=""
-     />
-
-    <ButtonRow white={true} enTitle="" heTitle="">
-      { [
-          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
-          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
-          ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
-      ].map(i =>
-          <SimpleButton
-              white={true}
-              rounded={false}
-              tall={true}
-              newTab={true}
-              href={i[2]}
-              he_href={i[3]}
-              he={i[1]}
-              en={i[0]}
-          />)
-      }
-    </ButtonRow>
-    <Feature
-      enTitle="Sefaria for Educators How-Tos"
-      enText="Explore our Help Center to find answers to your questions about Sefaria. Have a text or translation you'd like to see added to the library? Fill out our text request form. For a convenient way to create materials, try Sefaria for Google Docs, an extension for adding sources from the library directly into your Docs."
-      enImg="/static/img/educators-landing-page/help-center-for-educators.png"
-      enImgAlt="Sefaria for Educators How-Tos"
-      heTitle="גם את זה יש בספריא! אל תחמיצו!"
-      heText='מאגר ספריא הוא גדול ובתוכו אפשרויות לימוד רבות. מוזמנים לעיין באסופות מעניינות ושימושיות, להכיר את עמוד הקהילה והתכנים שבו וגם לגלות את "הסודות של ספריא"'
-      heImg="/static/img/educators-landing-page/228260.png"
-      heImgAlt=""
-      borderColor={palette.colors.red}
-    />
-
-    <ButtonRow white={true} enTitle="" heTitle="">
-      { [
-          ["Help Center", "אסופות מומלצות", "/sheets/collections/sefaria-faqs?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/360599?lang=he"],
-          ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
-          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
-      ].map(i =>
-          <SimpleButton
-              white={true}
-              rounded={false}
-              tall={true}
-              newTab={true}
-              href={i[2]}
-              he_href={i[3]}
-              he={i[1]}
-              en={i[0]}
-          />)
-      }
-    </ButtonRow>
-
-    <GreyBox>
-      <H2Block en="Get in touch" he="אנחנו רוצים לשמוע מכם"/>
-      <EnBlock padded={true}>
-          <p>Was your teaching enhanced by Sefaria? Did you have a “Sefaria moment” with your students? Share it with us! We love to hear how educators are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at <a href="mailto:education@sefaria.org">education@sefaria.org</a>.</p>
-      </EnBlock>
-      <HeBlock padded={true}>
+        <GreyBox>
+            <H2Block en="Judging Criteria" he="קריטריוני השופטים"/>
+            <EnBlock padded={true}>
+                <p>The winners will be chosen by a panel of three judges. The judges will evaluate each project based on the following criteria:</p>
+                <ol>
+                    <li>Technological accomplishment</li>
+                    <li>Potential for impact or inspiration</li>
+                    <li>Creativity</li>
+                </ol>
+                <p>Projects that existed prior to the call for submission may enter on the basis of additional work added since the time the contest began. Judges will evaluate the projects on the basis of the additional work. Projects don't have to be 100% complete or polished to enter either; our judges will be happy to see the potential in a promising start. </p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>הזוכים ייבחרו על ידי פאנל של שלושה שופטים. השופטים יבחנו כל פרויקט על בסיס הקריטריונים הבאים:</p>
+                <ol>
+                    <li>השלמת משימה טכנולוגית</li>
+                    <li>פוטנציאל להשפעה או להשראה</li>
+                    <li>יצירתיות</li>
+                </ol>
           <p>אנחנו לומדים רבות ממורים ותלמידים שמספרים לנו על ההתנסות שלהם עם ספריא. נשמח מאד אם תשתפו אותנו בחוויית הלימוד שלכם. אתם מוזמנים ליצור איתנו קשר כדי לתאם הדרכה למורים וגם לתלמידים,  לספר לנו על חוויית הלמידה עם ספריא ולהתייעץ איתנו בכל דבר ועניין</p>
           <p>כתבו לנו לכתובת המייל hello@sefaria.org</p>
 
