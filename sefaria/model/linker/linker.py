@@ -125,6 +125,7 @@ class Linker:
         @return:
         """
         inputs, paragraph_break_spans = self.__break_input_into_paragraphs(input_str)
+        paragraph_break_spans += [(0, 0)]  # pad to be same length as inputs for zip()
         linked_docs = self.bulk_link(inputs, [book_context_ref]*len(inputs), *link_args, **link_kwargs)
         resolved_refs = []
         resolved_named_entities = []
