@@ -280,6 +280,7 @@ def test_folio_type():
         assert folio.toNumber("en", folio.toStr("en", i)) == i
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 class TestDefaultNodeWithChildren:
     @classmethod
     def setup_class(cls):

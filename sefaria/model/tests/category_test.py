@@ -9,6 +9,8 @@ from sefaria import tracker
 import sefaria.model.category as c
 from sefaria.helper.category import update_order_of_category_children
 import datetime
+
+@pytest.mark.usefixtures("mock_toc_callbacks") 
 class Test_Category_Editor(object):
     @pytest.fixture(autouse=True, scope='module')
     def create_new_terms(self):

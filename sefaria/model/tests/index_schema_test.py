@@ -5,6 +5,7 @@ import pprint
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 class Test_Schema(object):
     # This needs a bunch of hebrew titles to validate
 
