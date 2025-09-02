@@ -23,9 +23,11 @@ DOMAIN_LANGUAGES = json.dumps({
     "http://hebrew.example.org": "hebrew",
     "http://english.example.org": "english",
 })
+
+# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
 DOMAIN_MODULES = json.dumps({
     "library": "http://localhost:8000",
-    "sheets": "http://localhost:8000/sheets",
+    "sheets": "http://localhost:8000",
 })
 MODULE_ROUTES = json.dumps({
     "library": "/",

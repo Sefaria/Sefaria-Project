@@ -198,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670" data-target-module={Sefaria.SHEETS_MODULE}>
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.SHEETS_MODULE}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -266,7 +266,7 @@ const Resources = () => (
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url="/help" icon="help.svg" />
+      <IconLink text="Help" url={Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US})} icon="help.svg" openInNewTab={true} />
     </div>
   </SidebarModule>
 );
@@ -896,10 +896,10 @@ const Wrapper = ({title, content}) => (
 );
 
 
-const IconLink = ({text, url, icon}) => (
+const IconLink = ({text, url, icon, openInNewTab}) => (
   <div className="navSidebarLink gray">
     <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("icon")}`} />
-    <a href={url}><InterfaceText>{text}</InterfaceText></a>
+    <a href={url} target={openInNewTab ? "_blank" : "_self"}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
 

@@ -37,6 +37,7 @@ import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
+import { BannerImpressionProbe } from './BannerImpressionProbe';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -217,11 +218,13 @@ class ReaderApp extends Component {
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
+      gtag("event", "reader_app_mounted");
       if (Sefaria._debug) console.log("sa: reader app has loaded!");
     }
     if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
       if (!('IntersectionObserver' in window)) {
         sa_event("intersection_observer_not_supported");
+        gtag("event", "intersection_observer_not_supported");
       }
       localStorage.setItem("sa.intersection_observer_api_checked", "true");
     }
@@ -1132,6 +1135,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   handleModuleLinkRightClick(e) {
     /*
     Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
     if (link) {
@@ -2364,6 +2368,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
+            <BannerImpressionProbe />
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
