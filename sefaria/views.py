@@ -378,7 +378,6 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
-@cors_allow_all
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
@@ -399,7 +398,6 @@ def find_refs_api(request):
     return jsonResponse({"task_id": async_result.id}, status=202)
 
 
-@cors_allow_all
 @api_view(["GET", "OPTIONS"])
 def async_task_status_api(request, task_id: str):
     """
