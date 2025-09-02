@@ -701,8 +701,8 @@ const CreateButton = () => {
   };
   
   return (
-    <Button onClick={handleCreate}>
-      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
+    <Button className="small" href="/sheets/new" targetModule={Sefaria.SHEETS_MODULE}>
+      <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
     </Button>
   );
 };

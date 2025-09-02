@@ -6,6 +6,7 @@ import structlog
 import sefaria.system.logging as sefaria_logging
 import os
 import json
+
 # These are things you need to change!
 
 ################
@@ -39,10 +40,10 @@ DATABASES = {
 
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
+DOMAIN_LANGUAGES = json.dumps({
     "http://hebrew.example.org": "hebrew",
     "http://english.example.org": "english",
-}
+})
 
 # Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
 DOMAIN_MODULES = json.dumps({
@@ -350,3 +351,21 @@ if "pytest" in sys.modules:
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
+
+# Session cookie settings for cross-subdomain support
+# Set this to your top-level domain (e.g., '.example.com') to allow session cookies
+# to work across all subdomains. The leading dot is important!
+SESSION_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
+SESSION_COOKIE_SECURE = True  # Set to True if using HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Recommended for security
+SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+# CSRF cookie settings for cross-subdomain support
+# Set this to your top-level domain to allow CSRF tokens to work across subdomains
+CSRF_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
+CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
+CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this

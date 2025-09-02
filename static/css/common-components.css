@@ -51,9 +51,18 @@ a.sefaria-common-button {
     cursor: pointer;
     font-size: 16px;
     box-sizing: border-box;
-    line-height: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; 
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+button.sefaria-common-button.small {
+    height: 30px;
+    min-width: 30px;
+    padding: 5px 10px;
+    font-size: 14px;
 }
 /** large button **/
 button.sefaria-common-button.large,

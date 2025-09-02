@@ -107,8 +107,8 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 interface = domain_lang
             else:
                 redirect_domain = None
-                for domain in DOMAIN_LANGUAGES:
-                    if DOMAIN_LANGUAGES[domain] == interface:
+                for domain in json.loads(DOMAIN_LANGUAGES):
+                    if json.loads(DOMAIN_LANGUAGES)[domain] == interface:
                         redirect_domain = domain
                 if redirect_domain:
                     # When detected language doesn't match current domain langauge, redirect
@@ -147,7 +147,6 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             translation_language_preference_suggestion = None
 
         # VERSION PREFERENCE
-        import json
         from urllib.parse import unquote
         version_preferences_by_corpus_cookie = json.loads(unquote(request.COOKIES.get("version_preferences_by_corpus", "null")))
         request.version_preferences_by_corpus = (profile is not None and getattr(profile, "version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie or {}
@@ -169,7 +168,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
+            domain = [d for d in json.loads(DOMAIN_LANGUAGES) if json.loads(DOMAIN_LANGUAGES)[d] == lang][0]
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
@@ -192,8 +191,8 @@ def current_domain_lang(request):
     domain_lang = None
     for protocol in ("https://", "http://"):
         full_domain = protocol + current_domain
-        if full_domain in DOMAIN_LANGUAGES:
-            domain_lang = DOMAIN_LANGUAGES[full_domain]
+        if full_domain in json.loads(DOMAIN_LANGUAGES):
+            domain_lang = json.loads(DOMAIN_LANGUAGES)[full_domain]
     return domain_lang
 
 

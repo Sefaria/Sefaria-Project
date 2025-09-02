@@ -919,11 +919,19 @@ def edit_collection_page(request, slug=None):
         del collectionData["lastModified"]
     else:
         collectionData = None
-
-    # need to pass renderStatic so that s2 shows up in base template
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
-
-
+           
+    props = base_props(request)
+    props.update({
+        "initialMenu": "editCollection",
+        "initialCollectionData": collectionData,
+    })
+    
+    return render_template(request, 'base.html', props, {
+        "title": "Edit Collection" if collectionData else "Create Collection" + " | " + _("Sefaria Collections"),
+        "desc": "Edit your collection settings and details",
+        "noindex": True
+    })
+    
 def groups_redirect(request, group):
     """
     Redirect legacy groups URLs to collections.
@@ -1304,8 +1312,8 @@ def interface_language_redirect(request, language):
     ):
         next = "/"
 
-    for domain in DOMAIN_LANGUAGES:
-        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
+    for domain in json.loads(DOMAIN_LANGUAGES):
+        if json.loads(DOMAIN_LANGUAGES)[domain] == language and not request.get_host() in domain:
             next = domain + next
             next = next + ("&" if "?" in next else "?") + "set-language-cookie"
             break

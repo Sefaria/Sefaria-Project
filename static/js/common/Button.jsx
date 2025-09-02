@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 /**
  *
  * @param variant can be empty or "secondary"
- * @param size can be empty or "large" or "fullwidth"
+ * @param size can be empty or "large", "small" or "fullwidth"
  * @param icon only the name of the icon without the extension
  * @param children you can pass additional html or just <InterfaceText>
  * @param onClick callback func to trigger
@@ -73,7 +73,6 @@ const Button = ({
       }
     }
   };
-
   return (
     <button
       disabled={disabled}
