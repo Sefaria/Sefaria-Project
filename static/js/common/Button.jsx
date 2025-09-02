@@ -10,7 +10,7 @@
  * @returns {JSX.Element}
  * @constructor
  */
-const Button = ({ variant = '', size = '', children, onClick, icon=null,disabled=false, 
+const Button = ({ variant = '', size = '', children, onClick, icon=null, disabled=false, 
   className = '', activeModule=null, alt=''}) => {
   return (
     <button
