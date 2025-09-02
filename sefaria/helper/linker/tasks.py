@@ -2,19 +2,16 @@
 Celery tasks for the LLM server
 """
 
-from celery import signature
-from sefaria.model import library
+from celery.signals import worker_init
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
-from sefaria.model import Ref, text, library # Importing library to get it preloaded before workers start
+from sefaria.model import Ref
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-library.build_linker("he")
-library.build_linker("en")
 
 @dataclass(frozen=True)
 class LinkingArgs:
@@ -22,6 +19,13 @@ class LinkingArgs:
     text: str
     lang: str
     vtitle: str
+
+
+@worker_init.connect
+def on_worker_init(**kwargs):
+    from reader.startup import init_library_cache
+    logger.info("linker worker_init")
+    init_library_cache()
 
 
 @app.task(name="linker.find_refs_api")
