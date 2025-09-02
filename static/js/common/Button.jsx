@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 
+
+
 /**
  *
  * @param variant can be empty or "secondary"
@@ -31,7 +33,7 @@ const Button = ({
 
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
-  if (href) { 
+  if (href) {
     const handleKeyDown = (e) => {
       // For links: only Space activates (Enter is handled by default link behavior)
       if (e.key === ' ') {
@@ -61,7 +63,7 @@ const Button = ({
       </a>
     );
   }
-  
+
   const handleKeyDown = (e) => {
     // For buttons: both Enter and Space activate
     if (e.key === 'Enter' || e.key === ' ') {
@@ -115,3 +117,36 @@ Button.propTypes = {
 };
 
 export default Button;
+
+/**
+ * Reusable keyboard handler for accessibility.
+ * Supports the two common patterns found throughout the codebase.
+ *
+ * @param {function} [onClick] - Custom click handler to call instead of element.click()
+ * @returns {function} - Keyboard event handler function
+ *
+ * @example
+ * // For elements that should trigger their own click behavior:
+ * const handleKeyDown = handleKeyboardClick();
+ * <button onKeyDown={handleKeyDown}>Click me</button>
+ *
+ * @example
+ * // For elements with custom click handlers:
+ * const handleKeyDown = handleKeyboardClick(myCustomClickHandler);
+ * <div onKeyDown={handleKeyDown}>Custom element</div>
+ */
+const handleKeyboardClick = (onClick) => {
+  return (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (onClick) {
+        onClick(e);
+      } else {
+        e.currentTarget.click();
+      }
+    }
+  };
+};
+
+// Export for temporary use by other components during migration
+export { handleKeyboardClick };
