@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 /**
  *
  * @param variant can be empty or "secondary"
@@ -8,13 +10,25 @@
  * @param disabled whether the button is to be disabled or not
  * @param className additional class names in case they are needed (preferrably not)
  * @param href if provided, renders as <a> tag instead of button
- * @param activeModule if provided, sets data-target-module attribute
+ * @param activeModule if provided, sets data-active-module attribute for CSS theming
+ * @param targetModule if provided, sets data-target-module attribute for JS navigation (only valid with href)
  * @returns {JSX.Element}
  * @constructor
  */
-const Button = ({ variant = 'sefaria-common-button', size = '', icon, children, onClick, disabled=false, className = '', activeModule=null, href }) => {
+const Button = ({
+  variant = 'sefaria-common-button',
+  size = '',
+  icon,
+  children,
+  onClick,
+  disabled = false,
+  className = '',
+  activeModule = null,
+  targetModule = null,
+  href
+}) => {
   const buttonClasses = `${variant} ${size} ${className}`;
-  
+
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
   if (href) { 
@@ -39,7 +53,8 @@ const Button = ({ variant = 'sefaria-common-button', size = '', icon, children, 
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        {...(!!activeModule ? { 'data-target-module': activeModule } : {})}
+        {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
+        {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
         {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
         {children}
@@ -60,7 +75,7 @@ const Button = ({ variant = 'sefaria-common-button', size = '', icon, children, 
   return (
     <button
       disabled={disabled}
-      {...(!!activeModule ? { 'data-target-module': activeModule } : {})}
+      {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
       onKeyDown={handleKeyDown}
@@ -69,6 +84,34 @@ const Button = ({ variant = 'sefaria-common-button', size = '', icon, children, 
       {children}
     </button>
   );
+};
+
+// Custom PropTypes validator for targetModule
+const targetModuleValidator = (props, propName, componentName) => {
+  const targetModule = props[propName];
+  const href = props.href;
+
+  if (targetModule && !href) {
+    return new Error(
+      `Invalid prop \`${propName}\` supplied to \`${componentName}\`. ` +
+      `\`${propName}\` can only be used when \`href\` prop is provided.`
+    );
+  }
+
+  return PropTypes.string(props, propName, componentName);
+};
+
+Button.propTypes = {
+  variant: PropTypes.string,
+  size: PropTypes.string,
+  icon: PropTypes.string,
+  children: PropTypes.node,
+  onClick: PropTypes.func,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
+  href: PropTypes.string,
+  activeModule: PropTypes.string,
+  targetModule: targetModuleValidator
 };
 
 export default Button;

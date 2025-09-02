@@ -689,7 +689,7 @@ const HelpButton = () => {
 
 const SignUpButton = () => {
   return (
-    <Button href="/register">
+    <Button href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
       <InterfaceText>Sign Up</InterfaceText>
     </Button>
   )
