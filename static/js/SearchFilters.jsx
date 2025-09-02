@@ -222,7 +222,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true"></img></button>;
   const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (

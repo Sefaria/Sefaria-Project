@@ -1141,8 +1141,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} aria-label="Shareable link"/>
+            <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input className="shareInput" id="sheetShareLink" value={this.props.url} aria-label="Shareable link"/>
           </div>
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">

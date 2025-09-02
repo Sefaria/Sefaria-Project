@@ -996,7 +996,6 @@ const DownloadVersions = ({sref}) => {
             href={versionDlLink()}
             download
             role="button"
-            tabIndex={0}
           >
             {Sefaria._("Download")}
           </a>
