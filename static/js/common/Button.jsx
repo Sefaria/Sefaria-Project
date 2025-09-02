@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 /**
  *
  * @param variant can be empty or "secondary"
- * @param size can be empty or "large" or "fullwidth"
+ * @param size can be empty or "large", "small" or "fullwidth"
  * @param icon only the name of the icon without the extension
  * @param children you can pass additional html or just <InterfaceText>
  * @param onClick callback func to trigger
@@ -14,20 +14,22 @@ import PropTypes from 'prop-types';
  * @param href if provided, renders as <a> tag instead of button
  * @param activeModule if provided, sets data-active-module attribute for CSS theming
  * @param targetModule if provided, sets data-target-module attribute for JS navigation (only valid with href)
+ * @param alt required when icon is provided for accessibility (alt text for the icon)
  * @returns {JSX.Element}
  * @constructor
  */
 const Button = ({
   variant = 'sefaria-common-button',
   size = '',
-  icon,
+  icon=null,
   children,
   onClick,
   disabled = false,
   className = '',
   activeModule = null,
   targetModule = null,
-  href
+  href,
+  alt
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
 
@@ -58,7 +60,7 @@ const Button = ({
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
-        {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
+        {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
         {children}
       </a>
     );
@@ -82,7 +84,7 @@ const Button = ({
       onClick={onClick}
       onKeyDown={handleKeyDown}
     >
-      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={icon} />)}
+      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
       {children}
     </button>
   );
@@ -103,6 +105,22 @@ const targetModuleValidator = (props, propName, componentName) => {
   return PropTypes.string(props, propName, componentName);
 };
 
+// Custom PropTypes validator for alt text when icon is present
+const altTextValidator = (props, propName, componentName) => {
+  const alt = props[propName];
+  const icon = props.icon;
+
+  if (icon && (alt === undefined || alt === null || alt === '')) {
+    return new Error(
+      `Invalid prop \`${propName}\` supplied to \`${componentName}\`. ` +
+      `\`${propName}\` is required when \`icon\` prop is provided for accessibility. ` +
+      `Please provide descriptive alt text for the icon.`
+    );
+  }
+
+  return PropTypes.string(props, propName, componentName);
+};
+
 Button.propTypes = {
   variant: PropTypes.string,
   size: PropTypes.string,
@@ -113,7 +131,8 @@ Button.propTypes = {
   className: PropTypes.string,
   href: PropTypes.string,
   activeModule: PropTypes.string,
-  targetModule: targetModuleValidator
+  targetModule: targetModuleValidator,
+  alt: altTextValidator
 };
 
 export default Button;

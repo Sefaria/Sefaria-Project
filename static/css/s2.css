@@ -131,12 +131,10 @@ body, .en, .int-en, .englishWithinHebrew {
   direction: rtl;
 }
 .btn, .btn-sm, .btn-xs {
-  display: inline-block;
-  color: white;
   display: flex;
+  color: white;
   justify-content: center;
-  align-content: center;
-  flex-direction: column;
+  align-items: center;
   margin: 10px 20px;
   background-color: var(--sefaria-blue);
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -144,7 +142,7 @@ body, .en, .int-en, .englishWithinHebrew {
   cursor: pointer;
   font-size: 16px;
   box-sizing: border-box;
-  line-height: 19px;
+  line-height: 1;
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -470,7 +468,7 @@ input.noselect {
 	align-items: center;
 }
 .headerInner .headerLinksSection > * {
-  margin-inline-start: 2%;
+  margin-inline-start: 3%;
 }
 .header .header-nav {
   margin-top: 1px;
@@ -727,7 +725,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   height: 100%;
   margin-top: 4px;
 }
-.header .interfaceLinks.languageHeader {
+.headerDropdownMenu .languageHeader {
   padding-inline: 15px;
   font-size: 14px;
   font-weight: 400;
@@ -741,7 +739,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--medium-grey);
+  color: #000000;
   cursor: pointer;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
@@ -834,7 +832,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: var(--medium-grey);
+  color: #666666;
   padding: 5px;
   direction: ltr;
 }
@@ -1946,14 +1944,17 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   filter: none;
   opacity: .6;
 }
-.navSidebar .button.appButton.white img {
+.navSidebar button.appButton.white img {
   opacity: 1;
 }
-.navSidebar .button.appButton.ios img {
+.navSidebar button.appButton.ios img {
   margin-top: -5px;
 }
 .navSidebar .button + .button {
   margin-inline-start: 7px;
+}
+.navSidebar button {
+  margin-block-start: 15px;
 }
 .navSidebar .button.get-start {
   height: 39px;
@@ -2827,7 +2828,11 @@ display: none;
 div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
-.card {
+
+div.TOCCardsWrapper div.card:nth-last-child(1 of div.card):nth-child(2n+1 of div.card):not(:nth-child(1 of div.card)) {
+  flex: 0 0 45%;
+}
+div.card {
   flex: 1 1 45%;
   position: relative;
   padding-bottom: 12px;
@@ -2843,6 +2848,8 @@ div.TOCCardsWrapper :nth-child(1 of .card) {
   line-height: 1.3;
   flex: 1;
   font-weight: 400;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 a.cardTitle:hover {
   text-decoration: none;
@@ -4210,14 +4217,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 30px;
   color: #000;
   margin-bottom: 5px;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font:  var(--hebrew-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font:  var(--hebrew-sans-serif-font-family);
 }
 .searchContent h1.englishQuery {
   font-size: 30px;
 }
 .searchContent h1.hebrewQuery {
-  font-family: var(--hebrew-serif-font-family);
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 .searchContent .searchTopLine {
   margin-bottom: 40px;
@@ -4229,7 +4236,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   display: flex;
   border-bottom: 1px solid var(--light-grey);
-  flex-direction: row;
+  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
 }
@@ -8876,24 +8883,25 @@ a .button:hover {
   width: 14px;
   margin-top: -3px;
 }
-.button.appButton {
+button.appButton {
   box-shadow: none;
-  border: 2px solid var(--sefaria-blue);
+  border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
-.button.appButton img {
+button.appButton img {
   margin-inline-end: 5px;
 }
-.button.appButton.iconOnly {
+button.appButton.iconOnly {
   width: 40px;
   height: 40px;
   box-sizing: border-box;
   display: inline-flex;
   padding: 0;
+  margin-inline-end: 5px;
   justify-content: center;
   align-items: center;
 }
-.button.appButton.iconOnly img {
+button.appButton.iconOnly img {
   width: 18px;
   height: 18px;
   margin: 0;
@@ -9646,16 +9654,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .collectionInfo .en {
   display: none;
 }
-.collectionPage h1 {
-  color: black;
-  font-size: 30px;
-  margin-bottom: 5px;
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --english-font: var(--english-serif-font-family);
-}
-.collectionPage .navTitle {
-  margin-bottom: 5px;
-}
+
 .collectionPage .collectionLabel {
   text-transform: uppercase;
   color: var(--medium-grey);
@@ -10213,6 +10212,102 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .calendarRef img {
   margin-top: 2px;
+}
+#editCollectionPage {
+  width: 90%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 80px 0 100px;
+}
+.onoffswitch {
+  position: relative;
+  width: 70px;
+  display: inline-block;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select: none;
+}
+.readerNavMenu .content #editCollectionPage .onoffswitch-checkbox {
+  display: none;
+}
+.readerNavMenu .content #editCollectionPage .onoffswitch-label {
+  display: block;
+  height: auto;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 20px;
+}
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.interface-hebrew .onoffswitch-inner {
+  margin-right: -100%;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 36px;
+  padding: 0;
+  line-height: 36px;
+  font-size: 14px;
+  color: white;
+  box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+  content: "Yes";
+  padding-left: 10px;
+  background-color: #212D4F;
+  color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+  content: "לא";
+  padding-right: 10px;
+}
+.onoffswitch-inner:after {
+  content: "No";
+  padding-right: 10px;
+  background-color: #212D4F;
+  color: #fff;
+  text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after {
+  text-align: left;
+  padding-left: 10px;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "כן";
+}
+.onoffswitch-switch {
+  display: block;
+  width: 31px;
+  margin: 1px;
+  background: #FFFFFF;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 30px;
+  right: 36px;
+  border: 2px solid #999999;
+  border-radius: 26px;
+  transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-right: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0px;
+}
+.readerNavMenu .content #editCollectionPage {
+  padding: 20px 0 40px;
+  min-height: auto;
+  overflow: visible;
 }
 #editCollectionPageContainerInner {
   position: relative;
@@ -13134,6 +13229,8 @@ body .homeFeedWrapper .content {
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 /*HACK to make English text of sources in topic pages ltr*/
 .interface-hebrew .storyBody {
@@ -13144,8 +13241,7 @@ body .homeFeedWrapper .content {
     margin-left: 26px;
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
-  color: var(--medium-grey);
-  font-family: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
   font-size: 15px;
 }
 .story .storyBody .en {
@@ -14840,9 +14936,6 @@ span.ref-link-color-3 {color: blue}
   flex-wrap: wrap;
   column-gap: 20px;
 }
-.TOCCardsWrapper .card:nth-child(odd):last-child {
-  flex: 0 0 45%;
-}
 .sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
@@ -15032,6 +15125,9 @@ span.ref-link-color-3 {color: blue}
   content: "";
   transform: scale(0.75);
 } */
+.header .headerDropdownMenu .dropdownLinks-menu a {
+  color: #000000;
+}
 .sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
   height: 10px;
@@ -15128,6 +15224,7 @@ span.ref-link-color-3 {color: blue}
 .header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
 }
+
 
 .productsFlexWrapper {
   display: flex;
@@ -15369,24 +15466,12 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding-top: 25px;
+  padding-top: 15px;
 }
 
 .footerContainer a {
-  padding: 3px 10px;
-}
-
-
-.footerContainer {
-  max-width: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding-top: 25px;
-}
-
-.footerContainer a {
-  padding: 3px 10px;
+  padding-top: 10px;
+  padding-inline-end: 6px;
 }
 
 .stickySidebarFooter {
@@ -15413,6 +15498,10 @@ span.ref-link-color-3 {color: blue}
   line-height: 18px;
   height: 23px;
   padding-inline: 15px;
+}
+.interface-english .dropdownLanguageToggle a.hebrewLanguageLink,
+.interface-hebrew .dropdownLanguageToggle a.englishLanguageLink {
+  color: #666666;
 }
 
 .languageDot{

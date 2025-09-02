@@ -51,6 +51,9 @@ const CopyModal = ({close, sheetID}) => {
       newSheet.owner = Sefaria._uid
     }
     delete newSheet.id;
+    delete newSheet.ownerImageUrl;
+    delete newSheet.ownerProfileUrl;
+    delete newSheet.ownerOrganization;
     delete newSheet.ownerName;
     delete newSheet.views;
     delete newSheet.dateCreated;

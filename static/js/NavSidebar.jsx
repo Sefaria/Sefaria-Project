@@ -293,7 +293,7 @@ const SidebarFooter = () => {
 
   return (
     <div className = "stickySidebarFooter navSidebarModule">
-        <h3/>
+        <h1/>
         <div className="footerContainer">
           {data.map(footerLink =>
             <a href={footerLink.url} 
@@ -775,7 +775,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => { // TODO: remove? looks like we are not using this
+const StayConnected = () => { 
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (
@@ -784,16 +784,11 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
       <br />
       <NewsletterSignUpForm context="sidebar" />
-
-      <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
-        <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
-      </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
-        <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
-      </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.youtube.com/user/SefariaProject">
-        <img src="/static/icons/youtube.svg" alt={Sefaria._("Sefaria on YouTube")} />
-      </a>
+      <div className="social-links">
+        <Button icon={"facebook"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
+        <Button icon={"instagram"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
+        <Button icon={"youtube"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
+      </div>
 
     </SidebarModule>
   );
@@ -807,7 +802,7 @@ const GetStartedButton = () => {
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"} href="/sheets/new" targetModule={Sefaria.SHEETS_MODULE}>
+    <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")} href="/sheets/new" targetModule={Sefaria.SHEETS_MODULE}>
       <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
     </Button>
   ) 
@@ -852,13 +847,13 @@ const AboutCollections = ({hideTitle}) => (
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
     </InterfaceText>
-    {hideTitle ? null :
-    <div>
-      <a className="button small" href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
-        <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
+      {!hideTitle &&
+      <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
+      <a href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
-    </div>}
+      </Button>
+}
   </SidebarModule>
 );
 
