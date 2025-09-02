@@ -4,6 +4,7 @@ import {
   LoginPrompt,
 } from './Misc';
 import React from 'react';
+import { handleKeyboardClick } from './common/Button';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
@@ -385,7 +386,7 @@ class AddToSourceSheetBox extends Component {
                 onClick={this.createSheet} 
                 data-active-module={Sefaria.SHEETS_MODULE}
                 aria-label={Sefaria._("Create Sheet")}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.createSheet(); } }}
+                onKeyDown={handleKeyboardClick(this.createSheet)}
                 role="button"
                 tabIndex="0"
               >

@@ -15,6 +15,7 @@ import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {ProfilePic} from "./ProfilePic";
+import { handleKeyboardClick } from "./common/Button";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
@@ -731,11 +732,11 @@ class LanguageToggleButton extends Component {
   }
   render() {
     var url = this.props.url || "";
-    return (<a 
-              href={url} 
-              className="languageToggle" 
+    return (            <a
+              href={url}
+              className="languageToggle"
               onClick={this.toggle}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(e); } }}
+              onKeyDown={handleKeyboardClick(this.toggle)}
             >
               <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
               <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
@@ -1045,13 +1046,13 @@ const PencilSourceEditor = ({topic, text, classes}) => {
     return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
         <img 
           className={classes} 
-          id={"editTopic"} 
-          onClick={toggleAddSource} 
-          src={"/static/icons/editing-pencil.svg"} 
+          id={"editTopic"}
+          onClick={toggleAddSource}
+          src={"/static/icons/editing-pencil.svg"}
           alt="Edit topic"
           role="button"
           tabIndex="0"
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAddSource(); } }}
+          onKeyDown={handleKeyboardClick(toggleAddSource)}
         />;
 }
 
@@ -1238,11 +1239,11 @@ class CloseButton extends Component {
     const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
     
     return (
-      <a 
-        href={url} 
-        className={classes} 
+      <a
+        href={url}
+        className={classes}
         onClick={this.onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.onClick(e); } }}
+        onKeyDown={handleKeyboardClick(this.onClick)}
         aria-label={altText}
         title={altText}
       >
@@ -1916,13 +1917,13 @@ class Note extends Component {
 
       var buttons = this.props.isMyNote ?
                     (<div className="noteButtons">
-                      <i 
-                        className="editNoteButton fa fa-pencil" 
-                        title="Edit Note" 
+                      <i
+                        className="editNoteButton fa fa-pencil"
+                        title="Edit Note"
                         onClick={this.props.editNote}
                         role="button"
                         tabIndex="0"
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.editNote(); } }}
+                        onKeyDown={handleKeyboardClick(this.props.editNote)}
                       ></i>
                     </div>) : null;
 
@@ -1990,13 +1991,13 @@ class SignUpModal extends Component {
         <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div 
-            id="interruptingMessageClose" 
-            className="sefariaModalClose" 
+            id="interruptingMessageClose"
+            className="sefariaModalClose"
             role="button"
             tabIndex="0"
             aria-label={Sefaria._("Close")}
             onClick={this.props.onClose}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.onClose(); } }}
+            onKeyDown={handleKeyboardClick(this.props.onClose)}
           >×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
@@ -2206,7 +2207,7 @@ const InterruptingMessage = ({
                 onClick={() => {
                   closeModal("close_clicked");
                 }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal("close_clicked"); } }}
+                onKeyDown={handleKeyboardClick(() => closeModal("close_clicked"))}
               >
                 ×
               </div>

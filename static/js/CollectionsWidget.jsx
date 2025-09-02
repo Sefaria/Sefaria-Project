@@ -3,6 +3,7 @@ import {
 	InterfaceText,
 } from "./Misc"
 import Sefaria  from './sefaria/sefaria';
+import { handleKeyboardClick } from './common/Button';
 
 
 const CollectionsModal = (props) => {
@@ -119,13 +120,13 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       <span className={"collectionsWidgetTitle"}>
         <InterfaceText>Collections</InterfaceText>
       </span>
-      <div 
-        className="collectionsWidgetClose" 
+      <div
+        className="collectionsWidgetClose"
         onClick={onClose}
         role="button"
         tabIndex="0"
         aria-label="Close collections"
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
+        onKeyDown={handleKeyboardClick(onClose)}
       >×</div>
     </div>
     <div className="collectionsWidgetList serif">
@@ -158,7 +159,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         onClick={onCreateClick}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCreateClick(); } }}
+        onKeyDown={handleKeyboardClick(onCreateClick)}
       >
         <InterfaceText>Create</InterfaceText>
       </div>
@@ -170,7 +171,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         onClick={onClose}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } }}
+        onKeyDown={handleKeyboardClick(onClose)}
        >
         <InterfaceText>Done</InterfaceText>
       </div>     

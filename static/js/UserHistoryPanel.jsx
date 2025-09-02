@@ -14,6 +14,7 @@ import {
   LoadingMessage,
   InterfaceText,
 } from './Misc';
+import { handleKeyboardClick } from './common/Button';
 
 
 const filterDataByType = (data, dataSource) => {
@@ -70,7 +71,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved }
         data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+        onKeyDown={handleKeyboardClick()}
       >
         <img src="/static/icons/bookmark.svg" alt="Saved" />
         <InterfaceText>Saved</InterfaceText>
@@ -79,7 +80,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history }
         data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+        onKeyDown={handleKeyboardClick()}
       >
         <img src="/static/icons/clock.svg" alt="History" />
         <InterfaceText>History</InterfaceText>
@@ -88,7 +89,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         <a
           href="/texts/notes"
           className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+          onKeyDown={handleKeyboardClick()}
         >
         <img src="/static/icons/notes-icon.svg" alt="Notes" />
         <InterfaceText>Notes</InterfaceText>

@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText, getCurrentPage } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
+import { handleKeyboardClick } from './Button';
 
 const DropdownMenuSeparator = () => {
 
@@ -25,7 +26,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+       onKeyDown={handleKeyboardClick()}
     >
       {children}
     </a>
@@ -43,7 +44,7 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
+       onKeyDown={handleKeyboardClick()}
     >
       {children}
     </a>
@@ -52,13 +53,13 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
 
 const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
   return (
-    <div 
-      className={'interfaceLinks-option int-bi dropdownItem'} 
-      onClick={onClick} 
+    <div
+      className={'interfaceLinks-option int-bi dropdownItem'}
+      onClick={onClick}
       data-prevent-close={preventClose}
       role="button"
       tabIndex="0"
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e); } }}
+      onKeyDown={handleKeyboardClick(onClick)}
     >
         {children}
     </div>
@@ -181,16 +182,11 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
            <div
              className="dropdownLinks-button"
            >
-              {React.cloneElement(buttonComponent, { 
+              {React.cloneElement(buttonComponent, {
                 onClick: handleButtonClick,
                 ref: buttonRef,
                 tabIndex: 0,
-                onKeyDown: (e) => { 
-                  if (e.key === 'Enter' || e.key === ' ') { 
-                    e.preventDefault(); 
-                    handleButtonClick(e); 
-                  }
-                }
+                onKeyDown: handleKeyboardClick(handleButtonClick)
               })}
           </div>
           <div 

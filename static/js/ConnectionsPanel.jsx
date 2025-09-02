@@ -37,6 +37,7 @@ import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
+import { handleKeyboardClick } from './common/Button';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
@@ -1037,7 +1038,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
         onClick={clickHandler}
         role={isLink ? undefined : "button"}
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); clickHandler(e); } }}
+        onKeyDown={handleKeyboardClick(clickHandler)}
       >
         {iconElem}
         <span className="toolsButtonText">
@@ -1230,7 +1231,7 @@ class AddNoteBox extends Component {
           tabIndex="0"
           aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
           onClick={this.saveNote}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.saveNote(); } }}
+          onKeyDown={handleKeyboardClick(this.saveNote)}
         >
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמירה" : "הוספת הערה"}</span>
@@ -1242,13 +1243,13 @@ class AddNoteBox extends Component {
             tabIndex="0"
             aria-label={Sefaria._("Cancel")}
             onClick={this.props.onCancel}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.onCancel(); } }}
+            onKeyDown={handleKeyboardClick(this.props.onCancel)}
           >
             <span className="int-en">Cancel</span>
             <span className="int-he">בטל</span>
           </div> : null}
         {this.props.noteId ?
-          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.deleteNote(); } }}>
+          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={handleKeyboardClick(this.deleteNote)}>
             <span className="int-en">Delete Note</span>
             <span className="int-he">מחיקת הערה</span>
           </div>) : null}
@@ -1420,7 +1421,7 @@ class AddConnectionBox extends Component {
             role="button"
             tabIndex="0"
             onClick={this.props.openComparePanel}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.props.openComparePanel(e); } }}
+            onKeyDown={handleKeyboardClick(this.props.openComparePanel)}
           >
             <span className="int-en">Browse</span>
             <span className="int-he">סייר</span>

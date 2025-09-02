@@ -6,7 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
-import Button from "./common/Button";
+import Button, { handleKeyboardClick } from "./common/Button";
 
 
 const NavSidebar = ({sidebarModules}) => {
@@ -296,8 +296,8 @@ const SidebarFooter = () => {
         <h1/>
         <div className="footerContainer">
           {data.map(footerLink =>
-            <a href={footerLink.url} 
-               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}>
+            <a href={footerLink.url}
+               onKeyDown={handleKeyboardClick()}>
               <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
             </a>
           )}
