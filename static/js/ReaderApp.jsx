@@ -74,6 +74,7 @@ class ReaderApp extends Component {
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
+        collectionData:          props.initialCollectionData,
       };
     }
 
@@ -151,6 +152,7 @@ class ReaderApp extends Component {
       collectionSlug:          state.collectionSlug          || null,
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
+      collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -200,6 +202,9 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    
+    // Handle right-clicks on links with data-target-module to ensure correct domain
+    document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -229,6 +234,7 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -530,6 +536,16 @@ class ReaderApp extends Component {
             }
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
+            break;
+          case "editCollection":
+            if (state.collectionData && state.collectionData.slug) {
+              hist.url   = "collections/" + state.collectionData.slug + "/settings";
+              hist.title = Sefaria._("Edit Collection") + " | " + Sefaria._(siteName + " Collections");
+            } else {
+              hist.url   = "collections/new";
+              hist.title = Sefaria._("Create Collection") + " | " + Sefaria._(siteName + " Collections");
+            }
+            hist.mode  = "editCollection";
             break;
           case "collectionsPublic":
             hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
@@ -1113,6 +1129,21 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
     if (handled) {
       e.preventDefault();
+    }
+  }
+
+  handleModuleLinkRightClick(e) {
+    /*
+    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Especially for library links when in the sheets module (see Parsha Topic pages)
+    */
+    const link = e.target.closest('a[data-target-module]');
+    if (link) {
+      const href = link.getAttribute('href');
+      const targetModule = link.getAttribute('data-target-module');
+      
+      const fullUrl = Sefaria.util.fullURL(href, targetModule);
+      link.setAttribute('href', fullUrl);
     }
   }
 
@@ -2352,6 +2383,7 @@ ReaderApp.propTypes = {
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
   initialCollection:           PropTypes.string,
+  initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,

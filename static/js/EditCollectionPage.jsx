@@ -134,121 +134,126 @@ class EditCollectionPage extends Component {
   render() {
     const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
     return (
-      <div id="editCollectionPage">
-        <div className="headerWithButtons">
-          <div className="start"></div>
-          <h1>
-            <InterfaceText>{title}</InterfaceText>
-          </h1>
-          <div className="end">
-              <a className="button small transparent control-elem" href={this.getCancelLink()}>
-                  <InterfaceText>Cancel</InterfaceText>
-              </a>
-              <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
-                  <InterfaceText>Save</InterfaceText>
+      <div className="readerNavMenu" key="0">
+        <div className="content">
+          <div id="editCollectionPage">
+            <div className="headerWithButtons">
+              <div className="start"></div>
+              <h1>
+                <InterfaceText>{title}</InterfaceText>
+              </h1>
+              <div className="end">
+                  <a className="button small transparent control-elem" href={this.getCancelLink()}>
+                      <InterfaceText>Cancel</InterfaceText>
+                  </a>
+                  <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
+                      <InterfaceText>Save</InterfaceText>
+                  </div>
               </div>
-          </div>
-        </div>
-
-        <div className="field halfWidth">
-          <label>
-            <InterfaceText>Collection Name</InterfaceText>
-          </label>
-          <input id="collectionName" value={this.state.name||""} onChange={this.handleInputChange}/>
-        </div>
-
-        <div className="field halfWidth">
-          <label>
-            <InterfaceText>Website</InterfaceText>
-          </label>
-          <input id="collectionWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
-        </div>
-
-        <div className="field">
-          <label>
-            <InterfaceText>Description</InterfaceText>
-          </label>
-          <textarea id="collectionDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
-        </div>
-
-        <div className="field">
-          <label>
-            <InterfaceText>Collection Image</InterfaceText>
-          </label>
-          {this.state.imageUrl
-            ? <img className="collectionImage" src={this.state.imageUrl} alt="Collection Image" />
-            : <div className="collectionImage placeholder"></div>}
-          <FileInput
-             name="collectionImage"
-             accept="image/*"
-             text={Sefaria._("Upload Image")}
-             className="button white"
-             onChange={this.handleImageChange} />
-          <div className="helperText">
-            <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
-          </div>
-        </div>
-
-        {/* Header images are only supported for legacy collections which already had them */}
-        {this.state.headerUrl ? 
-        <div className="field">
-          <label>
-            <InterfaceText>Default Sheet Header</InterfaceText>
-          </label>
-          {this.state.headerUrl
-            ? <div className="collectionHeaderBox">
-                <img className="collectionHeader" src={this.state.headerUrl} alt="Collection Header Image" />
-                <div className="clearFix"></div>
-              </div>
-            : <div className="collectionHeader placeholder"></div>}
-          <FileInput
-             name="collectionHeader"
-             accept="image/*"
-             text="Upload Image"
-             className="button white"
-             onChange={this.handleImageChange} />
-          <div className="helperText">
-            <InterfaceText>Recommended size: 1000px width to fill sheet, smaller images align right</InterfaceText>
-          </div>
-        </div>
-        : null }
-
-        {/* Only show publish option on existing collections, since new collections are empty */}
-        {this.props.initialData ?
-        <div className="field">
-          <label>
-              <InterfaceText>List on Sefaria</InterfaceText>
-          </label>
-          {this.state.moderationStatus !== "nolist" ?
-          <div className="onoffswitch">
-            <input type="checkbox"
-              name="onoffswitch"
-              className="onoffswitch-checkbox"
-              id="collectionPublicToggle"
-              checked={!!this.state.listed}
-              onChange={this.handleListingChange} />
-            <label className="onoffswitch-label" htmlFor="collectionPublicToggle">
-                <span className="onoffswitch-inner"></span>
-                <span className="onoffswitch-switch"></span>
-            </label>
-            <div className="helperText">
-              <InterfaceText>Your collection will appear on the public collections page where others can find it.</InterfaceText>
             </div>
+
+            <div className="field halfWidth">
+              <label>
+                <InterfaceText>Collection Name</InterfaceText>
+              </label>
+              <input id="collectionName" value={this.state.name||""} onChange={this.handleInputChange}/>
+            </div>
+
+            <div className="field halfWidth">
+              <label>
+                <InterfaceText>Website</InterfaceText>
+              </label>
+              <input id="collectionWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
+            </div>
+
+            <div className="field">
+              <label>
+                <InterfaceText>Description</InterfaceText>
+              </label>
+              <textarea id="collectionDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
+            </div>
+
+            <div className="field">
+              <label>
+                <InterfaceText>Collection Image</InterfaceText>
+              </label>
+              {this.state.imageUrl
+                ? <img className="collectionImage" src={this.state.imageUrl} alt="Collection Image" />
+                : <div className="collectionImage placeholder"></div>}
+              <FileInput
+                name="collectionImage"
+                accept="image/*"
+                text={Sefaria._("Upload Image")}
+                className="button white"
+                onChange={this.handleImageChange} />
+              <div className="helperText">
+                <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
+              </div>
+            </div>
+
+            {/* Header images are only supported for legacy collections which already had them */}
+            {this.state.headerUrl ? 
+            <div className="field">
+              <label>
+                <InterfaceText>Default Sheet Header</InterfaceText>
+              </label>
+              {this.state.headerUrl
+                ? <div className="collectionHeaderBox">
+                    <img className="collectionHeader" src={this.state.headerUrl} alt="Collection Header Image" />
+                    <div className="clearFix"></div>
+                  </div>
+                : <div className="collectionHeader placeholder"></div>}
+              <FileInput
+                name="collectionHeader"
+                accept="image/*"
+                text="Upload Image"
+                className="button white"
+                onChange={this.handleImageChange} />
+              <div className="helperText">
+                <InterfaceText>Recommended size: 1000px width to fill sheet, smaller images align right</InterfaceText>
+              </div>
+            </div>
+            : null }
+
+            {/* Only show publish option on existing collections, since new collections are empty */}
+            {this.props.initialData ?
+            <div className="field">
+              <label>
+                  <InterfaceText>List on Sefaria</InterfaceText>
+              </label>
+              {this.state.moderationStatus !== "nolist" ?
+              <div className="onoffswitch">
+                <input type="checkbox"
+                  name="onoffswitch"
+                  className="onoffswitch-checkbox"
+                  id="collectionPublicToggle"
+                  checked={!!this.state.listed}
+                  onChange={this.handleListingChange} />
+                <label className="onoffswitch-label" htmlFor="collectionPublicToggle">
+                    <span className="onoffswitch-inner"></span>
+                    <span className="onoffswitch-switch"></span>
+                </label>
+                <div className="helperText">
+                  <InterfaceText>Your collection will appear on the public collections page where others can find it.</InterfaceText>
+                </div>
+              </div>
+              : <div>
+                  <span className="int-en">Your collection was previously made public, but our moderators determined it was not generally useful for all Sefaria users. Please contact <a href="mailto:hello@sefari.org">hello@sefaria.org</a> with any questions.</span>
+                  <span className="int-he">האסופה שלך הוגדרה כציבורית, אך המנהלים שלנו הגיעו למסקנה שהיא אינה רלוונטית לכלל משתמשי ספריא. לשאלות יש ליצור עימנו קשר בכתובת <a href="mailto:hello@sefari.org">hello@sefaria.org</a>.</span>
+              </div> }
+            </div>
+            : null }
+
+            {this.props.initialData ?
+            <div className="deleteCollection" onClick={this.delete}>
+              <InterfaceText>Delete Collection</InterfaceText>
+            </div>
+            : null}
+
           </div>
-          : <div>
-              <span className="int-en">Your collection was previously made public, but our moderators determined it was not generally useful for all Sefaria users. Please contact <a href="mailto:hello@sefari.org">hello@sefaria.org</a> with any questions.</span>
-              <span className="int-he">האסופה שלך הוגדרה כציבורית, אך המנהלים שלנו הגיעו למסקנה שהיא אינה רלוונטית לכלל משתמשי ספריא. לשאלות יש ליצור עימנו קשר בכתובת <a href="mailto:hello@sefari.org">hello@sefaria.org</a>.</span>
-          </div> }
         </div>
-        : null }
-
-        {this.props.initialData ?
-        <div className="deleteCollection" onClick={this.delete}>
-          <InterfaceText>Delete Collection</InterfaceText>
-        </div>
-        : null}
-
-      </div>);
+      </div>
+    );
   }
 }
 EditCollectionPage.propTypes = {
