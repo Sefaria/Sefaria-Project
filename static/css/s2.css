@@ -741,7 +741,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--medium-grey);
+  color: #000000;
   cursor: pointer;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
@@ -834,7 +834,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: var(--medium-grey);
+  color: #000000;
   padding: 5px;
   direction: ltr;
 }
@@ -13144,7 +13144,7 @@ body .homeFeedWrapper .content {
     margin-left: 26px;
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: var(--english-sans-serif-font-family);
   font-size: 15px;
 }
