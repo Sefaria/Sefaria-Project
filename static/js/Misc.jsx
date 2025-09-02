@@ -346,12 +346,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
                 tabIndex="0"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.target.click();
-                  }
-                }}
+                onKeyDown={handleKeyboardClick(() => setSort(option))}
                 data-anl-event="sort_by:click"
                 data-anl-batch={JSON.stringify({
                   text: option, from: sortOption, to: option,
@@ -542,7 +537,7 @@ DropdownOptionList.propTypes = {
 const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
   const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen, buttonStyle });
   return (
-    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
+    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyDown={handleKeyboardClick(toggle)}>
       <InterfaceText text={{en: enText, he: heText}} />
       {isOpen ? <img src="/static/img/arrow-up.png" alt={Sefaria._("Collapse")} aria-hidden="true"/> : <img src="/static/img/arrow-down.png" alt={Sefaria._("Expand")} aria-hidden="true"/>}
     </div>
@@ -2793,6 +2788,7 @@ class FeedbackBox extends Component {
               className="button"
               aria-label={Sefaria._("Send Feedback")}
               onClick={() => this.sendFeedback()}
+              onKeyDown={handleKeyboardClick(() => this.sendFeedback())}
               role="button"
               tabIndex="0"
             >
@@ -2823,15 +2819,17 @@ class ReaderMessage extends Component {
       <div className="readerMessageBox">
         <div className="readerMessage">
           <div className="int-en">{this.props.message}</div>
-          <div 
+          <div
             className="button small"
             onClick={() => this.setFeedback('Like')}
+            onKeyDown={handleKeyboardClick(() => this.setFeedback('Like'))}
             role="button"
             tabIndex="0"
           >{this.props.buttonLikeText}</div>
-          <div 
+          <div
             className="button small"
             onClick={() => this.setFeedback('Dislike')}
+            onKeyDown={handleKeyboardClick(() => this.setFeedback('Dislike'))}
             role="button"
             tabIndex="0"
           >{this.props.buttonDislikeText}</div>
@@ -2865,13 +2863,13 @@ class CookiesNotification extends Component {
 
           <span className="int-en">
             <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <div className="button small white int-en" onClick={this.setCookie} role="button" tabIndex="0">OK</div>
+            <div className="button small white int-en" onClick={this.setCookie} onKeyDown={handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">OK</div>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
               <a href="/privacy-policy">קראו עוד בנושא</a>
             </span>
-            <div className="button small white int-he" onClick={this.setCookie} role="button" tabIndex="0">לחצו כאן לאישור</div>
+            <div className="button small white int-he" onClick={this.setCookie} onKeyDown={handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">לחצו כאן לאישור</div>
           </span>
 
        </div>
@@ -2995,10 +2993,10 @@ const AdminToolHeader = function({title, validate, close}) {
                 <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
-                <div onClick={close} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
+                <div onClick={close} onKeyDown={handleKeyboardClick(close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
                 </div>
-                <div onClick={validate} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
+                <div onClick={validate} onKeyDown={handleKeyboardClick(validate)} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
                   <InterfaceText>Save</InterfaceText>
                 </div>
               </div>
