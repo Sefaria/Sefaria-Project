@@ -541,10 +541,34 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
-function replaceDivWithBr(html){
-     return html
-    .replace(/<div[^>]*>/g, '')     // remove opening <div> tags (with or without attributes)
-    .replace(/<\/div>/g, '<br>');   // replace closing </div> tags with <br>
+
+function replaceDivWithBr(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  // Get the body children
+  const bodyChildren = Array.from(doc.body.childNodes);
+
+  // If the whole thing is wrapped in a single outer div, preserve it
+  if (bodyChildren.length === 1 && bodyChildren[0].nodeName === "DIV") {
+    const outerDiv = bodyChildren[0];
+
+    // Replace only inner <div> tags with <br>
+    outerDiv.querySelectorAll("div").forEach(div => {
+      const br = doc.createElement("br");
+      div.replaceWith(...div.childNodes, br);
+    });
+
+    return outerDiv.outerHTML;
+  }
+
+  // Otherwise flatten everything
+  doc.querySelectorAll("div").forEach(div => {
+    const br = doc.createElement("br");
+    div.replaceWith(...div.childNodes, br);
+  });
+
+  return doc.body.innerHTML;
 }
 function replaceBrWithNewLine(html) {
   return html.replace(/<br\s*\/?>\s*/gi, '\n');
