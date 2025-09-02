@@ -990,7 +990,16 @@ const DownloadVersions = ({sref}) => {
               placeholder={Sefaria._("Select Format", "DownloadVersions")}
               onChange={handleInputChange}
           />
-          <a className={`button fillWidth${isReady ? "" : " disabled"}`} onClick={handleClick} href={versionDlLink()} download>{Sefaria._("Download")}</a>
+          <a
+            className={`button fillWidth${isReady ? "" : " disabled"}`}
+            onClick={handleClick}
+            href={versionDlLink()}
+            download
+            role="button"
+            tabIndex={0}
+          >
+            {Sefaria._("Download")}
+          </a>
         </div>
         </SidebarModule>
     );
