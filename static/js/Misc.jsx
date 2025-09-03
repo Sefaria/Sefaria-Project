@@ -733,8 +733,8 @@ class LanguageToggleButton extends Component {
               onClick={this.toggle}
               onKeyDown={handleKeyboardClick(this.toggle)}
             >
-              <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
-              <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
+              <img className="en" src="/static/img/aleph.svg" alt={Sefaria._("Hebrew Language Toggle Icon")} />
+              <img className="he" src="/static/img/aye.svg" alt={Sefaria._("English Language Toggle Icon")} />
             </a>);
   }
 }
@@ -1044,7 +1044,7 @@ const PencilSourceEditor = ({topic, text, classes}) => {
           id={"editTopic"}
           onClick={toggleAddSource}
           src={"/static/icons/editing-pencil.svg"}
-          alt="Edit topic"
+          alt={Sefaria._("Edit topic")}
           role="button"
           tabIndex="0"
           onKeyDown={handleKeyboardClick(toggleAddSource)}
@@ -1195,7 +1195,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt="Search" />
+      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt={Sefaria._("Search")} />
     </span>);
   }
 }
@@ -1259,8 +1259,8 @@ class DisplaySettingsButton extends Component {
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
         <InterfaceText>
-        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
-        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt="Toggle Reader Menu Display Settings"/></HebrewText>
+        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt={Sefaria._("Toggle Reader Menu Display Settings")}/></EnglishText>
+        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt={Sefaria._("Toggle Reader Menu Display Settings")}/></HebrewText>
         </InterfaceText>;
     } else {
       icon = <span className="textIcon">Aa</span>;
@@ -1320,7 +1320,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               <div className="interfaceLinks-options trans-pref-header-container">
                 <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-                  <img src="/static/img/circled-x.svg" className="reset-btn" alt="Reset" />
+                  <img src="/static/img/circled-x.svg" className="reset-btn" alt={Sefaria._("Reset")} />
                   <span className="smallText">
                     <InterfaceText>Reset</InterfaceText>
                   </span>
@@ -1495,7 +1495,7 @@ const AiInfoTooltip = () => {
           className="ai-info-icon"
           data-anl-event="ai_marker_hover:mouseover"
           src="/static/icons/ai-info.svg"
-          alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)}
+          alt={Sefaria._("AI Info Icon")} onMouseEnter={() => setShowMessage(true)}
           onMouseLeave={() => setShowMessage(false)}
       />
     );
@@ -1791,7 +1791,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt="Not published"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt={Sefaria._("Not published")}/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1826,12 +1826,12 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           collectable ?
-            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} alt="Add to Collection" />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} alt={Sefaria._("Add to Collection")} />
             : null
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} alt="Delete" />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} alt={Sefaria._("Delete")} />
             : null
         }
         {
@@ -1871,7 +1871,7 @@ const CollectionListing = ({data}) => {
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg" alt="Unlisted"/>
+                <img src="/static/img/eye-slash.svg" alt={Sefaria._("Unlisted")}/>
                 <InterfaceText>Unlisted</InterfaceText>
               </span>) }
 
@@ -1905,7 +1905,7 @@ class Note extends Component {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt="Note author profile picture" />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt={Sefaria._("Note author profile picture")} />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor" data-target-module={Sefaria.SHEETS_MODULE}>{this.props.ownerName}</a>
         </div>) : null;
@@ -2551,7 +2551,7 @@ class Dropdown extends Component {
             }}
           >
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
-            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt="Open dropdown"/>
+            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt={Sefaria._("Open dropdown")}/>
 
           </div>
           {this.state.optionsOpen ?
@@ -2973,7 +2973,7 @@ const CollectionStatement = ({name, slug, image, children}) => (
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>
-          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
+          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt={Sefaria._("Collection Logo")}/>
         </a>
       </div>
       <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>{children ? children : name}</a>

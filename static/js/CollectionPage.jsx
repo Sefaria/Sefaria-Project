@@ -351,7 +351,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 const EditCollectionButton = ({slug}) => (
   <a className="button small white" href={`/sheets/collections/${slug}/settings`} data-target-module={Sefaria.SHEETS_MODULE}>
-    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" alt="Edit collection" /><InterfaceText>Edit</InterfaceText>
+    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" alt={Sefaria._("Edit collection")} /><InterfaceText>Edit</InterfaceText>
   </a>
 );
 
@@ -525,7 +525,7 @@ class CollectionInvitationListing extends Component {
     return (
       <div className="collectionMemberListing">
         <div className="collectionMemberListingPic invitation">
-          <img src="/static/icons/mail.svg" alt="Subscribe to newsletter" />
+          <img src="/static/icons/mail.svg" alt={Sefaria._("Subscribe to newsletter")} />
         </div>
         <div className="collectionMemberListingText">
           <span className="collectionMemberListingName">

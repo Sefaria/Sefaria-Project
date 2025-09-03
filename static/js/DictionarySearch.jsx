@@ -176,7 +176,7 @@ class DictionarySearch extends Component {
 
     return (
         <div className = "searchBox dictionarySearchBox ui-front">
-          <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt="image of maginfying glass"/>
+          <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt={Sefaria._("image of maginfying glass")}/>
           <input className={inputClasses}
             id="searchInput"
             placeholder={Sefaria._("Search Dictionary")}

@@ -134,7 +134,7 @@ const EmptyNotificationsMessage = () => {
 
 const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
   
-  let image = imageUrl ? <img src={imageUrl} alt="Notification image" /> : null
+  let image = imageUrl ? <img src={imageUrl} alt={Sefaria._("Notification image")} /> : null
   image     = imageLink ? <a href={imageLink}>{image}</a> : image;
 
   return (

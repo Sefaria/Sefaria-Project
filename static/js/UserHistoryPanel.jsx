@@ -73,7 +73,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
         onKeyDown={handleKeyboardClick()}
       >
-        <img src="/static/icons/bookmark.svg" alt="Saved" />
+        <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
         <InterfaceText>Saved</InterfaceText>
       </a>
       <a
@@ -82,7 +82,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
         onKeyDown={handleKeyboardClick()}
       >
-        <img src="/static/icons/clock.svg" alt="History" />
+        <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
         <InterfaceText>History</InterfaceText>
       </a>
       { dataSource === "library" &&
@@ -91,7 +91,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
           onKeyDown={handleKeyboardClick()}
         >
-        <img src="/static/icons/notes-icon.svg" alt="Notes" />
+        <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
         <InterfaceText>Notes</InterfaceText>
       </a> }
     </span>

@@ -89,7 +89,7 @@ export class ProfilePic extends Component {
                     className="img-circle profile-img"
                     style={{display: profileViz, width: len, height: len, fontSize: len/2}}
                     src={imageSrc}
-                    alt="User Profile Picture"
+                    alt={Sefaria._("User Profile Picture")}
                     ref={this.imgFile}
                     onLoad={this.setShowImage}
                     onError={this.setShowDefault}

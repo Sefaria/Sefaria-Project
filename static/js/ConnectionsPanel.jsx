@@ -924,7 +924,7 @@ class WebPagesList extends Component {
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
         return (<div className="website" role="button" tabindex="0" onKeyDown={handleKeyboardClick(() => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
-          <img className="icon" src={site.faviconUrl} alt="Website icon" />
+          <img className="icon" src={site.faviconUrl} alt={Sefaria._("Website icon")} />
           <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);
       });

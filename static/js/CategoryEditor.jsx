@@ -44,8 +44,8 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
     return subcategoriesAndBooks.map((child, i) => {
         return <div id={`reorder-${i}`} className="reorderTool">
                     <div id="title">{displayOptions[displayType](child)}</div>
-                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)} alt="Move up" role="button" tabIndex="0"/>
-                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)} alt="Move down" role="button" tabIndex="0"/>
+                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)} alt={Sefaria._("Move up")} role="button" tabIndex="0"/>
+                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)} alt={Sefaria._("Move down")} role="button" tabIndex="0"/>
               </div>;
         })
 }

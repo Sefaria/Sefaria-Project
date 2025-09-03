@@ -171,8 +171,8 @@ class SheetContent extends Component {
         </div>
 
         <div id="printFooter" style={{display:"none"}}>
-          <span className="int-en">Created with <img src="/static/img/logo.svg" alt="Sefaria logo" /></span>
-          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" alt="Sefaria logo" /></span>
+          <span className="int-en">Created with <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
+          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
         </div>
       </div>
     )

@@ -212,7 +212,7 @@ const Header = (props) => {
                                           data-target-module={Sefaria.SHEETS_MODULE}
                                           onKeyDown={handleKeyboardClick()}
                                         >
-                                          <img src='/static/icons/notification.svg' alt="Notifications" />
+                                          <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
                                         </a>
                                       </div>;
 
@@ -379,13 +379,13 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
     <div className={classes}>
       { loginOnly && (
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
-         {mobile ? <img src="/static/icons/login.svg" alt="Login" /> : null }
+         {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("Login")} /> : null }
          <InterfaceText>Log in</InterfaceText>
        </a>)}
       {loginOnly ? null :
       <span>
         <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
-          {mobile ? <img src="/static/icons/login.svg" alt="Login" /> : null }
+          {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("Login")} /> : null }
           <InterfaceText>Sign up</InterfaceText>
         </a> 
         <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
@@ -457,18 +457,18 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       {module === Sefaria.SHEETS_MODULE && 
       <>
         <a href="/sheets/topics" data-target-module={Sefaria.SHEETS_MODULE} onClick={close}>
-          <img src="/static/icons/topic.svg" alt="Topics" />
+          <img src="/static/icons/topic.svg" alt={Sefaria._("Topics")} />
           <InterfaceText context="Header">Topics</InterfaceText>
         </a>
         <a href="/sheets/collections" onClick={close} className="textsPageLink" data-target-module={Sefaria.SHEETS_MODULE}>
-          <img src="/static/icons/collection.svg" alt="Collections" />
+          <img src="/static/icons/collection.svg" alt={Sefaria._("Collections")} />
           <InterfaceText context="Header">Collections</InterfaceText>
         </a>
       </>
       }
 
       <DonateLink classes={"blue"} source="MobileNavMenu">
-        <img src="/static/img/heart.png" alt="donation icon" />
+        <img src="/static/img/heart.png" alt={Sefaria._("donation icon")} />
         <InterfaceText>Donate</InterfaceText>
       </DonateLink>
 
@@ -496,7 +496,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
               {<InterfaceText text={{en: "Saved & History", he: "שמורים והיסטוריה"}} />}
             </a>
             <a href="/sheets/notifications" onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
-              <img src="/static/icons/notification.svg" alt="Notifications" />
+              <img src="/static/icons/notification.svg" alt={Sefaria._("Notifications")} />
               <InterfaceText>Notifications</InterfaceText>
             </a>
           </>}
@@ -505,7 +505,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         {Sefaria._uid &&
           <>
             <a href="/settings/account" data-target-module={Sefaria.LIBRARY_MODULE}>
-              <img src="/static/icons/settings.svg" alt="Settings" />
+              <img src="/static/icons/settings.svg" alt={Sefaria._("Settings")} />
               <InterfaceText>Account Settings</InterfaceText>
             </a>
           </>
@@ -516,12 +516,12 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr/>
 
         <a href="/help">
-          <img src="/static/icons/help.svg" alt="Help" />
+          <img src="/static/icons/help.svg" alt={Sefaria._("Help")} />
           <InterfaceText>Get Help</InterfaceText>
         </a>
 
         <a href="/mobile-about-menu">
-          <img src="/static/icons/info.svg" alt="About" />
+          <img src="/static/icons/info.svg" alt={Sefaria._("About")} />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
 
@@ -529,25 +529,25 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         
         { module === Sefaria.LIBRARY_MODULE &&
         <a href="/sheets/" data-target-module={Sefaria.SHEETS_MODULE}>
-          <img src="/static/icons/sheets-mobile-icon.svg" alt="Sheets" />
+          <img src="/static/icons/sheets-mobile-icon.svg" alt={Sefaria._("Sheets")} />
           <InterfaceText>Sheets</InterfaceText>
         </a>
         } 
 
       { module === Sefaria.SHEETS_MODULE &&
         <a href="/texts" data-target-module={Sefaria.LIBRARY_MODULE}>
-          <img src="/static/icons/book.svg" alt="Library" />
+          <img src="/static/icons/book.svg" alt={Sefaria._("Library")} />
           <InterfaceText text={{en: "Sefaria Library", he: "ספריית ספריא"}} />
         </a>
         } 
 
         <a href="developers.sefaria.org" target="_blank">
-          <img src="/static/icons/dev-portal-mobile-icon.svg" alt="Developers" />
+          <img src="/static/icons/dev-portal-mobile-icon.svg" alt={Sefaria._("Developers")} />
           <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
         </a>
 
         <a href="sefaria.org/products" target="_blank">
-          <img src="/static/icons/products-icon.svg" alt="Products" />
+          <img src="/static/icons/products-icon.svg" alt={Sefaria._("Products")} />
           <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
         </a>
 
@@ -555,7 +555,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         {Sefaria._uid ?
         <a href={Sefaria.getLogoutUrl()} className="logout">
-          <img src="/static/icons/logout.svg" alt="Logout" />
+          <img src="/static/icons/logout.svg" alt={Sefaria._("Logout")} />
           <InterfaceText>Logout</InterfaceText>
         </a>
         :
@@ -666,7 +666,7 @@ const MobileInterfaceLanguageToggle = () => {
 
   return (
     <div className="mobileInterfaceLanguageToggle">
-                <img src="/static/icons/globe-wire.svg" alt="Language" />
+                <img src="/static/icons/globe-wire.svg" alt={Sefaria._("Language")} />
       {links}
     </div>
   );
