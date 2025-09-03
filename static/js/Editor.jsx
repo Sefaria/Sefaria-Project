@@ -332,10 +332,7 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                if (content["text-align"] == "center") {
-                    return `<div style='text-align: center'>${paragraphHTML}</div>`
-                }
-                return `${paragraphHTML}`
+                return paragraphHTML
             }
 
             case 'list-item': {
