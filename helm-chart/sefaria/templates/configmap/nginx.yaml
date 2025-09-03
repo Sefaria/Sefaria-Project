@@ -175,7 +175,7 @@ data:
           proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
         }
 
-        location ~ ^/api/(find-refs|async) {
+        location /api/find-refs {
           if ($request_method = OPTIONS) {
             add_header Access-Control-Allow-Origin "*" always;
             add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
