@@ -183,7 +183,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-size: 83%;
 }
 .readerPanel span.mediumGrey {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
