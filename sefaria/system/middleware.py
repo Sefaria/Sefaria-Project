@@ -265,7 +265,7 @@ class ModuleMiddleware(MiddlewareURLMixin):
             return self.get_response(request)
 
         # Find the matching route prefix
-        for module_name, route_prefix in json.loads(MODULE_ROUTES).items():
+        for module_name, route_prefix in MODULE_ROUTES.items():
             route_base_path = route_prefix.removesuffix('/')
             if len(route_base_path) > 0 and (request.path.startswith(route_prefix) or request.path == route_base_path):
                 active_module = module_name
