@@ -3,6 +3,7 @@ import React, {useEffect, useState} from "react";
 import {InterfaceText} from "../Misc";
 import Modal from "../common/modal";
 import ReactTags from "react-tag-autocomplete";
+import Button from "../common/Button";
 
 
 const PublishModal = ({close, status, sheetID, postSheet}) => {
@@ -202,7 +203,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
             </div>
             {validation.validationFailed !== "none" &&
                 <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
-            <div className="button small" onClick={handlePublish} role="button" tabIndex="0">Publish</div>
+            <Button className="button small" onClick={handlePublish}>Publish</Button>
         </div>
     </>
 }
