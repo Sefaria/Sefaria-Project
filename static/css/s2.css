@@ -183,7 +183,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-size: 83%;
 }
 .readerPanel span.mediumGrey {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -200,7 +200,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -253,7 +253,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -262,7 +262,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .systemText .int-he,
 .systemText .int-en.heInEn {
@@ -455,7 +455,7 @@ input.noselect {
 }
 .headerInner .headerNavSection a, .header img.home {
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-end: 30px;
   font-weight: 500;
   line-height: 26px;
@@ -588,7 +588,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
   display: block;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   padding: 15px;
 }
@@ -689,7 +689,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   align-items: center;
   font-size: 16px;
   margin-top: 2px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .header .accountLinks > * {
   margin-inline-start: 17px;
@@ -730,7 +730,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding-block-start: 5px;
   padding-block-end: 2px;
 }
@@ -805,7 +805,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
@@ -886,7 +886,7 @@ div.interfaceLinks-row a.active::after {
   padding: 0 4px;
 }
 div.interfaceLinks-row a {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: flex;
 }
 .header .interfaceLinks .interfaceLinks-row.bottom {
@@ -900,18 +900,18 @@ div.interfaceLinks-row a {
 }
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding-top: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
 .header .profile-menu-he {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .header .interfaceLinks-option::before {
   content: "";
   font-family: FontAwesome;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
@@ -974,7 +974,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   position: absolute;
 }
 .header .login {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
@@ -1059,7 +1059,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border: 1px solid #E6E6E6;
   background-color: #FBFBFA;
   text-align: center;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 #interruptingMessage.sefariaModalContentBox {
   background-color: var(--sefaria-blue);
@@ -1121,7 +1121,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 #interruptingMessage.beitMidrashModalContentBox button.light-grey {
   background-color: var(--lighter-grey);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 #interruptingMessage.beitMidrashModalContentBox button.dark-grey {
@@ -1264,7 +1264,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 
 #defaultModal #defaultModalBody .sub {
-    color: var(--medium-grey);
+    color: var(--dark-grey);
     font-size: 12px;
     font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
@@ -1740,7 +1740,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 .navSidebarModule {
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 34px;
   padding: 0 44px;
 }
@@ -1788,7 +1788,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   margin-block-start: 5px;
 }
 .singlePanel .recentlyViewed #history span {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .gDocAdvertBox {
@@ -1803,7 +1803,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   font-weight: 400;
   line-height: 19px;
   letter-spacing: 0em;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .gDocAdvertBox span #newExtension {
   font-weight: 600;
@@ -1821,7 +1821,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border-radius: 6px;
   text-align: center;
   background: #FFFFFF;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-decoration: none;
   padding: 4px 9px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1875,7 +1875,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   color: black;
 }
 .navSidebarLink.gray a {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .navSidebarLink > ul, .sheetTopicsList > ul {
@@ -2087,7 +2087,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavTop .readerOptions {
   text-align: left;
   box-sizing: border-box;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   float: left;
   font-size: 20px;
   cursor: pointer;
@@ -2174,7 +2174,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border-bottom-color: rgb(204, 204, 204);
   border-bottom-style: solid;
   border-bottom-width: 0.833333px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   cursor: default;
   font-size: 14px;
   font-style: normal;
@@ -2213,7 +2213,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   align-items: center;
   display: flex;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 2px 12px 2px 12px;
   font-size: 14px;
@@ -2251,7 +2251,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   font-size: var(--serif-body-font-size);
   border-top: 1px solid var(--lighter-grey);
   margin-top: 14px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .sidebarSearch .similar-results {
@@ -2281,7 +2281,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenu h1,
 .readerNavMenu h2.styledH1 {
   text-align: start;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   position: relative;
   font-size: 22px;
   font-weight: 500;
@@ -2385,7 +2385,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .topicPanel h2 span {
   font-size: 22px;
   font-weight: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
@@ -2413,7 +2413,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .sideColumn .sideList .topicMetaData .int-en,
 .topicPanel .sideColumn .sideList .topicMetaData .int-he {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -2426,7 +2426,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .story .storyTitle {
   --english-font: var(--english-serif-font-family);
@@ -2528,7 +2528,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   font-weight: 400;
   line-height: 15px;
   letter-spacing: 0em;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   width: 100%;
 }
 .topicImage{
@@ -2568,7 +2568,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     font-weight: 400;
     line-height: 15px;
     letter-spacing: 0em;
-    color: var(--medium-grey);
+    color: var(--dark-grey);
     width: 80vw;
     margin-bottom: 30px;
     text-align: center;
@@ -2690,7 +2690,7 @@ h1 .languageToggle .he {
   margin-inline-end: 12px;
   display: inline-block;
   text-transform: uppercase;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 13px;
   font-weight: lighter;
   cursor: pointer;
@@ -2705,7 +2705,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin: 30px 0 0 0;
   font-weight: normal;
 }
@@ -2734,7 +2734,7 @@ input.resourcesLink {
   font-size:  18px;
 }
 .savedHistoryList .story .storyBody {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .savedHistoryList .saveButton {
   visibility: hidden;
@@ -2748,7 +2748,7 @@ input.resourcesLink {
   margin-inline-start: 10px;
 }
 .savedHistoryMessage {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .readerNavCategories {
   width: 100%;
@@ -2787,10 +2787,10 @@ a.navBlockTitle {
 }
 a.navBlockTitle:hover {
   text-decoration: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .navBlockTitle .subtitle {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 5px;
 }
 .interface-english .calendarListing .subtitle::before {
@@ -2802,7 +2802,7 @@ a.navBlockTitle:hover {
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2814,7 +2814,7 @@ a.navBlockTitle:hover {
 display: none;
 }
 .sidebarDescription{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-small-font-size);
@@ -2853,12 +2853,12 @@ div.card {
 }
 a.cardTitle:hover {
   text-decoration: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .cardDescription {
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2896,7 +2896,7 @@ a.cardTitle:hover {
   margin-bottom: 0px;
 }
 .sidebarPromo {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding-right: 44px;
   padding-left: 44px;
 }
@@ -2963,7 +2963,7 @@ a.cardTitle:hover {
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -2993,7 +2993,7 @@ a.cardTitle:hover {
   margin-top: 20px;
 }
 .communityPage .readingLinksHeader {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 14px;
   margin-bottom: 4px;
 }
@@ -3006,7 +3006,7 @@ a.cardTitle:hover {
   margin-bottom: 15px;
 }
 .featuredSheetHeading {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   margin-bottom: 10px;
 }
@@ -3019,7 +3019,7 @@ a.cardTitle:hover {
   align-items: center;
 }
 .featuredSheetDate {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 14px;
 }
 .communityPage .recentlyPublished {
@@ -3083,7 +3083,7 @@ a.cardTitle:hover {
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 13px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3126,7 +3126,7 @@ a.cardTitle:hover {
 }
 .readerNavCategoryMenu h2 {
   font-size: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin: 0 0 20px;
 }
 .readerNavCategoryMenu .categoryDescription.top {
@@ -3141,7 +3141,7 @@ a.cardTitle:hover {
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;
   font-size: 14px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .readerNavCategoryMenu .categoryDescription.long {
   margin: -8px 0 20px 0;
@@ -3151,7 +3151,7 @@ a.cardTitle:hover {
   margin-bottom: 40px;
 }
 .readerNavCategoryMenu .categoryAttribution {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-align: start;
   font-size: 24px;
   font-style: italic;
@@ -3248,7 +3248,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .dedication {
   text-align: start;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   background-color: #FBFBFA;
   padding: 26px 19px;
   font-size: 18px;
@@ -3328,7 +3328,7 @@ a.cardTitle:hover {
   font-weight: 400;
   line-height: 18.75px;
   margin-block-end: 20px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .sheetViewer {
   display: flex;
@@ -3374,7 +3374,7 @@ a.cardTitle:hover {
   margin-top: 10px;
 }
 .fullBookPage .categoryAttribution {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 24px;
 }
 .bookPage .sheetMeta {
@@ -3405,7 +3405,7 @@ a.cardTitle:hover {
   margin-top:40px;
   font-size: 16px;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-align: start;
 }
 .bookPage .tocDetails h3{
@@ -3424,7 +3424,7 @@ a.cardTitle:hover {
 }
 .bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 14px;
 }
 .bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
@@ -3498,7 +3498,7 @@ a.cardTitle:hover {
 .bookPage .versionEditForm #delete_button {
   float: right;
   background: white;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   border: 1px solid #999;
   width: 100px;
   margin: 0;
@@ -3506,7 +3506,7 @@ a.cardTitle:hover {
 .bookPage .versionTitle .fa,
 .bookPage .versionEditForm .fa {
   font-size: 10px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
@@ -3554,7 +3554,7 @@ a.cardTitle:hover {
   text-decoration: none;
 }
 .textTableOfContents .structToggles .altStructToggle {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   cursor: pointer;
   text-align: start;
   font-style: normal;
@@ -3565,7 +3565,7 @@ a.cardTitle:hover {
 }
 .textTableOfContents .structToggles .altStructToggleBox:not(:last-child):after{
   content: "•";
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 5px;
   margin-inline-end: 5px;
 }
@@ -3590,7 +3590,7 @@ a.cardTitle:hover {
   margin: 3px;
   text-align: center;
   background-color: #FBFBFA;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
@@ -3604,7 +3604,7 @@ a.cardTitle:hover {
   margin: 0;
   padding: 0 4px;
   line-height: 30px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
@@ -3626,7 +3626,7 @@ a.cardTitle:hover {
 .textTableOfContents .tocSection > .sectionName {
   font-size: 24px;
   margin: 0 3px 4px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: block;
 }
 .bookPage .content .tab-view.largeTabs {
@@ -3685,7 +3685,7 @@ a.cardTitle:hover {
   font-size: 14px;
   position: relative;
   top: -2px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
@@ -3744,7 +3744,7 @@ a.cardTitle:hover {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   margin-bottom: 10px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .textTableOfContents .torahNavParshiot{
   margin-top: 30px;
@@ -3831,7 +3831,7 @@ a.cardTitle:hover {
   flex-wrap: wrap;
   font-size: 14px;
   line-height: 22px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 5px;
 }
 .version-with-preview-title-line .open-details {
@@ -3875,7 +3875,7 @@ details .open-details::before {
 .version-with-preview-title-line .selectButton::before {
   content: "•";
   margin-inline-end: 5px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .version-block-with-preview-details {
@@ -3927,7 +3927,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   background: #EDEDEC;
   border-radius: 25px;
   padding: 5px 10px;
@@ -3947,7 +3947,7 @@ details .open-details::before {
   padding: 5px;
 }
 .versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   cursor: pointer;
 }
 .versionBlock .versionSelect{
@@ -3959,7 +3959,7 @@ details .open-details::before {
 .versionBlock .versionNotes a {
   font-style: normal;
   font-weight: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-decoration: underline;
 }
 .versionBlock .versionDetails {
@@ -3970,7 +3970,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 20px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .bookPage .versionBlock .versionDetails{
   line-height: 20px;
@@ -4003,7 +4003,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin: 10px 0;
   text-align: start;
 }
@@ -4147,7 +4147,7 @@ select {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 5px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   line-height: 19px;
   width: 300px;
@@ -4182,7 +4182,7 @@ select {
 .dictionarySearchBox input::placeholder{
   font-size: 16px;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 body .ui-autocomplete.dictionary-toc-autocomplete {
   margin-top: 40px;
@@ -4230,7 +4230,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 40px;
 }
 .searchContent .searchResultCount {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .searchContent .searchTopMatter {
   position: relative;
@@ -4319,7 +4319,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 22px;
   text-transform: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   border-bottom: 1px solid var(--light-grey);
   padding-bottom: 10px;
   margin: 0 0 10px 0;
@@ -4335,7 +4335,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 12px;
   border: 1px solid #DADADA;
   font-size: 13px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -4366,7 +4366,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: unset;
 }
 .dropdown-button {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-left: 5px;
   margin-right: 5px;
   font-size: 18px;
@@ -4496,7 +4496,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 .searchContent .searchFilterBoxes li .filter-count {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .searchContent .searchFilterBoxes li .fa {
   color:  var(--medium-grey);
@@ -4686,7 +4686,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000000;
 }
 .sheetResult .snippet.en {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4700,7 +4700,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content:flex-start;
   align-items: center;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 13px;
   margin: 15px 0 5px;
 }
@@ -4711,7 +4711,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
@@ -4894,7 +4894,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 3px;
 
   /* Dark Grey */
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .autocomplete-dropdown .type-icon{
   display: inline-block;
@@ -4969,7 +4969,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 h1.topic-landing-header {
   font-size: 32px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin: 0;
 }
 .singlePanel h1.topic-landing-header{
@@ -5154,7 +5154,7 @@ h1.topic-landing-header {
 .featuredTopicText .int-he {
   display: flex;
   flex-direction: column;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 30px;
 }
 .singlePanel .featuredTopicText .int-en,
@@ -5404,7 +5404,7 @@ h1.topic-landing-header {
 }
 
 .topic-landing-calendar .calendar-header{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -5425,7 +5425,7 @@ h1.topic-landing-header {
 .topic-landing-temporal .learn-more-prompt{
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5529,7 +5529,7 @@ h1.topic-landing-header {
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5682,7 +5682,7 @@ big {
   margin-left: 10px;
 }
 .connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .readerControls .readerControlsInner {
   position: relative;
@@ -5709,7 +5709,7 @@ big {
   align-items: center;
   line-height: initial;
   height: 100%;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .readerControls.transLangPrefSuggBann .transLangPrefCentered {
   display: flex;
@@ -5794,7 +5794,7 @@ big {
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -5803,7 +5803,7 @@ big {
 .readerControls .readerTextToc .categoryAttribution {
   font-style: italic;
   font-size: 15px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin: 0 2px;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -5936,7 +5936,7 @@ big {
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
@@ -6074,7 +6074,7 @@ big {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .toggleSet {
   display: inline-block;
@@ -6085,7 +6085,7 @@ big {
   display: flex;
 }
 #accountSettingsPage .additional-info {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 /* #accountSettingsPage .saveCancel {
   display: flex;
@@ -6259,7 +6259,7 @@ big {
   font-weight: 500;
   line-height: 25.78px;
   text-align: center;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding-block-end: 15px;
   border-bottom: 1px solid var(--lighter-grey);
 }
@@ -6462,7 +6462,7 @@ big {
 .stacked.bilingual .basetext .segment > .translation ,
 .stacked.bilingual .basetext .segment > p > .translation {
   margin: 10px 0 20px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .stacked.bilingual .basetext .segment > p > .he.translation {
   color: black;
@@ -6852,7 +6852,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-style: normal;
 }
 .segment img {
@@ -7089,7 +7089,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   margin: 6px 14px;
   background-color: transparent;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
@@ -7125,7 +7125,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
   padding: 5px;
   margin-bottom: 5px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
@@ -7157,7 +7157,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: var(--category-color);
 }
 .connectionsPanel .toolsButton.more{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .connectionsPanel .toolsButton.seeLess{
   margin-inline-start: 33px;
@@ -7165,7 +7165,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   align-items: center;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
@@ -7194,7 +7194,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-inline-end: 34px;
 }
 .connectionsCount {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -7205,7 +7205,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   align-self: flex-start;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   border: 1px solid #CCC;
   border-radius: 3px;
   font-size: 12px;
@@ -7376,7 +7376,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   margin: auto 14px;
 }
@@ -7401,7 +7401,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-align: left;
 }
 .textList .sheet .sheetTag {
@@ -7451,7 +7451,7 @@ But not to use a display block directive that might break continuous mode for ot
 .sheetTag.button:active {
   background-color: #EDEDED;
   border-color: #ccc;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 14px;
   margin: 4px;
 }
@@ -7491,7 +7491,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 	padding-bottom: 15px;
 }
 .mediaList .mediaTitle .he {
@@ -7510,7 +7510,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   flex-flow: row;
   justify-content: space-between;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .mediaList .media .panel{
 	background: #e6e6e6;
@@ -7624,7 +7624,7 @@ But not to use a display block directive that might break continuous mode for ot
 .webpageList .webpage .domain {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 10px;
 }
 .webpageList .webpage .description {
@@ -7782,7 +7782,7 @@ But not to use a display block directive that might break continuous mode for ot
   line-height: 18px;
   letter-spacing: 0em;
   text-align: justified;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-transform: uppercase;
 
 }
@@ -7812,7 +7812,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-end: 15px;
   text-decoration: none;
   cursor: pointer;
@@ -7822,7 +7822,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .version-block-with-preview-details .connection-button {
   font-size: 14px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-top: 15px;
 }
 .version-block-with-preview-details img {
@@ -7917,7 +7917,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .toolsSecondaryButton {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   height: var(--sans-serif-small-font-size);
@@ -7927,7 +7927,7 @@ But not to use a display block directive that might break continuous mode for ot
 
 .toolsButtonContainer.highlighted .experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 11px;
   text-transform: uppercase;
   border: 1px solid var(--light-grey);
@@ -7944,7 +7944,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .toolsButton .toolsButtonText .connectionsCount::before{
   content: " ";
@@ -8017,7 +8017,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .topicButton .smallText .he {
   font-family: "Heebo", sans-serif;
@@ -8111,7 +8111,7 @@ But not to use a display block directive that might break continuous mode for ot
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding: 20px 20px;
   margin: 19px 33px;
 }
@@ -8122,7 +8122,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-overflow: ellipsis;
 }
 
@@ -8145,7 +8145,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin: 20px 34px;
 }
 .addToSourceSheetBox {
@@ -8217,11 +8217,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 18px;
   line-height: 25px;
   text-decoration-line: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .confirmAddToSheet.addToSourceSheetBox .message span a{
   text-decoration: underline;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .confirmAddToSheet .button {
   width: 100%;
@@ -8278,7 +8278,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .notePrivateButton.active,
 .connectionsPanel .notePublicButton.active {
   background-color: white;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .connectionsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
@@ -8301,7 +8301,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 15px;
   cursor: pointer;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8349,7 +8349,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .divineNameDepricationNotification {
@@ -8535,7 +8535,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex: 1;
 }
 .notification .date {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 14px;
   margin-inline-start: 15px;
 }
@@ -8552,7 +8552,7 @@ But not to use a display block directive that might break continuous mode for ot
 .notification .sheetSummary {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 18px;
   margin-top: 10px;
 }
@@ -8695,7 +8695,7 @@ But not to use a display block directive that might break continuous mode for ot
 .emptyDesktop {
   margin-top: 200px;
   text-align: center;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 /* DEPRECATED: Use Button component from static/js/common/Button.jsx instead */
 .button {
@@ -8724,11 +8724,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   line-height: 19px;
   text-align: center;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   box-shadow: none;
 }
 .button.disabled:hover{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   cursor: initial;
 }
 a.button {
@@ -8753,11 +8753,11 @@ body.user-is-tabbing label.button:focus {
   color: #333;
 }
 a.button.white {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .button.grey {
   background-color:  var(--lighter-grey);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   box-shadow: none;
   border: none;
 }
@@ -8772,7 +8772,7 @@ a.button.mini {
   float: left;
 }
 .button.transparent {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   background-color: transparent;
   border: 1px solid transparent;
 }
@@ -8855,7 +8855,7 @@ a .button:hover {
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
   border-radius: revert;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .headerWithAdminButtons {
   display: flex;
@@ -8962,7 +8962,7 @@ button.appButton.iconOnly img {
 }
 .lexicon-results .named-entity-description .en,
 .lexicon-results .named-entity-description .he {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
@@ -9048,7 +9048,7 @@ button.appButton.iconOnly img {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-weight: 300;
 }
 .splitHeader .en {
@@ -9119,7 +9119,7 @@ button.appButton.iconOnly img {
   display: none;
   float:right;
   cursor: pointer;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-decoration: none;
 }
 .sheetButton:hover {
@@ -9246,7 +9246,7 @@ a.sheetAuthorName:hover {
   font-size: 16px;
   font-weight: 500;
   line-height: 18.75px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-block-end: 25px;
   text-align: initial;
 }
@@ -9287,7 +9287,7 @@ a.sheetAuthorName:hover {
   padding: 10px 20px;
   max-width: 540px;
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   height: 520px;
 }
 .publishBox .publishLabel {
@@ -9298,7 +9298,7 @@ a.sheetAuthorName:hover {
   line-height: 18px;
   text-underline-position: from-font;
   text-decoration-skip-ink: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 10px;
 }
 
@@ -9310,7 +9310,7 @@ div.transparentBackground.publishBox {
 }
 
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .publishBox p.error {
   color: red;
@@ -9361,7 +9361,7 @@ div.transparentBackground.publishBox {
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-top: 12px;
   margin-bottom: 14px;
   text-transform: none;
@@ -9386,7 +9386,7 @@ div.transparentBackground.publishBox {
   /* shared font styles */
   font-size: 16px;
   line-height: 1.2;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   /* clicking anywhere will focus the input */
   cursor: text;
 }
@@ -9480,7 +9480,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
   font-size: var(--sans-serif-body-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .publishSettingsEditMode .publishButton .publishedText .publishedTextBold {
@@ -9491,7 +9491,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
 .publishSettingsEditMode .button.published {
   background-color: #FFFFFF;
   border: 1px solid #CCCCCC;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   height: fit-content;
   align-self: center;
   border-radius: 6px;
@@ -9657,7 +9657,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .collectionPage .collectionLabel {
   text-transform: uppercase;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   letter-spacing: 2px;
   display: block;
@@ -9675,7 +9675,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   line-height: 1.3;
 }
 .collectionPage .collectionDescription .dedication {
@@ -9709,7 +9709,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-bottom:  30px;
 }
 .collectionPage .collectionContentsSectionLabel {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   size: 16px;
   margin: 30px 0 12px 0;
 }
@@ -9724,7 +9724,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .searchInCollectionLink {
   font-size:  16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-top: 20px;
   display: block;
 }
@@ -9780,7 +9780,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   padding-bottom: 24px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: flex;
   flex-direction: row;
   justify-content: start;
@@ -9789,7 +9789,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-inline-end: 10px;
 }
 .collectionMemberListingPic.invitation {
-  background-color: var(--medium-grey);
+  background-color: var(--dark-grey);
   border-radius: 1000px;
   width: 40px;
   height: 40px;
@@ -9800,7 +9800,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   color: black;
 }
 .collectionMemberListingRole {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -9815,7 +9815,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionMemberListingActions .collectionMemberListingActionsButton {
   cursor: pointer;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 8px;
 }
 .collectionMemberListingActionsMenu {
@@ -9826,7 +9826,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 15px;
   z-index: 1;
 }
@@ -9850,7 +9850,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-right: 4px;
 }
 .collectionMemberListingActionsMenu .role.current {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .collectionInvitationListing {
   display: inline-block;
@@ -9887,7 +9887,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .topicsFilterReset {
   cursor: pointer;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .topicsFilterResetIcon {
   height: 16px;
@@ -9896,7 +9896,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   vertical-align: -2px;
 }
 .alphabeticalTopicsNav {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 5px;
 }
 .alphabeticalTopicsNav a {
@@ -9922,7 +9922,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   font-size: 16px;
   line-height: 26px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .topicPanel .sideColumnMore:hover {
   cursor: pointer;
@@ -9983,7 +9983,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .sheetContentSidebar h3 {
   text-transform: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: var(--sans-serif-h3-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -10001,7 +10001,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .translationsHeader h3 {
   text-transform: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: var(--sans-serif-h3-font-size);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -10011,7 +10011,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .translationsHeader .translationsDesc {
   font-size: var(--sans-serif-body-font-size);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .aboutSheetPanel hr {
@@ -10034,7 +10034,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 div.aboutSheetMetadata {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-small-font-size);
@@ -10074,7 +10074,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing .textRange .text {
   font-size: 18px;
   font-style: italic;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 18px;
 }
 .noteListing .textRange .text .he {
@@ -10203,7 +10203,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .calendarRef {
   font-size: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: flex;
   margin: 2px 0;
 }
@@ -10340,7 +10340,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .field > label {
   display: block;
   margin-bottom: 15px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 #editCollectionPage input,
 #editCollectionPage textarea {
@@ -10389,7 +10389,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .deleteCollection {
   cursor: pointer;
   margin: 30px 10px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-align: right;
 }
 #editCollectionPage .deleteCollection:hover {
@@ -10407,7 +10407,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: flex;
   justify-content: space-between;
   flex-direction: row;
@@ -10421,7 +10421,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 0 22px;
   margin: 26px 0;
   border: none;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-style: normal;
   font-weight: normal;
   font-size: 16px;
@@ -10431,7 +10431,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .dropdown .dropdownOpenButton {
   margin-inline-start: 6px;
   cursor: pointer;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 18px;
 }
 .interface-hebrew .dropdownOpenButton {
@@ -10533,7 +10533,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 11px;
 }
 .addToSourceSheetBox .selectedRef{
@@ -10553,7 +10553,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   font-weight: normal;
   font-size: 18px;
   line-height: 25px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -10574,14 +10574,14 @@ body.user-is-tabbing .header-dropdown-button:focus {
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
 }
 #footer a {
   display: block;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .interface-hebrew #footer{
   direction: rtl;
@@ -10685,7 +10685,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   margin: 0 4px;
 }
 #footer .section.connect .socialLinks a {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 #footer #siteLanguageToggle {
   color: var(--medium-grey);
@@ -10701,7 +10701,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
 #footer a#siteLanguageHebrew {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   display: inline;
   margin: 0 3px;
 }
@@ -10729,7 +10729,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -10744,7 +10744,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   margin-bottom: 40px;
 }
 .aboutBox .aboutHeader {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
@@ -10771,14 +10771,14 @@ body.user-is-tabbing .header-dropdown-button:focus {
   line-height: 19px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
@@ -10786,7 +10786,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
 .aboutBox .aboutAuthor{
   font-size: 16px;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-bottom: 22px;
   display: flex;
 }
@@ -10803,15 +10803,15 @@ body.user-is-tabbing .header-dropdown-button:focus {
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .aboutBox .aboutComposed{
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .guideBox .guideHeader {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
@@ -10852,7 +10852,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
 }
 .guideBox .guidePromptBox span {
   font-size: 14px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-top: 10px;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
@@ -10918,7 +10918,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .interface-hebrew .versionsBox .versionLanguage {
   direction: rtl;
@@ -10933,7 +10933,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   box-shadow: 0 1px 2px #999;
   padding: 2px 8px;
   background-color: white;
@@ -11236,7 +11236,7 @@ span.purim-emoji img{
   font-size: 16px;
   font-weight: 400;
   line-height: 18.75px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   cursor: pointer;
 }
@@ -11336,7 +11336,7 @@ span.purim-emoji img{
 }
 
 .sheetNotice {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   background: var(--lighter-grey);
   border: 1px solid var(--light-grey);
   box-sizing: border-box;
@@ -11696,7 +11696,7 @@ background-color: white;
 .addInterfaceInput input+span.helperCompletionText {
   position: absolute;
   margin-inline-start: 4px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .editorAddInterface.active .editorAddInterfaceButton {
@@ -11758,7 +11758,7 @@ background-color: white;
 .editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .cookiesNotification {
   position: fixed;
@@ -12233,13 +12233,13 @@ cursor: pointer;
   margin: 0 6px 1px 0;
 }
 .tab-view .tab-list .applink a {
-    color: var(--medium-grey);
+    color: var(--dark-grey);
 }
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
-    color: var(--medium-grey);
+    color: var(--dark-grey);
 }
 .tab-view.largeTabs .tab-list {
     border-bottom: 1px solid #CCC;
@@ -12364,7 +12364,7 @@ cursor: pointer;
 }
 .profile-page .textRange {
   font-size: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .profile-page .note-text {
   font-size: 18px;
@@ -12485,7 +12485,7 @@ cursor: pointer;
 .feedbackOverlay textarea::placeholder {
   font-size: 16px;
   font-style: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .feedbackOverlay a {
   color: #4871bf;
@@ -12536,7 +12536,7 @@ cursor: pointer;
 .default-profile-img {
   width: 175px;
   height: 175px;
-  background-color: var(--medium-grey);
+  background-color: var(--dark-grey);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -12590,7 +12590,7 @@ cursor: pointer;
 }
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
@@ -12661,7 +12661,7 @@ cursor: pointer;
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding: 16px 15px;
 }
 .profile-page .profile-summary {
@@ -12804,7 +12804,7 @@ cursor: pointer;
 .profile-page .emptyList .emptyListText {
   font-size: 16px;
   margin: 30px 0;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 1.5;
 }
@@ -12826,7 +12826,7 @@ cursor: pointer;
   font-size: 16px;
 }
 .profile-page .profile-summary .sub-sub-title {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
 }
@@ -12846,7 +12846,7 @@ cursor: pointer;
   top: 0;
   transform: translateY(-35%);
   left: 30px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
@@ -12907,7 +12907,7 @@ cursor: pointer;
   color: black;
 }
 .largeFollowButton.following span {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .smallFollowButton {
   height: 20px;
@@ -13101,7 +13101,7 @@ body .homeFeedWrapper .content {
 }
 
 .story .subHeading .int-en, .story .subHeading .int-he  {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .story .learningPrompt {
   padding: 20px 0 20px;
@@ -13390,10 +13390,10 @@ body .homeFeedWrapper.userStats {
   padding: 10px;
 }
  .editTextInfo #newIndex .default::placeholder {
-   color: var(--medium-grey);
+   color: var(--dark-grey);
  }
 .button.small.deleteTopic {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   float: right;
   margin-top: 30px;
   background-color: var(--lightest-grey);
@@ -13518,7 +13518,7 @@ body .homeFeedWrapper.userStats {
   font-family: revert;
 }
 .editTextInfo #newIndex input::placeholder {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
 }
 .editTextInfo #newIndex #heTitle {
@@ -13555,7 +13555,7 @@ body .homeFeedWrapper.userStats {
 	margin: -5px 11px 0 -32px;
 }
 .editTextInfo #newIndex .headerWithButtons a {
-    color: var(--medium-grey);
+    color: var(--dark-grey);
 }
 .editTextInfo .nodeTemplate {
 	display: none;
@@ -13626,7 +13626,7 @@ body .homeFeedWrapper.userStats {
   font-size: 22px;
   vertical-align: middle;
   display: block;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .collectionsWidgetClose {
   font-size: 40px;
@@ -13649,7 +13649,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidgetList .emptyMessage {
   display: block;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   padding: 20px 0px;
   line-height: 1.5;
   text-align: start;
@@ -13672,7 +13672,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .collectionsWidgetPlus {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 25px;
   margin-inline-end: 13px;
   margin-top: -5px;
@@ -13691,7 +13691,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-style: normal;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .interface-hebrew .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-family: "Heebo", sans-serif;
@@ -13752,7 +13752,7 @@ body .homeFeedWrapper.userStats {
   text-align: center;
 }
 .userStats .statHeader span {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   letter-spacing: 0.7px;
   line-height: 23px;
 }
@@ -13786,7 +13786,7 @@ body .homeFeedWrapper.userStats {
 }
 .userStatModeButton {
   background-color: #fff;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   border-radius: 5px;
   height: 50px;
   width: 120px;
@@ -13838,7 +13838,7 @@ a.topicLexiconTitle.contentText {
   height: 30px;
   background: #fff;
   border: #ccc solid 1px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   box-sizing: border-box;
@@ -14371,7 +14371,7 @@ span.ref-link-color-3 {color: blue}
     width: calc(100% - 22px);
     padding: 15px 11px;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    color: var(--medium-grey);
+    color: var(--dark-grey);
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
@@ -15072,7 +15072,7 @@ span.ref-link-color-3 {color: blue}
   align-items: center;
   margin-top: 2px;
   margin-bottom: 4px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   position: relative;
 }
 .headerDropdownMenu .toolsButtonContainer {
@@ -15092,13 +15092,13 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 500;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   padding: revert;
 }
 .sheetsInPanel .headerDropdownMenu {
   margin-top: 7px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   position: relative;
   line-height: 0;
 }
@@ -15265,7 +15265,7 @@ span.ref-link-color-3 {color: blue}
 
 .productInner .productsDesc {
   font: var(--english-sans-serif-font-family);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 16px;
 }
 
@@ -15298,7 +15298,7 @@ span.ref-link-color-3 {color: blue}
 
 .productsHeader .productsTitle {
   font: var(--english-sans-serif-font-family);
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 22px;
   font-weight: 500px;
 }
@@ -15311,7 +15311,7 @@ span.ref-link-color-3 {color: blue}
   background-color: var(--lighter-grey);
   border-radius: 6px;
   padding: 0.01px 5px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   margin-inline-start: 3%;
 }
 
@@ -15345,7 +15345,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 500;
   line-height: 25.78px;
   text-align: left;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .productsCTA::after {
@@ -15355,7 +15355,7 @@ span.ref-link-color-3 {color: blue}
 
 .productsDevBox {
     background: var(--lighter-grey);
-    color: var(--medium-grey);
+    color: var(--dark-grey);
     font-family: var(--english-sans-serif-font-family);
     font-size: 16px;
     font-weight: 400;
@@ -15397,7 +15397,7 @@ span.ref-link-color-3 {color: blue}
     font-weight: 400;
     font-size: 14px;
     line-height: 18px;
-    color: var(--medium-grey);
+    color: var(--dark-grey);
 }
 
 @media (max-width: 480px) {
@@ -15458,7 +15458,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .noteText{
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .footerContainer {
@@ -15488,7 +15488,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 .dropdownLanguageToggle{
@@ -15728,7 +15728,7 @@ span.ref-link-color-3 {color: blue}
 .cardsPaginationNumber {
   font-weight: 500;
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   min-width: 40px;
   height: 34px;
   display: flex;
@@ -15885,7 +15885,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .guideOverlayFooterLink {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -15906,7 +15906,7 @@ span.ref-link-color-3 {color: blue}
   justify-content: center;
   padding: 40px;
   font-size: 16px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 /* RTL/Hebrew interface support */
