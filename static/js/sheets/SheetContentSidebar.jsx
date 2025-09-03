@@ -18,7 +18,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
                                     {Sefaria._(authorStatement)}
                                 </a>;
     return <div className="sheetContentSidebar">
-            {Sefaria.multiPanel && <EditorSaveStateIndicator state={editorSaveState}/>}
+            {Sefaria.multiPanel && !!editorSaveState && <EditorSaveStateIndicator state={editorSaveState}/>}
             <ProfilePic
                 url={authorImage}
                 len={100}
