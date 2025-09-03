@@ -64,7 +64,7 @@ data:
       client_max_body_size 32M;
 
       # TODO review this CORS setting
-      add_header 'Access-Control-Allow-Origin' '*';
+      # add_header 'Access-Control-Allow-Origin' '*';
 
       upstream varnish_upstream {
         server ${VARNISH_HOST}:8040;
