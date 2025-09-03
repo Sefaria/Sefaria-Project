@@ -7,6 +7,7 @@ import {
 } from "../common/DropdownMenu";
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
+import Button from "../common/Button";
 
 import { SignUpModalKind } from "../sefaria/signupModalContent";
 import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
@@ -96,7 +97,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <div className="button small" onClick={() => setPublishingMode(true)} role="button" tabIndex="0"><InterfaceText>Publish</InterfaceText></div>;
+  const publishModalButton = <Button variant="" className="button small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
