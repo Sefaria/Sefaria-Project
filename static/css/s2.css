@@ -60,6 +60,7 @@ a, a:hover {
   --highlight-blue-light: #F0F7FF;
   --beit-midrash-grey: #333333;
   --darkest-grey: #333333;
+  --darker-grey: #575757;
   --dark-grey: #666666;
   --medium-grey: #6f6f6f;
   --medium-grey-legacy: #999999;
@@ -2475,7 +2476,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
@@ -3084,7 +3085,7 @@ a.cardTitle:hover {
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 13px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3605,7 +3606,7 @@ a.cardTitle:hover {
   margin: 0;
   padding: 0 4px;
   line-height: 30px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
@@ -3686,7 +3687,7 @@ a.cardTitle:hover {
   font-size: 14px;
   position: relative;
   top: -2px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after {
   content: "\f107";
@@ -3832,7 +3833,7 @@ a.cardTitle:hover {
   flex-wrap: wrap;
   font-size: 14px;
   line-height: 22px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-inline-start: 5px;
 }
 .version-with-preview-title-line .open-details {
@@ -4305,7 +4306,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 
 @media (min-width: 701px) {
@@ -4641,7 +4642,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
   font-size: 45px;
-  color: #575757; /* Override with accessible color for 3:1 contrast */
+  color: var(--darker-grey); /* Override with accessible color for 3:1 contrast */
   height: 20px;
   display: block;
   line-height: 20px;
@@ -4701,7 +4702,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content:flex-start;
   align-items: center;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 13px;
   margin: 15px 0 5px;
 }
@@ -5648,7 +5649,7 @@ h1.topic-landing-header {
 }
 .readerNavMenuCloseButton {
   font-family: var(--english-serif-font-family);
-  color: #575757; /* Ensures 3:1 contrast ratio for accessibility */
+  color: var(--darker-grey); /* Ensures 3:1 contrast ratio for accessibility */
 }
 
 /* Replacement for obsolete <big> tag - WCAG compliance */
@@ -6075,7 +6076,7 @@ big {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .toggleSet {
   display: inline-block;
@@ -7090,7 +7091,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   margin: 6px 14px;
   background-color: transparent;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
@@ -7126,7 +7127,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
   padding: 5px;
   margin-bottom: 5px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
@@ -7166,7 +7167,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   align-items: center;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
@@ -7206,7 +7207,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   align-self: flex-start;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   border: 1px solid #CCC;
   border-radius: 3px;
   font-size: 12px;
@@ -8302,7 +8303,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 15px;
   cursor: pointer;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8696,7 +8697,7 @@ But not to use a display block directive that might break continuous mode for ot
 .emptyDesktop {
   margin-top: 200px;
   text-align: center;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 /* DEPRECATED: Use Button component from static/js/common/Button.jsx instead */
 .button {
@@ -8741,7 +8742,7 @@ a.button:hover {
   text-decoration: none;
 }
 
-/* Legacy Button Focus Styling - DEPRECATED: Use Button component instead */
+/* Legacy Button Focus Styling */
 body.user-is-tabbing .button:focus,
 body.user-is-tabbing a.button:focus,
 body.user-is-tabbing div.button:focus,
@@ -9120,7 +9121,7 @@ button.appButton.iconOnly img {
   display: none;
   float:right;
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   text-decoration: none;
 }
 .sheetButton:hover {
@@ -9827,7 +9828,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 15px;
   z-index: 1;
 }
@@ -10075,7 +10076,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing .textRange .text {
   font-size: 18px;
   font-style: italic;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-bottom: 18px;
 }
 .noteListing .textRange .text .he {
@@ -10390,7 +10391,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .deleteCollection {
   cursor: pointer;
   margin: 30px 10px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   text-align: right;
 }
 #editCollectionPage .deleteCollection:hover {
@@ -10428,7 +10429,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 16px;
   line-height: 19px;
 }
-
 .dropdown .dropdownOpenButton {
   margin-inline-start: 6px;
   cursor: pointer;
@@ -10534,7 +10534,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-bottom: 11px;
 }
 .addToSourceSheetBox .selectedRef{
@@ -10575,7 +10575,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
@@ -10730,7 +10730,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -11759,7 +11759,7 @@ background-color: white;
 .editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .cookiesNotification {
   position: fixed;
@@ -12321,7 +12321,7 @@ cursor: pointer;
     background-color: #fff;
     width: 20px;
     height: 20px;
-    border: 2px solid var(--dark-grey);
+    border: 2px solid var(--medium-grey);
     border-radius: 20px;
     display: inline-grid;
     place-content: center;
@@ -12537,7 +12537,7 @@ cursor: pointer;
 .default-profile-img {
   width: 175px;
   height: 175px;
-  background-color: var(--dark-grey);
+  background-color: var(--medium-grey);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -12749,7 +12749,7 @@ cursor: pointer;
 }
 
 .profile-page .resourcesLink.faded {
-  color: var(--medium-grey);
+  color: var(--dark-grey);
 }
 .resourcesLink.blue {
   color: white;
@@ -12805,7 +12805,7 @@ cursor: pointer;
 .profile-page .emptyList .emptyListText {
   font-size: 16px;
   margin: 30px 0;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 1.5;
 }
@@ -12847,7 +12847,7 @@ cursor: pointer;
   top: 0;
   transform: translateY(-35%);
   left: 30px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
@@ -14791,7 +14791,7 @@ span.ref-link-color-3 {color: blue}
   background-color: #fff;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--dark-grey);
+  border: 2px solid var(--medium-grey);
   border-radius: 20px;
   margin-top: 0;
   margin-inline-end: 10px;
