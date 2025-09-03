@@ -555,8 +555,14 @@ function parseSheetItemHTML(rawhtml) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
 
-    preparseHtml = replaceDivWithBr(preparseHtml);
+    // If there are no ul/ol/li tags, replace divs with brs to preserve line breaks.
+    // If there are ul/ol/li tags, the serialization will need the divs to render the list properly and prevent data-loss.
+    if (!/<\/?(ul|ol|li)[^>]*>/i.test(preparseHtml)) {
+        preparseHtml = replaceDivWithBr(preparseHtml);
+    }
     preparseHtml = replaceBrWithNewLine(preparseHtml);
+
+
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
@@ -2557,7 +2563,7 @@ const HighlightButton = () => {
     const [showPortal, setShowPortal] = useState(false);
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
-    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue
     const colorButtons = <>{colors.map(color =>
       <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
             e.preventDefault();
