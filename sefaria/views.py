@@ -76,7 +76,7 @@ logger = structlog.get_logger(__name__)
 
 
 def _add_cors_headers(response):
-    response["Access-Control-Allow-Origin"] = "*"
+    #response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Allow-Headers"] = "Content-Type"
     return response
