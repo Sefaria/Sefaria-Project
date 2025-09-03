@@ -66,6 +66,7 @@ a, a:hover {
   --light-grey: #CCCCCC;
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
+  --black: #000000;
   --commentary-blue: #4B71B7;
   --essay-links-green: #3B5849;
   --tanakh-teal: #004E5F;
@@ -730,7 +731,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-size: 14px;
   font-weight: 400;
   line-height: 18px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   padding-block-start: 5px;
   padding-block-end: 2px;
 }
@@ -805,7 +806,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
@@ -832,7 +833,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: #666666;
+  color: var(--black);
   padding: 5px;
   direction: ltr;
 }
@@ -1264,7 +1265,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 
 #defaultModal #defaultModalBody .sub {
-    color: var(--dark-grey);
+    color: var(--medium-grey);
     font-size: 12px;
     font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
@@ -1788,7 +1789,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   margin-block-start: 5px;
 }
 .singlePanel .recentlyViewed #history span {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .gDocAdvertBox {
@@ -3019,7 +3020,7 @@ a.cardTitle:hover {
   align-items: center;
 }
 .featuredSheetDate {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 14px;
 }
 .communityPage .recentlyPublished {
@@ -3875,7 +3876,7 @@ details .open-details::before {
 .version-with-preview-title-line .selectButton::before {
   content: "•";
   margin-inline-end: 5px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .version-block-with-preview-details {
@@ -4147,7 +4148,7 @@ select {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 5px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 16px;
   line-height: 19px;
   width: 300px;
@@ -8535,7 +8536,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex: 1;
 }
 .notification .date {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   font-size: 14px;
   margin-inline-start: 15px;
 }
@@ -8724,11 +8725,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   line-height: 19px;
   text-align: center;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   box-shadow: none;
 }
 .button.disabled:hover{
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   cursor: initial;
 }
 a.button {
@@ -9789,7 +9790,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   margin-inline-end: 10px;
 }
 .collectionMemberListingPic.invitation {
-  background-color: var(--dark-grey);
+  background-color: var(--medium-grey);
   border-radius: 1000px;
   width: 40px;
   height: 40px;
@@ -9887,7 +9888,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .topicsFilterReset {
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .topicsFilterResetIcon {
   height: 16px;
@@ -10034,7 +10035,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 
 div.aboutSheetMetadata {
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: var(--sans-serif-small-font-size);
@@ -10808,7 +10809,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
 .aboutBox .aboutComposed{
   font-size: 14px;
   line-height: 18px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 .guideBox .guideHeader {
   color: var(--dark-grey);
@@ -10852,7 +10853,7 @@ body.user-is-tabbing .header-dropdown-button:focus {
 }
 .guideBox .guidePromptBox span {
   font-size: 14px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
   margin-top: 10px;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
@@ -11696,7 +11697,7 @@ background-color: white;
 .addInterfaceInput input+span.helperCompletionText {
   position: absolute;
   margin-inline-start: 4px;
-  color: var(--dark-grey);
+  color: var(--medium-grey);
 }
 
 .editorAddInterface.active .editorAddInterfaceButton {
