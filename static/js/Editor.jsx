@@ -555,6 +555,8 @@ function parseSheetItemHTML(rawhtml) {
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
 
+    // If there are no ul/ol/li tags, replace divs with brs to preserve line breaks.
+    // If there are ul/ol/li tags, the serialization will need the divs render the list peoperly and prevent data-loss.
     if (!/<\/?(ul|ol|li)[^>]*>/i.test(preparseHtml)) {
         preparseHtml = replaceDivWithBr(preparseHtml);
     }
