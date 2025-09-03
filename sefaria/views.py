@@ -379,7 +379,7 @@ def find_refs_report_api(request):
 
 
 @cors_allow_all
-@api_view(["POST"])
+@api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
     from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
     from sefaria.helper.linker.tasks import find_refs_api_task
