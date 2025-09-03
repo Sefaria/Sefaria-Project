@@ -663,6 +663,7 @@ const Strings = {
     'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
     'book icon': 'סמל ספר',
     'visualization icon': 'סמל תרשים גרפי',
+    'Menu icon': 'סמל תפריט',
     'icon': 'סמל',
     'Sefaria app on IOS': 'אפליקציית ספריא לאייפון',
     'Sefaria app on Android': 'אפליקציית ספריא לאנדרואיד',
