@@ -460,11 +460,14 @@ class TabView extends Component {
             } else {
               this.openTab(newIndex);
             }
-            // Focus the newly active tab
-            setTimeout(() => {
+            // Focus the newly active tab using requestAnimationFrame for better timing
+            // This ensures the DOM has been updated before attempting to focus
+            requestAnimationFrame(() => {
               const newTabElement = document.querySelector(`[data-tab-index="${newIndex}"]`);
-              if (newTabElement) newTabElement.focus();
-            }, 0);
+              if (newTabElement) {
+                newTabElement.focus();
+              }
+            });
           }
         }}
       >
@@ -475,12 +478,15 @@ class TabView extends Component {
   render() {
     const currTabIndex = this.getTabIndex();
     const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
+    const currentTab = this.props.tabs[currTabIndex];
+    const ariaLabelledBy = currentTab && currentTab.id ? `tab-${currentTab.id}` : undefined;
+    
     return (
       <div className={classes}>
         <div className="tab-list sans-serif" role="tablist">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        <div role="tabpanel" aria-labelledby={`tab-${this.props.tabs[currTabIndex]?.id}`}>
+        <div role="tabpanel" aria-labelledby={ariaLabelledBy}>
           { React.Children.toArray(this.props.children)[currTabIndex] }
         </div>
       </div>
