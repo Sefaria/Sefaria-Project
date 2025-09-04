@@ -250,7 +250,6 @@ class ProfileMiddleware(MiddlewareMixin):
 class ModuleMiddleware(MiddlewareURLMixin):
     excluded_url_prefixes = {
         '/linker.js',
-        '/api/',
         '/interface/',
         '/apple-app-site-association',
         '/static/',
