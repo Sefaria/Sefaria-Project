@@ -222,7 +222,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true"></img></button>;
+  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
   const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
@@ -283,9 +283,21 @@ class SearchFilter extends Component {
   componentDidMount() {
     // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    if (this.props.filter.isPartial()) {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
+    }
+    else {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
+    }
   }
   componentDidUpdate() {
     ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
+    if (this.props.filter.isPartial()) {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
+    }
+    else {
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
+    }
   }
   handleFilterClick(evt) {
     this.props.updateSelected(this.props.filter)
@@ -317,11 +329,11 @@ class SearchFilter extends Component {
           <div className="checkboxAndText">
             <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
             <label 
-              htmlFor={filter.aggKey}
-              onClick={this.handleFilterClick}
+              onClick={this.handleFilterClick} 
+              id={"label-for-"+this.props.filter.aggKey} 
               tabIndex="0"
-              onKeyDown={this.handleKeyDown}
-              onKeyPress={this.handleKeyPress}
+              onKeyDown={this.handleKeyDown} 
+              onKeyPress={this.handleKeyPress} 
               aria-label={toggleMessage}>
               <span></span>
             </label>
