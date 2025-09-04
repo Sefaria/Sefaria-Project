@@ -159,7 +159,7 @@ http {
 
     {{- range $k, $v := $.Values.ingress.subdomains }}
     location ~ ^/{{ $v }}(/.*|$) {
-        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$2;
+        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$1;
     }
     {{- end }}
   } # server
