@@ -53,8 +53,7 @@ http {
   }
 
   server {
-    # TODO add `default` below
-    listen 80 default_server;
+    listen 80;
     server_name www.{{ tpl $i.host $ }};
     listen [::]:80;
     # parameterize line below
