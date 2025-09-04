@@ -4,6 +4,7 @@ import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
 import { InterfaceText, DonateLink } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
+
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
@@ -15,8 +16,8 @@ const Section = ({en, he, children}) => (
     </div>
 );
 
-const Link = ({href, en, he, blank}) => (
-    <a href={href} target={blank ? "_blank" : "_self"}>
+const Link = ({href, en, he, blank, targetModule}) => (
+    <a href={href} target={blank ? "_blank" : "_self"} data-target-module={targetModule}>
       <InterfaceText text={{en:en, he:he}}/>
     </a>
 );
@@ -37,13 +38,14 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
+    const helpURL = Sefaria.interfaceLang == "hebrew" ? Sefaria._siteSettings.HELP_CENTER_URLS.HE : Sefaria._siteSettings.HELP_CENTER_URLS.EN_US;
     let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
-                <Link href="/help" en="Help" he="עזרה" />
+                <Link href={helpURL} en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/products" en="Products" he="מוצרים" />
                 <Link href="/ai" en="AI on Sefaria" he="השימוש ב-AI בספריא" />
@@ -62,9 +64,8 @@ class Footer extends Component {
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
                 <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
                 <Link href="/people" en="Authors" he="מחברים" />
-                <Link href="/collections" en="Collections" he="אסופות" />
+                <Link href="/sheets/collections" en="Collections" he="אסופות" targetModule={Sefaria.SHEETS_MODULE} />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
-                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
             </Section>
 
             <Section en="Developers" he="מפתחים">

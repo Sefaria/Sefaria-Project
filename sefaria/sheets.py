@@ -378,7 +378,9 @@ def trending_topics(days=7, ntags=14):
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],
 		"author_count": len(topic['authors']),
-	} for topic in filter(lambda x: len(x["authors"]) > 1, topics_list)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	for i, topic in enumerate(results):
+		results[i]['primaryTitle'] = {'en': topic.pop('en'), 'he': topic.pop('he')}   
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
@@ -452,6 +454,7 @@ def rebuild_sheet_nodes(sheet):
 
 
 def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
+	from pathlib import Path
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -534,7 +537,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				nextNode += 1
 			if "media" in source and source["media"].startswith(GoogleStorageManager.BASE_URL):
 				old_file = (re.findall(r"/([^/]+)$", source["media"])[0])
-				to_file = f"{user_id}-{uuid.uuid1()}.{source['media'][-3:].lower()}"
+				source_path = source['media']
+				path_suffix = Path(source_path).suffix.strip(".")
+				to_file = f"{user_id}-{uuid.uuid1()}.{path_suffix}"
 				bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
 				duped_image_url = GoogleStorageManager.duplicate_file(old_file, to_file, bucket_name)
 				source["media"] = duped_image_url
@@ -653,7 +658,7 @@ def test():
 	for s in ss:
 		lang = get_sheet_language(s)
 		if lang == "some hebrew":
-			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+			print("{}\thttps://sheets.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
 
 
 
