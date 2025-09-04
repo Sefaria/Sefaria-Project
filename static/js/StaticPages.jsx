@@ -2854,7 +2854,7 @@ const ProductCTA = ({product, cta}) => {
         <a href={cta.url} onClick={(e) => productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
             {cta.icon.url && <img className="productsCTAIcon" 
                                     src={cta.icon.url}
-                                    alt="Click icon" />}
+                                    alt={Sefaria._("Click icon")} />}
                                 
             <span className="productsCTA">
                 <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />

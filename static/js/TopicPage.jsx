@@ -425,7 +425,7 @@ return (
        {topicData && topicData.ref &&
            <div>
                <a href={`/${topicData.ref.url}`} data-target-module={Sefaria.LIBRARY_MODULE} className="resourcesLink button blue">
-                   <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
+                   <img src="/static/icons/book-icon-black.svg" alt={Sefaria._("book icon")}/>
                    <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
                    <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
                </a>
@@ -436,7 +436,7 @@ return (
                   data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
                   data-anl-promotion_name="Parashah Email Signup - Parashah Page"
                >
-                  <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+                  <img src="/static/icons/email-newsletter.svg" alt={Sefaria._("Sign up for our weekly parashah study companion")}/>
                   <InterfaceText>Get the Free Study Companion</InterfaceText>
                </a>}
            </div>}
@@ -1078,7 +1078,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     <div className="parasha">
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
             <a href={'/' + tref.url} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
@@ -1103,7 +1103,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
             {
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
-                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
                     <a href={'/' + h.url} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>

@@ -10,6 +10,7 @@ import Component      from 'react-class';
 import {ReaderPanelContext} from "./context";
 import {DropdownMenu} from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import { handleKeyboardClick } from "./common/Button";
 
 
 class ConnectionsPanelHeader extends Component {
@@ -58,7 +59,12 @@ class ConnectionsPanelHeader extends Component {
         e.preventDefault();
         backButtonSettings.onClick();
       };        
-      title = <a href={backButtonSettings.url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
+      title = <a
+        href={backButtonSettings.url}
+        className="connectionsHeaderTitle sans-serif active"
+        onClick={onClick}
+        onKeyDown={handleKeyboardClick(onClick)}
+      >
       <InterfaceText>
           <EnglishText>
               <i className="fa fa-chevron-left"></i>
@@ -81,7 +87,12 @@ class ConnectionsPanelHeader extends Component {
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
-      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={this.onClick}>
+      title = <a
+        href={url}
+        className="connectionsHeaderTitle sans-serif active"
+        onClick={this.onClick}
+        onKeyDown={handleKeyboardClick(this.onClick)}
+      >
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>
@@ -100,7 +111,12 @@ class ConnectionsPanelHeader extends Component {
         e.preventDefault();
         this.props.setConnectionsMode("Resources");
       }.bind(this);
-      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
+      title = <a 
+        href={url} 
+        className="connectionsHeaderTitle sans-serif active" 
+        onClick={onClick}
+        onKeyDown={handleKeyboardClick(onClick)}
+      >
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>

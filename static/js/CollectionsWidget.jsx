@@ -3,6 +3,7 @@ import {
 	InterfaceText,
 } from "./Misc"
 import Sefaria  from './sefaria/sefaria';
+import { handleKeyboardClick } from './common/Button';
 
 
 const CollectionsModal = (props) => {
@@ -119,7 +120,14 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       <span className={"collectionsWidgetTitle"}>
         <InterfaceText>Collections</InterfaceText>
       </span>
-      <div className="collectionsWidgetClose" onClick={onClose}>×</div>
+      <div
+        className="collectionsWidgetClose"
+        onClick={onClose}
+        role="button"
+        tabIndex="0"
+        aria-label="Close collections"
+        onKeyDown={handleKeyboardClick(onClose)}
+      >×</div>
     </div>
     <div className="collectionsWidgetList serif">
       {!dataLoaded ? null :
@@ -143,16 +151,28 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     <div className="collectionsWidgetCreate">
       <span className="collectionsWidgetPlus">+</span>
       <div className="collectionsWidgetCreateInputBox">
-        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} value={newName} onChange={onNameChange} />
+        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} aria-label={Sefaria._("Create new collection")} type="text" value={newName} onChange={onNameChange} />
       </div>
-      {newName.length ?
-      <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
+       {newName.length ?
+      <div
+        className="button extraSmall white collectionsWidgetCreateButton"
+        role="button"
+        tabIndex="0"
+        onClick={onCreateClick}
+        onKeyDown={handleKeyboardClick(onCreateClick)}
+      >
         <InterfaceText>Create</InterfaceText>
       </div>
       : null}
     </div>
     <div className="collectionsWidgetDone">
-       <div className="button large fillWidth" onClick={onClose}>
+       <div
+        className="button large fillWidth"
+        role="button"
+        tabIndex="0"
+        onClick={onClose}
+        onKeyDown={handleKeyboardClick(onClose)}
+       >
         <InterfaceText>Done</InterfaceText>
       </div>     
     </div>

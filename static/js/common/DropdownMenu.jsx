@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText, getCurrentPage } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
+import { handleKeyboardClick } from './Button';
 
 const DropdownMenuSeparator = () => {
 
@@ -24,7 +25,9 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
     <a className={cssClasses}
        href={fullURL}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       onKeyDown={handleKeyboardClick()}
+    >
       {children}
     </a>
 
@@ -40,7 +43,9 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
     <a className={`interfaceLinks-option int-bi dropdownItem`}
        href={url}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       onKeyDown={handleKeyboardClick()}
+    >
       {children}
     </a>
   );
@@ -48,7 +53,14 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
 
 const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
   return (
-    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
+    <div
+      className={'interfaceLinks-option int-bi dropdownItem'}
+      onClick={onClick}
+      data-prevent-close={preventClose}
+      role="button"
+      tabIndex="0"
+      onKeyDown={handleKeyboardClick(onClick)}
+    >
         {children}
     </div>
   );
@@ -58,7 +70,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
-        <img src={icon} />
+        <img src={icon} alt={Sefaria._("Menu icon")} />
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>
@@ -85,7 +97,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
      */
 
     const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef(null);
     const wrapperRef = useRef(null);
+    const buttonRef = useRef(null);
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
@@ -122,12 +136,65 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
         };
     }, []);
 
+    useEffect(() => {
+        if (isOpen && menuRef.current) {
+            // Focus the first focusable element when menu opens
+            const firstFocusable = menuRef.current.querySelector('[tabindex="0"], button:not([disabled]), [href], input:not([disabled])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        }
+    }, [isOpen]);
+
+    const handleMenuKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(false);
+            // Return focus to the button
+            if (buttonRef.current) {
+                buttonRef.current.focus();
+            }
+            return;
+        }
+
+        if (e.key === 'Tab' && menuRef.current) {
+            // Implement focus trapping within the menu
+            const focusableElements = menuRef.current.querySelectorAll(
+                '[tabindex="0"], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+            );
+            
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey && document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    };
+
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <div className="dropdownLinks-button" onClick={handleButtonClick}>
-              {buttonComponent}
+           <div
+             className="dropdownLinks-button"
+           >
+              {React.cloneElement(buttonComponent, {
+                onClick: handleButtonClick,
+                ref: buttonRef,
+                tabIndex: 0,
+                onKeyDown: handleKeyboardClick(handleButtonClick)
+              })}
           </div>
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
+          <div 
+            className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} 
+            onClick={handleContentsClick}
+            ref={menuRef}
+            onKeyDown={handleMenuKeyDown}
+          >
               {children}
           </div>
         </div>
