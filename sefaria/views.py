@@ -28,7 +28,7 @@ from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.urls import resolve
+from django.urls import resolve, reverse
 from django.urls.exceptions import Resolver404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
 from rest_framework.decorators import api_view
@@ -79,31 +79,69 @@ class StaticViewMixin:
         context['renderStatic'] = True
         return context
 
-class CustomLoginView(StaticViewMixin, LoginView):
-    authentication_form = SefariaLoginForm
+class ModuleAwareMixin:
+    """
+    Mixin that provides module-aware redirect functionality.
+    Views using this mixin will redirect based on the active module.
+    """
+    def get_module_redirect_url(self, default_url=None):
+        """
+        Get the appropriate redirect URL based on the active module.
+        """
+        active_module = getattr(self.request, 'active_module', 'library')
+        
+        if active_module == 'sheets':
+            return '/sheets/'
+        else:
+            return default_url or reverse('table_of_contents')
 
-class CustomLogoutView(StaticViewMixin, LogoutView):
+class CustomLoginView(StaticViewMixin, ModuleAwareMixin, LoginView):
+    authentication_form = SefariaLoginForm
+    
+    def get_success_url(self):
+        """
+        Determine where to redirect after successful login based on:
+        1. The 'next' parameter
+        2. The active module from middleware
+        3. Default fallback
+        """
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        
+        if next_url:
+            return next_url
+            
+        return self.get_module_redirect_url()
+
+class CustomLogoutView(StaticViewMixin, ModuleAwareMixin, LogoutView):
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
             return resolve_url(next_page)
-        return super().get_next_page()
+        return self.get_module_redirect_url()
 
 
-class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
-    pass
+class CustomPasswordResetDoneView(StaticViewMixin, ModuleAwareMixin, PasswordResetDoneView):
+    def get_success_url(self):
+        return self.get_module_redirect_url()
 
-class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
-    pass
+class CustomPasswordResetCompleteView(StaticViewMixin, ModuleAwareMixin, PasswordResetCompleteView):
+    def get_success_url(self):
+        return self.get_module_redirect_url()
 
-class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
+class CustomPasswordResetView(StaticViewMixin, ModuleAwareMixin, PasswordResetView):
     form_class = SefariaPasswordResetForm
     email_template_name = 'registration/password_reset_email.txt'
     html_email_template_name = 'registration/password_reset_email.html'
+    
+    def get_success_url(self):
+        return self.get_module_redirect_url()
 
-class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
+class CustomPasswordResetConfirmView(StaticViewMixin, ModuleAwareMixin, PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
+    
+    def get_success_url(self):
+        return self.get_module_redirect_url()
 
 def process_register_form(request, auth_method='session'):
     from sefaria.utils.util import epoch_time
@@ -179,7 +217,15 @@ def register(request):
                 next = request.POST.get("next", "")
                 return HttpResponseRedirect(next)
             else:
-                next = request.POST.get("next", "/")
+                next = request.POST.get("next", "")
+                if not next:
+                    # Use module-aware redirect if no next parameter
+                    active_module = getattr(request, 'active_module', 'library')
+                    if active_module == 'sheets':
+                        next = '/sheets/'
+                    else:
+                        next = '/'
+                
                 if "?" in next:
                     next += "&welcome=to-sefaria"
                 else:
