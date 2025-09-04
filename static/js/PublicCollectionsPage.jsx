@@ -60,7 +60,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
   }
 
   return (
-    <div className="readerNavMenu">
+    <div className="readerNavMenu sans-serif">
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">

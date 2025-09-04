@@ -2858,6 +2858,7 @@ class CookiesNotification extends Component {
   }
   render() {
     if (!this.state.showNotification) { return null; }
+    const privacyPolicyLink = Sefaria.util.fullURL("/privacy-policy", Sefaria.LIBRARY_MODULE);
     return (
       <div className="cookiesNotification">
 
@@ -2867,7 +2868,7 @@ class CookiesNotification extends Component {
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
-              <a href="/privacy-policy">קראו עוד בנושא</a>
+              <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>קראו עוד בנושא</a>
             </span>
             <div className="button small white int-he" onClick={this.setCookie} onKeyDown={handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">לחצו כאן לאישור</div>
           </span>

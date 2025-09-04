@@ -550,7 +550,8 @@ input.noselect {
 }
 .mobileNavMenu {
   position: fixed;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 60px); /* fallback for browsers that don't support dvh */
+  height: calc(100dvh - 60px);
   box-sizing: border-box;
   top: 60px;
   width: 100%;

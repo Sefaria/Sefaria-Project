@@ -218,8 +218,8 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": json.loads(DOMAIN_MODULES),
-        "moduleRoutes": json.loads(MODULE_ROUTES),
+        "domainModules": DOMAIN_MODULES,
+        "moduleRoutes": MODULE_ROUTES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
@@ -1312,8 +1312,8 @@ def interface_language_redirect(request, language):
     ):
         next = "/"
 
-    for domain in json.loads(DOMAIN_LANGUAGES):
-        if json.loads(DOMAIN_LANGUAGES)[domain] == language and not request.get_host() in domain:
+    for domain in DOMAIN_LANGUAGES:
+        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
             next = next + ("&" if "?" in next else "?") + "set-language-cookie"
             break
