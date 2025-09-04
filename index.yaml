@@ -437,6 +437,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.67.0-modularization-main.1.tgz
     version: 0.67.0-modularization-main.1
   - apiVersion: v2
+    appVersion: v6.35.2
+    created: "2025-09-04T10:53:14.612476838Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 4960702d77a44256029451affa299df14071274d71883bba4561deb3743d0a96
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.67.0-mod-main-merge-master.3.tgz
+    version: 0.67.0-mod-main-merge-master.3
+  - apiVersion: v2
     appVersion: v6.34.1
     created: "2025-08-17T13:00:45.54095057Z"
     description: Chart to deploy complete Sefaria environment
@@ -9315,4 +9330,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-09-04T06:57:07.115283089Z"
+generated: "2025-09-04T10:53:14.610239826Z"
