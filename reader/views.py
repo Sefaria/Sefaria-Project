@@ -1312,8 +1312,8 @@ def interface_language_redirect(request, language):
     ):
         next = "/"
 
-    for domain in json.loads(DOMAIN_LANGUAGES):
-        if json.loads(DOMAIN_LANGUAGES)[domain] == language and not request.get_host() in domain:
+    for domain in DOMAIN_LANGUAGES:
+        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
             next = domain + next
             next = next + ("&" if "?" in next else "?") + "set-language-cookie"
             break
