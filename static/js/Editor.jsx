@@ -2635,6 +2635,8 @@ const EditorSaveStateIndicator = ({ state }) => {
         "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
         "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
         };
+    
+    const getIconClass = () => Sefaria.activeModule === "sheets" ? "icon-midrash-green" : "icon-blue";
     const stateToTooltip = {
         "saved": "Your sheet is saved to Sefaria",
         "saving": "We are saving your changes to Sefaria",
@@ -2670,7 +2672,7 @@ const EditorSaveStateIndicator = ({ state }) => {
 
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
-        {<img src={stateToIcon[state]} alt={localize(state)} />}
+        {<img src={stateToIcon[state]} alt={localize(state)} className={getIconClass()} />}
         <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
