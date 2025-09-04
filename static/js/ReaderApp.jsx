@@ -468,7 +468,7 @@ class ReaderApp extends Component {
           case "sheetsWithRef":
             hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
-            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
+            hist.url   = "sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
                           state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
@@ -521,7 +521,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `sheets/profile/${state.profile.slug}`;
+            hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -584,22 +584,22 @@ class ReaderApp extends Component {
             break;
           case "texts-saved":
             hist.title = Sefaria._("My Saved Content");
-            hist.url = "texts/saved";
+            hist.url = "saved";
             hist.mode = "textsSaved";
             break;
           case "sheets-saved":
             hist.title = Sefaria._("My Saved Content");
-            hist.url = "sheets/saved";
+            hist.url = "saved";
             hist.mode = "sheetsSaved";
             break;
           case "texts-history":
             hist.title = Sefaria._("My Reading History");
-            hist.url = "texts/history";
+            hist.url = "history";
             hist.mode = "textsHistory";
             break;
           case "sheets-history":
             hist.title = Sefaria._("My Reading History");
-            hist.url = "sheets/history";
+            hist.url = "history";
             hist.mode = "sheetsHistory";
             break;
           case "notes":
