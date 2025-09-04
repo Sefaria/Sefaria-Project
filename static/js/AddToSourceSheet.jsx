@@ -352,6 +352,7 @@ class AddToSourceSheetBox extends Component {
         </div>
         <div className="dropdown">
           <Button
+            size="fillwidth"
             className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`}
             onClick={this.toggleSheetList}
             aria-haspopup="listbox"
