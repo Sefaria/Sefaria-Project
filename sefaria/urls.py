@@ -352,7 +352,7 @@ urlpatterns += [
 
 
 # Registration and Login need to support both the main site and the sheets prefix.
-for prefix in json.loads(MODULE_ROUTES).values():
+for prefix in MODULE_ROUTES.values():
     prefix = prefix.lstrip('/') # remove the first slash because it's not necessary in urlpatterns; see MODULE_ROUTES in local_settings.py
     urlpatterns += [
         url(fr'^{prefix}login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
