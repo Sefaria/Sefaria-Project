@@ -133,8 +133,6 @@ class Sheet extends Component {
       const usingEditor = shouldUseEditor(sheet?.id);
       content = usingEditor ? this.getEditor(sheet) : this.getReader(sheet);
     }
-    return <div className={classes}>{content}</div>
-
   }
 }
 
