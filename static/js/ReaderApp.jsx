@@ -1221,7 +1221,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.slice(8));
 
-    } else if (path === "/topics" || path === "/topics") {
+    } else if (path === "/topics") {
       this.showTopics();
 
     } else if (path.match(/^\/(sheets\/)?topics\/category\/[^\/]/)) {
