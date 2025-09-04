@@ -6,6 +6,7 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
+import Button from "./common/Button";
 
 const NavSidebar = ({sidebarModules}) => {
   return <div className="navSidebar sans-serif">
@@ -15,6 +16,7 @@ const NavSidebar = ({sidebarModules}) => {
         props={m.props || {}}
         key={i} />
     )}
+    <SidebarFooter />
   </div>
 };
 
@@ -36,17 +38,18 @@ const SidebarModules = ({type, props}) => {
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
-    "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
     "TopicLandingTopicCatList":  TopicLandingTopicCatList,
     "AZTopicsLink":           AZTopicsLink,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
-    "JoinTheConversation":    JoinTheConversation,
     "JoinTheCommunity":       JoinTheCommunity,
+    "JoinTheConversation":    JoinTheConversation,
     "GetTheApp":              GetTheApp,
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
+    "CreateASheet":           CreateASheet,
+    "WhatIsASourceSheet":     WhatIsASourceSheet,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -73,24 +76,22 @@ const SidebarModule = ({children, blue, wide}) => {
 };
 
 
-const SidebarModuleTitle = ({children, en, he, h1}) => {
+const SidebarModuleTitle = ({children, en, he}) => {
   const content = children ?
     <InterfaceText>{children}</InterfaceText>
     : <InterfaceText text={{en, he}} />;
-
-  return h1 ?
-    <h1>{content}</h1>
-    : <h3>{content}</h3>
+  return <h1>{content}</h1>;
 };
 
-
-const TitledText = ({enTitle, heTitle, enText, heText}) => {
+const TitledText = ({children, title, text}) => {
   return <SidebarModule>
-    <SidebarModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText markdown={{en: enText, he: heText}} />
-  </SidebarModule>
+            <SidebarModuleTitle en={title.en} he={title.he}/>
+            <p class="sidebarModuleText">
+                 <InterfaceText markdown={{en: text.en, he: text.he}} />
+            </p>
+            {children}
+        </SidebarModule>
 };
-
 const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
      gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
@@ -144,7 +145,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    return <SidebarModule>
             <div className="recentlyViewed">
                 <div id="header">
-                  <SidebarModuleTitle h1={true}>Recently Viewed</SidebarModuleTitle>
+                  <SidebarModuleTitle>Recently Viewed</SidebarModuleTitle>
                   {!mobile && recentlyViewedList}
                   <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
                 </div>
@@ -175,12 +176,12 @@ const StudyCompanion = () => (
 
 
 const AboutSefaria = ({hideTitle}) => (
-    <SidebarModule>
-        {!hideTitle ?
-            <SidebarModuleTitle h1={true}>A Living Library of Torah</SidebarModuleTitle> : null}
-        <InterfaceText>
-            <EnglishText>
-                Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
+  <SidebarModule>
+    {!hideTitle ?
+    <SidebarModuleTitle>A Living Library of Torah</SidebarModuleTitle> : null }
+    <InterfaceText>
+      <EnglishText>
+          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
@@ -197,7 +198,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED}>
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.SHEETS_MODULE}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -236,7 +237,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
   }
   return (
   <SidebarModule>
-    <SidebarModuleTitle h1={true}>{translationLookup[translationsSlug] ?
+    <SidebarModuleTitle>{translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</SidebarModuleTitle>
         { translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["body"] :
@@ -262,8 +263,6 @@ const Resources = () => (
     <h3><InterfaceText context="ResourcesModule">Resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
-      <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
-      <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
@@ -271,6 +270,40 @@ const Resources = () => (
     </div>
   </SidebarModule>
 );
+
+
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`}, 
+                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/help`}, 
+                                    {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
+                                    {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/newsletter`},
+                                    {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
+                                    {'he': 'אינסטגרם','en':'Instagram', 'url': 'https://www.instagram.com/sefariaproject/'},
+                                    {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
+                                    {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
+                                    {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
+                                    {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/ways-to-give`},
+                                    {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
+                                  ];
+
+
+const SidebarFooter = () => {
+
+  const data = getSidebarFooterData();
+
+  return (
+    <div className = "stickySidebarFooter navSidebarModule">
+        <h1/>
+        <div className="footerContainer">
+          {data.map(footerLink =>
+            <a href={footerLink.url}>
+              <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
+            </a>
+          )}
+        </div>
+    </div>
+);
+}
+
 
 
 const TheJewishLibrary = ({hideTitle}) => (
@@ -320,7 +353,7 @@ const AboutTextCategory = ({cats}) => {
 
   return (
     <SidebarModule>
-      <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
+      <SidebarModuleTitle><InterfaceText text={{en: enTitle, he: heTitle}} /></SidebarModuleTitle>
       <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </SidebarModule>
   );
@@ -328,7 +361,7 @@ const AboutTextCategory = ({cats}) => {
 
 
 const AboutText = ({index, hideTitle}) => {
-  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en"
+  const lang = Sefaria._getShortInterfaceLang();
 
   let composed = [index.compPlaceString?.[lang], index.compDateString?.[lang]].filter(x=>!!x).join(", ");
   composed = composed.replace(/[()]/g, "");
@@ -397,7 +430,7 @@ const ParashahLink = () => {
   return (
     <div className="navSidebarLink ref serif">
       <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-      <a href={"/" + parashah.url} data-anl-text={parashah.ref}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
+      <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
 };
@@ -593,26 +626,7 @@ const AboutTopics = ({hideTitle}) => (
   </SidebarModule>
 );
 
-
-const TrendingTopics = () => (
-    <div data-anl-feature_name="Trending" data-anl-link_type="topic">
-        <SidebarModule>
-            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
-            {Sefaria.trendingTopics.map((topic, i) =>
-                <div className="navSidebarLink ref serif" key={i}>
-                    <a
-                        href={"/topics/" + topic.slug}
-                        data-anl-event="navto_topic:click"
-                        data-anl-text={topic.en}
-                    >
-                        <InterfaceText text={{en: topic.en, he: topic.he}}/>
-                    </a>
-                </div>
-            )}
-        </SidebarModule>
-    </div>
-);
-const TopicLandingTrendingTopics = () => {
+const TrendingTopics = () => {
     let [trendingTopics, setTrendingTopics] = useState(null);
     useEffect(() => {
         Sefaria.getTrendingTopics().then(result => setTrendingTopics(result));
@@ -655,10 +669,10 @@ const TopicLandingTopicCatList = () => {
                     <div className="navSidebarLink ref serif" key={i}>
                         <a href={"/topics/category/" + topic.slug}
                             data-anl-link_type="category"
-                            data-anl-text={topic.en}
+                            data-anl-text={topic.primaryTitle.en}
                             data-anl-event="navto_topic:click"
                         >
-                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                            <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
                         </a>
                     </div>
                 )}
@@ -710,27 +724,6 @@ const RelatedTopics = ({title}) => {
   );
 };
 
-
-const JoinTheConversation = ({wide}) => {
-  if (!Sefaria.multiPanel) { return null; } // Don't advertise create sheets on mobile (yet)
-
-  return (
-    <SidebarModule wide={wide}>
-      <div>
-        <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
-        <InterfaceText>Combine sources from our library with your own comments, questions, images, and videos.</InterfaceText>
-      </div>
-      <div>
-        <a className="button small" href="/sheets/new">
-          <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
-          <InterfaceText>Make a Sheet</InterfaceText>
-        </a>
-      </div>
-    </SidebarModule>
-  );
-};
-
-
 const JoinTheCommunity = ({wide}) => {
   return (
     <SidebarModule wide={wide}>
@@ -744,6 +737,18 @@ const JoinTheCommunity = ({wide}) => {
           <InterfaceText>Explore the Community</InterfaceText>
         </a>
       </div>
+    </SidebarModule>
+  );
+};
+
+const JoinTheConversation = ({wide}) => {
+  return (
+    <SidebarModule wide={wide}>
+      <div className="joinTheConversation">
+        <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
+        <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
+      </div>
+      <CreateSheetsButton/>
     </SidebarModule>
   );
 };
@@ -768,7 +773,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => { // TODO: remove? looks like we are not using this
+const StayConnected = () => { 
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (
@@ -777,25 +782,49 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
       <br />
       <NewsletterSignUpForm context="sidebar" />
-
-      <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
-        <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
-      </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
-        <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
-      </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.youtube.com/user/SefariaProject">
-        <img src="/static/icons/youtube.svg" alt={Sefaria._("Sefaria on YouTube")} />
-      </a>
+      <div className="social-links">
+        <Button icon={"facebook"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
+        <Button icon={"instagram"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
+        <Button icon={"youtube"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
+      </div>
 
     </SidebarModule>
   );
 };
 
+const GetStartedButton = () => {
+    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
+    return <Button variant="secondary" className="getStartedSheets">
+      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+    </Button>;
+}
+const CreateSheetsButton = () => {
+  return (
+    <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")}>
+      <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
+        <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
+      </a>
+    </Button>
+  ) 
+}
+const CreateASheet = () => (
+  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
+              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
+                     'he': ''}}>
+      <CreateSheetsButton/>
+  </TitledText>
+);
 
+const WhatIsASourceSheet = () => (
+    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
+                text={{'en': '',
+                       'he': ''}}>
+        <GetStartedButton/>
+    </TitledText>
+);
 const AboutLearningSchedules = () => (
   <SidebarModule>
-    <SidebarModuleTitle h1={true}>Learning Schedules</SidebarModuleTitle>
+    <SidebarModuleTitle>Learning Schedules</SidebarModuleTitle>
     <InterfaceText>
         <EnglishText>
             Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar.
@@ -813,18 +842,18 @@ const AboutLearningSchedules = () => (
 const AboutCollections = ({hideTitle}) => (
   <SidebarModule>
     {hideTitle ? null :
-    <SidebarModuleTitle h1={true}>About Collections</SidebarModuleTitle>}
+    <SidebarModuleTitle>About Collections</SidebarModuleTitle>}
     <InterfaceText>
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
     </InterfaceText>
-    {hideTitle ? null :
-    <div>
-      <a className="button small" href="/collections/new">
-        <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
+      {!hideTitle &&
+      <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
+      <a href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
-    </div>}
+      </Button>
+}
   </SidebarModule>
 );
 
@@ -834,7 +863,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/collections">
+      <a className="button small white" href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>
@@ -1022,6 +1051,7 @@ const PortalNewsletter = ({title, description}) => {
 
 export {
   NavSidebar,
+  SidebarFooter,
   SidebarModules,
   RecentlyViewed,
   ParashahLink,

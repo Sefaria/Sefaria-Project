@@ -15,7 +15,7 @@ import {RandomTopicCardWithDescriptionRow} from "./RandomTopicCardWithDescriptio
 export const TopicsLandingPage = ({openTopic}) => {
     const sidebarModules = [
         {type: "TopicLandingTopicCatList"},
-        {type: "TopicLandingTrendingTopics"},
+        {type: "TrendingTopics"},
         {type: "AZTopicsLink"},
     ];
     const pageTitle = "Explore by Topic"
