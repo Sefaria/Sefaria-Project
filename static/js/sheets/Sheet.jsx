@@ -119,7 +119,7 @@ class Sheet extends Component {
           collections={sheet.collections}
           toggleSignUpModal={this.props.toggleSignUpModal}
           topics={sheet.topics}
-          editorSaveState={editor &&this.props.editorSaveState}
+          editorSaveState={editor && this.props.editorSaveState}
     />
   );
   render() {
