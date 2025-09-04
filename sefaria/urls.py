@@ -351,22 +351,19 @@ urlpatterns += [
 ]
 
 
-# Registration and Login need to support both the main site and the sheets prefix.
-for prefix in json.loads(MODULE_ROUTES).values():
-    prefix = prefix.lstrip('/') # remove the first slash because it's not necessary in urlpatterns; see MODULE_ROUTES in local_settings.py
-    urlpatterns += [
-        url(fr'^{prefix}login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
-        url(fr'^{prefix}register/?$', sefaria_views.register, name='register'),
-        url(fr'^{prefix}logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
-        url(fr'^{prefix}password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
-        url(fr'^{prefix}password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-        url(fr'^{prefix}password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
-        url(fr'^{prefix}password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
-        url(fr'^{prefix}api/register/$', sefaria_views.register_api),
-        url(fr'^{prefix}api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-        url(fr'^{prefix}api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
-        url(fr'^{prefix}api/account/delete$', reader_views.delete_user_account_api),
-        url(fr'^{prefix}interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
+urlpatterns += [
+        url(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
+        url(fr'^register/?$', sefaria_views.register, name='register'),
+        url(fr'^logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
+        url(fr'^password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
+        url(fr'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+        url(fr'^password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+        url(fr'^password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
+        url(fr'^api/register/$', sefaria_views.register_api),
+        url(fr'^api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        url(fr'^api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+        url(fr'^api/account/delete$', reader_views.delete_user_account_api),
+        url(fr'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
         url(r'^settings/profile?$', reader_views.edit_profile),
     ]
 
