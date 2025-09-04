@@ -107,8 +107,8 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 interface = domain_lang
             else:
                 redirect_domain = None
-                for domain in json.loads(DOMAIN_LANGUAGES):
-                    if json.loads(DOMAIN_LANGUAGES)[domain] == interface:
+                for domain in DOMAIN_LANGUAGES:
+                    if DOMAIN_LANGUAGES[domain] == interface:
                         redirect_domain = domain
                 logger.info(f"Redirect domain: {redirect_domain}")
                 if redirect_domain:
@@ -170,7 +170,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            domain = [d for d in json.loads(DOMAIN_LANGUAGES) if json.loads(DOMAIN_LANGUAGES)[d] == lang][0]
+            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
@@ -195,8 +195,8 @@ def current_domain_lang(request):
     domain_lang = None
     for protocol in ("https://", "http://"):
         full_domain = protocol + current_domain
-        if full_domain in json.loads(DOMAIN_LANGUAGES):
-            domain_lang = json.loads(DOMAIN_LANGUAGES)[full_domain]
+        if full_domain in DOMAIN_LANGUAGES:
+            domain_lang = DOMAIN_LANGUAGES[full_domain]
     return domain_lang
 
 
@@ -269,7 +269,7 @@ class ModuleMiddleware(MiddlewareURLMixin):
             return self.get_response(request)
 
         # Find the matching route prefix
-        for module_name, route_prefix in json.loads(MODULE_ROUTES).items():
+        for module_name, route_prefix in MODULE_ROUTES.items():
             logger.info(f"Processing request, route_prefix: {route_prefix}, request.path: {request.path}")
             route_base_path = route_prefix.removesuffix('/')
             if len(route_base_path) > 0 and (request.path.startswith(route_prefix) or request.path == route_base_path):
