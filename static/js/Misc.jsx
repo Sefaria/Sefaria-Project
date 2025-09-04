@@ -1710,7 +1710,7 @@ const SheetListing = ({
   const collections = collectionsList.map((collection, i) => {
     const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
     return (
-      <a href={`/sheets/collections/${collection.slug}`}
+      <a href={`/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         data-target-module={Sefaria.SHEETS_MODULE}
@@ -1724,7 +1724,7 @@ const SheetListing = ({
   const topics = sheet.topics.map((topic, i) => {
     const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
     return (
-      <a href={`/sheets/topics/${topic.slug}`}
+      <a href={`/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
@@ -1805,7 +1805,7 @@ const SheetListing = ({
 
 const CollectionListing = ({data}) => {
   const imageUrl = "/static/icons/collection.svg";
-  const collectionUrl = "/sheets/collections/" + data.slug;
+  const collectionUrl = "/collections/" + data.slug;
   return (
     <div className="collectionListing">
       <div className="left-content">
@@ -2524,7 +2524,7 @@ class SheetTopicLink extends Component {
   render() {
     const { slug, en, he } = this.props.topic;
     return (
-      <a href={`/sheets/topics/${slug}`} onClick={this.handleTagClick} data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href={`/topics/${slug}`} onClick={this.handleTagClick} data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{en:en, he:he}} />
       </a>
     );
@@ -2819,11 +2819,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>
+        <a href={"/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>{children ? children : name}</a>
+      <a href={"/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>

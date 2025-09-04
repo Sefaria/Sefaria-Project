@@ -828,7 +828,7 @@ def public_user_data(uid, ignore_cache=False):
 
     data = {
         "name": profile.full_name,
-        "profileUrl": "/sheets/profile/" + profile.slug,
+        "profileUrl": "/profile/" + profile.slug,
         "imageUrl": profile.profile_pic_url_small,
         "position": profile.position,
         "organization": profile.organization,

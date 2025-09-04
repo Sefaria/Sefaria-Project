@@ -827,9 +827,8 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
     
-    console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url); 
-    console.log("Updating History2 - " + hist.url + " | " + currentUrl);
+    // console.log("Updating History - " + hist.url + " | " + currentUrl);
+    // hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url); 
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
@@ -1186,13 +1185,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/texts/history") {
       this.showHistory();
 
-    } else if (path === "/sheets/history") {
+    } else if (path === "/history") {
       this.showSheetsHistory();
 
     } else if (path === "/texts/saved") {
       this.showSaved();
 
-    } else if (path === "/sheets/saved") {
+    } else if (path === "/saved") {
       this.showSheetsSaved();
 
     } else if (path === "/texts/notes") {
@@ -1201,7 +1200,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
-    } else if (path === "/sheets/collections") {
+    } else if (path === "/collections") {
       this.showCollections();
 
     } else if (path === "/community") {
@@ -1222,7 +1221,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.slice(8));
 
-    } else if (path === "/topics" || path === "/sheets/topics") {
+    } else if (path === "/topics" || path === "/topics") {
       this.showTopics();
 
     } else if (path.match(/^\/(sheets\/)?topics\/category\/[^\/]/)) {
@@ -1235,7 +1234,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTopic(path.replace(/^\/(sheets\/)?topics\//, ''), params.get("tab"));
       
     } else if (path.match(/^\/sheets\/profile\/.+/)) {
-      this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
+      this.openProfile(path.replace("/profile/", ""), params.get("tab"));
 
     } else if (path.match(/^\/sheets\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(20), params.get("tag"));

@@ -30,25 +30,25 @@ handler404 = 'reader.views.custom_page_not_found'
 urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
-    url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/saved/?$', reader_views.saved_content),
     url(r'^texts/notes/?$', reader_views.notes),
-    url(r'^texts/history/?$', reader_views.user_history),
-    url(r'^sheets/saved/?$', reader_views.sheets_saved),
-    url(r'^sheets/history/?$', reader_views.sheets_user_history),
+    url(r'^texts/history/?$', reader_views.user_history_content),
+    url(r'^saved/?$', reader_views.saved_content),
+    url(r'^history/?$', reader_views.user_history_content),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
-    url(r'^sheets/collections/?$', reader_views.public_collections),
-    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
-    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
-    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^collections/?$', reader_views.public_collections),
+    url(r'^collections/new$', reader_views.edit_collection_page),
+    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
-    url(r'^sheets/notifications/?$', reader_views.notifications),
+    # notifications URL already exists above, removing duplicate
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
@@ -90,7 +90,7 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^sheets/profile/(?P<username>[^/]+)?$', reader_views.user_profile),
+    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/account/user$', reader_views.account_user_update),
     url(r'^api/profile/user_history$', reader_views.user_history_api),
@@ -105,13 +105,10 @@ urlpatterns += [
 # Topics
 urlpatterns += [
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
-    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<slug>.+)$', reader_views.topic_page),
-    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
-    url(r'^sheets/topics/?$', reader_views.topics_page),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 

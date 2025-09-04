@@ -255,7 +255,6 @@ http {
       opentracing on;
       opentracing_propagate_context;
       {{- end }}
-      rewrite ^/(.*)$ /{{ $v }}/$1 break;
       proxy_send_timeout  300;
       proxy_read_timeout  300;
       proxy_set_header Host $host;

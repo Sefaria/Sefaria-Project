@@ -9,7 +9,7 @@ const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSig
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
-        Sefaria.profileAPI(authorUrl.replace("/sheets/profile/", "")).then(profile => {
+        Sefaria.profileAPI(authorUrl.replace("/profile/", "")).then(profile => {
             setProfile(profile);
             setLoading(false);
         })
@@ -54,13 +54,13 @@ const SheetSidebarList = ({items, type}) => {
       if (type === "topics") {
         return items.map((item, i) => (
             <li key={i}><a
-                href={"/sheets/topics/" + item.slug} data-target-module={Sefaria.SHEETS_MODULE}><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
+                href={"/topics/" + item.slug} data-target-module={Sefaria.SHEETS_MODULE}><InterfaceText text={{en: item.en, he: item.he}}></InterfaceText></a>
             </li>
         ))
       } else {
         return items.map((item, i) => (
             <li key={i}><a
-                href={"/sheets/collections/" + item.slug} data-target-module={Sefaria.SHEETS_MODULE}><InterfaceText>{item.name}</InterfaceText></a>
+                href={"/collections/" + item.slug} data-target-module={Sefaria.SHEETS_MODULE}><InterfaceText>{item.name}</InterfaceText></a>
             </li>
         ))
       }

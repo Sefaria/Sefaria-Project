@@ -1021,21 +1021,23 @@ def calendars(request):
     return menu_page(request, page="calendars", title=title, desc=desc)
 
 
-@login_required
-def saved(request):
-    title = _("My Saved Content")
-    desc = _("See your saved content on Sefaria")
-    profile = UserProfile(user_obj=request.user)
-    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="texts-saved", title=title, desc=desc)
+
 
 @login_required
-def sheets_saved(request):
+def saved_content(request):
+    """
+    Unified saved content view that works for both library and sheets modules
+    """
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="sheets-saved", title=title, desc=desc)
+    
+    # Determine page name based on active module
+    active_module = getattr(request, 'active_module', 'library')
+    page_name = "sheets-saved" if active_module == "sheets" else "texts-saved"
+    
+    return menu_page(request, props, page=page_name, title=title, desc=desc)
 
 
 def get_user_history_props(request):
@@ -1046,17 +1048,22 @@ def get_user_history_props(request):
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}
 
-def user_history(request):
-    props = get_user_history_props(request)
-    title = _("My User History")
-    desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="texts-history", title=title, desc=desc)
 
-def sheets_user_history(request):
+
+@login_required
+def user_history_content(request):
+    """
+    Unified user history view that works for both library and sheets modules
+    """
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="sheets-history", title=title, desc=desc)
+    
+    # Determine page name based on active module
+    active_module = getattr(request, 'active_module', 'library')
+    page_name = "sheets-history" if active_module == "sheets" else "texts-history"
+    
+    return menu_page(request, props, page=page_name, title=title, desc=desc)
 
 @login_required
 def notes(request):
@@ -3983,7 +3990,7 @@ def profile_redirect(request, uid, page=1):
     """"
     Redirect to the profile of the logged in user.
     """
-    return redirect("/sheets/profile/%s" % uid, permanent=True)
+    return redirect("/profile/%s" % uid, permanent=True)
 
 
 @login_required
@@ -3991,7 +3998,7 @@ def my_profile(request):
     """
     Redirect to a user profile
     """
-    url = "/sheets/profile/%s" % UserProfile(id=request.user.id).slug
+    url = "/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
     return redirect(url)

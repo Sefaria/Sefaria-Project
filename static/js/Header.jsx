@@ -76,7 +76,7 @@ const LoggedInDropdown = ({module}) => {
                 </DropdownMenuItem>
               }
                { module === Sefaria.SHEETS_MODULE && 
-                <DropdownMenuItem url={`/sheets/profile/${Sefaria.slug}`} preventClose={true} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={`/profile/${Sefaria.slug}`} preventClose={true} targetModule={Sefaria.SHEETS_MODULE}>
                     <strong>{Sefaria.full_name}</strong>
                 </DropdownMenuItem>
               }
@@ -96,13 +96,13 @@ const LoggedInDropdown = ({module}) => {
 
               { module === Sefaria.SHEETS_MODULE && 
                 <>
-                <DropdownMenuItem url={`/sheets/profile/${Sefaria.slug}`} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={`/profile/${Sefaria.slug}`} targetModule={Sefaria.SHEETS_MODULE}>
                     <InterfaceText>Profile</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/saved'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={'/saved'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>Saved</InterfaceText>
                 </DropdownMenuItem>
-                <DropdownMenuItem url={'/sheets/history'} targetModule={Sefaria.SHEETS_MODULE}>
+                <DropdownMenuItem url={'/history'} targetModule={Sefaria.SHEETS_MODULE}>
                   <InterfaceText>History</InterfaceText>
                 </DropdownMenuItem>
                 <DropdownMenuItem url={'/settings/account'} targetModule={Sefaria.LIBRARY_MODULE}>
@@ -195,7 +195,7 @@ const Header = (props) => {
                                   </a>
                                 </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
-                                        <a href="/sheets/notifications" data-target-module={Sefaria.SHEETS_MODULE}>
+                                        <a href="/notifications" data-target-module={Sefaria.SHEETS_MODULE}>
                                           <img src='/static/icons/notification.svg' />
                                         </a>
                                       </div>;
@@ -226,10 +226,10 @@ const Header = (props) => {
           }
           {props.module === Sefaria.SHEETS_MODULE && 
           <>
-            <a href="/sheets/topics" data-target-module={Sefaria.SHEETS_MODULE} className="textLink">
+            <a href="/topics" data-target-module={Sefaria.SHEETS_MODULE} className="textLink">
               <InterfaceText context="Header">Topics</InterfaceText>
             </a>
-            <a href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE} className="textLink">
+            <a href="/collections" data-target-module={Sefaria.SHEETS_MODULE} className="textLink">
               <InterfaceText context="Header">Collections</InterfaceText>
             </a>
           </>
@@ -423,11 +423,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       }
       {module === Sefaria.SHEETS_MODULE && 
       <>
-        <a href="/sheets/topics" data-target-module={Sefaria.SHEETS_MODULE} onClick={close}>
+        <a href="/topics" data-target-module={Sefaria.SHEETS_MODULE} onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText context="Header">Topics</InterfaceText>
         </a>
-        <a href="/sheets/collections" onClick={close} className="textsPageLink" data-target-module={Sefaria.SHEETS_MODULE}>
+        <a href="/collections" onClick={close} className="textsPageLink" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" />
         <InterfaceText context="Header">Collections</InterfaceText>
       </a>
@@ -453,16 +453,16 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </>}
           {module === Sefaria.SHEETS_MODULE && 
           <>
-           <a href={`/sheets/profile/${Sefaria.slug}`} onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
+           <a href={`/profile/${Sefaria.slug}`} onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
             <div className="mobileProfileFlexContainer">
               <ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} len={25}/>
               <InterfaceText>Profile</InterfaceText>
             </div>
             </a>
-            <a href="/sheets/saved" onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
+            <a href="/saved" onClick={close} data-target-module={Sefaria.SHEETS_MODULE}>
             <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
             {<InterfaceText text={{en: "Saved & History", he: "שמורים והיסטוריה"}} />}
-            <a href="/sheets/notifications" data-target-module={Sefaria.SHEETS_MODULE}>
+            <a href="/notifications" data-target-module={Sefaria.SHEETS_MODULE}>
             <img src="/static/icons/notification.svg" />
             <InterfaceText>Notifications</InterfaceText>
             </a>
@@ -583,7 +583,7 @@ const ProfilePicMenu = ({len, url, name}) => {
   }, []);
   return (
     <div className="myProfileBox" ref={wrapperRef}>
-        <a href={`/sheets/profile/${Sefaria.slug}`} className="my-profile" onClick={profilePicClick} data-target-module={Sefaria.SHEETS_MODULE}>
+        <a href={`/profile/${Sefaria.slug}`} className="my-profile" onClick={profilePicClick} data-target-module={Sefaria.SHEETS_MODULE}>
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
@@ -591,7 +591,7 @@ const ProfilePicMenu = ({len, url, name}) => {
           <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div className="profile-menu-middle">
-              <div><a className="interfaceLinks-row" id="my-profile-link" href={`/sheets/profile/${Sefaria.slug}`} data-target-module={Sefaria.SHEETS_MODULE}>
+              <div><a className="interfaceLinks-row" id="my-profile-link" href={`/profile/${Sefaria.slug}`} data-target-module={Sefaria.SHEETS_MODULE}>
                 <InterfaceText>Profile</InterfaceText>
               </a></div>
               <div><a className="interfaceLinks-row" id="new-sheet-link" href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
