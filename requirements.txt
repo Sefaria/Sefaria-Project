@@ -20,7 +20,7 @@ backcall==0.2.0
     # via ipython
 beautifulsoup4==4.13.3
     # via bs4
-billiard==3.6.4.0
+billiard<5.0,>=4.2.1
     # via celery
 bleach==1.4.2
     # via -r ./requirements.txt
@@ -199,7 +199,7 @@ jsonpickle==1.4.1
     # via
     #   -r ./requirements.txt
     #   deepdiff
-kombu==5.4.2
+kombu<5.6,>=5.5.2
     # via celery
 lxml==4.6.1
     # via -r ./requirements.txt
@@ -242,7 +242,7 @@ protobuf==5.29.3
     # via
     #   google-api-core
     #   googleapis-common-protos
-psycopg2==2.8.6 #for dev: psycopg2-binary==2.8.6
+psycopg2-binary==2.8.6 #for dev: psycopg2-binary==2.8.6
 ptyprocess==0.7.0
     # via pexpect
 py==1.11.0
@@ -353,7 +353,7 @@ typing-extensions==4.12.2
     #   beautifulsoup4
     #   kombu
     #   structlog
-tzdata==2025.1
+tzdata==2025.2
     # via
     #   celery
     #   kombu
