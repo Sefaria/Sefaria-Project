@@ -487,6 +487,31 @@ urlpatterns += [
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns += staticfiles_urlpatterns()
 
+# Legacy /sheets/ URLs for backward compatibility
+# These URLs maintain backward compatibility for existing links and bookmarks
+# that use the old /sheets/ prefix format
+urlpatterns += [
+    # Legacy saved and history URLs
+    url(r'^sheets/saved/?$', reader_views.saved_content),
+    url(r'^sheets/history/?$', reader_views.user_history_content),
+    
+    # Legacy collections URLs
+    url(r'^sheets/collections/?$', reader_views.public_collections),
+    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    
+    # Legacy profile URLs
+    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    
+    # Legacy topics URLs
+    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
+    url(r'^sheets/topics/all/(?P<letter>.)$', reader_views.all_topics_page),
+    url(r'^sheets/topics/?$', reader_views.topics_page),
+    url(r'^sheets/topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
+    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
+]
+
 # Catch all to send to Reader
 urlpatterns += [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
