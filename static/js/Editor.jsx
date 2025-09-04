@@ -332,7 +332,13 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                return paragraphHTML
+                if (!/<\/?(ul|ol|li)[^>]*>/i.test(preparseHtml)) {
+                    return `<div>${paragraphHTML}</div>`  // use wrapping divs to enable deserializer to parse lists properly
+                }
+                else
+                {
+                    return paragraphHTML
+                }
             }
 
             case 'list-item': {
