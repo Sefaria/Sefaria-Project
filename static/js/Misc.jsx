@@ -1619,6 +1619,7 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 const CategoryColorLine = ({ category }) => {
   const categoryColorLineRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "category_color_line" });
+    gtag("event", "header_viewed", { impression_type: "category_color_line" });
     if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
   }, "sa.header_viewed");
   return (
@@ -2101,6 +2102,7 @@ const InterruptingMessage = ({
       campaignID: modalName,
       adType: "modal",
     });
+    sa_event("modal_interacted_with_" + eventDescription, { campaignID: modalName });
   };
 
   const trackModalImpression = () => {
@@ -2109,6 +2111,7 @@ const InterruptingMessage = ({
       campaignID: strapi.modal.internalModalName,
       adType: "modal",
     });
+    sa_event("modal_viewed", { campaignID: strapi.modal.internalModalName });
   };
 
   const shouldShow = () => {
@@ -2280,6 +2283,7 @@ const Banner = ({ onClose }) => {
       campaignID: bannerName,
       adType: "banner",
     });
+    sa_event("banner_interacted_with_" + eventDescription, { campaignID: bannerName });
   };
 
   const trackBannerImpression = () => {
@@ -2287,6 +2291,7 @@ const Banner = ({ onClose }) => {
       campaignID: strapi.banner.internalBannerName,
       adType: "banner",
     });
+    sa_event("banner_viewed", { campaign_id: strapi.banner.internalBannerName });
   };
 
   const shouldShow = () => {

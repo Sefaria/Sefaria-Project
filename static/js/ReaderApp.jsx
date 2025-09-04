@@ -38,6 +38,7 @@ import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
+import { BannerImpressionProbe } from './BannerImpressionProbe';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -218,11 +219,13 @@ class ReaderApp extends Component {
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
+      gtag("event", "reader_app_mounted");
       if (Sefaria._debug) console.log("sa: reader app has loaded!");
     }
     if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
       if (!('IntersectionObserver' in window)) {
         sa_event("intersection_observer_not_supported");
+        gtag("event", "intersection_observer_not_supported");
       }
       localStorage.setItem("sa.intersection_observer_api_checked", "true");
     }
@@ -1978,6 +1981,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 
   handlePrint(e) {
+      gtag("event", "print");
   }
 
   handleGACopyEvents(e, selectedEls, textOnly) {
@@ -1995,10 +1999,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         "category": category,
       }
 
+      gtag("event", "copy_text", params);
+
       // check if selection is spanning or bilingual
       if (book) {
         const selectedEnEls = selectedEls.querySelectorAll('.en')
         const selectedHeEls = selectedEls.querySelectorAll('.he')
+        if ((selectedEnEls.length > 0) && (selectedHeEls.length > 0)) {
+          gtag("event", "bilingual_copy_text", params);
+        }
+        if ((selectedEnEls.length > 1) || (selectedHeEls.length > 1)) {
+          gtag("event", "spanning_copy_text", params);
+        }
       }
   }
 
@@ -2357,6 +2369,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
+            <BannerImpressionProbe />
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
