@@ -520,7 +520,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 
 
 const UserBackground = ({profile: p, showBio, multiPanel}) => {
-    // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
+    // used in ProfileSummary and in SheetSidebar, renders user education, organization, and location info
     // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
