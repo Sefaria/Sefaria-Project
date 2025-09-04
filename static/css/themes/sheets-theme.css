@@ -64,5 +64,13 @@ button.secondary:disabled[data-active-module="sheets"]{
   --theme-button-dropshadow: none;
 }
 
+[data-active-module="sheets"] .collectionPage div.navTitle h1, [data-active-module="sheets"] .topicPanel .navTitle h1 {
+  color: black;
+  font-size: 30px;
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
+  margin-bottom: 5px;
+}
+
 /* placeholder for dark theme colors */
 @media (prefers-color-scheme: dark) {}

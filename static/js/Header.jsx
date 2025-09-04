@@ -202,6 +202,7 @@ const Header = (props) => {
 
   const headerRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "regular_header" });
+    gtag("event", "header_viewed", { impression_type: "regular_header" });
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
@@ -482,7 +483,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <hr/>
 
-        <a href="/help">
+        <a href={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} target="_blank">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
@@ -600,7 +604,10 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
+              <div><a className="interfaceLinks-row bottom" id="help-link" href={Sefaria._v({
+                he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+                en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+              })} target="_blank">
                 <InterfaceText>Help</InterfaceText>
               </a></div>
             </div>
@@ -641,10 +648,13 @@ const MobileInterfaceLanguageToggle = () => {
 
 
 const HelpButton = () => {
-  const url = Sefaria._v({he: "/sheets/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90", en:"/sheets/collections/sefaria-faqs"});
+  const url = Sefaria._v({
+    he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+    en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+  });
   return (
     <div className="help">
-      <a href={url} data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href={url} data-target-module={Sefaria.SHEETS_MODULE} target="_blank">
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
@@ -663,7 +673,7 @@ const SignUpButton = () => {
 
 const CreateButton = () => {
   return (
-    <Button>
+    <Button className="small">
       <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} /> 
       </a>

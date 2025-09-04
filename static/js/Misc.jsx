@@ -1565,6 +1565,7 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 const CategoryColorLine = ({ category }) => {
   const categoryColorLineRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "category_color_line" });
+    gtag("event", "header_viewed", { impression_type: "category_color_line" });
     if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
   }, "sa.header_viewed");
   return (
@@ -2032,6 +2033,7 @@ const InterruptingMessage = ({
       campaignID: modalName,
       adType: "modal",
     });
+    sa_event("modal_interacted_with_" + eventDescription, { campaignID: modalName });
   };
 
   const trackModalImpression = () => {
@@ -2040,6 +2042,7 @@ const InterruptingMessage = ({
       campaignID: strapi.modal.internalModalName,
       adType: "modal",
     });
+    sa_event("modal_viewed", { campaignID: strapi.modal.internalModalName });
   };
 
   const shouldShow = () => {
@@ -2207,6 +2210,7 @@ const Banner = ({ onClose }) => {
       campaignID: bannerName,
       adType: "banner",
     });
+    sa_event("banner_interacted_with_" + eventDescription, { campaignID: bannerName });
   };
 
   const trackBannerImpression = () => {
@@ -2214,6 +2218,7 @@ const Banner = ({ onClose }) => {
       campaignID: strapi.banner.internalBannerName,
       adType: "banner",
     });
+    sa_event("banner_viewed", { campaign_id: strapi.banner.internalBannerName });
   };
 
   const shouldShow = () => {
@@ -2961,6 +2966,68 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
   </div>
 }
 
+const DivineNameDepricationNotification = () => {
+
+  // Constants for the deprecation notification
+  const DEPRECATION_DATE = "October 15, 2025";
+  const DEPRECATION_DATE_HEBREW = "15 באוקטובר 2025";
+
+  const DEPRECATION_LINKS = {
+      en: {
+      exportSheet: "https://help.sefaria.org/hc/en-us/articles/20532656851228-How-to-Export-Print-or-Share-a-Sheet",
+      extension: "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+      },
+      he: {
+      exportSheet: "https://help.sefaria.org/hc/he/articles/20532656851228-ייצוא-הדפסה-ושיתוף-דף-מקורות-בספריא",
+      extension: "https://help.sefaria.org/hc/he/sections/20235182393244-התוסף-של-ספריא-ל-Google-Docs"
+      }
+  };
+
+  const DEPRECATION_MESSAGES = {
+      en: {
+      notice: "Please note:",
+      mainMessage: `The divine name substitution tool will no longer be available in the Sefaria Sheet Editor after ${DEPRECATION_DATE}.`,
+      continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing, ",
+      exportText: "export your sheet to Google Docs ",
+      andText: "and use the 'Transform Divine Names' feature in the ",
+      extensionText: "Sefaria for Google Docs extension",
+      period: "."
+      },
+      he: {
+      notice: "שימו לב:",
+      mainMessage: `החל מה-${DEPRECATION_DATE_HEBREW}, לא יהיה ניתן לשנות שמות קודש בדפי מקורות באמצעות העורך של ספריא.`,
+      continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף, ",
+      exportText: "יש לייצא את הדף ל-Google Docs ",
+      andText: "ולבצע את השינוי באמצעות הכלי המיועד לכך ב",
+      extensionText: "תוסף של ספריא ל-Google Docs",
+      period: "."
+      }
+  };
+
+  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+  const messages = DEPRECATION_MESSAGES[lang];
+  const links = DEPRECATION_LINKS[lang];
+
+  return (
+    <div className="divineNameDepricationNotification sans-serif">
+      <p>
+        <strong>{messages.notice}</strong> {messages.mainMessage}
+      </p>
+      <p>
+        {messages.continuationMessage}
+        <a href={links.exportSheet}>
+          {messages.exportText}
+        </a>
+        {messages.andText}
+        <a href={links.extension}>
+          {messages.extensionText}
+        </a>
+        {messages.period}
+      </p>
+    </div>
+  );
+};
+
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
       <div className="divineNameReplacer">
@@ -2978,6 +3045,8 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
               onChange={(e) => setDivineNameReplacement((e.target.value))}
               preselected={divineNameReplacement}
             />
+            <DivineNameDepricationNotification />
+
       </div>
   )
 
