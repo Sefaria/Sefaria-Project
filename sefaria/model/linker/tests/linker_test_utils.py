@@ -1,7 +1,7 @@
 import pytest
 from typing import List
 from functools import reduce
-from sefaria.model.linker.ne_span import NEDoc
+from ne_span import NEDoc
 from sefaria.model.text import Ref, library
 from sefaria.model.linker.ref_part import RefPartType, RawRef, RawRefPart
 from sefaria.settings import ENABLE_LINKER
