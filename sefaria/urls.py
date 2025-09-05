@@ -490,6 +490,21 @@ urlpatterns += staticfiles_urlpatterns()
 # These URLs maintain backward compatibility for existing links and bookmarks
 # that use the old /sheets/ prefix format
 urlpatterns += [
+    # Legacy authentication URLs for sheets subdomain
+    url(fr'^sheets/login/?$', sefaria_views.CustomLoginView.as_view(), name='sheets_login'),
+    url(fr'^sheets/register/?$', sefaria_views.register, name='sheets_register'),
+    url(fr'^sheets/logout/?$', sefaria_views.CustomLogoutView.as_view(), name='sheets_logout'),
+    url(fr'^sheets/password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='sheets_password_reset'),
+    url(fr'^sheets/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name='sheets_password_reset_confirm'),
+    url(fr'^sheets/password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name='sheets_password_reset_complete'),
+    url(fr'^sheets/password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='sheets_password_reset_done'),
+    url(fr'^sheets/api/register/$', sefaria_views.register_api),
+    url(fr'^sheets/api/login/$', TokenObtainPairView.as_view(), name='sheets_token_obtain_pair'),
+    url(fr'^sheets/api/login/refresh/$', TokenRefreshView.as_view(), name='sheets_token_refresh'),
+    url(fr'^sheets/api/account/delete$', reader_views.delete_user_account_api),
+    url(fr'^sheets/interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
+    url(r'^sheets/settings/profile?$', reader_views.edit_profile),
+    
     # Legacy saved and history URLs
     url(r'^sheets/saved/?$', reader_views.saved_content),
     url(r'^sheets/history/?$', reader_views.user_history_content),
