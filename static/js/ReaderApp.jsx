@@ -1111,7 +1111,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return;
     }
     
-    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either 'sheets', Sefaria.LIBRARY_MODULE or null
+    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.SHEETS_MODULE or Sefaria.LIBRARY_MODULE or null
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
@@ -1198,7 +1198,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showNotes();
     }
     else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/"));
+      this.showLibrary(path.replace(/^\/texts\//, '').split("/"));
 
     } else if (path === "/collections") {
       this.showCollections();
@@ -1219,28 +1219,28 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
-      openPanel("Sheet " + path.slice(8));
+      openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
 
     } else if (path === "/topics") {
       this.showTopics();
 
-    } else if (path.match(/^\/(sheets\/)?topics\/category\/[^\/]/)) {
-      this.openTopicCategory(path.replace(/^\/(sheets\/)?topics\/category\//, ''));
+    } else if (path.match(/^\/topics\/category\/[^\/]/)) {
+      this.openTopicCategory(path.replace(/^\/topics\/category\//, ''));
       
-    } else if (path.match(/^\/(sheets\/)?topics\/all\/[^\/]/)) {
-      this.openAllTopics(path.replace(/^\/(sheets\/)?topics\/all\//, ''));
+    } else if (path.match(/^\/topics\/all\/[^\/]/)) {
+      this.openAllTopics(path.replace(/^\/topics\/all\//, ''));
       
-    } else if (path.match(/^\/(sheets\/)?topics\/[^\/]+/)) {
-      this.openTopic(path.replace(/^\/(sheets\/)?topics\//, ''), params.get("tab"));
+    } else if (path.match(/^\/topics\/[^\/]+/)) {
+      this.openTopic(path.replace(/^\/topics\//, ''), params.get("tab"));
       
-    } else if (path.match(/^\/sheets\/profile\/.+/)) {
-      this.openProfile(path.replace("/profile/", ""), params.get("tab"));
+    } else if (path.match(/^\/profile\/.+/)) {
+      this.openProfile(path.replace(/^\/profile\//, ""), params.get("tab"));
 
-    } else if (path.match(/^\/sheets\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(20), params.get("tag"));
+    } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+      this.openCollection(path.replace(/^\/collections\//, ''), params.get("tag"));
 
     } else if (path.match(/^\/translations\/.+/)) {
-      let slug = path.slice(14);
+      let slug = path.replace(/^\/translations\//, '');
       this.openTranslationsPage(slug);
     } else if (Sefaria.isRef(path.slice(1).replace(/%3F/g, '?'))) {
       const ref = path.slice(1).replace(/%3F/g, '?');

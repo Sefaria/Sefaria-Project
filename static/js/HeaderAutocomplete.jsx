@@ -91,7 +91,7 @@ const getURLForObject = function(type, key) {
     } else if (type === "TocCategory" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/texts/${key.join('/')}`;
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return Sefaria.activeModule === Sefaria.LIBRARY_MODULE ? `/topics/${key}` : `/topics/${key}`;
+      return `/topics/${key}`;
     } else if (type === "ref" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/${key.replace(/ /g, '_')}`;
     } else if (type === "User" && Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
