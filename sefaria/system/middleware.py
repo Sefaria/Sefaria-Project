@@ -270,8 +270,14 @@ class ModuleMiddleware(MiddlewareURLMixin):
             if ':' in current_host:
                 current_host = current_host.split(':')[0]
             
+            # DEBUG: Log DOMAIN_MODULES information
+            logger.info(f"DEBUG: DOMAIN_MODULES in middleware: {DOMAIN_MODULES}")
+            logger.info(f"DEBUG: Current host: {current_host}")
+            logger.info(f"DEBUG: DOMAIN_MODULES keys: {list(DOMAIN_MODULES.keys()) if DOMAIN_MODULES else 'None'}")
+            
             # Check DOMAIN_MODULES to find which module this host belongs to
             for module_name, module_domain in DOMAIN_MODULES.items():
+                logger.info(f"DEBUG: Checking module {module_name} with domain {module_domain}")
                 # Remove protocol and port from module_domain for comparison
                 domain_to_check = module_domain
                 if '://' in domain_to_check:
