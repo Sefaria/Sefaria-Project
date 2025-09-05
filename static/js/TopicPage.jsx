@@ -856,7 +856,7 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory, module}) => {
-  const href = `topics/${isCategory ? 'category/' : ''}${topic}`;
+  const href = `/topics/${isCategory ? 'category/' : ''}${topic}`;
   return <div data-anl-event="related_click:click" data-anl-batch={
     JSON.stringify({
       text: topicTitle.en,
