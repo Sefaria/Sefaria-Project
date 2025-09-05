@@ -212,11 +212,6 @@ def base_props(request):
             "saved": {"loaded": False, "items": []},
             "last_place": []
         }
-    # DEBUG: Log DOMAIN_MODULES information
-    logger.info(f"DEBUG: DOMAIN_MODULES in base_props: {DOMAIN_MODULES}")
-    logger.info(f"DEBUG: active_module: {getattr(request, 'active_module', 'library')}")
-    logger.info(f"DEBUG: request.get_host(): {request.get_host()}")
-
     user_data.update({
         "activeModule": getattr(request, "active_module", "library"),
         "last_cached": library.get_last_cached_time(),
@@ -1317,26 +1312,21 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    logger.info(f"Interface language redirect: {language}")
-    logger.info(f"Request: {request}")
     next = request.GET.get("next")
-    logger.info(f"Next: {next}")
     if not next or not is_safe_url(
         url=next,
         allowed_hosts=set(ALLOWED_HOSTS)
     ):
-        logger.info(f"Next is not safe")
         next = "/"
+
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
-            logger.info(f"Domain match: {domain}")
             next = domain + next
             next = next + ("&" if "?" in next else "?") + "set-language-cookie"
-            logger.info(f"Next: {next}")
             break
 
     response = redirect(next)
-    logger.info(f"Response: {response}")
+
     response.set_cookie("interfaceLang", language)
     if request.user.is_authenticated:
         p = UserProfile(id=request.user.id)
