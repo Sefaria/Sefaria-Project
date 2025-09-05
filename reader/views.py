@@ -3680,6 +3680,7 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
+@csrf_exempt
 def profile_api(request, slug=None):
     """
     API for user profiles.

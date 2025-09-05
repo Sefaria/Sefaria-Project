@@ -28,17 +28,9 @@
           <span class="int-he">יש לך חשבון כבר? להתחברות</span>
         </a>
         
-        <!-- DEBUG: Log domainModules information -->
-        <script>
-        console.log("DEBUG: domainModules.library:", DJANGO_VARS?.props?.domainModules?.library);
-        console.log("DEBUG: domainModules.sheets:", DJANGO_VARS?.props?.domainModules?.sheets);
-        console.log("DEBUG: activeModule:", DJANGO_VARS?.props?.activeModule);
-        console.log("DEBUG: Current URL:", window.location.href);
-        console.log("DEBUG: Current hostname:", window.location.hostname);
-        </script>
         <p class="registration-links control-elem" href="{% subdomain_url "login" %}{% if next %}?next={{ next }}{% endif %}">
-          <span class="int-en">By clicking "Sign Up" you agree to our <a href="{{ DJANGO_VARS.props.domainModules.library }}/terms" target="_blank">Terms of Use</a> & <a href="{{ DJANGO_VARS.props.domainModules.library }}/privacy-policy" target="_blank">Privacy Policy</a></span>
-          <span class="int-he">בלחיצה על "יצירת חשבון" הנכם מסכימים ל<a href="{{ DJANGO_VARS.props.domainModules.library }}/terms" target="_blank">תנאי השימוש</a> ו<a href="{{ DJANGO_VARS.props.domainModules.library }}/privacy-policy" target="_blank">מדיניות הפרטיות</a> שלנו</span>
+          <span class="int-en">By clicking "Sign Up" you agree to our <a href="{{ domain_modules.library }}/terms" target="_blank">Terms of Use</a> & <a href="{{ domain_modules.library }}/privacy-policy" target="_blank">Privacy Policy</a></span>
+          <span class="int-he">בלחיצה על "יצירת חשבון" הנכם מסכימים ל<a href="{{ domain_modules.library }}/terms" target="_blank">תנאי השימוש</a> ו<a href="{{ domain_modules.library }}/privacy-policy" target="_blank">מדיניות הפרטיות</a> שלנו</span>
         </p>
     </div>
 </div>
