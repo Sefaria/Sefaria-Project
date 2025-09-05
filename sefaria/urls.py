@@ -30,25 +30,24 @@ handler404 = 'reader.views.custom_page_not_found'
 urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
-    url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/saved/?$', reader_views.saved_content),
     url(r'^texts/notes/?$', reader_views.notes),
-    url(r'^texts/history/?$', reader_views.user_history),
-    url(r'^sheets/saved/?$', reader_views.sheets_saved),
-    url(r'^sheets/history/?$', reader_views.sheets_user_history),
+    url(r'^texts/history/?$', reader_views.user_history_content),
+    url(r'^saved/?$', reader_views.saved_content),
+    url(r'^history/?$', reader_views.user_history_content),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
-    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
+    url(r'sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
-    url(r'^sheets/collections/?$', reader_views.public_collections),
-    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
-    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
-    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^collections/?$', reader_views.public_collections),
+    url(r'^collections/new$', reader_views.edit_collection_page),
+    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
-    url(r'^sheets/notifications/?$', reader_views.notifications),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
@@ -81,7 +80,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
-    url(r'^sheets/?$', sheets_views.sheets_home_page),
+    url(r'^sheets/?$', sheets_views.sheets_home_page, name='sheets'),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -90,7 +89,7 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^sheets/profile/(?P<username>[^/]+)?$', reader_views.user_profile),
+    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/account/user$', reader_views.account_user_update),
     url(r'^api/profile/user_history$', reader_views.user_history_api),
@@ -105,13 +104,10 @@ urlpatterns += [
 # Topics
 urlpatterns += [
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
-    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<slug>.+)$', reader_views.topic_page),
-    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
-    url(r'^sheets/topics/?$', reader_views.topics_page),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
@@ -489,6 +485,46 @@ urlpatterns += [
 # add static files to urls
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns += staticfiles_urlpatterns()
+
+# Legacy /sheets/ URLs for backward compatibility
+# These URLs maintain backward compatibility for existing links and bookmarks
+# that use the old /sheets/ prefix format
+urlpatterns += [
+    # Legacy authentication URLs for sheets subdomain
+    url(fr'^sheets/login/?$', sefaria_views.CustomLoginView.as_view(), name='sheets_login'),
+    url(fr'^sheets/register/?$', sefaria_views.register, name='sheets_register'),
+    url(fr'^sheets/logout/?$', sefaria_views.CustomLogoutView.as_view(), name='sheets_logout'),
+    url(fr'^sheets/password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='sheets_password_reset'),
+    url(fr'^sheets/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name='sheets_password_reset_confirm'),
+    url(fr'^sheets/password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name='sheets_password_reset_complete'),
+    url(fr'^sheets/password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='sheets_password_reset_done'),
+    url(fr'^sheets/api/register/$', sefaria_views.register_api),
+    url(fr'^sheets/api/login/$', TokenObtainPairView.as_view(), name='sheets_token_obtain_pair'),
+    url(fr'^sheets/api/login/refresh/$', TokenRefreshView.as_view(), name='sheets_token_refresh'),
+    url(fr'^sheets/api/account/delete$', reader_views.delete_user_account_api),
+    url(fr'^sheets/interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
+    url(r'^sheets/settings/profile?$', reader_views.edit_profile),
+    
+    # Legacy saved and history URLs
+    url(r'^sheets/saved/?$', reader_views.saved_content),
+    url(r'^sheets/history/?$', reader_views.user_history_content),
+    
+    # Legacy collections URLs
+    url(r'^sheets/collections/?$', reader_views.public_collections),
+    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    
+    # Legacy profile URLs
+    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    
+    # Legacy topics URLs
+    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
+    url(r'^sheets/topics/all/(?P<letter>.)$', reader_views.all_topics_page),
+    url(r'^sheets/topics/?$', reader_views.topics_page),
+    url(r'^sheets/topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
+    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
+]
 
 # Catch all to send to Reader
 urlpatterns += [

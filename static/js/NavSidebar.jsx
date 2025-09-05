@@ -849,7 +849,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
       {!hideTitle &&
       <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
-      <a href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href="/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
       </Button>
@@ -863,7 +863,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a className="button small white" href="/collections" data-target-module={Sefaria.SHEETS_MODULE}>
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>
