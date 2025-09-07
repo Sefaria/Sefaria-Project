@@ -132,7 +132,6 @@ def _add_webpage_hit_for_url(url):
 
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
-    logger.info("_make_find_refs_response_with_cache:start")
     response = _make_find_refs_response_linker_v3(request_text, options)
 
     if meta_data:
@@ -144,9 +143,6 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
         }, add_hit=False)
         if webpage:
             response['url'] = webpage.url
-    title_results = len(response.get("title", {}).get("results", []) if isinstance(response.get("title"), dict) else [])
-    body_results = len(response.get("body", {}).get("results", []) if isinstance(response.get("body"), dict) else [])
-    logger.info("_make_find_refs_response_with_cache:done", title_results=title_results, body_results=body_results)
     return response
 
 
