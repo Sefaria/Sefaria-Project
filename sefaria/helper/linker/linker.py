@@ -57,10 +57,9 @@ def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
     metadata = find_refs_input.metadata
     if metadata:
         _add_webpage_hit_for_url(metadata.get("url", None))
-    resp = _make_find_refs_response_with_cache(
+    return _make_find_refs_response_with_cache(
         find_refs_input.text, find_refs_input.options, metadata
     )
-    return resp
 
 
 @dataclasses.dataclass(frozen=True)
