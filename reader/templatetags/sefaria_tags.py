@@ -18,6 +18,7 @@ from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
 from sefaria.local_settings import MODULE_ROUTES
+from sefaria.urls import get_module_url_name
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -534,10 +535,10 @@ def subdomain_url(url_name, *args, **kwargs):
     """
     request = kwargs.pop('request', None)
     for prefix in MODULE_ROUTES.values():
-        if request and hasattr(request, 'active_module') and request.active_module == prefix.strip('/'):
+        clean_prefix = prefix.strip('/')	
+        if request and hasattr(request, 'active_module') and request.active_module == clean_prefix:
             try:
-                clean_prefix = prefix.strip('/').rstrip('_')
-                prefix_url_name = f'{clean_prefix}_{url_name}' if clean_prefix else url_name
+                prefix_url_name = get_module_url_name(prefix, url_name)
                 return reverse(prefix_url_name, args=args, kwargs=kwargs)
             except NoReverseMatch:
                 pass    
