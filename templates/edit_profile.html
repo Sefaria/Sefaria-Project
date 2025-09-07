@@ -14,7 +14,7 @@
                 <span class="int-he">עריכת פרופיל</span>
             </div>
             <div class="end">
-                <a class="button small transparent control-elem" href="/profile/{{ profile.slug }}">
+                <a class="button small transparent control-elem" href="{{ domain_modules.sheets }}/profile/{{ profile.slug }}">
                     <span class="int-en">Cancel</span>
                     <span class="int-he">בטל</span>
                 </a>
@@ -239,7 +239,7 @@
 						if (Sefaria) {
 							Sefaria.track.event("Settings", "Profile Edit", "");
 						}
-						window.location = "/profile/{{ profile.slug }}";
+						window.location = "{{ domain_modules.sheets }}/profile/{{ profile.slug }}";
 					}
 				}).fail(function() {
 					sjs.alert.message("Sorry, an Error occurred.");
