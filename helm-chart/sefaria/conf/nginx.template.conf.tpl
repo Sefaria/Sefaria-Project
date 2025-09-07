@@ -53,8 +53,7 @@ http {
   }
 
   server {
-    # TODO add `default` below
-    listen 80 default_server;
+    listen 80;
     server_name www.{{ tpl $i.host $ }};
     listen [::]:80;
     # parameterize line below
@@ -160,7 +159,7 @@ http {
 
     {{- range $k, $v := $.Values.ingress.subdomains }}
     location ~ ^/{{ $v }}(/.*|$) {
-        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$2;
+        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$1;
     }
     {{- end }}
   } # server
