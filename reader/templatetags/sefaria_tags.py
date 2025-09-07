@@ -527,13 +527,13 @@ def sheet_via_absolute_link(sheet_id):
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
 
 
-@register.simple_tag
-def subdomain_url(url_name, *args, **kwargs):
+@register.simple_tag(takes_context=True)
+def subdomain_url(context, url_name, *args, **kwargs):
     """
     Custom template tag that resolves URLs based on the current subdomain.
     Falls back to regular URL resolution if subdomain URL doesn't exist.
     """
-    request = kwargs.pop('request', None)
+    request = context['request']
     for prefix in MODULE_ROUTES.values():
         clean_prefix = prefix.strip('/')	
         if getattr(request, 'active_module', None) == clean_prefix:
