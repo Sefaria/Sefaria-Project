@@ -366,7 +366,7 @@ for prefix in MODULE_ROUTES.values():
         url(fr'^{prefix}/api/login/refresh/$', TokenRefreshView.as_view(), name=f'{prefix}token_refresh'),
         url(fr'^{prefix}/api/account/delete$', reader_views.delete_user_account_api),
         url(fr'^{prefix}/interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-        url(r'^{prefix}/settings/profile?$', reader_views.edit_profile),
+        url(fr'^{prefix}/settings/profile?$', reader_views.edit_profile),
     ]
 
 # Compare Page
