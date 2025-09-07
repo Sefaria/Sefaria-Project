@@ -63,7 +63,11 @@ data:
       access_log /dev/stdout structured;
       client_max_body_size 32M;
 
-      add_header 'Access-Control-Allow-Origin' '*';
+      # Add CORS header only if not already set
+      map $sent_http_access_control_allow_origin $cors_header {
+        '' '*';
+      }
+      add_header 'Access-Control-Allow-Origin' $cors_header if_not_empty;
 
       upstream varnish_upstream {
         server ${VARNISH_HOST}:8040;
