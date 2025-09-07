@@ -2,8 +2,7 @@
   /* colors */
   --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
-  --sheets-green: #4A7A58; /* darker than the original #5D956F for accessibility - 4.7:1 contrast with white text */
-  --sheets-green-light: #5D956F; /* original color for backgrounds/non-text use */
+  --sheets-green: #5D956F;
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --beit-midrash-grey: #333333;
