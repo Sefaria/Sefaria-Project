@@ -492,7 +492,8 @@ import {LinkExcluder} from "./excluder";
             body: JSON.stringify(postData),
             headers: {'Content-Type': 'application/json'},
         }).then(handleApiResponse)
-          .then(resp => pollTaskStatusUntilDone(resp.task_id));
+          .then(resp => pollTaskStatusUntilDone(resp.task_id))
+          .then(resp => resp.result);
     }
 
     function deprecatedOptionsWarning({ selector, excludeFromTracking, parenthesesOnly, quotationOnly } = {}) {
