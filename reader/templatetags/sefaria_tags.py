@@ -536,7 +536,8 @@ def subdomain_url(url_name, *args, **kwargs):
     for prefix in MODULE_ROUTES.values():
         if request and hasattr(request, 'active_module') and request.active_module == prefix.strip('/'):
             try:
-                prefix_url_name = f'{prefix}{url_name}'
+                clean_prefix = prefix.strip('/').rstrip('_')
+                prefix_url_name = f'{clean_prefix}_{url_name}' if clean_prefix else url_name
                 return reverse(prefix_url_name, args=args, kwargs=kwargs)
             except NoReverseMatch:
                 pass    
