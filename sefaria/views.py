@@ -54,7 +54,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
-from sefaria.system.decorators import catch_error_as_http
+from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
@@ -73,31 +73,6 @@ if USE_VARNISH:
 
 import structlog
 logger = structlog.get_logger(__name__)
-
-
-def _add_cors_headers(response):
-    response["Access-Control-Allow-Origin"] = "*"
-    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-    response["Access-Control-Allow-Headers"] = "Content-Type"
-    return response
-
-
-def cors_allow_all(view_func):
-    @wraps(view_func)
-    def _wrapped(request, *args, **kwargs):
-        if request.method == "OPTIONS":
-            response = HttpResponse(status=204)
-            return _add_cors_headers(response)
-        response = view_func(request, *args, **kwargs)
-        return _add_cors_headers(response)
-    # Preserve or enforce CSRF exemption so POSTs from other origins aren't blocked
-    try:
-        from django.views.decorators.csrf import csrf_exempt as _csrf_exempt
-        _wrapped = _csrf_exempt(_wrapped)
-    except Exception:
-        # Fallback: set attribute directly if decorator import fails for any reason
-        setattr(_wrapped, 'csrf_exempt', True)
-    return _wrapped
 
 
 def process_register_form(request, auth_method='session'):
