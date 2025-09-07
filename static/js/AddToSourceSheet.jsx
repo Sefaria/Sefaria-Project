@@ -328,7 +328,7 @@ class AddToSourceSheetBox extends Component {
           id={`user-sheet-option-${i}`}
           tabIndex={-1}
           ref={el => { if (isFocused) { this.activeOptionRef = el; } }}
-          style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--select-blue')}`, outlineOffset: '2px'} : {}}
+          style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--accessibility-focus-blue')}`, outlineOffset: '2px'} : {}}
         >
           {title}
         </div>
