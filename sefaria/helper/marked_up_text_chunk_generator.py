@@ -13,8 +13,9 @@ logger = structlog.get_logger(__name__)
 class MarkedUpTextChunkGenerator:
 
 
-    def __init__(self, user_id=None):
+    def __init__(self, user_id=None, **kwargs):
         self.user_id = user_id
+        self.kwargs = kwargs
 
     ## Public methods:
 
@@ -45,7 +46,9 @@ class MarkedUpTextChunkGenerator:
     ##  Private methods:
 
     def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
-        linking_args = LinkingArgs(ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle, user_id=self.user_id)
+        linking_args = LinkingArgs(ref=segment_ref.normal(), text=text,
+                                   lang=lang, vtitle=vtitle,
+                                   user_id=self.user_id, kwargs=self.kwargs)
         enqueue_linking_chain(linking_args)
         # enqueue_linking_chain_debug(linking_args)
 

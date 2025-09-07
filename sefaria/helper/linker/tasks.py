@@ -23,6 +23,7 @@ class LinkingArgs:
     lang: str
     vtitle: str
     user_id: str = None  # optional, for tracker
+    kwargs: dict = None  # optional, for tracke
 
 
 
@@ -66,13 +67,15 @@ def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
 
     # Prepare the minimal info the next task needs
     linked_refs = sorted({s["ref"] for s in spans})  # unique + stable
+    print("tracking_args.kwargs", linking_args.kwargs)
+    print(type(linking_args.kwargs))
     return {
         "ref": linking_args.ref,
         "linked_refs": linked_refs,
         "vtitle": linking_args.vtitle,
         "lang": linking_args.lang,
         "user_id": linking_args.user_id,
-        # "tracker_kwargs": linking_args.tracker_kwargs or {},
+        "tracker_kwargs": linking_args.kwargs or {},
     }
 
 
