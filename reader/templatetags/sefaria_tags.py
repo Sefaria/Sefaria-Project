@@ -536,7 +536,7 @@ def subdomain_url(url_name, *args, **kwargs):
     request = kwargs.pop('request', None)
     for prefix in MODULE_ROUTES.values():
         clean_prefix = prefix.strip('/')	
-        if request and hasattr(request, 'active_module') and request.active_module == clean_prefix:
+        if getattr(request, 'active_module', None) == clean_prefix:
             try:
                 prefix_url_name = get_module_url_name(prefix, url_name)
                 return reverse(prefix_url_name, args=args, kwargs=kwargs)

@@ -265,59 +265,49 @@ class ModuleMiddleware(MiddlewareURLMixin):
         Returns the module name if found, None otherwise.
         """
         try:
+            from urllib.parse import urlparse
+            
             current_host = request.get_host()
+            parsed_current = urlparse(f"http://{current_host}")
+            current_hostname = parsed_current.hostname
             
-            # Remove port if present (for localhost:8000)
-            if ':' in current_host:
-                current_host = current_host.split(':')[0]
-            
-            # Check DOMAIN_MODULES to find which module this host belongs to
             for module_name, module_domain in DOMAIN_MODULES.items():
-                # Remove protocol and port from module_domain for comparison
-                domain_to_check = module_domain
-                if '://' in domain_to_check:
-                    domain_to_check = domain_to_check.split('://', 1)[1]
-                if ':' in domain_to_check:
-                    domain_to_check = domain_to_check.split(':')[0]
+                parsed_domain = urlparse(module_domain)
+                domain_to_check = parsed_domain.hostname
                 
-                # Check if current host matches this module's domain
-                if current_host == domain_to_check:
-                    logger.info(f"Host {current_host} matches module {module_name} (domain: {module_domain})")
+                if current_hostname == domain_to_check:
                     return module_name
             
-            logger.info(f"No matching module found for host: {current_host}")
             return None
             
         except Exception as e:
             logger.error(f"Error determining module from host: {e}")
             return None
 
-    def __call__(self, request):
-        active_module = 'library'  # default active_module
-
-        if not self.should_process_request(request):
-            # Set defaults or return immediately
-            logger.info(f"Not processing request, Active module: {active_module}")
-            request.active_module = active_module
-            return self.get_response(request)
-
+    def _set_active_module(self, request):
+        """
+        Determine and set the active module for the request.
+        First checks host-based module, then falls back to route-based detection.
+        """
         # First, try to determine module based on host/subdomain from DOMAIN_MODULES
         host_based_module = self._get_module_from_host(request)
         if host_based_module:
             active_module = host_based_module
-            logger.info(f"Active module from host: {active_module}")
         else:
-            # Fallback to route-based detection
+            # Check each module route to see if path matches
             for module_name, route_prefix in MODULE_ROUTES.items():
-                logger.info(f"Processing request, route_prefix: {route_prefix}, request.path: {request.path}")
-                route_base_path = route_prefix.removesuffix('/')
-                if len(route_base_path) > 0 and (request.path.startswith(route_prefix) or request.path == route_base_path):
+                if request.path.startswith(route_prefix):
                     active_module = module_name
-                    logger.info(f"Active module from route: {active_module}")
                     break
         
-        logger.info(f"Returning response, Active module: {active_module}")
-        request.active_module = active_module
+        return active_module
+
+    def __call__(self, request):
+        if not self.should_process_request(request):
+            request.active_module = 'library'
+            return self.get_response(request)
+
+        request.active_module = self._set_active_module(request)
         return self.get_response(request)
 
     #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
