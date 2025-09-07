@@ -64,6 +64,8 @@ data:
       client_max_body_size 32M;
 
       # Add CORS header only if not already set
+      # For simple requests, only Access-Control-Allow-Origin is needed.
+      # For more complex requests, we need more headers. CORS for these requests are handled in Django.
       map $sent_http_access_control_allow_origin $cors_header {
         ''      *;     # if ACAO not already set, use "*"
         default '';    # otherwise, make it empty so add_header emits nothing
