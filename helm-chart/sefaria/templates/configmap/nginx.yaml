@@ -65,9 +65,10 @@ data:
 
       # Add CORS header only if not already set
       map $sent_http_access_control_allow_origin $cors_header {
-        '' '*';
+        ''      *;     # if ACAO not already set, use "*"
+        default '';    # otherwise, make it empty so add_header emits nothing
       }
-      add_header 'Access-Control-Allow-Origin' $cors_header if_not_empty;
+      add_header 'Access-Control-Allow-Origin' $cors_header always;
 
       upstream varnish_upstream {
         server ${VARNISH_HOST}:8040;
