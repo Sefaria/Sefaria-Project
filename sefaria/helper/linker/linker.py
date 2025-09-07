@@ -57,26 +57,8 @@ def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
     metadata = find_refs_input.metadata
     if metadata:
         _add_webpage_hit_for_url(metadata.get("url", None))
-    logger.info(
-        "make_find_refs_response:start",
-        lang=find_refs_input.text.lang,
-        title_len=len(find_refs_input.text.title or ""),
-        body_len=len(find_refs_input.text.body or ""),
-        with_text=find_refs_input.options.with_text,
-        debug=find_refs_input.options.debug,
-        max_segments=find_refs_input.options.max_segments,
-        has_version_prefs=find_refs_input.options.version_preferences_by_corpus is not None,
-        has_metadata=metadata is not None,
-    )
     resp = _make_find_refs_response_with_cache(
         find_refs_input.text, find_refs_input.options, metadata
-    )
-    title_results = len(resp.get("title", {}).get("results", []) if isinstance(resp.get("title"), dict) else [])
-    body_results = len(resp.get("body", {}).get("results", []) if isinstance(resp.get("body"), dict) else [])
-    logger.info(
-        "make_find_refs_response:done",
-        title_results=title_results,
-        body_results=body_results,
     )
     return resp
 
