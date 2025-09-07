@@ -333,7 +333,7 @@ export const serialize = (content) => {
                     return (acc + serialize(text))
                 }, "");
                 if (!/<\/?(ul|ol|li)[^>]*>/i.test(preparseHtml)) {
-                    return `<div>${paragraphHTML}</div>`  // use wrapping divs to enable deserializer to parse lists properly
+                    return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
                 }
                 else
                 {
