@@ -437,16 +437,62 @@ import {LinkExcluder} from "./excluder";
         return makeFindRefsApiRequest(postData).then(onFindRefs);
     }
 
+    async function pollTaskStatusUntilDone(taskId, {
+        maxWait = 120_000,   // give up after 2 minutes
+        initialDelay = 500,  // 0.5s
+        maxDelay = 5000,     // 5s
+        timeout = 60_000     // request timeout per fetch
+    } = {}) {
+        /**
+         * Polls the task status endpoint until the task is done or maxWait time is exceeded
+         * @type {number}
+         */
+        let delay = initialDelay;
+        const start = Date.now();
+
+        async function getStatus() {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const resp = await fetch(`${ns.sefariaUrl}/api/async/${taskId}`, { signal: controller.signal });
+                if (!resp.ok) {
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+                return await resp.json();
+            } finally {
+                clearTimeout(id);
+            }
+        }
+
+        while (true) {
+            const status = await getStatus();
+            const state = status.state;
+            const ready = status.ready;
+
+            if (state === "SUCCESS" || (ready && "result" in status)) {
+                return status;
+            }
+            if (state === "FAILURE") {
+                const err = status.error || status;
+                throw new Error(`Task failed: ${JSON.stringify(err)}`);
+            }
+
+            if (Date.now() - start > maxWait) {
+                throw new Error(`Gave up after ${Math.floor(maxWait / 1000)}s waiting for task ${taskId}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay = Math.min(delay * 1.5, maxDelay);
+        }
+    }
+
     function makeFindRefsApiRequest(postData) {
-        return new Promise((resolve, reject) => {
-            fetch(getFindRefsUrl(), {
-                method: 'POST',
-                body: JSON.stringify(postData),
-                headers: {'Content-Type': 'application/json'},
-            })
-                .then(handleApiResponse)
-                .then(resp => resolve(resp));
-        });
+        return fetch(getFindRefsUrl(), {
+            method: 'POST',
+            body: JSON.stringify(postData),
+            headers: {'Content-Type': 'application/json'},
+        }).then(handleApiResponse)
+          .then(resp => pollTaskStatusUntilDone(resp.task_id));
     }
 
     function deprecatedOptionsWarning({ selector, excludeFromTracking, parenthesesOnly, quotationOnly } = {}) {
