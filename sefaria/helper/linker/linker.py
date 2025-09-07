@@ -146,27 +146,17 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
-    logger.info("_make_find_refs_response_linker_v3:start", lang=request_text.lang)
     linker = library.get_linker(request_text.lang)
     title_doc = linker.link(request_text.title, type_filter='citation')
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
     body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
-    logger.info(
-        "_make_find_refs_response_linker_v3:linked",
-        title_resolved=len(title_doc.resolved_refs),
-        body_resolved=len(body_doc.resolved_refs),
-        has_context_ref=context_ref is not None,
-    )
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
         "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
     }
-    title_results = len(response.get("title", {}).get("results", []))
-    body_results = len(response.get("body", {}).get("results", []))
-    logger.info("_make_find_refs_response_linker_v3:done", title_results=title_results, body_results=body_results)
 
     return response
 
