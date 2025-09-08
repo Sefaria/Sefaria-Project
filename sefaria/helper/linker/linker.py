@@ -1,7 +1,8 @@
 import dataclasses
 import json
 from cerberus import Validator
-from sefaria.model.linker.ref_part import TermContext, RefPartType
+from ne_span import RefPartType
+from sefaria.model.linker.ref_part import TermContext
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage

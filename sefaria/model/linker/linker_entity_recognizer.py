@@ -1,12 +1,13 @@
 from typing import Generator, Optional, Union, Any
 import time
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, RawNamedEntity, NamedEntityType
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, RawNamedEntity
 from sefaria.helper.normalization import NormalizerComposer
 from sefaria.settings import GPU_SERVER_URL
 import requests
-from ne_span import NESpan, NEDoc
+from ne_span import NESpan, NEDoc, NamedEntityType, RefPartType
 import structlog
 logger = structlog.get_logger(__name__)
+
 
 class LinkerEntityRecognizer:
     """
