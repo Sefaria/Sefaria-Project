@@ -89,13 +89,13 @@ class LinkerEntityRecognizer:
         @param raw: Dictionary representation of the RawRef.
         @return: A RawRef object.
         """
-        named_entity = self._deserialize_raw_named_entity(doc, raw)
-        span_doc = NEDoc(named_entity.span.text)
+        citation_entity = self._deserialize_raw_named_entity(doc, raw)
+        span_doc = NEDoc(citation_entity.span.text)
         part_span_list = []
         for part in raw['parts']:
             part_span = NESpan(span_doc, part['range'][0], part['range'][1], part['label'])
             part_span_list.append(part_span)
-        return named_entity, part_span_list
+        return citation_entity, part_span_list
 
     @staticmethod
     def _deserialize_raw_named_entity(doc: NEDoc, raw: dict) -> RawNamedEntity:
