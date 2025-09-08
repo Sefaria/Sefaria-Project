@@ -2839,8 +2839,8 @@ _media: {},
   getTopic: function(slug, {annotated=true, with_html=false}={}) {
     const cat = Sefaria.displayTopicTocCategory(slug);
     let ref_link_type_filters = ['about', 'popular-writing-of']
-    // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
-    if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
+    // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages in library module.
+    if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug] && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
     }
     const a = 0 + annotated;

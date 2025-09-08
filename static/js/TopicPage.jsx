@@ -704,7 +704,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
       return displayTabs;
     }
 
-    const setupAdditionalTabs = () => {
+    const setupAdditionalTabs = (displayTabs) => {
       // Setup additional tabs that are not related to sources: such as filter, language toggle, and author works on Sefaria (this last one is only relevant if we're in the library module and the topic is an author)
       // Finally, return 'onClickFilterIndex' and 'onClickLangToggleIndex' to be used by 'TabView' component so that it knows which tab in 'displayTabs'
       // corresponds to the filter and lang toggle
@@ -712,7 +712,8 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
       let onClickLangToggleIndex = 2; // lang toggle tab defaults to the 3rd tab
       const indexes = topicData?.indexes;
 
-      if (indexes?.length) {
+      // Only add author works tab if in library module and has indexes
+      if (indexes?.length && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
         displayTabs.push({
           title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
           id: 'author-works-on-sefaria',
@@ -765,34 +766,37 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
     }
 
     let displayTabs = setupTabsWithSources();
-    let [onClickLangToggleIndex, onClickFilterIndex] = setupAdditionalTabs();
-
-    const authorIndices = topicData?.indexes?.length && (
-                            <div className="authorIndexList">
-                              {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
-                            </div>
-                            );
-
-    const tabsWithSources = displayTabs.map(tabObj => {
-                                const { id, sortOptions, filterFunc, sortFunc, renderWrapper, hasSources } = tabObj;
-                                if (hasSources) {
-                                  return (
-                                    <TopicPageTab
-                                      key={id}
-                                      scrollableElement={scrollableElement}
-                                      showFilterHeader={showFilterHeader}
-                                      data={loadedData[id]}
-                                      sortOptions={sortOptions}
-                                      filterFunc={filterFunc}
-                                      sortFunc={sortFunc}
-                                      onDisplayedDataChange={data => onDisplayDataChange(data, topicData, id)}
-                                      initialRenderSize={topicData._refsDisplayedByTab?.[id] || 0}
-                                      renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
-                                      onSetTopicSort={onSetTopicSort}
-                                      topicSort={topicSort}
-                                    />
-                                  );
-                               }});
+    let [onClickLangToggleIndex, onClickFilterIndex] = setupAdditionalTabs(displayTabs);
+    
+    const tabContent = [];
+    displayTabs.forEach(tabObj => {
+      const { id, sortOptions, filterFunc, sortFunc, renderWrapper, hasSources } = tabObj;
+      if (hasSources) {
+        tabContent.push(
+          <TopicPageTab
+            key={id}
+            scrollableElement={scrollableElement}
+            showFilterHeader={showFilterHeader}
+            data={loadedData[id]}
+            sortOptions={sortOptions}
+            filterFunc={filterFunc}
+            sortFunc={sortFunc}
+            onDisplayedDataChange={data => onDisplayDataChange(data, topicData, id)}
+            initialRenderSize={topicData._refsDisplayedByTab?.[id] || 0}
+            renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
+            onSetTopicSort={onSetTopicSort}
+            topicSort={topicSort}
+          />
+        );
+      } else if (id === 'author-works-on-sefaria') {
+        tabContent.push(
+          <div key={id} className="authorIndexList">
+            {topicData.indexes.map(({url, title, description}) => 
+            <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
+          </div>
+        );
+      }
+    });
 
     const topicTabView = <TabView
                                   currTabName={tab}
@@ -810,10 +814,14 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
                                     [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
                                     [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
                                   }}>
-                          {authorIndices}{tabsWithSources}
+                          {tabContent}
                         </TabView>;
 
-    // Currently, there are data inconsistencies in the DB, so we should show LoadingMessage if there are no tabs to display.
+    // If there are no tabs with content, don't render anything
+    if (!topicData.isLoading && displayTabs.length === 0) {
+      return null;
+    }
+    
     return (!topicData.isLoading && displayTabs.length) ? topicTabView : <LoadingMessage />; 
 }
 
