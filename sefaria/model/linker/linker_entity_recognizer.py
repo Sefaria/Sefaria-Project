@@ -43,11 +43,9 @@ class LinkerEntityRecognizer:
         """
         normalized_inputs = self._normalize_input(inputs)
         start_time = time.perf_counter()
-        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities",
-                             json={"texts": normalized_inputs, "lang": self._lang})
+        data = self._bulk_recognize_entities_api_request(normalized_inputs)
         elapsed_time = time.perf_counter() - start_time
         logger.info("bulk_recognize GPU server post completed", elapsed_time=elapsed_time, num_inputs=len(normalized_inputs))
-        data = resp.json()
         merged_entities = []
         for input_str, result in zip(normalized_inputs, data['results']):
             raw_refs, non_citations = self._parse_recognize_response(input_str, result)
@@ -57,12 +55,18 @@ class LinkerEntityRecognizer:
     def recognize(self, input_str: str) -> [list[RawRef], list[RawNamedEntity]]:
         normalized_input = self._normalize_input([input_str])[0]
         start_time = time.perf_counter()
-        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities",
-                             json={"text": normalized_input, "lang": self._lang})
+        data = self._recognize_entities_api_request(normalized_input)
         elapsed_time = time.perf_counter() - start_time
         logger.info("recognize GPU server post completed", elapsed_time=elapsed_time)
-        data = resp.json()
         return self._parse_recognize_response(normalized_input, data)
+
+    def _recognize_entities_api_request(self, input_str: str):
+        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities", json={"text": input_str, "lang": self._lang})
+        return resp.json()
+
+    def _bulk_recognize_entities_api_request(self, inputs: list[str]):
+        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities", json={"texts": inputs, "lang": self._lang})
+        return resp.json()
 
     def _parse_recognize_response(self, input_str: str, data: dict) -> (list[RawRef], list[RawNamedEntity]):
         all_citations, non_citations = [], []
