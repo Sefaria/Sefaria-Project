@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
+import pRetry, {AbortError} from 'p-retry';
 
 
 (function(ns) {
@@ -437,53 +438,26 @@ import {LinkExcluder} from "./excluder";
         return makeFindRefsApiRequest(postData).then(onFindRefs);
     }
 
-    async function pollTaskStatusUntilDone(taskId, {
-        maxWait = 120_000,   // give up after 2 minutes
-        initialDelay = 500,  // 0.5s
-        maxDelay = 5000,     // 5s
-        timeout = 60_000     // request timeout per fetch
-    } = {}) {
-        /**
-         * Polls the task status endpoint until the task is done or maxWait time is exceeded
-         * @type {number}
-         */
-        let delay = initialDelay;
-        const start = Date.now();
+    async function pollTaskStatusUntilDone(taskId) {
+        return pRetry(async attempt => {
+            const resp = await fetch(`${ns.sefariaUrl}/api/async/${taskId}`);
+            const status = await resp.json();
 
-        async function getStatus() {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-            try {
-                const resp = await fetch(`${ns.sefariaUrl}/api/async/${taskId}`, { signal: controller.signal });
-                if (!resp.ok) {
-                    throw new Error(`HTTP ${resp.status}`);
-                }
-                return await resp.json();
-            } finally {
-                clearTimeout(id);
+            if (status.state === "FAILURE") {
+                throw new AbortError(`Task failed: ${status.error || status}`);
             }
-        }
-
-        while (true) {
-            const status = await getStatus();
-            const state = status.state;
-            const ready = status.ready;
-
-            if (state === "SUCCESS" || (ready && "result" in status)) {
+            if (status.state === "SUCCESS" || (status.ready && "result" in status)) {
                 return status;
             }
-            if (state === "FAILURE") {
-                const err = status.error || status;
-                throw new Error(`Task failed: ${JSON.stringify(err)}`);
-            }
 
-            if (Date.now() - start > maxWait) {
-                throw new Error(`Gave up after ${Math.floor(maxWait / 1000)}s waiting for task ${taskId}`);
-            }
-
-            await new Promise(resolve => setTimeout(resolve, delay));
-            delay = Math.min(delay * 1.5, maxDelay);
-        }
+            throw new Error("Not ready yet"); // triggers retry
+        }, {
+            retries: 15,                // number of retries
+            minTimeout: 500,            // initial delay
+            maxTimeout: 5000,           // cap delay
+            factor: 1.5,                // growth factor
+            maxRetryTime: 120_000       // total max wait
+        });
     }
 
     function makeFindRefsApiRequest(postData) {
