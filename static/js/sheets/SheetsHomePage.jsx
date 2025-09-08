@@ -21,8 +21,8 @@ const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
 
 const SheetsSidebar = () => {
     const sidebarModules = [
-    {type: "CreateASheet"},
     {type: "WhatIsASourceSheet"},
+    {type: "CreateASheet"},
   ];
     return <NavSidebar sidebarModules={sidebarModules} />
 }
