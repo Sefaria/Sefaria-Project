@@ -28,8 +28,8 @@ def should_run_with_celery(from_api):
 def save_changes(changes, func, method, task_title=''):
     if should_run_with_celery(method == 'API'):
         main_task_id = str(uuid.uuid4())
-        tasks = [save_change.s(func.__name__, c).set(queue=CeleryQueue.TASKS) for c in changes]
-        job = chord(tasks, inform.s(main_task_id=main_task_id, task_title=task_title).set(queue=CeleryQueue.TASKS))(task_id=main_task_id)
+        tasks = [save_change.s(func.__name__, c).set(queue=CeleryQueue.TASKS.value) for c in changes]
+        job = chord(tasks, inform.s(main_task_id=main_task_id, task_title=task_title).set(queue=CeleryQueue.TASKS.value))(task_id=main_task_id)
         tasks_ids = [task.id for task in job.parent.results]
         return celeryResponse(job.id, tasks_ids)
     else:

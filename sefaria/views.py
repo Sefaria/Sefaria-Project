@@ -363,7 +363,7 @@ def find_refs_api(request):
     find_refs_input = FindRefsInput(request_text, options, metadata)
     async_result = find_refs_api_task.apply_async(
         args=(asdict(find_refs_input),),
-        queue=CeleryQueue.TASKS
+        queue=CeleryQueue.TASKS.value
     )
     logger.info(
         "find_refs_api:enqueued",
