@@ -1,5 +1,5 @@
 import React  from 'react';
-import {NavSidebar} from "../NavSidebar";
+import {NavSidebar, SidebarFooter} from "../NavSidebar";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
@@ -19,36 +19,68 @@ const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
         </div>;
 }
 
-const SheetsSidebar = () => {
+const SheetsHomePageSidebar = ({includeFooter = false}) => {
     const sidebarModules = [
     {type: "CreateASheet"},
     {type: "WhatIsASourceSheet"},
   ];
-    return <NavSidebar sidebarModules={sidebarModules} />
+    return <NavSidebar sidebarModules={sidebarModules} includeFooter={includeFooter} />
 }
 
 
 
 const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
-  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
-  return <div className="readerNavMenu sheetsHomepage" key="0">
-            <div className="content">
-                <SheetsHeroBanner title="Join the Torah Conversation"
+  const sheetsHeroBanner = <SheetsHeroBanner title="Join the Torah Conversation"
                                   message="Create, share, and discover source sheets."
                                   videoOptions={["/static/img/home-video.webm", "/static/img/home-video.mp4"]}
-                                  posterImg="/static/img/home-video.jpg"
-                />
+                                  posterImg="/static/img/home-video.jpg"/>;
+  const sheetsTopicsCalendar = <SheetsTopicsCalendar handleClick={setTopic}/>;
+  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
+
+  if (multiPanel) {
+    return <SheetsHomePageDesktop sheetsHeroBanner={sheetsHeroBanner} 
+                                  sheetsTopicsCalendar={sheetsTopicsCalendar} 
+                                  sheetsTopicsTOC={sheetsTopicsTOC} />;
+  }
+  else {
+    return <SheetsHomePageMobile sheetsHeroBanner={sheetsHeroBanner} 
+                                 sheetsTopicsCalendar={sheetsTopicsCalendar} 
+                                 sheetsTopicsTOC={sheetsTopicsTOC} />;
+  }     
+}
+ 
+const SheetsHomePageMobile = ({sheetsHeroBanner, sheetsTopicsCalendar, sheetsTopicsTOC}) => {
+  return <div className="readerNavMenu sheetsHomepage" key="0">
+            <div className="content">
+                {sheetsHeroBanner}
                 <div className="sidebarLayout">
                     <div className="contentInner">
                         <div className="sheetsTopics">
-                            <SheetsTopicsCalendar handleClick={setTopic}/>
-                            {multiPanel && sheetsTopicsTOC}
+                            {sheetsTopicsCalendar}
                         </div>
                     </div>
-                    <SheetsSidebar/>
-                    {!multiPanel && sheetsTopicsTOC}
+                    <SheetsHomePageSidebar includeFooter={false} />
+                    {sheetsTopicsTOC}
+                    <div className="sans-serif"><SidebarFooter /></div>
                 </div>
             </div>
         </div>
 }
+
+const SheetsHomePageDesktop = ({sheetsHeroBanner, sheetsTopicsCalendar, sheetsTopicsTOC}) => {
+    return <div className="readerNavMenu sheetsHomepage" key="0">
+              <div className="content">
+                  {sheetsHeroBanner}
+                  <div className="sidebarLayout">
+                      <div className="contentInner">
+                          <div className="sheetsTopics">
+                              {sheetsTopicsTOC}
+                              {sheetsTopicsCalendar}
+                          </div>
+                      </div>
+                      <SheetsHomePageSidebar includeFooter={true} />
+                  </div>
+              </div>
+          </div>
+  }
 export { SheetsHomePage };

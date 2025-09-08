@@ -8,7 +8,7 @@ import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
-const NavSidebar = ({sidebarModules}) => {
+const NavSidebar = ({sidebarModules, includeFooter = true}) => {
   return <div className="navSidebar sans-serif">
     {sidebarModules.map((m, i) =>
       <SidebarModules
@@ -16,7 +16,7 @@ const NavSidebar = ({sidebarModules}) => {
         props={m.props || {}}
         key={i} />
     )}
-    <SidebarFooter />
+    {!!includeFooter && <SidebarFooter />} 
   </div>
 };
 
