@@ -49,7 +49,7 @@ const SidebarModules = ({type, props}) => {
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
     "CreateASheet":           CreateASheet,
-    "WhatIsASourceSheet":     WhatIsASourceSheet,
+    "WhatIsSefariaVoices":     WhatIsSefariaVoices,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -795,7 +795,9 @@ const StayConnected = () => {
 const GetStartedButton = () => {
     const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
     return <Button variant="secondary" className="getStartedSheets">
-      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>
+          <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
+      </a>
     </Button>;
 }
 const CreateSheetsButton = () => {
@@ -815,10 +817,10 @@ const CreateASheet = () => (
   </TitledText>
 );
 
-const WhatIsASourceSheet = () => (
-    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
-                text={{'en': '',
-                       'he': ''}}>
+const WhatIsSefariaVoices = () => (
+    <TitledText title={{'en': 'What is Voices on Sefaria?', 'he': 'נא להכיר: חיבורים בספריא'}}
+                text={{'en': 'Voices on Sefaria is a dedicated space for you to create and discover Torah-based content — from source sheets and lesson plans to divrei Torah and essays.',
+                       'he': 'פלטפורמה חדשה זו נוצרה עבורכם, הלומדים והלומדות, כדי שתוכלו ליצור ולאסוף חומרים מקוריים השואבים ממקורות הספרות היהודית. דף לימוד? חיבור ספרותי? בלוג? דבר תורה? פה זה המקום לתת ליצירתיות ולסקרנות להוביל את הדרך.'}}>
         <GetStartedButton/>
     </TitledText>
 );
