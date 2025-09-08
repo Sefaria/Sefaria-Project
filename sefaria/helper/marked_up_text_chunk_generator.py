@@ -1,10 +1,7 @@
 
 import structlog
-from typing import List, Tuple
-from sefaria.model.text import Ref, TextChunk
-from sefaria.system.exceptions import InputError
+from sefaria.model.text import Ref, TextChunk, Version
 from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs, enqueue_linking_chain, enqueue_linking_chain_debug
-from dataclasses import asdict
 
 
 logger = structlog.get_logger(__name__)

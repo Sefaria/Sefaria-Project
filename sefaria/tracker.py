@@ -149,17 +149,12 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
         if oref.prev_section_ref():
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
     if not kwargs.get("skip_links", None):
-        from sefaria.helper.link import add_links_from_text
         from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
         from sefaria.model import Version
 
         generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
         # # Some commentaries can generate links to their base text automatically
         # linker = oref.autolinker(user=user)
-        # if linker:
-        #     linker.refresh_links(**kwargs)
-        # scan text for links to auto add
-        # add_links_from_text(oref, lang, curr_text, version_id, user, **kwargs)
         v = Version().load({"_id": version_id})
         title, lang = v.versionTitle, v.language
         generator.generate(oref, lang, title)

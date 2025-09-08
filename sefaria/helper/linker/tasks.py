@@ -117,7 +117,6 @@ def delete_and_save_new_links_logic(payload: [dict]):
 
     target_oref = Ref(payload["ref"])
     linked_orefs = [Ref(r) for r in payload.get("linked_refs", [])]
-    # text_id = payload.get("text_id")
     text_id = Version().load({"versionTitle": payload.get("vtitle"), "language": payload.get("lang")})._id if payload.get("vtitle") and payload.get("lang") else None
     user = payload.get("user_id")     # pass-through for tracker
     kwargs = payload.get("tracker_kwargs", {})
