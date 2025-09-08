@@ -14,7 +14,7 @@ import regex
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
-from sefaria.model.linker.has_match_template import HasMatchTemplates
+from sefaria.model.linker.has_match_template import MatchTemplateMixin
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
@@ -672,7 +672,7 @@ class TreeNode(object):
         return self.all_children().index(child) + 1
 
 
-class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, HasMatchTemplates):
+class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin):
     """
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.

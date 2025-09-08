@@ -1,4 +1,5 @@
-class HasMatchTemplates:
+class MatchTemplateMixin:
+    """ Mixin for classes that have match templates. """
     MATCH_TEMPLATE_ALONE_SCOPES = {'any', 'alone'}
 
     def get_match_templates(self):
