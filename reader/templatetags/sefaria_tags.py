@@ -534,11 +534,10 @@ def subdomain_url(context, url_name, *args, **kwargs):
     Falls back to regular URL resolution if subdomain URL doesn't exist.
     """
     request = context['request']
-    for prefix in MODULE_ROUTES.values():
-        clean_prefix = prefix.strip('/')	
-        if getattr(request, 'active_module', None) == clean_prefix:
+    for module_name, prefix in MODULE_ROUTES.items():
+        if getattr(request, 'active_module', None) == module_name:
             try:
-                prefix_url_name = get_module_url_name(prefix, url_name)
+                prefix_url_name = get_module_url_name(prefix, url_name) 
                 return reverse(prefix_url_name, args=args, kwargs=kwargs)
             except NoReverseMatch:
                 pass    
