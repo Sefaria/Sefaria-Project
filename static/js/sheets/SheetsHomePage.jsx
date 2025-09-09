@@ -31,13 +31,11 @@ const SheetsHomePageSidebar = ({includeFooter = false}) => {
 
 
 const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
-  const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
-  return <div className="readerNavMenu sheetsHomepage" key="0">
-            <div className="content">
-                <SheetsHeroBanner title={Sefaria._("Community-Powered Jewish Learning")}
+
+  const sheetsHeroBanner = <SheetsHeroBanner title={Sefaria._("Community-Powered Jewish Learning")}
                                   message={Sefaria._("Share. Discover. Join the Conversation.")}
                                   videoOptions={["/static/img/home-video.webm", "/static/img/home-video.mp4"]}
-                                  posterImg="/static/img/home-video.jpg"/>;
+                                  posterImg="/static/img/home-video.jpg"/>;                             
   const sheetsTopicsCalendar = <SheetsTopicsCalendar handleClick={setTopic}/>;
   const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
 
