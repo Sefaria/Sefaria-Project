@@ -17,6 +17,8 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
+from sefaria.local_settings import MODULE_ROUTES
+from sefaria.urls import get_module_url_name
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -525,27 +527,25 @@ def sheet_via_absolute_link(sheet_id):
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
 
 
-@register.simple_tag
-def subdomain_url(url_name, *args, **kwargs):
+@register.simple_tag(takes_context=True)
+def subdomain_url(context, url_name, *args, **kwargs):
     """
     Custom template tag that resolves URLs based on the current subdomain.
-    For sheets subdomain, it will try to resolve to /sheets/ prefixed URLs first.
-    Falls back to regular URL resolution if sheets URL doesn't exist.
+    Falls back to regular URL resolution if subdomain URL doesn't exist.
     """
-    # Get the current request from the template context
-    request = kwargs.pop('request', None)
+    request = context.get('request')
     
-    # If we're on the sheets subdomain, try to resolve with /sheets/ prefix first
-    if request and hasattr(request, 'active_module') and request.active_module == 'sheets':
-        # Try to resolve with /sheets/ prefix first
-        try:
-            sheets_url_name = f'sheets_{url_name}'
-            return reverse(sheets_url_name, args=args, kwargs=kwargs)
-        except NoReverseMatch:
-            # Fall back to regular URL resolution
-            pass
-    
-    # Default URL resolution
+    # If request is available, try to use subdomain-specific URL resolution
+    if request:
+        for module_name, prefix in MODULE_ROUTES.items():
+            if getattr(request, 'active_module', None) == module_name:
+                try:
+                    prefix_url_name = get_module_url_name(prefix, url_name) 
+                    return reverse(prefix_url_name, args=args, kwargs=kwargs)
+                except NoReverseMatch:
+                    pass    
+
+    # Default URL resolution (used when request is not available or no subdomain match)
     try:
         return reverse(url_name, args=args, kwargs=kwargs)
     except NoReverseMatch:

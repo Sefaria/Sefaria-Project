@@ -961,27 +961,6 @@ const preprocessLinksByType = (linksByType, slug) => {
 }
 
 const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
-    const LinkToSheetsSearchComponent = () => {
-    if (!topicTitle?.en || !topicTitle?.he) {
-      // If topicTitle is not set, we cannot generate the search URLs
-      console.warn("Topic title is not set, cannot generate search URLs for sheets.");
-      return null;
-    }
-    let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
-    let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
-      return (
-        <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
-          <InterfaceText>
-            <EnglishText>
-              <a href={searchUrlEn}>Related Sheets</a>
-            </EnglishText>
-            <HebrewText>
-              <a href={searchUrlHe}>דפי מקורות קשורים</a>
-            </HebrewText>
-          </InterfaceText>
-        </TopicSideSection>
-      );
-    };
   const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
@@ -1013,7 +992,6 @@ const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tre
       { topicMetaData }
       { readingsComponent }
       { linksComponent }
-      <LinkToSheetsSearchComponent/>
     </div>
   );
 }

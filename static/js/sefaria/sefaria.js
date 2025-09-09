@@ -530,7 +530,8 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    return Object.values(Sefaria.domainModules).some(subdomain => subdomain.includes(url.hostname));
+    //change this to just check Sefaria.org not domain modules
+    return url.hostname.includes('sefaria.org');
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }

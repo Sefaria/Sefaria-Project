@@ -1,6 +1,7 @@
 import React  from 'react';
 import {NavSidebar} from "../NavSidebar";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
+import Sefaria from "../sefaria/sefaria";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
      * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
@@ -33,8 +34,8 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
   const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
   return <div className="readerNavMenu sheetsHomepage" key="0">
             <div className="content">
-                <SheetsHeroBanner title="Join the Torah Conversation"
-                                  message="Create, share, and discover source sheets."
+                <SheetsHeroBanner title={Sefaria._("Community-Powered Jewish Learning")}
+                                  message={Sefaria._("Share. Discover. Join the Conversation.")}
                                   videoOptions={["/static/img/home-video.webm", "/static/img/home-video.mp4"]}
                                   posterImg="/static/img/home-video.jpg"
                 />
