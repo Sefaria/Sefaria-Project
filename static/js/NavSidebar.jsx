@@ -794,7 +794,7 @@ const StayConnected = () => {
 };
 
 const GetStartedButton = () => {
-    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
+    const href = Sefaria._v({"en": "/sheets/674324", "he": "/sheets/674327"})
     return <Button variant="secondary" className="getStartedSheets">
       <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>
           <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
