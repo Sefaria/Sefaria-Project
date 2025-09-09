@@ -28,7 +28,8 @@ handler404 = 'reader.views.custom_page_not_found'
 
 
 def get_module_url_name(prefix, url_name):
-    """Generate URL name for module-specific routes, handling empty prefix case."""
+    """Generate URL name for module-specific routes
+    This is useful for generating the name of a URL for a given module-specific route and for reversing the name to get the appropriate URL"""
     clean_prefix = prefix.replace('/', '')
     return f'{clean_prefix}_{url_name}' if clean_prefix else url_name
 

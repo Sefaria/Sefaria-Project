@@ -533,16 +533,19 @@ def subdomain_url(context, url_name, *args, **kwargs):
     Custom template tag that resolves URLs based on the current subdomain.
     Falls back to regular URL resolution if subdomain URL doesn't exist.
     """
-    request = context['request']
-    for module_name, prefix in MODULE_ROUTES.items():
-        if getattr(request, 'active_module', None) == module_name:
-            try:
-                prefix_url_name = get_module_url_name(prefix, url_name) 
-                return reverse(prefix_url_name, args=args, kwargs=kwargs)
-            except NoReverseMatch:
-                pass    
+    request = context.get('request')
+    
+    # If request is available, try to use subdomain-specific URL resolution
+    if request:
+        for module_name, prefix in MODULE_ROUTES.items():
+            if getattr(request, 'active_module', None) == module_name:
+                try:
+                    prefix_url_name = get_module_url_name(prefix, url_name) 
+                    return reverse(prefix_url_name, args=args, kwargs=kwargs)
+                except NoReverseMatch:
+                    pass    
 
-    # Default URL resolution
+    # Default URL resolution (used when request is not available or no subdomain match)
     try:
         return reverse(url_name, args=args, kwargs=kwargs)
     except NoReverseMatch:
