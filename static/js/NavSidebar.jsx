@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
+import {AdContext} from "./context";
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
@@ -809,13 +810,23 @@ const CreateSheetsButton = () => {
     </Button>
   ) 
 }
-const CreateASheet = () => (
-  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
-              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
-                     'he': ''}}>
-      <CreateSheetsButton/>
-  </TitledText>
-);
+const CreateASheet = () => {
+    let enText, heText;
+    if (Sefaria.multiPanel) {
+        enText = 'Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.';
+        heText = 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מקורות מדיה מגוונים. השתמשו בכלים המוצעים כדי לכתוב מחשבות ותובנות אודות המקורות שבספרייה, להוסיף קטעי וידאו ואודיו, לצטט מהמקורות שבספרייה.';
+    } else {
+        enText = 'Use a computer to mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary. The Voices Editor is not supported on mobile devices.';
+        heText = 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מיני מדיה מגוונים. לא ניתן ליצור או לערוך דפים באמצעות המכשיר הנייד. על מנת לגשת לעורך הדפים של ספריא,יש להיכנס לאתר האינטרנט ״חיבורים״ באינטרנט.';
+    }
+    return (
+        <TitledText title={{'en': 'Create', 'he': 'יצירת דף מקורי'}}
+                    text={{'en': enText,
+                        'he': heText}}>
+            {Sefaria.multiPanel && <CreateSheetsButton/>}
+        </TitledText>
+    );
+}
 
 const WhatIsSefariaVoices = () => (
     <TitledText title={{'en': 'What is Voices on Sefaria?', 'he': 'נא להכיר: חיבורים בספריא'}}
