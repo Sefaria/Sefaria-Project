@@ -37,50 +37,33 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
   const sheetsTopicsCalendar = <SheetsTopicsCalendar handleClick={setTopic}/>;
   const sheetsTopicsTOC = <SheetsTopicsTOC handleClick={setNavTopic}/>;
 
-  if (multiPanel) {
-    return <SheetsHomePageDesktop sheetsHeroBanner={sheetsHeroBanner} 
-                                  sheetsTopicsCalendar={sheetsTopicsCalendar} 
-                                  sheetsTopicsTOC={sheetsTopicsTOC} />;
-  }
-  else {
-    return <SheetsHomePageMobile sheetsHeroBanner={sheetsHeroBanner} 
-                                 sheetsTopicsCalendar={sheetsTopicsCalendar} 
-                                 sheetsTopicsTOC={sheetsTopicsTOC} />;
-  }     
-}
- 
-const SheetsHomePageMobile = ({sheetsHeroBanner, sheetsTopicsCalendar, sheetsTopicsTOC}) => {
-  return <div className="readerNavMenu sheetsHomepage" key="0">
-            <div className="content">
-                {sheetsHeroBanner}
-                <div className="sidebarLayout">
-                    <div className="contentInner">
-                        <div className="sheetsTopics">
-                            {sheetsTopicsCalendar}
-                        </div>
-                    </div>
-                    <SheetsHomePageSidebar includeFooter={false} />
-                    {sheetsTopicsTOC}
-                    <div className="sans-serif"><SidebarFooter /></div>
-                </div>
+  return (
+    <div className="readerNavMenu sheetsHomepage" key="0">
+      <div className="content">
+        {sheetsHeroBanner}
+        <div className="sidebarLayout">
+          <div className="contentInner">
+            <div className="sheetsTopics">
+              {multiPanel ? (
+                <>
+                  {sheetsTopicsCalendar}
+                  {sheetsTopicsTOC}
+                </>
+              ) : (
+                sheetsTopicsCalendar
+              )}
             </div>
-        </div>
-}
-
-const SheetsHomePageDesktop = ({sheetsHeroBanner, sheetsTopicsCalendar, sheetsTopicsTOC}) => {
-    return <div className="readerNavMenu sheetsHomepage" key="0">
-              <div className="content">
-                  {sheetsHeroBanner}
-                  <div className="sidebarLayout">
-                      <div className="contentInner">
-                          <div className="sheetsTopics">
-                              {sheetsTopicsTOC}
-                              {sheetsTopicsCalendar}
-                          </div>
-                      </div>
-                      <SheetsHomePageSidebar includeFooter={true} />
-                  </div>
-              </div>
           </div>
-  }
+          <SheetsHomePageSidebar includeFooter={multiPanel} />
+          {!multiPanel && (
+            <>
+              {sheetsTopicsTOC}
+              <div className="sans-serif"><SidebarFooter /></div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 export { SheetsHomePage };
