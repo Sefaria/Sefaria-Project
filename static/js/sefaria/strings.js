@@ -160,6 +160,9 @@ const Strings = {
 
     // Sheets
     "Sheet": "דף מקורות",
+    "Community-Powered Jewish Learning": "חיבורים חדשים למקורות ולקהילה",
+    "Share. Discover. Join the Conversation.": "המקום ללמידה, שיתוף רעיונות, וכתיבת חומרים מקוריים.",
+    "Browse Topic Categories": "חיפוש מקורות לפי נושא",
     "About this Sheet": "אודות דף המקורות",
     "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
