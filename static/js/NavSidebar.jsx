@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
@@ -18,6 +19,14 @@ const NavSidebar = ({sidebarModules, includeFooter = true}) => {
     )}
     {!!includeFooter && <SidebarFooter />} 
   </div>
+};
+
+NavSidebar.propTypes = {
+  sidebarModules: PropTypes.arrayOf(PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    props: PropTypes.object
+  })).isRequired,
+  includeFooter: PropTypes.bool
 };
 
 

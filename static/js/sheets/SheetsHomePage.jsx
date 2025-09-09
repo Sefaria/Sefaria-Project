@@ -1,4 +1,5 @@
 import React  from 'react';
+import PropTypes from 'prop-types';
 import {NavSidebar, SidebarFooter} from "../NavSidebar";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
 import Sefaria from "../sefaria/sefaria";
@@ -20,6 +21,13 @@ const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
         </div>;
 }
 
+SheetsHeroBanner.propTypes = {
+  title: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+  videoOptions: PropTypes.arrayOf(PropTypes.string).isRequired,
+  posterImg: PropTypes.string.isRequired
+};
+
 const SheetsHomePageSidebar = ({includeFooter = false}) => {
     const sidebarModules = [
     {type: "CreateASheet"},
@@ -27,6 +35,10 @@ const SheetsHomePageSidebar = ({includeFooter = false}) => {
   ];
     return <NavSidebar sidebarModules={sidebarModules} includeFooter={includeFooter} />
 }
+
+SheetsHomePageSidebar.propTypes = {
+  includeFooter: PropTypes.bool
+};
 
 
 
@@ -68,4 +80,11 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
     </div>
   );
 }
+
+SheetsHomePage.propTypes = {
+  setNavTopic: PropTypes.func.isRequired,
+  setTopic: PropTypes.func.isRequired,
+  multiPanel: PropTypes.bool.isRequired
+};
+
 export { SheetsHomePage };
