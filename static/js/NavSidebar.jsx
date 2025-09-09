@@ -1,5 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
-import {AdContext} from "./context";
+import React, {useState, useEffect} from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
