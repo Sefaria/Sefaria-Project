@@ -110,12 +110,10 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 for domain in DOMAIN_LANGUAGES:
                     if DOMAIN_LANGUAGES[domain] == interface:
                         redirect_domain = domain
-                logger.info(f"Redirect domain: {redirect_domain}")
                 if redirect_domain:
                     # When detected language doesn't match current domain langauge, redirect
                     path = request.get_full_path()
                     path = path + ("&" if "?" in path else "?") + "set-language-cookie"
-                    logger.info(f"Redirecting to: {redirect_domain + path}")
                     return redirect(redirect_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language
@@ -176,14 +174,12 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            logger.info(f"Redirecting to: {domain + path + params_string}")
             response = redirect(domain + path + params_string)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()
-            logger.info(f"Returning response")
             return response
 
 
