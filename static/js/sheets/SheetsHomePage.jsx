@@ -2,7 +2,6 @@ import React  from 'react';
 import PropTypes from 'prop-types';
 import {NavSidebar, SidebarFooter} from "../NavSidebar";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
-import Sefaria from "../sefaria/sefaria";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
      * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
@@ -30,8 +29,8 @@ SheetsHeroBanner.propTypes = {
 
 const SheetsHomePageSidebar = ({includeFooter = false}) => {
     const sidebarModules = [
+    {type: "WhatIsSefariaVoices"},
     {type: "CreateASheet"},
-    {type: "WhatIsASourceSheet"},
   ];
     return <NavSidebar sidebarModules={sidebarModules} includeFooter={includeFooter} />
 }
