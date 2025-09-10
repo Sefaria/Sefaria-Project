@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n sefaria_tags %}
 
 {% block title %}{% trans "Create an Account" %} | {% trans "Sefaria" %}{% endblock %}
 
@@ -12,7 +12,7 @@
           <span class="int-en">Sign Up</span>
           <span class="int-he">יצירת חשבון</span>
         </h1>
-        <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
+        <form id="register-form" action="{% subdomain_url "register" %}" method="post" autocomplete="false">
         {% csrf_token %}
         {{ form.as_p }}
         {% if next %}
@@ -23,13 +23,14 @@
             <span class="int-he">צור חשבון</span>
         </button>
         </form>
-        <a class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
+        <a class="registration-links control-elem" href="{% subdomain_url "login" %}{% if next %}?next={{ next }}{% endif %}">
           <span class="int-en">Already have an account? Log in</span>
           <span class="int-he">יש לך חשבון כבר? להתחברות</span>
         </a>
-        <p class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
-          <span class="int-en">By clicking "Sign Up" you agree to our <a href="{{ DJANGO_VARS.props.domainModules.library }}/terms" target="_blank">Terms of Use</a> & <a href="{{ DJANGO_VARS.props.domainModules.library }}/privacy-policy" target="_blank">Privacy Policy</a></span>
-          <span class="int-he">בלחיצה על "יצירת חשבון" הנכם מסכימים ל<a href="{{ DJANGO_VARS.props.domainModules.library }}/terms" target="_blank">תנאי השימוש</a> ו<a href="{{ DJANGO_VARS.props.domainModules.library }}/privacy-policy" target="_blank">מדיניות הפרטיות</a> שלנו</span>
+        
+        <p class="registration-links control-elem" href="{% subdomain_url "login" %}{% if next %}?next={{ next }}{% endif %}">
+          <span class="int-en">By clicking "Sign Up" you agree to our <a href="{{ domain_modules.library }}/terms" target="_blank">Terms of Use</a> & <a href="{{ domain_modules.library }}/privacy-policy" target="_blank">Privacy Policy</a></span>
+          <span class="int-he">בלחיצה על "יצירת חשבון" הנכם מסכימים ל<a href="{{ domain_modules.library }}/terms" target="_blank">תנאי השימוש</a> ו<a href="{{ domain_modules.library }}/privacy-policy" target="_blank">מדיניות הפרטיות</a> שלנו</span>
         </p>
     </div>
 </div>

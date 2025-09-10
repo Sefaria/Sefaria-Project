@@ -31,7 +31,7 @@ const Strings = {
     "Users": "משתמשים",
     "Categories": "קטגוריות",
 
-    // Texts Page
+    // Landing Pages
     "Learn More": "למדו עוד",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
@@ -56,6 +56,9 @@ const Strings = {
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
     "Sponsor A Day": "הקדישו יום לימוד",
+    "Community-Powered Jewish Learning": "חיבורים חדשים למקורות ולקהילה",
+    "Share. Discover. Join the Conversation.": "המקום ללמידה, שיתוף רעיונות, וכתיבת חומרים מקוריים.",
+    "Browse Topic Categories": "חיפוש מקורות לפי נושא",
 
     // Text Category Pages
     "All Portions": "פרשות השבוע",
