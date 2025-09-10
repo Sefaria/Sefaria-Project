@@ -360,7 +360,7 @@ for prefix in MODULE_ROUTES.values():
         url(fr'^{clean_prefix}register/?$', sefaria_views.register, name=get_module_url_name(prefix, 'register')),
         url(fr'^{clean_prefix}logout/?$', sefaria_views.CustomLogoutView.as_view(), name=get_module_url_name(prefix, 'logout')),
         url(fr'^{clean_prefix}password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name=get_module_url_name(prefix, 'password_reset')),
-        url(fr'^{clean_prefix}password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name=get_module_url_name(prefix, 'password_reset_confirm')),
+        url(fr'^{clean_prefix}password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{{1,13}}-[0-9A-Za-z]{{1,20}})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name=get_module_url_name(prefix, 'password_reset_confirm')),
         url(fr'^{clean_prefix}password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name=get_module_url_name(prefix, 'password_reset_complete')),
         url(fr'^{clean_prefix}password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name=get_module_url_name(prefix, 'password_reset_done')),
         url(fr'^{clean_prefix}api/register/$', sefaria_views.register_api),
