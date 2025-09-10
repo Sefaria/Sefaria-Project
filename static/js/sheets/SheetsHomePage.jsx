@@ -57,14 +57,10 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
             <div className="sheetsTopics">
-              {multiPanel ? (
-                <>
-                  {sheetsTopicsCalendar}
-                  {sheetsTopicsTOC}
-                </>
-              ) : (
-                sheetsTopicsCalendar
-              )}
+            <>
+            {sheetsTopicsCalendar}
+            {multiPanel && sheetsTopicsTOC}
+            </>
             </div>
           </div>
           <SheetsHomePageSidebar includeFooter={multiPanel} />
