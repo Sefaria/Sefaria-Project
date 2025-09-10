@@ -21,8 +21,8 @@ const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
 
 const SheetsSidebar = () => {
     const sidebarModules = [
+    {type: "WhatIsSefariaVoices"},
     {type: "CreateASheet"},
-    {type: "WhatIsASourceSheet"},
   ];
     return <NavSidebar sidebarModules={sidebarModules} />
 }
