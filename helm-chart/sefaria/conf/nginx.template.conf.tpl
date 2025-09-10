@@ -44,6 +44,13 @@ http {
     keepalive 32;
   }
 
+  server {
+    listen 80;
+    listen [::]:80;
+    server_name ${INTERNAL_URL};
+    proxy_pass http://varnish_upstream;
+  }
+
   {{- range $i := .Values.ingress.hosts }}
   server {
     listen 80;
