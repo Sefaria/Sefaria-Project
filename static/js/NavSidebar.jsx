@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
@@ -8,7 +9,7 @@ import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
-const NavSidebar = ({sidebarModules}) => {
+const NavSidebar = ({sidebarModules, includeFooter = true}) => {
   return <div className="navSidebar sans-serif">
     {sidebarModules.map((m, i) =>
       <SidebarModules
@@ -16,8 +17,16 @@ const NavSidebar = ({sidebarModules}) => {
         props={m.props || {}}
         key={i} />
     )}
-    <SidebarFooter />
+    {!!includeFooter && <SidebarFooter />} 
   </div>
+};
+
+NavSidebar.propTypes = {
+  sidebarModules: PropTypes.arrayOf(PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    props: PropTypes.object
+  })).isRequired,
+  includeFooter: PropTypes.bool
 };
 
 
