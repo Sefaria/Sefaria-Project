@@ -659,6 +659,9 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
     const generateDisplayTabs = (tabMetaDataList) => {
       let displayTabs = [];
       tabMetaDataList.forEach(tabObj => {
+        // 2 elements of the tab metadata list are filter and language buttons.  These need to be passed to "TabView" as 'tabs',
+        // but really, they aren't going to be displayed to users as tabs.  The 'displayTabs' list is the actual components
+        // that are displayed as tabs to the user.
         const { id, sortOptions, filterFunc, sortFunc, renderWrapper, hasSources } = tabObj;
         if (hasSources) {
           displayTabs.push(
