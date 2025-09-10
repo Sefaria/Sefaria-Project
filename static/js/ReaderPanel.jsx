@@ -125,10 +125,13 @@ class ReaderPanel extends Component {
         (data?.primaryDirection !== prevData?.primaryDirection || data?.translationDirection !== prevData?.translationDirection) &&
         data?.primaryDirection === data?.translationDirection;
   }
+  /**
+   * Sets state either in the central app or in the local component.
+   * If setCentralState function is present, then this ReaderPanel's state is managed from within the ReaderApp component.
+   * If it is not present, then the state for this ReaderPanel is managed from the component itself.
+   * @param {Object} state - The state updates to apply
+   */
   conditionalSetState(state) {
-    // Set state either in the central app or in the local component.
-    // If setCentralState function is present, then this ReaderPanel's state is managed from within the ReaderApp component.
-    // If it is not present, then the state for this ReaderPanel is managed from the component itself.
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -325,7 +328,6 @@ class ReaderPanel extends Component {
     });
   }
   updateTextColumn(refs) {
-    // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
     this.conditionalSetState({ refs: refs });
   }
@@ -765,6 +767,7 @@ class ReaderPanel extends Component {
       const showHighlight = this.state.showHighlight || (this.state.highlightedRefs.length > 1);
       const index = oref && oref.index ? Sefaria.index(oref.index) : null;
       const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
+
       items.push(
         <TextColumn
           panelPosition ={this.props.panelPosition}
@@ -801,7 +804,7 @@ class ReaderPanel extends Component {
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
           navigatePanel={this.props.navigatePanel}
-          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
+          key={this.state.textColumnKey || "empty-TextColumn"} /> // Empty key is for backward compatibility with old keys
       );
     }
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
