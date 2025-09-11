@@ -24,7 +24,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
-from django.http import Http404, QueryDict, HttpResponse
+from django.http import Http404, QueryDict, HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -55,7 +55,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, DOMAIN_MODULES, MODULE_ROUTES
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, DOMAIN_MODULES, MODULE_ROUTES, STATICFILES_DIRS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -4733,6 +4733,27 @@ def apple_app_site_association(request):
             ]
         }
     })
+
+
+def module_favicon(request):
+    """
+    Serve module-specific favicon.ico based on the active module from the root of the hostname
+    This was done to handle stupid or impatient clients that request /favicon.ico directly without parsing HTML response
+    """
+    
+    # Get the active module and default to library
+    active_module = getattr(request, 'active_module', 'library')
+    
+    # Construct the path to the module-specific favicon
+    favicon_path = os.path.join(STATICFILES_DIRS[0], 'icons', active_module, 'favicon.ico')
+
+    response = FileResponse(open(favicon_path, 'rb'), content_type='image/x-icon')
+    
+    # Tell client to cache for 1 month, since favicons change infrequentlyy
+    response["Cache-Control"] = "max-age=2592000"
+    
+    return response
+
 
 def android_asset_links_json(request):
     return jsonResponse(
