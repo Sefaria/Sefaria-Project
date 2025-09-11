@@ -38,27 +38,28 @@ DATABASES = {
     }
 }"""
 
+
+################ These are things you can change! ###########################################################################
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = json.dumps({
+DOMAIN_LANGUAGES = {
     "http://hebrew.example.org": "hebrew",
     "http://english.example.org": "english",
-})
+}
 
-# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
 DOMAIN_MODULES = {
     "library": "http://localhost:8000",
-    "sheets": "http://localhost:8000",
+    "sheets": "http://voices.localhost:8000",  
 }
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + list(DOMAIN_MODULES.values())
+
 MODULE_ROUTES = {
     "library": "/",
     "sheets": "/sheets/",
 }
 
-################ These are things you can change! ###########################################################################
-#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
@@ -139,7 +140,6 @@ SITE_PACKAGE = "sites.sefaria"
 
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
