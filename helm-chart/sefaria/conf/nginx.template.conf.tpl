@@ -48,7 +48,9 @@ http {
     listen 80;
     listen [::]:80;
     server_name ${INTERNAL_URL};
-    proxy_pass http://varnish_upstream;
+    location / {
+        proxy_pass http://varnish_upstream;
+    }
   }
 
   {{- range $i := .Values.ingress.hosts }}
