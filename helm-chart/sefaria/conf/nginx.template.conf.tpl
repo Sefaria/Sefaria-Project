@@ -48,6 +48,12 @@ http {
     listen 80;
     listen [::]:80;
     server_name ${INTERNAL_URL};
+
+    location /nginx-health {
+      access_log off;
+      return 200 "healthy\n";
+    }
+
     location / {
         proxy_pass http://varnish_upstream;
     }
