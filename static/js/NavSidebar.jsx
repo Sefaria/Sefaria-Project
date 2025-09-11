@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
@@ -8,7 +9,7 @@ import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
-const NavSidebar = ({sidebarModules}) => {
+const NavSidebar = ({sidebarModules, includeFooter = true}) => {
   return <div className="navSidebar sans-serif">
     {sidebarModules.map((m, i) =>
       <SidebarModules
@@ -16,8 +17,16 @@ const NavSidebar = ({sidebarModules}) => {
         props={m.props || {}}
         key={i} />
     )}
-    <SidebarFooter />
+    {!!includeFooter && <SidebarFooter />} 
   </div>
+};
+
+NavSidebar.propTypes = {
+  sidebarModules: PropTypes.arrayOf(PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    props: PropTypes.object
+  })).isRequired,
+  includeFooter: PropTypes.bool
 };
 
 
@@ -49,7 +58,7 @@ const SidebarModules = ({type, props}) => {
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
     "CreateASheet":           CreateASheet,
-    "WhatIsASourceSheet":     WhatIsASourceSheet,
+    "WhatIsSefariaVoices":     WhatIsSefariaVoices,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -793,9 +802,11 @@ const StayConnected = () => {
 };
 
 const GetStartedButton = () => {
-    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
+    const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS)
     return <Button variant="secondary" className="getStartedSheets">
-      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>
+          <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
+      </a>
     </Button>;
 }
 const CreateSheetsButton = () => {
@@ -807,18 +818,28 @@ const CreateSheetsButton = () => {
     </Button>
   ) 
 }
-const CreateASheet = () => (
-  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
-              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
-                     'he': ''}}>
-      <CreateSheetsButton/>
-  </TitledText>
-);
+const CreateASheet = () => {
+    let enText, heText;
+    if (Sefaria.multiPanel) {
+        enText = 'Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.';
+        heText = 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מקורות מדיה מגוונים. השתמשו בכלים המוצעים כדי לכתוב מחשבות ותובנות אודות המקורות שבספרייה, להוסיף קטעי וידאו ואודיו, לצטט מהמקורות שבספרייה.';
+    } else {
+        enText = 'Use a computer to mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary. The Voices Editor is not supported on mobile devices.';
+        heText = 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מיני מדיה מגוונים. לא ניתן ליצור או לערוך דפים באמצעות המכשיר הנייד. על מנת לגשת לעורך הדפים של ספריא, יש להיכנס לאתר האינטרנט ״חיבורים״ במחשב.';
+    }
+    return (
+        <TitledText title={{'en': 'Create', 'he': 'יצירת דף מקורי'}}
+                    text={{'en': enText,
+                        'he': heText}}>
+            {Sefaria.multiPanel && <CreateSheetsButton/>}
+        </TitledText>
+    );
+}
 
-const WhatIsASourceSheet = () => (
-    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
-                text={{'en': '',
-                       'he': ''}}>
+const WhatIsSefariaVoices = () => (
+    <TitledText title={{'en': 'What is Voices on Sefaria?', 'he': 'נא להכיר: חיבורים בספריא'}}
+                text={{'en': 'Voices on Sefaria is a dedicated space for you to create and discover Torah-based content — from source sheets and lesson plans to divrei Torah and essays.',
+                       'he': 'פלטפורמה חדשה זו נוצרה עבורכם, הלומדים והלומדות, כדי שתוכלו ליצור ולאסוף חומרים מקוריים השואבים ממקורות הספרות היהודית. דף לימוד? חיבור ספרותי? בלוג? דבר תורה? פה זה המקום לתת ליצירתיות ולסקרנות להוביל את הדרך.'}}>
         <GetStartedButton/>
     </TitledText>
 );
