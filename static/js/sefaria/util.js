@@ -381,6 +381,46 @@ class Util {
             index++;
         return str1.substring(0, index);
     }
+    
+    /**
+     * Finds the longest common suffix among an array of strings
+     * 
+     * This function is similar to commonSubstring but works from the end (suffix)
+     * instead of the beginning (prefix), and works with an array of strings instead
+     * of just two strings.
+     * 
+     * @param {string[]} strings - Array of strings to analyze
+     * @returns {string} - The longest common suffix
+     * 
+     * @example
+     * findLongestCommonSuffix(["hello world", "goodbye world"]) // returns " world"
+     * findLongestCommonSuffix(["abc", "def"]) // returns ""
+     * findLongestCommonSuffix(["www.sefaria.org", "sheets.sefaria.org"]) // returns ".sefaria.org"
+     */
+    static findLongestCommonSuffix(strings) {
+        if (strings.length === 0) return '';
+        if (strings.length === 1) return strings[0];
+        
+        // Start with the first string as the potential common suffix
+        let commonSuffix = strings[0];
+        
+        // Check each subsequent string to see if it ends with the current common suffix
+        for (let i = 1; i < strings.length; i++) {
+            const str = strings[i];
+            
+            // Keep removing characters from the beginning until we find a match
+            while (commonSuffix && !str.endsWith(commonSuffix)) {
+                commonSuffix = commonSuffix.slice(1);
+            }
+            
+            // If no common suffix found, return empty string
+            if (!commonSuffix) {
+                return '';
+            }
+        }
+        
+        return commonSuffix;
+    }
     static setupPrototypes() {
 
         String.prototype.toProperCase = function() {
