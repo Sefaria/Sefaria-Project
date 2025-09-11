@@ -2691,6 +2691,87 @@ ReaderMessage.propTypes = {
 };
 
 
+/**
+ * Determines the appropriate cookie domain for cross-subdomain cookie sharing.
+ * 
+ * This function analyzes the current hostname and returns the parent domain
+ * that should be used for cookie domain attribute to enable cross-subdomain
+ * cookie sharing.
+ * 
+ * Why we need this:
+ * - Cookies without a domain attribute are only available to the exact domain where they were set
+ * - Setting domain=".parent.com" makes cookies available to all subdomains of parent.com
+ * - Different domain structures require different parent domains
+ * 
+ * Domain patterns handled:
+ * - Production: sefaria.org, voices.sefaria.org → .sefaria.org
+ * - Cauldron: modularization.cauldron.sefaria.org → .modularization.cauldron.sefaria.org
+ * - Custom: sefariastaging.org → .sefariastaging.org
+ * - Development: localhost, 127.0.0.1 → null (no domain set)
+ * 
+ * @param {string} hostname - The hostname to analyze (defaults to window.location.hostname)
+ * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
+ * 
+ * @example
+ * // Production domains
+ * getCookieDomain("sefaria.org") // returns ".sefaria.org"
+ * getCookieDomain("voices.sefaria.org") // returns ".sefaria.org"
+ * 
+ * // Cauldron domains (staging/development)
+ * getCookieDomain("modularization.cauldron.sefaria.org") // returns ".modularization.cauldron.sefaria.org"
+ * getCookieDomain("voices.modularization.cauldron.sefaria.org") // returns ".modularization.cauldron.sefaria.org"
+ * 
+ * // Development domains
+ * getCookieDomain("localhost") // returns null
+ * getCookieDomain("127.0.0.1") // returns null
+ */
+const getCookieDomain = (hostname = null) => {
+  // Use current hostname if none provided
+  if (!hostname) {
+    hostname = typeof window !== 'undefined' ? window.location.hostname : null;
+  }
+  
+  if (!hostname) {
+    return null;
+  }
+  
+  // For localhost and IP addresses, don't set domain (use default behavior)
+  // This allows cookies to work normally in development environments
+  if (hostname === 'localhost' || /^\d+\.\d+\.\d+\.\d+/.test(hostname)) {
+    return null;
+  }
+  
+  // Split hostname into parts for analysis
+  const parts = hostname.split('.');
+  
+  // Need at least 2 parts to form a valid domain (e.g., "example.com")
+  if (parts.length < 2) {
+    return null;
+  }
+  
+  // Special handling for cauldron domains
+  // Cauldron domains have the structure: {name}.cauldron.sefaria.org
+  // We need to include the cauldron name in the cookie domain for proper isolation
+  if (parts.includes('cauldron') && parts.length >= 3) {
+    const cauldronIndex = parts.indexOf('cauldron');
+    
+    // If cauldron is found and there are parts before it, use everything from cauldron onwards
+    // This handles: modularization.cauldron.sefaria.org → .modularization.cauldron.sefaria.org
+    if (cauldronIndex > 0 && cauldronIndex < parts.length - 1) {
+      return '.' + parts.slice(cauldronIndex - 1).join('.');
+    }
+    // If cauldron is at the beginning, use everything from cauldron onwards
+    // This handles: cauldron.sefaria.org → .cauldron.sefaria.org
+    else if (cauldronIndex === 0) {
+      return '.' + parts.slice(cauldronIndex).join('.');
+    }
+  }
+  
+  // For regular domains, use the last 2 parts
+  // This handles: sefaria.org, voices.sefaria.org, sefariastaging.org
+  return '.' + parts.slice(-2).join('.');
+};
+
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
@@ -2699,7 +2780,24 @@ class CookiesNotification extends Component {
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
+    // TEMP: Cookie banner domain fix - testing logs
+    console.log("TEMP: Cookie banner - setting cookie for cross-subdomain sharing");
+    
+    // Use the getCookieDomain function to get the appropriate cookie domain
+    const cookieDomain = getCookieDomain();
+    console.log("TEMP: Current hostname:", window.location.hostname);
+    console.log("TEMP: Calculated cookie domain:", cookieDomain);
+    
+    const cookieOptions = {path: "/", expires: 20*365};
+    
+    if (cookieDomain) {
+      cookieOptions.domain = cookieDomain;
+    }
+    
+    console.log("TEMP: Final cookie options:", cookieOptions);
+    $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
+    console.log("TEMP: Cookie set successfully");
+    
     this.setState({showNotification: false});
   }
   render() {
