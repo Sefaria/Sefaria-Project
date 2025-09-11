@@ -165,7 +165,6 @@ def make_sheet_class_string(sheet):
 
     return " ".join(classes)
 
-
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id, editorMode = False):
     """
@@ -174,10 +173,16 @@ def view_sheet(request, sheet_id, editorMode = False):
     embed = request.GET.get('embed', '0')
 
     if embed != '1' and editorMode is False:
+        sheet = get_sheet(sheet_id)
+        if "redirect" in sheet:
+            return redirect(sheet["redirect"][request.LANGUAGE_CODE], permanent=False)
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+    if "redirect" in sheet:
+        return redirect(sheet["redirect"][request.LANGUAGE_CODE], permanent=True)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 
