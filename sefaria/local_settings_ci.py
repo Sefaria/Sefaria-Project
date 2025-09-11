@@ -19,16 +19,14 @@ DATABASES = {
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {
-# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
     "http://hebrew.example.org": "hebrew",
     "http://english.example.org": "english",
 }
-
-# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
 DOMAIN_MODULES = {
     "library": "http://localhost:8000",
-    "sheets": "http://localhost:8000",
+    "sheets": "http://voices.localhost:8000",
 }
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + list(DOMAIN_MODULES.values())
 MODULE_ROUTES = {
     "library": "/",
     "sheets": "/sheets/",
@@ -52,7 +50,6 @@ CACHES = {
 SITE_PACKAGE = "sites.sefaria"
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', "0.0.0.0", '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""

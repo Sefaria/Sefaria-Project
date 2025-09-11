@@ -17,7 +17,7 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
-from sefaria.local_settings import MODULE_ROUTES
+from sefaria.local_settings import DOMAIN_MODULES, MODULE_ROUTES
 from sefaria.urls import get_module_url_name
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
@@ -527,26 +527,73 @@ def sheet_via_absolute_link(sheet_id):
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
 
 
-@register.simple_tag(takes_context=True)
-def subdomain_url(context, url_name, *args, **kwargs):
+def _get_default_url(url_name, *args, **kwargs):
     """
-    Custom template tag that resolves URLs based on the current subdomain.
-    Falls back to regular URL resolution if subdomain URL doesn't exist.
+    Helper function to get the default URL resolution.
+    Returns the URL if found, '#' if not found.
     """
-    request = context.get('request')
-    
-    # If request is available, try to use subdomain-specific URL resolution
-    if request:
-        for module_name, prefix in MODULE_ROUTES.items():
-            if getattr(request, 'active_module', None) == module_name:
-                try:
-                    prefix_url_name = get_module_url_name(prefix, url_name) 
-                    return reverse(prefix_url_name, args=args, kwargs=kwargs)
-                except NoReverseMatch:
-                    pass    
-
-    # Default URL resolution (used when request is not available or no subdomain match)
     try:
         return reverse(url_name, args=args, kwargs=kwargs)
     except NoReverseMatch:
         return '#'
+
+
+def _resolve_url_with_module(module_name, url_name, *args, **kwargs):
+    """
+    Core URL resolution logic that tries module-specific URL first,
+    then falls back to default URL resolution.
+    """
+    if module_name:
+        if module_name in MODULE_ROUTES:
+            try:
+                prefix_url_name = get_module_url_name(MODULE_ROUTES[module_name], url_name)
+                return reverse(prefix_url_name, args=args, kwargs=kwargs)
+            except NoReverseMatch:
+                pass
+    
+    return _get_default_url(url_name, *args, **kwargs)
+
+
+@register.simple_tag(takes_context=True)
+def context_url(context, url_name, *args, **kwargs):
+    """
+    Template tag that resolves URLs based on the current request context.
+    Uses the active module from the request to determine the appropriate URL.
+    Falls back to regular URL resolution if module-specific URL doesn't exist.
+    """
+    request = context.get('request')
+    module_name = None
+    
+    if request:
+        module_name = getattr(request, 'active_module', None)
+    
+    return _resolve_url_with_module(module_name, url_name, *args, **kwargs)
+
+
+@register.simple_tag
+def domain_url(domain, url_name, *args, **kwargs):
+    """
+    Template tag that resolves URLs based on a specific domain, which is necessary in email templates where request context is not available.
+    Determines the module from the domain and generates the appropriate URL.
+    Primarily used in email templates where request context is not available.
+    Falls back to regular URL resolution if module-specific URL doesn't exist.
+    """
+    module_name = None
+    
+    # Parse domain to get hostname if it's a full URL
+    try:
+        from urllib.parse import urlparse
+        if domain.startswith('http'):
+            parsed_domain = urlparse(domain)
+            hostname = parsed_domain.hostname
+        else:
+            hostname = domain
+            
+        for mod_name, mod_domain in DOMAIN_MODULES.items():
+            if hostname and hostname in mod_domain:
+                module_name = mod_name
+                break
+    except Exception:
+        pass
+    
+    return _resolve_url_with_module(module_name, url_name, *args, **kwargs)

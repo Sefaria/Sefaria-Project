@@ -99,7 +99,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
 const CollectionBlockListing = ({data}) => {
   return (
     <div className="navBlock">
-      <a href={`/sheets/collections/${data.slug}`} className="navBlockTitle" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href={`/collections/${data.slug}`} className="navBlockTitle" data-target-module={Sefaria.SHEETS_MODULE}>
         <div className="collectionListingImageBox">
           <img className="collectionListingImage" src={data.imageUrl} alt="Collection Logo"/>
         </div>
