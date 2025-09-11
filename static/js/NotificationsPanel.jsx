@@ -26,10 +26,14 @@ class NotificationsPanel extends Component {
     $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
     this.markAsRead();
   }
-  componentDidUpdate() {
-    this.markAsRead();
+  componentWillUnmount() {
+    if (this._scrollTimeout) {
+      clearTimeout(this._scrollTimeout);
+    }
   }
   handleScroll() {
+    this.markAsRead();
+
     if (this.state.loadedToEnd || this.state.loading) { return; }
     var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
     var margin = 600;
@@ -46,8 +50,12 @@ class NotificationsPanel extends Component {
         n.read = true;
       }
     });
+
     if (ids.length) {
-      $.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
+      $.post("/api/notifications/read", {
+        notifications: JSON.stringify(ids),
+        scope: Sefaria.activeModule
+      }, function(data) {
         this.props.setUnreadNotificationsCount(data.unreadCount);
       }.bind(this));
     }
@@ -61,9 +69,16 @@ class NotificationsPanel extends Component {
     if (data.count < data.page_size) {
       this.setState({loadedToEnd: true});
     }
-    Sefaria.notifications = Sefaria.notifications.concat(data.notifications);
+    
+    // Prevent duplicate notifications by filtering out ones that already exist
+    const existingIds = new Set(Sefaria.notifications.map(n => n._id));
+    const newNotifications = data.notifications.filter(n => !existingIds.has(n._id));
+    
+    Sefaria.notifications = Sefaria.notifications.concat(newNotifications);
     this.setState({page: data.page + 1, loading: false});
     this.forceUpdate();
+    // Mark newly loaded notifications as read
+    this.markAsRead();
   }
   render() {
     const notifications = Sefaria.notifications.map(n => 
