@@ -171,6 +171,7 @@
 {% endblock %}
 
 {% block js %}
+    {% include "js/django-csrf.js" %}
 	<script>
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
