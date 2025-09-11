@@ -74,6 +74,7 @@ class ReaderApp extends Component {
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
+        collectionData:          props.initialCollectionData,
       };
     }
 
@@ -151,6 +152,7 @@ class ReaderApp extends Component {
       collectionSlug:          state.collectionSlug          || null,
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
+      collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -200,6 +202,9 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    
+    // Handle right-clicks on links with data-target-module to ensure correct domain
+    document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -229,6 +234,7 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -531,6 +537,16 @@ class ReaderApp extends Component {
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
             break;
+          case "editCollection":
+            if (state.collectionData && state.collectionData.slug) {
+              hist.url   = "collections/" + state.collectionData.slug + "/settings";
+              hist.title = Sefaria._("Edit Collection") + " | " + Sefaria._(siteName + " Collections");
+            } else {
+              hist.url   = "collections/new";
+              hist.title = Sefaria._("Create Collection") + " | " + Sefaria._(siteName + " Collections");
+            }
+            hist.mode  = "editCollection";
+            break;
           case "collectionsPublic":
             hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
             hist.url = "collections";
@@ -800,19 +816,6 @@ class ReaderApp extends Component {
     return hist;
   }
   
-  modifyURLbasedOnModule(url) {
-    const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
-    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!url.startsWith("/sheets"))) {
-      // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
-      return sheetsPrefix + url;
-    }
-    else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && url.startsWith("/sheets")) {
-      // If we are not in the sheets module, remove /sheets from the beginning of the URL
-      return url.replace(sheetsPrefix, "");
-    }
-    return url;
-  }
-  
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -825,7 +828,7 @@ class ReaderApp extends Component {
     }
     
     console.log("Updating History - " + hist.url + " | " + currentUrl);
-    hist.url = this.modifyURLbasedOnModule(hist.url); 
+    hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url); 
     console.log("Updating History2 - " + hist.url + " | " + currentUrl);
 
     if (replace) {
@@ -1129,6 +1132,21 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
 
+  handleModuleLinkRightClick(e) {
+    /*
+    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Especially for library links when in the sheets module (see Parsha Topic pages)
+    */
+    const link = e.target.closest('a[data-target-module]');
+    if (link) {
+      const href = link.getAttribute('href');
+      const targetModule = link.getAttribute('data-target-module');
+      
+      const fullUrl = Sefaria.util.fullURL(href, targetModule);
+      link.setAttribute('href', fullUrl);
+    }
+  }
+
   openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
@@ -1147,7 +1165,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf(moduleURL.hostname) === -1 || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
+    if (!Sefaria.isSefariaURL(url) || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
       return true;
     }
@@ -2365,6 +2383,7 @@ ReaderApp.propTypes = {
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
   initialCollection:           PropTypes.string,
+  initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,

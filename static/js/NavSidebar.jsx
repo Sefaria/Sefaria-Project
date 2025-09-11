@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
@@ -8,7 +9,7 @@ import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Button from "./common/Button";
 
-const NavSidebar = ({sidebarModules}) => {
+const NavSidebar = ({sidebarModules, includeFooter = true}) => {
   return <div className="navSidebar sans-serif">
     {sidebarModules.map((m, i) =>
       <SidebarModules
@@ -16,8 +17,16 @@ const NavSidebar = ({sidebarModules}) => {
         props={m.props || {}}
         key={i} />
     )}
-    <SidebarFooter />
+    {!!includeFooter && <SidebarFooter />} 
   </div>
+};
+
+NavSidebar.propTypes = {
+  sidebarModules: PropTypes.arrayOf(PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    props: PropTypes.object
+  })).isRequired,
+  includeFooter: PropTypes.bool
 };
 
 
@@ -49,7 +58,7 @@ const SidebarModules = ({type, props}) => {
     "StayConnected":          StayConnected,
     "AboutLearningSchedules": AboutLearningSchedules,
     "CreateASheet":           CreateASheet,
-    "WhatIsASourceSheet":     WhatIsASourceSheet,
+    "WhatIsSefariaVoices":     WhatIsSefariaVoices,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -292,7 +301,7 @@ const SidebarFooter = () => {
 
   return (
     <div className = "stickySidebarFooter navSidebarModule">
-        <h3/>
+        <h1/>
         <div className="footerContainer">
           {data.map(footerLink =>
             <a href={footerLink.url}>
@@ -773,7 +782,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => { // TODO: remove? looks like we are not using this
+const StayConnected = () => { 
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (
@@ -782,48 +791,55 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
       <br />
       <NewsletterSignUpForm context="sidebar" />
-
-      <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
-        <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
-      </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
-        <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
-      </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://www.youtube.com/user/SefariaProject">
-        <img src="/static/icons/youtube.svg" alt={Sefaria._("Sefaria on YouTube")} />
-      </a>
+      <div className="social-links">
+        <Button icon={"facebook"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
+        <Button icon={"instagram"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
+        <Button icon={"youtube"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
+      </div>
 
     </SidebarModule>
   );
 };
 
 const GetStartedButton = () => {
-    const href = Sefaria._v({"en": "/sheets/393695", "he": "/sheets/399333"})
+    const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS)
     return <Button variant="secondary" className="getStartedSheets">
-      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>Get Started</a>
+      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>
+          <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
+      </a>
     </Button>;
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"}>
+    <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")}>
       <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
       </a>
     </Button>
   ) 
 }
-const CreateASheet = () => (
-  <TitledText title={{'en': 'Create A Sheet', 'he': ''}}
-              text={{'en': 'Mix and match sources along with outside sources, comments, images, and videos.',
-                     'he': ''}}>
-      <CreateSheetsButton/>
-  </TitledText>
-);
+const CreateASheet = () => {
+    let enText, heText;
+    if (Sefaria.multiPanel) {
+        enText = 'Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.';
+        heText = 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מקורות מדיה מגוונים. השתמשו בכלים המוצעים כדי לכתוב מחשבות ותובנות אודות המקורות שבספרייה, להוסיף קטעי וידאו ואודיו, לצטט מהמקורות שבספרייה.';
+    } else {
+        enText = 'Use a computer to mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary. The Voices Editor is not supported on mobile devices.';
+        heText = 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מיני מדיה מגוונים. לא ניתן ליצור או לערוך דפים באמצעות המכשיר הנייד. על מנת לגשת לעורך הדפים של ספריא, יש להיכנס לאתר האינטרנט ״חיבורים״ במחשב.';
+    }
+    return (
+        <TitledText title={{'en': 'Create', 'he': 'יצירת דף מקורי'}}
+                    text={{'en': enText,
+                        'he': heText}}>
+            {Sefaria.multiPanel && <CreateSheetsButton/>}
+        </TitledText>
+    );
+}
 
-const WhatIsASourceSheet = () => (
-    <TitledText title={{'en': 'What is a Source Sheet?', 'he': ''}}
-                text={{'en': '',
-                       'he': ''}}>
+const WhatIsSefariaVoices = () => (
+    <TitledText title={{'en': 'What is Voices on Sefaria?', 'he': 'נא להכיר: חיבורים בספריא'}}
+                text={{'en': 'Voices on Sefaria is a dedicated space for you to create and discover Torah-based content — from source sheets and lesson plans to divrei Torah and essays.',
+                       'he': 'פלטפורמה חדשה זו נוצרה עבורכם, הלומדים והלומדות, כדי שתוכלו ליצור ולאסוף חומרים מקוריים השואבים ממקורות הספרות היהודית. דף לימוד? חיבור ספרותי? בלוג? דבר תורה? פה זה המקום לתת ליצירתיות ולסקרנות להוביל את הדרך.'}}>
         <GetStartedButton/>
     </TitledText>
 );
@@ -852,13 +868,13 @@ const AboutCollections = ({hideTitle}) => (
         <EnglishText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</EnglishText>
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
     </InterfaceText>
-    {hideTitle ? null :
-    <div>
-      <a className="button small" href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
-        <img src="/static/icons/collection-black.svg" alt="create a collection icon" />
+      {!hideTitle &&
+      <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
+      <a href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
-    </div>}
+      </Button>
+}
   </SidebarModule>
 );
 

@@ -218,8 +218,8 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": json.loads(DOMAIN_MODULES),
-        "moduleRoutes": json.loads(MODULE_ROUTES),
+        "domainModules": DOMAIN_MODULES,
+        "moduleRoutes": MODULE_ROUTES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
@@ -919,11 +919,19 @@ def edit_collection_page(request, slug=None):
         del collectionData["lastModified"]
     else:
         collectionData = None
-
-    # need to pass renderStatic so that s2 shows up in base template
-    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData, "renderStatic": True})
-
-
+           
+    props = base_props(request)
+    props.update({
+        "initialMenu": "editCollection",
+        "initialCollectionData": collectionData,
+    })
+    
+    return render_template(request, 'base.html', props, {
+        "title": "Edit Collection" if collectionData else "Create Collection" + " | " + _("Sefaria Collections"),
+        "desc": "Edit your collection settings and details",
+        "noindex": True
+    })
+    
 def groups_redirect(request, group):
     """
     Redirect legacy groups URLs to collections.

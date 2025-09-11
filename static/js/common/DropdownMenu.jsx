@@ -140,23 +140,27 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
 
 
-const DropdownLanguageToggle = () => (
+const DropdownLanguageToggle = () => {
+  const englishLink = Sefaria.util.fullURL(`/interface/english?next=${getCurrentPage()}`);
+  const hebrewLink = Sefaria.util.fullURL(`/interface/hebrew?next=${getCurrentPage()}`);
+  return (
     <>
       <div className="languageHeader">
         <InterfaceText>Site Language</InterfaceText>
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a href={`/interface/english?next=${getCurrentPage()}`}>
+        <a className="englishLanguageLink" href={englishLink}>
           English
         </a>
       </span>
-      <a href={`/interface/hebrew?next=${getCurrentPage()}`}>
+      <a className="hebrewLanguageLink" href={hebrewLink}>
         עברית
       </a>
       </div>
     </>
-)
+  )
+}
 
   export {
     DropdownMenu,

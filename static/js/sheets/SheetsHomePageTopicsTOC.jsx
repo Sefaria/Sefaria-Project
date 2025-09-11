@@ -9,7 +9,7 @@ const SheetsTopicsTOC = ({handleClick}) => {
     }));
     return (
     <div className="sheetsTopicTOC">
-        <TOCCardsWrapper title="Browse by Topic">{categoryListings}</TOCCardsWrapper>
+        <TOCCardsWrapper title={Sefaria._("Browse Topic Categories")}>{categoryListings}</TOCCardsWrapper>
     </div>
   );
 }
@@ -49,8 +49,8 @@ const SheetsHoliday = ({handleClick}) => {
 
 const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar table">
-                <TOCCardsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
-                <TOCCardsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
+                <TOCCardsWrapper title={Sefaria._("This Week’s Torah Portion")}><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
+                <TOCCardsWrapper title={Sefaria._("On the Jewish Calendar")}><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
           </div>
 }
 

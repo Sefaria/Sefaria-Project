@@ -514,22 +514,25 @@ Sefaria = extend(Sefaria, {
     }
 
     return result;
-},
-SHEETS_MODULE: "sheets",
-LIBRARY_MODULE: "library",
-getModuleURL: function(module=null) {
-  // returns a URL object with the href of the module's subdomain.  
-  // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
-  // example: module = "sheets" -> returns URL object with href of "https://sheets.sefaria.org"
-  module = module || Sefaria.activeModule;
-  const href = Sefaria?.domainModules?.[module] || Sefaria.apiHost;
-  try {
-    return new URL(href);
-  } catch {
-    return false;
-  }
-},
-
+  },
+  SHEETS_MODULE: "sheets",
+  LIBRARY_MODULE: "library",
+  getModuleURL: function(module=null) {
+    // returns a URL object with the href of the module's subdomain.  
+    // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
+    // example: module = "sheets" -> returns URL object with href of "https://sheets.sefaria.org"
+    module = module || Sefaria.activeModule;
+    const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
+    try {
+      return new URL(href);
+    } catch {
+      return false;
+    }
+  },
+  isSefariaURL: function(url) {
+    //change this to just check Sefaria.org not domain modules
+    return url.hostname.includes('sefaria.org');
+  },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
 
@@ -2837,8 +2840,8 @@ _media: {},
   getTopic: function(slug, {annotated=true, with_html=false}={}) {
     const cat = Sefaria.displayTopicTocCategory(slug);
     let ref_link_type_filters = ['about', 'popular-writing-of']
-    // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
-    if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
+    // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages in library module.
+    if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug] && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
     }
     const a = 0 + annotated;

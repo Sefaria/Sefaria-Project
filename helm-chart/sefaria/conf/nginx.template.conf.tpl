@@ -53,8 +53,7 @@ http {
   }
 
   server {
-    # TODO add `default` below
-    listen 80 default_server;
+    listen 80;
     server_name www.{{ tpl $i.host $ }};
     listen [::]:80;
     # parameterize line below
@@ -157,6 +156,12 @@ http {
       proxy_pass http://linker_upstream;
     }
     {{- end }}
+
+    {{- range $k, $v := $.Values.ingress.subdomains }}
+    location ~ ^/{{ $v }}(/.*|$) {
+        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$1;
+    }
+    {{- end }}
   } # server
 
   {{- range $k, $v := $.Values.ingress.subdomains }}
@@ -164,14 +169,7 @@ http {
     listen 80;
     listen [::]:80;
     server_name {{ $k }}.{{ tpl $i.host $ }};
-    return 301 https://www.$host$request_uri;
-  }
 
-  server {
-    # TODO add `default` below
-    listen 80;
-    listen [::]:80;
-    server_name www.{{ $k }}.{{ tpl $i.host $ }};
     # parameterize line below
     # Look into security cost of simply serving every host
     resolver 8.8.8.8 8.8.4.4;
@@ -242,7 +240,7 @@ http {
       proxy_pass http://varnish_upstream;
     }
 
-    location ~ ^/{{ $v }}(/|$) {
+    location ~ ^/{{ $v }}(/.*|$) {
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
