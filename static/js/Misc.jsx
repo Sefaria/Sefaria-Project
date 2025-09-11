@@ -2729,14 +2729,12 @@ const getCookieDomain = (hostname = null) => {
   // Use current hostname if none provided
   if (!hostname) {
     hostname = typeof window !== 'undefined' ? window.location.hostname : null;
-  }
-  
-  if (!hostname) {
-    return null;
+    if (!hostname) {
+      return null;
+    }
   }
   
   // For localhost and IP addresses, don't set domain (use default behavior)
-  // This allows cookies to work normally in development environments
   if (hostname === 'localhost' || /^\d+\.\d+\.\d+\.\d+/.test(hostname)) {
     return null;
   }
