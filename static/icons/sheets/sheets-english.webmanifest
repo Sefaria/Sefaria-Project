@@ -1,0 +1,25 @@
+{
+  "name": "Sefaria Voices",
+  "short_name": "Voices",
+  "icons": [
+    {
+      "src": "/static/icons/sheets/sheets-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/sheets/sheets-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/sheets/sheets-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#5D956F",
+  "background_color": "#5D956F",
+  "display": "standalone"
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Sefaria Library - Web",
+  "short_name": "Library",
+  "icons": [
+    {
+      "src": "/static/icons/library/library-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/library/library-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/library/library-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#18345D",
+  "background_color": "#18345D",
+  "display": "standalone"
+}
