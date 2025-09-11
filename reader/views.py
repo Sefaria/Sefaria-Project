@@ -4735,21 +4735,32 @@ def apple_app_site_association(request):
     })
 
 
-def module_favicon(request):
+def module_favicon(request, filename):
     """
-    Serve module-specific favicon.ico based on the active module from the root of the hostname
-    This was done to handle stupid or impatient clients that request /favicon.ico directly without parsing HTML response
+    Serve module-specific icon files based on the active module from the root of the hostname.
+    This handles clients that request /favicon.ico, /apple-touch-icon.png, or /favicon.svg directly without parsing an HTML response.
     """
     
     # Get the active module and default to library
     active_module = getattr(request, 'active_module', 'library')
     
-    # Construct the path to the module-specific favicon
-    favicon_path = os.path.join(STATICFILES_DIRS[0], 'icons', active_module, 'favicon.ico')
-
-    response = FileResponse(open(favicon_path, 'rb'), content_type='image/x-icon')
+    # Construct the path to the module-specific icon file
+    # Filename comes from the capture group in the URL pattern
+    icon_path = os.path.join(STATICFILES_DIRS[0], 'icons', active_module, filename)
     
-    # Tell client to cache for 1 month, since favicons change infrequentlyy
+    # Set appropriate content type based on file extension
+    extensions_to_content_types_map = {
+        '.ico': 'image/x-icon',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml'
+    }
+    
+    file_extension = os.path.splitext(filename)[1].lower()
+    content_type = extensions_to_content_types_map[file_extension]
+
+    response = FileResponse(open(icon_path, 'rb'), content_type=content_type)
+    
+    # Tell client to cache for 1 month, since favicons change infrequently
     response["Cache-Control"] = "max-age=2592000"
     
     return response
