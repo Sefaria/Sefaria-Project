@@ -46,14 +46,14 @@ DOMAIN_LANGUAGES = json.dumps({
 })
 
 # Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
-DOMAIN_MODULES = json.dumps({
+DOMAIN_MODULES = {
     "library": "http://localhost:8000",
     "sheets": "http://localhost:8000",
-})
-MODULE_ROUTES = json.dumps({
+}
+MODULE_ROUTES = {
     "library": "/",
     "sheets": "/sheets/",
-})
+}
 
 ################ These are things you can change! ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
