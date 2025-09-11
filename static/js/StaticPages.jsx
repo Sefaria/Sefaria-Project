@@ -35,6 +35,7 @@ import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
             heImgAlt=""
             heActionURL={null}
             heActionText={null}
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <H2Block
@@ -87,6 +88,7 @@ const ContestLandingPage = () => (
             heImgAlt=""
             heActionURL="#"
             heActionText="הרשמה לתחרות"
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <H2Block en="The Contest" he="התחרות"/>
@@ -267,6 +269,7 @@ const RambanLandingPage = () => {
             heActionText="Read the Text"
             enImg=""
             heImg=""
+            module={Sefaria.LIBRARY_MODULE}
         />
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
@@ -382,6 +385,7 @@ const SheetsLandingPage = () => (
             heImgAlt="דפי מקורות"
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
+            module={Sefaria.LIBRARY_MODULE}
         />
         <GreyBox light={true}>
             <H2Block
@@ -514,7 +518,6 @@ const SheetsLandingPage = () => (
     </StaticPage>
 );
 
-
 const EducatorsPage = () => (
   <StaticPage>
     <HeaderForEducatorsPage/>
@@ -545,7 +548,7 @@ const EducatorsPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/sheets/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://sheets.sefaria.org.il/sheets/collections/KGMlHrvA"],
           ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", Sefaria._siteSettings.HELP_CENTER_URLS.HE]
       ].map(i =>
           <SimpleButton
@@ -577,7 +580,7 @@ const EducatorsPage = () => (
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
           ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
-          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
+          ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
           ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
@@ -606,7 +609,7 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,"https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Help Center", "אסופות מומלצות", Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,"https://sheets.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
           ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
@@ -724,6 +727,7 @@ const PBSC2020LandingPage = () => (
             heText="הכירו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <GreyBox>
@@ -1475,7 +1479,7 @@ const WordByWordPage = () => {
     
     const ctaText = "Learn more about our authors and their work.";
     const ctaButtonText = "Learn about our authors";
-    const ctaHref = "https://www.sefaria.org/sheets/485180?lang=bi";
+    const ctaHref = "https://sheets.sefaria.org/sheets/485180?lang=bi";
   
     return (
       <StaticPage optionalClass="donate wordbyword">
@@ -1611,6 +1615,7 @@ const PoweredByPage = () => (
             heActionURL="https://developers.sefaria.org/"
             heActionText="Create Something New"
             newTab={true}
+            module={Sefaria.LIBRARY_MODULE}
         />
         <GreyBox>
             <H2Block en="Open Source Torah" he="Open Source Torah"/>
@@ -1739,6 +1744,7 @@ const PBSC2021LandingPage = () => (
             heText="גלו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <GreyBox>
@@ -2321,7 +2327,7 @@ const partition = (arr, prop) =>
 
 // Defines a comparator to be used for sorting team members
 const byLastName = () => {
-    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    const locale = Sefaria._getShortInterfaceLang();
     return (a, b) => {
         const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
         const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();

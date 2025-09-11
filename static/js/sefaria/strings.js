@@ -31,7 +31,7 @@ const Strings = {
     "Users": "משתמשים",
     "Categories": "קטגוריות",
 
-    // Texts Page
+    // Landing Pages
     "Learn More": "למדו עוד",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
@@ -56,6 +56,9 @@ const Strings = {
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
     "Sponsor A Day": "הקדישו יום לימוד",
+    "Community-Powered Jewish Learning": "חיבורים חדשים למקורות ולקהילה",
+    "Share. Discover. Join the Conversation.": "המקום ללמידה, שיתוף רעיונות, וכתיבת חומרים מקוריים.",
+    "Browse Topic Categories": "חיפוש מקורות לפי נושא",
 
     // Text Category Pages
     "All Portions": "פרשות השבוע",
@@ -77,8 +80,10 @@ const Strings = {
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
+    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
+    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -150,15 +155,19 @@ const Strings = {
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
 
+    "Close menu": "סגירת תפריט",
+    "Add a source, image, or other media": "הוספת מקור, תמונה או מדיה אחרת",
+    "Add source": "הוספת מקור",
+    "Add image": "הוספת תמונה",
+    "Add media": "הוספת מדיה",
+
     // Sheets
     "Sheet": "דף מקורות",
     "About this Sheet": "אודות דף המקורות",
     "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
+    "Search for a Text or Commentator.": "לחיפוש מקור",
     "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
-    "Add media": "הוסף מדיה",
-    "Add an image": "הוסף תמונה",
-    "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Sheets": "דפי מקורות",
@@ -167,6 +176,7 @@ const Strings = {
     "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
+    "View in Google Docs": "לפתיחה בגוגל דוקס",
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
@@ -358,6 +368,7 @@ const Strings = {
     "Add to Collection": "צירוף לאסופה",
 
     // Edit Collection page
+    "Edit Collections": "עריכת אסופות",
     "Edit Collection": "עריכת אסופה",
     "Collection Name": "שם האסופה",
     "Website": "כתובת אתר",
@@ -479,6 +490,7 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
+    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -543,6 +555,9 @@ const Strings = {
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
+    "Export to Google Docs": "ייצוא לגוגל דוקס",
+    "Delete Sheet": "מחיקת דף מקורות",
+    "Share": "שיתוף",
 
     //TextTableofContents
     "Contents": "תוכן",
@@ -555,6 +570,7 @@ const Strings = {
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
+    "Top Citations": "ציטוטים עיקריים",
 
     "Install Now": "התקינו עכשיו",
 
@@ -677,6 +693,8 @@ const Strings = {
       "Tanakh": "",
       "Talmud": ""
     },
+    "Library": "ספריה",
+    "Developers": "מפתחים",
     "Sheet Share": {
       "View": "לצפות",
       "Add": "להוסיף",

@@ -116,7 +116,7 @@ class Util {
     static naturalTime(timeStamp, {lang, short}={}) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+      let language = lang ? lang : (Sefaria._getShortInterfaceLang());
       let spacer = " ";
       if(short){
           language = language == "en" ? "shortEn" : "shortHe";
@@ -293,7 +293,26 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-
+    static modifyRelativePathbasedOnModule(path) {
+      const sheetsPrefix = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE].slice(0, -1); // remove the last / from the sheets prefix
+      if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && (!path.startsWith(sheetsPrefix))) {
+        // For modularization QA, we want to make sure /sheets is at the beginning of URL if and only if we are in the sheets module.
+        return sheetsPrefix + path;
+      }
+      else if (Sefaria.activeModule !== Sefaria.SHEETS_MODULE && path.startsWith(sheetsPrefix)) {
+        // If we are not in the sheets module, remove /sheets from the beginning of the URL
+        return path.replace(sheetsPrefix, "");
+      }
+      return path;
+    }
+    static fullURL(relativePath, moduleTarget) {
+      if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
+        const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://sheets.sefaria.org' or 'https://www.sefaria.org')
+        return moduleURL.origin + relativePath;
+      }
+      // If it's already a full URL or not a relative path, return as is
+      return relativePath;
+    }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
       return (res !== null)

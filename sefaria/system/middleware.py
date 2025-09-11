@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.urls import resolve
 
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -17,7 +18,29 @@ from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote
 import structlog
+import json
 logger = structlog.get_logger(__name__)
+
+
+
+class MiddlewareURLMixin:
+    excluded_url_names = set()  # Set of URL names to exclude
+    excluded_url_prefixes = set()  # Set of URL path prefixes to exclude
+
+    def should_process_request(self, request):
+        # Check URL name
+        try:
+            url_name = resolve(request.path_info).url_name
+            if url_name in self.excluded_url_names:
+                return False
+        except:
+            pass
+
+        # Check path prefixes
+        if any(request.path.startswith(prefix) for prefix in self.excluded_url_prefixes):
+            return False
+
+        return True
 
 
 class SharedCacheMiddleware(MiddlewareMixin):
@@ -124,7 +147,6 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             translation_language_preference_suggestion = None
 
         # VERSION PREFERENCE
-        import json
         from urllib.parse import unquote
         version_preferences_by_corpus_cookie = json.loads(unquote(request.COOKIES.get("version_preferences_by_corpus", "null")))
         request.version_preferences_by_corpus = (profile is not None and getattr(profile, "version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie or {}
@@ -218,4 +240,76 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class ModuleMiddleware(MiddlewareURLMixin):
+    excluded_url_prefixes = {
+        '/linker.js',
+        '/api/',
+        '/interface/',
+        '/apple-app-site-association',
+        '/static/',
+    }
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def _get_module_from_host(self, request):
+        """
+        Determine the active module based on the request host using DOMAIN_MODULES.
+        Returns the module name if found, None otherwise.
+        """
+        try:
+            from urllib.parse import urlparse
+            
+            current_host = request.get_host()
+            parsed_current = urlparse(f"http://{current_host}")
+            current_hostname = parsed_current.hostname
+            
+            for module_name, module_domain in DOMAIN_MODULES.items():
+                parsed_domain = urlparse(module_domain)
+                domain_to_check = parsed_domain.hostname
+                
+                if current_hostname == domain_to_check:
+                    return module_name
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error determining module from host: {e}")
+            return None
+
+    def _set_active_module(self, request):
+        """
+        Determine and set the active module for the request.
+        First checks host-based module, then falls back to route-based detection.
+        """
+        # First, try to determine module based on host/subdomain from DOMAIN_MODULES
+        host_based_module = self._get_module_from_host(request)
+        if host_based_module:
+            active_module = host_based_module
+        else:
+            # Check each module route to see if path matches
+            for module_name, route_prefix in MODULE_ROUTES.items():
+                if request.path.startswith(route_prefix):
+                    active_module = module_name
+                    break
+        
+        return active_module
+
+    def __call__(self, request):
+        if not self.should_process_request(request):
+            request.active_module = 'library'
+            return self.get_response(request)
+
+        request.active_module = self._set_active_module(request)
+        return self.get_response(request)
+
+    #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
+    # a TemplateResponse in our reader.views.render
+    def process_template_response(self, request, response):
+        # For template responses, add active_module to context
+        if hasattr(response, 'context_data'):
+            response.context_data['active_module'] = request.active_module
         return response

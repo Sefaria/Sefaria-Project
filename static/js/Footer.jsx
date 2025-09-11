@@ -16,8 +16,8 @@ const Section = ({en, he, children}) => (
     </div>
 );
 
-const Link = ({href, en, he, blank}) => (
-    <a href={href} target={blank ? "_blank" : "_self"}>
+const Link = ({href, en, he, blank, targetModule}) => (
+    <a href={href} target={blank ? "_blank" : "_self"} data-target-module={targetModule}>
       <InterfaceText text={{en:en, he:he}}/>
     </a>
 );
@@ -59,13 +59,12 @@ class Footer extends Component {
             <Section en="Tools" he="כלים">
                 <Link href="/educators" en="Teach with Sefaria" he="מלמדים עם ספריא" />
                 <Link href="/calendars" en="Learning Schedules" he="לוח לימוד יומי" />
-                <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
                 <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
                 <Link href="/people" en="Authors" he="מחברים" />
-                <Link href="/collections" en="Collections" he="אסופות" />
+                <Link href="/sheets/collections" en="Collections" he="אסופות" targetModule={Sefaria.SHEETS_MODULE} />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
             </Section>
 
