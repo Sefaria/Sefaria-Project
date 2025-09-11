@@ -423,6 +423,16 @@ class Util {
     }
     
     /**
+     * Checks if a hostname is an IP address (IPv4).
+     * 
+     * @param {string} hostname - The hostname to check
+     * @returns {boolean} - True if the hostname is an IPv4 address
+     */
+    static isIPAddress(hostname) {
+        return /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+    }
+    
+    /**
      * Determines the appropriate cookie domain for cross-subdomain cookie sharing.
      * 
      * This function analyzes Sefaria.domainModules to find the common parent domain
@@ -453,7 +463,7 @@ class Util {
         
         // Extract hostnames from all domain modules
         const hostnames = [];
-        for (const [moduleName, moduleUrl] of Object.entries(Sefaria.domainModules)) {
+        for (const [_, moduleUrl] of Object.entries(Sefaria.domainModules)) {
             try {
                 const url = new URL(moduleUrl);
                 hostnames.push(url.hostname);
@@ -462,19 +472,11 @@ class Util {
             }
         }
         
-        // Early return cases where we don't set a domain (use original simple logic)
-        if (hostnames.length === 0) {
-            return null;
-        }
-        
-        // IP addresses don't support subdomains, so no cross-subdomain cookie sharing possible
-        if (hostnames.some(hostname => /^\d+\.\d+\.\d+\.\d+/.test(hostname))) {
-            return null;
-        }
-        
-        // Browsers don't allow setting cookies with domain ".localhost" - this is a security feature
-        // For localhost development, we need to dismiss the cookie banner on each module
-        if (hostnames.some(hostname => hostname === 'localhost' || hostname.includes('.localhost'))) {
+        // Skip domain setting for empty hostnames and local development.
+        // IP addresses don't have subdomain support.
+        // Browsers don't allow setting cookies with domain ".localhost"
+        // For localhost development, we need to dismiss the cookie banner on each module if we are using sheets.localhost
+        if (!hostnames.length || hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
             return null;
         }
         
