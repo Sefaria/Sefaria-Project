@@ -44,17 +44,19 @@ http {
     keepalive 32;
   }
 
-  {{- range $i := .Values.ingress.hosts }}
+  {{- range $k, $v := .Values.domains }}
+  {{- $subdomains := list }}
+  {{- $root := $v.root }}
   server {
     listen 80;
     listen [::]:80;
-    server_name {{ tpl $i.host $ }};
+    server_name {{ tpl $root $ }};
     return 301 https://www.$host$request_uri;
   }
 
   server {
     listen 80;
-    server_name www.{{ tpl $i.host $ }};
+    server_name www.{{ tpl $root $ }};
     listen [::]:80;
     # parameterize line below
     # Look into security cost of simply serving every host
@@ -157,18 +159,23 @@ http {
     }
     {{- end }}
 
-    {{- range $k, $v := $.Values.ingress.subdomains }}
-    location ~ ^/{{ $v }}(/.*|$) {
-        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$1;
+    {{- range $path, $sub := $v.redirects }}
+    location ~ ^/{{ $path }}(/.*|$) {
+        return 307 https://{{ $sub }}.{{ tpl $root $ }}$1;
     }
     {{- end }}
   } # server
 
-  {{- range $k, $v := $.Values.ingress.subdomains }}
+  {{- range $path, $sub := $v.redirects }}
+    {{- if not (has $sub $subdomains) }}
+      {{- $subdomains = append $subdomains $sub }}
+    {{- end }}
+  {{- end }}
+  {{- range $subdomains }}
   server {
     listen 80;
     listen [::]:80;
-    server_name {{ $k }}.{{ tpl $i.host $ }};
+    server_name {{ . }}.{{ tpl $root $ }};
 
     # parameterize line below
     # Look into security cost of simply serving every host
@@ -240,21 +247,11 @@ http {
       proxy_pass http://varnish_upstream;
     }
 
-    location ~ ^/{{ $v }}(/.*|$) {
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
-    }
-
     location / {
       {{- if $.Values.instrumentation.enabled }}
       opentracing on;
       opentracing_propagate_context;
       {{- end }}
-      rewrite ^/(.*)$ /{{ $v }}/$1 break;
       proxy_send_timeout  300;
       proxy_read_timeout  300;
       proxy_set_header Host $host;
