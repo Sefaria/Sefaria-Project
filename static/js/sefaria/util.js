@@ -421,6 +421,82 @@ class Util {
         
         return commonSuffix;
     }
+    
+    /**
+     * Determines the appropriate cookie domain for cross-subdomain cookie sharing.
+     * 
+     * This function analyzes Sefaria.domainModules to find the common parent domain
+     * that all configured modules share, then uses that as the cookie domain.
+     * 
+     * Why this approach is better:
+     * - Uses the actual configured domains rather than guessing from current hostname
+     * - Automatically adapts to any domain configuration without hardcoded logic
+     * - Leverages the existing domain module system that's already working
+     * 
+     * How it works:
+     * 1. Extract hostnames from all domain modules (e.g., "www.sefaria.org", "sheets.sefaria.org")
+     * 2. Use Sefaria.util.findLongestCommonSuffix() to find the longest common suffix that all hostnames share
+     * 3. Use that as the cookie domain (e.g., ".sefaria.org")
+     * 
+     * Examples:
+     * - Production: ["www.sefaria.org", "sheets.sefaria.org"] → ".sefaria.org"
+     * - Cauldron: ["modularization.cauldron.sefaria.org", "sheets.modularization.cauldron.sefaria.org"] → ".modularization.cauldron.sefaria.org"
+     * - Development: ["localhost:8000", "localhost:8000"] → null (no domain set)
+     * 
+     * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
+     */
+    static getCookieDomain() {
+        // Check if Sefaria.domainModules is available
+        if (!Sefaria.domainModules || typeof Sefaria.domainModules !== 'object') {
+            return null;
+        }
+        
+        // Extract hostnames from all domain modules
+        const hostnames = [];
+        for (const [moduleName, moduleUrl] of Object.entries(Sefaria.domainModules)) {
+            try {
+                const url = new URL(moduleUrl);
+                hostnames.push(url.hostname);
+            } catch (e) {
+                // Invalid URL - skip this module
+            }
+        }
+        
+        // Early return cases where we don't set a domain (use original simple logic)
+        if (hostnames.length === 0) {
+            return null;
+        }
+        
+        // IP addresses don't support subdomains, so no cross-subdomain cookie sharing possible
+        if (hostnames.some(hostname => /^\d+\.\d+\.\d+\.\d+/.test(hostname))) {
+            return null;
+        }
+        
+        // Browsers don't allow setting cookies with domain ".localhost" - this is a security feature
+        // For localhost development, we need to dismiss the cookie banner on each module
+        if (hostnames.some(hostname => hostname === 'localhost' || hostname.includes('.localhost'))) {
+            return null;
+        }
+        
+        // Find the longest common suffix
+        const commonSuffix = Util.findLongestCommonSuffix(hostnames);
+        
+        if (commonSuffix && commonSuffix.length > 0) {
+            // Special handling for domain suffixes that don't start with "."
+            // This happens when we have a mix of bare domains and subdomains:
+            // - ["sefaria.org", "sheets.sefaria.org"] → commonSuffix = "sefaria.org" (should be ".sefaria.org")
+            let domainSuffix = commonSuffix;
+            if (!domainSuffix.startsWith('.')) {
+                domainSuffix = '.' + domainSuffix;
+            }
+            
+            return domainSuffix;
+        }
+        
+        // No common suffix found - fallback to original simple logic (no domain set)
+        return null;
+    }
+    
     static setupPrototypes() {
 
         String.prototype.toProperCase = function() {

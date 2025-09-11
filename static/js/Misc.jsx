@@ -2691,89 +2691,6 @@ ReaderMessage.propTypes = {
 };
 
 
-/**
- * Determines the appropriate cookie domain for cross-subdomain cookie sharing.
- * 
- * This function analyzes Sefaria.domainModules to find the common parent domain
- * that all configured modules share, then uses that as the cookie domain.
- * 
- * Why this approach is better:
- * - Uses the actual configured domains rather than guessing from current hostname
- * - Automatically adapts to any domain configuration without hardcoded logic
- * - Leverages the existing domain module system that's already working
- * 
- * How it works:
- * 1. Extract hostnames from all domain modules (e.g., "www.sefaria.org", "sheets.sefaria.org")
- * 2. Use Sefaria.util.findLongestCommonSuffix() to find the longest common suffix that all hostnames share
- * 3. Use that as the cookie domain (e.g., ".sefaria.org")
- * 
- * Examples:
- * - Production: ["www.sefaria.org", "sheets.sefaria.org"] → ".sefaria.org"
- * - Cauldron: ["modularization.cauldron.sefaria.org", "sheets.modularization.cauldron.sefaria.org"] → ".modularization.cauldron.sefaria.org"
- * - Development: ["localhost:8000", "localhost:8000"] → null (no domain set)
- * 
- * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
- */
-const getCookieDomain = () => {
-  // Check if Sefaria.domainModules is available
-  if (!Sefaria.domainModules || typeof Sefaria.domainModules !== 'object') {
-    console.log("TEMP: No domainModules available, using original simple logic (no domain set)");
-    return null;
-  }
-  
-  // Extract hostnames from all domain modules
-  const hostnames = [];
-  for (const [moduleName, moduleUrl] of Object.entries(Sefaria.domainModules)) {
-    try {
-      const url = new URL(moduleUrl);
-      hostnames.push(url.hostname);
-    } catch (e) {
-      console.log(`TEMP: Invalid URL in domainModules[${moduleName}]: ${moduleUrl}`);
-    }
-  }
-  
-  console.log("TEMP: Domain module hostnames:", hostnames);
-  
-  // Early return cases where we don't set a domain (use original simple logic)
-  if (hostnames.length === 0) {
-    console.log("TEMP: No valid hostnames found in domainModules, using original simple logic (no domain set)");
-    return null;
-  }
-  
-  // IP addresses don't support subdomains, so no cross-subdomain cookie sharing possible
-  if (hostnames.some(hostname => /^\d+\.\d+\.\d+\.\d+/.test(hostname))) {
-    console.log("TEMP: IP address detected, no domain set (IPs don't support subdomains)");
-    return null;
-  }
-  
-  // Browsers don't allow setting cookies with domain ".localhost" - this is a security feature
-  // For localhost development, we need to dissmiss the cookie banner on each module
-  if (hostnames.some(hostname => hostname === 'localhost' || hostname.includes('.localhost'))) {
-    console.log("TEMP: localhost detected, no domain set (browsers don't support .localhost cookie domains)");
-    return null;
-  }
-  
-  // Find the longest common suffix
-  const commonSuffix = Sefaria.util.findLongestCommonSuffix(hostnames);
-  console.log("TEMP: Longest common suffix:", commonSuffix);
-  
-  if (commonSuffix && commonSuffix.length > 0) {
-    // Special handling for domain suffixes that don't start with "."
-    // This happens when we have a mix of bare domains and subdomains:
-    // - ["sefaria.org", "sheets.sefaria.org"] → commonSuffix = "sefaria.org" (should be ".sefaria.org")
-    let domainSuffix = commonSuffix;
-    if (!domainSuffix.startsWith('.')) {
-      domainSuffix = '.' + domainSuffix;
-    }
-    
-    console.log("TEMP: Final domain suffix:", domainSuffix);
-    return domainSuffix;
-  }
-  
-  // No common suffix found - fallback to original simple logic (no domain set)
-  console.log("TEMP: No common suffix found, using original simple logic (no domain set)");
-  return null;
-};
 
 
 class CookiesNotification extends Component {
@@ -2784,13 +2701,8 @@ class CookiesNotification extends Component {
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    // TEMP: Cookie banner domain fix - testing logs
-    console.log("TEMP: Cookie banner - setting cookie for cross-subdomain sharing");
-    
     // Use the getCookieDomain function to get the appropriate cookie domain
-    const cookieDomain = getCookieDomain();
-    console.log("TEMP: Current hostname:", window.location.hostname);
-    console.log("TEMP: Calculated cookie domain:", cookieDomain);
+    const cookieDomain = Sefaria.util.getCookieDomain();
     
     const cookieOptions = {path: "/", expires: 20*365};
     
@@ -2798,10 +2710,7 @@ class CookiesNotification extends Component {
       cookieOptions.domain = cookieDomain;
     }
     
-    console.log("TEMP: Final cookie options:", cookieOptions);
     $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
-    console.log("TEMP: Cookie set successfully");
-    
     this.setState({showNotification: false});
   }
   render() {
