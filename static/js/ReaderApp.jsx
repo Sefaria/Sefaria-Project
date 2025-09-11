@@ -12,7 +12,6 @@ import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
-  RemoteLearningPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -2428,7 +2427,6 @@ export {
   unpackDataFromProps,
   loadServerData,
   EditCollectionPage,
-  RemoteLearningPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
