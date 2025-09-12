@@ -477,6 +477,7 @@ input.noselect {
 .header .notifications {
   display: inline-block;
   vertical-align: middle;
+  position: relative;
 }
 .header .textLink,
 .header .menuButton,
