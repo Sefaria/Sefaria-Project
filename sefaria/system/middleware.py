@@ -266,13 +266,13 @@ class ModuleMiddleware(MiddlewareURLMixin):
             parsed_current = urlparse(f"http://{current_host}")
             current_hostname = parsed_current.hostname
             
-            for module_name, module_domain in DOMAIN_MODULES.items():
-                parsed_domain = urlparse(module_domain)
-                domain_to_check = parsed_domain.hostname
-                
-                if current_hostname == domain_to_check:
-                    return module_name
-            
+            for lang, module in DOMAIN_MODULES.items():
+                for module_name, module_domain in module.items():
+                    parsed_domain = urlparse(module_domain)
+                    domain_to_check = parsed_domain.hostname
+
+                    if current_hostname == domain_to_check:
+                        return module_name            
             return None
             
         except Exception as e:
