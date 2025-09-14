@@ -517,12 +517,13 @@ Sefaria = extend(Sefaria, {
   },
   SHEETS_MODULE: "sheets",
   LIBRARY_MODULE: "library",
-  getModuleURL: function(module=null) {
+  getModuleURL: function(module=null, lang=null) {
     // returns a URL object with the href of the module's subdomain.  
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "sheets" -> returns URL object with href of "https://sheets.sefaria.org"
     module = module || Sefaria.activeModule;
-    const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
+    lang = Sefaria._getShortInterfaceLang(lang || Sefaria.interfaceLang);
+    const href = Sefaria.domainModules?.[lang]?.[module] || Sefaria.apiHost;
     try {
       return new URL(href);
     } catch {
