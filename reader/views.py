@@ -4857,3 +4857,42 @@ def application_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
+
+
+def dynamic_manifest(request, module, filename):
+    """
+    Serve module-specific web manifest with dynamic scope and start_url based on access method.
+    Supports both Hebrew and English.
+    """
+    # Use the module from URL path, which provides explicit context
+    active_module = module
+    lang = getattr(request, 'interfaceLang', 'english')
+    is_subdomain_access = getattr(request, 'is_subdomain_access', False)
+    
+    # Determine start_url based on access method
+    if is_subdomain_access:
+        start_url = "/"
+    else:
+        # Path-based access - use the module route as start_url
+        start_url = MODULE_ROUTES.get(active_module, "/")
+    
+    # Always use "/" for scope as this allows the PWA to control all paths within its domain
+    scope = "/"
+    
+    context = {
+        'active_module': active_module,
+        'lang': lang,
+        'start_url': start_url,
+        'scope': scope,
+        'is_subdomain_access': is_subdomain_access,
+        'is_hebrew': lang in ('hebrew', 'he'),
+    }
+    
+    response = render(request, 'manifest.json', context, content_type='application/manifest+json')
+    
+    # Use Vary headers to cache different variants based on language preference and host
+    # This should work with the  existing Varnish config and LanguageSettingsMiddleware
+    response["Vary"] = "Accept-Language, Host"
+    response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
+    
+    return response
