@@ -154,6 +154,22 @@
                 <span class="int-he">תוכלו להתחבר מחדש לחשבון גוגל בפעם הבאה שתייצאו לשם דף מקורות</span>
             </div>
         </div>
+        <div id="experiments" class="section">
+            <label class="control-elem">
+                <span class="int-en">Enable Experiments</span>
+                <span class="int-he">אפשר ניסויים</span>
+            </label>
+            <div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+                <div role="radio" data-name="experiments" data-value=true class="toggleOption {% if profile.settings.experiments %} on{% endif %}" tabindex="{% if profile.settings.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if profile.settings.experiments %}true{% else %}false{% endif %}">
+                    <span class="int-en">On</span>
+                    <span class="int-he">פעיל</span>
+                </div>
+                <div role="radio" data-name="experiments" data-value=false class="toggleOption {% if not profile.settings.experiments %} on{% endif %}" tabindex="{% if not profile.settings.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if not profile.settings.experiments %}true{% else %}false{% endif %}">
+                    <span class="int-en">Off</span>
+                    <span class="int-he">כבוי</span>
+                </div>
+            </div>
+        </div>
         <div class="saveCancel">
             <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
                 <span class="int-en">Save</span>
@@ -206,6 +222,7 @@
                         reading_history: $("#readingHistory .toggleOption.on").attr("data-value") === "true" ? true : false,
                         translation_language_preference: $newTransLangPref,
                         translation_language_preference_suggested: true,
+                        experiments: $("#experiments .toggleOption.on").attr("data-value") === "true" ? true : false,
                     }
 				};
                 $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
