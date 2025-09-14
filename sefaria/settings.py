@@ -319,6 +319,14 @@ if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
+
+# Set default module from MODULE_ROUTES configuration
+# Takes the first module key, which should be the primary/default module
+try:
+    DEFAULT_MODULE = next(iter(MODULE_ROUTES.keys()))
+except (NameError, AttributeError):
+    DEFAULT_MODULE = 'library'  # Fallback if MODULE_ROUTES not defined
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
@@ -347,3 +355,4 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
