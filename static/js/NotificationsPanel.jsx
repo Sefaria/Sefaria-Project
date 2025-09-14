@@ -79,6 +79,7 @@ class NotificationsPanel extends Component {
     // Mark newly loaded notifications as read
     this.markAsRead();
   }
+  
   render() {
     const notifications = Sefaria.notifications.map(n => 
       <Notifications type={n.type} props={n} key={n._id} />
