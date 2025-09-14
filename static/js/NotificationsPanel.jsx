@@ -69,7 +69,6 @@ class NotificationsPanel extends Component {
     if (data.count < data.page_size) {
       this.setState({loadedToEnd: true});
     }
-    
     // Prevent duplicate notifications by filtering out ones that already exist
     const existingIds = new Set(Sefaria.notifications.map(n => n._id));
     const newNotifications = data.notifications.filter(n => !existingIds.has(n._id));
