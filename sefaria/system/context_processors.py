@@ -89,7 +89,8 @@ def base_props(request):
 def module_context(request):
     return {
         'active_module': request.active_module,
-        'domain_modules': DOMAIN_MODULES
+        'domain_modules': DOMAIN_MODULES,
+        'is_subdomain_access': getattr(request, 'is_subdomain_access', False)
     }
 
 @user_only
