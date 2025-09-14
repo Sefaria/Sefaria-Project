@@ -274,15 +274,23 @@ tasks:
   queues:
     llm: default-llm
 
-ingress:
-  hosts:
-    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      # Reference to existing secret for usecases like cloudflare origin cert
-      # Secret must also cover all subdomains
-      tlsRef: ""
-  annotations: {}
-  # subdomain are specified as { subdomain: path } mapping a . subdomain to a path on the web pod
-  subdomains: {}
+domains:
+  en:
+    root: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+    cert: "{{ .Values.deployEnv }}-tls"
+    language: english
+    redirects:
+      sheets: voices
+      community: voices
+      profile: voices
+  he:
+    root: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
+    cert: "{{ .Values.deployEnv }}-il-tls"
+    language: hebrew
+    redirects:
+      sheets: chiburim
+      community: chiburim
+      profile: chiburim
 
 nginx:
   containerImage:
