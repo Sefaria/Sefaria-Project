@@ -110,6 +110,7 @@ class ConnectionsPanel extends Component {
 
       this.addScrollListener();
     }
+    this.onTextLoad(0);
   }
   isScrollMonitored() {
     return ["ConnectionsList", "WebPages", "Sheets"].includes(this.props.mode);
@@ -164,6 +165,61 @@ class ConnectionsPanel extends Component {
       secondary: true,
     });
     this._savedHistorySegments.add(ref);
+  }
+  onTextLoad(order) {
+    const currentlyHighlighted = [...this.$scrollView[0].querySelectorAll(".highlightCitation")];
+    if (currentlyHighlighted.length > 0) {
+      for (let el of currentlyHighlighted) {
+        el.classList.remove("highlightCitation");
+      }
+    }
+    const connectionsPanelCitataions = [...this.$scrollView[0].querySelectorAll("[data-ref]")].filter(el => Sefaria.refContains(el.getAttribute("data-ref"), this.props.currentlyVisibleRef));
+    if (connectionsPanelCitataions.length > 0) {
+      const footnotes = this.$scrollView[0].querySelectorAll(".footnote");
+      if (footnotes.length > 0) {
+        for (let footnote of footnotes) {
+          const linksInFootnote = footnote.querySelectorAll("[data-ref]");
+          if (linksInFootnote.length === 0)  continue;
+
+          for (let link of linksInFootnote) {
+            if (connectionsPanelCitataions.includes(link)) {
+              footnote.style.display = "inline";
+              break;
+            }
+          }
+        }
+      }
+      for (let citation of connectionsPanelCitataions) {
+        citation.classList.add('highlightCitation');
+      }
+      if (order === 0) {
+        const citationClientRect = connectionsPanelCitataions[0].getBoundingClientRect();
+        const scrollViewClientRect = this.$scrollView[0].getBoundingClientRect();
+        if (
+            citationClientRect.top >= 0 &&
+            citationClientRect.left >= 0 &&
+            citationClientRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            citationClientRect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        ) return;
+
+        const computedStyle = window.getComputedStyle(this.$scrollView[0].querySelectorAll('.textRange')[0]);
+        let lineHeight = parseFloat(computedStyle.lineHeight);
+
+        if (isNaN(lineHeight)) {
+          const fontSize = parseFloat(computedStyle.fontSize);
+          lineHeight = fontSize * 1.2;
+        }
+
+        const offset = lineHeight * 5;
+
+        this.$scrollView[0].scrollTo(
+          {
+            top: citationClientRect.top - scrollViewClientRect.top - offset,
+            behavior: "smooth"
+          }
+        );
+      }
+    }
   }
   isSheet() {
     return this.props.srefs[0].startsWith("Sheet");
@@ -425,6 +481,7 @@ class ConnectionsPanel extends Component {
         setFilter={this.props.setFilter}
         setConnectionsMode={this.props.setConnectionsMode}
         onTextClick={this.props.onTextClick}
+        onTextLoad={this.onTextLoad}
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
         openNav={this.props.openNav}
