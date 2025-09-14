@@ -4,6 +4,7 @@ from django.conf.urls import url
 from django.http import HttpResponseRedirect
 import reader.views as reader_views
 from sefaria.settings import STATIC_URL
+from sites.sefaria.site_settings import SITE_SETTINGS
 
 
 static_pages = [
@@ -36,12 +37,10 @@ static_pages = [
     "torah-tab",
     "dicta-thanks",
     "daf-yomi",
-    "remote-learning",
     "sheets",
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
-    "rabbis",
     "contest",
     "design-system",
     "powered-by",
@@ -82,13 +81,13 @@ site_urlpatterns = [
 site_urlpatterns += [
     url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english?c_src=App' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=App')),
     url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
-    url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
-    url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
+    url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')),
+    url(r'^developers/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
     url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
-    url(r'^faq/?$', lambda x: HttpResponseRedirect('/collections/sefaria-faqs' if x.interfaceLang == 'english' else '/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90')),
-    url(r'^help/?$', lambda x: HttpResponseRedirect('/collections/sefaria-faqs' if x.interfaceLang == 'english' else '/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90')),
+    url(r'^faq/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])),
+    url(r'^help/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/event/sefarias-10-year-anniversary-gala/e486954')),
     url(r'^give/(?P<channel_source>[a-zA-Z0-9]+)/?$', lambda x, channel_source: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src={channel_source}')),
     url(r'^give/?$', lambda x: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src=mu')),
@@ -97,6 +96,7 @@ site_urlpatterns += [
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
     url(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
+    url(r'^rabbis/?$', lambda x: HttpResponseRedirect('/educators')),
 ]
 
 
