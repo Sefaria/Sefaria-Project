@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { SourceTextPage } from "../pages/sourceTextPage";
-import { LANGUAGES, testUser } from "../globals";
+import { BROWSER_SETTINGS, LANGUAGES, testUser } from "../globals";
 import { goToPageWithLang , hideAllModalsAndPopups, goToPageWithUser} from "../utils";
 import { LoginPage } from "../pages/loginPage";
 import { SheetEditorPage } from "../pages/sheetEditorPage";
@@ -111,7 +111,7 @@ test.describe("Pages Load", () => {
   });
 
   test('TC011: Reading history panel functionality', async ({ context }) => {
-    const page = await goToPageWithUser(context, '/texts', LANGUAGES.EN);
+    const page = await goToPageWithUser(context, '/texts', BROWSER_SETTINGS.enUser);
     // Search for "Tosefta Peah 3"
     const searchInput = page.getByPlaceholder(/Search|חיפוש/);
     await searchInput.click();

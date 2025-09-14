@@ -1,4 +1,4 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
+import {DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS} from './globals'
 import {BrowserContext}  from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
@@ -7,11 +7,18 @@ import path from 'path';
 import fs from 'fs';
 
 let currentLocation: string = '';
-const AUTH_FILE = path.join(__dirname, 'auth.json');
-// delete AUTH_FILE if it exists to reset the auth state
-if (fs.existsSync(AUTH_FILE)) {
-  fs.unlinkSync(AUTH_FILE);
-}
+
+// Clear all auth files before starting tests to ensure fresh login
+const clearAuthFiles = () => {
+  const authFiles = Object.values(BROWSER_SETTINGS).map((setting) => path.join(__dirname, setting.file));
+  authFiles.forEach((filePath) => {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  });
+};
+
+clearAuthFiles();
 
 
 /**
@@ -192,15 +199,8 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
 export const changeLanguage = async (page: Page, language: string) => {
-  await toggleLanguage(page, language)
-
-  if (!fs.existsSync(AUTH_FILE)) {
     await toggleLanguage(page, language)
-    return;
-  }
-  await page.context().storageState({ path: AUTH_FILE });
-  await updateStorageState(await page.context().storageState(), 'interfaceLang', language);
-};
+  };
 
 
 export const toggleLanguage = async (page: Page, language: string) => {
@@ -294,19 +294,35 @@ export const expireLogoutCookie = async (context: BrowserContext) => {
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     let page: Page = await context.newPage();
-    await page.goto(url);
-    await changeLanguage(page, language);
-    await page.goto(url);
+    const settings = BROWSER_SETTINGS[language];
+    const filePath = path.join(__dirname, settings.file);
+    if (!fs.existsSync(filePath)) {
+      await page.goto(url);
+      await changeLanguage(page, language);
+      await page.context().storageState({ path: filePath });
+      await page.goto(url);
+    } else {
+      const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
+      if (storageCookies == null) {
+          throw new Error(`No cookies found in storage state for language ${language}`);
+      }
+      await page.context().addCookies(storageCookies);
+      await page.goto(url);
+    }
 
     //await hideAllModalsAndPopups(page);
     await hideAllModalsAndPopups(page);
     return page
 }
 
-export const goToPageWithUser = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE, user = testUser) => {
+export const goToPageWithUser = async (context: BrowserContext, url: string, settings: any) => {
     // Use a persistent auth file to store/reuse login state
+    const language = settings.lang;
+    const user = settings.user;
+    const authPath = path.join(__dirname, settings.file);
     let page: Page;
-    if (!fs.existsSync(AUTH_FILE)) {
+    if (!fs.existsSync(authPath)) {
         // No auth file, perform login and save storage state
         page = await context.newPage();
         await page.goto('/login', {waitUntil: 'domcontentloaded'});
@@ -314,7 +330,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, lan
         await changeLanguage(page, language);
         await loginPage.loginAs(user);
         // Save storage state for future reuse
-        await page.context().storageState({ path: AUTH_FILE });
+        await page.context().storageState({ path: authPath });
         await page.goto(url, {waitUntil: 'domcontentloaded'});
         return page;
     }
@@ -325,7 +341,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, lan
     }
     page = await browser.newPage();
     // Load the storage state from the auth file
-    const storageState = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'));
+    const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
     const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
     if (storageCookies == null) {
         throw new Error(`No cookies found in storage state for language ${language}`);

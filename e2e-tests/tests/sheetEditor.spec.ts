@@ -1,7 +1,7 @@
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { SheetEditorPage } from '../pages/sheetEditorPage';
-import { LANGUAGES } from '../globals';
+import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
 import { SaveStates } from '../constants';
 
 let browser: Browser;
@@ -14,7 +14,7 @@ const SPOTIFY_TEST_URL = 'https://open.spotify.com/episode/4FJZFVPldsPmNZHWDjErc
 test.beforeAll(async ({ browser: testBrowser }) => {
   browser = testBrowser;
   context = await browser.newContext();
-  page = await goToPageWithUser(context, '/texts');
+  page = await goToPageWithUser(context, '/texts', BROWSER_SETTINGS.enUser);
   sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
   await hideAllModalsAndPopups(page);
   await page.locator('.myProfileBox .profile-pic').click();

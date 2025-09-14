@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
-import {simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, hideAllModalsAndPopups, changeLanguage} from "../utils";
-import { LANGUAGES } from '../globals';
+import {simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, hideAllModalsAndPopups} from "../utils";
+import { LANGUAGES, BROWSER_SETTINGS } from '../globals';
 import { SaveStates } from '../constants';
 import { Banner } from '../pages/banner';
 
@@ -10,7 +10,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   let pageManager: PageManager;
   
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithUser(context, '/sheets/new');
+    page = await goToPageWithUser(context, '/sheets/new', BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
     pageManager = new PageManager(page, LANGUAGES.EN);
   });
@@ -164,9 +164,8 @@ test.describe('Test Saved/Saving Without Pop-ups: Hebrew', () => {
   let pageManager: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithUser(context, '/sheets/new', LANGUAGES.HE);  
+    page = await goToPageWithUser(context, '/sheets/new', BROWSER_SETTINGS.heUser);
     await hideAllModalsAndPopups(page);
-    await changeLanguage(page, LANGUAGES.HE);
     pageManager = new PageManager(page, LANGUAGES.HE);
   });
 
