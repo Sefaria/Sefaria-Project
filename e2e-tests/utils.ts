@@ -165,6 +165,16 @@ export const hideCookiesPopup = async (page: Page) => {
     });
   };
   
+export const hideTopUnbounceBanner = async (page: Page) => {
+  await page.evaluate(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      #bannerMessage { display: none !important;}
+    `;
+    document.head.appendChild(style);
+  });
+}
+
 export const hideTopBanner = async (page: Page) => {
   await page.evaluate(() => {
     const style = document.createElement('style');
@@ -190,6 +200,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await hideCookiesPopup(page);
   await hideExploreTopicsModal(page);
   await hideTipsAndTricks(page);
+  await hideTopUnbounceBanner(page);
 };
 
 /**

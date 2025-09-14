@@ -1,7 +1,7 @@
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { SheetEditorPage } from '../pages/sheetEditorPage';
-import { LANGUAGES } from '../globals';
+import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
 
 // Shared variables for all resource panel tests
 let browser: Browser;
@@ -14,7 +14,7 @@ let sheetUrl: string;
 test.beforeAll(async ({ browser: testBrowser }) => {
   browser = testBrowser;
   context = await browser.newContext();
-  page = await goToPageWithUser(context, '/texts');
+  page = await goToPageWithUser(context, '/texts', BROWSER_SETTINGS.enUser);
   sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
   
   // Create a new sheet
@@ -51,6 +51,7 @@ test('TC031: Click on Title to open Resource Panel - Added Source NOT in focus',
   await expect(sheetEditorPage.addedSource().first()).toBeVisible();
   await sheetEditorPage.sourceSheetBody().click(); 
   await page.waitForLoadState('networkidle');
+  await hideAllModalsAndPopups(sheetEditorPage.page);
   await sheetEditorPage.topTitle().click();
   await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });
   await expect(sheetEditorPage.resourcePanel()).toContainText('Publish Settings');
