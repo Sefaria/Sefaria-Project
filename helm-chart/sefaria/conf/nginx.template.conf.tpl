@@ -50,6 +50,21 @@ http {
   server {
     listen 80;
     listen [::]:80;
+    server_name ${INTERNAL_URL};
+
+    location /nginx-health {
+      access_log off;
+      return 200 "healthy\n";
+    }
+
+    location / {
+        proxy_pass http://varnish_upstream;
+    }
+  }
+
+  server {
+    listen 80;
+    listen [::]:80;
     server_name {{ tpl $root $ }};
     return 301 https://www.$host$request_uri;
   }
