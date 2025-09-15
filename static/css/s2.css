@@ -9192,6 +9192,7 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
