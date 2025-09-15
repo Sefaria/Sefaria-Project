@@ -2875,11 +2875,11 @@ _media: {},
      In the sheets module, every source is under the "Sheets" tab.
      */
     let tabKey, title;
-    if (Sefaria.activeModule === 'sheets' && refObj.is_sheet) {
+    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && refObj.is_sheet) {
       tabKey = 'sheets';
       title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
     } 
-    else if (Sefaria.activeModule === 'library' && !refObj?.is_sheet) {
+    else if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE && !refObj?.is_sheet) {
       if (linkType === 'popular-writing-of') {
         tabKey = linkType;
         title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
@@ -2936,7 +2936,7 @@ _media: {},
       tabObj.refs = [...tabObj.refs];  // dont want it to be set
     }
 
-    if (Sefaria.activeModule === 'library') {
+    if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       // turn "sources" tab into 'super-set', containing all refs from all tabs:
       if (tabs["notable-sources"]) {
         if (!tabs.sources) {
@@ -2981,7 +2981,7 @@ _media: {},
   trendingSheetsTopics: {},
   trendingLibraryTopics: {},
   getTrendingTopics: function(n=10) {
-    return this.activeModule === "library" ? this.getTrendingLibraryTopics(n) : this.getTrendingSheetsTopics(n);
+    return this.activeModule === Sefaria.LIBRARY_MODULE ? this.getTrendingLibraryTopics(n) : this.getTrendingSheetsTopics(n);
   },
   getTrendingLibraryTopics: function(n=10) {
     const url = `api/topics/trending?n=${n}&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`;
@@ -3544,7 +3544,7 @@ _media: {},
     }
   },
   getLogoutUrl: () => {
-    const next = Sefaria.activeModule === 'sheets' ? 'sheets' : 'texts';
+    const next = Sefaria.activeModule === Sefaria.SHEETS_MODULE ? 'sheets' : 'texts';
     return `/logout?next=/${next}`;
   },
 });
