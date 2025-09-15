@@ -12,7 +12,7 @@
             <span class="int-he">הגדרות חשבון</span>
         </h1>
         <div class="end">
-            <button type="button" class="button small transparent control-elem" onclick="history.back()">
+            <button type="button" class="button small transparent control-elem" onclick="handleCancel()">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
             </button>
@@ -159,7 +159,7 @@
                 <span class="int-en">Save</span>
                 <span class="int-he">שמירה</span>
             </button>
-            <button type="button" class="button transparent small control-elem" onclick="history.back()">
+            <button type="button" class="button transparent small control-elem" onclick="handleCancel()">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
             </button>
@@ -172,6 +172,18 @@
 
 {% block js %}
 	<script>
+		// Handle cancel button with history fallback
+		function handleCancel() {
+            if (history.length > 2) {
+				// if history is not empty, go back:
+				window.history.back();
+			} else {
+				// go home:
+				window.history.replaceState(null, null, '/texts');
+				window.location.reload();
+			}
+		}
+
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
