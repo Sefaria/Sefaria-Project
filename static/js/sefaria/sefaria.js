@@ -3635,7 +3635,6 @@ Sefaria.unpackBaseProps = function(props){
       "numLibraryTopics",
       "_siteSettings",
       "domainModules",
-      "moduleRoutes",
       "_debug"
   ];
   for (const element of dataPassedAsProps) {

@@ -826,9 +826,6 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
     
-    // console.log("Updating History - " + hist.url + " | " + currentUrl);
-    // hist.url = Sefaria.util.modifyRelativePathbasedOnModule(hist.url); 
-
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);

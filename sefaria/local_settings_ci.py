@@ -26,11 +26,7 @@ DOMAIN_MODULES = {
     "library": "http://localhost:8000",
     "voices": "http://voices.localhost:8000",
 }
-ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + ["localhost", "voices.localhost"]MODULE_ROUTES = {
-    "library": "/",
-    "voices": "/sheets/",
-}
-
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + ["localhost", "voices.localhost"]
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 ADMINS = (

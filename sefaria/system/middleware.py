@@ -279,30 +279,12 @@ class ModuleMiddleware(MiddlewareURLMixin):
             logger.error(f"Error determining module from host: {e}")
             return None
 
-    def _set_active_module(self, request):
-        """
-        Determine and set the active module for the request.
-        First checks host-based module, then falls back to route-based detection.
-        """
-        # First, try to determine module based on host/subdomain from DOMAIN_MODULES
-        host_based_module = self._get_module_from_host(request)
-        if host_based_module:
-            active_module = host_based_module
-        else:
-            # Check each module route to see if path matches
-            for module_name, route_prefix in MODULE_ROUTES.items():
-                if request.path.startswith(route_prefix):
-                    active_module = module_name
-                    break
-        
-        return active_module
-
     def __call__(self, request):
         if not self.should_process_request(request):
             request.active_module = 'library'
             return self.get_response(request)
 
-        request.active_module = self._set_active_module(request)
+        request.active_module = self._get_module_from_host(request)
         return self.get_response(request)
 
     #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using

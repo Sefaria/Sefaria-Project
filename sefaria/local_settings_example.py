@@ -54,10 +54,6 @@ DOMAIN_MODULES = {
     "voices": "http://voices.localhost:8000",  
 }
 ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + ["localhost", "voices.localhost"]
-MODULE_ROUTES = {
-    "library": "/",
-    "voices": "/sheets/",
-}
 
 
 ADMINS = (
