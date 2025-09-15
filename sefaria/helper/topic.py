@@ -227,17 +227,18 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
         link['description'] = getattr(topic, 'description', {})
     else:
         link['description'] = {}
-    if not topic.should_display():
-        link['shouldDisplay'] = False
+    link['shouldDisplay'] = topic.should_display()
+    link['pools'] = topic.get_pools()
     link['order'] = link.get('order', None) or {}
     link['order']['numSources'] = getattr(topic, 'numSources', 0)
     return link
 
 
 @django_cache(timeout=24 * 60 * 60)
-def get_all_topics(limit=1000, displayableOnly=True):
+def get_all_topics(limit=1000, displayableOnly=True, activeModule='library'):
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
-    return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
+    topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
+    return [t for t in topic_list if activeModule in t.get_pools()]
 
 @django_cache(timeout=24 * 60 * 60)
 def get_num_library_topics():
