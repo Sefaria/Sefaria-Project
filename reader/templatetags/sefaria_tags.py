@@ -581,19 +581,17 @@ def domain_url(domain, url_name, *args, **kwargs):
     module_name = None
     
     # Parse domain to get hostname if it's a full URL
-    try:
-        from urllib.parse import urlparse
-        if domain.startswith('http'):
-            parsed_domain = urlparse(domain)
-            hostname = parsed_domain.hostname
-        else:
-            hostname = domain
+
+    from urllib.parse import urlparse
+    if domain.startswith('http'):
+        parsed_domain = urlparse(domain)
+        hostname = parsed_domain.hostname
+    else:
+        hostname = domain
             
-        for mod_name, mod_domain in DOMAIN_MODULES.items():
-            if hostname and hostname in mod_domain:
-                module_name = mod_name
-                break
-    except Exception:
-        pass
+    for mod_name, mod_domain in DOMAIN_MODULES.items():
+        if hostname and hostname in mod_domain:
+            module_name = mod_name
+            break
     
     return _resolve_url_with_module(module_name, url_name, *args, **kwargs)
