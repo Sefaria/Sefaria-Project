@@ -505,7 +505,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const learn_more_link = Sefaria._v({"en": "https://sheets.sefaria.org/sheets/621008", "he": "https://sheets.sefaria.org/sheets/621013"})
+ const learn_more_link = Sefaria._v({"en": "https://voices.sefaria.org/sheets/621008", "he": "https://voices.sefaria.org/sheets/621013"})
 
  return (
    <>
