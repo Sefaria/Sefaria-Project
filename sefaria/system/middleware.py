@@ -264,9 +264,8 @@ class ModuleMiddleware(MiddlewareURLMixin):
             from urllib.parse import urlparse
             
             current_host = request.get_host()
-            # Extract hostname directly
-            # Handle both domain:port and plain domain formats
-            current_hostname = current_host.split(':')[0] if ':' in current_host else current_host
+            parsed_current = urlparse(f"http://{current_host}")
+            current_hostname = parsed_current.hostname
             
             for module_name, module_domain in DOMAIN_MODULES.items():
                 parsed_domain = urlparse(module_domain)
