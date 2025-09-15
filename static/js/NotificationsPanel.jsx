@@ -84,6 +84,7 @@ class NotificationsPanel extends Component {
     const notifications = Sefaria.notifications.map(n => 
       <Notifications type={n.type} props={n} key={n._id} />
     );
+    
     const sidebarModules = [{type: "StayConnected"}];
     return (
       <div className="readerNavMenu sans-serif">
