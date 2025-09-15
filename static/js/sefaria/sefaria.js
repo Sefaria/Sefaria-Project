@@ -530,11 +530,14 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    Sefaria.domainModules?.forEach((name, href) => {
+    if (!Sefaria.domainModules) {
+      return false;
+    }
+    for (const [name, href] of Object.entries(Sefaria.domainModules)) {
       if (url.hostname.includes(href)) {
-          return true;
-        }
-      });
+        return true;
+      }
+    }
     return false;
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
