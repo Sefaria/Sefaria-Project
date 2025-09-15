@@ -1,7 +1,5 @@
 import dataclasses
 import json
-import spacy
-import structlog
 from cerberus import Validator
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
@@ -11,7 +9,6 @@ from sefaria.system.cache import django_cache
 from api.api_errors import APIInvalidInputException
 from typing import List, Optional, Tuple
 
-logger = structlog.get_logger(__name__)
 
 FIND_REFS_POST_SCHEMA = {
     "text": {
@@ -51,31 +48,6 @@ FIND_REFS_POST_SCHEMA = {
         },
     },
 }
-
-
-def load_spacy_model(path: str) -> spacy.Language:
-    import re, tarfile
-    from tempfile import TemporaryDirectory
-    from sefaria.google_storage_manager import GoogleStorageManager
-    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
-
-    using_gpu = spacy.prefer_gpu()
-    logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
-
-    if path.startswith("gs://"):
-        # file is located in Google Cloud
-        # file is expected to be a tar.gz of the contents of the model folder (not the folder itself)
-        match = re.match(r"gs://([^/]+)/(.+)$", path)
-        bucket_name = match.group(1)
-        blob_name = match.group(2)
-        model_buffer = GoogleStorageManager.get_filename(blob_name, bucket_name)
-        tar_buffer = tarfile.open(fileobj=model_buffer)
-        with TemporaryDirectory() as tempdir:
-            tar_buffer.extractall(tempdir)
-            nlp = spacy.load(tempdir)
-    else:
-        nlp = spacy.load(path)
-    return nlp
 
 
 def make_find_refs_response(request):

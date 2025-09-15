@@ -1670,7 +1670,7 @@ $(function() {
 			var collectionSlug = $el.attr("data-slug");
 			var collectionHeader = $el.attr("data-image");
 			$("#collectionHeader").attr("src", collectionHeader)
-				.closest("a").attr("href", "/collections/" + collectionSlug);
+				.closest("a").attr("href", "/sheets/collections/" + collectionSlug);
 			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {

@@ -1,6 +1,7 @@
 import pytest
 from typing import List
 from functools import reduce
+from sefaria.model.linker.ne_span import NEDoc
 from sefaria.model.text import Ref, library
 from sefaria.model.linker.ref_part import RefPartType, RawRef, RawRefPart
 from sefaria.settings import ENABLE_LINKER
@@ -55,16 +56,13 @@ class EncodedPart:
             if part_type == temp_part_type: return symbol
 
     @staticmethod
-    def convert_to_raw_encoded_part_list(lang, text, span_inds, part_types):
-        nlp = library.get_linker(lang).get_ner().raw_ref_part_model
-        doc = nlp.make_doc(text)
-        span = doc[0:]
+    def convert_to_raw_encoded_part_list(lang, text, span_slices, part_types):
         raw_encoded_part_list = []
 
-        for part_type, span_ind in zip(part_types, span_inds):
-            subspan = span[span_ind]
+        for part_type, span_slice in zip(part_types, span_slices):
+            subtext = text[span_slice]
             symbol = EncodedPart.get_symbol_by_part_type(part_type)
-            raw_encoded_part_list += [f"{symbol}{subspan.text}"]
+            raw_encoded_part_list += [f"{symbol}{subtext}"]
 
         return raw_encoded_part_list
 
@@ -102,23 +100,22 @@ class EncodedPartList:
     @property
     def span(self):
         if not self._span:
-            nlp = library.get_linker(self.lang).get_ner().raw_ref_part_model
-            doc = nlp.make_doc(self.input_str)
-            self._span = doc[0:]
+            doc = NEDoc(self.input_str)
+            self._span = doc.subspan(slice(0, None))
         return self._span
 
     @property
-    def span_indexes(self):
-        span_inds = []
+    def span_slices(self):
+        span_slices = []
         for char_start, char_end in self._get_char_inds():
-            subspan = self.span.char_span(char_start, char_end)
-            span_inds += [slice(subspan.start, subspan.end)]
-        return span_inds
+            subspan = self.span.subspan(slice(char_start, char_end))
+            span_slices += [slice(*subspan.range)]
+        return span_slices
 
     @property
     def raw_ref_parts(self):
         try:
-            part_spans = [self.span[index] for index in self.span_indexes]
+            part_spans = [self.span.subspan(span_slice) for span_slice in self.span_slices]
         except IndexError as e:
             self.print_debug_info()
             raise e
@@ -133,7 +130,7 @@ class EncodedPartList:
 
     def print_debug_info(self):
         print('Input:', self.input_str)
-        print('Span indexes:', self.span_indexes)
+        print('Span indexes:', self.span_slices)
         print('Spans:')
         for i, subspan in enumerate(self.span):
             print(f'{i}) {subspan.text}')

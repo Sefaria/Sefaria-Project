@@ -101,6 +101,26 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
     form_class = SefariaPasswordResetForm
     email_template_name = 'registration/password_reset_email.txt'
     html_email_template_name = 'registration/password_reset_email.html'
+    
+    def form_valid(self, form):
+        """
+        Override form_valid to set the correct domain for the email context.
+        """
+        # Get the current domain from the request
+        current_domain = self.request.get_host()
+        
+        # Call the parent form_valid but with domain override
+        form.save(
+            request=self.request,
+            domain_override=current_domain,
+            use_https=self.request.is_secure(),
+            email_template_name=self.email_template_name,
+            subject_template_name=self.subject_template_name,
+            html_email_template_name=self.html_email_template_name,
+            from_email=self.from_email,
+            extra_email_context=self.extra_email_context,
+        )
+        return super().form_valid(form)
 
 class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
@@ -385,7 +405,7 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response
+    from sefaria.helper.linker.linker import make_find_refs_response
     try:
         return jsonResponse(make_find_refs_response(request))
     except APIInvalidInputException as e:
@@ -758,9 +778,10 @@ def reset_ref(request, tref):
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
-        vs = model.VersionState(index=oref.index)
+        index = model.library.get_index(tref)  # Get a fresh instance of the index
+        vs = model.VersionState(index=index)
         vs.refresh()
-        model.library.update_index_in_toc(oref.index)
+        model.library.update_index_in_toc(index)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
