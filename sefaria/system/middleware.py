@@ -14,6 +14,7 @@ from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
+from sefaria.settings import DOMAIN_MODULES
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote
@@ -252,39 +253,38 @@ class ModuleMiddleware(MiddlewareURLMixin):
     }
 
     def __init__(self, get_response):
-        self.get_response = get_response
+        self.get_response = get_response        
 
     def _get_module_from_host(self, request):
         """
         Determine the active module based on the request host using DOMAIN_MODULES.
         Returns the module name if found, None otherwise.
         """
-        try:
-            from urllib.parse import urlparse
-            
-            current_host = request.get_host()
-            parsed_current = urlparse(f"http://{current_host}")
-            current_hostname = parsed_current.hostname
-            
-            for lang, module in DOMAIN_MODULES.items():
-                for module_name, module_domain in module.items():
-                    parsed_domain = urlparse(module_domain)
-                    domain_to_check = parsed_domain.hostname
+        
+        from urllib.parse import urlparse
+        
+        current_host = request.get_host()
+        parsed_current = urlparse(f"http://{current_host}")
+        current_hostname = parsed_current.hostname
+        
+        for lang, module in DOMAIN_MODULES.items():
+            for module_name, module_domain in module.items():
+                parsed_domain = urlparse(module_domain)
+                domain_to_check = parsed_domain.hostname
 
-                    if current_hostname == domain_to_check:
-                        return module_name            
-            return None
+                if current_hostname == domain_to_check:
+                    return module_name            
+        return None
             
-        except Exception as e:
-            logger.error(f"Error determining module from host: {e}")
-            return None
 
     def __call__(self, request):
+        request.active_module = 'library'
         if not self.should_process_request(request):
-            request.active_module = 'library'
             return self.get_response(request)
 
-        request.active_module = self._get_module_from_host(request)
+        active_module_from_host = self._get_module_from_host(request)
+        if active_module_from_host:
+            request.active_module = active_module_from_host
         return self.get_response(request)
 
     #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
