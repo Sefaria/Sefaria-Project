@@ -146,4 +146,5 @@ dump/*
 /playwright-profile/
 .env
 e2e-tests/playwright_auth_*.json
+e2e-tests/auth_*.json
 e2e-tests/e2e-test-logs/

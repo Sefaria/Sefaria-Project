@@ -51,12 +51,32 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
 
 const updateStorageState = async (storageState: any, key: string, value: any) => {
   // Modify the cookies as needed
-  storageState.cookies = storageState.cookies.map(cookie => {
-    if (cookie.name === key) {
-      return { ...cookie, value: value };
-    }
-    return cookie;
-  });
+  interface Cookie {
+    name: string;
+    value: string;
+    domain: string;
+    path: string;
+    expires: number;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'Strict' | 'Lax' | 'None';
+  }
+
+  interface StorageState {
+    cookies: Cookie[];
+    origins: any[];
+  }
+
+  const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
+    // Modify the cookies as needed
+    storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
+      if (cookie.name === key) {
+        return { ...cookie, value: value };
+      }
+      return cookie;
+    });
+    return storageState.cookies;
+  }
   return storageState.cookies;
 }
 
@@ -305,7 +325,7 @@ export const expireLogoutCookie = async (context: BrowserContext) => {
 
 export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
     let page: Page = await context.newPage();
-    const settings = BROWSER_SETTINGS[language];
+    const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
     const filePath = path.join(__dirname, settings.file);
     if (!fs.existsSync(filePath)) {
       await page.goto(url);

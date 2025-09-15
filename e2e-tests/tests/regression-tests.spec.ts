@@ -345,7 +345,7 @@ test.describe('Navigating to/loading spanning references and opening connections
   });
 
   test('TC023: Creates and saves a new source sheet', async ({ context }) => {
-    const page = await goToPageWithUser(context, '/texts', LANGUAGES.EN);
+    const page = await goToPageWithUser(context, '/texts', BROWSER_SETTINGS.enUser);
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
     await page.locator('.myProfileBox .profile-pic').click();
     await page.locator('#new-sheet-link').click();

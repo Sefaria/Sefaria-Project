@@ -210,23 +210,23 @@ export class SourceSheetEditorPage {
         await this.page.context().setOffline(false);
     }
 
-    async simulateLogout(context) {
-        const cookies = await context.cookies();
-        const sessionCookie = cookies.find(c => c.name === 'sessionid');
+    async simulateLogout(context: BrowserContext): Promise<void> {
+      const cookies = await context.cookies();
+      const sessionCookie = cookies.find((c) => c.name === 'sessionid');
 
-        if (sessionCookie) {
-            this.savedSessionCookie = sessionCookie;
-            // Remove just the sessionid by clearing all and re-adding the rest
-            const otherCookies = cookies.filter(c => c.name !== 'sessionid');
-            await context.clearCookies();
-            await context.addCookies(otherCookies);
-        }
+      if (sessionCookie) {
+        this.savedSessionCookie = sessionCookie;
+        // Remove just the sessionid by clearing all and re-adding the rest
+        const otherCookies = cookies.filter((c) => c.name !== 'sessionid');
+        await context.clearCookies();
+        await context.addCookies(otherCookies);
+      }
     }
 
-    async simulateLogin(context) {
-        if (this.savedSessionCookie) {
+    async simulateLogin(context: BrowserContext) {
+      if (this.savedSessionCookie) {
         await context.addCookies([this.savedSessionCookie]);
-        }
+      }
     }
      
     // Checks whether a DOM element is functionally clickable or editable.

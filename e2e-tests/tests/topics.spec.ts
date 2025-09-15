@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {goToPageWithLang, goToPageWithUser} from '../utils';
-import {LANGUAGES, testAdminUser} from "../globals";
+import {LANGUAGES, BROWSER_SETTINGS} from "../globals";
 
 
 test('Go to topic page', async ({ context }) => {
@@ -18,7 +18,7 @@ test('Check source', async ({ context }) => {
 });
 
 test('Check admin tab', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics', LANGUAGES.EN, testAdminUser);
+  const page = await goToPageWithUser(context, '/topics', BROWSER_SETTINGS.enAdmin);
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
@@ -46,7 +46,7 @@ test('Check redirection for sourceless topic', async ({ context }) => {
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics/Monkey', LANGUAGES.EN, testAdminUser);
+  const page = await goToPageWithUser(context, '/topics/Monkey', BROWSER_SETTINGS.enAdmin);
   await page.waitForSelector('span:has-text("Admin")')
 });
 
