@@ -9192,6 +9192,7 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
@@ -10889,7 +10890,6 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
-  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
