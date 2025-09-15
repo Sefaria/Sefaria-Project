@@ -87,9 +87,17 @@ def base_props(request):
 
 @user_only
 def module_context(request):
+    from sefaria.utils.util import get_short_lang
+    
+    # Get the current interface language code (en/he)
+    interface_lang_code = get_short_lang(getattr(request, 'interfaceLang', 'english'))
+    
+    # Provide language-specific domain modules
+    language_specific_domain_modules = DOMAIN_MODULES.get(interface_lang_code, DOMAIN_MODULES['en'])
+    
     return {
         'active_module': request.active_module,
-        'domain_modules': DOMAIN_MODULES
+        'domain_modules': language_specific_domain_modules
     }
 
 @user_only
