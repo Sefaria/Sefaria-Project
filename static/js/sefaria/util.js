@@ -381,6 +381,124 @@ class Util {
             index++;
         return str1.substring(0, index);
     }
+    
+    /**
+     * Finds the longest common suffix among an array of strings
+     * 
+     * This function is similar to commonSubstring but works from the end (suffix)
+     * instead of the beginning (prefix), and works with an array of strings instead
+     * of just two strings.
+     * 
+     * @param {string[]} strings - Array of strings to analyze
+     * @returns {string} - The longest common suffix
+     * 
+     * @example
+     * findLongestCommonSuffix(["hello world", "goodbye world"]) // returns " world"
+     * findLongestCommonSuffix(["abc", "def"]) // returns ""
+     * findLongestCommonSuffix(["www.sefaria.org", "sheets.sefaria.org"]) // returns ".sefaria.org"
+     */
+    static findLongestCommonSuffix(strings) {
+        if (strings.length === 0) return '';
+        if (strings.length === 1) return strings[0];
+        
+        // Start with the first string as the potential common suffix
+        let commonSuffix = strings[0];
+        
+        // Check each subsequent string to see if it ends with the current common suffix
+        for (let i = 1; i < strings.length; i++) {
+            const str = strings[i];
+            
+            // Keep removing characters from the beginning until we find a match
+            while (commonSuffix && !str.endsWith(commonSuffix)) {
+                commonSuffix = commonSuffix.slice(1);
+            }
+            
+            // If no common suffix found, return empty string
+            if (!commonSuffix) {
+                return '';
+            }
+        }
+        
+        return commonSuffix;
+    }
+    
+    /**
+     * Checks if a hostname is an IP address (IPv4).
+     * 
+     * @param {string} hostname - The hostname to check
+     * @returns {boolean} - True if the hostname is an IPv4 address
+     */
+    static isIPAddress(hostname) {
+        return /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+    }
+    
+    /**
+     * Determines the appropriate cookie domain for cross-subdomain cookie sharing.
+     * 
+     * This function analyzes Sefaria.domainModules to find the common parent domain
+     * that all configured modules share, then uses that as the cookie domain.
+     * 
+     * Why this approach is better:
+     * - Uses the actual configured domains rather than guessing from current hostname
+     * - Automatically adapts to any domain configuration without hardcoded logic
+     * - Leverages the existing domain module system that's already working
+     * 
+     * How it works:
+     * 1. Extract hostnames from all domain modules (e.g., "www.sefaria.org", "sheets.sefaria.org")
+     * 2. Use Sefaria.util.findLongestCommonSuffix() to find the longest common suffix that all hostnames share
+     * 3. Use that as the cookie domain (e.g., ".sefaria.org")
+     * 
+     * Examples:
+     * - Production: ["www.sefaria.org", "sheets.sefaria.org"] → ".sefaria.org"
+     * - Cauldron: ["modularization.cauldron.sefaria.org", "sheets.modularization.cauldron.sefaria.org"] → ".modularization.cauldron.sefaria.org"
+     * - Development: ["localhost:8000", "localhost:8000"] → null (no domain set)
+     * 
+     * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
+     */
+    static getCookieDomain() {
+        // Check if Sefaria.domainModules is available
+        if (!Sefaria.domainModules || typeof Sefaria.domainModules !== 'object') {
+            return null;
+        }
+        
+        // Extract hostnames from all domain modules
+        const hostnames = [];
+        for (const [_, moduleUrl] of Object.entries(Sefaria.domainModules)) {
+            try {
+                const url = new URL(moduleUrl);
+                hostnames.push(url.hostname);
+            } catch (e) {
+                // Invalid URL - skip this module
+            }
+        }
+        
+        // Skip domain setting for empty hostnames and local development.
+        // IP addresses don't have subdomain support.
+        // Browsers don't allow setting cookies with domain ".localhost"
+        // For localhost development, we need to dismiss the cookie banner on each module if we are using sheets.localhost
+        if (!hostnames.length || hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
+            return null;
+        }
+        
+        // Find the longest common suffix
+        const commonSuffix = Util.findLongestCommonSuffix(hostnames);
+        
+        if (commonSuffix && commonSuffix.length > 0) {
+            // Special handling for domain suffixes that don't start with "."
+            // This happens when we have a mix of bare domains and subdomains:
+            // - ["sefaria.org", "sheets.sefaria.org"] → commonSuffix = "sefaria.org" (should be ".sefaria.org")
+            let domainSuffix = commonSuffix;
+            if (!domainSuffix.startsWith('.')) {
+                domainSuffix = '.' + domainSuffix;
+            }
+            
+            return domainSuffix;
+        }
+        
+        // No common suffix found - fallback to original simple logic (no domain set)
+        return null;
+    }
+    
     static setupPrototypes() {
 
         String.prototype.toProperCase = function() {
