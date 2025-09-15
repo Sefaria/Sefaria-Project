@@ -511,27 +511,12 @@ urlpatterns += [
     url(fr'^sheets/api/login/refresh/$', TokenRefreshView.as_view(), name='sheets_token_refresh'),
     url(fr'^sheets/api/account/delete$', reader_views.delete_user_account_api),
     url(fr'^sheets/interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^sheets/settings/profile?$', reader_views.edit_profile),
+    url(r'^settings/profile?$', reader_views.edit_profile),
     
     # Legacy saved and history URLs
     url(r'^sheets/saved/?$', reader_views.saved_content),
     url(r'^sheets/history/?$', reader_views.user_history_content),
-    
-    # Legacy collections URLs
-    url(r'^sheets/collections/?$', reader_views.public_collections),
-    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
-    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
-    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
-    
-    # Legacy profile URLs
-    url(r'^sheets/profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
-    
-    # Legacy topics URLs
-    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
-    url(r'^sheets/topics/all/(?P<letter>.)$', reader_views.all_topics_page),
-    url(r'^sheets/topics/?$', reader_views.topics_page),
-    url(r'^sheets/topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
-    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
+
 ]
 
 # Catch all to send to Reader

@@ -1035,7 +1035,7 @@ def saved_content(request):
     
     # Determine page name based on active module
     active_module = getattr(request, 'active_module', 'library')
-    page_name = "sheets-saved" if active_module == "sheets" else "texts-saved"
+    page_name = "sheets-saved" if active_module == "voices" else "texts-saved"
     
     return menu_page(request, props, page=page_name, title=title, desc=desc)
 
@@ -1061,7 +1061,7 @@ def user_history_content(request):
     
     # Determine page name based on active module
     active_module = getattr(request, 'active_module', 'library')
-    page_name = "sheets-history" if active_module == "sheets" else "texts-history"
+    page_name = "sheets-history" if active_module == "voices"  else "texts-history"
     
     return menu_page(request, props, page=page_name, title=title, desc=desc)
 
@@ -3135,7 +3135,7 @@ def topic_page(request, slug, test_version=None):
     if request.active_module == "library":
         title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
-    elif request.active_module == "sheets":
+    elif request.active_module == "voices":
         title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
 

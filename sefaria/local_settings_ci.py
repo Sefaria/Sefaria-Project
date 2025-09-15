@@ -24,12 +24,11 @@ DOMAIN_LANGUAGES = {
 }
 DOMAIN_MODULES = {
     "library": "http://localhost:8000",
-    "sheets": "http://voices.localhost:8000",
+    "voices": "http://voices.localhost:8000",
 }
-ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + list(DOMAIN_MODULES.values())
-MODULE_ROUTES = {
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + ["localhost", "voices.localhost"]MODULE_ROUTES = {
     "library": "/",
-    "sheets": "/sheets/",
+    "voices": "/sheets/",
 }
 
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
