@@ -160,6 +160,7 @@ const ModuleSwitcher = () => {
 }
 
 const Header = (props) => {
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     const handleFirstTab = (e) => {
@@ -175,6 +176,13 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
+
+  useEffect(() => {
+    if(props.headerMode){
+      setIsClient(true);
+    }
+  }, [props.headerMode]);
+
   const short_lang = Sefaria._getShortInterfaceLang();
 
   const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
@@ -194,9 +202,12 @@ const Header = (props) => {
                                     <img src='/static/icons/bookmarks.svg' alt='Saved items' />
                                   </a>
                                 </div>;
+  
+  const unread = props.headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0;
+  const notificationsClasses = classNames({notifications: 1, unread: unread});
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
-                                        <a href="/sheets/notifications" data-target-module={Sefaria.SHEETS_MODULE}>
-                                          <img src='/static/icons/notification.svg' />
+                                        <a href="/sheets/notifications" data-target-module={Sefaria.SHEETS_MODULE} aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
+                                          <img src='/static/icons/notification.svg' alt={Sefaria._('Notifications')} />
                                         </a>
                                       </div>;
 
@@ -365,28 +376,6 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
 }
 
 
-const LoggedInButtons = ({headerMode}) => {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    if(headerMode){
-      setIsClient(true);
-    }
-  }, []);
-  const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
-  const notificationsClasses = classNames({notifications: 1, unread: unread});
-  return (
-    <div className="loggedIn accountLinks">
-      <a href="/texts/saved" aria-label="See My Saved Texts">
-        <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')}/>
-      </a>
-      <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
-        <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
-      </a>
-      { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
-      <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
-    </div>
-  );
-}
 
 const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible, module}) => {
   const classes = classNames({
