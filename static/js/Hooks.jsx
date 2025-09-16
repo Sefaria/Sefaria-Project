@@ -274,6 +274,10 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
 }
 
 function useNextParam() {
+  /*
+  Returns the updated path for the creation of `next` param in urls.
+  Note - because we have our own router, this hook has no dependencies, so it triggers re-render also when the path did not change.
+   */
   const [next, setNext] = useState(null);
   useEffect(() => {
     setNext(encodeURIComponent(Sefaria.util.currentPath()));
