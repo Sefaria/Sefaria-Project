@@ -4,8 +4,9 @@ import 'tippy.js/dist/tippy.css';
 import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc';
 
-const ModuleSwitcherTooltip = ({ targetRef, children }) => {
+const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRef }) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
+  const isMobile = !multiPanel;
 
   useEffect(() => {
     const dismissed = localStorage.getItem('sefaria.moduleSwitcherTooltipDismissed');
@@ -13,6 +14,9 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
       setTooltipVisible(true);
     }
   }, []);
+
+  // Get the appropriate target element based on mobile/desktop
+  const targetElement = isMobile ? (mobileTargetRef || targetRef) : targetRef;
 
   const hideTooltip = () => {
     setTooltipVisible(false);
@@ -42,11 +46,11 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
       <Tippy
         content={tooltipContent}
         visible={isTooltipVisible}
-        placement="top"
+        placement={isMobile ? "right" : "top"}
         interactive={true}
         arrow={true}
         appendTo={() => document.body}
-        reference={targetRef}
+        reference={targetElement}
         className="module-switcher-tippy"
       />
     </>

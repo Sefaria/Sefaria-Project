@@ -60,3 +60,10 @@
 .module-switcher-tippy .tippy-content {
   padding: 2px !important;
 }
+
+/* Mobile-specific tooltip adjustments */
+@media (max-width: 768px) {
+  .module-switcher-tippy .tippy-content {
+    max-width: 280px; /* Smaller max-width on mobile */
+  }
+}

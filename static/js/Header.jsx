@@ -134,12 +134,12 @@ const LoggedInDropdown = ({module}) => {
 );
 }
 
-const ModuleSwitcher = () => {
+const ModuleSwitcher = ({ multiPanel, mobileMenuButtonRef }) => {
   const dropdownRef = useRef(null);
   const libraryURL = Sefaria.moduleRoutes[Sefaria.LIBRARY_MODULE];
   const sheetsURL = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE];
   return (
-      <ModuleSwitcherTooltip targetRef={dropdownRef}>
+      <ModuleSwitcherTooltip targetRef={dropdownRef} multiPanel={multiPanel} mobileTargetRef={mobileMenuButtonRef}>
         <div ref={dropdownRef}>
           <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
               <div className='dropdownLinks-options'>
@@ -166,6 +166,7 @@ const ModuleSwitcher = () => {
 }
 
 const Header = (props) => {
+  const mobileMenuButtonRef = useRef(null);
 
   useEffect(() => {
     const handleFirstTab = (e) => {
@@ -262,7 +263,7 @@ const Header = (props) => {
                 setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
         { Sefaria._uid && (props.module ===Sefaria.LIBRARY_MODULE ? librarySavedIcon : sheetsNotificationsIcon) }
-           <ModuleSwitcher />
+           <ModuleSwitcher multiPanel={props.multiPanel} mobileMenuButtonRef={mobileMenuButtonRef} />
 
           { Sefaria._uid ?
             <LoggedInDropdown module={props.module}/>
@@ -276,9 +277,11 @@ const Header = (props) => {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
-            <i className="fa fa-bars"></i>
-          </button>
+          <ModuleSwitcherTooltip targetRef={null} multiPanel={props.multiPanel} mobileTargetRef={mobileMenuButtonRef}>
+            <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+              <i className="fa fa-bars"></i>
+            </button>
+          </ModuleSwitcherTooltip>
         </div>
 
         <div className="mobileHeaderCenter">
