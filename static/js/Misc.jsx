@@ -1240,7 +1240,7 @@ DisplaySettingsButton.propTypes = {
 };
 
 
-function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
+function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLanguagePreference}){
 
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
@@ -1250,7 +1250,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
       <div className="dropdownLinks-options globeLanguageToggle">
-        <DropdownLanguageToggle currentLang={currentLang}/>
+        <DropdownLanguageToggle/>
       </div>
       { !!translationLanguagePreference ? (
             <>
@@ -1272,8 +1272,8 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
   );
 }
 InterfaceLanguageMenu.propTypes = {
-  currentLang: PropTypes.string,
   translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func,
 };
 
 const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
