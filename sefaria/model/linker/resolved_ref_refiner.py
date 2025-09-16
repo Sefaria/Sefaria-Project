@@ -3,9 +3,10 @@ from itertools import product
 from typing import List
 from sefaria.model.schema import AddressInteger
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet
-from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType
+from sefaria.model.linker.ref_part import RawRefPart, SectionContext
 from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
+from ne_span import RefPartType
 
 
 class ResolvedRefRefiner(ABC):

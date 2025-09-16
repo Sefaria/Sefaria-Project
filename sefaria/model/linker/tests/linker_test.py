@@ -304,20 +304,20 @@ class TestResolveRawRef:
     pass
 
 
-@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
-    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
-    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],
-    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
-    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
-    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
-    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8']],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר']],
-    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3")],
+@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts', 'expected_part_strs_list'), [
+    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
+    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],
+    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)'], [['ביצה', 'דף טו ע"ב', 'רש"י', 'ד"ה שמא']]],
+    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית'], [['מנחות', 'מד ע"א', 'תד"ה','טלית']]],
+    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת'''], [['מנחות', 'דף עח ע"א', "תוס'", "ד\"ה אחת"]]],
+    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8'], [['Ex.', '9', '6'], ['12', '8']]],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
+    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3"), [["Genesis", "1", "1"], ["1", "3"]]],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
+def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
     context_oref = context_tref and Ref(context_tref)
     linker = library.get_linker(lang)
-    doc = linker.link(input_str, context_oref, type_filter='citation')
+    doc = linker.link_by_paragraph(input_str, context_oref, type_filter='citation')
     resolved = doc.resolved_refs
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):
@@ -327,9 +327,11 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
     assert len(resolved) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
-    for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
+    for match, expected_pretty_text, expected_part_strs in zip(resolved, expected_pretty_texts, expected_part_strs_list):
         assert input_str[slice(*match.raw_entity.char_indices)] == match.raw_entity.text
         assert match.pretty_text == expected_pretty_text
+        for part, expected_part_str in zip(match.raw_entity.raw_ref_parts, expected_part_strs):
+            assert part.text == expected_part_str
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
