@@ -534,7 +534,7 @@ Sefaria = extend(Sefaria, {
       return false;
     }
     for (const [name, href] of Object.entries(Sefaria.domainModules)) {
-      if (url.hostname.includes(href)) {
+      if (url.href.startsWith(href)) {
         return true;
       }
     }
