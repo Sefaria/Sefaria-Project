@@ -12,7 +12,7 @@
             <span class="int-he">הגדרות חשבון</span>
         </h1>
         <div class="end">
-            <button type="button" class="button small transparent control-elem" onclick="handleCancel()">
+            <button type="button" class="button small transparent control-elem" onclick="navigateBack()">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
             </button>
@@ -159,7 +159,7 @@
                 <span class="int-en">Save</span>
                 <span class="int-he">שמירה</span>
             </button>
-            <button type="button" class="button transparent small control-elem" onclick="handleCancel()">
+            <button type="button" class="button transparent small control-elem" onclick="navigateBack()">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
             </button>
@@ -172,13 +172,13 @@
 
 {% block js %}
 	<script>
-		// Handle cancel button with history fallback
-		function handleCancel() {
-            if (history.length > 2) {
+		// Handle navigation with history fallback
+		function navigateBack() {
+			if (history.length > 2) {
 				// if history is not empty, go back:
 				window.history.back();
 			} else {
-				// go home:
+				// go to fallback url:
 				window.history.replaceState(null, null, '/texts');
 				window.location.reload();
 			}
@@ -236,7 +236,7 @@
 						if ($newTransLangPref !== "{{ translation_language_preference }}") {
                             Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
-						history.back();
+						navigateBack();
 					}
 				});
 			});
