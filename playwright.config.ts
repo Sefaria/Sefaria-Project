@@ -57,9 +57,24 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Main Testing for Production Site
     {
       name: 'chromium',
+      testDir: './e2e-tests/tests', // Only run production tests by default
       use: { ...devices['Desktop Chrome'] },
+    },
+
+    // Modularization tests (beta) - separate project
+    {
+      name: 'mdl',
+      testDir: './e2e-tests/modularization-tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'https://modularization.cauldron.sefaria.org',
+        // Ensure we don't get redirected
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
     },
 
     // {
