@@ -175,21 +175,13 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
-  const short_lang = Sefaria._getShortInterfaceLang();
 
-  const libraryLogoPath = Sefaria.interfaceLang === "hebrew"  ? "logo-hebrew.png" : "logo.svg";
-  const libraryLogo = (
-    <img src={`/static/img/${libraryLogoPath}`} className="home" alt="Sefaria Logo"/>
+  const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
+  const logo = (
+    <img src={path} className="home" alt={`Sefaria ${Sefaria.activeModule} logo`}/>
   );
 
-  const sheetsLogoPath = `/static/img/${short_lang}_sheets_logo.svg`;
-  const sheetsLogo = (
-    <img src={sheetsLogoPath} alt="Sefaria Sheets Logo" className="home"/>
-  );
-
-  const logo = props.module === Sefaria.LIBRARY_MODULE ? libraryLogo : sheetsLogo;
-
-      const librarySavedIcon = <div className='librarySavedIcon'>
+  const librarySavedIcon = <div className='librarySavedIcon'>
                                   <a href="/texts/saved" data-target-module={Sefaria.LIBRARY_MODULE}>
                                     <img src='/static/icons/bookmarks.svg' alt='Saved items' />
                                   </a>
