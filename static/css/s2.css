@@ -1621,6 +1621,9 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .bookPage.compare .content {
   padding: 30px 10px;
 }
+.singlePanel .readerNavMenu .content .contentInner {
+  min-height: revert;
+}
 .readerNavMenu .content .contentInner {
   width: 725px;
   margin: 0 auto;
@@ -9233,6 +9236,7 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
@@ -10962,7 +10966,6 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
-  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -14982,7 +14985,6 @@ span.ref-link-color-3 {color: blue}
     width: revert;
     border-top: 40px solid #FBFBFA;
     margin-block-start: -40px;
-    border-bottom: 40px solid #FBFBFA;
   }
 }
 @media screen and (max-width: 700px) {

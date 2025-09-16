@@ -2856,6 +2856,8 @@ ReaderMessage.propTypes = {
 };
 
 
+
+
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
@@ -2864,7 +2866,16 @@ class CookiesNotification extends Component {
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
+    // Use the getCookieDomain function to get the appropriate cookie domain
+    const cookieDomain = Sefaria.util.getCookieDomain();
+    
+    const cookieOptions = {path: "/", expires: 20*365};
+    
+    if (cookieDomain) {
+      cookieOptions.domain = cookieDomain;
+    }
+    
+    $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
     this.setState({showNotification: false});
   }
   render() {
@@ -3609,7 +3620,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       ))}
     </div>
   );
-
 }
 
 
