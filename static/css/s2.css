@@ -66,6 +66,7 @@ a, a:hover {
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
   --select-blue: #0B71E7;
+  --module-switcher-tooltip-background: #e4edf9;
 }
 /* Font Family */
 body, .sans-serif {
@@ -15884,12 +15885,7 @@ span.ref-link-color-3 {color: blue}
 /* Module Switcher Tooltip */
 
 .module-switcher-tooltip {
-  padding: 8px;
-  background-color: #e6f3ff;
-  border: 1px solid #000;
-  border-radius: 4px;
   max-width: 350px;
-  color: #000;
 }
 
 .module-switcher-tooltip .reactMarkdown {
@@ -15934,14 +15930,29 @@ span.ref-link-color-3 {color: blue}
   border: 1px solid #0066cc;
   border-radius: 3px;
   cursor: pointer;
-  background-color: #0066cc;
+  background-color: #2f5baa;
   color: white;
   font-size: 14px;
 }
 
 /* Specific styling for our tooltip's tippy-content */
 .module-switcher-tippy .tippy-content {
-  padding: 2px !important;
+  padding: 24px !important;
+}
+
+.module-switcher-tippy .tippy-arrow {
+  color: var(--module-switcher-tooltip-background);
+}
+
+/* .module-switcher-tippy .tippy-arrow::before {
+  border: 1px solid var(--light-grey) !important;
+} */
+
+.module-switcher-tippy,
+.tippy-box {
+  background-color: var(--module-switcher-tooltip-background) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--light-grey) !important;
 }
 
 /* Mobile-specific tooltip adjustments */
