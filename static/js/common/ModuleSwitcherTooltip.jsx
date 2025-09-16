@@ -3,7 +3,7 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import Sefaria from '../sefaria/sefaria';
 import { InterfaceText } from '../Misc';
-import '../../../static/css/Header.css';
+import '../../css/Header.css';
 
 const ModuleSwitcherTooltip = ({ targetRef, children }) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
