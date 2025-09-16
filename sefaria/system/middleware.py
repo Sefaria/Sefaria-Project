@@ -284,30 +284,23 @@ class ModuleMiddleware(MiddlewareURLMixin):
         """
         Determine and set the active module for the request.
         First checks host-based module, then falls back to route-based detection.
-        Sets is_subdomain_access flag.
         """
-        # Start with hostname-based detection, fall back to default
-        active_module = self._get_module_from_host(request) or DEFAULT_MODULE
-        is_subdomain_access = active_module != DEFAULT_MODULE
-        
-        # Only do path checking if hostname didn't provide a module
-        if active_module == DEFAULT_MODULE:
+        # First, try to determine module based on host/subdomain from DOMAIN_MODULES
+        host_based_module = self._get_module_from_host(request)
+        if host_based_module:
+            active_module = host_based_module
+        else:
+            # Check each module route to see if path matches
             for module_name, route_prefix in MODULE_ROUTES.items():
-                route_without_slash = route_prefix.rstrip('/')
-                # Match both "/sheets" and "/sheets/" patterns, plus any subpath like /sheets/...
-                if route_without_slash and (request.path == route_without_slash or request.path.startswith(route_prefix)):
+                if request.path.startswith(route_prefix):
                     active_module = module_name
-                    is_subdomain_access = False  # This is path-based access
                     break
-        
-        # Store the access method for use in views and templates
-        request.is_subdomain_access = is_subdomain_access
         
         return active_module
 
     def __call__(self, request):
         if not self.should_process_request(request):
-            request.active_module = DEFAULT_MODULE
+            request.active_module = 'library'
             return self.get_response(request)
 
         request.active_module = self._set_active_module(request)

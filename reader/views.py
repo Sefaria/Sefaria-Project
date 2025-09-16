@@ -4861,30 +4861,28 @@ def application_health_api(request):
 
 def dynamic_manifest(request, module, filename):
     """
-    Serve module-specific web manifest with dynamic scope and start_url based on access method.
+    Serve module-specific web manifest with dynamic scope and start_url.
     Supports both Hebrew and English.
     """
-    # Use the module from URL path, which provides explicit context
     active_module = module
     lang = getattr(request, 'interfaceLang', 'english')
-    is_subdomain_access = getattr(request, 'is_subdomain_access', False)
-    
-    # Determine start_url based on access method
-    if is_subdomain_access:
+
+    # Set start_url to ensure users land on the correct module entry point when launching PWA
+    if active_module == DEFAULT_MODULE or active_module not in MODULE_ROUTES:
         start_url = "/"
     else:
-        # Path-based access - use the module route as start_url
+        # For modules like sheets, use their route path as the entry point
+        # Ensures users go to /sheets/ rather than just / when launching the PWA
         start_url = MODULE_ROUTES.get(active_module, "/")
-    
-    # Always use "/" for scope as this allows the PWA to control all paths within its domain
+
+    # Always use "/" for scope to allow PWA control over all paths
     scope = "/"
-    
+
     context = {
         'active_module': active_module,
         'lang': lang,
         'start_url': start_url,
         'scope': scope,
-        'is_subdomain_access': is_subdomain_access,
         'is_hebrew': lang in ('hebrew', 'he'),
     }
     
