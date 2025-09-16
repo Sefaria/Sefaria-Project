@@ -5,7 +5,7 @@ import { AddToSourceSheetBox } from "../AddToSourceSheet";
 import React, {useContext, useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
-import Button from "../common/Button";
+
 import ReactTags from "react-tag-autocomplete";
 import {layoutOptions} from "../constants";
 import {ReaderPanelContext} from "../context";

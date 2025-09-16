@@ -77,7 +77,7 @@ const CalendarListing = ({calendar}) => {
       <div className="calendarRefs">
         {calendar.refs.map(ref => (
         <div className="calendarRef" key={ref.url}>
-          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
           <a href={`/${ref.url || calendar.url}`} className="">
             <InterfaceText text={ref.displayValue} />
           </a>
