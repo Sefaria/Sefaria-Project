@@ -35,6 +35,7 @@ from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
+from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params
 from sefaria.sheets import clean_source, bleach_text
@@ -171,17 +172,14 @@ def view_sheet(request, sheet_id, editorMode = False):
     View the sheet with sheet_id.
     """
     embed = request.GET.get('embed', '0')
-
     if embed != '1' and editorMode is False:
-        sheet = get_sheet(sheet_id)
-        if "redirect" in sheet:
-            return redirect(sheet["redirect"][request.LANGUAGE_CODE], permanent=False)
         return catchall(request, sheet_id, True)
+        
+    if sheet_id in SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE]:
+        return redirect(SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE][sheet_id])
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
-    if "redirect" in sheet:
-        return redirect(sheet["redirect"][request.LANGUAGE_CODE], permanent=True)
 
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
