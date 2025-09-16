@@ -21,14 +21,9 @@ import Button from './common/Button';
 import {useNextParam} from './Hooks'
   
 const LoggedOutDropdown = ({module}) => {
-  const [isClient, setIsClient] = useState(false);
   const next = useNextParam();
   const loginLink = `/login?next=${next}`;
   const registerLink = `/register?next=${next}`;
-
-  useEffect(()=>{
-    setIsClient(true);
-  }, []);
 
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
