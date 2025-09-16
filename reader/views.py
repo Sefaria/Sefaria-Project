@@ -51,11 +51,11 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_language_specific_domain_modules
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, DOMAIN_MODULES, MODULE_ROUTES
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -218,8 +218,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": DOMAIN_MODULES,
-        "moduleRoutes": MODULE_ROUTES,
+        "domainModules": get_language_specific_domain_modules(request.interfaceLang),
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
@@ -1021,21 +1020,23 @@ def calendars(request):
     return menu_page(request, page="calendars", title=title, desc=desc)
 
 
-@login_required
-def saved(request):
-    title = _("My Saved Content")
-    desc = _("See your saved content on Sefaria")
-    profile = UserProfile(user_obj=request.user)
-    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="texts-saved", title=title, desc=desc)
+
 
 @login_required
-def sheets_saved(request):
+def saved_content(request):
+    """
+    Unified saved content view that works for both library and sheets modules
+    """
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="sheets-saved", title=title, desc=desc)
+    
+    # Determine page name based on active module
+    active_module = getattr(request, 'active_module', 'library')
+    page_name = "sheets-saved" if active_module == "voices" else "texts-saved"
+    
+    return menu_page(request, props, page=page_name, title=title, desc=desc)
 
 
 def get_user_history_props(request):
@@ -1046,17 +1047,22 @@ def get_user_history_props(request):
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}
 
-def user_history(request):
-    props = get_user_history_props(request)
-    title = _("My User History")
-    desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="texts-history", title=title, desc=desc)
 
-def sheets_user_history(request):
+
+@login_required
+def user_history_content(request):
+    """
+    Unified user history view that works for both library and sheets modules
+    """
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="sheets-history", title=title, desc=desc)
+    
+    # Determine page name based on active module
+    active_module = getattr(request, 'active_module', 'library')
+    page_name = "sheets-history" if active_module == "voices"  else "texts-history"
+    
+    return menu_page(request, props, page=page_name, title=title, desc=desc)
 
 @login_required
 def notes(request):
@@ -3128,7 +3134,7 @@ def topic_page(request, slug, test_version=None):
     if request.active_module == "library":
         title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
-    elif request.active_module == "sheets":
+    elif request.active_module == "voices":
         title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
 
@@ -3663,6 +3669,7 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
+@csrf_exempt
 def profile_api(request, slug=None):
     """
     API for user profiles.
@@ -3983,7 +3990,7 @@ def profile_redirect(request, uid, page=1):
     """"
     Redirect to the profile of the logged in user.
     """
-    return redirect("/sheets/profile/%s" % uid, permanent=True)
+    return redirect("/profile/%s" % uid, permanent=True)
 
 
 @login_required
@@ -3991,7 +3998,7 @@ def my_profile(request):
     """
     Redirect to a user profile
     """
-    url = "/sheets/profile/%s" % UserProfile(id=request.user.id).slug
+    url = "/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
     return redirect(url)

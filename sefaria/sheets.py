@@ -883,7 +883,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"assignerName":	   sheet.get("assignerName", None),
 				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
 				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
-				"ownerProfileUrl": "/sheets/profile/" + ownerData["slug"],
+				"ownerProfileUrl": "/profile/" + ownerData["slug"],
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],

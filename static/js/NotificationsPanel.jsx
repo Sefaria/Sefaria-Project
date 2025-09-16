@@ -257,7 +257,7 @@ const CollectionAddNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="collectionName" data-target-module={Sefaria.SHEETS_MODULE} href={"/sheets/collections/" + content.collection_slug}>
+      <a className="collectionName" data-target-module={Sefaria.SHEETS_MODULE} href={"/collections/" + content.collection_slug}>
         {content.collection_name}
       </a>
     </>

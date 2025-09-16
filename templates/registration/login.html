@@ -14,7 +14,7 @@
                 <span class="int-en">You are already logged in as </span>
                 <span class="int-he">הנכם מחוברים כבר בתור</span>
                 {{ user.email }}.
-                <a href="{% subdomain_url "logout" %}">
+                <a href="{% context_url "logout" %}">
                     <span class="int-en">Logout.</span>
                     <span class="int-he">להתנתקות.</span>
                 </a>
@@ -37,7 +37,7 @@
             </p>
             {% endif %}
 
-            <form id="login-form" method="post" action="{% subdomain_url "login" %}">
+            <form id="login-form" method="post" action="{% context_url "login" %}">
                 {% csrf_token %}
 
                 <p>
@@ -53,13 +53,13 @@
                     <span class="int-en">Login</span>
                     <span class="int-he">התחברות</span>
                 </button>
-                <a class="registration-links control-elem" href="{% subdomain_url "password_reset" %}" id="resetLink">
+                <a class="registration-links control-elem" href="{% context_url "password_reset" %}" id="resetLink">
                     <span class="int-en">Forgot your password?</span>
                     <span class="int-he">שכחתי את הסיסמא שלי</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
-            <a class="registration-links control-elem" href="{% subdomain_url "register" %}{% if next %}?next={{ next }}{% endif %}">
+            <a class="registration-links control-elem" href="{% context_url "register" %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="int-en">Create a new account</span>
                 <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
 
