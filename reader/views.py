@@ -4162,6 +4162,7 @@ def dashboard(request):
 
     return render_template(request,'dashboard.html', None, {
         "states": states,
+        "renderStatic": True
     })
 
 
