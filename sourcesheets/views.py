@@ -171,12 +171,12 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
+    if sheet_id in SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE]:
+        return redirect(SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE][sheet_id])
+    
     embed = request.GET.get('embed', '0')
     if embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
-        
-    if sheet_id in SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE]:
-        return redirect(SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE][sheet_id])
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
