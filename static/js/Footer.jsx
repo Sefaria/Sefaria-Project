@@ -64,7 +64,7 @@ class Footer extends Component {
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
                 <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
                 <Link href="/people" en="Authors" he="מחברים" />
-                <Link href="/sheets/collections" en="Collections" he="אסופות" targetModule={Sefaria.SHEETS_MODULE} />
+                <Link href="/collections" en="Collections" he="אסופות" targetModule={Sefaria.SHEETS_MODULE} />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
             </Section>
 

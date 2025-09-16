@@ -119,7 +119,7 @@ class EditCollectionPage extends Component {
           alert(data.error);
         } else {
           this.changed = false;
-          window.location = `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/sheets/collections/${data.collection.slug}`; 
+          window.location = `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/collections/${data.collection.slug}`; 
         }
     }.bind(this)).fail(function() {
         alert(Sefaria._("Unfortunately an error occurred saving your collection."));
@@ -127,7 +127,7 @@ class EditCollectionPage extends Component {
   }
   getCancelLink() {
     if (this.props.initialData) {
-      return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/sheets/collections/${this.state.slug}`;
+      return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/collections/${this.state.slug}`;
     }
     return `${Sefaria.getModuleURL(Sefaria.SHEETS_MODULE).origin}/my/profile`;
   }
