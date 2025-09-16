@@ -1672,7 +1672,7 @@ const SheetListing = ({
     }
   };
 
-  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : "Untitled Source Sheet";
+  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : "Untitled";
 
   const viewsIcon = sheet.public ?
     <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
