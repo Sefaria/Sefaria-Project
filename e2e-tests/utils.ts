@@ -99,14 +99,54 @@ export const hideModals = async (page: Page) => {
 }
 
 export const hideTipsAndTricks = async (page: Page) => {
+  // First try to click the close button if visible
+  try {
+    const closeButton = page.locator('.guideOverlay .readerNavMenuCloseButton.circledX');
+    if (await closeButton.isVisible({ timeout: 2000 })) {
+      await closeButton.click();
+      await page.waitForTimeout(500); // Allow overlay to close
+      // console.log('Guide overlay closed via close button');
+      return;
+    }
+  } catch (error) {
+    console.log('Failed to close guide overlay via button, falling back to CSS hiding');
+  }
+  
+  // If not visible, inject CSS to hide the overlay
   await page.evaluate(() => {
     const style = document.createElement('style');
     // Hide the tips and tricks overlay
     style.innerHTML = `
-      .guideOverlay {
+      .guideOverlay,
+      .guideOverlayContent,
+      .guideOverlayHeader,
+      .guideOverlayBody,
+      .guideOverlayFooter,
+      .guideOverlayCenteredContent,
+      .guideOverlayVideoContainer,
+      .guideOverlayTextContainer,
+      .guide-overlay,
+      .quickStartGuide,
+      .tourOverlay,
+      [class*="guide"][class*="overlay"],
+      [class*="tour"][class*="overlay"] {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
+        opacity: 0 !important;
+        z-index: -1 !important;
+      }
+      
+      /* Ensure body doesn't have overlay-related classes that might affect interaction */
+      body.guide-active,
+      body.overlay-active {
+        pointer-events: auto !important;
+      }
+      
+      /* Ensure videos in the overlay are stopped */
+      .guideOverlayVideo {
+        display: none !important;
+        visibility: hidden !important;
       }
     `;
     document.head.appendChild(style);
@@ -221,6 +261,8 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   await hideExploreTopicsModal(page);
   await hideTipsAndTricks(page);
   await hideTopUnbounceBanner(page);
+  // Additional wait to ensure all overlays are fully dismissed
+  await page.waitForTimeout(1000);
 };
 
 /**
@@ -382,7 +424,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     await page.goto(url, {waitUntil: 'domcontentloaded'});
     await changeLanguage(page, language);
     await page.goto(url, {waitUntil: 'domcontentloaded'});
-    await hideModals(page);
+    await hideAllModalsAndPopups(page);
     return page;
 }
 

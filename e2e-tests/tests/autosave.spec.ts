@@ -124,7 +124,13 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Unsaved changes popup appears when closing tab', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.focusTextInput();
-    await page.keyboard.type('Leave before saving finishes');
+    // Add much more text to slow down the save process
+    const longText = 'This is a very long text that should take significant time to save. '.repeat(5) + 
+                   'Adding even more content here to ensure the saving process is slower. '.repeat(2) +
+                   'Final part of very long text to guarantee saving state persists longer.';
+    await page.keyboard.type(longText);
+    // Wait briefly to ensure saving starts but don't wait for completion
+    await page.waitForTimeout(100);
     await expect(editor.statusMessage()).toContainText(SaveStates.saving.text);
     let dialogTriggered = false;
     await Promise.all([
