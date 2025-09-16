@@ -44,6 +44,7 @@
   "dependencies": {
     "@playwright/test": "^1.42.1",
     "@sentry/react": "^7.57.0",
+    "@tippyjs/react": "^4.2.6",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
     "cheerio": "^0.22.0",
@@ -90,6 +91,7 @@
     "source-list-map": "^2.0.0",
     "striptags": "^2.1.1",
     "sync-exec": "^0.6.2",
+    "tippy.js": "^6.3.7",
     "webpack-node-externals": "^3.0.0",
     "webpack-sources": "^3.2.1",
     "winston": "^3.3.3"
