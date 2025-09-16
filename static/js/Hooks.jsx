@@ -273,6 +273,13 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
+function useNextParam() {
+  const [next, setNext] = useState(null);
+  useEffect(() => {
+    setNext(encodeURIComponent(Sefaria.util.currentPath()));
+  });
+  return next;
+}
 
 export {
   useScrollToLoad,
@@ -281,4 +288,5 @@ export {
   useDebounce,
   useContentLang,
   useIncrementalLoad,
+  useNextParam,
 };
