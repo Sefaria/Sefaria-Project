@@ -89,7 +89,6 @@ a, a:hover {
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
   --select-blue: #0056b3;
-  --accessibility-focus-blue: #1976d2;
 }
 /* Font Family */
 body, .sans-serif {
@@ -8752,7 +8751,7 @@ body.user-is-tabbing .button:focus,
 body.user-is-tabbing a.button:focus,
 body.user-is-tabbing div.button:focus,
 body.user-is-tabbing label.button:focus {
-  outline: 2px solid var(--accessibility-focus-blue);
+  outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
 }
 .button.white {
@@ -10484,7 +10483,7 @@ body:not(.user-is-tabbing) .header-dropdown-button:focus {
 body.user-is-tabbing div[role="button"]:focus,
 body.user-is-tabbing .dropdownLinks-button img:focus,
 body.user-is-tabbing .header-dropdown-button:focus {
-  outline: 2px solid var(--accessibility-focus-blue);
+  outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
 }
 

@@ -21,7 +21,7 @@ a.sefaria-common-button {
 
 body.user-is-tabbing button.sefaria-common-button:focus,
 body.user-is-tabbing a.sefaria-common-button:focus {
-    outline: 2px solid var(--accessibility-focus-blue);
+    outline: 2px solid var(--focus-blue);
     outline-offset: 2px;
 }
 
