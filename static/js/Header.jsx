@@ -22,8 +22,8 @@ import {useNextParam} from './Hooks'
   
 const LoggedOutDropdown = ({module}) => {
   const next = useNextParam();
-  const loginLink = `/login?next=${next}`;
-  const registerLink = `/register?next=${next}`;
+  const loginLink = `/login?${next}`;
+  const registerLink = `/register?${next}`;
 
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
@@ -316,8 +316,8 @@ Header.propTypes = {
 const LoggedOutButtons = ({mobile, loginOnly}) => {
   const [isClient, setIsClient] = useState(false);
   const next = useNextParam();
-  const loginLink = `/login?next=${next}`;
-  const registerLink = `/register?next=${next}`;
+  const loginLink = `/login?${next}`;
+  const registerLink = `/register?${next}`;
   useEffect(()=>{
     setIsClient(true);
   }, []);
@@ -582,8 +582,8 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${currentUrl}`} id="select-hebrew-interface-link">עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${currentUrl}`} id="select-english-interface-link">English</a>
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?${currentUrl}`} id="select-hebrew-interface-link">עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?${currentUrl}`} id="select-english-interface-link">English</a>
               </div>
               <div><a className="interfaceLinks-row bottom" id="help-link" href={Sefaria._v({
                 he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
@@ -608,15 +608,15 @@ const MobileInterfaceLanguageToggle = () => {
 
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">עברית</a>
+      <a href={"/interface/hebrew?" + currentURL} className="int-he">עברית</a>
       <span className="separator">•</span>
-      <a href={"/interface/english?next=" + currentURL} className="int-en inactive">English</a>
+      <a href={"/interface/english?" + currentURL} className="int-en inactive">English</a>
     </>
     :
     <>
-      <a href={"/interface/english?next=" + currentURL} className="int-en">English</a>
+      <a href={"/interface/english?" + currentURL} className="int-en">English</a>
       <span className="separator">•</span>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">עברית</a>
+      <a href={"/interface/hebrew?" + currentURL} className="int-he inactive">עברית</a>
     </>;
 
   return (
