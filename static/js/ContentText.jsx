@@ -28,7 +28,12 @@ const VersionContent = ({primary, translation, imageLoadCallback}) => {
     return Object.keys(versions).map((key) => {
         const version = versions[key];
         const lang = (version.direction === 'rtl') ? 'he' : 'en';
-        const toFilter = key === 'primary' && !!primary && !!translation;
+        // const toFilter = key === 'primary' && !!primary && !!translation;
+        const toFilter = (
+          key === 'primary' &&
+          !!primary?.text &&
+          !!translation?.text
+        );
         return (Sefaria.isFullSegmentImage(version.text)) ?
             (<VersionImageSpan lang={lang} content={version.text || ''} toFilter={toFilter} imageLoadCallback={imageLoadCallback}/>) :
                 (<ContentSpan lang={lang} content={version.text || ''} isHTML={true} primaryOrTranslation={key}/>);
