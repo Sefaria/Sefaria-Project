@@ -23,9 +23,12 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
+import {
+  DropdownLanguageToggle,
+  DropdownMenu,
+  DropdownMenuItemWithIcon,
+} from "./common/DropdownMenu";
 import Button from "./common/Button";
 
 function useOnceFullyVisible(onVisible, key) {
@@ -1243,12 +1246,6 @@ DisplaySettingsButton.propTypes = {
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
 
-  const [isOpen, setIsOpen] = useState(false);
-
-  const getCurrentPage = () => {
-    return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
-  }
-
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
     setTranslationLanguagePreference(null);
@@ -1256,19 +1253,8 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
 
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
-      <div className="dropdownLinks-options">
-        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header languageHeader">
-          <InterfaceText>Site Language</InterfaceText>
-        </div>
-        <DropdownMenuSeparator />
-        <div className='languageFlex'>
-          <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':'inactive'}`}>
-            עברית
-          </DropdownMenuItem>
-          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : 'inactive'}`}>
-            English
-          </DropdownMenuItem>
-        </div>
+      <div className="dropdownLinks-options globeLanguageToggle">
+        <DropdownLanguageToggle currentLang={currentLang}/>
       </div>
       { !!translationLanguagePreference ? (
             <>

@@ -140,7 +140,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
 
 
-const DropdownLanguageToggle = () => {
+const DropdownLanguageToggle = ({currentLang}) => {
   const englishLink = Sefaria.util.fullURL(`/interface/english?next=${getCurrentPage()}`);
   const hebrewLink = Sefaria.util.fullURL(`/interface/hebrew?next=${getCurrentPage()}`);
   return (
@@ -150,16 +150,19 @@ const DropdownLanguageToggle = () => {
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a className="englishLanguageLink" href={englishLink}>
+        <a className={`englishLanguageLink ${(currentLang === 'english') ? 'active': ''}`} href={englishLink}>
           English
         </a>
       </span>
-      <a className="hebrewLanguageLink" href={hebrewLink}>
+      <a className={`hebrewLanguageLink ${(currentLang === 'hebrew') ? 'active': ''}`} href={hebrewLink}>
         עברית
       </a>
       </div>
     </>
   )
+}
+DropdownLanguageToggle.propTypes = {
+    currentLang: PropTypes.string,
 }
 
   export {
