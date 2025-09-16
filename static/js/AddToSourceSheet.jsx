@@ -291,7 +291,7 @@ class AddToSourceSheetBox extends Component {
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
       let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
-      let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
+      let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled");
       let selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }) : (Sefaria._uid ? <LoadingMessage /> : null);
@@ -313,7 +313,7 @@ class AddToSourceSheetBox extends Component {
         </div>
         <div className="dropdown">
           <div className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`} onClick={this.toggleSheetList}>
-            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}          </div>
+            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}          </div>
           {this.state.sheetListOpen ?
           <div className="dropdownListBox noselect">
             <div className="dropdownList noselect">
