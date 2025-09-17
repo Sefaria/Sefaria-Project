@@ -7,6 +7,7 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 from django.test import override_settings
 from django.core.cache import cache
+from django.conf import settings
 
 pytestmark = pytest.mark.django_db
 
@@ -17,18 +18,15 @@ def pytest_configure(config):
 def validate_redis_cache_backend():
     # Validate that the Django cache backend is using Redis
     # Fail all tests if Redis backend is not configured
-    from django.core.cache import caches
-    
-    default_cache = caches['default']
-    cache_backend = default_cache.__class__.__module__ + '.' + default_cache.__class__.__name__
-    
+    cache_backend = settings.CACHES['default']['BACKEND']
+
     if cache_backend != 'django_redis.cache.RedisCache':
         error_message = f"""
 STRAPI CACHE TESTS REQUIRE REDIS BACKEND
 
 Current cache backend: {cache_backend}
         """.strip()
-        
+
         pytest.fail(error_message)
 
 
