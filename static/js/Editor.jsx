@@ -566,6 +566,8 @@ function parseSheetItemHTML(rawhtml) {
 
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove the final line break (exactly one)
+    preparseHtml = preparseHtml.replace(/(?:\r\n|\r|\n)$/, '');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
