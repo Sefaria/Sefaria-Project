@@ -9541,13 +9541,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   flex-direction: row-reverse;
 }
 
-.editorSaveStateIndicator .icon-blue {
-  color: var(--sefaria-blue);
-}
-
-.editorSaveStateIndicator .icon-midrash-green {
-  color: var(--midrash-green);
-}
 .floatingEditorIcons{
   display: flex;
   position: sticky;
