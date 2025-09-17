@@ -1236,11 +1236,17 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
 
         # Validate date format (YYYY-MM-DD)
         try:
-            datetime.strptime(start_date, "%Y-%m-%d")
-            datetime.strptime(end_date, "%Y-%m-%d")
+            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
         except ValueError:
             return jsonResponse(
                 {"error": "Dates must be in YYYY-MM-DD format"}, status=400
+            )
+
+        # Validate that start_date is less than end_date
+        if start_date_obj >= end_date_obj:
+            return jsonResponse(
+                {"error": "start_date must be less than end_date"}, status=400
             )
 
         # Get GraphQL query from request body
