@@ -192,6 +192,19 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         self.span = self.span.doc[self_start:other_end]
 
 
+class RawRefPartPair(RawRefPart):
+
+    def __init__(self, part1: RawRefPart, part2: RawRefPart):
+        if part1.type != part2.type:
+            raise Exception(f"Part types need to be the same. Received types: {part1.type} and {part2.type}")
+        _type = part1.type
+        # get span by combining spans of part1 and part2
+        span = part1.span.doc.subspan(slice(part1.span.range[0], part2.span.range[1]), part1.span.label)
+        potential_dh_continuation = None
+        super().__init__(_type, span, potential_dh_continuation)
+        self.part_pair = [part1, part2]
+
+
 class ContextPart(RawRefPart):
     # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
     pass

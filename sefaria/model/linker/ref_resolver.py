@@ -1,12 +1,13 @@
 from collections import defaultdict
+from functools import reduce
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
 from enum import IntEnum, Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, SectionContext, ContextPart, TermContext
-from sefaria.model.linker.ne_span import NESpan
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
+from ne_span import NESpan
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
@@ -598,10 +599,29 @@ class RefResolver:
             matches += temp_matches
         return matches
 
+    @staticmethod
+    def _get_named_part_pairs(ref_parts: [RawRefPart]) -> [RawRefPartPair]:
+        """
+        Look for pairs of ref parts that are consecutive named parts
+        The ref part ML model sometimes breaks up named parts too much and then the individual parts don't match the corresponding match templates
+        This function merges consecutive named parts to mitigate this issue
+        @param ref_parts:
+        @return:
+        """
+        named_parts = [part for part in ref_parts if part.type == RefPartType.NAMED]
+        named_part_pairs = []
+        for i, part in enumerate(named_parts[:-1]):
+            next_part = named_parts[i+1]
+            # check that next_part is consecutive to part
+            if 0 < (next_part.char_indices[0] - part.char_indices[1]) <= 2:  # allow for space or punctuation between named parts
+                named_part_pairs += [RawRefPartPair(part, next_part)]
+        return named_part_pairs
+
     def _get_refined_ref_part_matches_recursive(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         fully_refined = []
         children = match.get_node_children()
-        for part in ref_parts:
+        part_pairs = self._get_named_part_pairs(ref_parts)
+        for part in (ref_parts + part_pairs):
             for child in children:
                 resolved_ref_refiner = resolved_ref_refiner_factory.create(part, child, match)
                 temp_matches = resolved_ref_refiner.refine(self._lang)
