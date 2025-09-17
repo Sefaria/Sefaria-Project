@@ -1,7 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
-import { InterfaceText, getCurrentPage } from '../Misc';
+import { InterfaceText } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
+import {useCurrentPath} from "../Hooks";
 
 const DropdownMenuSeparator = () => {
 
@@ -139,10 +140,10 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
   };
 
 
-
 const DropdownLanguageToggle = () => {
-  const englishLink = Sefaria.util.fullURL(`/interface/english?next=${getCurrentPage()}`);
-  const hebrewLink = Sefaria.util.fullURL(`/interface/hebrew?next=${getCurrentPage()}`);
+  const next = Sefaria.getNextParamString(useCurrentPath());
+  const englishLink = Sefaria.util.fullURL(`/interface/english?${next}`);
+  const hebrewLink = Sefaria.util.fullURL(`/interface/hebrew?${next}`);
   return (
     <>
       <div className="languageHeader">
@@ -150,16 +151,19 @@ const DropdownLanguageToggle = () => {
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a className="englishLanguageLink" href={englishLink}>
+        <a className={`englishLanguageLink ${(Sefaria.interfaceLang === 'english') ? 'active': ''}`} href={englishLink}>
           English
         </a>
       </span>
-      <a className="hebrewLanguageLink" href={hebrewLink}>
+      <a className={`hebrewLanguageLink ${(Sefaria.interfaceLang === 'hebrew') ? 'active': ''}`} href={hebrewLink}>
         עברית
       </a>
       </div>
     </>
   )
+}
+DropdownLanguageToggle.propTypes = {
+    currentLang: PropTypes.string,
 }
 
   export {

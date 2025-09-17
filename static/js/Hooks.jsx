@@ -273,6 +273,17 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
+function useCurrentPath() {
+  /*
+  Returns the updated path.
+  Note - because we have our own router, this hook has no dependencies, so it triggers re-render also when the path did not change.
+   */
+  const [currentPath, setCurrentPath] = useState(null);
+  useEffect(() => {
+    setCurrentPath(Sefaria.util.currentPath());
+  });
+  return currentPath;
+}
 
 export {
   useScrollToLoad,
@@ -281,4 +292,5 @@ export {
   useDebounce,
   useContentLang,
   useIncrementalLoad,
+  useCurrentPath,
 };

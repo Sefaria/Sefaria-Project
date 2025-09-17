@@ -11,6 +11,7 @@ import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
 import FilterNode from "./FilterNode";
+import {useCurrentPath} from "../Hooks";
 
 
 let Sefaria = Sefaria || {
@@ -3539,6 +3540,9 @@ _media: {},
     const next = Sefaria.activeModule === 'sheets' ? 'sheets' : 'texts';
     return `/logout?next=/${next}`;
   },
+  getNextParamString(rawPath) {
+    return `next=${encodeURIComponent(rawPath)}`;
+  }
 });
 
 Sefaria.unpackDataFromProps = function(props) {

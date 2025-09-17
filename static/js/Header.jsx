@@ -10,7 +10,6 @@ import {
   GlobalWarningMessage,
   InterfaceLanguageMenu,
   InterfaceText,
-  getCurrentPage,
   LanguageToggleButton,
   DonateLink,
   useOnceFullyVisible
@@ -19,25 +18,13 @@ import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
 import Button from './common/Button';
+import {useCurrentPath} from './Hooks'
   
 const LoggedOutDropdown = ({module}) => {
-  const [isClient, setIsClient] = useState(false);
-  const [next, setNext] = useState("/");
-  const [loginLink, setLoginLink] = useState("/login?next=/");
-  const [registerLink, setRegisterLink] = useState("/register?next=/");
+  const next = Sefaria.getNextParamString(useCurrentPath());
+  const loginLink = `/login?${next}`;
+  const registerLink = `/register?${next}`;
 
-  useEffect(()=>{
-    setIsClient(true);
-  }, []);
-
-  useEffect(()=> {
-    if(isClient){
-      setNext(encodeURIComponent(Sefaria.util.currentPath()));
-      setLoginLink("/login?next="+next);
-      setRegisterLink("/register?next="+next);
-    }
-  })
-  
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/logged_out.svg'/>}>
           <div className='dropdownLinks-options'>
@@ -328,19 +315,12 @@ Header.propTypes = {
 
 const LoggedOutButtons = ({mobile, loginOnly}) => {
   const [isClient, setIsClient] = useState(false);
-  const [next, setNext] = useState("/");
-  const [loginLink, setLoginLink] = useState("/login?next=/");
-  const [registerLink, setRegisterLink] = useState("/register?next=/");
+  const next = Sefaria.getNextParamString(useCurrentPath());
+  const loginLink = `/login?${next}`;
+  const registerLink = `/register?${next}`;
   useEffect(()=>{
     setIsClient(true);
   }, []);
-  useEffect(()=> {
-    if(isClient){
-      setNext(encodeURIComponent(Sefaria.util.currentPath()));
-      setLoginLink("/login?next="+next);
-      setRegisterLink("/register?next="+next);
-    }
-  })
   const classes = classNames({accountLinks: !mobile, anon: !mobile});
   return (
     <div className={classes}>
@@ -542,6 +522,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
+  const currentUrl = Sefaria.getNextParamString(useCurrentPath());
 
   const menuClick = (e) => {
     var el = e.target;
@@ -601,8 +582,8 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?${currentUrl}`} id="select-hebrew-interface-link">עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?${currentUrl}`} id="select-english-interface-link">English</a>
               </div>
               <div><a className="interfaceLinks-row bottom" id="help-link" href={Sefaria._v({
                 he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
@@ -623,19 +604,19 @@ const ProfilePicMenu = ({len, url, name}) => {
 
 
 const MobileInterfaceLanguageToggle = () => {
-  const currentURL = getCurrentPage();
+  const currentURL = Sefaria.getNextParamString(useCurrentPath());
 
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">עברית</a>
+      <a href={"/interface/hebrew?" + currentURL} className="int-he">עברית</a>
       <span className="separator">•</span>
-      <a href={"/interface/english?next=" + currentURL} className="int-en inactive">English</a>
+      <a href={"/interface/english?" + currentURL} className="int-en inactive">English</a>
     </>
     :
     <>
-      <a href={"/interface/english?next=" + currentURL} className="int-en">English</a>
+      <a href={"/interface/english?" + currentURL} className="int-en">English</a>
       <span className="separator">•</span>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">עברית</a>
+      <a href={"/interface/hebrew?" + currentURL} className="int-he inactive">עברית</a>
     </>;
 
   return (
