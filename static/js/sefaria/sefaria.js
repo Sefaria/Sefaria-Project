@@ -515,6 +515,7 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
+  
   SHEETS_MODULE: "voices",
   LIBRARY_MODULE: "library",
   getModuleURL: function(module=null) {
