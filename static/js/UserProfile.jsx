@@ -283,7 +283,8 @@ class UserProfile extends Component {
                     <SheetsList profile={this.props.profile}
                                   handleSheetDelete={this.handleSheetDelete}
                                   handleCollectionsChange={this.handleCollectionsChange}
-                                  toggleSignUpModal={this.props.toggleSignUpModal}/>}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}
+                                  refreshData={this.state.refreshSheetData}/>}
 
                   {this.props.profile &&
                     <CollectionsList profile={this.props.profile} />}
@@ -328,29 +329,17 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
-const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
+const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal, refreshData}) => {
   const [sheets, setSheets] = useState(null);
 
   useEffect(() => {
-    const fetchSheets = async () => {
-      try {
-        const fetchedSheets = await new Promise((resolve, reject) => {
-          Sefaria.sheets.userSheets(
-            profile.id,
-            sheets => resolve(sheets),
-            undefined,
-            0,
-            0
-          );
-        });
-        setSheets(fetchedSheets);
-      } catch (error) {
-        console.error("Failed to fetch sheets:", error);
+    // Get cached data or fetch if needed (this is what FilterableList does)
+    Sefaria.sheets.userSheets(profile.id, sheets => {
+      if (sheets) {
+        setSheets(sheets);
       }
-    };
-
-    fetchSheets();
-  }, [profile.id]);
+    }, undefined, 0, 0);
+  }, [profile.id, refreshData]);
 
   if (!sheets) {
     return <div>Loading sheets...</div>;
