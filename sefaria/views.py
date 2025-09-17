@@ -5,8 +5,9 @@ import zipfile
 import json
 import re
 import bleach
+import requests
 from datetime import datetime, timedelta
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Any
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
@@ -39,7 +40,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
@@ -1213,8 +1214,6 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method supported"}, status=405)
 
     try:
-        from datetime import datetime
-        from sefaria.system.cache import get_cache_elem, set_cache_elem
 
         # Parse request parameters from URL query string
         # Request parameters are used, because the parameters act as cache configuration for the request
@@ -1262,8 +1261,6 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
             return HttpResponse(cached_result, content_type="application/json")
 
         # If not the query is not found in the cache, fetch from Strapi
-        import requests
-        from django.conf import settings
 
         if settings.STRAPI_LOCATION is None or settings.STRAPI_PORT is None:
             return jsonResponse(
@@ -1317,8 +1314,6 @@ def strapi_cache_invalidate(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method supported"}, status=405)
 
     try:
-        from sefaria.system.cache import get_cache_factory
-        from typing import Any
 
         # Get cache instance
         cache_instance: Any = get_cache_factory("default")
