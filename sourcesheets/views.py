@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 import httplib2
-from urllib3.exceptions import NewConnectionError
+from urllib3.exceptions import NewConnectionError, ConnectionError
 from urllib.parse import unquote
-from elasticsearch.exceptions import AuthorizationException
+from elasticsearch.exceptions import AuthorizationException, ConnectionError as ElasticsearchConnectionError
 from datetime import datetime
 from io import StringIO, BytesIO
 from django.contrib.admin.views.decorators import staff_member_required
@@ -308,6 +308,8 @@ def delete_sheet_api(request, sheet_id):
     try:
         es_index_name = search.get_new_and_current_index_names("sheet")['current']
         search.delete_sheet(es_index_name, id)
+    except ElasticsearchConnectionError as e:
+        logger.warn("Failed to connect to Elasticsearch server on sheet delete (Elasticsearch connection error).")
     except NewConnectionError as e:
         logger.warn("Failed to connect to elastic search server on sheet delete.")
     except AuthorizationException as e:
