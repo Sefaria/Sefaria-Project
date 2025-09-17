@@ -124,6 +124,9 @@ crrd = create_raw_ref_data
     # Base text context
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
+    # Consecutive named parts broken up too much
+    [crrd(['@תו"כ', '@ויקרא', '@דבורא דחובה', "#פר' יא"]), ['Sifra, Vayikra Dibbura DeChovah, Section 11']],
+
     # Mis-classified part types
     [crrd(['@ושו"ע', "#אה״ע", "#סי׳ כ״ח", "#סעיף א"]), ("Shulchan Arukh, Even HaEzer 28:1",)],
 
