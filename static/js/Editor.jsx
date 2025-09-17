@@ -2641,8 +2641,7 @@ const EditorSaveStateIndicator = ({ state }) => {
         "saving": "/static/icons/new_editor_saving/directory-sync-rounded.svg",
         "saved": "/static/icons/new_editor_saving/cloud-done-rounded.svg",
         "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
-        };
-    
+        };    
     const stateToTooltip = {
         "saved": "Your sheet is saved to Sefaria",
         "saving": "We are saving your changes to Sefaria",

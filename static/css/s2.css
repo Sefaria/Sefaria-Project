@@ -9540,7 +9540,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .editorSaveStateIndicator {
   flex-direction: row-reverse;
 }
-
 .floatingEditorIcons{
   display: flex;
   position: sticky;
