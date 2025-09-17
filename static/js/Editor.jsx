@@ -332,12 +332,12 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                if (!/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
+                if (/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
                     return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
                 }
                 else
                 {
-                    return paragraphHTML
+                    return `<p>${paragraphHTML}</p>` // use wrapping "p"s to enable deserializer to parse nodes properly, otherwise lists get lost
                 }
             }
 
@@ -566,6 +566,8 @@ function parseSheetItemHTML(rawhtml) {
 
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove the final line break (exactly one)
+    preparseHtml = preparseHtml.replace(/(?:\r\n|\r|\n)$/, '');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
