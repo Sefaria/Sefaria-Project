@@ -285,13 +285,6 @@ function useCurrentPath() {
   return currentPath;
 }
 
-function useNextParam() {
-  /*
-  Returns a url next param with the current path (e.g. "next=/Genesis 1".
-   */
-  return `next=${encodeURIComponent(useCurrentPath())}`;
-}
-
 export {
   useScrollToLoad,
   usePaginatedScroll,
@@ -300,5 +293,4 @@ export {
   useContentLang,
   useIncrementalLoad,
   useCurrentPath,
-  useNextParam,
 };

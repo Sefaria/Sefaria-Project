@@ -18,10 +18,10 @@ import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
 import Button from './common/Button';
-import {useNextParam} from './Hooks'
+import {useCurrentPath} from './Hooks'
   
 const LoggedOutDropdown = ({module}) => {
-  const next = useNextParam();
+  const next = Sefaria.getNextParamString(useCurrentPath());
   const loginLink = `/login?${next}`;
   const registerLink = `/register?${next}`;
 
@@ -315,7 +315,7 @@ Header.propTypes = {
 
 const LoggedOutButtons = ({mobile, loginOnly}) => {
   const [isClient, setIsClient] = useState(false);
-  const next = useNextParam();
+  const next = Sefaria.getNextParamString(useCurrentPath());
   const loginLink = `/login?${next}`;
   const registerLink = `/register?${next}`;
   useEffect(()=>{
@@ -522,7 +522,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-  const currentUrl = useNextParam();
+  const currentUrl = Sefaria.getNextParamString(useCurrentPath());
 
   const menuClick = (e) => {
     var el = e.target;
@@ -604,7 +604,7 @@ const ProfilePicMenu = ({len, url, name}) => {
 
 
 const MobileInterfaceLanguageToggle = () => {
-  const currentURL = useNextParam();
+  const currentURL = Sefaria.getNextParamString(useCurrentPath());
 
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>

@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
-import {useNextParam} from "../Hooks";
+import {useCurrentPath} from "../Hooks";
 
 const DropdownMenuSeparator = () => {
 
@@ -141,7 +141,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
 
 const DropdownLanguageToggle = () => {
-  const next = useNextParam();
+  const next = Sefaria.getNextParamString(useCurrentPath());
   const englishLink = Sefaria.util.fullURL(`/interface/english?${next}`);
   const hebrewLink = Sefaria.util.fullURL(`/interface/hebrew?${next}`);
   return (
