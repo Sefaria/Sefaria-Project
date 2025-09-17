@@ -8,6 +8,7 @@ from typing import Optional, Any, Union
 from django.http import HttpRequest
 from django.core.cache import DEFAULT_CACHE_ALIAS
 from django.core.cache.backends.base import BaseCache
+from django.conf import settings as django_settings
 
 from sefaria import settings
 
@@ -202,3 +203,94 @@ class InMemoryCache():
 
 
 in_memory_cache = InMemoryCache()
+
+
+def invalidate_cache_by_pattern(pattern: str, cache_type: Optional[str] = None) -> dict:
+    """
+    Invalidate cache entries matching a pattern using the most appropriate method for the cache backend.
+
+    Args:
+        pattern: The pattern to match cache keys against (e.g., "*strapi_graphql*")
+        cache_type: The cache backend type to use. Defaults to 'default' if None.
+
+    Returns:
+        dict: Result dictionary with success message and count, or error details
+
+    Examples:
+        # Invalidate all Strapi GraphQL cache entries
+        result = invalidate_cache_by_pattern("*strapi_graphql*")
+
+        # Invalidate specific cache type
+        result = invalidate_cache_by_pattern("*user_data*", cache_type="shared")
+    """
+    try:
+        # Get cache instance
+        cache_instance = get_cache_factory(cache_type)
+
+        # Check cache backend type using settings-based approach
+        cache_backend_config = django_settings.CACHES.get(cache_type or 'default', {})
+        cache_backend = cache_backend_config.get('BACKEND', '')
+
+        # For Redis cache backend using django-redis
+        try:
+            if hasattr(cache_instance, "delete_pattern"):
+                # django-redis provides delete_pattern method for Redis
+                deleted_count = cache_instance.delete_pattern(pattern)
+                logger.info(f"Invalidated {deleted_count} cache entries via Redis pattern deletion: {pattern}")
+                return {
+                    "success": True,
+                    "method": "pattern_deletion",
+                    "backend": cache_backend,
+                    "count": deleted_count,
+                    "message": f"Invalidated {deleted_count} cache entries matching pattern '{pattern}'"
+                }
+
+            else:
+                # Fallback for other cache backends (FileBasedCache, etc.)
+                logger.info(f"Using fallback invalidation for {cache_backend}")
+
+                if hasattr(cache_instance, "clear"):
+                    # For FileBasedCache and other backends that support clear()
+                    # This could clear ALL entries for all environments without Redis
+                    logger.warning(f"No pattern deletion available for {cache_backend}, clearing entire cache")
+                    cache_instance.clear()
+                    return {
+                        "success": True,
+                        "method": "full_clear",
+                        "backend": cache_backend,
+                        "count": "unknown",
+                        "message": f"Entire cache cleared for {cache_backend} (no pattern support)"
+                    }
+
+                else:
+                    # No supported invalidation method available
+                    logger.info(f"No supported invalidation method for {cache_backend}")
+                    return {
+                        "success": False,
+                        "method": "none",
+                        "backend": cache_backend,
+                        "count": 0,
+                        "message": f"Cache invalidation not supported for {cache_backend}"
+                    }
+
+        except Exception as cache_error:
+            logger.error(f"Error during cache invalidation: {str(cache_error)}")
+            # Don't fail the webhook request if cache invalidation has issues
+            return {
+                "success": True,
+                "method": "error_handled",
+                "backend": cache_backend,
+                "count": 0,
+                "message": f"Cache invalidation attempted",
+                "warning": str(cache_error)
+            }
+
+    except Exception as e:
+        logger.error(f"Error in invalidate_cache_by_pattern: {str(e)}")
+        return {
+            "success": False,
+            "method": "critical_error",
+            "backend": "unknown",
+            "count": 0,
+            "message": "Internal server error"
+        }

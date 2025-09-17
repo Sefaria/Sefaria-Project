@@ -40,7 +40,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
@@ -1320,55 +1320,22 @@ def strapi_cache_invalidate(request: HttpRequest) -> HttpResponse:
         return jsonResponse({"error": "Only POST method supported"}, status=405)
 
     try:
+        # Use the utility function to handle cache invalidation
+        result = invalidate_cache_by_pattern("*strapi_graphql*", cache_type="default")
 
-        # Get cache instance
-        cache_instance: Any = get_cache_factory("default")
-
-        # For Redis cache backend using django-redis
-        try:
-            if hasattr(cache_instance, "delete_pattern"):
-                # django-redis provides delete_pattern method for Redis
-                deleted_count: int = cache_instance.delete_pattern("*strapi_graphql*")
-                logger.info(
-                    f"Invalidated {deleted_count} Strapi GraphQL cache entries via Redis pattern deletion"
-                )
-                return jsonResponse(
-                    {"success": f"Invalidated {deleted_count} cache entries"}
-                )
-
+        if result["success"]:
+            if "warning" in result:
+                return jsonResponse({
+                    "success": result["message"],
+                    "warning": result["warning"]
+                })
             else:
-                # Fallback for other cache backends (FileBasedCache, etc.)
-                cache_backend = cache_instance.__class__.__name__
-                logger.info(f"Using fallback invalidation for {cache_backend}")
-
-                if hasattr(cache_instance, "clear"):
-                    # For FileBasedCache and other backends that support clear()
-                    # This could clear ALL entries for all environments without Redis
-                    logger.warning(
-                        f"No pattern deletion available for {cache_backend}, clearing entire cache"
-                    )
-                    cache_instance.clear()
-                    return jsonResponse(
-                        {
-                            "success": f"Entire cache cleared for {cache_backend} (no pattern support)"
-                        }
-                    )
-
-                else:
-                    # No supported invalidation method available
-                    logger.info(f"No supported invalidation method for {cache_backend}")
-                    return jsonResponse(
-                        {
-                            "success": f"Cache invalidation not supported for {cache_backend}"
-                        }
-                    )
-
-        except Exception as cache_error:
-            logger.error(f"Error during cache invalidation: {str(cache_error)}")
-            # Don't fail the webhook request if cache invalidation has issues
-            return jsonResponse(
-                {"success": "Cache invalidation attempted", "warning": str(cache_error)}
-            )
+                return jsonResponse({"success": result["message"]})
+        else:
+            if result["method"] == "critical_error":
+                return jsonResponse({"error": result["message"]}, status=500)
+            else:
+                return jsonResponse({"success": result["message"]})
 
     except Exception as e:
         logger.error(f"Error in strapi_cache_invalidate: {str(e)}")
