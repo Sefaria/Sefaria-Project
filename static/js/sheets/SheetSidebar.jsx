@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { UserBackground } from "../UserProfile";
 import { EditorSaveStateIndicator } from "../Editor";
 
-const SheetContentSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics, editorSaveState}) => {
+const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics, editorSaveState}) => {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     useEffect(() => {
@@ -74,4 +74,4 @@ const SheetSidebarList = ({items, type}) => {
               </div>
           </div>;
 }
-export default SheetContentSidebar;
+export default SheetSidebar;

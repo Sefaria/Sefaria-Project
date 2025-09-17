@@ -5,7 +5,7 @@ import Component from 'react-class'
 import $  from '../sefaria/sefariaJquery';
 import Sefaria  from '../sefaria/sefaria';
 import { SefariaEditor } from '../Editor';
-import SheetContentSidebar from "./SheetContentSidebar";
+import SheetSidebar from "./SheetSidebar";
 import {
   LoadingMessage,
 } from '../Misc'; 
@@ -84,17 +84,9 @@ class Sheet extends Component {
                         setEditorSaveState={this.props.setEditorSaveState}
                     />
                   </div>
-                  <SheetContentSidebar
-                        authorStatement={sheet.ownerName}
-                        authorUrl={sheet.ownerProfileUrl}
-                        authorImage={sheet.ownerImageUrl}
-                        collections={sheet.collections}
-                        toggleSignUpModal={this.props.toggleSignUpModal}
-                        topics={sheet.topics}
-                        editorSaveState={this.props.editorSaveState}
-                  />;
+                  {this.getSidebar(sheet, true)}
             </div>);
-  getContent = (sheet) => (
+  getReader = (sheet) => (
     <div className="sidebarLayout">
       <SheetContent
           style={this.props.style}
@@ -116,30 +108,32 @@ class Sheet extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}
           historyObject={this.props.historyObject}
       />
-      <SheetContentSidebar
-            authorStatement={sheet.ownerName}
-            authorUrl={sheet.ownerProfileUrl}
-            authorImage={sheet.ownerImageUrl}
-            collections={sheet.collections}
-            toggleSignUpModal={this.props.toggleSignUpModal}
-            topics={sheet.topics}
-      />;
+      {this.getSidebar(sheet, false)}
     </div>
+  );
+  getSidebar = (sheet, editor) => (
+    <SheetSidebar
+          authorStatement={sheet.ownerName}
+          authorUrl={sheet.ownerProfileUrl}
+          authorImage={sheet.ownerImageUrl}
+          collections={sheet.collections}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          topics={sheet.topics}
+          editorSaveState={editor && this.props.editorSaveState}
+    />
   );
   render() {
     const classes = classNames({sheetsInPanel: 1});
     const sheet = this.getSheetFromCache();
+    let content;
     if (!sheet) {
-      return <div className={classes}><LoadingMessage /></div>
+      content = <LoadingMessage />;
     }
     else {
       const usingEditor = shouldUseEditor(sheet?.id);
-      return (
-        <div className={classes}>
-          { usingEditor ? this.getEditor(sheet) : this.getContent(sheet) }
-        </div>
-      );
+      content = usingEditor ? this.getEditor(sheet) : this.getReader(sheet);
     }
+    return <div className={classes}>{content}</div>;
   }
 }
 

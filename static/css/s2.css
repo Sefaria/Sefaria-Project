@@ -527,7 +527,8 @@ input.noselect {
 }
 .mobileNavMenu {
   position: fixed;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 60px); /* fallback for browsers that don't support dvh */
+  height: calc(100dvh - 60px);
   box-sizing: border-box;
   top: 60px;
   width: 100%;
@@ -1595,6 +1596,9 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavCategoryMenu.compare .content,
 .bookPage.compare .content {
   padding: 30px 10px;
+}
+.singlePanel .readerNavMenu .content .contentInner {
+  min-height: revert;
 }
 .readerNavMenu .content .contentInner {
   width: 725px;
@@ -9188,6 +9192,7 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
@@ -10893,7 +10898,6 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
-  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -14913,7 +14917,6 @@ span.ref-link-color-3 {color: blue}
     width: revert;
     border-top: 40px solid #FBFBFA;
     margin-block-start: -40px;
-    border-bottom: 40px solid #FBFBFA;
   }
 }
 @media screen and (max-width: 700px) {

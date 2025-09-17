@@ -2691,6 +2691,8 @@ ReaderMessage.propTypes = {
 };
 
 
+
+
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
@@ -2699,21 +2701,31 @@ class CookiesNotification extends Component {
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
+    // Use the getCookieDomain function to get the appropriate cookie domain
+    const cookieDomain = Sefaria.util.getCookieDomain();
+    
+    const cookieOptions = {path: "/", expires: 20*365};
+    
+    if (cookieDomain) {
+      cookieOptions.domain = cookieDomain;
+    }
+    
+    $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
     this.setState({showNotification: false});
   }
   render() {
     if (!this.state.showNotification) { return null; }
+    const privacyPolicyLink = Sefaria.util.fullURL("/privacy-policy", Sefaria.LIBRARY_MODULE);
     return (
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
-              <a href="/privacy-policy">קראו עוד בנושא</a>
+              <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>קראו עוד בנושא</a>
             </span>
             <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
           </span>
@@ -3443,7 +3455,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       ))}
     </div>
   );
-
 }
 
 

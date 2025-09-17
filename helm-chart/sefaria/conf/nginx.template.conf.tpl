@@ -44,6 +44,21 @@ http {
     keepalive 32;
   }
 
+  server {
+    listen 80;
+    listen [::]:80;
+    server_name ${INTERNAL_URL};
+
+    location /nginx-health {
+      access_log off;
+      return 200 "healthy\n";
+    }
+
+    location / {
+        proxy_pass http://varnish_upstream;
+    }
+  }
+
   {{- range $i := .Values.ingress.hosts }}
   server {
     listen 80;
@@ -53,8 +68,7 @@ http {
   }
 
   server {
-    # TODO add `default` below
-    listen 80 default_server;
+    listen 80;
     server_name www.{{ tpl $i.host $ }};
     listen [::]:80;
     # parameterize line below
@@ -160,7 +174,7 @@ http {
 
     {{- range $k, $v := $.Values.ingress.subdomains }}
     location ~ ^/{{ $v }}(/.*|$) {
-        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$2;
+        return 307 https://{{ $k }}.{{ tpl $i.host $ }}$1;
     }
     {{- end }}
   } # server
