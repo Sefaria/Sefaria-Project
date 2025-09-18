@@ -3,7 +3,7 @@ import json
 import httplib2
 from urllib3.exceptions import NewConnectionError, ConnectionError
 from urllib.parse import unquote
-from elasticsearch.exceptions import AuthorizationException, ConnectionError as ElasticsearchConnectionError
+from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime
 from io import StringIO, BytesIO
 from django.contrib.admin.views.decorators import staff_member_required
