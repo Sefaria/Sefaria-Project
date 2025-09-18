@@ -9,8 +9,22 @@ import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 shared_patterns = [
+    url(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
+    url(fr'^register/?$', sefaria_views.register, name='register'),
+    url(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
+    url(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
+    url(fr'password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{{1,13}}-[0-9A-Za-z]{{1,20}})/$',
+        sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(fr'password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(),
+        name='password_reset_complete'),
+    url(fr'password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
+
+    url(fr'api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    url(fr'api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+
     url(r'^saved/?$', reader_views.saved_content),
     url(r'^history/?$', reader_views.user_history_content),
     url(r'^search/?$', reader_views.search),

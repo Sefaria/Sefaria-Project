@@ -558,20 +558,21 @@ def _resolve_url_with_module(module_name, url_name, *args, **kwargs):
     return relative_path
 
 
-@register.simple_tag(takes_context=True)
-def context_url(context, url_name, *args, **kwargs):
-    """
-    Template tag that resolves URLs based on the current request context.
-    Uses the active module from the request to determine the appropriate full URL.
-    Falls back to regular URL resolution if module-specific URL doesn't exist.
-    """
-    request = context.get('request')
-    module_name = None
+# TODO: we may not need this anymore
+# @register.simple_tag(takes_context=True)
+# def context_url(context, url_name, *args, **kwargs):
+#     """
+#     Template tag that resolves URLs based on the current request context.
+#     Uses the active module from the request to determine the appropriate full URL.
+#     Falls back to regular URL resolution if module-specific URL doesn't exist.
+#     """
+#     request = context.get('request')
+#     module_name = None
     
-    if request:
-        module_name = getattr(request, 'active_module', None)
+#     if request:
+#         module_name = getattr(request, 'active_module', None)
     
-    return _resolve_url_with_module(module_name, url_name, *args, **kwargs)
+#     return _resolve_url_with_module(module_name, url_name, *args, **kwargs)
 
 
 @register.simple_tag
