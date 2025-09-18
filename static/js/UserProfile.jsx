@@ -200,7 +200,7 @@ class UserProfile extends Component {
         key={item.id}
         uid={item.id}
         slug={item.slug}
-        url={`/sheets/profile/${item.slug}`}
+        url={`/profile/${item.slug}`}
         name={item.full_name}
         image={item.profile_pic_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
@@ -505,7 +505,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const learn_more_link = Sefaria._v({"en": "https://sheets.sefaria.org/sheets/621008", "he": "https://sheets.sefaria.org/sheets/621013"})
+ const learn_more_link = Sefaria._v({"en": "https://voices.sefaria.org/sheets/621008", "he": "https://voices.sefaria.org/sheets/621013"})
 
  return (
    <>
@@ -614,7 +614,7 @@ const ProfileSummary = ({
       );
 
   const tempCollectionButton = (
-          <a href="/sheets/collections/new" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
+          <a href="/collections/new" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
               <InterfaceText>Create Collection</InterfaceText>
           </a>
       );

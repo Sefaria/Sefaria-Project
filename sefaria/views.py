@@ -109,7 +109,7 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
         # Get the current domain from the request
         current_domain = self.request.get_host()
         
-        # Call the parent form_valid but with domain override
+        # Call form.save with domain override - this sends the email
         form.save(
             request=self.request,
             domain_override=current_domain,
@@ -120,7 +120,8 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
             from_email=self.from_email,
             extra_email_context=self.extra_email_context,
         )
-        return super().form_valid(form)
+        # Don't call super().form_valid(form) as it would send the email again
+        return HttpResponseRedirect(self.get_success_url())
 
 class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm

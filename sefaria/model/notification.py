@@ -353,7 +353,7 @@ class NotificationSet(abst.AbstractMongoSet):
             query["is_global"] = is_global
         if suspected_spam is not None:
             query["suspected_spam"] = suspected_spam
-        query["type"] = {"$in" if scope == 'sheets' else "$nin": Notification.sheets_notification_types}
+        query["type"] = {"$in" if scope == 'voices' else "$nin": Notification.sheets_notification_types}
         return query
 
     def unread_for_user(self, uid, scope='library'):

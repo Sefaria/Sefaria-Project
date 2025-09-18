@@ -55,7 +55,7 @@ export class ProfilePic extends Component {
             if (response.error) {
                 throw new Error(response.error);
             } else {
-                window.location = "/sheets/profile/" + Sefaria.slug; // reload to get update
+                window.location = "/profile/" + Sefaria.slug; // reload to get update
                 return;
             }
         } catch (e) {
