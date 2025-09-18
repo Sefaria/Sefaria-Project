@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 import sourcesheets.views as sheets_views
 import reader.views as reader_views
 import sefaria.views as sefaria_views
-from sefaria.urls_shared import shared_patterms, maintenance_patterms
+from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
 
 admin.autodiscover()
@@ -46,6 +46,6 @@ urlpatterns = [
     url(fr'api/login/refresh/$', TokenRefreshView.as_view(), name='sheets_token_refresh'),
 ]
 
-urlpatterns += shared_patterms
+urlpatterns += shared_patterns
 if DOWN_FOR_MAINTENANCE:
-    urlpatterns = maintenance_patterms
+    urlpatterns = maintenance_patterns

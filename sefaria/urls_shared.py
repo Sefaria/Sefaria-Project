@@ -10,7 +10,7 @@ import guides.views as guides_views
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-shared_patterms = [
+shared_patterns = [
     url(r'^saved/?$', reader_views.saved_content),
     url(r'^history/?$', reader_views.user_history_content),
     url(r'^search/?$', reader_views.search),
@@ -256,14 +256,14 @@ shared_patterms = [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
 ]
 
-shared_patterms += site_urlpatterns
-shared_patterms += staticfiles_urlpatterns()
-shared_patterms += [
+shared_patterns += site_urlpatterns
+shared_patterns += staticfiles_urlpatterns()
+shared_patterns += [
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
 
 # Keep admin accessible
-maintenance_patterms = [
+maintenance_patterns = [
     url(r'^admin/reset/cache', sefaria_views.reset_cache),
     url(r'^admin/?', include(admin.site.urls)),
     url(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
@@ -271,6 +271,6 @@ maintenance_patterms = [
     url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
 ]
 # Everything else gets maintenance message
-maintenance_patterms += [
+maintenance_patterns += [
     url(r'.*', sefaria_views.maintenance_message)
 ]
