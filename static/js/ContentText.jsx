@@ -28,7 +28,18 @@ const VersionContent = ({primary, translation, imageLoadCallback}) => {
     return Object.keys(versions).map((key) => {
         const version = versions[key];
         const lang = (version.direction === 'rtl') ? 'he' : 'en';
-        const toFilter = key === 'primary' && !!primary && !!translation;
+        const primaryText = primary?.text;
+        const translationText = translation?.text;
+
+        const bothHaveImages =
+          Sefaria.isFullSegmentImage(primaryText) &&
+          Sefaria.isFullSegmentImage(translationText);
+
+        // Show only one image in bilingual mode, prefer the translated side.
+        // We suppress the PRIMARY side when both sides have an image.
+        const toFilter =
+          key === 'primary' && bothHaveImages;
+
         return (Sefaria.isFullSegmentImage(version.text)) ?
             (<VersionImageSpan lang={lang} content={version.text || ''} toFilter={toFilter} imageLoadCallback={imageLoadCallback}/>) :
                 (<ContentSpan lang={lang} content={version.text || ''} isHTML={true} primaryOrTranslation={key}/>);
