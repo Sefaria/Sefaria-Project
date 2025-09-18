@@ -14,7 +14,6 @@ handler404 = 'reader.views.custom_page_not_found'
 
 urlpatterns = [
     url(r'^$', reader_views.community_page),
-    url(r'^community/?$', reader_views.community_page),
     url(r'sheets-with-ref/(?P<tref>.+)$', sheets_views.sheets_with_ref),
     url(r'^collections/?$', reader_views.public_collections),
     url(r'^collections/new$', reader_views.edit_collection_page),
