@@ -2094,6 +2094,15 @@ _media: {},
         store: this._TopicsByPool
     });
   },
+  getTopicPoolNameForModule: function(activeModule) {
+    // Maps active_module to the correct topic pool name
+    // When active_module is 'voices', use 'sheets' pool
+    const moduleToPoolMapping = {
+      'library': 'library',
+      'voices': 'sheets',  // When active_module is 'voices', use 'sheets' pool
+    };
+    return moduleToPoolMapping[activeModule] || activeModule;
+  },
     getLangSpecificTopicPoolName: function(poolName){
       const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
       return `${poolName}_${lang}`
@@ -2780,7 +2789,9 @@ _media: {},
     /*
     Returns true if topic should be displayed in the topic list, topic TOC, or topic page side column.
      */
-    const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
+    // Get the actual pool name that should be used for this activeModule
+    const expectedPoolName = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
+    const inActiveModule = topic?.pools?.includes(expectedPoolName);
     return !!topic?.shouldDisplay && inActiveModule;
   },
   sortTopicsCompareFn: function(a, b) {

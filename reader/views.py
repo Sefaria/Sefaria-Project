@@ -3123,9 +3123,15 @@ def topic_page(request, slug, test_version=None):
     """
     Page of an individual Topic
     """
+    from django_topics.utils import get_topic_pool_name_for_module
+    
     slug = SluggedAbstractMongoRecord.normalize_slug(slug)
     topic_obj = Topic.init(slug)
-    if topic_obj is None or request.active_module not in topic_obj.get_pools():
+    
+    # Get the actual pool name that should be used for this active_module
+    expected_pool_name = get_topic_pool_name_for_module(request.active_module)
+    
+    if topic_obj is None or expected_pool_name not in topic_obj.get_pools():
         raise Http404
 
     short_lang = get_short_lang(request.interfaceLang)
@@ -3302,9 +3308,15 @@ def topic_graph_api(request, topic):
 @catch_error_as_json
 def topic_pool_api(request, pool_name):
     from django_topics.models import Topic as DjangoTopic
+    from django_topics.utils import get_topic_pool_name_for_module
+    
+    # Map the pool_name to the correct topic pool based on active_module
+    # If pool_name is 'voices', we need to use 'sheets' pool
+    actual_pool_name = get_topic_pool_name_for_module(pool_name)
+    
     n_samples = int(request.GET.get("n"))
     order = request.GET.get("order", "random")
-    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, actual_pool_name, n_samples)
     response = [Topic.init(slug).contents() for slug in topic_slugs]
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
