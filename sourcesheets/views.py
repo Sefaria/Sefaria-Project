@@ -308,8 +308,6 @@ def delete_sheet_api(request, sheet_id):
     try:
         es_index_name = search.get_new_and_current_index_names("sheet")['current']
         search.delete_sheet(es_index_name, id)
-    except ElasticsearchConnectionError as e:
-        logger.warn("Failed to connect to Elasticsearch server on sheet delete (Elasticsearch connection error).")
     except NewConnectionError as e:
         logger.warn("Failed to connect to elastic search server on sheet delete.")
     except AuthorizationException as e:
