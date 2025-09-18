@@ -286,7 +286,7 @@ def catchall(request, tref, sheet=None):
         response['Location'] += "?%s" % params if params else ""
         return response
 
-    active_module = active_module = getattr(request, "active_module", "library")
+    active_module = getattr(request, "active_module", "library")
 
     for version in ['ven', 'vhe']:
         if request.GET.get(version) and '|' not in request.GET.get(version):
