@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import httplib2
-from urllib3.exceptions import NewConnectionError, ConnectionError
+from urllib3.exceptions import NewConnectionError
 from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime
