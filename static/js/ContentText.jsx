@@ -28,13 +28,6 @@ const VersionContent = ({primary, translation, imageLoadCallback}) => {
     return Object.keys(versions).map((key) => {
         const version = versions[key];
         const lang = (version.direction === 'rtl') ? 'he' : 'en';
-        // const toFilter = key === 'primary' && !!primary && !!translation;
-        // const toFilter = (
-        //   key === 'primary' &&
-        //   !!primary?.text &&
-        //   !!translation?.text
-        // );
-        // inside the reader render logic where you compute toFilter
         const primaryText = primary?.text;
         const translationText = translation?.text;
 
