@@ -332,9 +332,12 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
+                if (/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
+                    return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
+                } else {
+                    return `<p>${paragraphHTML}</p>` // use wrapping "p"s to enable deserializer to parse nodes properly, otherwise lists get lost. The reason p's are used instead of divs is to prevent extra spacing.
+                }
             }
-
             case 'list-item': {
                 const liHtml = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
