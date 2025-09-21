@@ -28,12 +28,10 @@ const VersionContent = ({primary, translation, imageLoadCallback}) => {
     return Object.keys(versions).map((key) => {
         const version = versions[key];
         const lang = (version.direction === 'rtl') ? 'he' : 'en';
-        const primaryText = primary?.text;
-        const translationText = translation?.text;
 
         const bothHaveImages =
-          Sefaria.isFullSegmentImage(primaryText) &&
-          Sefaria.isFullSegmentImage(translationText);
+          Sefaria.isFullSegmentImage(primary?.text) &&
+          Sefaria.isFullSegmentImage(translation?.text);
 
         // Show only one image in bilingual mode, prefer the translated side.
         // We suppress the PRIMARY side when both sides have an image.
