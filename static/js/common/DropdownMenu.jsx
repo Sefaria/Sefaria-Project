@@ -11,7 +11,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, ...props}) => {
 
   if (!newTab){
     newTab = false;
@@ -24,7 +24,8 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
     <a className={cssClasses}
        href={fullURL}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       {...props}>
       {children}
     </a>
 
@@ -72,7 +73,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   );
 }
 
-const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
+const DropdownMenu = ({children, buttonComponent, positioningClass, onOpen, onClose}) => {
     /**
      * `buttonComponent` is a React component for the opening/closing of a button.
      * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
@@ -90,6 +91,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     const handleButtonClick = (e) => {
       e.stopPropagation();
       setIsOpen(isOpen => !isOpen);
+      onOpen && onOpen();
     };
     const handleContentsClick = (e) => {
       e.stopPropagation();
@@ -97,11 +99,13 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
       // Only toggle if no preventClose element was found
       if (!preventClose) {
         setIsOpen(false);
+        onClose && onClose();
       }
     }
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
+          onClose && onClose();
       }
     };
     const handleClickOutside = (event) => {
@@ -110,6 +114,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             !wrapperRef.current.contains(event.target)
         ) {
             setIsOpen(false);
+            onClose && onClose();
         }
     };
 
