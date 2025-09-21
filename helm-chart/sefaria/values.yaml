@@ -19,6 +19,10 @@ previousServicesCount: "3"
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
 
+# controls whether rollout pre-promotion analysis is enabled
+rollouts:
+  prePromotionAnalysis: true
+
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
 # For development environments
