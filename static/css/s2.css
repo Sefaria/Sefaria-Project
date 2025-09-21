@@ -7920,6 +7920,8 @@ But not to use a display block directive that might break continuous mode for ot
 }
 
 .toolsButtonSecondaryIcon {
+  height: 14px;
+  width: auto;
   margin-inline-start: auto;
   margin-inline-end: 4px;
   flex-shrink: 0;
