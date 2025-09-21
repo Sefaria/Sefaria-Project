@@ -12,14 +12,12 @@ import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
-  RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
@@ -39,6 +37,7 @@ import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
+import { BannerImpressionProbe } from './BannerImpressionProbe';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -223,11 +222,13 @@ class ReaderApp extends Component {
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
+      gtag("event", "reader_app_mounted");
       if (Sefaria._debug) console.log("sa: reader app has loaded!");
     }
     if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
       if (!('IntersectionObserver' in window)) {
         sa_event("intersection_observer_not_supported");
+        gtag("event", "intersection_observer_not_supported");
       }
       localStorage.setItem("sa.intersection_observer_api_checked", "true");
     }
@@ -2320,6 +2321,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
+            <BannerImpressionProbe />
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
@@ -2379,7 +2381,6 @@ export {
   unpackDataFromProps,
   loadServerData,
   EditCollectionPage,
-  RemoteLearningPage,
   SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -2387,7 +2388,6 @@ export {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,

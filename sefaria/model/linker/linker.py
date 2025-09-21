@@ -125,6 +125,7 @@ class Linker:
         @return:
         """
         inputs, paragraph_break_spans = self.__break_input_into_paragraphs(input_str)
+        paragraph_break_spans += [(0, 0)]  # pad to be same length as inputs for zip()
         linked_docs = self.bulk_link(inputs, [book_context_ref]*len(inputs), *link_args, **link_kwargs)
         resolved_refs = []
         resolved_named_entities = []
@@ -141,8 +142,7 @@ class Linker:
                 named_entity.align_to_new_doc(full_ne_doc, offset)
                 if isinstance(named_entity, RawRef):
                     # named_entity's current start has already been offset so it's the offset we need for each part
-                    raw_ref_offset, _ = named_entity.span.range
-                    named_entity.align_parts_to_new_doc(full_ne_doc, raw_ref_offset)
+                    named_entity.align_parts_to_new_doc(full_ne_doc, offset)
             offset = curr_par_break[1]  # Update offset to the end of the current paragraph break
         return LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_categories)
 

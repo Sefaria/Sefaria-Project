@@ -1,4 +1,5 @@
-from sefaria.model.linker.ref_part import RawRefPart, RefPartType
+from ne_span import RefPartType
+from sefaria.model.linker.ref_part import RawRefPart
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode, NumberedReferenceableBookNode, MapReferenceableBookNode
 from sefaria.model.linker.resolved_ref_refiner import ResolvedRefRefinerForDefaultNode, ResolvedRefRefinerForNumberedPart, ResolvedRefRefinerForDiburHamatchilPart, ResolvedRefRefinerForRangedPart, ResolvedRefRefinerForNamedNode, ResolvedRefRefiner, ResolvedRefRefinerCatchAll
 

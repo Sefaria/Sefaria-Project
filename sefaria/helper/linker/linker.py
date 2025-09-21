@@ -1,13 +1,17 @@
 import dataclasses
 import json
 from cerberus import Validator
-from sefaria.model.linker.ref_part import TermContext, RefPartType
+from ne_span import RefPartType
+from sefaria.model.linker.ref_part import TermContext
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
 from api.api_errors import APIInvalidInputException
 from typing import List, Optional, Tuple
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 FIND_REFS_POST_SCHEMA = {
@@ -50,14 +54,16 @@ FIND_REFS_POST_SCHEMA = {
 }
 
 
-def make_find_refs_response(request):
-    request_text, options, meta_data = _unpack_find_refs_request(request)
-    if meta_data:
-        _add_webpage_hit_for_url(meta_data.get("url", None))
-    return _make_find_refs_response_with_cache(request_text, options, meta_data)
+def make_find_refs_response(find_refs_input: 'FindRefsInput') -> dict:
+    metadata = find_refs_input.metadata
+    if metadata:
+        _add_webpage_hit_for_url(metadata.get("url", None))
+    return _make_find_refs_response_with_cache(
+        find_refs_input.text, find_refs_input.options, metadata
+    )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class _FindRefsTextOptions:
     """
     @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
@@ -71,14 +77,27 @@ class _FindRefsTextOptions:
     version_preferences_by_corpus: dict = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class _FindRefsText:
     title: str
     body: str
     lang: str
 
 
-def _unpack_find_refs_request(request):
+@dataclasses.dataclass
+class FindRefsInput:
+    text: _FindRefsText
+    options: _FindRefsTextOptions
+    metadata: dict
+
+    def __post_init__(self):
+        if isinstance(self.text, dict):
+            self.text = _FindRefsText(**self.text)
+        if isinstance(self.options, dict):
+            self.options = _FindRefsTextOptions(**self.options)
+
+
+def unpack_find_refs_request(request):
     validator = Validator(FIND_REFS_POST_SCHEMA)
     post_body = json.loads(request.body)
     if not validator.validate(post_body):

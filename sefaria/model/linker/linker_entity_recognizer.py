@@ -1,12 +1,13 @@
 from typing import Generator, Optional, Union, Any
 import time
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, RawNamedEntity, NamedEntityType
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, RawNamedEntity
 from sefaria.helper.normalization import NormalizerComposer
 from sefaria.settings import GPU_SERVER_URL
 import requests
-from ne_span import NESpan, NEDoc
+from ne_span import NESpan, NEDoc, NamedEntityType, RefPartType
 import structlog
 logger = structlog.get_logger(__name__)
+
 
 class LinkerEntityRecognizer:
     """
@@ -43,11 +44,9 @@ class LinkerEntityRecognizer:
         """
         normalized_inputs = self._normalize_input(inputs)
         start_time = time.perf_counter()
-        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities",
-                             json={"texts": normalized_inputs, "lang": self._lang})
+        data = self._bulk_recognize_entities_api_request(normalized_inputs)
         elapsed_time = time.perf_counter() - start_time
         logger.info("bulk_recognize GPU server post completed", elapsed_time=elapsed_time, num_inputs=len(normalized_inputs))
-        data = resp.json()
         merged_entities = []
         for input_str, result in zip(normalized_inputs, data['results']):
             raw_refs, non_citations = self._parse_recognize_response(input_str, result)
@@ -57,12 +56,18 @@ class LinkerEntityRecognizer:
     def recognize(self, input_str: str) -> [list[RawRef], list[RawNamedEntity]]:
         normalized_input = self._normalize_input([input_str])[0]
         start_time = time.perf_counter()
-        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities",
-                             json={"text": normalized_input, "lang": self._lang})
+        data = self._recognize_entities_api_request(normalized_input)
         elapsed_time = time.perf_counter() - start_time
         logger.info("recognize GPU server post completed", elapsed_time=elapsed_time)
-        data = resp.json()
         return self._parse_recognize_response(normalized_input, data)
+
+    def _recognize_entities_api_request(self, input_str: str):
+        resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities", json={"text": input_str, "lang": self._lang})
+        return resp.json()
+
+    def _bulk_recognize_entities_api_request(self, inputs: list[str]):
+        resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities", json={"texts": inputs, "lang": self._lang})
+        return resp.json()
 
     def _parse_recognize_response(self, input_str: str, data: dict) -> (list[RawRef], list[RawNamedEntity]):
         all_citations, non_citations = [], []
@@ -84,13 +89,13 @@ class LinkerEntityRecognizer:
         @param raw: Dictionary representation of the RawRef.
         @return: A RawRef object.
         """
-        named_entity = self._deserialize_raw_named_entity(doc, raw)
-        span_doc = NEDoc(named_entity.span.text)
+        citation_entity = self._deserialize_raw_named_entity(doc, raw)
+        span_doc = NEDoc(citation_entity.span.text)
         part_span_list = []
         for part in raw['parts']:
             part_span = NESpan(span_doc, part['range'][0], part['range'][1], part['label'])
             part_span_list.append(part_span)
-        return named_entity, part_span_list
+        return citation_entity, part_span_list
 
     @staticmethod
     def _deserialize_raw_named_entity(doc: NEDoc, raw: dict) -> RawNamedEntity:

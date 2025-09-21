@@ -5,8 +5,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, SectionContext, ContextPart, TermContext
-from ne_span import NESpan
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext
+from ne_span import NESpan, RefPartType
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
