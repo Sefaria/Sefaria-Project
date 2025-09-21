@@ -23,7 +23,7 @@ spec:
           # - name: deploy-env
           #   value: "{{ .Values.deployEnv }}"
           - name: healthcheck-hostname
-            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
   selector:
     matchLabels:
       app: varnish-{{ .Values.deployEnv }}
