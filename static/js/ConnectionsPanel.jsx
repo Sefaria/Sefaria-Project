@@ -663,7 +663,7 @@ const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)} secondaryIcon="open-panel.svg" />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)} secondaryIcon="open-panel.svg" secondaryIconAlt="Opens in new window" />
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
@@ -1008,7 +1008,7 @@ AdvancedToolsList.propTypes = {
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count = null, control = "interface", typeface = "system", alwaysShow = false,
                        secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false, 
-                       secondaryIcon=null }) => {
+                       secondaryIcon=null, secondaryIconAlt=null }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1037,7 +1037,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
           {count ? (<span className="connectionsCount">({count})</span>) : null}
           {experiment ? <span className="experimentLabel">Experiment</span> : null}
         </span>
-        {secondaryIcon ? <img src={`/static/icons/${secondaryIcon}`} className="toolsButtonSecondaryIcon" alt="" /> : null}
+        {secondaryIcon ? <img src={`/static/icons/${secondaryIcon}`} className="toolsButtonSecondaryIcon" alt={secondaryIconAlt} /> : null}
       </a>
       {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /> <img className="linkArrow" src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} aria-hidden="true"></img></a> : null}
       </div>
@@ -1056,7 +1056,15 @@ ToolsButton.propTypes = {
   experiment: PropTypes.bool,
   secondaryEn: PropTypes.string,
   secondaryHe: PropTypes.string,
-  secondaryIcon: PropTypes.string
+  secondaryIcon: PropTypes.string,
+  secondaryIconAlt: function(props, propName, componentName) {
+    if (props.secondaryIcon && !props[propName]) {
+      return new Error(`Prop \`${propName}\` is required when \`secondaryIcon\` is provided in \`${componentName}\`.`);
+    }
+    if (props[propName] && typeof props[propName] !== 'string') {
+      return new Error(`Invalid prop \`${propName}\` of type \`${typeof props[propName]}\` supplied to \`${componentName}\`, expected \`string\`.`);
+    }
+  }
 };
 
 class ShareBox extends Component {
