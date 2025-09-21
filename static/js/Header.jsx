@@ -134,30 +134,73 @@ const LoggedInDropdown = ({module}) => {
 }
 
 const ModuleSwitcher = () => {
-  const libraryURL = Sefaria.moduleRoutes[Sefaria.LIBRARY_MODULE];
-  const sheetsURL = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE];
+  const trackOpen = () => {
+    gtag("event", "modswitch_open", {
+      feature_name: "module_switcher",
+      action: "open"
+    });
+  };
+  
+  const trackClose = () => {
+    gtag("event", "modswitch_close", {
+      feature_name: "module_switcher", 
+      action: "close"
+    });
+  };
+  
   return (
-      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
+      <DropdownMenu 
+        positioningClass="headerDropdownMenu" 
+        buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}
+        onOpen={trackOpen}
+        onClose={trackClose}
+      >
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={libraryURL} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
+              <DropdownMenuItem 
+                url={"/"} 
+                newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} 
+                targetModule={Sefaria.LIBRARY_MODULE}
+                data-anl-event="modswitch_item_click:click"
+                data-anl-feature_name="module_switcher"
+                data-anl-text="Library"
+              >
                   <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={"Library"}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={sheetsURL} newTab={Sefaria.activeModule !== Sefaria.SHEETS_MODULE} targetModule={Sefaria.SHEETS_MODULE}>  
+              <DropdownMenuItem 
+                url={"/sheets"} 
+                newTab={Sefaria.activeModule !== Sefaria.SHEETS_MODULE} 
+                targetModule={Sefaria.SHEETS_MODULE}
+                data-anl-event="modswitch_item_click:click"
+                data-anl-feature_name="module_switcher"
+                data-anl-text="Voices"
+              >  
                   <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+              <DropdownMenuItem 
+                url={'https://developers.sefaria.org'} 
+                newTab={true}
+                data-anl-event="modswitch_item_click:click"
+                data-anl-feature_name="module_switcher"
+                data-anl-text="Developer"
+              >
                   <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/products'} newTab={true}>
+              <DropdownMenuItem 
+                url={'/products'} 
+                newTab={true}
+                data-anl-event="modswitch_item_click:click"
+                data-anl-feature_name="module_switcher"
+                data-anl-text="More"
+              >
                 <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
               </DropdownMenuItem>
           </div>
       </DropdownMenu>
-);
-}
+  );
+};
 
 const Header = (props) => {
 
