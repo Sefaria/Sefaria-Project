@@ -156,7 +156,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
                 <div id="header">
                   <SidebarModuleTitle>Recently Viewed</SidebarModuleTitle>
                   {!mobile && recentlyViewedList}
-                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
+                  <a href="/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
                 </div>
                 {mobile && recentlyViewedList}
             </div>

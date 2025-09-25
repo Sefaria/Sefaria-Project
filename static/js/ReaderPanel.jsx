@@ -8,7 +8,7 @@ import {ReaderPanelContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
-import {SearchResultList} from "./SearchResultList";
+import UserHistoryPanel from './UserHistoryPanel';
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -22,7 +22,6 @@ import CollectionPage from "./CollectionPage"
 import EditCollectionPage from "./EditCollectionPage";
 import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
-import {SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper}  from './UserHistoryPanel';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -1091,23 +1090,22 @@ class ReaderPanel extends Component {
         <ModeratorToolsPanel
           interfaceLang={this.props.interfaceLang} />
       );
-
-    } else if (["texts-saved", "texts-history", "notes"].includes(this.state.menuOpen)) {
+      
+    } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
-          <LibraryUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
-              menuOpen={this.state.menuOpen}
-              openMenu={this.openMenu}
-              openNav={this.openMenu.bind(null, "navigation")}
-              openDisplaySettings={this.openDisplaySettings}
-              toggleLanguage={this.toggleLanguage}
-              compare={this.state.compare}
-              toggleSignUpModal={this.props.toggleSignUpModal}/>
+        <UserHistoryPanel              
+            multiPanel={this.props.multiPanel}
+            menuOpen={this.state.menuOpen}
+            openMenu={this.openMenu}
+            openNav={this.openMenu.bind(null, "navigation")}
+            openDisplaySettings={this.openDisplaySettings}
+            toggleLanguage={this.toggleLanguage}
+            compare={this.state.compare}
+            toggleSignUpModal={this.props.toggleSignUpModal} />
       );
-
-    } else if (["sheets-saved", "sheets-history"].includes(this.state.menuOpen)) {
-      menu = (
-          <SheetsUserHistoryPanelWrapper
+      
+    } else if (this.state.menuOpen === "sheets") {
+      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
               multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}
