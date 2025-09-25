@@ -1057,14 +1057,7 @@ ToolsButton.propTypes = {
   secondaryEn: PropTypes.string,
   secondaryHe: PropTypes.string,
   secondaryIcon: PropTypes.string,
-  secondaryIconAlt: function(props, propName, componentName) {
-    if (props.secondaryIcon && !props[propName]) {
-      return new Error(`Prop \`${propName}\` is required when \`secondaryIcon\` is provided in \`${componentName}\`.`);
-    }
-    if (props[propName] && typeof props[propName] !== 'string') {
-      return new Error(`Invalid prop \`${propName}\` of type \`${typeof props[propName]}\` supplied to \`${componentName}\`, expected \`string\`.`);
-    }
-  }
+  secondaryIconAlt: PropTypes.string
 };
 
 class ShareBox extends Component {
