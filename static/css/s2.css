@@ -7883,6 +7883,8 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   border: 0px;
   flex: 1 1 auto;
+  display: flex;
+  align-items: center;
 }
 
 .toolsButton ::before {
@@ -7915,6 +7917,14 @@ But not to use a display block directive that might break continuous mode for ot
   height: var(--sans-serif-small-font-size);
   position: relative;
   top: 1px;
+}
+
+.toolsButtonSecondaryIcon {
+  height: 14px;
+  width: auto;
+  margin-inline-start: auto;
+  margin-inline-end: 4px;
+  flex-shrink: 0;
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
