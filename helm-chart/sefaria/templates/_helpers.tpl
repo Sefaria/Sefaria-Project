@@ -170,30 +170,17 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- end }}
 
 {{- define "config.domainLanguage" }}
-{{- range $k, $v := .Values.domains }}
-{{- $subdomains := list }}
-{{- $root := $v.root }}
-{{- $language := $v.language }}
-{{- range $path, $sub := $v.redirects }}
-  {{- if not (has $sub $subdomains) }}
-    {{- $subdomains = append $subdomains $sub }}
-  {{- end }}
-{{- end }}
-https://{{ tpl $root $ }}: {{ $language }}
-https://www.{{ tpl $root $ }}: {{ $language }}
-{{- range $subdomains }}
-https://{{ . }}.{{ tpl $root $ }}: {{ $language }}
-{{- end }}
-{{- end }}
+{{- .Values.domainConfig.domainLanguage | toYaml }}
 {{- end }}
 
 {{- define "config.domainModules" }}
-{{- range $k, $v := .Values.domains }}
-{{- $root := $v.root }}
-{{ $k }}:
-  library: https://www.{{ tpl $root $ }}
-{{- range $path, $sub := $v.redirects }}
-  {{ $path }}: https://{{ $sub }}.{{ tpl $root $ }}
+{{- tpl (.Values.domainConfig.domainModules | toYaml) . }}
 {{- end }}
+
+{{- define "config.sessionCookieDomain" }}
+{{- tpl .Values.domainConfig.sessionCookieDomain . }}
 {{- end }}
+
+{{- define "config.csrfCookieDomain" }}
+{{- tpl .Values.domainConfig.csrfCookieDomain . }}
 {{- end }}
