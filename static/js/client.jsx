@@ -55,8 +55,9 @@ $(function() {
     }
   }
 
+  // Handle template-specific component rendering (for pages that don't use ReaderApp)
   if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
-    // Render a specifc component to a container
+    // Render a specific component to a container    
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     renderFunc(component, container);
