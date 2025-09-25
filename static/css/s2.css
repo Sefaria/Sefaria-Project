@@ -1947,6 +1947,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   justify-content: center;
   margin-left: 0;
   margin-right: 0;
+  margin-top: 22px;
 }
 .navSidebar .button .get-start {
   white-space: nowrap;
