@@ -10,6 +10,7 @@ data:
   # Automatic domain configuration - single source of truth
   DOMAIN_LANGUAGE: {{ include "config.domainLanguage" . | fromYaml | toJson | quote }}
   DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
+  MODULE_ROUTES: {{ .Values.localSettings.MODULE_ROUTES | toJson | quote }}
   # Session cookie settings for cross-subdomain support within this cauldron
   SESSION_COOKIE_DOMAIN: {{ include "config.sessionCookieDomain" . | quote }}
   SESSION_COOKIE_SECURE: "true"
@@ -49,11 +50,3 @@ data:
   SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
-  SESSION_COOKIE_DOMAIN: {{ .Values.localSettings.SESSION_COOKIE_DOMAIN | quote }}
-  SESSION_COOKIE_SECURE: "{{ .Values.localSettings.SESSION_COOKIE_SECURE }}"
-  SESSION_COOKIE_HTTPONLY: "{{ .Values.localSettings.SESSION_COOKIE_HTTPONLY }}"
-  SESSION_COOKIE_SAMESITE: {{ .Values.localSettings.SESSION_COOKIE_SAMESITE | quote }}
-  CSRF_COOKIE_DOMAIN: {{ .Values.localSettings.CSRF_COOKIE_DOMAIN | quote }}
-  CSRF_COOKIE_SECURE: "{{ .Values.localSettings.CSRF_COOKIE_SECURE }}"
-  CSRF_COOKIE_HTTPONLY: "{{ .Values.localSettings.CSRF_COOKIE_HTTPONLY }}"
-  CSRF_COOKIE_SAMESITE: {{ .Values.localSettings.CSRF_COOKIE_SAMESITE | quote }}
