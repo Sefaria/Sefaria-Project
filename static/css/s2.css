@@ -1898,7 +1898,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 .navSidebarLink.language {
   font-size: 18px;
-  margin-top: 16px;
+  margin-top: 6px;
   display: flex;
   flex-wrap:wrap;
 }
@@ -15400,7 +15400,7 @@ span.ref-link-color-3 {color: blue}
 
 .footerContainer a {
   padding-top: 10px;
-  padding-inline-end: 6px;
+  padding-inline-end: 16px;
 }
 
 .stickySidebarFooter {
