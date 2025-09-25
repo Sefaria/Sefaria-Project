@@ -1009,7 +1009,7 @@ AdvancedToolsList.propTypes = {
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false,
+                       greyColor=false, highlighted=false, experiment=false,
                        children }) => {
   const clickHandler = (e) => {
     e.preventDefault();
@@ -1041,7 +1041,6 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
         </span>
         {children}
       </a>
-      {(secondaryEn && secondaryHe) && <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /> <img className="linkArrow" src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} aria-hidden="true"></img></a>}
       </div>
       : null
   );
@@ -1066,8 +1065,6 @@ ToolsButton.propTypes = {
   greyColor: PropTypes.bool,
   highlighted: PropTypes.bool,
   experiment: PropTypes.bool,
-  secondaryEn: PropTypes.string,
-  secondaryHe: PropTypes.string,
   children: PropTypes.node
 };
 
