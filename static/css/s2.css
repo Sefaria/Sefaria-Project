@@ -1748,6 +1748,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   padding-inline: 10px 10px;
   margin-inline: -15px -15px;
   margin-block: -5px -5px;
+  padding-bottom: 10px;
 }
 .singlePanel .recentlyViewed ul {
   display: revert;
