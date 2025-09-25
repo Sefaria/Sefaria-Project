@@ -823,6 +823,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   background-color: var(--lighter-grey);
   text-decoration: none;
 }
+.dropdownItem[data-prevent-close="true"]:hover {
+  text-decoration: none;
+}
 .header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
