@@ -16,6 +16,7 @@ spec:
     blueGreen:
       activeService: web-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
         templates:
           # - templateName: rollout-readiness-{{ .Values.deployEnv }}
@@ -23,9 +24,10 @@ spec:
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
-      {{- if .Values.deploymentMessage }} 
+      {{- end }}
+      {{- if .Values.deploymentMessage }}
       postPromotionAnalysis:
-        templates: 
+        templates:
           - templateName: rollout-complete-{{ .Values.deployEnv }}
         args:
           - name: revision
@@ -101,7 +103,7 @@ spec:
           - name: OTEL_SERVICE_NAME
             value: {{ .Values.deployEnv }}-web
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: {{ .Values.instrumentation.otelEndpoint }} 
+            value: {{ .Values.instrumentation.otelEndpoint }}
           - name: OTEL_PROPAGATORS
             value: tracecontext,baggage,b3,jaeger
           - name: OTEL_RESOURCE_ATTRIBUTES_POD_NAME
@@ -134,7 +136,7 @@ spec:
               name: {{ .Values.tasks.redis.redisPassword.ref }}
           {{- end }}
           - secretRef:
-              name: {{ template "sefaria.secrets.elasticUser" . }}  
+              name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
