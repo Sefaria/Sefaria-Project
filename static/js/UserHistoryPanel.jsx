@@ -205,6 +205,8 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
     );
   }
   
+  console.log("items", items);
+  console.log("any items with no name", items.filter(item => !item.ownerName));
   return (
     <div className="savedHistoryList">
       {items.reduce((accum, curr, index) => {
