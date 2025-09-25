@@ -95,6 +95,8 @@ spec:
             value: {{ randAlphaNum 8 }}
           - name: VARNISH_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: INTERNAL_URL
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: SEARCH_HOST
             value: "{{ .Values.nginx.SEARCH_HOST }}"
           - name: STRAPI_LOCATION
