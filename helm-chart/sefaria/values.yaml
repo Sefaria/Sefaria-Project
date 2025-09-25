@@ -445,6 +445,18 @@ cronJobs:
   weeklyEmailNotifications:
     enabled: false
 
+# Domain configuration - can be overridden per environment
+domainConfig:
+  # Default: empty domain language mapping for cauldrons
+  domainLanguage: {}
+  # Default domain modules for cauldrons
+  domainModules:
+    library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
+    sheets: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  # Default cookie domains
+  sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+
 localSettings:
   DEBUG: true
   DOMAIN_LANGUAGE: {}
