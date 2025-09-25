@@ -13,7 +13,10 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
   useEffect(() => {
     const dismissed = localStorage.getItem('sefaria.moduleSwitcherTooltipDismissed');
     if (dismissed !== 'true') {
-      setTooltipVisible(true);
+      // Delay showing tooltip by 200ms to allow banner to appear and settle
+      setTimeout(() => {
+        setTooltipVisible(true);
+      }, 200);
     }
   }, []);
 

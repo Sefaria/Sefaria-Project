@@ -66,7 +66,7 @@ a, a:hover {
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
   --select-blue: #0B71E7;
-  --module-switcher-tooltip-background: var(--reference-orange);
+  --module-switcher-tooltip-background: #1F2937;
   --arrow-translate-x: 25px;
   --tooltip-translate-multiplier: -1;
 }
@@ -15948,21 +15948,26 @@ span.ref-link-color-3 {color: blue}
 /* .module-switcher-tippy .tippy-arrow::before {
   border: 1px solid var(--light-grey) !important;
 } */
-
 .module-switcher-tippy,
-.tippy-box {
+.tippy-box  {
   background-color: var(--module-switcher-tooltip-background) !important;
   border-radius: 8px ;
   box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
-  transform: translateX(calc(var(--tooltip-translate-multiplier) * var(--arrow-translate-x)));
 }
 
-.tippy-box[data-placement^=bottom]>.tippy-arrow:before{
-  transform: translateX(calc(-1 * var(--tooltip-translate-multiplier) * var(--arrow-translate-x)));
+@media (min-width: 768px) {
+  .module-switcher-tippy,
+  .tippy-box  {
+    transform: translateX(calc(var(--tooltip-translate-multiplier) * var(--arrow-translate-x)));
+  }
+
+  .tippy-box[data-placement^=bottom]>.tippy-arrow:before{
+    transform: translateX(calc(-1 * var(--tooltip-translate-multiplier) * var(--arrow-translate-x)));
+  }
 }
 /* Mobile-specific tooltip adjustments */
 @media (max-width: 768px) {
-  .module-switcher-tippy .tippy-content {
+  .module-switcher-tippy, .tippy-box {
     max-width: 280px; /* Smaller max-width on mobile */
   }
 }
