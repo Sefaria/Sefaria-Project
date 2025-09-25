@@ -23,6 +23,38 @@ export const EXTERNAL_URLS = {
   DEVELOPERS: /developers\.sefaria\.org/
 } as const;
 
+export const SEARCH_DROPDOWN = {
+  CONTAINER: '.autocomplete-dropdown',
+  SECTIONS: {
+    AUTHORS: 'Authors',
+    TOPICS: 'Topics',
+    CATEGORIES: 'Categories',
+    BOOKS: 'Books',
+    USERS: 'Users'
+  },
+  ICONS: {
+    SEARCH: { selector: 'img[src="/static/icons/iconmonstr-magnifier-2.svg"]', alt: 'Search' },
+    AUTHOR: { selector: 'img[alt="AuthorTopic"]', alt: 'AuthorTopic' },
+    TOPIC: { selector: 'img[alt="Topic"]', alt: 'Topic' },
+    CATEGORY: { selector: 'img[alt="TocCategory"]', alt: 'TocCategory' },
+    BOOK: { selector: 'img[alt="ref"]', alt: 'ref' },
+    USER: { selector: 'img[alt="User"]', alt: 'User' }
+  },
+  // Configuration for what should/shouldn't appear
+  LIBRARY_ALL_EXPECTED_SECTIONS: ['Authors', 'Topics', 'Categories', 'Books'] as const,
+  LIBRARY_EXCLUDED_SECTIONS: ['Users'] as const,
+  LIBRARY_ALL_EXPECTED_ICONS: ['AuthorTopic', 'Topic', 'TocCategory', 'ref'] as const,
+  // Sheets-specific configuration - different from Library
+  SHEETS_ALL_EXPECTED_SECTIONS: ['Topics', 'Authors', 'Users'] as const,
+  SHEETS_EXCLUDED_SECTIONS: ['Categories', 'Books'] as const,
+  SHEETS_ALL_EXPECTED_ICONS: ['Topic', 'AuthorTopic', 'User'] as const, // User icons are profile pictures with alt="User"
+  // Common search terms that trigger comprehensive results
+  TEST_SEARCH_TERMS: {
+    LIBRARY_SHOW_ALL: 'mid', // "mid" reliably triggers all 4 sections (Authors, Topics, Categories, Books)
+    SHEETS_SHOW_ALL: 'rashi', // "rashi" shows Topics, Authors, and Users on Sheets
+  }
+} as const;
+
 export const SITE_CONFIGS = {
   LIBRARY: {
     url: URLS.LIBRARY,
@@ -69,3 +101,6 @@ export const SITE_CONFIGS = {
 // Type definitions for better TypeScript support
 export type SiteConfig = typeof SITE_CONFIGS.LIBRARY | typeof SITE_CONFIGS.SHEETS;
 export type TabOrderItem = { readonly selector: string; readonly description: string };
+export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS[number];
+export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_ICONS[number];
+export type IconConfig = { readonly selector: string; readonly alt: string };

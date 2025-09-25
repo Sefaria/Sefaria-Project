@@ -11,7 +11,7 @@ This test suite validates the header functionality for Sefaria's modularization 
 - **Framework**: Playwright with TypeScript
 - **Architecture**: Modular Page Object Model (POM) with separated concerns
 
-## Current Status: ✅ 8/9 TESTS PASSING (1 KNOWN FAILURE - LOGO NAVIGATION doesn't work)
+## Current Status: ✅ 10/11 TESTS PASSING (1 KNOWN FAILURE - LOGO NAVIGATION doesn't work)
 
 ---
 
@@ -208,5 +208,58 @@ Comprehensive helper class with documented methods:
 - ESC key properly closes module switcher dropdown
 
 **Key Implementation**: Uses DOM walkthrough analysis to determine exact browser tab order. Configuration-driven test loops through both sites using `SITE_CONFIGS` constants. Establishes focus by clicking logo, then validates each element receives focus in precise browser order using `testTabOrder()` helper method.
+
+---
+
+### MOD-H010: Search Dropdown Sections and Icons Validation
+
+**Purpose**: Validate search autocomplete dropdown displays correct sections with proper icons and excludes inappropriate sections
+
+**What it checks**:
+
+**Search Dropdown Section Validation:**
+
+- Search autocomplete dropdown appears when typing in search box
+- **Authors** section is present in dropdown
+- **Topics** section is present in dropdown  
+- **Categories** section is present in dropdown
+- **Books** section is present in dropdown
+- **Users** section is properly excluded from dropdown (negative test)
+
+**Search Dropdown Icon Validation:**
+
+- Authors section displays correct icon (alt="Authors")
+- Topics section displays correct icon (alt="Topics")
+- Categories section displays correct icon (alt="Categories")
+- Books section displays correct icon (alt="Books")
+- All section icons are visible and properly rendered
+
+**Key Implementation**: Uses `testSearchDropdown()` method to validate section presence/absence and `testSearchDropdownIcons()` method to verify icon display. Tests with "mid" search term which reliably triggers all 4 expected dropdown sections (Authors, Topics, Categories, Books). Utilizes `SEARCH_DROPDOWN` constants for consistent selectors across dropdown container, sections, and icons.
+
+---
+
+### MOD-H011: Sheets - Search Dropdown Sections and Icons Validation
+
+**Purpose**: Validate search autocomplete dropdown on Sheets site displays different sections than Library, including Users but excluding Categories and Books
+
+**What it checks**:
+
+**Search Dropdown Section Validation:**
+
+- Search autocomplete dropdown appears when typing in search box
+- **Topics** section is present in dropdown (pound sign icon)
+- **Authors** section is present in dropdown (specially presented Topics with quill icon)
+- **Users** section is present in dropdown (profile picture icons with alt="User")
+- **Categories** section is properly excluded from dropdown (negative test)
+- **Books** section is properly excluded from dropdown (negative test)
+
+**Search Dropdown Icon Validation:**
+
+- Topics section displays correct icon (alt="Topic")
+- Authors section displays correct icon (alt="AuthorTopic")
+- Users section displays profile picture icons (alt="User")
+- All section icons are visible and properly rendered
+
+**Key Implementation**: Uses same `testSearchDropdown()` and `testSearchDropdownIcons()` methods as Library test but with Sheets-specific constants. Tests with "rashi" search term on Sheets site. Utilizes `SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS` and `SEARCH_DROPDOWN.SHEETS_EXCLUDED_SECTIONS` for configuration-driven validation.
 
 ---

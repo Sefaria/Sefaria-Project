@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { HeaderTestHelpers } from './headerMDL';
-import { URLS, SELECTORS, EXTERNAL_URLS, SITE_CONFIGS } from './constantsMDL';
+import { URLS, SELECTORS, EXTERNAL_URLS, SITE_CONFIGS, SEARCH_DROPDOWN } from './constantsMDL';
 
 test.describe('Modularization Header Tests', () => {
   let helpers: HeaderTestHelpers;
@@ -119,16 +119,15 @@ test.describe('Modularization Header Tests', () => {
     await helpers.clickAndVerifyNavigation('Topics', /topics/);
     
     const topicLink = page.getByRole('link').filter({ hasText: /Jewish Calendar/i }).first();
-    if (await topicLink.isVisible()) {
-      await topicLink.click();
-      await expect(page).toHaveURL(/category/);
-      
-      await page.goBack();
-      await expect(page).toHaveURL(/topics/);
-      
-      await page.goForward();
-      await expect(page).toHaveURL(/category/);
-    }
+    await topicLink.isVisible();
+    await topicLink.click();
+    await expect(page).toHaveURL(/category/);
+    
+    await page.goBack();
+    await expect(page).toHaveURL(/topics/);
+    
+    await page.goForward();
+    await expect(page).toHaveURL(/category/);
   });
 
   test('MOD-H009: Keyboard navigation accessibility', async ({ page }) => {
@@ -138,4 +137,20 @@ test.describe('Modularization Header Tests', () => {
       await helpers.testModuleSwitcherKeyboard();
     }
   });
+
+  test('MOD-H010: Library - Search dropdown sections and icons validation', async ({ page }) => {
+    // Test search dropdown with 'mid' to trigger all sections
+    await helpers.testSearchDropdown('mid', SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS, SEARCH_DROPDOWN.LIBRARY_EXCLUDED_SECTIONS);
+    await helpers.testSearchDropdownIcons('mid', SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS);    
+  });
+
+  test('MOD-H011: Sheets - Search dropdown sections and icons validation', async ({ page }) => {
+    // Navigate to Sheets site for testing
+    await helpers.navigateAndHideModals(URLS.SHEETS);
+    
+    // Test search dropdown with 'rashi' to trigger Topics, Authors, and Users sections
+    await helpers.testSearchDropdown('rashi', SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS, SEARCH_DROPDOWN.SHEETS_EXCLUDED_SECTIONS);
+    await helpers.testSearchDropdownIcons('rashi', SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_ICONS);
+  });
 });
+

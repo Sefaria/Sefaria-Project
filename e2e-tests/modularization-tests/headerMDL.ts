@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { hideAllModalsAndPopups } from '../utils';
-import { SELECTORS, SiteConfig, TabOrderItem } from './constantsMDL';
+import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, SearchDropdownSection, SearchDropdownIcon } from './constantsMDL';
 
 /**
  * Helper class for testing header functionality across Sefaria's modularization sites.
@@ -153,5 +153,82 @@ export class HeaderTestHelpers {
     // Close with Escape
     await this.page.keyboard.press('Escape');
     await expect(libraryOption).not.toBeVisible();
+  }
+
+  /**
+   * Tests search dropdown functionality by typing a query and validating dropdown sections.
+   * Uses constants from SEARCH_DROPDOWN for consistent validation and flexible configuration.
+   * @param searchTerm - The text to type in the search box (optional, defaults to comprehensive test term)
+   * @param expectedSections - Array of section names that should be visible (optional, uses constants default)
+   * @param unexpectedSections - Array of section names that should NOT be visible (optional, uses constants default)
+   */
+  async testSearchDropdown(
+    searchTerm: string = SEARCH_DROPDOWN.TEST_SEARCH_TERMS.LIBRARY_SHOW_ALL, 
+    expectedSections: readonly string[] = SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS, 
+    unexpectedSections: readonly string[] = SEARCH_DROPDOWN.LIBRARY_EXCLUDED_SECTIONS
+  ) {
+    const searchBox = this.page.getByRole('banner').getByRole('combobox', { name: /search/i });
+    await expect(searchBox).toBeVisible();
+    
+    // Clear and type search term
+    await searchBox.clear();
+    await searchBox.fill(searchTerm);
+    
+    // Wait for dropdown to appear
+    const dropdown = this.page.locator(SEARCH_DROPDOWN.CONTAINER);
+    await expect(dropdown).toBeVisible();
+    
+    // Verify expected sections are present using reliable text-based search
+    for (const section of expectedSections) {
+      const sectionTitle = dropdown.getByText(section, { exact: true });
+      await expect(sectionTitle).toBeVisible();
+    }
+    
+    // Verify unexpected sections are NOT present using text-based search
+    for (const section of unexpectedSections) {
+      const sectionTitle = dropdown.getByText(section, { exact: true });
+      await expect(sectionTitle).not.toBeVisible();
+    }
+  }
+
+  /**
+   * Tests that search dropdown sections have the correct icons using configured icon mappings.
+   * Uses SEARCH_DROPDOWN constants for both icon selectors and expected icons list.
+   * @param searchTerm - The text to type in the search box (optional, defaults to comprehensive test term)
+   * @param expectedIcons - Array of icon alt texts that should be visible (optional, uses constants default)
+   */
+  async testSearchDropdownIcons(
+    searchTerm: string = SEARCH_DROPDOWN.TEST_SEARCH_TERMS.LIBRARY_SHOW_ALL,
+    expectedIcons: readonly string[] = SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS
+  ) {
+    const searchBox = this.page.getByRole('banner').getByRole('combobox', { name: /search/i });
+    await searchBox.clear();
+    await searchBox.fill(searchTerm);
+    
+    const dropdown = this.page.locator(SEARCH_DROPDOWN.CONTAINER);
+    await expect(dropdown).toBeVisible();
+    
+    // Check that each expected icon is present using pre-built selectors from constants
+    // Use .first() to avoid strict mode violations when multiple results of same type exist
+    for (const iconAlt of expectedIcons) {
+      const iconConfig = this.getIconConfig(iconAlt);
+      if (iconConfig) {
+        // Use the pre-built selector from constants instead of manually building it
+        const icon = dropdown.locator(iconConfig.selector).first();
+        await expect(icon).toBeVisible();
+      } else {
+        throw new Error(`Icon configuration not found for alt text: ${iconAlt}`);
+      }
+    }
+  }
+
+  /**
+   * Helper method to get icon configuration by alt text from constants.
+   * @param altText - The alt text of the icon to find
+   * @returns The icon configuration or null if not found
+   */
+  private getIconConfig(altText: string): { selector: string; alt: string } | null {
+    const iconEntries = Object.values(SEARCH_DROPDOWN.ICONS);
+    return iconEntries.find(icon => icon.alt === altText) || null;
   }
 }

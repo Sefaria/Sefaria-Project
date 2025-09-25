@@ -61,7 +61,12 @@ export default defineConfig({
     {
       name: 'chromium',
       testDir: './e2e-tests/tests', // Only run production tests by default
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Ensure we don't get redirected
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
     },
 
     // Modularization tests (beta) - separate project
