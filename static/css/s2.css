@@ -971,6 +971,9 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .mobileHeaderCenter {
   text-align: center;
 }
+.mobileHeaderCenter img.home {
+  margin-inline-end: 0;
+}
 .header .headerInner.mobile .mobileHeaderLanguageToggle {
   text-align: end;
 }
