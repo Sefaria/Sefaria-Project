@@ -449,6 +449,17 @@ input.noselect {
 .headerInner .headerLinksSection > * {
   margin-inline-start: 3%;
 }
+.headerLinksSection .sefaria-common-button {
+  width: 67px;
+  height: 30px;
+  padding: 0;
+  line-height: 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .header .header-nav {
   margin-top: 1px;
 }
