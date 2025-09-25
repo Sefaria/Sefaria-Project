@@ -56,13 +56,13 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   }, [menuOpen, Sefaria.saved, Sefaria.userHistory]);
   
   const getDataStore = () => {
-    return {'loaded': true, 'items': filterDataByType(dataStore?.items, Sefaria.activeModule)};
+    return {'loaded': true, 'items': filterDataByType(dataStore?.items)};
   }
     
 
   const title = (
     <span className="sans-serif">
-      <a href="/saved"  data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }>
+      <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>
       </a>
@@ -100,7 +100,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={ getDataStore() }
+                    store={ () => getDataStore() }
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
@@ -129,7 +129,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   // Store changes when switching tabs, reset items
   useEffect(() => {
     setItems(store.loaded ? store.items : null);
-  }, [store]);
+  }, [menuOpen]);
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
@@ -173,8 +173,6 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     );
   }
   
-  console.log("items", items);
-  console.log("any items with no name", items.filter(item => !item.ownerName));
   return (
     <div className="savedHistoryList">
       {items.reduce((accum, curr, index) => {
