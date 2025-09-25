@@ -453,7 +453,7 @@ domainConfig:
   domainModules:
     library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
     sheets: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
-  # Default cookie domains
+  # Default cookie domains for cauldrons
   sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
   csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
 
@@ -462,6 +462,8 @@ localSettings:
   DOMAIN_LANGUAGE: {}
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
+  DOMAIN_MODULES: {}
+  MODULE_ROUTES: {}
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
@@ -476,14 +478,6 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  SESSION_COOKIE_DOMAIN: ".sefaria.org"
-  SESSION_COOKIE_SECURE: true
-  SESSION_COOKIE_HTTPONLY: true
-  SESSION_COOKIE_SAMESITE: "Lax"
-  CSRF_COOKIE_DOMAIN: ".sefaria.org"
-  CSRF_COOKIE_SECURE: true
-  CSRF_COOKIE_HTTPONLY: false
-  CSRF_COOKIE_SAMESITE: "Lax"
 
 instrumentation:
   enabled: false

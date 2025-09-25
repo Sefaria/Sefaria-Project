@@ -184,3 +184,4 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- define "config.csrfCookieDomain" }}
 {{- tpl .Values.domainConfig.csrfCookieDomain . }}
 {{- end }}
+
