@@ -156,3 +156,28 @@ class memoized(object):
     def __get__(self, obj, objtype):
         '''Support instance methods.'''
         return partial(self.__call__, obj)
+
+
+def _add_cors_headers(response):
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+def cors_allow_all(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.method == "OPTIONS":
+            response = HttpResponse(status=204)
+            return _add_cors_headers(response)
+        response = view_func(request, *args, **kwargs)
+        return _add_cors_headers(response)
+    # Preserve or enforce CSRF exemption so POSTs from other origins aren't blocked
+    try:
+        from django.views.decorators.csrf import csrf_exempt as _csrf_exempt
+        _wrapped = _csrf_exempt(_wrapped)
+    except Exception:
+        # Fallback: set attribute directly if decorator import fails for any reason
+        setattr(_wrapped, 'csrf_exempt', True)
+    return _wrapped
