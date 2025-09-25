@@ -60,8 +60,8 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     "history": "/texts/history"
   };
   const sheetsURLs = {
-    "saved": "/sheets/saved",
-    "history": "/sheets/history"
+    "saved": "/saved",
+    "history": "/history"
   };
 
   const title = (

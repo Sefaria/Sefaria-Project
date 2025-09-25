@@ -34,7 +34,7 @@ class SheetSource extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="ref">
               {this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}
-              <a href={"/" + Sefaria.normRef(this.props.source.ref)}>{this.props.source.heRef}</a>
+              <a href={"/" + Sefaria.normRef(this.props.source.ref)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.heRef}</a>
             </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
@@ -43,7 +43,7 @@ class SheetSource extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="ref">
               {this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}
-              <a href={"/" + Sefaria.normRef(this.props.source.ref)}>{this.props.source.ref}</a>
+              <a href={"/" + Sefaria.normRef(this.props.source.ref)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.ref}</a>
             </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }

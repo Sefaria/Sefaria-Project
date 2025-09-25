@@ -236,9 +236,15 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
 
 @django_cache(timeout=24 * 60 * 60)
 def get_all_topics(limit=1000, displayableOnly=True, activeModule='library'):
+    from django_topics.utils import get_topic_pool_name_for_module
+    
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
     topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
-    return [t for t in topic_list if activeModule in t.get_pools()]
+    
+    # Get the actual pool name that should be used for this activeModule
+    expected_pool_name = get_topic_pool_name_for_module(activeModule)
+    
+    return [t for t in topic_list if expected_pool_name in t.get_pools()]
 
 @django_cache(timeout=24 * 60 * 60)
 def get_num_library_topics():
