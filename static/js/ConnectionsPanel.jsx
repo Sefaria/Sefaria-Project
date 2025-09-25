@@ -1006,9 +1006,9 @@ AdvancedToolsList.propTypes = {
 
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
-                       count = null, control = "interface", typeface = "system", alwaysShow = false,
+                       count, control = "interface", typeface = "system", alwaysShow = false,
                        secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false, 
-                       secondaryIcon=null, secondaryIconAlt=null }) => {
+                       secondaryIcon, secondaryIconAlt }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
