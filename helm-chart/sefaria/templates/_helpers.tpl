@@ -170,30 +170,43 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- end }}
 
 {{- define "config.domainLanguage" }}
-{{- range $k, $v := .Values.domains }}
-{{- $subdomains := list }}
-{{- $root := $v.root }}
-{{- $language := $v.language }}
-{{- range $path, $sub := $v.redirects }}
-  {{- if not (has $sub $subdomains) }}
-    {{- $subdomains = append $subdomains $sub }}
-  {{- end }}
-{{- end }}
-https://{{ tpl $root $ }}: {{ $language }}
-https://www.{{ tpl $root $ }}: {{ $language }}
-{{- range $subdomains }}
-https://{{ . }}.{{ tpl $root $ }}: {{ $language }}
-{{- end }}
+{{- if eq .Values.deployEnv "sefariastaging" }}
+{{- /* Special case for sefariastaging: use sefariastaging-il.org for Hebrew, not .org.il */ -}}
+https://sefariastaging.org: english
+https://voices.sefariastaging.org: english
+https://www.sefariastaging.org: english
+https://sefariastaging-il.org: hebrew
+https://voices.sefariastaging-il.org: hebrew
+https://www.sefariastaging-il.org: hebrew
+{{- else }}
+{{- /* All other cauldrons should have empty DOMAIN_LANGUAGE as we can't distinguish Hebrew vs English sites */ -}}
 {{- end }}
 {{- end }}
 
 {{- define "config.domainModules" }}
-{{- range $k, $v := .Values.domains }}
-{{- $root := $v.root }}
-{{ $k }}:
-  library: https://www.{{ tpl $root $ }}
-{{- range $path, $sub := $v.redirects }}
-  {{ $path }}: https://{{ $sub }}.{{ tpl $root $ }}
+{{- if eq .Values.deployEnv "sefariastaging" }}
+{{- /* Special case for sefariastaging */ -}}
+library: https://sefariastaging.org
+sheets: https://voices.sefariastaging.org
+{{- else }}
+{{- /* Regular cauldrons: only library and sheets, no community/profile */ -}}
+library: https://{{ .Values.deployEnv }}.cauldron.sefaria.org
+sheets: https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org
 {{- end }}
+{{- end }}
+
+{{- define "config.sessionCookieDomain" }}
+{{- if eq .Values.deployEnv "sefariastaging" }}
+.sefariastaging.org
+{{- else }}
+.{{ .Values.deployEnv }}.cauldron.sefaria.org
+{{- end }}
+{{- end }}
+
+{{- define "config.csrfCookieDomain" }}
+{{- if eq .Values.deployEnv "sefariastaging" }}
+.sefariastaging.org
+{{- else }}
+.{{ .Values.deployEnv }}.cauldron.sefaria.org
 {{- end }}
 {{- end }}
