@@ -63,12 +63,14 @@ export const TopicLandingNewsletter = () => {
                         <input
                             type="text"
                             placeholder={Sefaria._("First Name")}
+                            aria-label={Sefaria._("First Name")}
                             ref={firstNameRef}
                             onKeyUp={handleSubscribeKeyUp}
                         />
                         <input
                             type="text"
                             placeholder={Sefaria._("Last Name")}
+                            aria-label={Sefaria._("Last Name")}
                             ref={lastNameRef}
                             onKeyUp={handleSubscribeKeyUp}
                         />
@@ -77,6 +79,7 @@ export const TopicLandingNewsletter = () => {
                         <input
                             type="text"
                             placeholder={Sefaria._("Email Address")}
+                            aria-label={Sefaria._("Email Address")}
                             ref={emailRef}
                             onKeyUp={handleSubscribeKeyUp}
                         />
@@ -98,7 +101,7 @@ export const TopicLandingNewsletter = () => {
             </div>
             <div className="">
                 {subscribeErrorMessage ?
-                    <div className="subscribeErrorMessage">{Sefaria._(subscribeErrorMessage)}</div>
+                    <div className="subscribeErrorMessage" role="alert" aria-live="assertive">{Sefaria._(subscribeErrorMessage)}</div>
                     : null}
             </div>
         </div>
