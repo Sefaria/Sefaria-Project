@@ -204,8 +204,8 @@ const GuideOverlay = ({
       // Auto view fires when guide shows without being forced (no cookie exists)
       trackGuideEvent("guide_view_auto", guideType);
       setIsVisible(true);
-      setCookie(); // Guide should only show once, so we set the cookie when it shows
       loadGuideData();
+      setCookie(); // Guide should only show once, so we set the cookie when it shows
     }
   }, []);
 
