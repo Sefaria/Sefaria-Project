@@ -1,0 +1,45 @@
+{% load static %}
+
+<div class="text-range basetext" data-ref="{{ ref }}">
+    <!-- Section title -->
+    <div class="section-title">
+        {{ text_data.ref }}
+    </div>
+    
+    <!-- Hebrew text (source) -->
+    {% if text_data.he and lang_mode != 'translation' %}
+        <div class="hebrew-section">
+            {% for segment in text_data.he %}
+                {% if segment %}
+                    <div class="segment hebrew" 
+                         data-ref="{{ text_data.ref }}.{{ forloop.counter }}"
+                         data-segment="{{ forloop.counter }}">
+                        {{ segment|safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- English text (translation) -->
+    {% if text_data.text and lang_mode != 'source' %}
+        <div class="english-section">
+            {% for segment in text_data.text %}
+                {% if segment %}
+                    <div class="segment english" 
+                         data-ref="{{ text_data.ref }}.{{ forloop.counter }}"
+                         data-segment="{{ forloop.counter }}">
+                        {{ segment|safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Fallback if no text data available -->
+    {% if not text_data.he and not text_data.text %}
+        <div class="no-text">
+            No text available for {{ ref }}
+        </div>
+    {% endif %}
+</div>

@@ -476,6 +476,15 @@ urlpatterns += [
     url(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
 ]
 
+# HTMX Text Column
+import reader.htmx_views as htmx_views
+urlpatterns += [
+    url(r'^htmx/text-column/(?P<ref>[^/]+)$', htmx_views.htmx_text_column, name="htmx_text_column"),
+    url(r'^htmx/load-previous/(?P<ref>[^/]+)$', htmx_views.htmx_load_previous_sections, name="htmx_load_previous_sections"),
+    url(r'^htmx/load-next/(?P<ref>[^/]+)$', htmx_views.htmx_load_next_sections, name="htmx_load_next_sections"),
+    url(r'^htmx/text-range/(?P<ref>[^/]+)$', htmx_views.htmx_text_range, name="htmx_text_range"),
+]
+
 # add static files to urls
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns += staticfiles_urlpatterns()

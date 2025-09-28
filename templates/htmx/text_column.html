@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ oref.normal }} | Sefaria{% endblock %}
+
+{% block head %}
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+        .text-column {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+        
+        .text-range {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .text-range.basetext {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .segment {
+            margin: 0.5rem 0;
+            padding: 0.25rem;
+            cursor: pointer;
+        }
+        
+        .segment:hover {
+            background-color: #f8f8f8;
+        }
+        
+        .segment.highlight {
+            background-color: #fffacd;
+        }
+        
+        .hebrew {
+            direction: rtl;
+            text-align: right;
+            font-family: "SBL Hebrew", "Times New Roman", serif;
+        }
+        
+        .english {
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .loading-placeholder {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .scroll-placeholder {
+            height: 50px;
+            margin: 20px 0;
+        }
+        
+        .error {
+            color: red;
+            background-color: #ffebee;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .no-more-content {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 1rem;
+        }
+        
+        .language-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .language-toggle h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .toggle-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .toggle-btn {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            background: #f8f8f8;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn:hover {
+            background: #e8e8e8;
+        }
+        
+        .toggle-btn.active {
+            background: #007cff;
+            color: white;
+            border-color: #007cff;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Language Toggle Controls -->
+<div class="language-toggle">
+    <h4>Language</h4>
+    <div class="toggle-buttons">
+        <button class="toggle-btn {% if lang_mode == 'source' %}active{% endif %}" 
+                data-lang="source">Source</button>
+        <button class="toggle-btn {% if lang_mode == 'both' or not lang_mode %}active{% endif %}" 
+                data-lang="both">Both</button>
+        <button class="toggle-btn {% if lang_mode == 'translation' %}active{% endif %}" 
+                data-lang="translation">Translation</button>
+    </div>
+</div>
+
+<div class="text-column" 
+     id="text-column"
+     hx-preserve
+     data-ref="{{ ref }}"
+     data-lang-mode="{{ lang_mode|default:'both' }}">
+    
+    <!-- Top loading placeholder for infinite scroll up -->
+    <div class="scroll-placeholder" 
+         id="top-placeholder"
+         hx-get="{% url 'htmx_load_previous_sections' ref %}?lang={{ lang_mode|default:'both' }}"
+         hx-trigger="intersect once"
+         hx-target="#text-content"
+         hx-swap="afterbegin">
+        <div class="loading-placeholder">Loading previous...</div>
+    </div>
+    
+    <!-- Main text content container -->
+    <div id="text-content">
+        {% include "htmx/text_column_content.html" %}
+    </div>
+    
+    <!-- Bottom loading placeholder for infinite scroll down -->
+    <div class="scroll-placeholder" 
+         id="bottom-placeholder"
+         hx-get="{% url 'htmx_load_next_sections' ref %}?lang={{ lang_mode|default:'both' }}"
+         hx-trigger="intersect once"
+         hx-target="#text-content"
+         hx-swap="beforeend">
+        <div class="loading-placeholder">Loading next...</div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Track scroll position for URL updates and highlighting
+    const textColumn = document.getElementById('text-column');
+    let scrollTimeout;
+    
+    function updateHighlighting() {
+        const segments = textColumn.querySelectorAll('.segment');
+        const columnRect = textColumn.getBoundingClientRect();
+        const middleY = columnRect.top + columnRect.height / 2;
+        
+        let closestSegment = null;
+        let closestDistance = Infinity;
+        
+        segments.forEach(segment => {
+            const rect = segment.getBoundingClientRect();
+            const distance = Math.abs(rect.top + rect.height / 2 - middleY);
+            
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestSegment = segment;
+            }
+        });
+        
+        // Remove existing highlights
+        segments.forEach(seg => seg.classList.remove('highlight'));
+        
+        // Highlight closest segment
+        if (closestSegment) {
+            closestSegment.classList.add('highlight');
+            
+            // Update URL without page reload if ref has changed
+            const segmentRef = closestSegment.getAttribute('data-ref');
+            if (segmentRef && window.location.pathname !== '/' + segmentRef) {
+                history.replaceState(null, '', '/' + segmentRef);
+            }
+        }
+    }
+    
+    textColumn.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(updateHighlighting, 100);
+    });
+    
+    // Initial highlighting
+    updateHighlighting();
+    
+    // Handle segment clicks
+    textColumn.addEventListener('click', function(e) {
+        const segment = e.target.closest('.segment');
+        if (segment) {
+            const ref = segment.getAttribute('data-ref');
+            if (ref) {
+                // Update URL and highlight
+                history.pushState(null, '', '/' + ref);
+                
+                // Remove all highlights and add to clicked segment
+                textColumn.querySelectorAll('.segment').forEach(s => s.classList.remove('highlight'));
+                segment.classList.add('highlight');
+            }
+        }
+    });
+    
+    // Handle language toggle buttons
+    const toggleButtons = document.querySelectorAll('.toggle-btn');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const newLangMode = this.getAttribute('data-lang');
+            const currentRef = textColumn.getAttribute('data-ref');
+            
+            // Update URL with new language mode
+            const url = new URL(window.location);
+            url.searchParams.set('lang', newLangMode);
+            
+            // Navigate to the new URL (this will reload the page with the new language mode)
+            window.location.href = url.toString();
+        });
+    });
+    
+    // Handle HTMX loading states
+    document.addEventListener('htmx:beforeRequest', function(evt) {
+        const placeholder = evt.target;
+        if (placeholder.classList.contains('scroll-placeholder')) {
+            placeholder.querySelector('.loading-placeholder').textContent = 'Loading...';
+        }
+    });
+    
+    document.addEventListener('htmx:afterRequest', function(evt) {
+        // After new content loads, update highlighting
+        setTimeout(updateHighlighting, 100);
+        
+        // Reset placeholders for subsequent loads
+        if (evt.detail.successful) {
+            const placeholder = evt.target;
+            if (placeholder.id === 'top-placeholder') {
+                // For top loading, we need to create a new placeholder at the top
+                const newPlaceholder = placeholder.cloneNode(true);
+                newPlaceholder.style.display = 'block';
+                textColumn.insertBefore(newPlaceholder, textColumn.firstChild);
+            } else if (placeholder.id === 'bottom-placeholder') {
+                // For bottom loading, we need to create a new placeholder at the bottom
+                const newPlaceholder = placeholder.cloneNode(true);
+                newPlaceholder.style.display = 'block';
+                textColumn.appendChild(newPlaceholder);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
