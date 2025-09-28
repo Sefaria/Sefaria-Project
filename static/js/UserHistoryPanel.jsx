@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
@@ -28,11 +28,7 @@ const filterDataByType = (data) => {
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
 
-  const initialStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
-
   const [notes, setNotes] = useState(null);
-  const [dataStore, setDataStore] = useState(initialStore);
-
   const contentRef = useRef();
 
   useEffect(() => {
@@ -49,15 +45,13 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     });
   }, [menuOpen]);
 
-  useEffect(() => {
-    // Switch dataStore whenever menuOpen changes
-    const newDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
-    setDataStore(newDataStore);
-  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]);
-  
-  const getDataStore = () => {
-    return {'loaded': true, 'items': filterDataByType(dataStore?.items)};
-  }
+  const memoizedStore = useMemo(() => {
+    const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
+    return {
+      'loaded': currentDataStore?.loaded || false, 
+      'items': currentDataStore?.items ? filterDataByType(currentDataStore.items) : []
+    };
+  }, [menuOpen, Sefaria.saved?.loaded, Sefaria.saved?.items, Sefaria.userHistory?.loaded, Sefaria.userHistory?.items]); // Re-create when these change
     
 
   const title = (
@@ -100,7 +94,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={ () => getDataStore() }
+                    store={memoizedStore}
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
