@@ -453,10 +453,10 @@ domainConfig:
   domainModules:
     en:
       library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      voices: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      voices: "https://voices.{{ .Values.deployEnv }}.cauldron.sefaria.org"
     he:
       library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      voices: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      voices: "https://voices.{{ .Values.deployEnv }}.cauldron.sefaria.org"
   # Default cookie domains for cauldrons
   sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
   csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
