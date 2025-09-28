@@ -293,11 +293,11 @@ def catchall(request, tref, sheet=None):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
+        if active_module != 'library':
+            raise Http404
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
-            raise Http404
-        if active_module != 'library':
             raise Http404
 
         uref = oref.url(False)
