@@ -1037,10 +1037,8 @@ def saved_content(request):
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
     
     # Determine page name based on active module
-    active_module = getattr(request, 'active_module', 'library')
-    page_name = "sheets-saved" if active_module == "voices" else "texts-saved"
-    
-    return menu_page(request, props, page=page_name, title=title, desc=desc)
+    active_module = getattr(request, 'active_module', 'library')    
+    return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
 def get_user_history_props(request):
@@ -1063,10 +1061,8 @@ def user_history_content(request):
     desc = _("See your user history on Sefaria")
     
     # Determine page name based on active module
-    active_module = getattr(request, 'active_module', 'library')
-    page_name = "sheets-history" if active_module == "voices"  else "texts-history"
-    
-    return menu_page(request, props, page=page_name, title=title, desc=desc)
+    active_module = getattr(request, 'active_module', 'library')    
+    return menu_page(request, props, page="history", title=title, desc=desc)
 
 @login_required
 def notes(request):
