@@ -286,11 +286,15 @@ def catchall(request, tref, sheet=None):
         response['Location'] += "?%s" % params if params else ""
         return response
 
+    active_module = getattr(request, "active_module", "library")
+
     for version in ['ven', 'vhe']:
         if request.GET.get(version) and '|' not in request.GET.get(version):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
+        if active_module != 'library':
+            raise Http404
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
