@@ -1106,6 +1106,7 @@ class ReaderPanel extends Component {
       
     } else if (this.state.menuOpen === "sheets") {
       menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
+              setTopic={this.setTopic}
               multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}
@@ -1116,10 +1117,6 @@ class ReaderPanel extends Component {
               toggleSignUpModal={this.props.toggleSignUpModal}/>
       );
 
-    } else if (this.state.menuOpen === "sheets") {
-      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
-                              multiPanel={this.props.multiPanel}
-                              setTopic={this.setTopic}/>);
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
