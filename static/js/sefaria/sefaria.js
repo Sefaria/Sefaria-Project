@@ -3149,7 +3149,7 @@ _media: {},
       return sheet;
     },
     deleteSheetById: function(id) {
-      return Sefaria._ApiPromise(`/api/sheets/${id}/delete`);
+      return Sefaria.apiRequestWithBody(`/api/sheets/${id}/delete`, null, null, "POST");
     },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy="date", offset=0, numberToRetrieve=0) {
