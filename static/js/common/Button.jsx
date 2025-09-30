@@ -37,24 +37,12 @@ const Button = ({
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
   if (href) {
-    // For links with role="button": Enter is handled by default, we only need Space
-    const handleLinkKeyDown = (e) => {
-      if (e.key === ' ' && !disabled) {
-        e.preventDefault();
-        if (onClick) {
-          onClick(e);
-        } else {
-          e.target.click();
-        }
-      }
-    };
-
     return (
       <a
         href={href}
         className={buttonClasses}
         onClick={onClick}
-        onKeyDown={handleLinkKeyDown}
+        onKeyDown={disabled ? null : Util.handleLinkSpaceKey(onClick)}
         tabIndex={0}
         role="button"
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}

@@ -413,6 +413,35 @@ class Util {
     }
 
     /**
+     * Makes links keyboard accessible with Space key.
+     * For <a> elements: Enter is handled by default browser behavior, we only need Space.
+     * 
+     * @param {Function} [onClick] - Optional click handler. If not provided, navigates to href.
+     * @returns {Function} - Keyboard event handler function
+     * 
+     * @example
+     * // For simple navigation links:
+     * <a href="/path" onKeyDown={Util.handleLinkSpaceKey()}>Link</a>
+     * 
+     * @example
+     * // For links with custom click handlers:
+     * <a href="/path" onClick={myHandler} onKeyDown={Util.handleLinkSpaceKey(myHandler)}>Link</a>
+     */
+    static handleLinkSpaceKey(onClick) {
+      return (e) => {
+        if (e.key === ' ') {
+          e.preventDefault();
+          if (onClick) {
+            onClick(e);
+          } else {
+            // For links without onClick, trigger default navigation
+            e.target.click();
+          }
+        }
+      };
+    }
+
+    /**
      * Handles Enter key for form submissions and searches.
      * Commonly used for input fields to trigger search/submit on Enter.
      * 

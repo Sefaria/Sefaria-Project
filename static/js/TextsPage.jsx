@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, SidebarModules, RecentlyViewed } from './NavSidebar';
 import TextCategoryPage  from './TextCategoryPage';
@@ -49,7 +50,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
           className="navBlockTitle" 
           data-cat={cat.category} 
           onClick={openCat}
-          onKeyDown={(e) => { if (e.key === ' ') { e.preventDefault(); openCat(e); } }}
+          onKeyDown={Util.handleLinkSpaceKey(openCat)}
         >
           <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
         </a>

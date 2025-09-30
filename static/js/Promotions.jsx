@@ -2,6 +2,7 @@ import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
+import Util from "./sefaria/util";
 import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
@@ -183,7 +184,7 @@ const GDocAdvertBox = React.memo(() => {
                 <a 
                   href={installNowLink}
                   onClick={handleInstall}
-                  onKeyDown={(e) => { if (e.key === ' ') { e.preventDefault(); handleInstall(e); } }}
+                  onKeyDown={Util.handleLinkSpaceKey(handleInstall)}
                 >
                   <InterfaceText>Install Now</InterfaceText>
                 </a>
