@@ -1256,7 +1256,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("User uploaded media")} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
@@ -2432,7 +2432,7 @@ const Leaf = ({attributes, children, leaf}) => {
         children = <u>{children}</u>
     }
     if (leaf.big) {
-        children = <big>{children}</big>
+        children = <span className="big-text">{children}</span> // big-text is a replacement for the obsolete <big> tag that was used
     }
     if (leaf.small) {
         children = <small>{children}</small>
@@ -2677,7 +2677,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
         {<img src={stateToIcon[state]} alt={localize(state)} />}
-        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
 }

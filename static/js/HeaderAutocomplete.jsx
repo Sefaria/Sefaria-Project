@@ -252,12 +252,15 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
 
     return (
       <div id="searchBox"
-           className={searchBoxClasses}>
+           className={searchBoxClasses}
+           role="search"
+           aria-label={Sefaria._("Site search")}>
         <SearchButton onClick={handleSearchButtonClick} />
         <input
           className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
+          aria-label={Sefaria._("Search for Texts or Keywords Here")}
           onKeyDown={handleSearchKeyDown}
           onFocus={focusSearch}
           onBlur={blurSearch}

@@ -1,10 +1,9 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
-{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8"/>
@@ -49,7 +48,7 @@
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- https://realfavicongenerator.net -->
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">

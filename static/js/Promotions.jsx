@@ -2,6 +2,7 @@ import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
+import Util from "./sefaria/util";
 import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
@@ -179,8 +180,15 @@ const GDocAdvertBox = React.memo(() => {
         <OnInView onVisible={() => trackSidebarAdImpression(gdocsCampaignAd)}>
             <div className="gDocAdvertBox">
               <GDocAdvertText/>
-              <div id="installNow"><a href={installNowLink}
-                                      onClick={handleInstall}><InterfaceText>Install Now</InterfaceText></a></div>
+              <div id="installNow">
+                <a 
+                  href={installNowLink}
+                  onClick={handleInstall}
+                  onKeyDown={(e) => Util.handleLinkSpaceKey(e, handleInstall)}
+                >
+                  <InterfaceText>Install Now</InterfaceText>
+                </a>
+              </div>
             </div>
           </OnInView>;
 });
