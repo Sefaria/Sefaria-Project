@@ -294,7 +294,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
               {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
-          }
+        
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
@@ -420,7 +420,7 @@ class ConnectionsPanel extends Component {
           onCancel={() => this.props.setConnectionsMode("Notes")} />
         {Sefaria._uid ?
           <div>
-            <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
+            <a href="/texts/notes" className="allNotesLink button white transparent bordered fillWidth">
               <span className="int-en">Go to My Notes</span>
               <span className="int-he">הרשומות שלי</span>
             </a>
@@ -654,15 +654,18 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
+  const sheetsURL = Sefaria.getModuleURL(Sefaria.SHEETS_MODULE);
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
+  window.open(`${sheetsURL.origin}/sheets/sheets-with-ref/${normalizedRef}`, '_blank');
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)}>
+        <ToolsButton.SecondaryIcon icon="open-panel.svg" alt="Opens in new window" />
+      </ToolsButton>
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
@@ -1005,8 +1008,9 @@ AdvancedToolsList.propTypes = {
 
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
-                       count = null, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false }) => {
+                       count, control = "interface", typeface = "system", alwaysShow = false,
+                       greyColor=false, highlighted=false, experiment=false,
+                       children }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1032,15 +1036,25 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
         {iconElem}
         <span className="toolsButtonText">
           {control === "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
-          {count ? (<span className="connectionsCount">({count})</span>) : null}
-          {experiment ? <span className="experimentLabel">Experiment</span> : null}
+          {count && (<span className="connectionsCount">({count})</span>)}
+          {experiment && <span className="experimentLabel">Experiment</span>}
         </span>
+        {children}
       </a>
-      {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /> <img className="linkArrow" src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} aria-hidden="true"></img></a> : null}
       </div>
       : null
   );
 }
+
+ToolsButton.SecondaryIcon = ({ icon, alt }) => (
+  <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt={alt} />
+);
+
+ToolsButton.SecondaryIcon.propTypes = {
+  icon: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired
+};
+
 ToolsButton.propTypes = {
   en: PropTypes.string.isRequired,
   he: PropTypes.string.isRequired,
@@ -1051,8 +1065,7 @@ ToolsButton.propTypes = {
   greyColor: PropTypes.bool,
   highlighted: PropTypes.bool,
   experiment: PropTypes.bool,
-  secondaryEn: PropTypes.string,
-  secondaryHe: PropTypes.string
+  children: PropTypes.node
 };
 
 class ShareBox extends Component {
@@ -1202,7 +1215,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
