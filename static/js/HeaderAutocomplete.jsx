@@ -363,7 +363,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         }
         try {
         let types = Sefaria.activeModule === Sefaria.SHEETS_MODULE ? ['Topic', 'User', 'Collection'] : undefined;
-        console.log(types);
         const d = await Sefaria.getName(inputValue, undefined, types, Sefaria.activeModule);
 
         let comps = d["completion_objects"].map(o => {
