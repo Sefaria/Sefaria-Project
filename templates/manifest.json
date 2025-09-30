@@ -1,0 +1,32 @@
+{% load static %}{
+  "name": "{% if active_module == 'sheets' %}{% if is_hebrew %}ספריא חיבורים{% else %}Sefaria Voices{% endif %}{% else %}{% if is_hebrew %}ספריא ספרייה{% else %}Sefaria Library{% endif %}{% endif %}",
+  "short_name": "{% if active_module == 'sheets' %}{% if is_hebrew %}חיבורים{% else %}Voices{% endif %}{% else %}{% if is_hebrew %}ספרייה{% else %}Library{% endif %}{% endif %}",
+  "start_url": "{{ start_url }}",
+  "scope": "{{ scope }}",
+  "icons": [
+    {
+      "src": "{% static '' %}icons/{{ active_module }}/{{ active_module }}-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "{% static '' %}icons/{{ active_module }}/{{ active_module }}-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "{% static '' %}icons/{{ active_module }}/{{ active_module }}-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "{% if active_module == 'sheets' %}#5D956F{% else %}#18345D{% endif %}",
+  "background_color": "{% if active_module == 'sheets' %}#5D956F{% else %}#18345D{% endif %}",
+  "display": "standalone",
+  "orientation": "portrait-primary"{% if is_hebrew %},
+  "dir": "rtl",
+  "lang": "he"{% else %},
+  "dir": "ltr",
+  "lang": "en"{% endif %}
+}
