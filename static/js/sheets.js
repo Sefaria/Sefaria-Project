@@ -805,9 +805,19 @@ $(function() {
 
 	// ---------- Save Sheet --------------
 	$("#save").click(handleSave);
+	$("#save").keydown(function(e){
+		if (e.which == 13) {
+			handleSave();
+		}
+	});
 
 	// ---------- Share Sheet --------------
 	$("#share").click(showShareModal);
+	$("#share").keydown(function(e){
+		if (e.which == 13) {
+			showShareModal();
+		}
+	});
 	$("#sheetMetadata span.editButton").click(showShareModal);
 
 	// ---------- Copy Sheet ----------------
@@ -1032,13 +1042,18 @@ $(function() {
       toggleAddInterface(e, $(this), "click");
     });
 
+    $("#addInterface").on("keydown", ".buttonBar .addInterfaceButton", function(e) {
+      if (e.which == 13) {
+        toggleAddInterface(e, $(this), "keyboard");
+      }
+    });
+
     $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
       $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
     });
 
     $("#addconnectionDiv").on("keydown", ".sourceConnection", function(e) {
-      if (e.which == 13 || e.which == 32) { // Enter or Space
-        e.preventDefault(); // Prevent page scroll on Space
+      if (e.which == 13) {
         $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
       }
     });
@@ -1314,14 +1329,6 @@ $(function() {
       e.stopImmediatePropagation();
     });
 
-    // Add keyboard support for inlineAddButtonIcon
-    $(".sheetItem").on("keydown", ".inlineAddButtonIcon", function(e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        $(this).click();
-      }
-    });
-
     function cleanupActiveSource(target) {
       $(".inlineAddButtonIcon").removeClass("active");
       $(".activeSource").removeClass("activeSource");
@@ -1339,13 +1346,6 @@ $(function() {
       $(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
         $("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
         $(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-      });
-      // Re-add keyboard support after re-binding
-      $(".sheetItem").on("keydown", ".inlineAddButtonIcon", function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          $(this).click();
-        }
       });
       $("#sourceButton").click();
     }
@@ -2172,7 +2172,7 @@ sjs.sheetTagger = {
 		}
 		var html = "";
 		for (var i = 0; i < topics.length; i++) {
-			html = html + '<a class="button" href="/topics/'+topics[i].slug+'">'+topics[i].asTyped+'</a>';
+			html = html + '<a class="button" role="button" href="/topics/'+topics[i].slug+'">'+topics[i].asTyped+'</a>';
 	    }
 		$("#sheetTags").html(html);
 	},
@@ -3118,7 +3118,7 @@ function buildSource($target, source, appendOrInsert) {
 
 function appendInlineAddButton(source) {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon' role='button' tabindex='0' aria-label='" + Sefaria._("Add content") + "'></i></div>";
+			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
 		}
 		else {
 			button = "";
@@ -3353,13 +3353,6 @@ function rebuildUpdatedSheet(data) {
 		$(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
 			$("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
 			$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-		});
-		// Add keyboard support for inlineAddButtonIcon
-		$(".sheetItem").on("keydown", ".inlineAddButtonIcon", function(e) {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				$(this).click();
-			}
 		});
 	}
 
