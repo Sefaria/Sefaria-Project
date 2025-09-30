@@ -533,12 +533,22 @@ class SheetOutsideText extends Component {
         this.props.source.options ? this.props.source.options.indented : null
     );
 
+   const paragraphsToBreaks = (html)=> {
+    return html
+      .replace(/<\/p>\s*<p>/gi, '<br/>')
+      .replace(/<p[^>]*>/gi, '')
+      .replace(/<\/p>/gi, '<br/>');
+    }
+
+    const outsideHTML = paragraphsToBreaks(
+      Sefaria.util.cleanHTML(this.props.source.outsideText)
+    );
     return (
       <section className="SheetOutsideText">
         <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
-              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
+            <div className="sourceContentText" dangerouslySetInnerHTML={{ __html: outsideHTML }} />
           </div>
 
           <div className="clearFix"></div>
