@@ -68,6 +68,7 @@ const Button = ({
 };
 
 // Custom PropTypes validator for targetModule
+// Making sure that targetModule is only used when href is provided
 const targetModuleValidator = (props, propName, componentName) => {
   const targetModule = props[propName];
   const href = props.href;
@@ -83,6 +84,7 @@ const targetModuleValidator = (props, propName, componentName) => {
 };
 
 // Custom PropTypes validator for alt text when icon is present
+// Making sure that alt text is provided when icon is provided for accessibility
 const altTextValidator = (props, propName, componentName) => {
   const alt = props[propName];
   const icon = props.icon;
