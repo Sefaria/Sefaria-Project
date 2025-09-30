@@ -418,7 +418,8 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               openTopic(queryId);
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-              redirectToObject(queryType, queryId);
+                const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
+                redirectToObject(onChange, item);
           } else {
               search(onChange, query);
           }
@@ -489,7 +490,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
                 highlightedIndex={highlightedIndex}
                 getInputProps={getInputProps}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
-                redirectToObject={redirectToObject}
+                redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
               />
         )
     };
