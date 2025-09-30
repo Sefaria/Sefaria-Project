@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import {CollectionsModal} from "./CollectionsWidget";
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
@@ -2556,10 +2557,11 @@ class Dropdown extends Component {
             aria-expanded={this.state.optionsOpen}
             aria-controls={`${this.props.name}-listbox`}
             ref={(el) => { this.triggerRef = el; }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(); }
-              if (e.key === 'ArrowDown') { e.preventDefault(); if (!this.state.optionsOpen) { this.toggle(); } else if (this.listboxRef) { this.listboxRef.focus(); } }
-            }}
+            onKeyDown={Util.handleDropdownTriggerKeyDown({
+              onToggle: this.toggle,
+              isOpen: this.state.optionsOpen,
+              listboxRef: this.listboxRef
+            })}
           >
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
             <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt={Sefaria._("Open dropdown")}/>
@@ -2574,28 +2576,18 @@ class Dropdown extends Component {
                 aria-label={this.props.placeholder}
                 id={`${this.props.name}-listbox`}
                 ref={(el) => { this.listboxRef = el; }}
-                onKeyDown={(e) => {
-                  const maxIndex = this.props.options.length - 1;
-                  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setState({optionsOpen: false}); }
-                  if (e.key === 'ArrowDown') { 
-                    e.preventDefault(); 
-                    const newIndex = Math.min(this.state.focusedIndex + 1, maxIndex);
-                    this.setState({ focusedIndex: newIndex });
-                  }
-                  if (e.key === 'ArrowUp') { 
-                    e.preventDefault(); 
-                    const newIndex = Math.max(this.state.focusedIndex - 1, 0);
-                    this.setState({ focusedIndex: newIndex });
-                  }
-                  if (e.key === 'Home') { e.preventDefault(); this.setState({ focusedIndex: 0 }); }
-                  if (e.key === 'End') { e.preventDefault(); this.setState({ focusedIndex: maxIndex }); }
-                  if (e.key === 'Enter' || e.key === ' ') { 
-                    e.preventDefault(); 
+                onKeyDown={Util.handleListboxKeyDown({
+                  currentIndex: this.state.focusedIndex,
+                  maxIndex: this.props.options.length - 1,
+                  onNavigate: (newIndex) => this.setState({ focusedIndex: newIndex }),
+                  onSelect: () => {
                     if (this.state.focusedIndex >= 0 && this.props.options[this.state.focusedIndex]) {
                       this.select(this.props.options[this.state.focusedIndex]);
                     }
-                  }
-                }}
+                  },
+                  onClose: () => this.setState({ optionsOpen: false }),
+                  triggerRef: this.triggerRef
+                })}
               >
                 {this.props.options.map(function(option, index) {
                   const onClick = this.select.bind(null, option);

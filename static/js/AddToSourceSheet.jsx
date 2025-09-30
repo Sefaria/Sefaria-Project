@@ -9,6 +9,7 @@ import { handleKeyboardClick } from './common/Button';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
@@ -360,20 +361,11 @@ class AddToSourceSheetBox extends Component {
             aria-controls="user-sheets-listbox"
             aria-label={Sefaria._("Select a sheet to add to")}
             ref={(el) => { this.triggerRef = el; }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') { 
-                e.preventDefault(); 
-                this.toggleSheetList(); 
-              }
-              if (e.key === 'ArrowDown') { 
-                e.preventDefault(); 
-                if (!this.state.sheetListOpen) { 
-                  this.toggleSheetList(); 
-                } else if (this.listboxRef) { 
-                  this.listboxRef.focus(); 
-                } 
-              }
-            }}
+            onKeyDown={Util.handleDropdownTriggerKeyDown({
+              onToggle: this.toggleSheetList,
+              isOpen: this.state.sheetListOpen,
+              listboxRef: this.listboxRef
+            })}
           >
             {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
           </Button>
@@ -387,51 +379,22 @@ class AddToSourceSheetBox extends Component {
               id="user-sheets-listbox"
               ref={(el) => { this.listboxRef = el; }}
               aria-activedescendant={`user-sheet-option-${Math.min(Math.max(this.state.focusedSheetIndex, 0), (sheets ? sheets.length - 1 : 0))}`}
-              onKeyDown={(e) => {
-                const total = sheets ? sheets.length : 0;
-                if (e.key === 'Escape') { 
-                  e.preventDefault(); 
-                  e.stopPropagation(); 
-                  this.setState({sheetListOpen: false}); 
-                  if (this.triggerRef) { this.triggerRef.focus(); } 
-                }
-                if (e.key === 'ArrowDown') { 
-                  e.preventDefault(); 
-                  if (total) { 
-                    this.setState({ focusedSheetIndex: Math.min(this.state.focusedSheetIndex + 1, total - 1) }, () => { 
-                      this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); 
-                    }); 
-                  } 
-                }
-                if (e.key === 'ArrowUp') { 
-                  e.preventDefault(); 
-                  if (total) { 
-                    this.setState({ focusedSheetIndex: Math.max(this.state.focusedSheetIndex - 1, 0) }, () => { 
-                      this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); 
-                    }); 
-                  } 
-                }
-                if (e.key === 'Home') { 
-                  e.preventDefault(); 
-                  this.setState({ focusedSheetIndex: 0 }, () => { 
-                    this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); 
-                  }); 
-                }
-                if (e.key === 'End') { 
-                  e.preventDefault(); 
-                  if (total) { 
-                    this.setState({ focusedSheetIndex: total - 1 }, () => { 
-                      this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' }); 
-                    }); 
-                  } 
-                }
-                if (e.key === 'Enter' || e.key === ' ') { 
-                  e.preventDefault(); 
-                  if (sheets && sheets[this.state.focusedSheetIndex]) { 
-                    this.selectSheet(sheets[this.state.focusedSheetIndex]); 
-                  } 
-                }
-              }}
+              onKeyDown={Util.handleListboxKeyDown({
+                currentIndex: this.state.focusedSheetIndex,
+                maxIndex: sheets ? sheets.length - 1 : 0,
+                onNavigate: (newIndex) => {
+                  this.setState({ focusedSheetIndex: newIndex }, () => {
+                    this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' });
+                  });
+                },
+                onSelect: () => {
+                  if (sheets && sheets[this.state.focusedSheetIndex]) {
+                    this.selectSheet(sheets[this.state.focusedSheetIndex]);
+                  }
+                },
+                onClose: () => this.setState({ sheetListOpen: false }),
+                triggerRef: this.triggerRef
+              })}
             >
               {sheetsList}
             </div>

@@ -381,6 +381,121 @@ class Util {
             index++;
         return str1.substring(0, index);
     }
+
+    // ========== Keyboard & Accessibility Utilities ==========
+
+    /**
+     * Keyboard handler for dropdown/listbox trigger buttons.
+     * Handles Enter, Space, and ArrowDown keys according to ARIA best practices.
+     * 
+     * @param {Object} options - Configuration object
+     * @param {Function} options.onToggle - Called when Enter or Space is pressed
+     * @param {boolean} options.isOpen - Whether the dropdown is currently open
+     * @param {HTMLElement} options.listboxRef - Reference to the listbox element (for focus management)
+     * @returns {Function} - Keyboard event handler function
+     * 
+     * @example
+     * const handleKeyDown = Util.handleDropdownTriggerKeyDown({
+     *   onToggle: () => this.toggleMenu(),
+     *   isOpen: this.state.menuOpen,
+     *   listboxRef: this.listboxRef
+     * });
+     * <button onKeyDown={handleKeyDown}>Menu</button>
+     */
+    static handleDropdownTriggerKeyDown({ onToggle, isOpen, listboxRef }) {
+      return (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle && onToggle();
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (!isOpen) {
+            onToggle && onToggle();
+          } else if (listboxRef) {
+            listboxRef.focus();
+          }
+        }
+      };
+    }
+
+    /**
+     * Keyboard handler for dropdown/listbox content.
+     * Handles arrow keys, Home, End, Enter, Space, and Escape according to ARIA best practices.
+     * 
+     * @param {Object} options - Configuration object
+     * @param {number} options.currentIndex - Current focused item index
+     * @param {number} options.maxIndex - Maximum index (array.length - 1)
+     * @param {Function} options.onNavigate - Called with new index when navigation occurs
+     * @param {Function} options.onSelect - Called when Enter or Space is pressed
+     * @param {Function} options.onClose - Called when Escape is pressed
+     * @param {Function} [options.onScroll] - Optional callback to scroll focused item into view
+     * @param {HTMLElement} [options.triggerRef] - Optional reference to trigger button (for focus return on close)
+     * @returns {Function} - Keyboard event handler function
+     * 
+     * @example
+     * const handleKeyDown = Util.handleListboxKeyDown({
+     *   currentIndex: this.state.focusedIndex,
+     *   maxIndex: options.length - 1,
+     *   onNavigate: (newIndex) => this.setState({ focusedIndex: newIndex }),
+     *   onSelect: () => this.selectItem(this.state.focusedIndex),
+     *   onClose: () => this.setState({ isOpen: false }),
+     *   onScroll: () => this.activeOptionRef?.scrollIntoView({ block: 'nearest' }),
+     *   triggerRef: this.triggerRef
+     * });
+     * <div role="listbox" onKeyDown={handleKeyDown}>...</div>
+     */
+    static handleListboxKeyDown({ currentIndex, maxIndex, onNavigate, onSelect, onClose, onScroll, triggerRef }) {
+      return (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose && onClose();
+          if (triggerRef) {
+            triggerRef.focus();
+          }
+          return;
+        }
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const newIndex = Math.min(currentIndex + 1, maxIndex);
+          onNavigate && onNavigate(newIndex);
+          onScroll && onScroll();
+          return;
+        }
+
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const newIndex = Math.max(currentIndex - 1, 0);
+          onNavigate && onNavigate(newIndex);
+          onScroll && onScroll();
+          return;
+        }
+
+        if (e.key === 'Home') {
+          e.preventDefault();
+          onNavigate && onNavigate(0);
+          onScroll && onScroll();
+          return;
+        }
+
+        if (e.key === 'End') {
+          e.preventDefault();
+          onNavigate && onNavigate(maxIndex);
+          onScroll && onScroll();
+          return;
+        }
+
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect && onSelect();
+          return;
+        }
+      };
+    }
+
+    // ========== End Keyboard & Accessibility Utilities ==========
     
     /**
      * Finds the longest common suffix among an array of strings
