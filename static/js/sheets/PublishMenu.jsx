@@ -109,7 +109,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     }
     const updateSuggestedTags = (input) => {
     if (input === "") return
-    Sefaria.getName(input, 5, "Topic").then(d => {
+    Sefaria.getName(input, 5, ["Topic"]).then(d => {
         const topics = d.completion_objects
             .map((filteredObj, index) => ({
                 id: index,

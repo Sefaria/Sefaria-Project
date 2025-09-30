@@ -1351,15 +1351,20 @@ Sefaria = extend(Sefaria, {
   _lookups: {},
 
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, limit = undefined, type=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
+  getName: function(name, limit = undefined, types=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
-    let params = {active_module: this.activeModule};
+    let params = {};
     // if (refOnly) { params["ref_only"] = 1; }
-    if (limit != undefined) { params["limit"] = limit; }
-    if (type != undefined) { params["type"] = type; }
+    if (types != undefined) { params["type"] = types; }
     if (exactContinuations) { params["exact_continuations"] = 1; }
     if (orderByMatchedLength) { params["order_by_matched_length"] = 1; }
-    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    let queryString = Object.keys(params).map(key => {
+        const value = params[key];
+        if (Array.isArray(value)) {
+            return value.map(v => `${encodeURIComponent(key)}=${encodeURIComponent(v)}`).join('&');
+        }
+        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+    }).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
         url:   this.apiHost + "/api/name/" + encodeURIComponent(trimmed_name) + queryString,
