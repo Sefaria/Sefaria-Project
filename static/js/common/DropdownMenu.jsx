@@ -138,43 +138,16 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     useEffect(() => {
         if (isOpen && menuRef.current) {
-            // Focus the first focusable element when menu opens
-            const firstFocusable = menuRef.current.querySelector('[tabindex="0"], button:not([disabled]), [href], input:not([disabled])');
-            if (firstFocusable) {
-                firstFocusable.focus();
-            }
+            Util.focusFirstElement(menuRef.current);
         }
     }, [isOpen]);
 
     const handleMenuKeyDown = (e) => {
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(false);
-            // Return focus to the button
-            if (buttonRef.current) {
-                buttonRef.current.focus();
-            }
-            return;
-        }
-
-        if (e.key === 'Tab' && menuRef.current) {
-            // Implement focus trapping within the menu
-            const focusableElements = menuRef.current.querySelectorAll(
-                '[tabindex="0"], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
-            );
-            
-            const firstElement = focusableElements[0];
-            const lastElement = focusableElements[focusableElements.length - 1];
-
-            if (e.shiftKey && document.activeElement === firstElement) {
-                e.preventDefault();
-                lastElement.focus();
-            } else if (!e.shiftKey && document.activeElement === lastElement) {
-                e.preventDefault();
-                firstElement.focus();
-            }
-        }
+        Util.trapFocusWithTab(e, {
+            container: menuRef.current,
+            onClose: () => setIsOpen(false),
+            returnFocusRef: buttonRef.current
+        });
     };
 
     return (

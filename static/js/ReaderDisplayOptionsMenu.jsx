@@ -1,5 +1,6 @@
 import React, {useContext, useRef, useEffect} from "react";
 import Sefaria from "./sefaria/sefaria";
+import Util from "./sefaria/util";
 import PropTypes from "prop-types";
 import SourceTranslationsButtons from "./SourceTranslationsButtons";
 import {ReaderPanelContext} from "./context";
@@ -89,26 +90,12 @@ const ReaderDisplayOptionsMenu = () => {
     };
 
     useEffect(() => {
-        // Focus the first focusable element when menu opens
         if (menuRef.current) {
-            const firstFocusable = menuRef.current.querySelector('[role="radiogroup"], button, [tabindex="0"]');
-            if (firstFocusable) {
-                firstFocusable.focus();
-            }
+            Util.focusFirstElement(menuRef.current, '[role="radiogroup"], button, [tabindex="0"]');
         }
     }, []);
 
     const handleKeyDown = (e) => {
-        if (e.key === 'Escape') {
-            // Close the menu by clicking outside or triggering close mechanism
-            const dropdownMenu = e.target.closest('.readerDropdownMenu');
-            if (dropdownMenu) {
-                // Simulate click outside to close
-                document.body.click();
-            }
-            return;
-        }
-
         // Prevent arrow keys from closing the menu - let radio buttons handle them
         if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
             e.stopPropagation();
@@ -116,24 +103,18 @@ const ReaderDisplayOptionsMenu = () => {
             return;
         }
 
-        if (e.key === 'Tab') {
-            // Let default tab behavior handle focus management within the dialog
-            const focusableElements = menuRef.current.querySelectorAll(
-                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), ' +
-                'textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [role="radio"]:not([disabled])'
-            );
-            
-            const firstElement = focusableElements[0];
-            const lastElement = focusableElements[focusableElements.length - 1];
-
-            if (e.shiftKey && document.activeElement === firstElement) {
-                e.preventDefault();
-                lastElement.focus();
-            } else if (!e.shiftKey && document.activeElement === lastElement) {
-                e.preventDefault();
-                firstElement.focus();
-            }
-        }
+        // Handle Escape and Tab with focus trapping
+        Util.trapFocusWithTab(e, {
+            container: menuRef.current,
+            onClose: () => {
+                // Close the menu by clicking outside or triggering close mechanism
+                const dropdownMenu = menuRef.current?.closest('.readerDropdownMenu');
+                if (dropdownMenu) {
+                    document.body.click();
+                }
+            },
+            selector: 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [role="radio"]:not([disabled])'
+        });
     };
 
     return (

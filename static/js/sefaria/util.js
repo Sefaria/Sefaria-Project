@@ -558,6 +558,100 @@ class Util {
       }
     }
 
+    /**
+     * Standard selector for focusable elements used throughout the application.
+     * Use this constant to ensure consistency in focus management.
+     */
+    static FOCUSABLE_SELECTOR = '[tabindex="0"], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [role="radio"]:not([disabled])';
+
+    /**
+     * Gets all focusable elements within a container.
+     * 
+     * @param {HTMLElement} container - The container element to search within
+     * @param {string} [selector] - Optional custom selector. Defaults to FOCUSABLE_SELECTOR
+     * @returns {NodeList} - Collection of focusable elements
+     * 
+     * @example
+     * const focusable = Util.getFocusableElements(menuRef.current);
+     */
+    static getFocusableElements(container, selector = null) {
+      if (!container) return [];
+      return container.querySelectorAll(selector || this.FOCUSABLE_SELECTOR);
+    }
+
+    /**
+     * Focuses the first focusable element within a container.
+     * Commonly used when opening menus or dialogs.
+     * 
+     * @param {HTMLElement} container - The container element to search within
+     * @param {string} [selector] - Optional custom selector. Defaults to FOCUSABLE_SELECTOR
+     * @returns {boolean} - True if an element was focused, false otherwise
+     * 
+     * @example
+     * useEffect(() => {
+     *   if (isOpen && menuRef.current) {
+     *     Util.focusFirstElement(menuRef.current);
+     *   }
+     * }, [isOpen]);
+     */
+    static focusFirstElement(container, selector = null) {
+      if (!container) return false;
+      const firstFocusable = container.querySelector(selector || this.FOCUSABLE_SELECTOR);
+      if (firstFocusable) {
+        firstFocusable.focus();
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Handles Tab key focus trapping and Escape key for dropdown menus.
+     * Traps focus within the container when Tab is pressed, and closes menu on Escape.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {HTMLElement} options.container - The container to trap focus within
+     * @param {Function} options.onClose - Called when Escape is pressed
+     * @param {HTMLElement} [options.returnFocusRef] - Element to return focus to on Escape
+     * @param {string} [options.selector] - Optional custom selector for focusable elements
+     * 
+     * @example
+     * const handleMenuKeyDown = (e) => {
+     *   Util.trapFocusWithTab(e, {
+     *     container: menuRef.current,
+     *     onClose: () => setIsOpen(false),
+     *     returnFocusRef: buttonRef.current
+     *   });
+     * };
+     */
+    static trapFocusWithTab(e, { container, onClose, returnFocusRef, selector = null }) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose && onClose();
+        if (returnFocusRef) {
+          returnFocusRef.focus();
+        }
+        return;
+      }
+
+      if (e.key === 'Tab' && container) {
+        const focusableElements = this.getFocusableElements(container, selector);
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+
     // ========== End Keyboard & Accessibility Utilities ==========
     
     /**
