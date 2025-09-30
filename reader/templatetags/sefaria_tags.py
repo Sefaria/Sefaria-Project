@@ -550,4 +550,3 @@ def subdomain_url(context, url_name, *args, **kwargs):
         return reverse(url_name, args=args, kwargs=kwargs)
     except NoReverseMatch:
         return '#'
-
