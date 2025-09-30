@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Util from '../sefaria/util';
 
 
 
@@ -36,14 +37,13 @@ const Button = ({
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
   if (href) {
-    const handleKeyDown = (e) => {
-      // For links: only Space activates (Enter is handled by default link behavior)
-      if (e.key === ' ') {
+    // For links with role="button": Enter is handled by default, we only need Space
+    const handleLinkKeyDown = (e) => {
+      if (e.key === ' ' && !disabled) {
         e.preventDefault();
-        if (onClick && !disabled) {
+        if (onClick) {
           onClick(e);
-        } else if (!disabled) {
-          // For href-based buttons without onClick, trigger the default link behavior
+        } else {
           e.target.click();
         }
       }
@@ -54,7 +54,7 @@ const Button = ({
         href={href}
         className={buttonClasses}
         onClick={onClick}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleLinkKeyDown}
         tabIndex={0}
         role="button"
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
@@ -66,23 +66,12 @@ const Button = ({
     );
   }
 
-  const handleKeyDown = (e) => {
-    // For buttons: both Enter and Space activate
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      if (onClick && !disabled) {
-        onClick(e);
-      }
-    }
-  };
-
   return (
     <button
       disabled={disabled}
       {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
-      onKeyDown={handleKeyDown}
     >
       {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
       {children}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import SearchState from './sefaria/searchState';
 import classNames  from 'classnames';
@@ -241,17 +242,12 @@ class SearchFilterExactBox extends Component {
   handleClick() {
     this.props.checkBoxClick();
   }
-  handleKeyPress(e) {
-    if (e.charCode == 13) { // enter
-      this.handleClick(e);
-    }
-  }
   render() {
     return (
       <li>
         <div className="checkboxAndText">
           <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-          <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
+          <label tabIndex="0" onClick={this.handleClick} onKeyDown={Util.handleEnterKey(this.handleClick)}><span></span></label>
         
          <span className={"filter-title"}>
             <InterfaceText>Exact Matches Only</InterfaceText>
@@ -305,16 +301,6 @@ class SearchFilter extends Component {
   toggleExpanded() {
     this.props.expandable && this.setState({expanded: !this.state.expanded});    
   }
-  handleKeyPress(e) {
-    if (e.charCode == 13) { // enter
-      this.handleFilterClick(e);
-    }
-  }
-  handleExpandKeyPress(e) {
-    if (e.charCode == 13) { // enter
-      this.toggleExpanded();
-    }
-  }
   autoExpand(filter) {
     return this.props.filterSearchValue !== undefined && this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable && filter.getLeafNodes(this.props.filterSearchValue).length > 0;
   }
@@ -332,15 +318,14 @@ class SearchFilter extends Component {
               onClick={this.handleFilterClick} 
               id={"label-for-"+this.props.filter.aggKey} 
               tabIndex="0"
-              onKeyDown={this.handleKeyDown} 
-              onKeyPress={this.handleKeyPress} 
+              onKeyDown={Util.handleEnterKey(this.handleFilterClick)} 
               aria-label={toggleMessage}>
               <span></span>
             </label>
             <span
               className="searchFilterTitle"
               onClick={expandable ? this.toggleExpanded : this.handleFilterClick}
-              onKeyPress={expandable ? this.handleExpandKeyPress : this.handleKeyPress}
+              onKeyDown={expandable ? Util.handleEnterKey(this.toggleExpanded) : Util.handleEnterKey(this.handleFilterClick)}
               tabIndex={expandable ? "0" : null}
               aria-label={expandable ? expandMessage : toggleMessage} >
               <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;

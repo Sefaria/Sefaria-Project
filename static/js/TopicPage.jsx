@@ -784,13 +784,6 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
       return [onClickLangToggleIndex, onClickFilterIndex];
     }
 
-    const handleKeyDown = (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.target.click();
-      }
-    }
-
     const handleLangSelectInterfaceChange = (selection, setLangPref) => {
       if (selection === "source") {setLangPref("hebrew")}
       else if (selection === "translation") {setLangPref("english")}
@@ -811,7 +804,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
                                   setTab={setTab}
                                   tabs={tabMetaDataList}
                                   renderTab={t => (
-                                    <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                                    <div className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                                       <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
                                       { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
                                       {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result, setLangPref)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
