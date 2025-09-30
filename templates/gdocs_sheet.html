@@ -4,7 +4,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="{% interface_lang_code %}">
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <title>{{ title|striptags|strip_html_entities }}</title>

@@ -1,10 +1,9 @@
 {% load render_bundle from webpack_loader %}
-{% load sefaria_tags %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
-<html lang="{% interface_lang_code %}">
+<html lang="{{ request.LANGUAGE_CODE }}">
 
 <head>
 

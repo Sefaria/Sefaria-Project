@@ -551,11 +551,3 @@ def subdomain_url(context, url_name, *args, **kwargs):
     except NoReverseMatch:
         return '#'
 
-
-@register.simple_tag(takes_context=True)
-def interface_lang_code(context):
-    """Returns 'he' for Hebrew interface, 'en' for English (default)"""
-    request = context.get('request')
-    if request and hasattr(request, 'interfaceLang') and request.interfaceLang == 'hebrew':
-        return 'he'
-    return 'en'
