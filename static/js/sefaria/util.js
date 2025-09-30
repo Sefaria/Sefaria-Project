@@ -652,6 +652,67 @@ class Util {
       }
     }
 
+    /**
+     * Handles keyboard navigation for radio button groups according to ARIA best practices.
+     * Arrow keys navigate between radio buttons (with wrapping), Enter/Space activates.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {string} options.name - The name attribute of the radio group
+     * @param {Function} options.onSelect - Called when Enter or Space is pressed
+     * @param {Function} [options.onKeyDown] - Optional additional keydown handler
+     * 
+     * @example
+     * <input 
+     *   type="radio"
+     *   onKeyDown={(e) => Util.handleRadioKeyDown(e, {
+     *     name: 'myRadioGroup',
+     *     onSelect: () => onClick(),
+     *     onKeyDown: customHandler
+     *   })}
+     * />
+     */
+    static handleRadioKeyDown(e, { name, onSelect, onKeyDown }) {
+      // Handle arrow keys for radio group navigation
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.stopPropagation(); // Prevent event from bubbling up
+        e.preventDefault();
+
+        // Find all radio buttons in the same group
+        const radioGroup = document.querySelectorAll(`input[name="${name}"]`);
+        const currentIndex = Array.from(radioGroup).findIndex(radio => radio === e.target);
+
+        // Calculate next index with wrapping
+        let nextIndex;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          nextIndex = currentIndex === 0 ? radioGroup.length - 1 : currentIndex - 1;
+        } else {
+          nextIndex = currentIndex === radioGroup.length - 1 ? 0 : currentIndex + 1;
+        }
+
+        // Focus and select the next radio button
+        const nextRadio = radioGroup[nextIndex];
+        if (nextRadio) {
+          nextRadio.focus();
+          nextRadio.click(); // Trigger the selection
+        }
+        return;
+      }
+
+      // Handle Enter/Space for selection
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        onSelect && onSelect();
+        return;
+      }
+
+      // Call custom onKeyDown if provided
+      if (onKeyDown) {
+        onKeyDown(e);
+      }
+    }
+
     // ========== End Keyboard & Accessibility Utilities ==========
     
     /**
