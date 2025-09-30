@@ -145,7 +145,7 @@ class SheetContent extends Component {
         key={source.node}
         source={source}
         sheetSourceClick={() => sheetSourceClick(source)}
-        handleKeyDown={Util.handleKeyboardClick(() => sheetSourceClick(source))}
+        handleKeyDown={(e) => Util.handleKeyboardClick(e, () => sheetSourceClick(source))}
         highlighted={highlighted}
         addToSheetButton={addToSheetButton}/>;
     });

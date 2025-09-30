@@ -126,7 +126,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         aria-label="Close collections"
-        onKeyDown={Util.handleKeyboardClick(onClose)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
       >×</div>
     </div>
     <div className="collectionsWidgetList serif">
@@ -159,7 +159,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         onClick={onCreateClick}
-        onKeyDown={Util.handleKeyboardClick(onCreateClick)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onCreateClick)}
       >
         <InterfaceText>Create</InterfaceText>
       </div>
@@ -171,7 +171,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         onClick={onClose}
-        onKeyDown={Util.handleKeyboardClick(onClose)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
        >
         <InterfaceText>Done</InterfaceText>
       </div>     

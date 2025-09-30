@@ -455,7 +455,7 @@ class CollectionInvitationBox extends Component {
                   role="button"
                   tabIndex="0"
                   onClick={this.onInviteClick}
-                  onKeyDown={Util.handleKeyboardClick(this.onInviteClick)}
+                  onKeyDown={(e) => Util.handleKeyboardClick(e, this.onInviteClick)}
                 >
                   <InterfaceText>Invite</InterfaceText>
                 </div>

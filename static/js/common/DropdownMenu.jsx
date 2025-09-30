@@ -26,7 +26,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={Util.handleKeyboardClick()}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
     </a>
@@ -44,7 +44,7 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={Util.handleKeyboardClick()}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
     </a>
@@ -59,7 +59,7 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
       data-prevent-close={preventClose}
       role="button"
       tabIndex="0"
-      onKeyDown={Util.handleKeyboardClick(onClick)}
+      onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
     >
         {children}
     </div>
@@ -197,7 +197,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
                 onClick: handleButtonClick,
                 ref: buttonRef,
                 tabIndex: 0,
-                onKeyDown: Util.handleKeyboardClick(handleButtonClick)
+                onKeyDown: (e) => Util.handleKeyboardClick(e, handleButtonClick)
               })}
           </div>
           <div 

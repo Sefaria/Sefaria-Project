@@ -925,7 +925,7 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website" role="button" tabindex="0" onKeyDown={Util.handleKeyboardClick(() => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
+        return (<div className="website" role="button" tabindex="0" onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} alt={Sefaria._("Website icon")} />
           <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);
@@ -1041,7 +1041,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
         onClick={clickHandler}
         role={isLink ? undefined : "button"}
         tabIndex={0}
-        onKeyDown={Util.handleKeyboardClick(clickHandler)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, clickHandler)}
       >
         {iconElem}
         <span className="toolsButtonText">
@@ -1243,7 +1243,7 @@ class AddNoteBox extends Component {
           tabIndex="0"
           aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
           onClick={this.saveNote}
-          onKeyDown={Util.handleKeyboardClick(this.saveNote)}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, this.saveNote)}
         >
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמירה" : "הוספת הערה"}</span>
@@ -1255,13 +1255,13 @@ class AddNoteBox extends Component {
             tabIndex="0"
             aria-label={Sefaria._("Cancel")}
             onClick={this.props.onCancel}
-            onKeyDown={Util.handleKeyboardClick(this.props.onCancel)}
+            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.onCancel)}
           >
             <span className="int-en">Cancel</span>
             <span className="int-he">בטל</span>
           </div> : null}
         {this.props.noteId ?
-          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={Util.handleKeyboardClick(this.deleteNote)}>
+          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={(e) => Util.handleKeyboardClick(e, this.deleteNote)}>
             <span className="int-en">Delete Note</span>
             <span className="int-he">מחיקת הערה</span>
           </div>) : null}
@@ -1433,7 +1433,7 @@ class AddConnectionBox extends Component {
             role="button"
             tabIndex="0"
             onClick={this.props.openComparePanel}
-            onKeyDown={Util.handleKeyboardClick(this.props.openComparePanel)}
+            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.openComparePanel)}
           >
             <span className="int-en">Browse</span>
             <span className="int-he">סייר</span>

@@ -307,7 +307,7 @@ const SidebarFooter = () => {
         <div className="footerContainer">
           {data.map(footerLink =>
             <a href={footerLink.url}
-               onKeyDown={Util.handleKeyboardClick()}>
+               onKeyDown={(e) => Util.handleKeyboardClick(e)}>
               <InterfaceText text={{'en': footerLink.en, 'he': footerLink.he}}  />
             </a>
           )}

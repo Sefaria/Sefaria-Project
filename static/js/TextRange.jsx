@@ -390,7 +390,7 @@ class TextRange extends Component {
       </div>;
     } else { sidebarNum = null;}
     return (
-      <div className={classes} onClick={this.handleClick} onKeyDown={Util.handleKeyboardClick(this.handleClick)} data-ref={ref}>
+      <div className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -644,7 +644,7 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyDown={Util.handleKeyboardClick(this.handleClick)}
+           className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)}
            data-ref={this.props.sref}
            aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>

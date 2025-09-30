@@ -184,7 +184,7 @@ const GDocAdvertBox = React.memo(() => {
                 <a 
                   href={installNowLink}
                   onClick={handleInstall}
-                  onKeyDown={Util.handleLinkSpaceKey(handleInstall)}
+                  onKeyDown={(e) => Util.handleLinkSpaceKey(e, handleInstall)}
                 >
                   <InterfaceText>Install Now</InterfaceText>
                 </a>

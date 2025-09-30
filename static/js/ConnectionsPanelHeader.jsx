@@ -63,7 +63,7 @@ class ConnectionsPanelHeader extends Component {
         href={backButtonSettings.url}
         className="connectionsHeaderTitle sans-serif active"
         onClick={onClick}
-        onKeyDown={Util.handleKeyboardClick(onClick)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
       >
       <InterfaceText>
           <EnglishText>
@@ -91,7 +91,7 @@ class ConnectionsPanelHeader extends Component {
         href={url}
         className="connectionsHeaderTitle sans-serif active"
         onClick={this.onClick}
-        onKeyDown={Util.handleKeyboardClick(this.onClick)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, this.onClick)}
       >
                     <InterfaceText>
                         <EnglishText>
@@ -115,7 +115,7 @@ class ConnectionsPanelHeader extends Component {
         href={url} 
         className="connectionsHeaderTitle sans-serif active" 
         onClick={onClick}
-        onKeyDown={Util.handleKeyboardClick(onClick)}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
       >
                     <InterfaceText>
                         <EnglishText>

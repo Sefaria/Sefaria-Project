@@ -202,7 +202,7 @@ const Header = (props) => {
                                 <a
                                   href="/texts/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
-                                  onKeyDown={Util.handleKeyboardClick()}
+                                  onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                 >
                                   <img src='/static/icons/bookmarks.svg' alt={Sefaria._('Saved items')} />
                                 </a>
@@ -211,7 +211,7 @@ const Header = (props) => {
                                         <a
                                           href="/sheets/notifications"
                                           data-target-module={Sefaria.SHEETS_MODULE}
-                                          onKeyDown={Util.handleKeyboardClick()}
+                                          onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                         >
                                           <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
                                         </a>
@@ -236,14 +236,14 @@ const Header = (props) => {
             <a
               href="/texts"
               className="textLink"
-              onKeyDown={Util.handleKeyboardClick()}
+              onKeyDown={(e) => Util.handleKeyboardClick(e)}
             >
               <InterfaceText context="Header">Texts</InterfaceText>
             </a>
             <a
               href="/topics"
               className="textLink"
-              onKeyDown={Util.handleKeyboardClick()}
+              onKeyDown={(e) => Util.handleKeyboardClick(e)}
             >
               <InterfaceText context="Header">Topics</InterfaceText>
             </a>
@@ -255,7 +255,7 @@ const Header = (props) => {
               href="/sheets/topics"
               data-target-module={Sefaria.SHEETS_MODULE}
               className="textLink"
-              onKeyDown={Util.handleKeyboardClick()}
+              onKeyDown={(e) => Util.handleKeyboardClick(e)}
             >
               <InterfaceText context="Header">Topics</InterfaceText>
             </a>
@@ -263,7 +263,7 @@ const Header = (props) => {
               href="/sheets/collections"
               data-target-module={Sefaria.SHEETS_MODULE}
               className="textLink"
-              onKeyDown={Util.handleKeyboardClick()}
+              onKeyDown={(e) => Util.handleKeyboardClick(e)}
             >
               <InterfaceText context="Header">Collections</InterfaceText>
             </a>

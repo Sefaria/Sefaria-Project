@@ -173,7 +173,7 @@ class BookPage extends Component {
         <a 
           className="button small readButton" 
           href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
-          onKeyDown={Util.handleLinkSpaceKey()}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
         >
           <InterfaceText>Continue Reading</InterfaceText>
         </a>
@@ -181,7 +181,7 @@ class BookPage extends Component {
         <a 
           className="button small readButton" 
           href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}
-          onKeyDown={Util.handleLinkSpaceKey()}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
         >
           <InterfaceText>Start Reading</InterfaceText>
         </a>

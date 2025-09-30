@@ -42,7 +42,7 @@ const Button = ({
         href={href}
         className={buttonClasses}
         onClick={onClick}
-        onKeyDown={disabled ? null : Util.handleLinkSpaceKey(onClick)}
+        onKeyDown={disabled ? null : (e) => Util.handleLinkSpaceKey(e, onClick)}
         tabIndex={0}
         role="button"
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}

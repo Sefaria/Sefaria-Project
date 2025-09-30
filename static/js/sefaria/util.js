@@ -388,116 +388,108 @@ class Util {
      * Makes clickable elements keyboard accessible with Enter and Space keys.
      * Use this for divs, spans, or other non-button elements that need to be clickable.
      * 
+     * @param {Event} e - Keyboard event
      * @param {Function} [onClick] - Custom click handler. If not provided, triggers element.click()
-     * @returns {Function} - Keyboard event handler function
      * 
      * @example
      * // For elements that should trigger their own click behavior:
-     * <a href="/path" onKeyDown={Util.handleKeyboardClick()}>Link</a>
+     * <a href="/path" onKeyDown={(e) => Util.handleKeyboardClick(e)}>Link</a>
      * 
      * @example
      * // For elements with custom click handlers:
-     * <div onKeyDown={Util.handleKeyboardClick(myHandler)}>Clickable div</div>
+     * <div onKeyDown={(e) => Util.handleKeyboardClick(e, myHandler)}>Clickable div</div>
      */
-    static handleKeyboardClick(onClick) {
-      return (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          if (onClick) {
-            onClick(e);
-          } else {
-            e.currentTarget.click();
-          }
+    static handleKeyboardClick(e, onClick) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (onClick) {
+          onClick(e);
+        } else {
+          e.currentTarget.click();
         }
-      };
+      }
     }
 
     /**
      * Makes links keyboard accessible with Space key.
      * For <a> elements: Enter is handled by default browser behavior, we only need Space.
      * 
+     * @param {Event} e - Keyboard event
      * @param {Function} [onClick] - Optional click handler. If not provided, navigates to href.
-     * @returns {Function} - Keyboard event handler function
      * 
      * @example
      * // For simple navigation links:
-     * <a href="/path" onKeyDown={Util.handleLinkSpaceKey()}>Link</a>
+     * <a href="/path" onKeyDown={(e) => Util.handleLinkSpaceKey(e)}>Link</a>
      * 
      * @example
      * // For links with custom click handlers:
-     * <a href="/path" onClick={myHandler} onKeyDown={Util.handleLinkSpaceKey(myHandler)}>Link</a>
+     * <a href="/path" onClick={myHandler} onKeyDown={(e) => Util.handleLinkSpaceKey(e, myHandler)}>Link</a>
      */
-    static handleLinkSpaceKey(onClick) {
-      return (e) => {
-        if (e.key === ' ') {
-          e.preventDefault();
-          if (onClick) {
-            onClick(e);
-          } else {
-            // For links without onClick, trigger default navigation
-            e.target.click();
-          }
+    static handleLinkSpaceKey(e, onClick) {
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (onClick) {
+          onClick(e);
+        } else {
+          // For links without onClick, trigger default navigation
+          e.target.click();
         }
-      };
+      }
     }
 
     /**
      * Handles Enter key for form submissions and searches.
      * Commonly used for input fields to trigger search/submit on Enter.
      * 
+     * @param {Event} e - Keyboard event
      * @param {Function} onEnter - Function to call when Enter is pressed
-     * @returns {Function} - Keyboard event handler function
      * 
      * @example
-     * <input onKeyUp={Util.handleEnterKey(() => submitForm())} />
+     * <input onKeyUp={(e) => Util.handleEnterKey(e, submitForm)} />
      */
-    static handleEnterKey(onEnter) {
-      return (e) => {
-        if (e.key === 'Enter') {
-          onEnter(e);
-        }
-      };
+    static handleEnterKey(e, onEnter) {
+      if (e.key === 'Enter') {
+        onEnter(e);
+      }
     }
 
     /**
      * Keyboard handler for dropdown/listbox trigger buttons.
      * Handles Enter, Space, and ArrowDown keys according to ARIA best practices.
      * 
+     * @param {Event} e - Keyboard event
      * @param {Object} options - Configuration object
      * @param {Function} options.onToggle - Called when Enter or Space is pressed
      * @param {boolean} options.isOpen - Whether the dropdown is currently open
      * @param {HTMLElement} options.listboxRef - Reference to the listbox element (for focus management)
-     * @returns {Function} - Keyboard event handler function
      * 
      * @example
-     * const handleKeyDown = Util.handleDropdownTriggerKeyDown({
+     * <button onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
      *   onToggle: () => this.toggleMenu(),
      *   isOpen: this.state.menuOpen,
      *   listboxRef: this.listboxRef
-     * });
-     * <button onKeyDown={handleKeyDown}>Menu</button>
+     * })}>Menu</button>
      */
-    static handleDropdownTriggerKeyDown({ onToggle, isOpen, listboxRef }) {
-      return (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
+    static handleDropdownTriggerKeyDown(e, { onToggle, isOpen, listboxRef }) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onToggle && onToggle();
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!isOpen) {
           onToggle && onToggle();
+        } else if (listboxRef) {
+          listboxRef.focus();
         }
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (!isOpen) {
-            onToggle && onToggle();
-          } else if (listboxRef) {
-            listboxRef.focus();
-          }
-        }
-      };
+      }
     }
 
     /**
      * Keyboard handler for dropdown/listbox content.
      * Handles arrow keys, Home, End, Enter, Space, and Escape according to ARIA best practices.
      * 
+     * @param {Event} e - Keyboard event
      * @param {Object} options - Configuration object
      * @param {number} options.currentIndex - Current focused item index
      * @param {number} options.maxIndex - Maximum index (array.length - 1)
@@ -506,10 +498,9 @@ class Util {
      * @param {Function} options.onClose - Called when Escape is pressed
      * @param {Function} [options.onScroll] - Optional callback to scroll focused item into view
      * @param {HTMLElement} [options.triggerRef] - Optional reference to trigger button (for focus return on close)
-     * @returns {Function} - Keyboard event handler function
      * 
      * @example
-     * const handleKeyDown = Util.handleListboxKeyDown({
+     * <div role="listbox" onKeyDown={(e) => Util.handleListboxKeyDown(e, {
      *   currentIndex: this.state.focusedIndex,
      *   maxIndex: options.length - 1,
      *   onNavigate: (newIndex) => this.setState({ focusedIndex: newIndex }),
@@ -517,57 +508,54 @@ class Util {
      *   onClose: () => this.setState({ isOpen: false }),
      *   onScroll: () => this.activeOptionRef?.scrollIntoView({ block: 'nearest' }),
      *   triggerRef: this.triggerRef
-     * });
-     * <div role="listbox" onKeyDown={handleKeyDown}>...</div>
+     * })}>...</div>
      */
-    static handleListboxKeyDown({ currentIndex, maxIndex, onNavigate, onSelect, onClose, onScroll, triggerRef }) {
-      return (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          e.stopPropagation();
-          onClose && onClose();
-          if (triggerRef) {
-            triggerRef.focus();
-          }
-          return;
+    static handleListboxKeyDown(e, { currentIndex, maxIndex, onNavigate, onSelect, onClose, onScroll, triggerRef }) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose && onClose();
+        if (triggerRef) {
+          triggerRef.focus();
         }
+        return;
+      }
 
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const newIndex = Math.min(currentIndex + 1, maxIndex);
-          onNavigate && onNavigate(newIndex);
-          onScroll && onScroll();
-          return;
-        }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const newIndex = Math.min(currentIndex + 1, maxIndex);
+        onNavigate && onNavigate(newIndex);
+        onScroll && onScroll();
+        return;
+      }
 
-        if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const newIndex = Math.max(currentIndex - 1, 0);
-          onNavigate && onNavigate(newIndex);
-          onScroll && onScroll();
-          return;
-        }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const newIndex = Math.max(currentIndex - 1, 0);
+        onNavigate && onNavigate(newIndex);
+        onScroll && onScroll();
+        return;
+      }
 
-        if (e.key === 'Home') {
-          e.preventDefault();
-          onNavigate && onNavigate(0);
-          onScroll && onScroll();
-          return;
-        }
+      if (e.key === 'Home') {
+        e.preventDefault();
+        onNavigate && onNavigate(0);
+        onScroll && onScroll();
+        return;
+      }
 
-        if (e.key === 'End') {
-          e.preventDefault();
-          onNavigate && onNavigate(maxIndex);
-          onScroll && onScroll();
-          return;
-        }
+      if (e.key === 'End') {
+        e.preventDefault();
+        onNavigate && onNavigate(maxIndex);
+        onScroll && onScroll();
+        return;
+      }
 
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect && onSelect();
-          return;
-        }
-      };
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onSelect && onSelect();
+        return;
+      }
     }
 
     // ========== End Keyboard & Accessibility Utilities ==========

@@ -321,7 +321,7 @@ class AddToSourceSheetBox extends Component {
         <div
           className={classes}
           onClick={selectSheet}
-          onKeyDown={Util.handleKeyboardClick(selectSheet)}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, selectSheet)}
           key={sheet.id}
           role="option"
           aria-selected={isSelected}
@@ -360,7 +360,7 @@ class AddToSourceSheetBox extends Component {
             aria-controls="user-sheets-listbox"
             aria-label={Sefaria._("Select a sheet to add to")}
             ref={(el) => { this.triggerRef = el; }}
-            onKeyDown={Util.handleDropdownTriggerKeyDown({
+            onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
               onToggle: this.toggleSheetList,
               isOpen: this.state.sheetListOpen,
               listboxRef: this.listboxRef
@@ -378,7 +378,7 @@ class AddToSourceSheetBox extends Component {
               id="user-sheets-listbox"
               ref={(el) => { this.listboxRef = el; }}
               aria-activedescendant={`user-sheet-option-${Math.min(Math.max(this.state.focusedSheetIndex, 0), (sheets ? sheets.length - 1 : 0))}`}
-              onKeyDown={Util.handleListboxKeyDown({
+              onKeyDown={(e) => Util.handleListboxKeyDown(e, {
                 currentIndex: this.state.focusedSheetIndex,
                 maxIndex: sheets ? sheets.length - 1 : 0,
                 onNavigate: (newIndex) => {

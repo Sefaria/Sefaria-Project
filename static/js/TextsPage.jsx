@@ -50,7 +50,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
           className="navBlockTitle" 
           data-cat={cat.category} 
           onClick={openCat}
-          onKeyDown={Util.handleLinkSpaceKey(openCat)}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e, openCat)}
         >
           <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
         </a>
