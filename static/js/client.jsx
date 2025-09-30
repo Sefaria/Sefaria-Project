@@ -39,7 +39,7 @@ $(function() {
     renderFunc(component, container);
 
   } else {
-    // Rendering the Header & Footer only on top of a static page
+    // Rendering the Header only on top of a static page
     let staticProps = {
       multiPanel: $(window).width() > 600,
       headerMode: true,
