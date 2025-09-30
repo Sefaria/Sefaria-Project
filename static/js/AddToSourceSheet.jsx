@@ -99,6 +99,27 @@ class AddToSourceSheetBox extends Component {
   selectSheet(sheet) {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
   }
+  /**
+   * Handles keyboard navigation within the sheet list (arrow keys, Home, End).
+   * Updates the focused sheet index and scrolls it into view if needed.
+   * @param {number} newIndex - The new index to focus
+   */
+  handleSheetListNavigate = (newIndex) => {
+    this.setState({ focusedSheetIndex: newIndex }, () => {
+      // Scroll the newly focused option into view if it's outside the visible area
+      this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' });
+    });
+  }
+  /**
+   * Handles selection of a sheet when user presses Enter or Space.
+   * Selects the currently focused sheet from the list.
+   */
+  handleSheetListSelect = () => {
+    const sheets = this.props.userSheets;
+    if (sheets && sheets[this.state.focusedSheetIndex]) {
+      this.selectSheet(sheets[this.state.focusedSheetIndex]);
+    }
+  }
   copyNodeToSourceSheet() {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
@@ -381,16 +402,10 @@ class AddToSourceSheetBox extends Component {
               onKeyDown={(e) => Util.handleListboxKeyDown(e, {
                 currentIndex: this.state.focusedSheetIndex,
                 maxIndex: sheets ? sheets.length - 1 : 0,
-                onNavigate: (newIndex) => {
-                  this.setState({ focusedSheetIndex: newIndex }, () => {
-                    this.activeOptionRef && this.activeOptionRef.scrollIntoView({ block: 'nearest' });
-                  });
-                },
-                onSelect: () => {
-                  if (sheets && sheets[this.state.focusedSheetIndex]) {
-                    this.selectSheet(sheets[this.state.focusedSheetIndex]);
-                  }
-                },
+                // Update focus when user navigates with arrow keys
+                onNavigate: this.handleSheetListNavigate,
+                // Select the focused sheet when user presses Enter or Space
+                onSelect: this.handleSheetListSelect,
                 onClose: () => this.setState({ sheetListOpen: false }),
                 triggerRef: this.triggerRef
               })}
