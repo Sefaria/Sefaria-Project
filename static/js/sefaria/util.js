@@ -453,7 +453,7 @@ class Util {
      */
     static handleEnterKey(onEnter) {
       return (e) => {
-        if (e.key === 'Enter' || e.keyCode === 13) {
+        if (e.key === 'Enter') {
           onEnter(e);
         }
       };
