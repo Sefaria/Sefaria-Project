@@ -182,6 +182,17 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
            <div
              className="dropdownLinks-button"
            >
+              {/* 
+                Using React.cloneElement to inject dropdown behavior into the button.
+                We receive a pre-created React element (e.g., <DisplaySettingsButton/>) and need to add:
+                - onClick: toggle the dropdown
+                - ref: manage focus for keyboard navigation
+                - tabIndex & onKeyDown: ensure keyboard accessibility (Space/Enter to activate)
+                
+                This approach allows parent components to pass any button element they want,
+                while DropdownMenu handles the dropdown logic without the parent needing to know
+                the implementation details.
+              */}
               {React.cloneElement(buttonComponent, {
                 onClick: handleButtonClick,
                 ref: buttonRef,
