@@ -1041,7 +1041,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
         onClick={clickHandler}
         role={isLink ? undefined : "button"}
         tabIndex={0}
-        onKeyDown={Util.Util.handleKeyboardClick(clickHandler)}
+        onKeyDown={Util.handleKeyboardClick(clickHandler)}
       >
         {iconElem}
         <span className="toolsButtonText">
