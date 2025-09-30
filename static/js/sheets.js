@@ -1032,9 +1032,6 @@ $(function() {
       toggleAddInterface(e, $(this), "click");
     });
 
-    // addInterfaceButton elements are now semantic <button> elements 
-    // Space and Enter keys are handled automatically by the browser
-
     $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
       $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
     });
