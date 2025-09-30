@@ -6,9 +6,11 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
-from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
+import sourcesheets
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH, MODULE_ROUTES
+import json
 import reader.views as reader_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
@@ -24,24 +26,36 @@ handler500 = 'reader.views.custom_server_error'
 handler404 = 'reader.views.custom_page_not_found'
 
 
+
+def get_module_url_name(prefix, url_name):
+    """Generate URL name for module-specific routes
+    This is useful for generating the name of a URL for a given module-specific route and for reversing the name to get the appropriate URL"""
+    clean_prefix = prefix.replace('/', '')
+    return f'{clean_prefix}_{url_name}' if clean_prefix else url_name
+
 # App Pages
 urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/notes/?$', reader_views.notes),
     url(r'^texts/history/?$', reader_views.user_history),
+    url(r'^sheets/saved/?$', reader_views.sheets_saved),
+    url(r'^sheets/history/?$', reader_views.sheets_user_history),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
+    url(r'sheets/sheets-with-ref/(?P<tref>.+)$', sourcesheets.views.sheets_with_ref),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^calendars/?$', reader_views.calendars),
-    url(r'^collections/?$', reader_views.public_collections),
-    url(r'^collections/new$', reader_views.edit_collection_page),
-    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
-    url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^sheets/collections/?$', reader_views.public_collections),
+    url(r'^sheets/collections/new$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^sheets/collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
+    url(r'^sheets/notifications/?$', reader_views.notifications),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
@@ -74,6 +88,7 @@ urlpatterns += [
 
 # Source Sheet Builder
 urlpatterns += [
+    url(r'^sheets/?$', sheets_views.sheets_home_page),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
@@ -82,11 +97,9 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    url(r'^sheets/profile/(?P<username>[^/]+)?$', reader_views.user_profile),
     url(r'^settings/account?$', reader_views.account_settings),
-    url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
@@ -99,10 +112,13 @@ urlpatterns += [
 # Topics
 urlpatterns += [
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
+    url(r'^sheets/topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     url(r'^topics/?$', reader_views.topics_page),
-    url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
-    url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^topics/b/(?P<slug>.+)$', reader_views.topic_page_b),
+    url(r'^topics/(?P<slug>.+)$', reader_views.topic_page),
+    url(r'^sheets/topics/(?P<slug>.+)$', reader_views.topic_page),
+    url(r'^sheets/topics/?$', reader_views.topics_page),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
@@ -341,21 +357,23 @@ urlpatterns += [
     url(r'^api/img-gen/(?P<tref>.+)$', reader_views.social_image_api),
 ]
 
-
-# Registration
-urlpatterns += [
-    url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
-    url(r'^register/?$', sefaria_views.register, name='register'),
-    url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(form_class=SefariaPasswordResetForm, email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
-    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(form_class=SefariaSetPasswordForm), name='password_reset_confirm'),
-    url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    url(r'^api/register/$', sefaria_views.register_api),
-    url(r'^api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    url(r'^api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
-    url(r'^api/account/delete$', reader_views.delete_user_account_api),
-]
+for prefix in MODULE_ROUTES.values():
+    clean_prefix = prefix.lstrip('/')
+    urlpatterns += [
+        url(fr'^{clean_prefix}login/?$', sefaria_views.CustomLoginView.as_view(), name=get_module_url_name(prefix, 'login')),
+        url(fr'^{clean_prefix}register/?$', sefaria_views.register, name=get_module_url_name(prefix, 'register')),
+        url(fr'^{clean_prefix}logout/?$', sefaria_views.CustomLogoutView.as_view(), name=get_module_url_name(prefix, 'logout')),
+        url(fr'^{clean_prefix}password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name=get_module_url_name(prefix, 'password_reset')),
+        url(fr'^{clean_prefix}password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', sefaria_views.CustomPasswordResetConfirmView.as_view(), name=get_module_url_name(prefix, 'password_reset_confirm')),
+        url(fr'^{clean_prefix}password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(), name=get_module_url_name(prefix, 'password_reset_complete')),
+        url(fr'^{clean_prefix}password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name=get_module_url_name(prefix, 'password_reset_done')),
+        url(fr'^{clean_prefix}api/register/$', sefaria_views.register_api),
+        url(fr'^{clean_prefix}api/login/$', TokenObtainPairView.as_view(), name=get_module_url_name(prefix, 'token_obtain_pair')),
+        url(fr'^{clean_prefix}api/login/refresh/$', TokenRefreshView.as_view(), name=get_module_url_name(prefix, 'token_refresh')),
+        url(fr'^{clean_prefix}api/account/delete$', reader_views.delete_user_account_api),
+        url(fr'^{clean_prefix}interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
+        url(fr'^{clean_prefix}settings/profile?$', reader_views.edit_profile),
+    ]
 
 # Compare Page
 urlpatterns += [

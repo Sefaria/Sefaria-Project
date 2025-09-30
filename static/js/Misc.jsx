@@ -23,6 +23,10 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { ReaderApp } from './ReaderApp';
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import {DropdownMenu, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownMenuSeparator} from "./common/DropdownMenu";
+import Button from "./common/Button";
 
 function useOnceFullyVisible(onVisible, key) {
   const targetRef = useRef(null);
@@ -124,8 +128,26 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={disallowedMarkdownElements}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+        : markdown ? 
+          <span className={elemclasses}>
+            <ReactMarkdown 
+                  className={'reactMarkdown'} 
+                  unwrapDisallowed={true} 
+                  components={{
+                                a: ({ href, children, ...props }) => (
+                                  <a 
+                                    href={href} 
+                                    rel="noopener noreferrer"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </a>
+                                )
+                              }}
+                  disallowedElements={disallowedMarkdownElements}>
+                {textResponse}
+            </ReactMarkdown>
+          </span> : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -540,13 +562,17 @@ class Link extends Component {
               className={this.props.className}
               href={this.props.href}
               onClick={this.handleClick}
-              title={this.props.title}>{this.props.children}</a>
+              title={this.props.title}
+              data-target-module={this.props.module || Sefaria.activeModule}
+              >
+                {this.props.children}</a>
   }
 }
 Link.propTypes = {
   href:    PropTypes.string.isRequired,
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
+  module:  PropTypes.string,
 };
 
 
@@ -605,7 +631,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} data-target-module={isSheet ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -657,6 +683,10 @@ TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
 };
 
+
+const getCurrentPage = () => {
+  return encodeURIComponent(Sefaria.util.currentPath());
+}
 
 class LanguageToggleButton extends Component {
   toggle(e) {
@@ -718,7 +748,7 @@ SimpleContentBlock.propTypes = {
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
   <div className={classes} onClick={onClick}>
-    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.activeModule}>
       <InterfaceText text={{en, he}}/>
     </a>
     {children}
@@ -1212,55 +1242,35 @@ DisplaySettingsButton.propTypes = {
 
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
+
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef(null);
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
-  const handleClick = (e) => {
-    e.stopPropagation();
-    setIsOpen(isOpen => !isOpen);
-  }
+
   const handleTransPrefResetClick = (e) => {
     e.stopPropagation();
     setTranslationLanguagePreference(null);
   };
-  const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
-  };
-  const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
-  };
-
-  useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
-  }, []);
 
   return (
-      <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/></a>
-        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-          <div className="interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
-          </div>
-          <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-          </div>
-          { !!translationLanguagePreference ? (
+    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
+      <div className="dropdownLinks-options">
+        <div className="interfaceLinks interfaceLinks-menu interfaceLinks-header languageHeader">
+          <InterfaceText>Site Language</InterfaceText>
+        </div>
+        <DropdownMenuSeparator />
+        <div className='languageFlex'>
+          <DropdownMenuItem url={`/interface/hebrew?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'hebrew') ? 'active':'inactive'}`}>
+            עברית
+          </DropdownMenuItem>
+          <DropdownMenuItem url={`/interface/english?next=${getCurrentPage()}`} customCSS={`interfaceLinks-option int-bi ${(currentLang === 'english') ? 'active' : 'inactive'}`}>
+            English
+          </DropdownMenuItem>
+        </div>
+      </div>
+      { !!translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
                 <InterfaceText>Preferred Translation</InterfaceText>
@@ -1276,8 +1286,7 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
               </div>
             </>
           ) : null}
-        </div>
-      </div>
+    </DropdownMenu>
   );
 }
 InterfaceLanguageMenu.propTypes = {
@@ -1285,22 +1294,34 @@ InterfaceLanguageMenu.propTypes = {
   translationLanguagePreference: PropTypes.string,
 };
 
+const isSaveButtonSelected = (historyObject) => !!Sefaria.getSavedItem(historyObject);
+const getSaveButtonMessage = (selected) => selected ? "Remove" : "Save";
+const getSaveButtonImage = (selected) => {
+  return selected ? "/static/icons/bookmark-filled.svg" : "/static/icons/bookmark.svg";
+}
+const SaveButtonWithText = ({historyObject}) => {
+  const selected = isSaveButtonSelected(historyObject);
+  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
+}
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
-  if (!historyObject) { placeholder = true; }
-  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
-  const [selected, setSelected] = useState(placeholder || isSelected());
+  if (!historyObject) {
+    placeholder = true;
+  }
+  const [selected, setSelected] = useState(placeholder || isSaveButtonSelected(historyObject));
   useEffect(() => {
-    if (placeholder) { return; }
-    setSelected(isSelected())
+    if (placeholder) {
+      return;
+    }
+    setSelected(isSaveButtonSelected(historyObject));
   }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-  const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+  const message = getSaveButtonMessage(selected);
+  const altText = placeholder ? '' : `${message} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
@@ -1309,15 +1330,13 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .then(() => { setSelected(isSaveButtonSelected(historyObject)); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e === 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
-
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {<img src={`${getSaveButtonImage(selected)}`} alt={altText}/>}
     </ToolTipped>
   );
 }
@@ -1565,7 +1584,7 @@ class ProfileListing extends Component {
     return (
       <div className={"authorByLine sans-serif" + (smallfonts ? " small" : "")}>
         <div className="authorByLineImage">
-          <a href={url}>
+          <a href={url} data-target-module={Sefaria.SHEETS_MODULE}>
             <ProfilePic
               len={smallfonts ? 30 : 40}
               url={image}
@@ -1671,7 +1690,7 @@ const SheetListing = ({
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
         <div className="sheetUser">
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} data-target-module={Sefaria.SHEETS_MODULE}>
             <ProfilePic
               outerStyle={{display: "inline-block"}}
               name={sheet.ownerName}
@@ -1679,7 +1698,7 @@ const SheetListing = ({
               len={26}
             />
           </a>
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
+          <a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
         {viewsIcon}
       </div>
@@ -1691,9 +1710,10 @@ const SheetListing = ({
   const collections = collectionsList.map((collection, i) => {
     const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
     return (
-      <a href={`/collections/${collection.slug}`}
+      <a href={`/sheets/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
+        data-target-module={Sefaria.SHEETS_MODULE}
         key={i}
       >
         {collection.name}
@@ -1701,15 +1721,15 @@ const SheetListing = ({
       </a>
     );
   });
-
   const topics = sheet.topics.map((topic, i) => {
-    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+    const separator = i !== sheet.topics.length -1 && <span className="separator">,</span>;
     return (
-      <a href={`/topics/${topic.slug}`}
+      <a href={`/sheets/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
         className="sheetTag"
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
+        data-target-module={Sefaria.SHEETS_MODULE}
       >
         <InterfaceText text={topic} />
         {separator}
@@ -1719,11 +1739,10 @@ const SheetListing = ({
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
-      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
       collections.length ? collections : undefined,
-      sheet.topics.length ? topics : undefined,
     ].filter(x => x !== undefined) : [topics];
 
 
@@ -1736,8 +1755,7 @@ const SheetListing = ({
     <div className="sheet" key={sheet.sheetUrl}>
       <div className="sheetLeft">
         {sheetInfo}
-        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+        <a href={sheet.sheetUrl} data-target-module={Sefaria.SHEETS_MODULE} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1787,14 +1805,13 @@ const SheetListing = ({
 
 const CollectionListing = ({data}) => {
   const imageUrl = "/static/icons/collection.svg";
-  const collectionUrl = "/collections/" + data.slug;
+  const collectionUrl = "/sheets/collections/" + data.slug;
   return (
     <div className="collectionListing">
       <div className="left-content">
         <div className="collectionListingText">
 
-          <a href={collectionUrl} className="collectionListingName">
-            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
+          <a href={collectionUrl} className="collectionListingName" data-target-module={Sefaria.SHEETS_MODULE}>
             {data.name}
           </a>
 
@@ -1833,11 +1850,11 @@ class Note extends Component {
   // Public or private note in the Sidebar.
   render() {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
-        (<div className="noteAuthorInfo">
-          <a href={this.props.ownerProfileUrl}>
+        (        <div className="noteAuthorInfo">
+          <a href={this.props.ownerProfileUrl} data-target-module={Sefaria.SHEETS_MODULE}>
             <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
           </a>
-          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+          <a href={this.props.ownerProfileUrl} className="noteAuthor" data-target-module={Sefaria.SHEETS_MODULE}>{this.props.ownerName}</a>
         </div>) : null;
 
       var buttons = this.props.isMyNote ?
@@ -2507,7 +2524,7 @@ class SheetTopicLink extends Component {
   render() {
     const { slug, en, he } = this.props.topic;
     return (
-      <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
+      <a href={`/sheets/topics/${slug}`} onClick={this.handleTagClick} data-target-module={Sefaria.SHEETS_MODULE}>
         <InterfaceText text={{en:en, he:he}} />
       </a>
     );
@@ -2674,6 +2691,8 @@ ReaderMessage.propTypes = {
 };
 
 
+
+
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
@@ -2682,21 +2701,31 @@ class CookiesNotification extends Component {
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
+    // Use the getCookieDomain function to get the appropriate cookie domain
+    const cookieDomain = Sefaria.util.getCookieDomain();
+    
+    const cookieOptions = {path: "/", expires: 20*365};
+    
+    if (cookieDomain) {
+      cookieOptions.domain = cookieDomain;
+    }
+    
+    $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
     this.setState({showNotification: false});
   }
   render() {
     if (!this.state.showNotification) { return null; }
+    const privacyPolicyLink = Sefaria.util.fullURL("/privacy-policy", Sefaria.LIBRARY_MODULE);
     return (
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
-              <a href="/privacy-policy">קראו עוד בנושא</a>
+              <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>קראו עוד בנושא</a>
             </span>
             <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
           </span>
@@ -2763,6 +2792,27 @@ SheetTitle.propTypes = {
   title: PropTypes.string,
 };
 
+const SheetMetaDataBoxSegment = (props) => {
+  const handleBlur = (e) => {
+    let content = e.target.textContent.trim(); // It seems browsers insert a <br> tag when div content is deleted by user, so we need to trim it.
+    if (content === '') {
+      e.target.innerHTML = ''; 
+    }
+    if (props.blurCallback) {
+      props.blurCallback(content);
+    }
+  }
+  return <div className={props.className}
+              role="heading"
+              aria-level="1"
+              contentEditable={props.editable}
+              suppressContentEditableWarning={true}
+              onBlur={props.editable && handleBlur}
+  >
+    {props.text ? props.text.stripHtmlConvertLineBreaks() : ""}
+  </div>
+}
+
 
 const SheetAuthorStatement = (props) => (
   <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
@@ -2780,11 +2830,11 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/collections/" + slug}>
+        <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
-      <a href={"/collections/" + slug}>{children ? children : name}</a>
+      <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.SHEETS_MODULE}>{children ? children : name}</a>
     </div>
     :
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
@@ -2911,12 +2961,22 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-
-const SheetMetaDataBox = (props) => (
-  <div className="sheetMetaDataBox">
-    {props.children}
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+  const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+  return <div className="sheetMetaDataBox">
+    <div className={`sidebarLayout`}>
+      <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
+      <div className="items">
+        {languageToggle}
+        {sheetOptions}
+      </div>
+    </div>
+    {(summary || editable) && <SheetMetaDataBoxSegment text={summary}
+                                                       className="summary"
+                                                       editable={editable}
+                                                       blurCallback={summaryCallback}/>}
   </div>
-);
+}
 
 const DivineNameDepricationNotification = () => {
 
@@ -3221,9 +3281,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           className={inputClassNames}
 
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+      {showAddButton && <Button className={buttonClassNames} onClick={(e) => {handleSelection(inputValue, currentSuggestions)
+                }}><InterfaceText>{buttonTitle}</InterfaceText></Button>}
 
       <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popupsEl}>
         {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
@@ -3396,7 +3455,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
       ))}
     </div>
   );
-
 }
 
 
@@ -3442,6 +3500,7 @@ export {
   MenuButton,
   SearchButton,
   SaveButton,
+  SaveButtonWithText,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
@@ -3456,6 +3515,7 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
+  SheetMetaDataBoxSegment,
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
@@ -3470,6 +3530,7 @@ export {
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  getCurrentPage,
   GuideButton,
   ArrowButton as Arrow,
   transformValues,
