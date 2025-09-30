@@ -203,8 +203,6 @@
 
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
 
-<div id="footerContainer"></div>
-
 {% autoescape off %}
 	{% if request.user.is_authenticated %}
 	<div id="s2" class="headerOnly">{{ logged_in_header }}</div>

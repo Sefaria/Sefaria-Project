@@ -7,7 +7,6 @@ import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
-import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
@@ -2418,7 +2417,6 @@ const sefariaSetup = Sefaria.setup;
 const { unpackDataFromProps, loadServerData } = Sefaria;
 export {
   ReaderApp,
-  Footer,
   sefariaSetup,
   unpackDataFromProps,
   loadServerData,

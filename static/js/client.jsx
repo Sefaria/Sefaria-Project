@@ -25,7 +25,6 @@ $(function() {
 
   let container = document.getElementById('s2');
   const loadingPlaceholder = document.getElementById('appLoading');
-  const footerContainer = document.getElementById('footerContainer');
   let component = null;
   DjangoCSRF.init();
   var renderFunc = ReactDOM.hydrate;
@@ -50,9 +49,6 @@ $(function() {
     Sefaria.unpackDataFromProps(mergedStaticProps);
     component = React.createElement(SefariaReact.ReaderApp, mergedStaticProps);
     renderFunc(component, container);
-    if (footerContainer){
-      renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
-    }
   }
 
   // Handle template-specific component rendering (for pages that don't use ReaderApp)
