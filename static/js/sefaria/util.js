@@ -713,6 +713,58 @@ class Util {
       }
     }
 
+    /**
+     * Handles keyboard navigation for ARIA tablist according to best practices.
+     * ArrowLeft/ArrowRight navigate between tabs (with wrapping), Enter/Space activates.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {number} options.currentIndex - Current tab index
+     * @param {number} options.tabCount - Total number of tabs
+     * @param {Function} options.onNavigate - Called with new tab index when arrow keys are pressed
+     * @param {Function} options.onActivate - Called when Enter or Space is pressed
+     * @param {string} [options.tabSelector] - Optional selector for tab elements (defaults to '[data-tab-index="{index}"]')
+     * 
+     * @example
+     * <div 
+     *   role="tab"
+     *   onKeyDown={(e) => Util.handleTabKeyDown(e, {
+     *     currentIndex: index,
+     *     tabCount: tabs.length,
+     *     onNavigate: (newIndex) => setActiveTab(newIndex),
+     *     onActivate: () => activateTab(index)
+     *   })}
+     * />
+     */
+    static handleTabKeyDown(e, { currentIndex, tabCount, onNavigate, onActivate, tabSelector }) {
+      // Handle Enter/Space for activation
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onActivate && onActivate();
+        return;
+      }
+
+      // Handle arrow keys for navigation
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const direction = e.key === 'ArrowLeft' ? -1 : 1;
+        const newIndex = (currentIndex + direction + tabCount) % tabCount;
+        
+        onNavigate && onNavigate(newIndex);
+        
+        // Focus the newly active tab using requestAnimationFrame for better timing
+        // This ensures the DOM has been updated before attempting to focus
+        requestAnimationFrame(() => {
+          const selector = tabSelector || `[data-tab-index="${newIndex}"]`;
+          const newTabElement = document.querySelector(selector);
+          if (newTabElement) {
+            newTabElement.focus();
+          }
+        });
+        return;
+      }
+    }
+
     // ========== End Keyboard & Accessibility Utilities ==========
     
     /**

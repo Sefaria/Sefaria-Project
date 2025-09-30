@@ -447,28 +447,19 @@ class TabView extends Component {
         aria-selected={isActive}
         onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this.onClickTab(e, tab.clickTabOverride);
-          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            e.preventDefault();
-            const direction = e.key === 'ArrowLeft' ? -1 : 1;
-            const newIndex = (index + direction + this.props.tabs.length) % this.props.tabs.length;
-            const newTab = this.props.tabs[newIndex];
-            if (this.props.setTab) {
-              this.props.setTab(newTab.id);
-            } else {
-              this.openTab(newIndex);
-            }
-            // Focus the newly active tab using requestAnimationFrame for better timing
-            // This ensures the DOM has been updated before attempting to focus
-            requestAnimationFrame(() => {
-              const newTabElement = document.querySelector(`[data-tab-index="${newIndex}"]`);
-              if (newTabElement) {
-                newTabElement.focus();
+          Util.handleTabKeyDown(e, {
+            currentIndex: index,
+            tabCount: this.props.tabs.length,
+            onNavigate: (newIndex) => {
+              const newTab = this.props.tabs[newIndex];
+              if (this.props.setTab) {
+                this.props.setTab(newTab.id);
+              } else {
+                this.openTab(newIndex);
               }
-            });
-          }
+            },
+            onActivate: () => this.onClickTab(e, tab.clickTabOverride)
+          });
         }}
       >
         {this.props.renderTab(tab, index)}
