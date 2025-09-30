@@ -1028,7 +1028,7 @@ def delete_user_by_email(request):
             return jsonResponse({"failure": "incorrect password"})
         try:
             id_to_delete = UserProfile(email=email)
-            if delete_user_account(id_to_delete.id, False):
+            if delete_user_account(id_to_delete.id, False, "admin", request.user):
                 return jsonResponse({"success": f"deleted user {email}"})
             else:
                 return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
