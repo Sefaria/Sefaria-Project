@@ -10,7 +10,7 @@ import Component      from 'react-class';
 import {ReaderPanelContext} from "./context";
 import {DropdownMenu} from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import { handleKeyboardClick } from "./common/Button";
+import Util from "./sefaria/util";
 
 
 class ConnectionsPanelHeader extends Component {
@@ -63,7 +63,7 @@ class ConnectionsPanelHeader extends Component {
         href={backButtonSettings.url}
         className="connectionsHeaderTitle sans-serif active"
         onClick={onClick}
-        onKeyDown={handleKeyboardClick(onClick)}
+        onKeyDown={Util.handleKeyboardClick(onClick)}
       >
       <InterfaceText>
           <EnglishText>
@@ -91,7 +91,7 @@ class ConnectionsPanelHeader extends Component {
         href={url}
         className="connectionsHeaderTitle sans-serif active"
         onClick={this.onClick}
-        onKeyDown={handleKeyboardClick(this.onClick)}
+        onKeyDown={Util.handleKeyboardClick(this.onClick)}
       >
                     <InterfaceText>
                         <EnglishText>
@@ -115,7 +115,7 @@ class ConnectionsPanelHeader extends Component {
         href={url} 
         className="connectionsHeaderTitle sans-serif active" 
         onClick={onClick}
-        onKeyDown={handleKeyboardClick(onClick)}
+        onKeyDown={Util.handleKeyboardClick(onClick)}
       >
                     <InterfaceText>
                         <EnglishText>

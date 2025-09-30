@@ -3,7 +3,7 @@ import {
 	InterfaceText,
 } from "./Misc"
 import Sefaria  from './sefaria/sefaria';
-import { handleKeyboardClick } from './common/Button';
+import Util from './sefaria/util';
 
 
 const CollectionsModal = (props) => {
@@ -126,7 +126,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         aria-label="Close collections"
-        onKeyDown={handleKeyboardClick(onClose)}
+        onKeyDown={Util.handleKeyboardClick(onClose)}
       >×</div>
     </div>
     <div className="collectionsWidgetList serif">
@@ -159,7 +159,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         onClick={onCreateClick}
-        onKeyDown={handleKeyboardClick(onCreateClick)}
+        onKeyDown={Util.handleKeyboardClick(onCreateClick)}
       >
         <InterfaceText>Create</InterfaceText>
       </div>
@@ -171,7 +171,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         role="button"
         tabIndex="0"
         onClick={onClose}
-        onKeyDown={handleKeyboardClick(onClose)}
+        onKeyDown={Util.handleKeyboardClick(onClose)}
        >
         <InterfaceText>Done</InterfaceText>
       </div>     

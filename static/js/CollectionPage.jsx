@@ -4,7 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import { handleKeyboardClick } from './common/Button';
+import Util from './sefaria/util';
 import { NavSidebar } from './NavSidebar';
 import {
   CategoryColorLine,
@@ -455,7 +455,7 @@ class CollectionInvitationBox extends Component {
                   role="button"
                   tabIndex="0"
                   onClick={this.onInviteClick}
-                  onKeyDown={handleKeyboardClick(this.onInviteClick)}
+                  onKeyDown={Util.handleKeyboardClick(this.onInviteClick)}
                 >
                   <InterfaceText>Invite</InterfaceText>
                 </div>
