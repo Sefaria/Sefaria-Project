@@ -62,7 +62,9 @@ def save_change(func_name, raw_history_change):
 def inform(results, main_task_id, task_title):
     title = f'{task_title} (celery main task id {main_task_id})'
     results = '\n'.join([f'{k}: {v}.' for k, v in Counter(results).items()])
-    send_message('#engineering-signal', 'Text Upload', title, results, icon_emoji=':leafy_green:')
+    success = send_message('#engineering-signal', 'Text Upload', title, results, icon_emoji=':leafy_green:')
+    if not success:
+        logger.warning(f"Failed to send Slack notification for task {main_task_id}")
 
 def save_link(raw_link_change: dict):
     link = raw_link_change['raw_link']
