@@ -16,7 +16,6 @@ import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {ProfilePic} from "./ProfilePic";
-import { handleKeyboardClick } from "./common/Button";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
@@ -347,7 +346,7 @@ const FilterableList = ({
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
                 tabIndex="0"
-                onKeyDown={handleKeyboardClick(() => setSort(option))}
+                onKeyDown={Util.handleKeyboardClick(() => setSort(option))}
                 data-anl-event="sort_by:click"
                 data-anl-batch={JSON.stringify({
                   text: option, from: sortOption, to: option,
@@ -544,7 +543,7 @@ DropdownOptionList.propTypes = {
 const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
   const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen, buttonStyle });
   return (
-    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyDown={handleKeyboardClick(toggle)}>
+    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyDown={Util.handleKeyboardClick(toggle)}>
       <InterfaceText text={{en: enText, he: heText}} />
       {isOpen ? <img src="/static/img/arrow-up.png" alt={Sefaria._("Collapse")} aria-hidden="true"/> : <img src="/static/img/arrow-down.png" alt={Sefaria._("Expand")} aria-hidden="true"/>}
     </div>
@@ -738,7 +737,7 @@ class LanguageToggleButton extends Component {
               href={url}
               className="languageToggle"
               onClick={this.toggle}
-              onKeyDown={handleKeyboardClick(this.toggle)}
+              onKeyDown={Util.handleKeyboardClick(this.toggle)}
             >
               <img className="en" src="/static/img/aleph.svg" alt={Sefaria._("Hebrew Language Toggle Icon")} />
               <img className="he" src="/static/img/aye.svg" alt={Sefaria._("English Language Toggle Icon")} />
@@ -1054,7 +1053,7 @@ const PencilSourceEditor = ({topic, text, classes}) => {
           alt={Sefaria._("Edit topic")}
           role="button"
           tabIndex="0"
-          onKeyDown={handleKeyboardClick(toggleAddSource)}
+          onKeyDown={Util.handleKeyboardClick(toggleAddSource)}
         />;
 }
 
@@ -1245,7 +1244,7 @@ class CloseButton extends Component {
         href={url}
         className={classes}
         onClick={this.onClick}
-        onKeyDown={handleKeyboardClick(this.onClick)}
+        onKeyDown={Util.handleKeyboardClick(this.onClick)}
         aria-label={altText}
         title={altText}
       >
@@ -1926,7 +1925,7 @@ class Note extends Component {
                         onClick={this.props.editNote}
                         role="button"
                         tabIndex="0"
-                        onKeyDown={handleKeyboardClick(this.props.editNote)}
+                        onKeyDown={Util.handleKeyboardClick(this.props.editNote)}
                       ></i>
                     </div>) : null;
 
@@ -2000,7 +1999,7 @@ class SignUpModal extends Component {
             tabIndex="0"
             aria-label={Sefaria._("Close")}
             onClick={this.props.onClose}
-            onKeyDown={handleKeyboardClick(this.props.onClose)}
+            onKeyDown={Util.handleKeyboardClick(this.props.onClose)}
           >×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
@@ -2212,7 +2211,7 @@ const InterruptingMessage = ({
                 onClick={() => {
                   closeModal("close_clicked");
                 }}
-                onKeyDown={handleKeyboardClick(() => closeModal("close_clicked"))}
+                onKeyDown={Util.handleKeyboardClick(() => closeModal("close_clicked"))}
               >
                 ×
               </div>
@@ -2791,7 +2790,7 @@ class FeedbackBox extends Component {
               className="button"
               aria-label={Sefaria._("Send Feedback")}
               onClick={() => this.sendFeedback()}
-              onKeyDown={handleKeyboardClick(() => this.sendFeedback())}
+              onKeyDown={Util.handleKeyboardClick(() => this.sendFeedback())}
               role="button"
               tabIndex="0"
             >
@@ -2825,14 +2824,14 @@ class ReaderMessage extends Component {
           <div
             className="button small"
             onClick={() => this.setFeedback('Like')}
-            onKeyDown={handleKeyboardClick(() => this.setFeedback('Like'))}
+            onKeyDown={Util.handleKeyboardClick(() => this.setFeedback('Like'))}
             role="button"
             tabIndex="0"
           >{this.props.buttonLikeText}</div>
           <div
             className="button small"
             onClick={() => this.setFeedback('Dislike')}
-            onKeyDown={handleKeyboardClick(() => this.setFeedback('Dislike'))}
+            onKeyDown={Util.handleKeyboardClick(() => this.setFeedback('Dislike'))}
             role="button"
             tabIndex="0"
           >{this.props.buttonDislikeText}</div>
@@ -2878,13 +2877,13 @@ class CookiesNotification extends Component {
 
           <span className="int-en">
             <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <div className="button small white int-en" onClick={this.setCookie} onKeyDown={handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">OK</div>
+            <div className="button small white int-en" onClick={this.setCookie} onKeyDown={Util.handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">OK</div>
           </span>
           <span className="int-he">
             <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
               <a href={privacyPolicyLink} data-target-module={Sefaria.LIBRARY_MODULE}>קראו עוד בנושא</a>
             </span>
-            <div className="button small white int-he" onClick={this.setCookie} onKeyDown={handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">לחצו כאן לאישור</div>
+            <div className="button small white int-he" onClick={this.setCookie} onKeyDown={Util.handleKeyboardClick(this.setCookie)} role="button" tabIndex="0">לחצו כאן לאישור</div>
           </span>
 
        </div>
@@ -3008,10 +3007,10 @@ const AdminToolHeader = function({title, validate, close}) {
                 <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
-                <div onClick={close} onKeyDown={handleKeyboardClick(close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
+                <div onClick={close} onKeyDown={Util.handleKeyboardClick(close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
                 </div>
-                <div onClick={validate} onKeyDown={handleKeyboardClick(validate)} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
+                <div onClick={validate} onKeyDown={Util.handleKeyboardClick(validate)} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
                   <InterfaceText>Save</InterfaceText>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 
 export function NewsletterSignUpForm({
                                          contextName,
@@ -14,12 +15,6 @@ export function NewsletterSignUpForm({
     const [educatorCheck, setEducatorCheck] = useState(false);
     const [subscribeMessage, setSubscribeMessage] = useState(null);
     const [showNameInputs, setShowNameInputs] = useState(false);
-
-    function handleSubscribeKeyUp(e) {
-        if (e.keyCode === 13) {
-            handleSubscribe();
-        }
-    }
 
     function handleSubscribe() {
         if (showNameInputs === true) { // submit
@@ -53,7 +48,7 @@ export function NewsletterSignUpForm({
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
             <span className="int-he">
         <input
@@ -63,7 +58,7 @@ export function NewsletterSignUpForm({
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
             {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
@@ -76,7 +71,7 @@ export function NewsletterSignUpForm({
             value={firstName}
             autoFocus
             onChange={e => setFirstName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     <span className="int-he">
         <input
@@ -86,7 +81,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     <span className="int-en">
         <input
@@ -96,7 +91,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     <span className="int-he">
         <input
@@ -106,7 +101,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck}/> : null}

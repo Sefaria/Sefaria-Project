@@ -136,36 +136,3 @@ Button.propTypes = {
 };
 
 export default Button;
-
-/**
- * Reusable keyboard handler for accessibility.
- * Supports the two common patterns found throughout the codebase.
- *
- * @param {function} [onClick] - Custom click handler to call instead of element.click()
- * @returns {function} - Keyboard event handler function
- *
- * @example
- * // For elements that should trigger their own click behavior:
- * const handleKeyDown = handleKeyboardClick();
- * <button onKeyDown={handleKeyDown}>Click me</button>
- *
- * @example
- * // For elements with custom click handlers:
- * const handleKeyDown = handleKeyboardClick(myCustomClickHandler);
- * <div onKeyDown={handleKeyDown}>Custom element</div>
- */
-const handleKeyboardClick = (onClick) => {
-  return (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      if (onClick) {
-        onClick(e);
-      } else {
-        e.currentTarget.click();
-      }
-    }
-  };
-};
-
-// Export for temporary use by other components during migration
-export { handleKeyboardClick };

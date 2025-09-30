@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import Component from 'react-class'
 
 class DictionarySearch extends Component {
@@ -125,13 +126,11 @@ class DictionarySearch extends Component {
       this.submitSearch(query, true);
     }
   }
-  handleSearchKeyUp(event) {
-    if (event.keyCode === 13) {
-      const query = $(event.target).val();
-      if (query) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
-        this.submitSearch(query, true);
-      }
+  handleSearchEnter(event) {
+    const query = $(event.target).val();
+    if (query) {
+      $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
+      this.submitSearch(query, true);
     }
   }
   displayWord(word) {
@@ -180,7 +179,7 @@ class DictionarySearch extends Component {
           <input className={inputClasses}
             id="searchInput"
             placeholder={Sefaria._("Search Dictionary")}
-            onKeyUp={this.handleSearchKeyUp}
+            onKeyUp={Util.handleEnterKey(this.handleSearchEnter)}
             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
             maxLength={75}

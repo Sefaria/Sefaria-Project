@@ -385,6 +385,52 @@ class Util {
     // ========== Keyboard & Accessibility Utilities ==========
 
     /**
+     * Makes clickable elements keyboard accessible with Enter and Space keys.
+     * Use this for divs, spans, or other non-button elements that need to be clickable.
+     * 
+     * @param {Function} [onClick] - Custom click handler. If not provided, triggers element.click()
+     * @returns {Function} - Keyboard event handler function
+     * 
+     * @example
+     * // For elements that should trigger their own click behavior:
+     * <a href="/path" onKeyDown={Util.handleKeyboardClick()}>Link</a>
+     * 
+     * @example
+     * // For elements with custom click handlers:
+     * <div onKeyDown={Util.handleKeyboardClick(myHandler)}>Clickable div</div>
+     */
+    static handleKeyboardClick(onClick) {
+      return (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (onClick) {
+            onClick(e);
+          } else {
+            e.currentTarget.click();
+          }
+        }
+      };
+    }
+
+    /**
+     * Handles Enter key for form submissions and searches.
+     * Commonly used for input fields to trigger search/submit on Enter.
+     * 
+     * @param {Function} onEnter - Function to call when Enter is pressed
+     * @returns {Function} - Keyboard event handler function
+     * 
+     * @example
+     * <input onKeyUp={Util.handleEnterKey(() => submitForm())} />
+     */
+    static handleEnterKey(onEnter) {
+      return (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          onEnter(e);
+        }
+      };
+    }
+
+    /**
      * Keyboard handler for dropdown/listbox trigger buttons.
      * Handles Enter, Space, and ArrowDown keys according to ARIA best practices.
      * 

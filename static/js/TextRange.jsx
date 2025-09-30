@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import Component from 'react-class';
 import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
@@ -95,12 +96,6 @@ class TextRange extends Component {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
-    }
-  }
-  handleKeyDown(event) {
-    if (event.keyCode === 13 || event.keyCode === 32) { // Enter or Space
-      event.preventDefault(); // Prevent page scroll on Space
-      this.handleClick(event);
     }
   }
   setData() {
@@ -395,7 +390,7 @@ class TextRange extends Component {
       </div>;
     } else { sidebarNum = null;}
     return (
-      <div className={classes} onClick={this.handleClick} onKeyDown={this.handleKeyDown} data-ref={ref}>
+      <div className={classes} onClick={this.handleClick} onKeyDown={Util.handleKeyboardClick(this.handleClick)} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -524,12 +519,6 @@ class TextSegment extends Component {
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   }
-  handleKeyDown(event) {
-    if (event.keyCode === 13 || event.keyCode === 32) { // Enter or Space
-      event.preventDefault(); // Prevent page scroll on Space
-      this.handleClick(event);
-    }
-  }
   formatItag(lang, text) {
     let $newElement = $("<div>" + text + "</div>");
     const textValue = function(i) {
@@ -655,7 +644,7 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyDown={this.handleKeyDown}
+           className={classes} onClick={this.handleClick} onKeyDown={Util.handleKeyboardClick(this.handleClick)}
            data-ref={this.props.sref}
            aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>

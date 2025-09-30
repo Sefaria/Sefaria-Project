@@ -5,7 +5,6 @@ import {
 } from './Misc';
 import React from 'react';
 import Button from './common/Button';
-import { handleKeyboardClick } from './common/Button';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
@@ -322,7 +321,7 @@ class AddToSourceSheetBox extends Component {
         <div
           className={classes}
           onClick={selectSheet}
-          onKeyDown={handleKeyboardClick(selectSheet)}
+          onKeyDown={Util.handleKeyboardClick(selectSheet)}
           key={sheet.id}
           role="option"
           aria-selected={isSelected}

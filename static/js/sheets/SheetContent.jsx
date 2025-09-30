@@ -2,6 +2,7 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
+import Util from "../sefaria/util";
 import {AddToSourceSheetModal} from "./SheetModals";
 import { SheetOptions } from "./SheetOptions";
 import {
@@ -144,7 +145,7 @@ class SheetContent extends Component {
         key={source.node}
         source={source}
         sheetSourceClick={() => sheetSourceClick(source)}
-        handleKeyDown={(e) => (e.keyCode === 13 || e.keyCode === 32) && (e.preventDefault(), sheetSourceClick(e))}
+        handleKeyDown={Util.handleKeyboardClick(() => sheetSourceClick(source))}
         highlighted={highlighted}
         addToSheetButton={addToSheetButton}/>;
     });

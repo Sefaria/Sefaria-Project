@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText, getCurrentPage } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
-import { handleKeyboardClick } from './Button';
+import Util from '../sefaria/util';
 
 const DropdownMenuSeparator = () => {
 
@@ -26,7 +26,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={handleKeyboardClick()}
+       onKeyDown={Util.handleKeyboardClick()}
     >
       {children}
     </a>
@@ -44,7 +44,7 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
        href={url}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       onKeyDown={handleKeyboardClick()}
+       onKeyDown={Util.handleKeyboardClick()}
     >
       {children}
     </a>
@@ -59,7 +59,7 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
       data-prevent-close={preventClose}
       role="button"
       tabIndex="0"
-      onKeyDown={handleKeyboardClick(onClick)}
+      onKeyDown={Util.handleKeyboardClick(onClick)}
     >
         {children}
     </div>
@@ -186,7 +186,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
                 onClick: handleButtonClick,
                 ref: buttonRef,
                 tabIndex: 0,
-                onKeyDown: handleKeyboardClick(handleButtonClick)
+                onKeyDown: Util.handleKeyboardClick(handleButtonClick)
               })}
           </div>
           <div 
