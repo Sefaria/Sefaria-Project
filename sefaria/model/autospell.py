@@ -344,8 +344,8 @@ class Completions(object):
             "ref": ["library"],
             "Term": ["library"],
             "TocCategory": ["library"],
-            "User": ["sheets"],
-            "Collection": ["sheets"],
+            "User": ["voices"],
+            "Collection": ["voices"],
             "Topic": co.get("topic_pools", [])
         }
         return normalized_type_to_allowed_modules_map[normalized_type]

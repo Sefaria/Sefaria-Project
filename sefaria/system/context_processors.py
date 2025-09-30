@@ -87,9 +87,10 @@ def base_props(request):
 
 @user_only
 def module_context(request):
+    from sefaria.utils.util import get_language_specific_domain_modules
     return {
         'active_module': request.active_module,
-        'domain_modules': DOMAIN_MODULES
+        'domain_modules': get_language_specific_domain_modules(request.interfaceLang)
     }
 
 @user_only

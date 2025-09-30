@@ -200,7 +200,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
     } else if (item.isCollection) {
         content.push(
           <MenuItem
-            href        = {"/sheets/collections/" + item.slug}
+            href        = {"/collections/" + item.slug}
             nestLevel   = {nestLevel}
             title       = {item.title}
             heTitle     = {item.heTitle}
