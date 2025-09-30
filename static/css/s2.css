@@ -17,22 +17,23 @@ body:not(.user-is-tabbing) *:focus {
 }
 
 /* Skip Link for Accessibility - Override Button positioning to hide off-screen by default */
-.sefaria-common-button.skip-link {
-  position: fixed !important;
-  top: -80px !important;
-  left: 10px !important;
-  z-index: 9999 !important;
-  transition: top 0.3s ease !important;
+/* Using element selector (a.) for higher specificity to avoid needing !important */
+a.sefaria-common-button.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 10px;
+  z-index: 9999;
+  transition: top 0.3s ease;
 }
 
 /* Show skip link when focused - let Button handle the blue border and styling */
-.sefaria-common-button.skip-link:focus {
-  top: 10px !important;
+a.sefaria-common-button.skip-link:focus {
+  top: 10px;
 }
 
 /* Prevent any hover color changes for skip link */
-.sefaria-common-button.skip-link:hover {
-  color: var(--theme-button-text) !important;
+a.sefaria-common-button.skip-link:hover {
+  color: var(--theme-button-text);
 }
 
 a, a:hover {
