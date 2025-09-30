@@ -169,3 +169,18 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
 {{- end }}
 
+{{- define "config.domainLanguage" }}
+{{- .Values.domainConfig.domainLanguage | toYaml }}
+{{- end }}
+
+{{- define "config.domainModules" }}
+{{- tpl (.Values.domainConfig.domainModules | toYaml) . }}
+{{- end }}
+
+{{- define "config.sessionCookieDomain" }}
+{{- tpl .Values.domainConfig.sessionCookieDomain . }}
+{{- end }}
+
+{{- define "config.csrfCookieDomain" }}
+{{- tpl .Values.domainConfig.csrfCookieDomain . }}
+{{- end }}
