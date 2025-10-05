@@ -15918,6 +15918,7 @@ span.ref-link-color-3 {color: blue}
   box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
   z-index: 9999;
   color: white;
+  max-width: 280px;
 }
 
 .floating-ui-tooltip-content {
@@ -15931,45 +15932,5 @@ span.ref-link-color-3 {color: blue}
   background-color: var(--module-switcher-tooltip-background);
   transform: rotate(45deg);
 }
-
-@media (max-width: 768px) {
-  .floating-ui-tooltip {
-    max-width: 280px;
-  }
-}
-/* Mobile-specific tooltip adjustments */
-@media (max-width: 768px) {
-  .module-switcher-tippy, .tippy-box {
-    max-width: 280px; /* Smaller max-width on mobile */
-  }
-}
-
-/* Floating UI tooltip styles */
-.floating-ui-tooltip {
-  background-color: var(--module-switcher-tooltip-background);
-  border-radius: 8px;
-  box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
-  z-index: 9999;
-  color: white;
-}
-
-.floating-ui-tooltip-content {
-  padding: 24px;
-}
-
-.floating-ui-arrow {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background-color: var(--module-switcher-tooltip-background);
-  transform: rotate(45deg);
-}
-
-@media (max-width: 768px) {
-  .floating-ui-tooltip {
-    max-width: 280px;
-  }
-}
-
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
