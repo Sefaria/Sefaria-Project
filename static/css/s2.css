@@ -4785,7 +4785,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .search-container {
   position: relative; /* Ensure dropdown positions relative to this container */
 }
-
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
@@ -6382,12 +6381,6 @@ h1.topic-landing-header {
   padding-inline-start: 30px;
   display: inline-block;
 }
-
-.segment .segmentText .poetry.indentAll {
-  padding-inline-start: 30px;
-  display: inline-block;
-}
-
 .segment .segmentText .poetry.indentAllDouble {
   padding-inline-start: 60px;
   display: inline-block;
@@ -9548,6 +9541,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .editorSaveStateIndicator {
   flex-direction: row-reverse;
 }
+
 .floatingEditorIcons{
   display: flex;
   position: sticky;
@@ -14366,8 +14360,6 @@ span.ref-link-color-3 {color: blue}
 .chatBoxName {
   margin-inline-start: 10px;
 }
-
-
 .chats-container {
   overflow-y: auto;
   display: flex;
@@ -15167,7 +15159,6 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
 }
-
 .product {
   max-width: 600px;
 }
@@ -15889,86 +15880,63 @@ span.ref-link-color-3 {color: blue}
   direction: rtl;
 }
 
-/* Module Switcher Tooltip */
-
-.module-switcher-tooltip {
-  max-width: 350px;
-}
-
-.module-switcher-tooltip .reactMarkdown {
-  margin: 0 0 8px 0;
-}
-
-.module-switcher-tooltip .reactMarkdown p {
-  margin: 0;
-}
-
-.module-switcher-tooltip .reactMarkdown strong {
-  font-weight: bold;
-}
-
-.module-switcher-tooltip .reactMarkdown em {
-  font-style: italic;
-}
-
-.module-switcher-tooltip .reactMarkdown a {
-  text-decoration: underline;
-}
-
-.module-switcher-tooltip-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
-}
-
-.module-switcher-tooltip-actions a {
-  text-decoration: underline;
-}
-
-.module-switcher-tooltip-button {
-  padding: 6px 12px;
-  border-radius: 3px;
-  cursor: pointer;
-  background-color: white;
-  color: black;
-  border:none;
-  font-size: 14px;
-}
-
-/* Specific styling for our tooltip's tippy-content */
-.module-switcher-tippy .tippy-content {
-  padding: 24px !important;
-}
-
-.module-switcher-tippy .tippy-arrow {
-  color: var(--module-switcher-tooltip-background);
-}
-
-/* .module-switcher-tippy .tippy-arrow::before {
-  border: 1px solid var(--light-grey) !important;
-} */
-.module-switcher-tippy,
-.tippy-box  {
-  background-color: var(--module-switcher-tooltip-background) !important;
-  border-radius: 8px ;
+/* Floating UI tooltip styles */
+.floating-ui-tooltip {
+  background-color: var(--module-switcher-tooltip-background);
+  border-radius: 8px;
   box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  color: white;
 }
 
-@media (min-width: 768px) {
-  .module-switcher-tippy,
-  .tippy-box  {
-    transform: translateX(calc(var(--tooltip-translate-multiplier) * var(--arrow-translate-x)));
-  }
+.floating-ui-tooltip-content {
+  padding: 24px;
+}
 
-  .tippy-box[data-placement^=bottom]>.tippy-arrow:before{
-    transform: translateX(calc(-1 * var(--tooltip-translate-multiplier) * var(--arrow-translate-x)));
+.floating-ui-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: var(--module-switcher-tooltip-background);
+  transform: rotate(45deg);
+}
+
+@media (max-width: 768px) {
+  .floating-ui-tooltip {
+    max-width: 280px;
   }
 }
 /* Mobile-specific tooltip adjustments */
 @media (max-width: 768px) {
   .module-switcher-tippy, .tippy-box {
     max-width: 280px; /* Smaller max-width on mobile */
+  }
+}
+
+/* Floating UI tooltip styles */
+.floating-ui-tooltip {
+  background-color: var(--module-switcher-tooltip-background);
+  border-radius: 8px;
+  box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  color: white;
+}
+
+.floating-ui-tooltip-content {
+  padding: 24px;
+}
+
+.floating-ui-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: var(--module-switcher-tooltip-background);
+  transform: rotate(45deg);
+}
+
+@media (max-width: 768px) {
+  .floating-ui-tooltip {
+    max-width: 280px;
   }
 }
 
