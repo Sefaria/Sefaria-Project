@@ -5850,25 +5850,6 @@ h1.topic-landing-header {
   left: auto;
   right: -50px;
 }
-/* GuideButton styles */
-.rightButtons .guideButton {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  height: 56px;
-  cursor: pointer;
-  margin-inline-end: 15px;
-  padding-top: 3px;
-}
-.rightButtons .guideButton.tooltip-toggle::before {
-  top: 47px;
-}
-
-/* Bulb icon alignment adjustments to match SaveButton */
-.rightButtons .guideButton img {
-  height: 18px;
-}
-
 /* ArrowButton styles for navigation arrows */
 .arrowButton {
   width: 20px;
