@@ -30,3 +30,10 @@ LANGUAGE_CODES = {
     "yi": "yiddish",
     "jrb": "arabic",
 }
+
+# Module constants that correspond to DOMAIN_MODULES keys
+LIBRARY_MODULE = "library"
+VOICES_MODULE = "voices"
+
+# All available modules
+ALL_MODULES = [LIBRARY_MODULE, VOICES_MODULE]

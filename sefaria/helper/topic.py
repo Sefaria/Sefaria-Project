@@ -11,6 +11,7 @@ from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
 from sefaria.system.cache import django_cache
 from django_topics.models import Topic as DjangoTopic
+from django_topics.utils import get_topic_pool_name_for_module
 import structlog
 from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
@@ -235,9 +236,7 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
 
 
 @django_cache(timeout=24 * 60 * 60)
-def get_all_topics(limit=1000, displayableOnly=True, activeModule='library'):
-    from django_topics.utils import get_topic_pool_name_for_module
-    
+def get_all_topics(limit=1000, displayableOnly=True, activeModule='library'):    
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
     topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
     

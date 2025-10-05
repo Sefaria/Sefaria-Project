@@ -20,6 +20,7 @@ import re
 import uuid
 from dataclasses import asdict
 
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -170,7 +171,7 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        active_module = getattr(request, "active_module", "library")
+        active_module = getattr(request, "active_module", LIBRARY_MODULE)
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -213,7 +214,7 @@ def base_props(request):
             "last_place": []
         }
     user_data.update({
-        "activeModule": getattr(request, "active_module", "library"),
+        "activeModule": getattr(request, "active_module", LIBRARY_MODULE),
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
@@ -286,7 +287,7 @@ def catchall(request, tref, sheet=None):
         response['Location'] += "?%s" % params if params else ""
         return response
 
-    active_module = getattr(request, "active_module", "library")
+    active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
     for version in ['ven', 'vhe']:
         if request.GET.get(version) and '|' not in request.GET.get(version):
@@ -1038,7 +1039,7 @@ def saved_content(request):
     
     # Determine page name based on active module
     active_module = getattr(request, 'active_module', 'library')
-    page_name = "sheets-saved" if active_module == "voices" else "texts-saved"
+    page_name = "sheets-saved" if active_module == VOICES_MODULE else "texts-saved"
     
     return menu_page(request, props, page=page_name, title=title, desc=desc)
 
@@ -1064,7 +1065,7 @@ def user_history_content(request):
     
     # Determine page name based on active module
     active_module = getattr(request, 'active_module', 'library')
-    page_name = "sheets-history" if active_module == "voices"  else "texts-history"
+    page_name = "sheets-history" if active_module == VOICES_MODULE  else "texts-history"
     
     return menu_page(request, props, page=page_name, title=title, desc=desc)
 
@@ -2934,7 +2935,7 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
-    scope = str(request.GET.get("scope", "library"))
+    scope = str(request.GET.get("scope", LIBRARY_MODULE))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
@@ -3112,7 +3113,7 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
-    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == "library" else "Explore Source Sheets by Topic on Sefaria"
+    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == LIBRARY_MODULE else "Explore Source Sheets by Topic on Sefaria"
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _(desc),
@@ -3141,10 +3142,10 @@ def topic_page(request, slug, test_version=None):
     short_lang = get_short_lang(request.interfaceLang)
     desc = title = ""
     short_title = topic_obj.get_primary_title(short_lang)
-    if request.active_module == "library":
+    if request.active_module == LIBRARY_MODULE:
         title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
-    elif request.active_module == "voices":
+    elif request.active_module == VOICES_MODULE:
         title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
 
