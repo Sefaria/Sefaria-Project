@@ -456,21 +456,20 @@ class Util {
     /**
      * Keyboard handler for dropdown/listbox trigger buttons.
      * Handles Enter, Space, and ArrowDown keys according to ARIA best practices.
+     * Focus management when opening is handled by component lifecycle methods.
      * 
      * @param {Event} e - Keyboard event
      * @param {Object} options - Configuration object
      * @param {Function} options.onToggle - Called when Enter or Space is pressed
      * @param {boolean} options.isOpen - Whether the dropdown is currently open
-     * @param {HTMLElement} options.listboxRef - Reference to the listbox element (for focus management)
      * 
      * @example
      * <button onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
      *   onToggle: () => this.toggleMenu(),
-     *   isOpen: this.state.menuOpen,
-     *   listboxRef: this.listboxRef
+     *   isOpen: this.state.menuOpen
      * })}>Menu</button>
      */
-    static handleDropdownTriggerKeyDown(e, { onToggle, isOpen, listboxRef }) {
+    static handleDropdownTriggerKeyDown(e, { onToggle, isOpen }) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         onToggle && onToggle();
@@ -479,8 +478,6 @@ class Util {
         e.preventDefault();
         if (!isOpen) {
           onToggle && onToggle();
-        } else if (listboxRef) {
-          listboxRef.focus();
         }
       }
     }

@@ -383,8 +383,7 @@ class AddToSourceSheetBox extends Component {
             ref={(el) => { this.triggerRef = el; }}
             onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
               onToggle: this.toggleSheetList,
-              isOpen: this.state.sheetListOpen,
-              listboxRef: this.listboxRef
+              isOpen: this.state.sheetListOpen
             })}
           >
             {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}

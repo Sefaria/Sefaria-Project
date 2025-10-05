@@ -2549,8 +2549,7 @@ class Dropdown extends Component {
             ref={(el) => { this.triggerRef = el; }}
             onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
               onToggle: this.toggle,
-              isOpen: this.state.optionsOpen,
-              listboxRef: this.listboxRef
+              isOpen: this.state.optionsOpen
             })}
           >
             <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
