@@ -1452,17 +1452,11 @@ ArrowButton.propTypes = {
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
   const handleClick = (e) => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext);
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { 
-      e.preventDefault(); 
-      handleClick(e);
-    }
-  };
   return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
     style={style} onClick={handleClick}
-    onKeyDown={handleKeyDown}>
+    onKeyDown={(e) => Util.handleKeyboardClick(e, handleClick)}>
     { children }
   </div>
 )};
