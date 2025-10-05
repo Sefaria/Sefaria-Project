@@ -1107,7 +1107,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return;
     }
     
-    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.SHEETS_MODULE or Sefaria.LIBRARY_MODULE or null
+    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.VOICES_MODULE or Sefaria.LIBRARY_MODULE or null
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {

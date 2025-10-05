@@ -86,7 +86,7 @@ function sortByTypeOrder(array) {
 }
 
 const getURLForObject = function(type, key) {
-    if (type === "Collection" && Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
+    if (type === "Collection" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       return `/collections/${key}`;
     } else if (type === "TocCategory" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/texts/${key.join('/')}`;
@@ -94,7 +94,7 @@ const getURLForObject = function(type, key) {
       return `/topics/${key}`;
     } else if (type === "ref" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User" && Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
+    } else if (type === "User" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       return `/profile/${key}`;
     }
 };
