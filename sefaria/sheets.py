@@ -355,7 +355,7 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 @django_cache(timeout=6 * 60 * 60)
-def trending_topics(days=7, ntags=14):
+def trending_topics(days=30, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
 	"""
@@ -373,7 +373,6 @@ def trending_topics(days=7, ntags=14):
 			{"$group": {"_id": "$topics.slug", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
 			{"$project": {"_id": 0, "slug": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
 
-	topics_list = list(topics)
 	results = add_langs_to_topics([{
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],

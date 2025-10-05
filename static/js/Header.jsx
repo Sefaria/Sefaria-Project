@@ -520,12 +520,12 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
         } 
 
-        <a href="developers.sefaria.org" target="_blank">
+        <a href="https://developers.sefaria.org" target="_blank">
           <img src="/static/icons/dev-portal-mobile-icon.svg" />
           <InterfaceText text={{en: "Developers", he: "מפתחים"}} />
         </a>
 
-        <a href="sefaria.org/products" target="_blank">
+        <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
           <img src="/static/icons/products-icon.svg" />
           <InterfaceText text={{en: "All Products", he: "מוצרים"}} />
         </a>
