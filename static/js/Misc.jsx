@@ -2961,12 +2961,13 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide}) => {
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
       <div className="items">
+        {showGuide && <GuideButton onShowGuide={showGuide} />}
         {languageToggle}
         {sheetOptions}
       </div>
