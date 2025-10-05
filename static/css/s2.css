@@ -9204,6 +9204,24 @@ a.sheetAuthorName:hover {
   justify-content: space-between;
   align-items: center;
 }
+.sheetMetaDataBox .guideButton {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-inline-end: 8px;
+}
+.sheetMetaDataBox .guideButton img {
+  height: 16px;
+  width: auto;
+  margin-top: 6px;
+}
+.sheetMetaDataBox .guideButton.tooltip-toggle::before {
+  font-weight: bold;
+}
+.interface-hebrew .sheetMetaDataBox .guideButton img {
+  height: 28px;
+  margin-top: 0;
+}
 .marginInlineIndent {
   margin-inline-start: 15px;
   margin-inline-end: 15px;
