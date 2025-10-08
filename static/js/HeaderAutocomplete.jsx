@@ -368,7 +368,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           const c = {...o};
           c["value"] = `${o['title']}${o["type"] === "ref" ? "" : `(${o["type"]})`}`;
           c["label"] = o["title"];
-          c["url"] = getURLForObject(c["type"], c["key"]);
+          c["url"] = getURLForObject(c["type"], c["key"]);  // if null, the object will be filtered out
 
           //"Topic" and "PersonTopic" considered same type:
           const currentType = c["type"];
@@ -377,7 +377,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
 
           return c;
-        });
+        }).filter(o => o.url !== null);  // filter out objects with null url
         comps = sortByTypeOrder(comps)
         if (comps.length > 0) {
           const q = inputValue;

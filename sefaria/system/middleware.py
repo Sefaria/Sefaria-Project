@@ -255,34 +255,28 @@ class ModuleMiddleware(MiddlewareURLMixin):
 
     def __init__(self, get_response):
         self.get_response = get_response
+        self.default_module = LIBRARY_MODULE
 
-    def _get_module_from_host(self, request):
+    def _set_active_module(self, request):
         """
         Determine the active module based on the request host using DOMAIN_MODULES.
-        Returns the module name if found, None otherwise.
+        Returns the module name if found, the default module otherwise.
         """        
-        current_host = request.get_host()
-        parsed_current = urlparse(f"http://{current_host}")
-        current_hostname = parsed_current.hostname
+        current_hostname = urlparse(f"http://{request.get_host()}").hostname
         
         for module in settings.DOMAIN_MODULES.values():
             for module_name, module_domain in module.items():
-                parsed_domain = urlparse(module_domain)
-                domain_to_check = parsed_domain.hostname
-
-                if current_hostname == domain_to_check:
+                if current_hostname == urlparse(module_domain).hostname:
                     return module_name            
-        return None
+        return self.default_module
             
-
+    
     def __call__(self, request):
-        request.active_module = LIBRARY_MODULE
         if not self.should_process_request(request):
+            request.active_module = self.default_module
             return self.get_response(request)
 
-        active_module_from_host = self._get_module_from_host(request)
-        if active_module_from_host:
-            request.active_module = active_module_from_host
+        request.active_module = self._set_active_module(request)
         return self.get_response(request)
 
     #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using

@@ -529,9 +529,6 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    if (!Sefaria.domainModules) {
-      return false;
-    }
     return Object.values(Sefaria.domainModules).some(href => url.href.startsWith(href));
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
