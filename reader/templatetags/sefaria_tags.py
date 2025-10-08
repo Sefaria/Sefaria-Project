@@ -17,7 +17,6 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
-from sefaria.local_settings import DOMAIN_MODULES
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data

@@ -10,14 +10,14 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.urls import resolve
 
-from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
-from sefaria.settings import DOMAIN_MODULES
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
+from sefaria.constants.model import LIBRARY_MODULE
+
 import structlog
 import json
 logger = structlog.get_logger(__name__)
@@ -74,7 +74,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             request.interfaceLang = "english"
             request.contentLang = "bilingual"
@@ -108,8 +108,8 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 interface = domain_lang
             else:
                 redirect_domain = None
-                for domain in DOMAIN_LANGUAGES:
-                    if DOMAIN_LANGUAGES[domain] == interface:
+                for domain in settings.DOMAIN_LANGUAGES:
+                    if settings.DOMAIN_LANGUAGES[domain] == interface:
                         redirect_domain = domain
                 if redirect_domain:
                     # When detected language doesn't match current domain langauge, redirect
@@ -169,7 +169,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
+            domain = [d for d in settings.DOMAIN_LANGUAGES if settings.DOMAIN_LANGUAGES[d] == lang][0]
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
@@ -192,8 +192,8 @@ def current_domain_lang(request):
     domain_lang = None
     for protocol in ("https://", "http://"):
         full_domain = protocol + current_domain
-        if full_domain in DOMAIN_LANGUAGES:
-            domain_lang = DOMAIN_LANGUAGES[full_domain]
+        if full_domain in settings.DOMAIN_LANGUAGES:
+            domain_lang = settings.DOMAIN_LANGUAGES[full_domain]
     return domain_lang
 
 
@@ -204,7 +204,7 @@ class CORSDebugMiddleware(MiddlewareMixin):
         However, nginx isn't normally running when debugging with localhost
         """
         origin = request.get_host()
-        if ('localhost' in origin or '127.0.0.1' in origin) and DEBUG:
+        if ('localhost' in origin or '127.0.0.1' in origin) and settings.DEBUG:
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET"
             response["Access-Control-Allow-Headers"] = "*"
@@ -254,38 +254,29 @@ class ModuleMiddleware(MiddlewareURLMixin):
     }
 
     def __init__(self, get_response):
-        self.get_response = get_response        
+        self.get_response = get_response
+        self.default_module = LIBRARY_MODULE
 
-    def _get_module_from_host(self, request):
+    def _set_active_module(self, request):
         """
         Determine the active module based on the request host using DOMAIN_MODULES.
-        Returns the module name if found, None otherwise.
-        """
+        Returns the module name if found, the default module otherwise.
+        """        
+        current_hostname = urlparse(f"http://{request.get_host()}").hostname
         
-        from urllib.parse import urlparse
-        
-        current_host = request.get_host()
-        parsed_current = urlparse(f"http://{current_host}")
-        current_hostname = parsed_current.hostname
-        
-        for lang, module in DOMAIN_MODULES.items():
+        for module in settings.DOMAIN_MODULES.values():
             for module_name, module_domain in module.items():
-                parsed_domain = urlparse(module_domain)
-                domain_to_check = parsed_domain.hostname
-
-                if current_hostname == domain_to_check:
+                if current_hostname == urlparse(module_domain).hostname:
                     return module_name            
-        return None
+        return self.default_module
             
-
+    
     def __call__(self, request):
-        request.active_module = 'library'
         if not self.should_process_request(request):
+            request.active_module = self.default_module
             return self.get_response(request)
 
-        active_module_from_host = self._get_module_from_host(request)
-        if active_module_from_host:
-            request.active_module = active_module_from_host
+        request.active_module = self._set_active_module(request)
         return self.get_response(request)
 
     #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using

@@ -167,9 +167,9 @@ INSTALLED_APPS = (
 
 LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = 'table_of_contents'
+LOGIN_REDIRECT_URL = 'home'
 
-LOGOUT_REDIRECT_URL = 'table_of_contents'
+LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',

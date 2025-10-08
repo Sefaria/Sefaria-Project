@@ -11,6 +11,7 @@ import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
 import FilterNode from "./FilterNode";
+import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
 
 let Sefaria = Sefaria || {
@@ -20,6 +21,8 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
+  VOICES_MODULE,
+  LIBRARY_MODULE,
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -515,9 +518,6 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  
-  SHEETS_MODULE: "voices",
-  LIBRARY_MODULE: "library",
   getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.  
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
@@ -531,15 +531,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    if (!Sefaria.domainModules) {
-      return false;
-    }
-    for (const [name, href] of Object.entries(Sefaria.domainModules)) {
-      if (url.href.startsWith(href)) {
-        return true;
-      }
-    }
-    return false;
+    return Object.values(Sefaria.domainModules).some(href => url.href.startsWith(href));
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
@@ -2886,7 +2878,7 @@ _media: {},
      In the sheets module, every source is under the "Sheets" tab.
      */
     let tabKey, title;
-    if (Sefaria.activeModule === Sefaria.SHEETS_MODULE && refObj.is_sheet) {
+    if (Sefaria.activeModule === Sefaria.VOICES_MODULE && refObj.is_sheet) {
       tabKey = 'sheets';
       title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
     } 
@@ -3555,7 +3547,7 @@ _media: {},
     }
   },
   getLogoutUrl: () => {
-    const next = Sefaria.activeModule === Sefaria.SHEETS_MODULE ? 'sheets' : 'texts';
+    const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
 });
