@@ -7,8 +7,12 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
-  DOMAIN_LANGUAGE: {{ include "config.domainLanguage" . | fromYaml | toJson | quote }}
-  DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
+  DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
+  DOMAIN_MODULES: {{ .Values.localSettings.DOMAIN_MODULES | toJson | quote }}
+  # The new lines that we will eventually want are below (e.g. config.domainLanguage) but for the time being, for QA purposes,
+  # we will stick with the old lines above (e.g. .Values.localSettings.DOMAIN_LANGUAGE).
+  # DOMAIN_LANGUAGE: {{ include "config.domainLanguage" . | fromYaml | toJson | quote }}
+  # DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
   FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}

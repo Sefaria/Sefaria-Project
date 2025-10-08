@@ -2,6 +2,10 @@
 
 from django.db import migrations
 
+import structlog
+logger = structlog.get_logger(__name__)
+
+
 
 def rename_sheets_to_voices(apps, schema_editor):
     """Rename the 'sheets' pool to 'voices' in the database."""
@@ -11,9 +15,9 @@ def rename_sheets_to_voices(apps, schema_editor):
         sheets_pool = TopicPool.objects.get(name='sheets')
         sheets_pool.name = 'voices'
         sheets_pool.save()
-        print("Successfully renamed 'sheets' pool to 'voices'")
+        logger.info("Successfully renamed 'sheets' pool to 'voices'")
     except TopicPool.DoesNotExist:
-        print("No 'sheets' pool found to rename")
+        logger.warning("No 'sheets' pool found to rename")
 
 
 def reverse_voices_to_sheets(apps, schema_editor):
@@ -24,9 +28,9 @@ def reverse_voices_to_sheets(apps, schema_editor):
         voices_pool = TopicPool.objects.get(name='voices')
         voices_pool.name = 'sheets'
         voices_pool.save()
-        print("Successfully renamed 'voices' pool back to 'sheets'")
+        logger.info("Successfully renamed 'voices' pool back to 'sheets'")
     except TopicPool.DoesNotExist:
-        print("No 'voices' pool found to rename back")
+        logger.warning("No 'voices' pool found to rename back")
 
 
 class Migration(migrations.Migration):
