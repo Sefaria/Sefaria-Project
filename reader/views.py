@@ -3317,11 +3317,11 @@ def topic_pool_api(request, pool_name):
     
     # Map the pool_name to the correct topic pool based on active_module
     # If pool_name is 'voices', we need to use 'sheets' pool
-    actual_pool_name = get_topic_pool_name_for_module(pool_name)
+    expected_pool_name = get_topic_pool_name_for_module(pool_name)
     
     n_samples = int(request.GET.get("n"))
     order = request.GET.get("order", "random")
-    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, actual_pool_name, n_samples)
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, expected_pool_name, n_samples)
     response = [Topic.init(slug).contents() for slug in topic_slugs]
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -3686,7 +3686,6 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
-@csrf_exempt
 def profile_api(request, slug=None):
     """
     API for user profiles.
