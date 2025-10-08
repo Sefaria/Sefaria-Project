@@ -294,7 +294,7 @@ def catchall(request, tref, sheet=None):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
-        if active_module != 'library':
+        if active_module != LIBRARY_MODULE:
             raise Http404
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
@@ -1038,7 +1038,7 @@ def saved_content(request):
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
     
     # Determine page name based on active module
-    active_module = getattr(request, 'active_module', 'library')
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
     page_name = "sheets-saved" if active_module == VOICES_MODULE else "texts-saved"
     
     return menu_page(request, props, page=page_name, title=title, desc=desc)
@@ -1064,7 +1064,7 @@ def user_history_content(request):
     desc = _("See your user history on Sefaria")
     
     # Determine page name based on active module
-    active_module = getattr(request, 'active_module', 'library')
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
     page_name = "sheets-history" if active_module == VOICES_MODULE  else "texts-history"
     
     return menu_page(request, props, page=page_name, title=title, desc=desc)
@@ -1085,7 +1085,7 @@ def user_stats(request):
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    active_module = getattr(request, 'active_module', 'library')
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
     notifications = UserProfile(user_obj=request.user).recent_notifications(scope=active_module)
     props = {
         "notifications": notifications.client_contents(),
