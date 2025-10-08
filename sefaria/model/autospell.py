@@ -14,6 +14,7 @@ from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
 logger = structlog.get_logger(__name__)
@@ -341,11 +342,11 @@ class Completions(object):
         """
         normalized_type = self._type_norm_map[co["type"]]
         normalized_type_to_allowed_modules_map = {  
-            "ref": ["library"],
-            "Term": ["library"],
-            "TocCategory": ["library"],
-            "User": ["sheets"],
-            "Collection": ["sheets"],
+            "ref": [LIBRARY_MODULE],
+            "Term": [LIBRARY_MODULE],
+            "TocCategory": [LIBRARY_MODULE],
+            "User": [VOICES_MODULE],
+            "Collection": [VOICES_MODULE],
             "Topic": co.get("topic_pools", [])
         }
         return normalized_type_to_allowed_modules_map[normalized_type]
