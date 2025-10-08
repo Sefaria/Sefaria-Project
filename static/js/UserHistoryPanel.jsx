@@ -56,6 +56,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const title = (
     <span className="sans-serif">
+
       <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>

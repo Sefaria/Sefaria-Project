@@ -20,6 +20,7 @@ import re
 import uuid
 from dataclasses import asdict
 
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -170,7 +171,7 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        active_module = getattr(request, "active_module", "library")
+        active_module = getattr(request, "active_module", LIBRARY_MODULE)
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -213,7 +214,7 @@ def base_props(request):
             "last_place": []
         }
     user_data.update({
-        "activeModule": getattr(request, "active_module", "library"),
+        "activeModule": getattr(request, "active_module", LIBRARY_MODULE),
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
@@ -286,14 +287,14 @@ def catchall(request, tref, sheet=None):
         response['Location'] += "?%s" % params if params else ""
         return response
 
-    active_module = getattr(request, "active_module", "library")
+    active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
     for version in ['ven', 'vhe']:
         if request.GET.get(version) and '|' not in request.GET.get(version):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
-        if active_module != 'library':
+        if active_module != LIBRARY_MODULE:
             raise Http404
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
@@ -1035,10 +1036,8 @@ def saved_content(request):
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    
-    # Determine page name based on active module
-    active_module = getattr(request, 'active_module', 'library')    
     return menu_page(request, props, page="saved", title=title, desc=desc)
+
 
 
 def get_user_history_props(request):
@@ -1059,10 +1058,8 @@ def user_history_content(request):
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    
-    # Determine page name based on active module
-    active_module = getattr(request, 'active_module', 'library')    
     return menu_page(request, props, page="history", title=title, desc=desc)
+
 
 @login_required
 def notes(request):
@@ -1080,7 +1077,7 @@ def user_stats(request):
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    active_module = getattr(request, 'active_module', 'library')
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
     notifications = UserProfile(user_obj=request.user).recent_notifications(scope=active_module)
     props = {
         "notifications": notifications.client_contents(),
@@ -2930,7 +2927,7 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
-    scope = str(request.GET.get("scope", "library"))
+    scope = str(request.GET.get("scope", LIBRARY_MODULE))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
@@ -3108,7 +3105,7 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
-    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == "library" else "Explore Source Sheets by Topic on Sefaria"
+    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == LIBRARY_MODULE else "Explore Source Sheets by Topic on Sefaria"
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _(desc),
@@ -3137,10 +3134,10 @@ def topic_page(request, slug, test_version=None):
     short_lang = get_short_lang(request.interfaceLang)
     desc = title = ""
     short_title = topic_obj.get_primary_title(short_lang)
-    if request.active_module == "library":
+    if request.active_module == LIBRARY_MODULE:
         title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
-    elif request.active_module == "voices":
+    elif request.active_module == VOICES_MODULE:
         title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
 
@@ -3312,11 +3309,11 @@ def topic_pool_api(request, pool_name):
     
     # Map the pool_name to the correct topic pool based on active_module
     # If pool_name is 'voices', we need to use 'sheets' pool
-    actual_pool_name = get_topic_pool_name_for_module(pool_name)
+    expected_pool_name = get_topic_pool_name_for_module(pool_name)
     
     n_samples = int(request.GET.get("n"))
     order = request.GET.get("order", "random")
-    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, actual_pool_name, n_samples)
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, expected_pool_name, n_samples)
     response = [Topic.init(slug).contents() for slug in topic_slugs]
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -3681,7 +3678,6 @@ def user_profile(request, username):
 
 
 @catch_error_as_json
-@csrf_exempt
 def profile_api(request, slug=None):
     """
     API for user profiles.
