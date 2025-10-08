@@ -21,7 +21,9 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
-  apiHost: "" // Defaults to localhost, override to talk another server
+  apiHost: "", // Defaults to localhost, override to talk another server
+  LIBRARY_MODULE: LIBRARY_MODULE,
+  VOICES_MODULE: VOICES_MODULE,
 };
 
 if (typeof window !== 'undefined') {
