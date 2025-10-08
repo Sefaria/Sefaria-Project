@@ -2006,12 +2006,18 @@ const transformValues = (obj, callback) => {
   return newObj;
 };
 
-export const replaceNewLinesWithLinebreaks = (content) => {
-  return transformValues(
-    content,
-    (s) => s.replace(/\n(?!\n)/g, "  \n")
-  );
-}
+// Use optional parameter with destructuring
+export const replaceNewLinesWithLinebreaks = (content, options = {}) => {
+  const { mode = "standard" } = options ?? {};
+
+  if (mode === "strapi") {
+    // Strapi needs to have all the newslines in markdown replaced with &nbsp; entities, extra space at the end for good measure
+    return transformValues(content, (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n");
+  }
+
+  // Replace single newlines only, preserving double newlines (paragraph breaks)
+  return transformValues(content, (s) => s.replace(/\n(?!\n)/g, " \n"));
+};
 
 const InterruptingMessage = ({
                                onClose,
@@ -2147,7 +2153,8 @@ const InterruptingMessage = ({
                   <div id="defaultModalBody" className="line-break">
                     <InterfaceText
                       markdown={replaceNewLinesWithLinebreaks(
-                        strapi.modal.modalText
+                        strapi.modal.modalText,
+                        { mode: "strapi" }
                       )}
                     />
                   </div>
@@ -2311,7 +2318,8 @@ const Banner = ({ onClose }) => {
             <div id="bannerTextBox">
               <InterfaceText
                 markdown={replaceNewLinesWithLinebreaks(
-                  strapi.banner.bannerText
+                  strapi.banner.bannerText,
+                  { mode: 'strapi' }
                 )}
               />
             </div>
