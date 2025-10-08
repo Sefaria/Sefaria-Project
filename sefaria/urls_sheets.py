@@ -13,7 +13,7 @@ handler500 = 'reader.views.custom_server_error'
 handler404 = 'reader.views.custom_page_not_found'
 
 urlpatterns = [
-    url(r'^$', sheets_views.sheets_home_page),
+    url(r'^$', sheets_views.sheets_home_page, name='home'),
     url(r'sheets-with-ref/(?P<tref>.+)$', sheets_views.sheets_with_ref),
     url(r'^collections/?$', reader_views.public_collections),
     url(r'^collections/new$', reader_views.edit_collection_page),
