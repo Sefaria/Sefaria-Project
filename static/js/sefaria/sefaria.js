@@ -21,6 +21,8 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
+  VOICES_MODULE,
+  LIBRARY_MODULE,
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
