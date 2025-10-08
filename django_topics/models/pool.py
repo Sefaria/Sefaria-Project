@@ -4,7 +4,7 @@ from enum import Enum
 
 class PoolType(Enum):
     LIBRARY = "library"
-    SHEETS = "voices"  
+    SHEETS = "sheets"
     TORAH_TAB = "torah_tab"
 
 

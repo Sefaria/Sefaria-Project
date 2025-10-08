@@ -162,8 +162,8 @@ const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const GDocAdvertText = () => {
     const learnMoreLink = "https://voices.sefaria.org/sheets/529099?origin=AddToSheetsPromo"
     return    <InterfaceText>
-                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href={learnMoreLink} data-target-module={Sefaria.SHEETS_MODULE}>Learn more</a></EnglishText>
-                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו! <a href={learnMoreLink} data-target-module={Sefaria.SHEETS_MODULE}>למדו עוד</a></HebrewText>
+                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href={learnMoreLink} data-target-module={Sefaria.VOICES_MODULE}>Learn more</a></EnglishText>
+                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו! <a href={learnMoreLink} data-target-module={Sefaria.VOICES_MODULE}>למדו עוד</a></HebrewText>
              </InterfaceText>;
 }
 const GDocAdvertBox = React.memo(() => {

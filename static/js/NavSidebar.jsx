@@ -208,7 +208,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.SHEETS_MODULE}>
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.VOICES_MODULE}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -805,7 +805,7 @@ const StayConnected = () => {
 const GetStartedButton = () => {
     const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS);
     return <Button variant="secondary" className="getStartedSheets">
-      <a href={href} data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href={href} data-target-module={Sefaria.VOICES_MODULE}>
           <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
       </a>
     </Button>;
@@ -821,7 +821,7 @@ const VoicesNewsletterSignUpButton = () => {
 const CreateSheetsButton = () => {
   return (
     <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")}>
-      <a href="/sheets/new" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href="/sheets/new" data-target-module={Sefaria.VOICES_MODULE}>
         <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
       </a>
     </Button>
@@ -887,7 +887,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
       {!hideTitle &&
       <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
-      <a href="/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
       </Button>
@@ -901,7 +901,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/collections" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a className="button small white" href="/collections" data-target-module={Sefaria.VOICES_MODULE}>
         <img src="/static/icons/collection.svg" alt="collection icon" />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>

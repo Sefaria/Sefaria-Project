@@ -17,7 +17,6 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
-from sefaria.local_settings import DOMAIN_MODULES
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -524,77 +523,3 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
-
-
-def _get_default_url(url_name, *args, **kwargs):
-    """
-    Helper function to get the default URL resolution.
-    Returns the URL if found, '#' if not found.
-    """
-    try:
-        return reverse(url_name, args=args, kwargs=kwargs)
-    except NoReverseMatch:
-        return '#'
-
-
-def _resolve_url_with_module(module_name, url_name, *args, **kwargs):
-    """
-    Core URL resolution logic that generates full URLs based on the module's domain.
-    Uses DOMAIN_MODULES to determine the appropriate base domain for the module.
-    """
-    # First, resolve the relative URL path using standard Django URL resolution
-    relative_path = _get_default_url(url_name, *args, **kwargs)
-    
-    # If we have a module and it exists in DOMAIN_MODULES, return full URL
-    if module_name and module_name in DOMAIN_MODULES:
-        base_domain = DOMAIN_MODULES[module_name]
-        # Ensure base_domain doesn't end with slash and relative_path starts with slash
-        base_domain = base_domain.rstrip('/')
-        if not relative_path.startswith('/'):
-            relative_path = '/' + relative_path
-        return base_domain + relative_path
-    
-    # Fallback: return relative path (for cases where module not in DOMAIN_MODULES)
-    return relative_path
-
-
-@register.simple_tag(takes_context=True)
-def context_url(context, url_name, *args, **kwargs):
-    """
-    Template tag that resolves URLs based on the current request context.
-    Uses the active module from the request to determine the appropriate full URL.
-    Falls back to regular URL resolution if module-specific URL doesn't exist.
-    """
-    request = context.get('request')
-    module_name = None
-    
-    if request:
-        module_name = getattr(request, 'active_module', None)
-    
-    return _resolve_url_with_module(module_name, url_name, *args, **kwargs)
-
-
-@register.simple_tag
-def domain_url(domain, url_name, *args, **kwargs):
-    """
-    Template tag that resolves URLs based on a specific domain, which is necessary in email templates where request context is not available.
-    Determines the module from the domain and generates the appropriate full URL.
-    Primarily used in email templates where request context is not available.
-    Falls back to regular URL resolution if module-specific URL doesn't exist.
-    """
-    module_name = None
-    
-    # Parse domain to get hostname if it's a full URL
-    from urllib.parse import urlparse
-    if domain.startswith('http'):
-        parsed_domain = urlparse(domain)
-        hostname = parsed_domain.hostname
-    else:
-        hostname = domain
-            
-    for mod_name, mod_domain in DOMAIN_MODULES.items():
-        if hostname and hostname in mod_domain:
-            module_name = mod_name
-            break
-    
-    return _resolve_url_with_module(module_name, url_name, *args, **kwargs)

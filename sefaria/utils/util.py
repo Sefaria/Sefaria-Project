@@ -8,7 +8,7 @@ import re
 from functools import wraps
 from itertools import zip_longest
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-from sefaria.settings import DOMAIN_MODULES
+from django.conf import settings
 from sefaria.system.exceptions import InputError
 """
 Time utils
@@ -526,7 +526,7 @@ def short_to_long_lang_code(code):
 
 def get_language_specific_domain_modules(interfaceLang):
     interface_lang_code = get_short_lang(interfaceLang)
-    language_specific_domain_modules = DOMAIN_MODULES.get(interface_lang_code, DOMAIN_MODULES['en'])
+    language_specific_domain_modules = settings.DOMAIN_MODULES.get(interface_lang_code, settings.DOMAIN_MODULES['en'])
     return language_specific_domain_modules
 
 def get_short_lang(language):
