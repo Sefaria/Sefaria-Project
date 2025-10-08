@@ -134,7 +134,7 @@ const TranslationsHeader = () => (
         <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
         <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי.</HebrewText>
       </InterfaceText>
-      <a href="/sheets/511573" data-target-module={Sefaria.SHEETS_MODULE} className="inTextLink">
+      <a href="/sheets/511573" data-target-module={Sefaria.VOICES_MODULE} className="inTextLink">
         <InterfaceText>
           <EnglishText>Learn more ›</EnglishText>
           <HebrewText>למידע נוסף ›</HebrewText>
