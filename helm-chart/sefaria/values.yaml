@@ -278,23 +278,34 @@ tasks:
   queues:
     llm: default-llm
 
+# Declare domains handled by this sefaria instance for both app and ingress config
+# Root domains implicitly handle the library module and do not feature redirects
+# Each root domain should have a language and code
+# Modules definitions include 
+#   module name
+#   a subdomain per corresponding language root
+#   root domain paths that should redirect into the module
+# Cookie domain will be set to the first domain in the root list
 domains:
-  en:
-    root: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-    cert: "{{ .Values.deployEnv }}-tls"
-    language: english
-    redirects:
-      sheets: voices
-      community: voices
-      profile: voices
-  he:
-    root: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
-    cert: "{{ .Values.deployEnv }}-il-tls"
-    language: hebrew
-    redirects:
-      sheets: chiburim
-      community: chiburim
-      profile: chiburim
+  root:
+    - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      cert: "{{ .Values.deployEnv }}-tls"
+      language: english
+      code: en
+#   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
+#     cert: "{{ .Values.deployEnv }}-il-tls"
+#     language: hebrew
+#     code: he
+  modules:
+    - name: voices
+      subdomains:
+        en: voices
+        he: chiburim
+      redirects:
+        - sheets
+        - collection
+        - community
+        - profile
 
 nginx:
   containerImage:

@@ -59,19 +59,21 @@ http {
     }
   }
 
-  {{- range $k, $v := .Values.domains }}
-  {{- $subdomains := list }}
-  {{- $root := $v.root }}
+  {{- range .Values.domains.root }}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+  {{- $code := .code }}
+  {{- $wwwDomain := printf "www.%s" $rootDomain }}
+
   server {
     listen 80;
     listen [::]:80;
-    server_name {{ tpl $root $ }};
-    return 301 https://www.$host$request_uri;
+    server_name {{ $rootDomain }};
+    return 301 https://{{ $wwwDomain }}$request_uri;
   }
 
   server {
     listen 80;
-    server_name www.{{ tpl $root $ }};
+    server_name {{ $wwwDomain }};
     listen [::]:80;
     # parameterize line below
     # Look into security cost of simply serving every host
@@ -80,11 +82,6 @@ http {
     # Return error on forbidden methods
     if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
       return 405;
-    }
-
-    # Redirect insecure requests to HTTPS
-    if ($http_x_forwarded_proto = "http") {
-        return 301 https://www.$host$request_uri;
     }
 
     # protect all non-allowed elasticsearch paths
@@ -174,23 +171,27 @@ http {
     }
     {{- end }}
 
-    {{- range $path, $sub := $v.redirects }}
-    location ~ ^/{{ $path }}(/.*|$) {
-        return 307 https://{{ $sub }}.{{ tpl $root $ }}$1;
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+    {{- range .redirects }}
+    location ~ ^/{{ . }}(/.*|$) {
+        return 307 https://{{ $subdomain }}$1;
     }
     {{- end }}
-  } # server
-
-  {{- range $path, $sub := $v.redirects }}
-    {{- if not (has $sub $subdomains) }}
-      {{- $subdomains = append $subdomains $sub }}
     {{- end }}
-  {{- end }}
-  {{- range $subdomains }}
+    {{- end }}
+  }
+
+  {{- range $.Values.domains.modules }}
+  {{- $subdomain := index .subdomains $code }}
+  {{- if $subdomain }}
+
   server {
     listen 80;
     listen [::]:80;
-    server_name {{ . }}.{{ tpl $root $ }};
+    server_name {{ $subdomain }}.{{ $rootDomain }};
 
     # parameterize line below
     # Look into security cost of simply serving every host
@@ -199,11 +200,6 @@ http {
     # Return error on forbidden methods
     if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
       return 405;
-    }
-
-    # Redirect insecure requests to HTTPS
-    if ($http_x_forwarded_proto = "http") {
-        return 301 https://www.$host$request_uri;
     }
 
     # protect all non-allowed elasticsearch paths
@@ -313,7 +309,9 @@ http {
   } # server
 
   {{- end }}
-  {{ end }}
+  {{- end }}
+  {{- end }}
+
   types {
     text/html                             html htm shtml;
     text/css                              css;

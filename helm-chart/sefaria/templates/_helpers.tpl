@@ -170,17 +170,42 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- end }}
 
 {{- define "config.domainLanguage" }}
-{{- .Values.domainConfig.domainLanguage | toYaml }}
+{{- $domains := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- $lang := .language -}}
+  {{- $code := .code -}}
+  {{- $_ := set $domains (printf "https://%s" $rootDomain) $lang }}
+  {{- $_ := set $domains (printf "https://www.%s" $rootDomain) $lang }}
+  {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+      {{- $fullSubdomain := printf "https://%s.%s" $subdomain $rootDomain }}
+      {{- $_ := set $domains $fullSubdomain $lang }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- toYaml $domains }}
 {{- end }}
 
 {{- define "config.domainModules" }}
-{{- tpl (.Values.domainConfig.domainModules | toYaml) . }}
+{{- $map := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $code := .code -}}
+  {{- $langMap := dict -}}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- $_ := set $langMap "library" (printf "https://www.%s" $rootDomain) }}
+  {{- range $.Values.domains.modules }}
+    {{- $name := .name -}}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+      {{- $fullDomain := printf "https://%s.%s" $subdomain $rootDomain }}
+      {{- $_ := set $langMap $name $fullDomain }}
+    {{- end }}
+  {{- end }}
+  {{- $_ := set $map $code $langMap }}
 {{- end }}
-
-{{- define "config.sessionCookieDomain" }}
-{{- tpl .Values.domainConfig.sessionCookieDomain . }}
-{{- end }}
-
-{{- define "config.csrfCookieDomain" }}
-{{- tpl .Values.domainConfig.csrfCookieDomain . }}
+{{- toYaml $map }}
 {{- end }}
