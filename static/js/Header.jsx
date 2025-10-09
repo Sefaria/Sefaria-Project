@@ -134,34 +134,32 @@ const LoggedInDropdown = ({module}) => {
 );
 }
 
-const ModuleSwitcher = ({ multiPanel, mobileMenuButtonRef }) => {
+const ModuleSwitcher = ({multiPanel, mobileMenuButtonRef}) => {
   const dropdownRef = useRef(null);
-  const libraryURL = Sefaria.moduleRoutes[Sefaria.LIBRARY_MODULE];
-  const sheetsURL = Sefaria.moduleRoutes[Sefaria.SHEETS_MODULE];
   return (
-      <ModuleSwitcherTooltip targetRef={dropdownRef} multiPanel={multiPanel} mobileTargetRef={mobileMenuButtonRef}>
-        <div ref={dropdownRef}>
-          <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
-              <div className='dropdownLinks-options'>
-                  <DropdownMenuItem url={libraryURL} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
-                      <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={"Library"}/>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator/>
-                  <DropdownMenuItem url={sheetsURL} newTab={Sefaria.activeModule !== Sefaria.SHEETS_MODULE} targetModule={Sefaria.SHEETS_MODULE}>
-                      <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator/>
-                  <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
-                      <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator/>
-                  <DropdownMenuItem url={'/products'} newTab={true}>
-                    <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
-                  </DropdownMenuItem>
-              </div>
-          </DropdownMenu>
-        </div>
-      </ModuleSwitcherTooltip>
+    <ModuleSwitcherTooltip targetRef={dropdownRef} multiPanel={multiPanel} mobileTargetRef={mobileMenuButtonRef}>
+      <div ref={dropdownRef}>
+        <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
+            <div className='dropdownLinks-options'>
+                <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
+                    <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={"Library"}/>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator/>
+                <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE} targetModule={Sefaria.VOICES_MODULE}>  
+                    <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator/>
+                <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+                    <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator/>
+                <DropdownMenuItem url={'/products'} newTab={true}>
+                  <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
+                </DropdownMenuItem>
+            </div>
+        </DropdownMenu>
+      </div>
+    </ModuleSwitcherTooltip>
 );
 }
 
