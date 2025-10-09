@@ -1143,6 +1143,21 @@ entries:
     version: 0.67.0-fixdomain-handling.1
   - apiVersion: v2
     appVersion: v6.35.5
+    created: "2025-10-09T09:21:22.333006791Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: d9cf5717ac45a5f590b34400505b4ef4e58d7d2464b3b64fa013873e3303d9a1
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.67.0-domains-handling.6.tgz
+    version: 0.67.0-domains-handling.6
+  - apiVersion: v2
+    appVersion: v6.35.5
     created: "2025-09-25T12:52:02.527930241Z"
     description: Chart to deploy complete Sefaria environment
     digest: b8d5217e22ca2705cd44d227c233efd51ea1d2e7fc91bcfff3dcb7158e8b544f
@@ -10050,4 +10065,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-10-09T08:40:14.858259729Z"
+generated: "2025-10-09T09:21:22.330453088Z"
