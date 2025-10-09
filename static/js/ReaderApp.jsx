@@ -2263,6 +2263,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       openMobileNavMenu={this.toggleMobileNavMenu}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      openURL={this.openURL}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
                       setSidebarSearchQuery={setSidebarSearchQuery}

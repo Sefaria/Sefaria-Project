@@ -1074,7 +1074,7 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           initialWidth={this.state.width}
           interfaceLang={this.props.interfaceLang}
-          setCentralState={this.props.setCentralState} />
+          openURL={this.props.openURL} />
       );
 
     } else if (this.state.menuOpen === "collectionsPublic") {
@@ -1278,6 +1278,7 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
+  openURL:                     PropTypes.func,
 };
 
 

@@ -71,16 +71,10 @@ class CollectionPage extends Component {
     this.setState({sheetFilterTopic: filter, showFilterHeader: true});
     this.props.setTab("sheets");
   }
-  async navigateToProfile(profileUrl) {
-    if (this.props.setCentralState) {
-      const slug = profileUrl.split('/').pop();
-      const profile = await Sefaria.profileAPI(slug);
-      this.props.setCentralState({ 
-        menuOpen: "profile", 
-        profile,
-        tab: "sheets"
-      });
-    }
+  navigateToProfile(profileUrl) {
+    const slug = profileUrl.split('/').pop();
+    const profilePath = `/profile/${slug}?tab=sheets`;
+    this.props.openURL(profilePath, false);
   }
   memberList() {
     var collection = this.state.collectionData;
@@ -324,7 +318,7 @@ CollectionPage.propTypes = {
   tag:                PropTypes.string,
   interfaceLang:      PropTypes.string,
   searchInCollection: PropTypes.func,
-  setCentralState:    PropTypes.func,
+  openURL:            PropTypes.func,
 };
 
 
