@@ -44,9 +44,6 @@ http {
     keepalive 32;
   }
 
-  {{- range $k, $v := .Values.domains }}
-  {{- $subdomains := list }}
-  {{- $root := $v.root }}
   server {
     listen 80;
     listen [::]:80;
@@ -62,6 +59,9 @@ http {
     }
   }
 
+  {{- range $k, $v := .Values.domains }}
+  {{- $subdomains := list }}
+  {{- $root := $v.root }}
   server {
     listen 80;
     listen [::]:80;
