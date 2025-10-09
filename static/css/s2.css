@@ -67,12 +67,6 @@ a, a:hover {
   --selected-option: #000000;
   --select-blue: #0B71E7;
   --module-switcher-tooltip-background: #1F2937;
-  --arrow-translate-x: 25px;
-  --tooltip-translate-multiplier: -1;
-}
-/* Hebrew/RTL Interface - Override tooltip positioning */
-.interface-he {
-  --tooltip-translate-multiplier: 1;
 }
 
 /* Font Family */
@@ -5571,7 +5565,6 @@ h1.topic-landing-header {
   justify-content: space-between;
   padding: 20px 0;
 }
-
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
@@ -7169,7 +7162,6 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .toolsButton.seeLess .toolsButtonText{
   margin-inline-start: 5px;
 }
-
 .connectionsPanel .topToolsButtons {
   margin-top: 30px;
 }
@@ -7962,7 +7954,6 @@ But not to use a display block directive that might break continuous mode for ot
 .interface-hebrew .topicList.topicsEn {
   direction: rtl;
 }
-
 .topicButton {
   display: flex;
   justify-content: flex-start;
@@ -11947,7 +11938,6 @@ cursor: pointer;
   margin-inline-start: initial;
   margin-inline-end: initial;
 }
-
 .readerPanel.english .sheetItem .SheetSource.segment,
 .readerPanel.hebrew .sheetItem .SheetSource.segment {
   padding-top: 15px;
@@ -13540,7 +13530,6 @@ body .homeFeedWrapper.userStats {
     width: 320px;
   }
 }
-
 .collectionsModalBox {
   position: fixed;
   width: 100%;
@@ -14339,7 +14328,6 @@ span.ref-link-color-3 {color: blue}
     line-height: 19px;
     margin-top: 10px;
 }
-
 .chat {
   bottom: 0;
   right: 0;
@@ -15138,7 +15126,6 @@ span.ref-link-color-3 {color: blue}
   margin-block: 5px;
   border: 0.5px solid var(--light-grey);
 }
-
 .interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
   min-width: 150px;
@@ -15913,11 +15900,11 @@ span.ref-link-color-3 {color: blue}
 
 /* Floating UI tooltip styles */
 .floating-ui-tooltip {
-  background-color: var(--module-switcher-tooltip-background);
+  background-color: #A9BDDB;
   border-radius: 8px;
   box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
   z-index: 9999;
-  color: white;
+  color: #222;
   max-width: 280px;
 }
 
@@ -15925,11 +15912,32 @@ span.ref-link-color-3 {color: blue}
   padding: 24px;
 }
 
+.floating-ui-tooltip-content a {
+  text-decoration: underline;
+  color: #222;
+}
+
+
+.tooltip-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.tooltip-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #222;
+  color: white;
+  border: none;
+}
 .floating-ui-arrow {
   position: absolute;
   width: 8px;
   height: 8px;
-  background-color: var(--module-switcher-tooltip-background);
+  background-color: #A9BDDB;
   transform: rotate(45deg);
 }
 

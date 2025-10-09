@@ -17,6 +17,9 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const arrowRef = useRef(null);
 
+  const TOOLTIP_OFFSET = 50;
+  const RTL_MULTIPLIER = isHebrew ? 1 : -1;
+
   // Get the appropriate target element based on mobile/desktop
   const targetElement = isMobile ? (mobileTargetRef || targetRef) : targetRef;
 
@@ -62,11 +65,11 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
         en: `PLACEHOLDER TEXT: We made some changes to the structure of the Sefaria web platform. To better serve our different missions we present specialized areas for **learning** ("Library"), **creating** ("Voices"), and **extending** ("Developers") digital Torah. Welcome to the __Next 10 Years__ of Sefaria! PLACEHOLDER & Draft Styles`,
         he: `טיוטה: ערכנו כמה שינויים במבנה פלטפורמת האינטרנט של ספריא. כדי לשרת טוב יותר את שלל המשימות שלנו, אנו מציגים אזורים ייעודיים ל**לימוד** ("ספרייה"), **יצירה** ("קולות"), ו**הרחבה** ("מפתחים") של התורה הדיגיטלית. ברוכים הבאים ל־__עשר השנים הבאות__ של ספריא!`
       }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+      <div className="tooltip-actions">
         <a href="https://example.com" target="_blank" rel="noopener noreferrer">
           <InterfaceText text={{en: "Learn more", he: "למידע נוסף"}} />
         </a>
-        <button onClick={hideTooltip} style={{ padding: '6px 12px', borderRadius: 3, cursor: 'pointer', backgroundColor: 'white', color: 'black' }}>
+        <button onClick={hideTooltip} className="tooltip-button">
           <InterfaceText text={{en: "Got it!", he: "הבנתי"}} />
         </button>
       </div>
@@ -74,7 +77,8 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
   );
 
   // Calculate arrow position
-  const arrowX = middlewareData.arrow?.x;
+  const effectiveOffset = isMobile ? 0 : TOOLTIP_OFFSET * RTL_MULTIPLIER;
+  const arrowX = middlewareData.arrow?.x - effectiveOffset;
   const arrowY = middlewareData.arrow?.y;
   const placement = middlewareData.placement || (isMobile ? 'right' : 'top');
   const staticSide = {
@@ -84,8 +88,8 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
     left: 'right',
   }[placement.split('-')[0]];
   const arrowStyle = {
-    left: arrowX != null ? `${arrowX}px` : '',
-    top: arrowY != null ? `${arrowY}px` : '',
+    left: arrowX !== undefined ? `${arrowX}px` : '',
+    top: arrowY !== undefined ? `${arrowY}px` : '',
     [staticSide]: '-4px',
   };
 
@@ -97,7 +101,7 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
       style={{
         position: strategy,
         top: y ?? 0,
-        left: x ?? 0,
+        left: x + effectiveOffset,
         width: 'max-content',
       }}
     >
