@@ -10,7 +10,7 @@ celery[redis]==5.5.2
 convertdate==2.2.2
 cython==0.29.14
 dateutils==0.6.12
-datrie==0.8.2
+datrie==0.8.3
 deepdiff==3.3.0
 diff_match_patch==20200713
 django-anymail==7.2.*
@@ -71,6 +71,7 @@ unidecode==1.1.1
 user-agents==2.2.0
 pytest-django==4.9.*
 redis==5.2.1
+hiredis==3.1.0
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp

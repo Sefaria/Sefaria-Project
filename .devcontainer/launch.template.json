@@ -1,0 +1,61 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend: Django runserver",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": [
+        "runserver",
+        "0.0.0.0:8000"
+      ],
+      "django": true,
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "Frontend: webpack watch",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "watch-client"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "SSR: npm start",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "start"
+      ],
+      "console": "integratedTerminal",
+      "restart": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dev: backend + frontend",
+      "configurations": [
+        "Backend: Django runserver",
+        "Frontend: webpack watch"
+      ]
+    },
+    {
+      "name": "Dev: backend + frontend + SSR",
+      "configurations": [
+        "Backend: Django runserver",
+        "Frontend: webpack watch",
+        "SSR: npm start"
+      ]
+    }
+  ]
+}
