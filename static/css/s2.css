@@ -15192,7 +15192,6 @@ span.ref-link-color-3 {color: blue}
 .dropdownLinks-options {
   display: flex;
   flex-direction: column;
-  max-width: 220px;
 }
 
 /*.dropdownLinks-options > * {*/
