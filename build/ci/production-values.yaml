@@ -219,7 +219,6 @@ localSettings:
     "https://www.sefaria.org.il": "hebrew",
   }
   DOMAIN_MODULES: {"library": "https://www.sefaria.org", "sheets": "https://sheets.sefaria.org"}
-  MODULE_ROUTES: {"library": "/", "sheets": "/sheets/"}
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false

@@ -86,16 +86,16 @@ function sortByTypeOrder(array) {
 }
 
 const getURLForObject = function(type, key) {
-    if (type === "Collection" && Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
-      return `/sheets/collections/${key}`;
+    if (type === "Collection" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+      return `/collections/${key}`;
     } else if (type === "TocCategory" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/texts/${key.join('/')}`;
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return Sefaria.activeModule === Sefaria.LIBRARY_MODULE ? `/topics/${key}` : `/sheets/topics/${key}`;
+      return `/topics/${key}`;
     } else if (type === "ref" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User" && Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
-      return `/sheets/profile/${key}`;
+    } else if (type === "User" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+      return `/profile/${key}`;
     }
 };
 
@@ -371,7 +371,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           const c = {...o};
           c["value"] = `${o['title']}${o["type"] === "ref" ? "" : `(${o["type"]})`}`;
           c["label"] = o["title"];
-          c["url"] = getURLForObject(c["type"], c["key"]);
+          c["url"] = getURLForObject(c["type"], c["key"]);  // if null, the object will be filtered out
 
           //"Topic" and "PersonTopic" considered same type:
           const currentType = c["type"];
@@ -380,7 +380,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
 
           return c;
-        });
+        }).filter(o => o.url !== null);  // filter out objects with null url
         comps = sortByTypeOrder(comps)
         if (comps.length > 0) {
           const q = inputValue;

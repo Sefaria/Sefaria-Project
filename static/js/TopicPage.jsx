@@ -751,7 +751,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
 
       // Only add author works tab if in library module and has indexes
       if (indexes?.length && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
-        tabs.push({
+        tabs.unshift({
           title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
           id: 'author-works-on-sefaria',
         });
@@ -867,8 +867,7 @@ const TopicPageTab = ({
 
 
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory, module}) => {
-  const prefix = module === Sefaria.SHEETS_MODULE ? "/sheets/" : "/";
-  const href = `${prefix}topics/${isCategory ? 'category/' : ''}${topic}`;
+  const href = `/topics/${isCategory ? 'category/' : ''}${topic}`;
   return <div data-anl-event="related_click:click" data-anl-batch={
     JSON.stringify({
       text: topicTitle.en,

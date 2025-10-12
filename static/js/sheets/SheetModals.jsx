@@ -88,7 +88,7 @@ const CopyModal = ({close, sheetID}) => {
 
   const getCopySuccessMessage = () => {
     return <><InterfaceText>Success!</InterfaceText>
-              <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.SHEETS_MODULE} target='_blank'>
+              <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.VOICES_MODULE} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;

@@ -61,15 +61,15 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     "history": "/texts/history"
   };
   const sheetsURLs = {
-    "saved": "/sheets/saved",
-    "history": "/sheets/history"
+    "saved": "/saved",
+    "history": "/history"
   };
 
   const title = (
     <span className="sans-serif">
       <a
         href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved }
-        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
+        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
         onKeyDown={(e) => Util.handleKeyboardClick(e)}
       >
@@ -78,7 +78,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
       </a>
       <a
         href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history }
-        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE}
+        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
         className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
         onKeyDown={(e) => Util.handleKeyboardClick(e)}
       >

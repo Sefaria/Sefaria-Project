@@ -209,7 +209,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.SHEETS_MODULE}>
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.VOICES_MODULE}>
                 <img src="/static/icons/vector.svg" alt={Sefaria._("Play video")}/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -806,7 +806,7 @@ const StayConnected = () => {
 
 const GetStartedButton = () => {
     const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS)
-    return <Button variant="secondary sefaria-common-button" className="getStartedSheets" href={href} targetModule={Sefaria.SHEETS_MODULE}>
+    return <Button variant="secondary sefaria-common-button" className="getStartedSheets" href={href} targetModule={Sefaria.VOICES_MODULE}>
       
           <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
       
@@ -814,7 +814,7 @@ const GetStartedButton = () => {
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")} href="/sheets/new" targetModule={Sefaria.SHEETS_MODULE}>
+    <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")} href="/sheets/new" targetModule={Sefaria.VOICES_MODULE}>
       <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
     </Button>
   ) 
@@ -871,7 +871,7 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
       {!hideTitle &&
       <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
-      <a href="/sheets/collections/new" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
       </Button>
@@ -885,7 +885,7 @@ const ExploreCollections = () => (
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
     <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
     <div>
-      <a className="button small white" href="/sheets/collections" data-target-module={Sefaria.SHEETS_MODULE}>
+      <a className="button small white" href="/collections" data-target-module={Sefaria.VOICES_MODULE}>
         <img src="/static/icons/collection.svg" alt={Sefaria._("collection icon")} />
         <InterfaceText>Explore Collections</InterfaceText>
       </a>
