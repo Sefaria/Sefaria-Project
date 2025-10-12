@@ -54,15 +54,11 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe='', dotColor=null}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
-        {dotColor ? (
-          <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
-        ) : (
-          <img src={icon} />
-        )}
+        <img src={icon} />
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>
@@ -73,6 +69,22 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe='', dotCol
         </div>
       }
   </>
+  );
+}
+
+const DropdownModuleItem = ({url, newTab, targetModule, dotColor, textEn, textHe}) => {
+  const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+  return (
+    <a className="interfaceLinks-option int-bi dropdownItem"
+       href={fullURL}
+       target={newTab ? '_blank' : null}>
+      <div className="dropdownHeader">
+        <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
+        <span className='dropdownHeaderText'>
+          <InterfaceText text={{en: textEn, he: textHe}}/>
+        </span>
+      </div>
+    </a>
   );
 }
 
@@ -171,7 +183,8 @@ const DropdownLanguageToggle = () => {
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
     DropdownMenuItemLink,
-    DropdownMenuItem, 
+    DropdownMenuItem,
     DropdownMenuItemWithCallback,
+    DropdownModuleItem,
     DropdownLanguageToggle
   };

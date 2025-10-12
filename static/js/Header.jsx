@@ -17,7 +17,7 @@ import {
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
 import {HeaderAutocomplete} from './HeaderAutocomplete'
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
+import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownModuleItem, DropdownLanguageToggle } from './common/DropdownMenu';
 import Button from './common/Button';
   
 const LoggedOutDropdown = ({module}) => {
@@ -134,24 +134,36 @@ const LoggedInDropdown = ({module}) => {
 }
 
 const ModuleSwitcher = () => {
+  const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options'>
               <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
-                  <img src='/static/img/logo.svg' alt='Sefaria' className='dropdownLogo' />
+                  <img src={logoPath} alt='Sefaria' className='dropdownLogo' />
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
-                  <DropdownMenuItemWithIcon dotColor={'--sefaria-blue'} textEn={"Library"}/>
-              </DropdownMenuItem>
+              <DropdownModuleItem
+                  url={"/"}
+                  newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
+                  targetModule={Sefaria.LIBRARY_MODULE}
+                  dotColor={'--sefaria-blue'}
+                  textEn={"Library"}
+                  textHe={"ספריה"} />
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE} targetModule={Sefaria.VOICES_MODULE}>
-                  <DropdownMenuItemWithIcon dotColor={'--sheets-green'} textEn={'Voices'}/>
-              </DropdownMenuItem>
+              <DropdownModuleItem
+                  url={"/"}
+                  newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
+                  targetModule={Sefaria.VOICES_MODULE}
+                  dotColor={'--sheets-green'}
+                  textEn={'Voices'}
+                  textHe={'דפי מקורות'} />
               <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
-                  <DropdownMenuItemWithIcon dotColor={'--mussar-purple'} textEn={'Developers'}/>
-              </DropdownMenuItem>
+              <DropdownModuleItem
+                  url={'https://developers.sefaria.org'}
+                  newTab={true}
+                  dotColor={'--devportal-purple'}
+                  textEn={'Developers'}
+                  textHe={'מפתחים'} />
               <DropdownMenuSeparator/>
               <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
                 <InterfaceText text={{'he': 'מוצרים נוספים ›', 'en': 'More from Sefaria ›'}}/>
