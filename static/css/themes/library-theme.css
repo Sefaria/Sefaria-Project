@@ -39,10 +39,10 @@
 /**
 either a secondary button inside active module or a button with active module on it explicitly
 **/
-[data-active-module="sheets"] button.secondary,
-[data-active-module="sheets"] a.secondary,
-button.secondary[data-active-module="sheets"],
-a.secondary[data-active-module="sheets"]
+[data-active-module="voices"] button.secondary,
+[data-active-module="voices"] a.secondary,
+button.secondary[data-active-module="voices"],
+a.secondary[data-active-module="voices"]
 {
   /** light button colors **/
   --theme-button-background: white;
@@ -51,14 +51,14 @@ a.secondary[data-active-module="sheets"]
   --theme-button-border: transparent;
   --theme-button-dropshadow: none;
 }
-[data-active-module="sheets"] button:disabled,
-[data-active-module="sheets"] a:disabled,
-[data-active-module="sheets"] button.secondary:disabled,
-[data-active-module="sheets"] a.secondary:disabled,
-button:disabled[data-active-module="sheets"],
-a:disabled[data-active-module="sheets"],
-button.secondary:disabled[data-active-module="sheets"],
-a.secondary:disabled[data-active-module="sheets"]{
+[data-active-module="voices"] button:disabled,
+[data-active-module="voices"] a:disabled,
+[data-active-module="voices"] button.secondary:disabled,
+[data-active-module="voices"] a.secondary:disabled,
+button:disabled[data-active-module="voices"],
+a:disabled[data-active-module="voices"],
+button.secondary:disabled[data-active-module="voices"],
+a.secondary:disabled[data-active-module="voices"]{
   /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
   --theme-button-background: var(--lightest-grey);
   --theme-button-text: var(--medium-grey);

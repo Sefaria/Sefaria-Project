@@ -58,7 +58,8 @@ a.sefaria-common-button {
     --english-font: var(--english-sans-serif-font-family);
     --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-button.sefaria-common-button.small {
+button.sefaria-common-button.small,
+a.sefaria-common-button.small {
     height: 30px;
     min-width: 30px;
     padding: 5px 10px;
@@ -81,13 +82,6 @@ button.sefaria-common-button.fillwidth,
 a.sefaria-common-button.fillwidth {
     height: 53px;
     width: 100%;
-}
-/** small button **/
-button.sefaria-common-button.small,
-a.sefaria-common-button.small {
-    padding: 10px 14px;
-    width: fit-content;
-    height: fit-content;
 }
 /** button children **/
 button.sefaria-common-button,
