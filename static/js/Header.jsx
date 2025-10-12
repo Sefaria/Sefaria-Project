@@ -139,7 +139,7 @@ const ModuleSwitcher = () => {
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
           <div className='dropdownLinks-options moduleDropdown'>
               <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
-                  <img src={logoPath} alt='Sefaria' className='dropdownLogo' />
+                  <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
               </DropdownMenuItem>
               <DropdownMenuSeparator/>
               <DropdownModuleItem
