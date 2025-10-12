@@ -54,11 +54,15 @@ const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false})
   );
 }
 
-const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
+const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe='', dotColor=null}) => {
   return (
     <>
       <div className="dropdownHeader">
-        <img src={icon} />
+        {dotColor ? (
+          <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
+        ) : (
+          <img src={icon} />
+        )}
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>
