@@ -137,7 +137,7 @@ const ModuleSwitcher = () => {
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
   return (
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src='/static/icons/module_switcher_icon.svg'/>}>
-          <div className='dropdownLinks-options'>
+          <div className='dropdownLinks-options moduleDropdown'>
               <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
                   <img src={logoPath} alt='Sefaria' className='dropdownLogo' />
               </DropdownMenuItem>

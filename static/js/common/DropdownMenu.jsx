@@ -75,7 +75,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
 const DropdownModuleItem = ({url, newTab, targetModule, dotColor, textEn, textHe}) => {
   const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
   return (
-    <a className="interfaceLinks-option int-bi dropdownItem"
+    <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}
        target={newTab ? '_blank' : null}>
       <div className="dropdownHeader">

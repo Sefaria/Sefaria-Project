@@ -15152,6 +15152,23 @@ span.ref-link-color-3 {color: blue}
   text-align: center;
 }
 
+/* Module switcher specific styles for seamless hover */
+.moduleDropdown .dropdownSeparator {
+  margin-block: 0;
+}
+
+.moduleDropdown a.dropdownItem.dropdownModuleItem {
+  padding-block: 15px;
+}
+
+.moduleDropdown > .dropdownItem:first-child {
+  padding-block: 15px;
+}
+
+.moduleDropdown > .dropdownItem:last-child {
+  padding-block: 15px;
+}
+
 .sheetsInPanel .dropdownItem {
   cursor: pointer;
 }
