@@ -12,23 +12,34 @@ metadata:
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
     nginx.ingress.kubernetes.io/jaeger-propagation-format: w3c
   {{- end }}
-  {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
-  {{- end }}
 spec:
   tls:
-    {{- range $i := .Values.ingress.hosts }}
-    - secretName: {{ $i.tlsRef | default ( printf "origin-%s-tls" $.Values.deployEnv ) }}
+    {{- range $k, $v := .Values.domains }}
+    {{- $subdomains := list }}
+    {{- $root := $v.root }}
+    {{- range $path, $sub := $v.redirects }}
+      {{- if not (has $sub $subdomains) }}
+        {{- $subdomains = append $subdomains $sub }}
+      {{- end }}
+    {{- end }}
+    - secretName: {{ tpl $v.cert $ | default ( printf "origin-%s-$s-tls"  $.Values.deployEnv $k ) }}
       hosts:
-        - {{ tpl $i.host $ }}
-        - www.{{ tpl $i.host $ }}
-    {{- range $k, $v := $.Values.ingress.subdomains }}
-        - {{ $k }}.{{ tpl $i.host $ }}
+        - {{ tpl $root $ }}
+        - www.{{ tpl $root $ }}
+    {{- range $subdomains }}
+        - {{ . }}.{{ tpl $root $ }}
     {{- end }}
     {{- end }}
   rules:
-    {{- range $i := .Values.ingress.hosts }}
-    - host: {{ tpl $i.host $ }}
+    {{- range $k, $v := .Values.domains }}
+    {{- $subdomains := list }}
+    {{- $root := $v.root }}
+    {{- range $path, $sub := $v.redirects }}
+      {{- if not (has $sub $subdomains) }}
+        {{- $subdomains = append $subdomains $sub }}
+      {{- end }}
+    {{- end }}
+    - host: {{ tpl $root $ }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -37,7 +48,7 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    - host: www.{{ tpl $i.host $ }}
+    - host: www.{{ tpl $root $ }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -46,8 +57,8 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    {{- range $k, $v := $.Values.ingress.subdomains }}
-    - host: {{ $k }}.{{ tpl $i.host $ }}
+    {{- range $subdomains }}
+    - host: {{ . }}.{{ tpl $root $ }}
       http:
         paths:
           - pathType: ImplementationSpecific
