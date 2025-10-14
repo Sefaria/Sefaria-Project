@@ -930,6 +930,9 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
     : null
   );
 
+  const removeBrackettedDisambiguation = (str) => {
+    return str.replace(/\(.*?\)/g, '').trim();
+  }
 
   const LinkToSheetsSearchComponent = () => {
     if (!topicTitle?.en || !topicTitle?.he) {
@@ -937,8 +940,10 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       console.warn("Topic title is not set, cannot generate search URLs for sheets.");
       return null;
     }
-    let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
-    let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
+    const cleanHeTitle = removeBrackettedDisambiguation(topicTitle.he);
+    const cleanEnTitle = removeBrackettedDisambiguation(topicTitle.en);
+    let searchUrlEn = `/search?q=${cleanEnTitle}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${cleanEnTitle}&svar=1&ssort=relevance`;
+    let searchUrlHe = `/search?q=${cleanHeTitle}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${cleanHeTitle}&svar=1&ssort=relevance`;
       return (
         <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
           <InterfaceText>
