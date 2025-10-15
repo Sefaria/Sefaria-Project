@@ -1,6 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { HeaderTestHelpers } from './headerMDL';
-import { URLS, SELECTORS, EXTERNAL_URLS, SITE_CONFIGS, SEARCH_DROPDOWN } from './constantsMDL';
+import { hideAllModalsAndPopups } from '../utils';
+import { URLS, SELECTORS, EXTERNAL_URLS, SITE_CONFIGS, SEARCH_DROPDOWN, AUTH_CONSTANTS } from './constantsMDL';
 
 test.describe('Modularization Header Tests', () => {
   let helpers: HeaderTestHelpers;
@@ -151,6 +152,160 @@ test.describe('Modularization Header Tests', () => {
     // Test search dropdown with 'rashi' to trigger Topics, Authors, and Users sections
     await helpers.testSearchDropdown('rashi', SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS, SEARCH_DROPDOWN.SHEETS_EXCLUDED_SECTIONS);
     await helpers.testSearchDropdownIcons('rashi', SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_ICONS);
+  });
+
+  test('MOD-H012: User authentication flow across both sites', async ({ page }) => {
+    // Test Library site authentication
+    await helpers.navigateAndHideModals(URLS.LIBRARY);
+    
+    // Login with superuser (known working credentials)
+    await helpers.loginWithCredentials(URLS.LIBRARY, 'superUser');
+    
+    // Verify logged-in state on Library
+    await expect(helpers.isLoggedIn()).resolves.toBe(true);
+    
+    // Navigate to Sheets - auth should persist
+    await helpers.navigateAndHideModals(URLS.SHEETS);
+    await expect(helpers.isLoggedIn()).resolves.toBe(true);
+    
+    // Test logout
+    await helpers.logout();
+    await expect(helpers.isLoggedIn()).resolves.toBe(false);
+  });
+
+  test('MOD-H013: User menu differences between logged-in/out states', async ({ page }) => {
+    await helpers.testWithAuthStates(async (isLoggedIn: boolean) => {
+      
+      if (isLoggedIn) {
+        // For logged-in state, click the user profile (PP initials)
+        const userProfile = page.locator('.default-profile-img');
+        await userProfile.click();
+        
+        // Should show user-specific options
+        const logoutOption = page.locator(SELECTORS.DROPDOWN_OPTION)
+          .filter({ hasText: /log out|sign out|logout/i });
+        await expect(logoutOption).toBeVisible();
+        
+        // May have profile, settings, etc.
+        const profileOption = page.locator(SELECTORS.DROPDOWN_OPTION)
+          .filter({ hasText: /profile|account/i });
+        // Note: Only check if it exists, might not be implemented yet
+        
+      } else {
+        // For logged-out state, use the logged-out icon
+        await helpers.openDropdown(SELECTORS.ICONS.USER_MENU);
+        
+        // Should show login/signup options
+        const loginOption = page.locator(SELECTORS.DROPDOWN_OPTION)
+          .filter({ hasText: /log in|sign in/i });
+        await expect(loginOption).toBeVisible();
+        
+        const signupOption = page.locator(SELECTORS.DROPDOWN_OPTION)
+          .filter({ hasText: /sign up|register/i });
+        await expect(signupOption).toBeVisible();
+      }
+      
+      // Close dropdown
+      await page.keyboard.press('Escape');
+    });
+  });
+
+  test('MOD-H014: Create New Sheet button functionality when logged in', async ({ page }) => {
+    // Navigate to Sheets site and login
+    await helpers.navigateAndHideModals(URLS.SHEETS);
+    await helpers.loginWithCredentials(URLS.SHEETS, 'superUser');
+    
+    // After login, navigate back to Sheets home to avoid any redirect issues
+    await helpers.navigateAndHideModals(URLS.SHEETS);
+    
+    // Verify logged-in state on Sheets
+    await expect(helpers.isLoggedIn()).resolves.toBe(true);
+    
+    // Find and test the Create button
+    const createButton = page.getByRole('banner').getByRole('button', { name: /create/i });
+    await expect(createButton).toBeVisible();
+    
+    // Get the current URL before clicking
+    const initialUrl = page.url();
+    // Close all popups
+    await hideAllModalsAndPopups(page);
+    
+    // Check if the Create button has a nested link
+    const createLink = page.getByRole('banner').getByRole('link', { name: /create/i });
+    const hasNestedLink = await createLink.count() > 0;
+    
+    if (hasNestedLink) {
+      await createLink.click();
+    } else {
+      await createButton.click();
+    }
+    
+    // Wait for navigation to occur
+    await page.waitForURL(url => url.toString() !== initialUrl, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+    
+    // Close guide overlay if it appears after creating a sheet
+    await helpers.closeGuideOverlay();
+    
+    // Verify navigation to either /sheets/new or a newly created sheet (with numeric ID)
+    // The Create button may directly create a sheet rather than going to a creation form
+    const currentUrl = page.url();
+    const isNewSheetPage = /\/sheets\/new/.test(currentUrl);
+    const isCreatedSheet = /\/sheets\/\d+/.test(currentUrl);
+    
+    expect(isNewSheetPage || isCreatedSheet).toBeTruthy();
+    
+    // If we're on a created sheet, verify we're in the sheet editor and clean up
+    if (isCreatedSheet) {
+      // Verify we're on the sheet editor page by checking for key elements
+      
+      // Wait a bit for the sheet editor to load
+      await page.waitForTimeout(2000);
+      
+      // Look for basic sheet editor elements
+      const publishButton = page.getByRole('button', { name: /publish/i });
+      const publishExists = await publishButton.count() > 0;
+      
+      // Verify we have the publish button (confirms we're in sheet editor)
+      expect(publishExists).toBeTruthy();
+      
+      // Now delete the sheet to clean up
+      
+      // Make sure guide overlay is closed (may reappear)
+      await helpers.closeGuideOverlay();
+      
+      // Click the Options button (ellipses)
+      const optionsButton = page.locator('img[src="/static/icons/ellipses.svg"]');
+      await expect(optionsButton).toBeVisible();
+      await optionsButton.click();
+      
+      // Wait for dropdown to appear and click "Delete"
+      const deleteOption = page.locator('text=Delete');
+      await expect(deleteOption).toBeVisible();
+      
+      // Set up dialog handler to automatically accept it
+      page.once('dialog', async dialog => {
+        await dialog.accept();
+      });
+      
+      // Set up navigation promise before clicking delete
+      const navigationPromise = page.waitForURL(/\/sheets\/profile\//, { timeout: 15000 });
+      
+      // Click delete - this will trigger the dialog
+      await deleteOption.click();
+      
+      // Wait for navigation to profile page
+      await navigationPromise;
+      await page.waitForLoadState('networkidle');
+      
+      // Verify we navigated to the profile page after deletion
+      const deletionUrl = page.url();
+      const isOnProfilePage = /\/sheets\/profile\//.test(deletionUrl);
+      expect(isOnProfilePage).toBeTruthy();
+    }
+    
+    // Cleanup: logout
+    await helpers.logout();
   });
 });
 

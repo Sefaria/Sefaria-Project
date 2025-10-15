@@ -3,6 +3,21 @@ export const URLS = {
   SHEETS: 'https://sheets.modularization.cauldron.sefaria.org'
 } as const;
 
+export const AUTH_CONSTANTS = {
+  TEST_USER: {
+    email: process.env.PLAYWRIGHT_USER_EMAIL || "example@example.com",
+    password: process.env.PLAYWRIGHT_USER_PASSWORD || "example"
+  },
+  SUPERUSER: {
+    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL || "example@example.com", 
+    password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD || "badpassword"
+  },
+  LOGIN_URLS: {
+    LIBRARY: 'https://modularization.cauldron.sefaria.org/login',
+    SHEETS: 'https://sheets.modularization.cauldron.sefaria.org/login'
+  }
+} as const;
+
 export const SELECTORS = {
   LOGO: {
     LIBRARY: 'img[alt="Sefaria Logo"]',
@@ -104,3 +119,4 @@ export type TabOrderItem = { readonly selector: string; readonly description: st
 export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS[number];
 export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_ICONS[number];
 export type IconConfig = { readonly selector: string; readonly alt: string };
+export type AuthUser = 'testUser' | 'superUser';

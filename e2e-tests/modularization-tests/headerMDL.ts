@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
-import { hideAllModalsAndPopups } from '../utils';
-import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, SearchDropdownSection, SearchDropdownIcon } from './constantsMDL';
+import { hideAllModalsAndPopups, hideTipsAndTricks } from '../utils';
+import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, SearchDropdownSection, SearchDropdownIcon, AUTH_CONSTANTS, AuthUser } from './constantsMDL';
 
 /**
  * Helper class for testing header functionality across Sefaria's modularization sites.
@@ -16,6 +16,15 @@ export class HeaderTestHelpers {
   async navigateAndHideModals(url: string) {
     await this.page.goto(url);
     await hideAllModalsAndPopups(this.page);
+  }
+
+  /**
+   * Closes the guide overlay if it appears on sheet creation or navigation.
+   * This is a wrapper around the hideTipsAndTricks utility function.
+   * @returns Promise<void>
+   */
+  async closeGuideOverlay(): Promise<void> {
+    await hideTipsAndTricks(this.page);
   }
 
   /**
@@ -153,6 +162,128 @@ export class HeaderTestHelpers {
     // Close with Escape
     await this.page.keyboard.press('Escape');
     await expect(libraryOption).not.toBeVisible();
+  }
+
+  /**
+   * Logs in using the provided credentials on the specified site.
+   * Uses form-filling logic similar to LoginPage but without language switching.
+   * @param siteUrl - The site URL to login to (Library or Sheets)
+   * @param userType - Which user credentials to use ('testUser' or 'superUser')
+   */
+  async loginWithCredentials(siteUrl: string, userType: AuthUser = 'testUser') {
+    const credentials = userType === 'superUser' 
+      ? AUTH_CONSTANTS.SUPERUSER 
+      : AUTH_CONSTANTS.TEST_USER;
+
+    // Determine correct login URL based on site
+    const loginUrl = siteUrl.includes('sheets')
+      ? AUTH_CONSTANTS.LOGIN_URLS.SHEETS
+      : AUTH_CONSTANTS.LOGIN_URLS.LIBRARY;
+
+    // Navigate to login page
+    await this.page.goto(loginUrl);
+    await this.page.waitForLoadState('networkidle');
+
+    // Fill in login form using the same approach as LoginPage
+    await this.page.getByPlaceholder('Email Address').fill(credentials.email);
+    await this.page.getByPlaceholder('Password').fill(credentials.password);
+    await this.page.getByRole('button', { name: 'Login' }).click();
+    
+    // Wait for successful login (should redirect)
+    await this.page.waitForLoadState('networkidle');
+    
+    // Verify login success
+    await this.verifyLoggedIn();
+  }
+
+  /**
+   * Verifies that user is currently logged in by checking UI indicators.
+   */
+  async verifyLoggedIn() {
+    // Wait for redirect after login and ensure we're not on login page
+    await this.page.waitForLoadState('networkidle');
+    
+    // Check that we're not on the login page anymore
+    const currentUrl = this.page.url();
+    expect(currentUrl).not.toMatch(/\/login/);
+    
+    // Check that logged-out icon is NOT present (should be 0 count when logged in)
+    const loggedOutIcon = this.page.locator('img[src="/static/icons/logged_out.svg"]');
+    const iconCount = await loggedOutIcon.count();
+    expect(iconCount).toBe(0);
+  }
+
+  /**
+   * Checks if user appears to be logged in based on UI indicators.
+   */
+  async isLoggedIn(): Promise<boolean> {
+    try {
+      const loggedOutIcon = this.page.locator('img[src="/static/icons/logged_out.svg"]');
+      const isLoggedOut = await loggedOutIcon.isVisible();
+      return !isLoggedOut;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Logs out the current user and clears authentication state.
+   */
+  async logout() {
+    // Check if already logged out
+    if (!(await this.isLoggedIn())) {
+      return;
+    }
+
+    // Find and click the user menu - look for the profile image with user initials in the banner
+    const userProfile = this.page.getByRole('banner').locator('.default-profile-img');
+    
+    // Try to find user menu by different methods
+    let userMenuClicked = false;
+    
+    // Method 1: Try user profile div with initials in banner
+    if (await userProfile.isVisible()) {
+      await userProfile.click();
+      userMenuClicked = true;
+    } else {
+      // Method 2: Try to find user menu icon in banner
+      const bannerUserMenu = this.page.getByRole('banner').locator('img').last();
+      if (await bannerUserMenu.isVisible()) {
+        await bannerUserMenu.click();
+        userMenuClicked = true;
+      }
+    }
+    
+    if (userMenuClicked) {
+      // Click logout option
+      const logoutOption = this.page.locator(SELECTORS.DROPDOWN_OPTION)
+        .filter({ hasText: /log out|sign out|logout/i });
+      
+      if (await logoutOption.isVisible()) {
+        await logoutOption.click();
+        await this.page.waitForLoadState('networkidle');
+      }
+    }
+  }
+
+  /**
+   * Test both logged-in and logged-out states of a feature.
+   * @param testCallback - Function to run in both states
+   */
+  async testWithAuthStates(
+    testCallback: (isLoggedIn: boolean) => Promise<void>
+  ) {
+    // Test logged-out state
+    if (await this.isLoggedIn()) {
+      await this.logout();
+    }
+    await testCallback(false);
+
+    // Test logged-in state  
+    const currentUrl = this.page.url();
+    const siteUrl = currentUrl.includes('sheets') ? SELECTORS.LOGO.SHEETS : SELECTORS.LOGO.LIBRARY;
+    await this.loginWithCredentials(currentUrl.includes('sheets') ? 'https://sheets.modularization.cauldron.sefaria.org' : 'https://modularization.cauldron.sefaria.org', 'superUser');
+    await testCallback(true);
   }
 
   /**
