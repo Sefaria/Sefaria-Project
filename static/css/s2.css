@@ -4236,7 +4236,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
-  border-bottom: 1px solid var(--light-grey);
   flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
