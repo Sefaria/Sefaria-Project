@@ -129,7 +129,6 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
-	sheet["sheetNotice"] = present_sheet_notice(sheet.get("is_moderated", None))
 	if "displayedCollection" in sheet:
 		collection = Collection().load({"slug": sheet["displayedCollection"]})
 		if collection:
@@ -356,7 +355,7 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 @django_cache(timeout=6 * 60 * 60)
-def trending_topics(days=7, ntags=14):
+def trending_topics(days=30, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
 	"""
@@ -374,12 +373,13 @@ def trending_topics(days=7, ntags=14):
 			{"$group": {"_id": "$topics.slug", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
 			{"$project": {"_id": 0, "slug": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
 
-	topics_list = list(topics)
 	results = add_langs_to_topics([{
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],
 		"author_count": len(topic['authors']),
-	} for topic in filter(lambda x: len(x["authors"]) > 1, topics_list)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	for i, topic in enumerate(results):
+		results[i]['primaryTitle'] = {'en': topic.pop('en'), 'he': topic.pop('he')}   
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
@@ -657,7 +657,7 @@ def test():
 	for s in ss:
 		lang = get_sheet_language(s)
 		if lang == "some hebrew":
-			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+			print("{}\thttps://sheets.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
 
 
 
@@ -786,6 +786,22 @@ def get_top_sheets(limit=3):
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
 
+def annotate_sheets_with_collections(sheets):
+	"""
+	Annotate a list of `sheets` with a list of public collections that the sheet appears in.
+	"""
+	ids = list({int(s['id']) for s in sheets})
+	collections = CollectionSet({'sheets': {'$in': ids}, 'listed': True}, hint="sheets_listed") #Return every public collection that has a sheet in `ids`
+
+	sheet_id_to_collections = defaultdict(list)
+	for collection in collections:
+		for sheet_id in collection.sheets:
+			sheet_id_to_collections[sheet_id].append(collection)
+
+	for sheet in sheets:
+		collections = sheet_id_to_collections[int(sheet["id"])]
+		sheet["collections"] = [{'name': collection.name, 'slug': collection.slug} for collection in collections]
+	return sheets
 
 def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
@@ -808,8 +824,10 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
 		query["id"] = {"$in": sheets_ids}
 
-	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
+	projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
+		 "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
+		 "displayedCollection":1, "options":1}
+	sheetsObj = db.sheets.find(query, projection).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
@@ -875,8 +893,8 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
+				"dateCreated":	   sheet.get("dateCreated", None)
 			}
-
 			results.append(sheet_data)
 	return results
 
@@ -1289,8 +1307,3 @@ def update_sheet_tags_categories(body, uid):
 	time = datetime.now().isoformat()
 	noTags = time if body.get("noTags", False) else False
 	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})
-
-
-def present_sheet_notice(is_moderated):
-	"""This method is here in case one day we will want to differentiate based on other logic on moderation"""
-	return is_moderated
