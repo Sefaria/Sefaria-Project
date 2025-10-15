@@ -170,30 +170,42 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- end }}
 
 {{- define "config.domainLanguage" }}
-{{- range $k, $v := .Values.domains }}
-{{- $subdomains := list }}
-{{- $root := $v.root }}
-{{- $language := $v.language }}
-{{- range $path, $sub := $v.redirects }}
-  {{- if not (has $sub $subdomains) }}
-    {{- $subdomains = append $subdomains $sub }}
+{{- $domains := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- $lang := .language -}}
+  {{- $code := .code -}}
+  {{- $_ := set $domains (printf "https://%s" $rootDomain) $lang }}
+  {{- $_ := set $domains (printf "https://www.%s" $rootDomain) $lang }}
+  {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+      {{- $fullSubdomain := printf "https://%s.%s" $subdomain $rootDomain }}
+      {{- $_ := set $domains $fullSubdomain $lang }}
+    {{- end }}
   {{- end }}
 {{- end }}
-https://{{ tpl $root $ }}: {{ $language }}
-https://www.{{ tpl $root $ }}: {{ $language }}
-{{- range $subdomains }}
-https://{{ . }}.{{ tpl $root $ }}: {{ $language }}
-{{- end }}
-{{- end }}
+{{- toYaml $domains }}
 {{- end }}
 
 {{- define "config.domainModules" }}
-{{- range $k, $v := .Values.domains }}
-{{- $root := $v.root }}
-{{ $k }}:
-  library: https://www.{{ tpl $root $ }}
-{{- range $path, $sub := $v.redirects }}
-  {{ $path }}: https://{{ $sub }}.{{ tpl $root $ }}
+{{- $map := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $code := .code -}}
+  {{- $langMap := dict -}}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- $_ := set $langMap "library" (printf "https://www.%s" $rootDomain) }}
+  {{- range $.Values.domains.modules }}
+    {{- $name := .name -}}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+      {{- $fullDomain := printf "https://%s.%s" $subdomain $rootDomain }}
+      {{- $_ := set $langMap $name $fullDomain }}
+    {{- end }}
+  {{- end }}
+  {{- $_ := set $map $code $langMap }}
 {{- end }}
-{{- end }}
+{{- toYaml $map }}
 {{- end }}
