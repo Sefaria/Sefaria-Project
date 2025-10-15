@@ -1372,10 +1372,7 @@ class ReaderControls extends Component {
       if (this.props.sheetTitle === null) {
         title = heTitle = Sefaria._("Loading...");
       } else {
-        title = heTitle = this.props.sheetTitle;
-        if (title === "") {
-          title = heTitle = Sefaria._("Untitled")
-        }
+        title = heTitle = Sefaria.sheets.getSheetTitle(this.props.sheetTitle);
       }
 
     } else if (data) {

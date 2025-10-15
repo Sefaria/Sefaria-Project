@@ -152,7 +152,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setSummary(newSummary);
   }
   const handlePublish = () => {
-    sheet.title = title === "" ? "Untitled" : title;
+    sheet.title = Sefaria.sheets.getSheetTitle({ title });
     sheet.summary = summary;
     sheet.topics = tags.map(tag => ({
           asTyped: tag.name,
