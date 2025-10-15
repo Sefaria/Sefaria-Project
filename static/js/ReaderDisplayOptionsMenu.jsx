@@ -1,4 +1,4 @@
-import React, {useContext, useRef, useEffect} from "react";
+import {useContext, useRef, useEffect} from "react";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
 import PropTypes from "prop-types";
@@ -12,13 +12,13 @@ const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
     const menuRef = useRef(null);
 
-    const onClose = React.useCallback(() => {
+    const onClose = () => {
         // Close the menu by clicking outside or triggering close mechanism
         const dropdownMenu = menuRef.current?.closest('.readerDropdownMenu');
         if (dropdownMenu) {
             document.body.click();
         }
-    }, []);
+    };
 
     const isPanelModeSheet = panelMode === 'Sheet';
     const isSidePanel = !isPanelModeSheet && panelMode !== 'Text';
