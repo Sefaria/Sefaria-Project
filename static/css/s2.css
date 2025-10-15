@@ -4217,7 +4217,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   font-size: 30px;
   color: #000;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font:  var(--hebrew-sans-serif-font-family);
 }
@@ -4228,7 +4228,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: var(--hebrew-sans-serif-font-family);
 }
 .searchContent .searchTopLine {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 .searchContent .searchResultCount {
   color: var(--dark-grey);
@@ -4236,7 +4236,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
-  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
 }
