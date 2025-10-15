@@ -61,6 +61,7 @@ const SidebarModules = ({type, props}) => {
     "AboutLearningSchedules": AboutLearningSchedules,
     "CreateASheet":           CreateASheet,
     "WhatIsSefariaVoices":     WhatIsSefariaVoices,
+    "VoicesNewsletterSignUp": VoicesNewsletterSignUp,
     "AboutTranslatedText":    AboutTranslatedText,
     "AboutCollections":       AboutCollections,
     "ExploreCollections":     ExploreCollections,
@@ -805,12 +806,19 @@ const StayConnected = () => {
 };
 
 const GetStartedButton = () => {
-    const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS)
+    const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS);
     return <Button variant="secondary sefaria-common-button" className="getStartedSheets" href={href} targetModule={Sefaria.VOICES_MODULE}>
-      
           <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
       
-    </Button>;
+      </Button>;
+}
+const VoicesNewsletterSignUpButton = () => {
+  const href = Sefaria._v({"en": "https://www.sefaria.org/newsletter", "he": "https://www.sefaria.org.il/newsletter"});
+  return <Button>
+    <a href={href} data-target-module={Sefaria.SHEETS_MODULE} target="_blank">
+        <InterfaceText text={{'en': 'Subscribe', 'he': 'להרשמה'}} />
+    
+  </Button>;
 }
 const CreateSheetsButton = () => {
   return (
@@ -843,6 +851,14 @@ const WhatIsSefariaVoices = () => (
                        'he': 'פלטפורמה חדשה זו נוצרה עבורכם, הלומדים והלומדות, כדי שתוכלו ליצור ולאסוף חומרים מקוריים השואבים ממקורות הספרות היהודית. דף לימוד? חיבור ספרותי? בלוג? דבר תורה? פה זה המקום לתת ליצירתיות ולסקרנות להוביל את הדרך.'}}>
         <GetStartedButton/>
     </TitledText>
+);
+
+const VoicesNewsletterSignUp = () => (
+  <TitledText title={{'en': 'Get Updates', 'he': 'הישארו מעודכנים!'}}
+  text={{'en': 'Want to stay in the loop on Sefaria’s newest offerings? Join our mailing list.',
+   'he': 'אצלנו, יש כל הזמן משהו חדש באופק. הירשמו לניוזלטר של ספריא כדי להיות תמיד בעניינים.'}}>
+  <VoicesNewsletterSignUpButton/>
+  </TitledText>
 );
 const AboutLearningSchedules = () => (
   <SidebarModule>
