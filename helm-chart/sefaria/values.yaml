@@ -281,7 +281,7 @@ tasks:
 # Declare domains handled by this sefaria instance for both app and ingress config
 # Root domains implicitly handle the library module and do not feature redirects
 # Each root domain should have a language and code
-# Modules definitions include 
+# Modules definitions include
 #   module name
 #   a subdomain per corresponding language root
 #   root domain paths that should redirect into the module
