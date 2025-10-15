@@ -166,7 +166,7 @@ const ModuleSwitcher = () => {
           targetModule={Sefaria.VOICES_MODULE}
           dotColor={'--sheets-green'}
           textEn={'Voices'}
-          textHe={'דפי מקורות'} />
+          textHe={'חיבורים'} />
         <DropdownMenuSeparator />
         <DropdownModuleItem
           url={'https://developers.sefaria.org'}
