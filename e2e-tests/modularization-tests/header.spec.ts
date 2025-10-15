@@ -49,7 +49,7 @@ test.describe('Modularization Header Tests', () => {
   });
 
   test('MOD-H003: Sheets header navigation and elements', async ({ page }) => {
-    const config = SITE_CONFIGS.SHEETS;
+    const config = SITE_CONFIGS.VOICES;
     await helpers.navigateAndHideModals(config.url);
     
     // Test logo visibility
@@ -78,7 +78,7 @@ test.describe('Modularization Header Tests', () => {
     await helpers.testSearch('Genesis 1:1', /Genesis/);
     
     // Test Sheets search
-    await helpers.navigateAndHideModals(URLS.SHEETS);
+    await helpers.navigateAndHideModals(URLS.VOICES);
     await helpers.testSearch('Passover', /search|Passover/);
   });
 
@@ -97,7 +97,7 @@ test.describe('Modularization Header Tests', () => {
     
     // Test Sheets navigation (new tab)
     let newPage = await helpers.selectDropdownOption('Sheets', true);
-    await expect(newPage!).toHaveURL(/sheets\.modularization\.cauldron\.sefaria\.org/);
+    await expect(newPage!).toHaveURL(/voices\.modularization\.cauldron\.sefaria\.org/);
     await newPage!.close();
     
     // Test Developers navigation (new tab)
@@ -147,11 +147,11 @@ test.describe('Modularization Header Tests', () => {
 
   test('MOD-H011: Sheets - Search dropdown sections and icons validation', async ({ page }) => {
     // Navigate to Sheets site for testing
-    await helpers.navigateAndHideModals(URLS.SHEETS);
+    await helpers.navigateAndHideModals(URLS.VOICES);
     
     // Test search dropdown with 'rashi' to trigger Topics, Authors, and Users sections
-    await helpers.testSearchDropdown('rashi', SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS, SEARCH_DROPDOWN.SHEETS_EXCLUDED_SECTIONS);
-    await helpers.testSearchDropdownIcons('rashi', SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_ICONS);
+    await helpers.testSearchDropdown('rashi', SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_SECTIONS, SEARCH_DROPDOWN.VOICES_EXCLUDED_SECTIONS);
+    await helpers.testSearchDropdownIcons('rashi', SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_ICONS);
   });
 
   test('MOD-H012: User authentication flow across both sites', async ({ page }) => {
@@ -165,7 +165,7 @@ test.describe('Modularization Header Tests', () => {
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
     // Navigate to Sheets - auth should persist
-    await helpers.navigateAndHideModals(URLS.SHEETS);
+    await helpers.navigateAndHideModals(URLS.VOICES);
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
     // Test logout
@@ -212,11 +212,11 @@ test.describe('Modularization Header Tests', () => {
 
   test('MOD-H014: Create New Sheet button functionality when logged in', async ({ page }) => {
     // Navigate to Sheets site and login
-    await helpers.navigateAndHideModals(URLS.SHEETS);
-    await helpers.loginWithCredentials(URLS.SHEETS, 'superUser');
+    await helpers.navigateAndHideModals(URLS.VOICES);
+    await helpers.loginWithCredentials(URLS.VOICES, 'superUser');
     
     // After login, navigate back to Sheets home to avoid any redirect issues
-    await helpers.navigateAndHideModals(URLS.SHEETS);
+    await helpers.navigateAndHideModals(URLS.VOICES);
     
     // Verify logged-in state on Sheets
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
@@ -245,6 +245,7 @@ test.describe('Modularization Header Tests', () => {
     await page.waitForLoadState('networkidle');
     
     // Close guide overlay if it appears after creating a sheet
+    await hideAllModalsAndPopups(page);
     await helpers.closeGuideOverlay();
     
     // Verify navigation to either /sheets/new or a newly created sheet (with numeric ID)
@@ -289,7 +290,7 @@ test.describe('Modularization Header Tests', () => {
       });
       
       // Set up navigation promise before clicking delete
-      const navigationPromise = page.waitForURL(/\/sheets\/profile\//, { timeout: 15000 });
+      const navigationPromise = page.waitForURL(/\/profile\//, { timeout: 15000 });
       
       // Click delete - this will trigger the dialog
       await deleteOption.click();
@@ -300,7 +301,7 @@ test.describe('Modularization Header Tests', () => {
       
       // Verify we navigated to the profile page after deletion
       const deletionUrl = page.url();
-      const isOnProfilePage = /\/sheets\/profile\//.test(deletionUrl);
+      const isOnProfilePage = /\/profile\//.test(deletionUrl);
       expect(isOnProfilePage).toBeTruthy();
     }
     

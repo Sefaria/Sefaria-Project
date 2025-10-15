@@ -137,7 +137,7 @@ export class HeaderTestHelpers {
     for (const item of tabOrder) {
       await this.page.keyboard.press('Tab');
       const element = this.page.locator(item.selector).first();
-      await expect(element).toBeFocused();
+      await expect(element, `Expected focus on ${item.description}`).toBeFocused();
     }
   }
 
@@ -176,8 +176,8 @@ export class HeaderTestHelpers {
       : AUTH_CONSTANTS.TEST_USER;
 
     // Determine correct login URL based on site
-    const loginUrl = siteUrl.includes('sheets')
-      ? AUTH_CONSTANTS.LOGIN_URLS.SHEETS
+    const loginUrl = siteUrl.includes('voices')
+      ? AUTH_CONSTANTS.LOGIN_URLS.VOICES
       : AUTH_CONSTANTS.LOGIN_URLS.LIBRARY;
 
     // Navigate to login page
@@ -281,8 +281,8 @@ export class HeaderTestHelpers {
 
     // Test logged-in state  
     const currentUrl = this.page.url();
-    const siteUrl = currentUrl.includes('sheets') ? SELECTORS.LOGO.SHEETS : SELECTORS.LOGO.LIBRARY;
-    await this.loginWithCredentials(currentUrl.includes('sheets') ? 'https://sheets.modularization.cauldron.sefaria.org' : 'https://modularization.cauldron.sefaria.org', 'superUser');
+    const siteUrl = currentUrl.includes('voices') ? SELECTORS.LOGO.VOICES : SELECTORS.LOGO.LIBRARY;
+    await this.loginWithCredentials(currentUrl.includes('voices') ? 'https://voices.modularization.cauldron.sefaria.org' : 'https://modularization.cauldron.sefaria.org', 'superUser');
     await testCallback(true);
   }
 

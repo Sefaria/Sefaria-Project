@@ -1,6 +1,6 @@
 export const URLS = {
   LIBRARY: 'https://modularization.cauldron.sefaria.org',
-  SHEETS: 'https://sheets.modularization.cauldron.sefaria.org'
+  VOICES: 'https://voices.modularization.cauldron.sefaria.org'
 } as const;
 
 export const AUTH_CONSTANTS = {
@@ -14,14 +14,14 @@ export const AUTH_CONSTANTS = {
   },
   LOGIN_URLS: {
     LIBRARY: 'https://modularization.cauldron.sefaria.org/login',
-    SHEETS: 'https://sheets.modularization.cauldron.sefaria.org/login'
+    VOICES: 'https://voices.modularization.cauldron.sefaria.org/login'
   }
 } as const;
 
 export const SELECTORS = {
   LOGO: {
     LIBRARY: 'img[alt="Sefaria Logo"]',
-    SHEETS: 'img[alt="Sefaria Sheets Logo"]'
+    VOICES: 'img[alt="Sefaria Sheets Logo"]'
   },
   ICONS: {
     LANGUAGE: 'img[src="/static/icons/globe-wire.svg"]',
@@ -60,13 +60,13 @@ export const SEARCH_DROPDOWN = {
   LIBRARY_EXCLUDED_SECTIONS: ['Users'] as const,
   LIBRARY_ALL_EXPECTED_ICONS: ['AuthorTopic', 'Topic', 'TocCategory', 'ref'] as const,
   // Sheets-specific configuration - different from Library
-  SHEETS_ALL_EXPECTED_SECTIONS: ['Topics', 'Authors', 'Users'] as const,
-  SHEETS_EXCLUDED_SECTIONS: ['Categories', 'Books'] as const,
-  SHEETS_ALL_EXPECTED_ICONS: ['Topic', 'AuthorTopic', 'User'] as const, // User icons are profile pictures with alt="User"
+  VOICES_ALL_EXPECTED_SECTIONS: ['Topics', 'Authors', 'Users'] as const,
+  VOICES_EXCLUDED_SECTIONS: ['Categories', 'Books'] as const,
+  VOICES_ALL_EXPECTED_ICONS: ['Topic', 'AuthorTopic', 'User'] as const, // User icons are profile pictures with alt="User"
   // Common search terms that trigger comprehensive results
   TEST_SEARCH_TERMS: {
     LIBRARY_SHOW_ALL: 'mid', // "mid" reliably triggers all 4 sections (Authors, Topics, Categories, Books)
-    SHEETS_SHOW_ALL: 'rashi', // "rashi" shows Topics, Authors, and Users on Sheets
+    VOICES_SHOW_ALL: 'rashi', // "rashi" shows Topics, Authors, and Users on Sheets
   }
 } as const;
 
@@ -86,27 +86,31 @@ export const SITE_CONFIGS = {
       { selector: '.header a.textLink.donate', description: 'Donate link' },
       { selector: '.header input.search[placeholder="Search"]', description: 'Search input' },
       { selector: '.header img.keyboardInputInitiator', description: 'Virtual keyboard icon' },
-      { selector: '.header button.sefaria-common-button', description: 'Sign Up button' },
+      // Match either anchor or button for the action button
+      { selector: '.header .sefaria-common-button', description: 'Sign Up / Create button' },
       { selector: '.header a[href="/register"]', description: 'Sign Up link' },
-      { selector: '.header a[href="https://help.sefaria.org/hc/en-us"]', description: 'Help link' }
+      { selector: '.header a[href="https://help.sefaria.org/hc/en-us"]', description: 'Help link' },
+      { selector: '.header img[alt="Toggle Interface Language Menu"]', description: 'Language dropdown button' },
+      { selector: '.header button.header-dropdown-button[aria-label="Library"]', description: 'Module switcher button' },
+      { selector: '.header button.header-dropdown-button[aria-label="Account menu"]', description: 'User menu button' }
     ]
   },
-  SHEETS: {
-    url: URLS.SHEETS,
+  VOICES: {
+    url: URLS.VOICES,
     name: 'Sheets',
-    logo: SELECTORS.LOGO.SHEETS,
+    logo: SELECTORS.LOGO.VOICES,
     mainLinks: [
       { name: 'Topics', expectedUrl: /topics/ },
       { name: 'Collections', expectedUrl: /collections/ }
     ],
     actionButton: { text: 'Create', href: '/sheets/new' },
     tabOrder: [
-      { selector: '.header a.textLink[href="/sheets/topics"]', description: 'Topics link' },
-      { selector: '.header a.textLink[href="/sheets/collections"]', description: 'Collections link' },
+      { selector: '.header a.textLink[href="/topics"]', description: 'Topics link' },
+      { selector: '.header a.textLink[href="/collections"]', description: 'Collections link' },
       { selector: '.header a.textLink.donate', description: 'Donate link' },
       { selector: '.header input.search[placeholder="Search"]', description: 'Search input' },
       { selector: '.header img.keyboardInputInitiator', description: 'Virtual keyboard icon' },
-      { selector: '.header button.sefaria-common-button', description: 'Create button' },
+      { selector: '.header .sefaria-common-button', description: 'Create button' },
       { selector: '.header a[href="/sheets/new"]', description: 'Create link' },
       { selector: '.header a[href="https://help.sefaria.org/hc/en-us"]', description: 'Help link' }
     ]
@@ -114,9 +118,9 @@ export const SITE_CONFIGS = {
 } as const;
 
 // Type definitions for better TypeScript support
-export type SiteConfig = typeof SITE_CONFIGS.LIBRARY | typeof SITE_CONFIGS.SHEETS;
+export type SiteConfig = typeof SITE_CONFIGS.LIBRARY | typeof SITE_CONFIGS.VOICES;
 export type TabOrderItem = { readonly selector: string; readonly description: string };
-export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_SECTIONS[number];
-export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.SHEETS_ALL_EXPECTED_ICONS[number];
+export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_SECTIONS[number];
+export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_ICONS[number];
 export type IconConfig = { readonly selector: string; readonly alt: string };
 export type AuthUser = 'testUser' | 'superUser';
