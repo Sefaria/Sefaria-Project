@@ -809,7 +809,6 @@ const GetStartedButton = () => {
     const href = Sefaria._v(Sefaria._siteSettings.WHAT_ARE_VOICES_PATHS);
     return <Button variant="secondary sefaria-common-button" className="getStartedSheets" href={href} targetModule={Sefaria.VOICES_MODULE}>
           <InterfaceText text={{'en': 'Learn More', 'he': 'למידע נוסף'}} />
-      
       </Button>;
 }
 const VoicesNewsletterSignUpButton = () => {
@@ -817,7 +816,6 @@ const VoicesNewsletterSignUpButton = () => {
   return <Button>
     <a href={href} data-target-module={Sefaria.SHEETS_MODULE} target="_blank">
         <InterfaceText text={{'en': 'Subscribe', 'he': 'להרשמה'}} />
-    
   </Button>;
 }
 const CreateSheetsButton = () => {
@@ -857,7 +855,7 @@ const VoicesNewsletterSignUp = () => (
   <TitledText title={{'en': 'Get Updates', 'he': 'הישארו מעודכנים!'}}
   text={{'en': 'Want to stay in the loop on Sefaria’s newest offerings? Join our mailing list.',
    'he': 'אצלנו, יש כל הזמן משהו חדש באופק. הירשמו לניוזלטר של ספריא כדי להיות תמיד בעניינים.'}}>
-  <VoicesNewsletterSignUpButton/>
+    <VoicesNewsletterSignUpButton/>
   </TitledText>
 );
 const AboutLearningSchedules = () => (
