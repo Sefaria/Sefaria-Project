@@ -39,7 +39,7 @@ DATABASES = {
 }"""
 
 
-################ These are things you can change! ###########################################################################
+################ User-defined Settings ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 # Map domain to an interface language that the domain should be pinned to.
@@ -53,7 +53,7 @@ DOMAIN_MODULES = {
     "library": "http://localhost:8000",
     "voices": "http://voices.localhost:8000",  
 }
-ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]'] + ["localhost", "voices.localhost"]
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 
 
 ADMINS = (
@@ -133,7 +133,7 @@ SITE_PACKAGE = "sites.sefaria"
 
 
 
-################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
+################ Default Settings (Don't change these unless you know what you are doing) ###############################
 DEBUG = True
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
