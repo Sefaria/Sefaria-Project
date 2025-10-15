@@ -178,7 +178,7 @@ class EditCollectionPage extends Component {
                 <InterfaceText>Collection Image</InterfaceText>
               </label>
               {this.state.imageUrl
-                ? <img className="collectionImage" src={this.state.imageUrl} alt="Collection Image" />
+                ? <img className="collectionImage" src={this.state.imageUrl} alt={Sefaria._("Collection Image")} />
                 : <div className="collectionImage placeholder"></div>}
               <FileInput
                 name="collectionImage"
@@ -199,7 +199,7 @@ class EditCollectionPage extends Component {
               </label>
               {this.state.headerUrl
                 ? <div className="collectionHeaderBox">
-                    <img className="collectionHeader" src={this.state.headerUrl} alt="Collection Header Image" />
+                    <img className="collectionHeader" src={this.state.headerUrl} alt={Sefaria._("Collection Header Image")} />
                     <div className="clearFix"></div>
                   </div>
                 : <div className="collectionHeader placeholder"></div>}

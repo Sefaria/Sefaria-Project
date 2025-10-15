@@ -8,7 +8,8 @@
   --highlight-blue-light: #F0F7FF;
   --beit-midrash-grey: #333333;
   --dark-grey: #666666;
-  --medium-grey: #999999;
+  --medium-grey: #6f6f6f;
+  --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
@@ -33,4 +34,5 @@
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
   --select-blue: #0B71E7;
+  --focus-blue: #1976d2;
 }
