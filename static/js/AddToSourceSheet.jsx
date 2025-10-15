@@ -120,6 +120,9 @@ class AddToSourceSheetBox extends Component {
       this.selectSheet(sheets[this.state.focusedSheetIndex]);
     }
   }
+  onClose = () => {
+    this.setState({ sheetListOpen: false });
+  }
   copyNodeToSourceSheet() {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
@@ -405,7 +408,7 @@ class AddToSourceSheetBox extends Component {
                 onNavigate: this.handleSheetListNavigate,
                 // Select the focused sheet when user presses Enter or Space
                 onSelect: this.handleSheetListSelect,
-                onClose: () => this.setState({ sheetListOpen: false }),
+                onClose: this.onClose,
                 triggerRef: this.triggerRef
               })}
             >

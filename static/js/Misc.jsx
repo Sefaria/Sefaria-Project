@@ -417,6 +417,14 @@ class TabView extends Component {
     }
     return tabIndex;
   }
+  onNavigate = (newIndex) => {
+    const newTab = this.props.tabs[newIndex];
+    if (this.props.setTab) {
+      this.props.setTab(newTab.id);
+    } else {
+      this.openTab(newIndex);
+    }
+  }
   onClickTab(e, clickTabOverride) {
     if (clickTabOverride) {
       clickTabOverride()
@@ -450,14 +458,7 @@ class TabView extends Component {
           Util.handleTabKeyDown(e, {
             currentIndex: index,
             tabCount: this.props.tabs.length,
-            onNavigate: (newIndex) => {
-              const newTab = this.props.tabs[newIndex];
-              if (this.props.setTab) {
-                this.props.setTab(newTab.id);
-              } else {
-                this.openTab(newIndex);
-              }
-            },
+            onNavigate: this.onNavigate,
             onActivate: () => this.onClickTab(e, tab.clickTabOverride)
           });
         }}
@@ -2529,6 +2530,17 @@ class Dropdown extends Component {
       focusedIndex: opening ? 0 : -1
     });
   }
+  onNavigate = (newIndex) => {
+    this.setState({ focusedIndex: newIndex });
+  }
+  onSelect = () => {
+    if (this.state.focusedIndex >= 0 && this.props.options[this.state.focusedIndex]) {
+      this.select(this.props.options[this.state.focusedIndex]);
+    }
+  }
+  onClose = () => {
+    this.setState({ optionsOpen: false });
+  }
   componentDidUpdate(prevProps, prevState) {
     // Move focus to the listbox when opened, back to trigger when closed
     if (!prevState.optionsOpen && this.state.optionsOpen && this.listboxRef) {
@@ -2570,13 +2582,9 @@ class Dropdown extends Component {
                 onKeyDown={(e) => Util.handleListboxKeyDown(e, {
                   currentIndex: this.state.focusedIndex,
                   maxIndex: this.props.options.length - 1,
-                  onNavigate: (newIndex) => this.setState({ focusedIndex: newIndex }),
-                  onSelect: () => {
-                    if (this.state.focusedIndex >= 0 && this.props.options[this.state.focusedIndex]) {
-                      this.select(this.props.options[this.state.focusedIndex]);
-                    }
-                  },
-                  onClose: () => this.setState({ optionsOpen: false }),
+                  onNavigate: this.onNavigate,
+                  onSelect: this.onSelect,
+                  onClose: this.onClose,
                   triggerRef: this.triggerRef
                 })}
               >

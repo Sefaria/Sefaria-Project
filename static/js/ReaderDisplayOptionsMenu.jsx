@@ -12,6 +12,14 @@ const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
     const menuRef = useRef(null);
 
+    const onClose = React.useCallback(() => {
+        // Close the menu by clicking outside or triggering close mechanism
+        const dropdownMenu = menuRef.current?.closest('.readerDropdownMenu');
+        if (dropdownMenu) {
+            document.body.click();
+        }
+    }, []);
+
     const isPanelModeSheet = panelMode === 'Sheet';
     const isSidePanel = !isPanelModeSheet && panelMode !== 'Text';
     const [HEBREW, ENGLISH, BILINGUAL] = ['hebrew', 'english', 'bilingual'];
@@ -106,13 +114,7 @@ const ReaderDisplayOptionsMenu = () => {
         // Handle Escape and Tab with focus trapping
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
-            onClose: () => {
-                // Close the menu by clicking outside or triggering close mechanism
-                const dropdownMenu = menuRef.current?.closest('.readerDropdownMenu');
-                if (dropdownMenu) {
-                    document.body.click();
-                }
-            },
+            onClose: onClose,
             selector: 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [role="radio"]:not([disabled])'
         });
     };
