@@ -813,8 +813,7 @@ const GetStartedButton = () => {
 }
 const VoicesNewsletterSignUpButton = () => {
   const href = Sefaria._v({"en": "https://www.sefaria.org/newsletter", "he": "https://www.sefaria.org.il/newsletter"});
-  return <Button>
-    <a href={href} data-target-module={Sefaria.SHEETS_MODULE} target="_blank">
+  return <Button href={href} data-target-module={Sefaria.SHEETS_MODULE} target="_blank">
         <InterfaceText text={{'en': 'Subscribe', 'he': 'להרשמה'}} />
   </Button>;
 }
