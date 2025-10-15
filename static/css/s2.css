@@ -4243,8 +4243,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 30px;
   color: #000;
   margin-bottom: 10px;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font:  var(--hebrew-sans-serif-font-family);
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font:  var(--hebrew-serif-font-family);
 }
 .searchContent h1.englishQuery {
   font-size: 30px;
