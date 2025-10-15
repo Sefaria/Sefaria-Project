@@ -89,6 +89,7 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, textEn, textHe
   return (
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
        target={newTab ? '_blank' : null}>
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
