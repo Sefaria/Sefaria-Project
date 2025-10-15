@@ -887,9 +887,9 @@ const AboutCollections = ({hideTitle}) => (
     </InterfaceText>
       {!hideTitle &&
       <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
-      <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
-        <InterfaceText>Create a Collection</InterfaceText>
-      </a>
+        <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
+          <InterfaceText>Create a Collection</InterfaceText>
+        </a>
       </Button>
 }
   </SidebarModule>
