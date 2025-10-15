@@ -28,7 +28,7 @@ http {
   # TODO review this CORS setting
   add_header 'Access-Control-Allow-Origin' '*';
 
-  upstream varnish_upstream {
+  upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
     keepalive 32;
   }
@@ -55,7 +55,7 @@ http {
     }
 
     location / {
-        proxy_pass http://varnish_upstream;
+        proxy_pass http://varnishupstream;
     }
   }
 
@@ -63,7 +63,6 @@ http {
   {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
   {{- $code := .code }}
   {{- $wwwDomain := printf "www.%s" $rootDomain }}
-
   server {
     listen 80;
     listen [::]:80;
@@ -135,7 +134,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location /static/mobile/message-en.json {
@@ -246,7 +245,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location ~ /api/ {
@@ -255,7 +254,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location / {
@@ -271,7 +270,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location /static/mobile/message-en.json {

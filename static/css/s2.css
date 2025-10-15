@@ -449,6 +449,17 @@ input.noselect {
 .headerInner .headerLinksSection > * {
   margin-inline-start: 3%;
 }
+.headerLinksSection .sefaria-common-button {
+  width: 67px;
+  height: 30px;
+  padding: 0;
+  line-height: 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .header .header-nav {
   margin-top: 1px;
 }
@@ -823,6 +834,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   background-color: var(--lighter-grey);
   text-decoration: none;
 }
+.dropdownItem[data-prevent-close="true"]:hover {
+  text-decoration: none;
+}
 .header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
@@ -970,6 +984,9 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .mobileHeaderCenter {
   text-align: center;
+}
+.mobileHeaderCenter img.home {
+  margin-inline-end: 0;
 }
 .header .headerInner.mobile .mobileHeaderLanguageToggle {
   text-align: end;
@@ -1748,6 +1765,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   padding-inline: 10px 10px;
   margin-inline: -15px -15px;
   margin-block: -5px -5px;
+  padding-bottom: 10px;
 }
 .singlePanel .recentlyViewed ul {
   display: revert;
@@ -1898,7 +1916,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 .navSidebarLink.language {
   font-size: 18px;
-  margin-top: 16px;
+  margin-top: 6px;
   display: flex;
   flex-wrap:wrap;
 }
@@ -1947,6 +1965,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   justify-content: center;
   margin-left: 0;
   margin-right: 0;
+  margin-top: 22px;
 }
 .navSidebar .button .get-start {
   white-space: nowrap;
@@ -7883,6 +7902,8 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   border: 0px;
   flex: 1 1 auto;
+  display: flex;
+  align-items: center;
 }
 
 .toolsButton ::before {
@@ -7915,6 +7936,14 @@ But not to use a display block directive that might break continuous mode for ot
   height: var(--sans-serif-small-font-size);
   position: relative;
   top: 1px;
+}
+
+.toolsButtonSecondaryIcon {
+  height: 14px;
+  width: auto;
+  margin-inline-start: auto;
+  margin-inline-end: 4px;
+  flex-shrink: 0;
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
@@ -9192,6 +9221,7 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
@@ -10889,7 +10919,6 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
-  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -14909,7 +14938,6 @@ span.ref-link-color-3 {color: blue}
     width: revert;
     border-top: 40px solid #FBFBFA;
     margin-block-start: -40px;
-    border-bottom: 40px solid #FBFBFA;
   }
 }
 @media screen and (max-width: 700px) {
@@ -14988,7 +15016,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownSeparator {
-  border: 1px solid var(--light-grey);
+  border-top: 1px solid var(--light-grey);
   margin-block: 5px;
 }
 .sheetMetaDataBox .dropdownLinks-button {
@@ -15401,7 +15429,7 @@ span.ref-link-color-3 {color: blue}
 
 .footerContainer a {
   padding-top: 10px;
-  padding-inline-end: 6px;
+  padding-inline-end: 16px;
 }
 
 .stickySidebarFooter {
@@ -15428,6 +15456,7 @@ span.ref-link-color-3 {color: blue}
   line-height: 18px;
   height: 23px;
   padding-inline: 15px;
+  margin-top: 7px;
 }
 .interface-english .dropdownLanguageToggle a.hebrewLanguageLink,
 .interface-hebrew .dropdownLanguageToggle a.englishLanguageLink {
@@ -15555,6 +15584,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
   direction:ltr;
+  margin-bottom: 10px;
 }
 
 @-webkit-keyframes load5 {
@@ -15881,5 +15911,6 @@ span.ref-link-color-3 {color: blue}
 .interface-hebrew .guideOverlayFooter {
   direction: rtl;
 }
+
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
