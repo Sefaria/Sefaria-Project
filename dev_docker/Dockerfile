@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM us-east1-docker.pkg.dev/production-deployment/containers/base-web:3.9-bullseye
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

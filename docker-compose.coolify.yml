@@ -4,7 +4,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: build/web/Dockerfile
+      dockerfile: dev_docker/Dockerfile
     ports:
       - "0.0.0.0::8000"
     networks:
