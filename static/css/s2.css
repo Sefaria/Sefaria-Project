@@ -2773,6 +2773,7 @@ a.cardTitle:hover {
 .interface-hebrew .navBlockDescription.clamped .int-he {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  /* autoprefixer: ignore next */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -5166,6 +5167,7 @@ h1.topic-landing-header {
 .salad-container{
   overflow: hidden;
   display: -webkit-box;
+  /* autoprefixer: ignore next */
   -webkit-box-orient: vertical;
   -webkit-line-clamp: var(--num-lines);
   text-overflow: clip;
@@ -5242,6 +5244,7 @@ h1.topic-landing-header {
 .topic-landing-temporal > .topic-landing-seasonal .cardDescription {
   display: -webkit-box;
   -webkit-line-clamp: 9;
+  /* autoprefixer: ignore next */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -5369,6 +5372,7 @@ h1.topic-landing-header {
   max-width: 208px;
   max-height: 201px;
   display: -webkit-box;
+  /* autoprefixer: ignore next */
   -webkit-box-orient: vertical;
   overflow-y: hidden;
   word-wrap: break-word;
@@ -5396,6 +5400,7 @@ h1.topic-landing-header {
   margin-top: 23px;
   padding: unset;
   -webkit-line-clamp: 2;
+  /* autoprefixer: ignore next */
   -webkit-box-orient: vertical;
   overflow: hidden;
   display: -webkit-box;
