@@ -2784,6 +2784,18 @@ input.resourcesLink {
 .savedHistoryMessage {
   color: var(--dark-grey);
 }
+/* Mobile: Prevent horizontal scroll in Saved/History/Notes views */
+@media (max-width: 540px) {
+  /* Hide tooltips (they extend beyond viewport and don't work on mobile anyway) */
+  .savedHistoryList .saveButton.tooltip-toggle::before,
+  .noteListing .tooltip-toggle::before {
+    display: none;
+  }
+  /* Contain floated action buttons to prevent overflow */
+  .noteListing {
+    overflow: hidden;
+  }
+}
 .readerNavCategories {
   width: 100%;
   margin-bottom: 30px;
