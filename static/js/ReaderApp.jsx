@@ -1282,7 +1282,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
-    //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
@@ -1301,6 +1300,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
     }
     this.setState(new_state);
+    // Reset replaceHistory to false to avoid breaking subsequent navigation
+    if (replaceHistory) {
+      this.replaceHistory = false;
+    }
   }
   didDefaultPanelSettingsChange(state){
     if ("settings" in state){

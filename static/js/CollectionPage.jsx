@@ -71,11 +71,6 @@ class CollectionPage extends Component {
     this.setState({sheetFilterTopic: filter, showFilterHeader: true});
     this.props.setTab("sheets");
   }
-  navigateToProfile(profileUrl) {
-    const slug = profileUrl.split('/').pop();
-    const profilePath = `/profile/${slug}?tab=sheets`;
-    this.props.openURL(profilePath, false);
-  }
   memberList() {
     var collection = this.state.collectionData;
     if (!collection) { return null; }
@@ -221,7 +216,6 @@ class CollectionPage extends Component {
               isSelf={member.uid == Sefaria._uid}
               slug={this.props.slug}
               onDataChange={this.onDataChange}
-              navigateToProfile={this.navigateToProfile}
               key={i} />
           ))}
         </div>
@@ -318,7 +312,6 @@ CollectionPage.propTypes = {
   tag:                PropTypes.string,
   interfaceLang:      PropTypes.string,
   searchInCollection: PropTypes.func,
-  openURL:            PropTypes.func,
 };
 
 
@@ -485,16 +478,9 @@ class CollectionMemberListing extends Component {
         : null;
     }
 
-    const handleProfileClick = (e) => {
-      e.preventDefault();
-      if (this.props.navigateToProfile) {
-        this.props.navigateToProfile(this.props.member.profileUrl);
-      }
-    };
-
     return (
       <div className="collectionMemberListing">
-        <a href={this.props.member.profileUrl} className="collectionMemberListingPic" onClick={handleProfileClick}>
+        <a href={this.props.member.profileUrl} className="collectionMemberListingPic">
           <ProfilePic
             url={this.props.member.imageUrl}
             name={this.props.member.name}
@@ -502,7 +488,7 @@ class CollectionMemberListing extends Component {
           />
         </a>
         <div className="collectionMemberListingText">
-          <a href={this.props.member.profileUrl} className="collectionMemberListingName" onClick={handleProfileClick}>
+          <a href={this.props.member.profileUrl} className="collectionMemberListingName">
             {this.props.member.name}
           </a>
           <div className="collectionMemberListingRole">
@@ -526,7 +512,6 @@ CollectionMemberListing.propTypes ={
   isSelf:       PropTypes.bool,
   slug:         PropTypes.string,
   onDataChange: PropTypes.func.isRequired,
-  navigateToProfile: PropTypes.func,
 };
 
 
