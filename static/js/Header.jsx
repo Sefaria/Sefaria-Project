@@ -157,26 +157,23 @@ const ModuleSwitcher = () => {
           newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
           targetModule={Sefaria.LIBRARY_MODULE}
           dotColor={'--sefaria-blue'}
-          textEn={"Library"}
-          textHe={"ספריה"} />
+          text={{ en: "Library", he: Sefaria._("Library") }} />
         <DropdownMenuSeparator />
         <DropdownModuleItem
           url={"/"}
           newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
           targetModule={Sefaria.VOICES_MODULE}
           dotColor={'--sheets-green'}
-          textEn={'Voices'}
-          textHe={'חיבורים'} />
+          text={{ en: "Voices", he: Sefaria._("Voices") }} />
         <DropdownMenuSeparator />
         <DropdownModuleItem
           url={'https://developers.sefaria.org'}
           newTab={true}
           dotColor={'--devportal-purple'}
-          textEn={'Developers'}
-          textHe={'מפתחים'} />
+          text={{ en: "Developers", he: Sefaria._("Developers") }} />
         <DropdownMenuSeparator />
         <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
-          <InterfaceText text={{ 'he': 'מוצרים נוספים ›', 'en': 'More from Sefaria ›' }} />
+          <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
         </DropdownMenuItem>
       </div>
     </DropdownMenu>
