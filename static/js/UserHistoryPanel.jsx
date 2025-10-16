@@ -27,7 +27,7 @@ const filterDataByType = (data, dataSource) => {
   });
 }
 
-const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
+const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource, multiPanel}) => {
 
   const initialStore = menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? Sefaria.saved : Sefaria.userHistory;
 
@@ -115,7 +115,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           <div className="contentInner">
             <div className="navTitle sans-serif-in-hebrew">
               <h1>{ title }</h1>
-              {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+              {multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
             </div>
             { menuOpen === 'notes' ?
@@ -143,30 +143,32 @@ UserHistoryPanel.propTypes = {
   openNav:             PropTypes.func,
   compare:             PropTypes.bool,
   menuOpen:            PropTypes.string.isRequired,
+  multiPanel:          PropTypes.bool,
 };
 
-
-const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+const LibraryUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, multiPanel}) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+    <UserHistoryPanel menuOpen={menuOpen}
                       toggleLanguage={toggleLanguage}
                       openDisplaySettings={openDisplaySettings}
                       openNav={openNav}
                       compare={compare}
                       toggleSignUpModal={toggleSignUpModal}
-                      dataSource={'library'} />
+                      dataSource={'library'}
+                      multiPanel={multiPanel} />
   )
 };
 
-const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+const SheetsUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, multiPanel}) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+    <UserHistoryPanel menuOpen={menuOpen}
                       toggleLanguage={toggleLanguage}
                       openDisplaySettings={openDisplaySettings}
                       openNav={openNav}
                       compare={compare}
                       toggleSignUpModal={toggleSignUpModal}
-                      dataSource={'sheets'} />
+                      dataSource={'sheets'}
+                      multiPanel={multiPanel} />
   )
 };
 
