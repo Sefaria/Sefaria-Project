@@ -1001,6 +1001,17 @@ p.registration-links a:hover{
 }
 #accountSettingsPage .inner {
   position: relative;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  padding-inline-start: 100px;
+  padding-inline-end: 20px;
+}
+#accountSettingsPage .headerWithButtons .start {
+  flex: 0;
+}
+#accountSettingsPage .headerWithButtons h1 {
+  flex: 1;
+  text-align: start;
 }
 #accountSettingsPage label {
   margin-bottom: 15px;
