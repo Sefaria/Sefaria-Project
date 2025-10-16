@@ -15,6 +15,27 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+
+/* Skip Link for Accessibility - Override Button positioning to hide off-screen by default */
+/* Using element selector (a.) for higher specificity to avoid needing !important */
+a.sefaria-common-button.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 10px;
+  z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+/* Show skip link when focused - let Button handle the blue border and styling */
+a.sefaria-common-button.skip-link:focus {
+  top: 10px;
+}
+
+/* Prevent any hover color changes for skip link */
+a.sefaria-common-button.skip-link:hover {
+  color: var(--theme-button-text);
+}
+
 a, a:hover {
   color: inherit;
 }
@@ -40,11 +61,14 @@ a, a:hover {
   --highlight-blue-light: #F0F7FF;
   --beit-midrash-grey: #333333;
   --darkest-grey: #333333;
+  --darker-grey: #575757;
   --dark-grey: #666666;
-  --medium-grey: #999999;
+  --medium-grey: #6f6f6f;
+  --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
+  --black: #000000;
   --commentary-blue: #4B71B7;
   --essay-links-green: #3B5849;
   --tanakh-teal: #004E5F;
@@ -65,7 +89,7 @@ a, a:hover {
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
-  --select-blue: #0B71E7;
+  --select-blue: #0056b3;
 }
 /* Font Family */
 body, .sans-serif {
@@ -179,7 +203,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: #666;
+  color: var(--dark-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -188,7 +212,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .systemText .int-en,
 .systemText .int-he.enInHe {
@@ -232,7 +256,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: #666;
+  color: var(--dark-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -241,7 +265,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: #999;
+  color: var(--dark-grey);
 }
 .systemText .int-he,
 .systemText .int-en.heInEn {
@@ -434,7 +458,7 @@ input.noselect {
 }
 .headerInner .headerNavSection a, .header img.home {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 30px;
   font-weight: 500;
   line-height: 26px;
@@ -479,7 +503,7 @@ input.noselect {
 .header .my-profile,
 .header .readerNavMenuSearchButton {
   display: inline-block;
-  color: #999;
+  color: var(--medium-grey);
   border: none;
   background: transparent;
   padding: 0;
@@ -579,7 +603,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
   display: block;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   padding: 15px;
 }
@@ -657,10 +681,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-size: 13px;
 }
 .mobileInterfaceLanguageToggle .inactive {
-  color: #999;
+  color: var(--medium-grey);
 }
 .mobileNavMenu .logout {
-  color: #999;
+  color: var(--medium-grey);
 }
 .ui-autocomplete .ui-menu-item.search-override {
   border-bottom: solid 1px #ccc;
@@ -680,7 +704,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   align-items: center;
   font-size: 16px;
   margin-top: 2px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .header .accountLinks > * {
   margin-inline-start: 17px;
@@ -796,7 +820,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey);
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
@@ -823,7 +847,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: #000000;
+  color: var(--black);
   padding: 5px;
   direction: ltr;
 }
@@ -858,7 +882,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px 17px 5px 17px;
   font-size: 14px;
-  text-decoration-color: #666666;
+  text-decoration-color: var(--dark-grey);
   height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-row:hover {
@@ -880,7 +904,7 @@ div.interfaceLinks-row a.active::after {
   padding: 0 4px;
 }
 div.interfaceLinks-row a {
-  color: #666666;
+  color: var(--dark-grey);
   display: flex;
 }
 .header .interfaceLinks .interfaceLinks-row.bottom {
@@ -894,18 +918,18 @@ div.interfaceLinks-row a {
 }
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
-  color: #666666;
+  color: var(--dark-grey);
   padding-top: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
 }
 .header .profile-menu-he {
-  color: #666666;
+  color: var(--dark-grey);
 }
 .header .interfaceLinks-option::before {
   content: "";
   font-family: FontAwesome;
-  color: #999;
+  color: var(--dark-grey);
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
@@ -968,7 +992,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   position: absolute;
 }
 .header .login {
-  color: #666;
+  color: var(--dark-grey);
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
@@ -1056,7 +1080,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border: 1px solid #E6E6E6;
   background-color: #FBFBFA;
   text-align: center;
-  color: #666;
+  color: var(--dark-grey);
 }
 #interruptingMessage.sefariaModalContentBox {
   background-color: var(--sefaria-blue);
@@ -1175,7 +1199,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .sefariaModalBottomContent {
   font-size: 16px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .sefariaModalContent .button {
   width: 100%;
@@ -1461,7 +1485,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .textColumn .loadingMessage.base,
 .sheetsInPanel .loadingMessage {
   margin: 30px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
   font-style: normal;
   text-align: center;
@@ -1674,7 +1698,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .navTitleTab {
   margin-inline-end: 26px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .navTitleTab:hover {
   color: inherit;
@@ -1740,7 +1764,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 
 .navSidebarModule {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 34px;
   padding: 0 44px;
 }
@@ -1876,7 +1900,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   color: black;
 }
 .navSidebarLink.gray a {
-  color: #666;
+  color: var(--dark-grey);
 }
 
 .navSidebarLink > ul, .sheetTopicsList > ul {
@@ -1982,7 +2006,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   display: block;
 }
 .navSidebar a.allLink {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
 }
 .navSidebar a.moreLink:hover {
@@ -2089,7 +2113,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavTop .readerOptions {
   text-align: left;
   box-sizing: border-box;
-  color: #999;
+  color: var(--dark-grey);
   float: left;
   font-size: 20px;
   cursor: pointer;
@@ -2176,7 +2200,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border-bottom-color: rgb(204, 204, 204);
   border-bottom-style: solid;
   border-bottom-width: 0.833333px;
-  color: #666666;
+  color: var(--dark-grey);
   cursor: default;
   font-size: 14px;
   font-style: normal;
@@ -2215,7 +2239,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   align-items: center;
   display: flex;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 2px 12px 2px 12px;
   font-size: 14px;
@@ -2283,7 +2307,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenu h1,
 .readerNavMenu h2.styledH1 {
   text-align: start;
-  color: #666;
+  color: var(--dark-grey);
   position: relative;
   font-size: 22px;
   font-weight: 500;
@@ -2320,7 +2344,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .readings .parasha-date > span:first-child::after {
   content: '•';
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   margin: 0 5px;
 }
@@ -2387,7 +2411,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .topicPanel h2 span {
   font-size: 22px;
   font-weight: normal;
-  color: #666;
+  color: var(--dark-grey);
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
@@ -2415,7 +2439,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .sideColumn .sideList .topicMetaData .int-en,
 .topicPanel .sideColumn .sideList .topicMetaData .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 .topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -2428,7 +2452,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .story .storyTitle {
   --english-font: var(--english-serif-font-family);
@@ -2476,7 +2500,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
@@ -2692,7 +2716,7 @@ h1 .languageToggle .he {
   margin-inline-end: 12px;
   display: inline-block;
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 13px;
   font-weight: lighter;
   cursor: pointer;
@@ -2707,7 +2731,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
-  color: #666;
+  color: var(--dark-grey);
   margin: 30px 0 0 0;
   font-weight: normal;
 }
@@ -2804,7 +2828,7 @@ a.navBlockTitle:hover {
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2860,7 +2884,7 @@ a.cardTitle:hover {
 .cardDescription {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2965,7 +2989,7 @@ a.cardTitle:hover {
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;
-  color: #666;
+  color: var(--dark-grey);
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -2995,7 +3019,7 @@ a.cardTitle:hover {
   margin-top: 20px;
 }
 .communityPage .readingLinksHeader {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
   margin-bottom: 4px;
 }
@@ -3004,11 +3028,11 @@ a.cardTitle:hover {
 }
 .communityPage .calendarDate {
   font-size: 14px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 15px;
 }
 .featuredSheetHeading {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   margin-bottom: 10px;
 }
@@ -3080,12 +3104,12 @@ a.cardTitle:hover {
   border-radius: 7px;
 }
 .resourcesLink.faded {
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3098,7 +3122,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .resourcesLink .fa {
   margin: 0 6px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerNavMenu .resourcesLink img {
   width: 16px;
@@ -3128,7 +3152,7 @@ a.cardTitle:hover {
 }
 .readerNavCategoryMenu h2 {
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin: 0 0 20px;
 }
 .readerNavCategoryMenu .categoryDescription.top {
@@ -3143,7 +3167,7 @@ a.cardTitle:hover {
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;
   font-size: 14px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .readerNavCategoryMenu .categoryDescription.long {
   margin: -8px 0 20px 0;
@@ -3153,7 +3177,7 @@ a.cardTitle:hover {
   margin-bottom: 40px;
 }
 .readerNavCategoryMenu .categoryAttribution {
-  color: #666;
+  color: var(--dark-grey);
   text-align: start;
   font-size: 24px;
   font-style: italic;
@@ -3250,7 +3274,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .dedication {
   text-align: start;
-  color: #666;
+  color: var(--dark-grey);
   background-color: #FBFBFA;
   padding: 26px 19px;
   font-size: 18px;
@@ -3290,7 +3314,7 @@ a.cardTitle:hover {
   padding-bottom: 15px;
 }
 .bookPage .tocCategory{
-  color:#999;
+  color: var(--medium-grey);
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -3342,7 +3366,7 @@ a.cardTitle:hover {
 .bookPage .currentSection,
 .bookPage .authorStatement {
   font-size: 17px;
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -3381,7 +3405,7 @@ a.cardTitle:hover {
 }
 .bookPage .sheetMeta {
   font-size: 14px;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3426,7 +3450,7 @@ a.cardTitle:hover {
 }
 .bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
 }
 .bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
@@ -3453,7 +3477,7 @@ a.cardTitle:hover {
   font-size: 18px;
 }
 .bookPage .moderatorSection .button .fa {
-  color: #999;
+  color: var(--medium-grey);
   margin-right: 4px;
 }
 .bookPage .versionEditForm {
@@ -3500,7 +3524,7 @@ a.cardTitle:hover {
 .bookPage .versionEditForm #delete_button {
   float: right;
   background: white;
-  color: #999;
+  color: var(--dark-grey);
   border: 1px solid #999;
   width: 100px;
   margin: 0;
@@ -3508,7 +3532,7 @@ a.cardTitle:hover {
 .bookPage .versionTitle .fa,
 .bookPage .versionEditForm .fa {
   font-size: 10px;
-  color: #666;
+  color: var(--dark-grey);
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
@@ -3592,7 +3616,7 @@ a.cardTitle:hover {
   margin: 3px;
   text-align: center;
   background-color: #FBFBFA;
-  color: #666;
+  color: var(--dark-grey);
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
@@ -3628,7 +3652,7 @@ a.cardTitle:hover {
 .textTableOfContents .tocSection > .sectionName {
   font-size: 24px;
   margin: 0 3px 4px;
-  color: #666;
+  color: var(--dark-grey);
   display: block;
 }
 .bookPage .content .tab-view.largeTabs {
@@ -3773,7 +3797,7 @@ a.cardTitle:hover {
   direction: rtl;
 }
 .bookPage .button.allVersionsButton {
-  color: #999;
+  color: var(--medium-grey);
   text-transform: uppercase;
   font-size: 15px;
   padding: 12px 50px;
@@ -3879,6 +3903,7 @@ details .open-details::before {
   margin-inline-end: 5px;
   color: var(--medium-grey);
 }
+
 .version-block-with-preview-details {
   background-color: var(--lighter-grey);
   border-radius: 6px;
@@ -3928,7 +3953,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
   background: #EDEDEC;
   border-radius: 25px;
   padding: 5px 10px;
@@ -3948,7 +3973,7 @@ details .open-details::before {
   padding: 5px;
 }
 .versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
-  color: #666666;
+  color: var(--dark-grey);
   cursor: pointer;
 }
 .versionBlock .versionSelect{
@@ -3960,7 +3985,7 @@ details .open-details::before {
 .versionBlock .versionNotes a {
   font-style: normal;
   font-weight: normal;
-  color: #666666;
+  color: var(--dark-grey);
   text-decoration: underline;
 }
 .versionBlock .versionDetails {
@@ -3971,7 +3996,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 20px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .bookPage .versionBlock .versionDetails{
   line-height: 20px;
@@ -4004,7 +4029,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: #666666;
+  color: var(--dark-grey);
   margin: 10px 0;
   text-align: start;
 }
@@ -4046,7 +4071,7 @@ details .open-details::before {
 .modTools .dlSectionTitle,
 .bookPage .content h2 {
     text-transform: uppercase;
-    color: #999;
+    color: var(--medium-grey);
     padding: 10px 0;
     margin-bottom: 14px;
 }
@@ -4130,7 +4155,7 @@ select {
   color: black;
 }
 .modTools .workflowy-tool .modtoolsButton:hover{
-  background-color: #999;
+  background-color: var(--medium-grey);
 }
 .modTools .workflowy-tool textarea {
   width: 100%;
@@ -4248,7 +4273,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchTopMatter .search-dropdown-button {
   font-size: 22px;
-  color: #999;
+  color: var(--medium-grey);
   cursor: pointer;
   padding: 10px 0;
   -webkit-touch-callout: none; /* iOS Safari */
@@ -4305,7 +4330,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
-  color: #666666;
+  color: var(--dark-grey);
 }
 
 @media (min-width: 701px) {
@@ -4336,7 +4361,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 12px;
   border: 1px solid #DADADA;
   font-size: 13px;
-  color: #666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -4355,7 +4380,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   padding-top: 5px;
@@ -4367,7 +4392,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: unset;
 }
 .dropdown-button {
-  color: #666;
+  color: var(--dark-grey);
   margin-left: 5px;
   margin-right: 5px;
   font-size: 18px;
@@ -4641,7 +4666,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
   font-size: 45px;
-  color: var(--medium-grey);
+  color: var(--darker-grey); /* Override with accessible color for 3:1 contrast */
   height: 20px;
   display: block;
   line-height: 20px;
@@ -4687,7 +4712,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000000;
 }
 .sheetResult .snippet.en {
-  color: #666666;
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4701,7 +4726,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content:flex-start;
   align-items: center;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   margin: 15px 0 5px;
 }
@@ -4712,13 +4737,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: var(--midrash-green);
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
 }
 .searchContent .sheetResult .date {
-  color: #999999;
+  color: var(--medium-grey-legacy);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4757,7 +4782,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .version,
 .sidebarSearch .result .version {
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   margin: 15px 0 5px;
@@ -4769,7 +4794,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .similar-trigger-box,
 .sidebarSearch .result .similar-trigger-box {
-  color: #999;
+  color: var(--medium-grey);
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -4895,7 +4920,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 3px;
 
   /* Dark Grey */
-  color: #666666;
+  color: var(--dark-grey);
 }
 .autocomplete-dropdown .type-icon{
   display: inline-block;
@@ -4935,7 +4960,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey-legacy);
   margin-top: 6px;
   width: 20%;
   padding-inline-end: 10px;
@@ -5426,7 +5451,7 @@ h1.topic-landing-header {
 .topic-landing-temporal .learn-more-prompt{
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5530,7 +5555,7 @@ h1.topic-landing-header {
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5588,7 +5613,7 @@ h1.topic-landing-header {
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   margin-bottom: 6px;
   letter-spacing: 1px;
@@ -5599,7 +5624,7 @@ h1.topic-landing-header {
   unicode-bidi: plaintext;
 }
 .readerNavMenu .sheet .sheetViews {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -5648,6 +5673,14 @@ h1.topic-landing-header {
 }
 .readerNavMenuCloseButton {
   font-family: var(--english-serif-font-family);
+  color: var(--darker-grey);
+}
+
+/* Replacement for obsolete <big> tag - WCAG compliance */
+.big-text,
+big {
+  font-size: 1.2em;
+  line-height: 1.2;
 }
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
@@ -5675,7 +5708,7 @@ h1.topic-landing-header {
   margin-left: 10px;
 }
 .connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerControls .readerControlsInner {
   position: relative;
@@ -5702,7 +5735,7 @@ h1.topic-landing-header {
   align-items: center;
   line-height: initial;
   height: 100%;
-  color: #666;
+  color: var(--dark-grey);
 }
 .readerControls.transLangPrefSuggBann .transLangPrefCentered {
   display: flex;
@@ -5787,7 +5820,7 @@ h1.topic-landing-header {
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -5796,7 +5829,7 @@ h1.topic-landing-header {
 .readerControls .readerTextToc .categoryAttribution {
   font-style: italic;
   font-size: 15px;
-  color: #999;
+  color: var(--dark-grey);
   margin: 0 2px;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -5929,7 +5962,7 @@ h1.topic-landing-header {
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #666666;
+  color: var(--dark-grey);
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
@@ -6025,10 +6058,10 @@ h1.topic-landing-header {
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerControls .readerTextToc .fa {
-  color: #999;
+  color: var(--medium-grey);
   font-weight: bold;
   margin: 0 7px;
   vertical-align: 0;
@@ -6067,7 +6100,7 @@ h1.topic-landing-header {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  color: #999;
+  color: var(--medium-grey);
 }
 .toggleSet {
   display: inline-block;
@@ -6303,7 +6336,7 @@ h1.topic-landing-header {
   padding: 0 6px 3px;
 }
 .dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
-  border-bottom: 4px solid #666;
+  border-bottom: 4px solid var(--dark-grey);
 }
 .bilingual .sheetContent .title .he {
   display: none;
@@ -6455,7 +6488,7 @@ h1.topic-landing-header {
 .stacked.bilingual .basetext .segment > .translation ,
 .stacked.bilingual .basetext .segment > p > .translation {
   margin: 10px 0 20px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .stacked.bilingual .basetext .segment > p > .he.translation {
   color: black;
@@ -6587,7 +6620,7 @@ h1.topic-landing-header {
   position: relative;
 }
 .textRange.lowlight .text {
-  color: #999;
+  color: var(--medium-grey);
 }
 .segment {
 }
@@ -6770,10 +6803,10 @@ But not to use a display block directive that might break continuous mode for ot
 .segment.showNamedEntityLinks .namedEntityLink:hover {
   /* only show named entity underline when class showNamedEntityLinks exists */
   cursor: pointer;
-  border-bottom: 2px dotted #666;
+  border-bottom: 2px dotted var(--dark-grey);
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
-  border-bottom-color: #666;
+  border-bottom-color: var(--dark-grey);
 }
 .textRange .actionLinks {
   text-align: right;
@@ -6845,7 +6878,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #666;
+  color: var(--dark-grey);
   font-style: normal;
 }
 .segment img {
@@ -6933,7 +6966,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 30px;
   text-align: left;
 }
@@ -7059,7 +7092,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: #EDEDED;
 }
 .topFilters .textFilter {
-  color: #999;
+  color: var(--medium-grey);
   display: inline-block;
   padding: 16px 8px;
 }
@@ -7082,7 +7115,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   margin: 6px 14px;
   background-color: transparent;
-  color: #999999;
+  color: var(--medium-grey);
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
@@ -7118,7 +7151,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
   padding: 5px;
   margin-bottom: 5px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
@@ -7150,7 +7183,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: var(--category-color);
 }
 .connectionsPanel .toolsButton.more{
-  color: #666666;
+  color: var(--dark-grey);
 }
 .connectionsPanel .toolsButton.seeLess{
   margin-inline-start: 33px;
@@ -7158,7 +7191,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey);
   align-items: center;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
@@ -7187,7 +7220,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-inline-end: 34px;
 }
 .connectionsCount {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -7198,7 +7231,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   align-self: flex-start;
-  color: #999;
+  color: var(--medium-grey);
   border: 1px solid #CCC;
   border-radius: 3px;
   font-size: 12px;
@@ -7269,10 +7302,10 @@ But not to use a display block directive that might break continuous mode for ot
   color: white;
 }
 .textFilter.lowlight {
-  color: #999;
+  color: var(--medium-grey);
 }
 .topFilters .textFilter.showMoreFilters {
-  color: #999;
+  color: var(--medium-grey);
 }
 .bilingual .textFilter .he,
 .bilingual .categoryFilter .he {
@@ -7281,7 +7314,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList .textListTop > .loadingMessage,
 .textList .texts .contentInner > .loadingMessage {
   padding: 22px 10px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   text-align: center;
 }
@@ -7313,7 +7346,7 @@ But not to use a display block directive that might break continuous mode for ot
   border-bottom: 1px solid #eee;
 }
 .textList .texts .textRange .title {
-  color: #999;
+  color: var(--medium-grey);
 }
 .textList .texts .segment .queryTextHighlight {
   padding: 0;
@@ -7364,12 +7397,12 @@ But not to use a display block directive that might break continuous mode for ot
   vertical-align: -8px;
 }
 .textList .sheet .sheetViews {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 12px;
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   margin: auto 14px;
 }
@@ -7394,7 +7427,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
-  color: #999;
+  color: var(--dark-grey);
   text-align: left;
 }
 .textList .sheet .sheetTag {
@@ -7444,7 +7477,7 @@ But not to use a display block directive that might break continuous mode for ot
 .sheetTag.button:active {
   background-color: #EDEDED;
   border-color: #ccc;
-  color: #999;
+  color: var(--dark-grey);
   font-size: 14px;
   margin: 4px;
 }
@@ -7484,7 +7517,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-  color: #666;
+  color: var(--dark-grey);
 	padding-bottom: 15px;
 }
 .mediaList .mediaTitle .he {
@@ -7495,7 +7528,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #000;
 }
 .mediaList .media a {
-	color: #999;
+	color: var(--medium-grey);
 }
 .mediaList .media .description {
 	margin: 10px 0;
@@ -7503,7 +7536,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   flex-flow: row;
   justify-content: space-between;
-  color: #666;
+  color: var(--dark-grey);
 }
 .mediaList .media .panel{
 	background: #e6e6e6;
@@ -7617,18 +7650,18 @@ But not to use a display block directive that might break continuous mode for ot
 .webpageList .webpage .domain {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 10px;
 }
 .webpageList .webpage .description {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .webpageList .webpage .webpageMetadata,
 .mediaList .media .meta,
 .manuscript .meta {
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 5px;
 }
 .interface-hebrew .webpageList .webpage .webpageMetadata {
@@ -7657,7 +7690,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .webpageList .webpagesLinkerMessage {
   padding: 20px 0px;
-  color: #999;
+  color: var(--medium-grey);
   border-top: 1px solid #E5E5E5;
   font-size: 13px;
 }
@@ -7665,7 +7698,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 20px 34px;
 }
 .webpageList .webpagesLinkerMessage a {
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: underline;
 }
 
@@ -7702,7 +7735,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999
+  color: var(--medium-grey-legacy);
 }
 .manuscript {
   border-bottom: 1px solid #DDDDDD;
@@ -7751,14 +7784,14 @@ But not to use a display block directive that might break continuous mode for ot
   color: #4871bf;
 }
 .textRange.lowlight .numberLabel {
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerPanel.bilingual .connectionsPanel .he {
   display: none;
 }
 .connectionsSummaryLoading {
   padding: 20px 34px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .connectionsPanel .connectionPanelSectionHeader{
   margin-inline-start: 34px;
@@ -7775,7 +7808,7 @@ But not to use a display block directive that might break continuous mode for ot
   line-height: 18px;
   letter-spacing: 0em;
   text-align: justified;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: uppercase;
 
 }
@@ -7805,7 +7838,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--dark-grey);
   margin-inline-end: 15px;
   text-decoration: none;
   cursor: pointer;
@@ -8020,13 +8053,13 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: #999;
+  color: var(--dark-grey);
 }
 .topicButton .smallText .he {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .toolsButton:hover {
   text-decoration: none;
@@ -8053,7 +8086,7 @@ But not to use a display block directive that might break continuous mode for ot
   filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 20px;
   width: 20px;
   margin-top: -1px;
@@ -8114,7 +8147,7 @@ But not to use a display block directive that might break continuous mode for ot
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   padding: 20px 20px;
   margin: 19px 33px;
 }
@@ -8125,7 +8158,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   text-overflow: ellipsis;
 }
 
@@ -8220,11 +8253,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 18px;
   line-height: 25px;
   text-decoration-line: none;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .confirmAddToSheet.addToSourceSheetBox .message span a{
   text-decoration: underline;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .confirmAddToSheet .button {
   width: 100%;
@@ -8281,7 +8314,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .notePrivateButton.active,
 .connectionsPanel .notePublicButton.active {
   background-color: white;
-  color: #666;
+  color: var(--dark-grey);
 }
 .connectionsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
@@ -8304,7 +8337,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   cursor: pointer;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8331,7 +8364,8 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .editNoteButton {
   visibility: hidden;
 }
-.connectionsPanel .note:hover .editNoteButton {
+.connectionsPanel .note:hover .editNoteButton,
+.connectionsPanel .editNoteButton:focus {
   visibility: visible;
 }
 .connectionsPanel .noteButtons .fa {
@@ -8351,7 +8385,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 
 .divineNameDepricationNotification {
@@ -8697,8 +8731,9 @@ But not to use a display block directive that might break continuous mode for ot
 .emptyDesktop {
   margin-top: 200px;
   text-align: center;
-  color: #999;
+  color: var(--medium-grey);
 }
+/* DEPRECATED: Use Button component from static/js/common/Button.jsx instead */
 .button {
   display: inline-block;
   color: white;
@@ -8740,6 +8775,15 @@ a.button:hover {
   color: white;
   text-decoration: none;
 }
+
+/* Legacy Button Focus Styling */
+body.user-is-tabbing .button:focus,
+body.user-is-tabbing a.button:focus,
+body.user-is-tabbing div.button:focus,
+body.user-is-tabbing label.button:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
 .button.white {
   background-color: white;
   color: #333;
@@ -8764,7 +8808,7 @@ a.button.mini {
   float: left;
 }
 .button.transparent {
-  color: #666;
+  color: var(--dark-grey);
   background-color: transparent;
   border: 1px solid transparent;
 }
@@ -8812,7 +8856,7 @@ a .button:hover {
   margin-inline-end: 7px;
 }
 .button.extraSmall.reviewState.reviewed {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
 
 }
 .button.extraSmall.reviewState.notReviewed {
@@ -8847,7 +8891,7 @@ a .button:hover {
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
   border-radius: revert;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .headerWithAdminButtons {
   display: flex;
@@ -8929,7 +8973,7 @@ button.appButton.iconOnly img {
 }
 .named-entity-ambiguous .systemText .int-en,
 .named-entity-ambiguous .systemText .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 .named-entity-title-bar {
   display: flex;
@@ -8954,7 +8998,7 @@ button.appButton.iconOnly img {
 }
 .lexicon-results .named-entity-description .en,
 .lexicon-results .named-entity-description .he {
-  color: #666;
+  color: var(--dark-grey);
 }
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
@@ -8977,7 +9021,7 @@ button.appButton.iconOnly img {
 }
 .lexicon-results .entry .morphology {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
   display: inline;
   margin-right: 5px;
 }
@@ -9040,7 +9084,7 @@ button.appButton.iconOnly img {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  color: #666;
+  color: var(--dark-grey);
   font-weight: 300;
 }
 .splitHeader .en {
@@ -9111,7 +9155,7 @@ button.appButton.iconOnly img {
   display: none;
   float:right;
   cursor: pointer;
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: none;
 }
 .sheetButton:hover {
@@ -9125,11 +9169,11 @@ button.appButton.iconOnly img {
 }
 .tagString a {
   text-decoration: none;
-  color: #999;
+  color: var(--medium-grey);
 }
 .tagString a:after {
   content: ", ";
-  color: #999;
+  color: var(--medium-grey);
 }
 .tagString a:last-child:after {
   content: "";
@@ -9256,14 +9300,14 @@ a.sheetAuthorName:hover {
 
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
-  color: #999;
+  color: var(--medium-grey);
   position: relative;
   pointer-events: none;
   width: auto;
 }
 .sheetMetaDataBox .summary:empty:before {
   content: "Add a description...";
-  color: #999;
+  color: var(--medium-grey);
   position: relative;
   pointer-events: none;
   width: auto;
@@ -9280,7 +9324,7 @@ a.sheetAuthorName:hover {
   padding: 10px 20px;
   max-width: 540px;
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   height: 520px;
 }
 .publishBox .publishLabel {
@@ -9303,7 +9347,7 @@ div.transparentBackground.publishBox {
 }
 
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
-  color: #666;
+  color: var(--dark-grey);
 }
 .publishBox p.error {
   color: red;
@@ -9354,7 +9398,7 @@ div.transparentBackground.publishBox {
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
-  color: #666;
+  color: var(--dark-grey);
   margin-top: 12px;
   margin-bottom: 14px;
   text-transform: none;
@@ -9368,7 +9412,7 @@ div.transparentBackground.publishBox {
   margin-top: 20px;
 }
 .publishBox .smallText {
-  color: #666666
+  color: var(--dark-grey)
 }
 .publishBox .react-tags {
   position: relative;
@@ -9379,7 +9423,7 @@ div.transparentBackground.publishBox {
   /* shared font styles */
   font-size: 16px;
   line-height: 1.2;
-  color: #666;
+  color: var(--dark-grey);
   /* clicking anywhere will focus the input */
   cursor: text;
 }
@@ -9449,7 +9493,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
 .publishBox .publishButton .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
-  color: #666666
+  color: var(--dark-grey)
 }
 
 .publishBox .publishButton .button {
@@ -9650,7 +9694,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 
 .collectionPage .collectionLabel {
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   letter-spacing: 2px;
   display: block;
@@ -9668,7 +9712,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   line-height: 1.3;
 }
 .collectionPage .collectionDescription .dedication {
@@ -9773,7 +9817,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   padding-bottom: 24px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   display: flex;
   flex-direction: row;
   justify-content: start;
@@ -9819,7 +9863,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   z-index: 1;
 }
@@ -9915,7 +9959,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   font-size: 16px;
   line-height: 26px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .topicPanel .sideColumnMore:hover {
   cursor: pointer;
@@ -10058,7 +10102,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 }
 .noteListing .textRange .title {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 10px;
 }
 .noteListing .textRange .title:hover {
@@ -10067,7 +10111,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing .textRange .text {
   font-size: 18px;
   font-style: italic;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 18px;
 }
 .noteListing .textRange .text .he {
@@ -10196,7 +10240,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .calendarRef {
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
   display: flex;
   margin: 2px 0;
 }
@@ -10333,7 +10377,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .field > label {
   display: block;
   margin-bottom: 15px;
-  color: #666;
+  color: var(--dark-grey);
 }
 #editCollectionPage input,
 #editCollectionPage textarea {
@@ -10366,7 +10410,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
 }
 #editCollectionPage .helperText {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   width: 500px;
 }
@@ -10382,7 +10426,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .deleteCollection {
   cursor: pointer;
   margin: 30px 10px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: right;
 }
 #editCollectionPage .deleteCollection:hover {
@@ -10442,7 +10486,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom-right-radius: 7px;
 }
 .dropdown .dropdownList {
-  color: #999;
+  color: var(--medium-grey);
   background-color: white;
   box-sizing: border-box;
   padding: 0;
@@ -10452,6 +10496,37 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom-left-radius: 7px;
   border-bottom-right-radius: 7px;
 }
+.dropdown .dropdownList:focus {
+  outline: none; /* hide focus ring on container; focus is shown on the active option */
+}
+
+/* Apply default browser focus outline to dropdown elements when tabbing - matches header dropdown pattern */
+body:not(.user-is-tabbing) .dropdownItem:focus,
+body:not(.user-is-tabbing) .dropdownOption:focus,
+body:not(.user-is-tabbing) div[role="button"]:focus,
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
+body:not(.user-is-tabbing) .header-dropdown-button:focus {
+  outline: none;
+}
+
+/* Add browser-like focus outline for dropdown buttons when tabbing */
+body.user-is-tabbing div[role="button"]:focus,
+body.user-is-tabbing .dropdownLinks-button img:focus,
+body.user-is-tabbing .header-dropdown-button:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
+/* Reset button styling for header dropdown buttons to match original image appearance */
+.header-dropdown-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-block;
+}
+
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
@@ -10494,17 +10569,18 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--medium-grey);
   margin-bottom: 11px;
 }
 .addToSourceSheetBox .selectedRef{
-  padding: 16px 22px;
+  padding: 0;
   font-size: 16px;
   margin-bottom: 15px;
-  cursor: pointer;
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
+  cursor: default;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
   text-align: start;
 }
 .addToSourceSheetBox .selectedRef span{
@@ -10513,7 +10589,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 18px;
   line-height: 25px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -10534,14 +10610,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: #999;
+  color: var(--medium-grey);
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
 }
 #footer a {
   display: block;
-  color: #666;
+  color: var(--dark-grey);
 }
 .interface-hebrew #footer{
   direction: rtl;
@@ -10645,10 +10721,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 4px;
 }
 #footer .section.connect .socialLinks a {
-  color: #666;
+  color: var(--dark-grey);
 }
 #footer #siteLanguageToggle {
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 30px;
   font-size: 15px;
 }
@@ -10661,7 +10737,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer a#siteLanguageHebrew {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
-  color: #666;
+  color: var(--dark-grey);
   display: inline;
   margin: 0 3px;
 }
@@ -10689,7 +10765,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -10738,7 +10814,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
@@ -10878,7 +10954,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .interface-hebrew .versionsBox .versionLanguage {
   direction: rtl;
@@ -10887,13 +10963,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding-top: 25px;
 }
 .versionsBox .versionLanguage .versionCount {
-  color: #999;
+  color: var(--medium-grey);
 }
 .versionsBox a.selectButton:not(.version-with-preview-title-line .selectButton) {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
-  color: #666666;
+  color: var(--dark-grey);
   box-shadow: 0 1px 2px #999;
   padding: 2px 8px;
   background-color: white;
@@ -10953,11 +11029,11 @@ span.purim-emoji img{
 }
 .sheetContent .ref {
   cursor: pointer;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 1em;
 }
 .sheetContent .ref a {
-  color: #999;
+  color: var(--medium-grey);
 }
 .sheetContent img {
   max-width: 100%;
@@ -11402,7 +11478,7 @@ span.purim-emoji img{
 }
 .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .sheetContent .spacer:only-of-type.empty:before {
-  color: #999;
+  color: var(--medium-grey);
   position: absolute;
   pointer-events: none;
 }
@@ -11717,7 +11793,7 @@ background-color: white;
 .editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
 }
 .cookiesNotification {
   position: fixed;
@@ -12192,13 +12268,13 @@ cursor: pointer;
   margin: 0 6px 1px 0;
 }
 .tab-view .tab-list .applink a {
-    color: #666;
+    color: var(--dark-grey);
 }
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
-    color: #666;
+    color: var(--dark-grey);
 }
 .tab-view.largeTabs .tab-list {
     border-bottom: 1px solid #CCC;
@@ -12323,7 +12399,7 @@ cursor: pointer;
 }
 .profile-page .textRange {
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .profile-page .note-text {
   font-size: 18px;
@@ -12444,7 +12520,7 @@ cursor: pointer;
 .feedbackOverlay textarea::placeholder {
   font-size: 16px;
   font-style: normal;
-  color: #666;
+  color: var(--dark-grey);
 }
 .feedbackOverlay a {
   color: #4871bf;
@@ -12467,7 +12543,7 @@ cursor: pointer;
   flex-direction: column;
 }
 .sheetList .sheet .sheetTags {
-  color: #999;
+  color: var(--medium-grey);
 }
 .sheetsProfileList .sheet .sheetTags .bullet {
   padding: 0 5px;
@@ -12495,7 +12571,7 @@ cursor: pointer;
 .default-profile-img {
   width: 175px;
   height: 175px;
-  background-color: #999;
+  background-color: var(--medium-grey);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -12545,11 +12621,11 @@ cursor: pointer;
   align-items: center;
 }
 .filterable-list .filter-bar-new .filter-input ::placeholder {
-  color: #999;
+  color: var(--medium-grey);
 }
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
@@ -12620,7 +12696,7 @@ cursor: pointer;
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {
-  color: #666;
+  color: var(--dark-grey);
   padding: 16px 15px;
 }
 .profile-page .profile-summary {
@@ -12698,7 +12774,7 @@ cursor: pointer;
 }
 
 .profile-page .profile-summary .follow {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   letter-spacing: 1px;
 }
@@ -12707,7 +12783,7 @@ cursor: pointer;
 }
 
 .profile-page .resourcesLink.faded {
-  color: #666;
+  color: var(--dark-grey);
 }
 .resourcesLink.blue {
   color: white;
@@ -12742,7 +12818,7 @@ cursor: pointer;
   padding-bottom: 10px;
 }
 .profile-page .follow-header .follow-count {
-  color: #999;
+  color: var(--medium-grey);
 }
 .profile-page .resourcesLink,
 .profile-pic-cropper-button.resourcesLink {
@@ -12763,7 +12839,7 @@ cursor: pointer;
 .profile-page .emptyList .emptyListText {
   font-size: 16px;
   margin: 30px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 1.5;
 }
@@ -12785,7 +12861,7 @@ cursor: pointer;
   font-size: 16px;
 }
 .profile-page .profile-summary .sub-sub-title {
-  color: #666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
 }
@@ -12805,7 +12881,7 @@ cursor: pointer;
   top: 0;
   transform: translateY(-35%);
   left: 30px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
@@ -12866,7 +12942,7 @@ cursor: pointer;
   color: black;
 }
 .largeFollowButton.following span {
-  color: #666;
+  color: var(--dark-grey);
 }
 .smallFollowButton {
   height: 20px;
@@ -13060,7 +13136,7 @@ body .homeFeedWrapper .content {
 }
 
 .story .subHeading .int-en, .story .subHeading .int-he  {
-  color: #666;
+  color: var(--dark-grey);
 }
 .story .learningPrompt {
   padding: 20px 0 20px;
@@ -13240,7 +13316,7 @@ body .homeFeedWrapper .content {
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 .authorByLine {
   display: flex;
@@ -13265,7 +13341,7 @@ body .homeFeedWrapper .content {
   bottom: 12px;
 }
 .authorOrganization {
-  color: #999;
+  color: var(--medium-grey);
 }
 .authorByLine.small {
   font-size: 14px;
@@ -13349,7 +13425,7 @@ body .homeFeedWrapper.userStats {
   padding: 10px;
 }
  .editTextInfo #newIndex .default::placeholder {
-   color: #666;
+   color: var(--dark-grey);
  }
 .button.small.deleteTopic {
   color: var(--dark-grey);
@@ -13477,7 +13553,7 @@ body .homeFeedWrapper.userStats {
   font-family: revert;
 }
 .editTextInfo #newIndex input::placeholder {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
 }
 .editTextInfo #newIndex #heTitle {
@@ -13514,7 +13590,7 @@ body .homeFeedWrapper.userStats {
 	margin: -5px 11px 0 -32px;
 }
 .editTextInfo #newIndex .headerWithButtons a {
-    color: #666;
+    color: var(--dark-grey);
 }
 .editTextInfo .nodeTemplate {
 	display: none;
@@ -13585,7 +13661,7 @@ body .homeFeedWrapper.userStats {
   font-size: 22px;
   vertical-align: middle;
   display: block;
-  color: #666;
+  color: var(--dark-grey);
 }
 .collectionsWidgetClose {
   font-size: 40px;
@@ -13608,7 +13684,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidgetList .emptyMessage {
   display: block;
-  color: #666;
+  color: var(--dark-grey);
   padding: 20px 0px;
   line-height: 1.5;
   text-align: start;
@@ -13631,7 +13707,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .collectionsWidgetPlus {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 25px;
   margin-inline-end: 13px;
   margin-top: -5px;
@@ -13650,7 +13726,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-style: normal;
-  color: #666;
+  color: var(--dark-grey);
 }
 .interface-hebrew .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-family: "Heebo", sans-serif;
@@ -13711,7 +13787,7 @@ body .homeFeedWrapper.userStats {
   text-align: center;
 }
 .userStats .statHeader span {
-  color: #666;
+  color: var(--dark-grey);
   letter-spacing: 0.7px;
   line-height: 23px;
 }
@@ -13745,7 +13821,7 @@ body .homeFeedWrapper.userStats {
 }
 .userStatModeButton {
   background-color: #fff;
-  color: #666;
+  color: var(--dark-grey);
   border-radius: 5px;
   height: 50px;
   width: 120px;
@@ -13797,7 +13873,7 @@ a.topicLexiconTitle.contentText {
   height: 30px;
   background: #fff;
   border: #ccc solid 1px;
-  color: #666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   box-sizing: border-box;
@@ -14073,7 +14149,7 @@ span.ref-link-color-3 {color: blue}
   height: 30px;
   border-radius: 6px;
   z-index: 1;
-  background-color: #999999;
+  background-color: var(--medium-grey-legacy);
   opacity: 0.5;
   left: -8.5px;
   top: -3px;
@@ -14186,7 +14262,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
   margin: 10px 30px;
-  border-top: 1px solid #999999;
+  border-top: 1px solid var(--light-grey);
 }
 
 .peopleInBeitMidrashInnerContainer {
@@ -14330,7 +14406,7 @@ span.ref-link-color-3 {color: blue}
     width: calc(100% - 22px);
     padding: 15px 11px;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    color: #666;
+    color: var(--dark-grey);
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
@@ -14348,7 +14424,7 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   padding-top: 20px;
   margin: 10px 30px 20px;
-  border-top: 1px solid #999999;
+  border-top: 1px solid var(--light-grey);
 
 }
 
@@ -14408,7 +14484,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .chatNameAndTime {
-  color: #999999;
+  color: var(--medium-grey-legacy);
   font-size: 14px;
   font-weight: 500px;
 }
@@ -14535,7 +14611,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #acceptButton {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
   border-radius: 6px;
   color: white;
   border: 0px;
@@ -14810,7 +14886,7 @@ span.ref-link-color-3 {color: blue}
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: 100% 100%;
-  background-color: var(--medium-grey);
+  background-color: var(--dark-grey);
   cursor: pointer;
   appearance: unset;
   transition: border 0.3s ease, outline 0.3s ease, background-color 0.3s ease;
@@ -15030,7 +15106,7 @@ span.ref-link-color-3 {color: blue}
   align-items: center;
   margin-top: 2px;
   margin-bottom: 4px;
-  color: #666;
+  color: var(--dark-grey);
   position: relative;
 }
 .headerDropdownMenu .toolsButtonContainer {
@@ -15050,7 +15126,7 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 500;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   padding: revert;
 }
@@ -15355,7 +15431,7 @@ span.ref-link-color-3 {color: blue}
     font-weight: 400;
     font-size: 14px;
     line-height: 18px;
-    color: #666666;
+    color: var(--dark-grey);
 }
 
 @media (max-width: 480px) {
@@ -15446,7 +15522,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 
 .dropdownLanguageToggle{
@@ -15688,7 +15764,7 @@ span.ref-link-color-3 {color: blue}
 .cardsPaginationNumber {
   font-weight: 500;
   font-size: 16px;
-  color: #666666;
+  color: var(--dark-grey);
   min-width: 40px;
   height: 34px;
   display: flex;
@@ -15845,7 +15921,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .guideOverlayFooterLink {
-  color: #666666;
+  color: var(--dark-grey);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -15866,7 +15942,7 @@ span.ref-link-color-3 {color: blue}
   justify-content: center;
   padding: 40px;
   font-size: 16px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 
 /* RTL/Hebrew interface support */

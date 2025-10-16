@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import { NavSidebar } from './NavSidebar';
 import {
   CategoryColorLine,
@@ -349,8 +350,8 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a className="button small white" href={`/collections/${slug}/settings`} data-target-module={Sefaria.VOICES_MODULE}>
-    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
+  <a className="button small white" href={`/sheets/collections/${slug}/settings`} data-target-module={Sefaria.activeModule}>
+    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" alt={Sefaria._("Edit collection")} /><InterfaceText>Edit</InterfaceText>
   </a>
 );
 
@@ -449,7 +450,13 @@ class CollectionInvitationBox extends Component {
     return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
-                <div className="button small" onClick={this.onInviteClick}>
+                <div
+                  className="button small"
+                  role="button"
+                  tabIndex="0"
+                  onClick={this.onInviteClick}
+                  onKeyDown={(e) => Util.handleKeyboardClick(e, this.onInviteClick)}
+                >
                   <InterfaceText>Invite</InterfaceText>
                 </div>
               </div>
@@ -518,7 +525,7 @@ class CollectionInvitationListing extends Component {
     return (
       <div className="collectionMemberListing">
         <div className="collectionMemberListingPic invitation">
-          <img src="/static/icons/mail.svg" />
+          <img src="/static/icons/mail.svg" alt={Sefaria._("Subscribe to newsletter")} />
         </div>
         <div className="collectionMemberListingText">
           <span className="collectionMemberListingName">

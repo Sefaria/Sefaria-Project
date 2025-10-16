@@ -1,4 +1,4 @@
-[data-active-module="sheets"] {
+[data-active-module="voices"] {
   /* Define default theme variables */
   --theme-primary: var(--sheets-green);
   --theme-background: var(--lightest-grey); /** just an example **/
@@ -31,19 +31,21 @@
   --theme-button-dropshadow: none;
 }
 
-[data-active-module="sheets"] .header img.home {
+[data-active-module="voices"] .header img.home {
   height: 30px;
 }
 
-[data-active-module="sheets"] .interface-hebrew .header img.home {
+[data-active-module="voices"] .interface-hebrew .header img.home {
   height: 25px;
 }
 
 /**
 either a secondary button inside active module or a button with active module on it explicitly
 **/
-[data-active-module="sheets"] button.secondary,
-button.secondary[data-active-module="sheets"]
+[data-active-module="voices"] button.secondary,
+[data-active-module="voices"] a.secondary,
+button.secondary[data-active-module="voices"],
+a.secondary[data-active-module="voices"]
 {
   /** light button colors **/
   --theme-button-background: white;
@@ -52,10 +54,14 @@ button.secondary[data-active-module="sheets"]
   --theme-button-border: var(--light-grey);
   --theme-button-dropshadow: none;
 }
-[data-active-module="sheets"] button:disabled,
-[data-active-module="sheets"] button.secondary:disabled,
-button:disabled[data-active-module="sheets"],
-button.secondary:disabled[data-active-module="sheets"]{
+[data-active-module="voices"] button:disabled,
+[data-active-module="voices"] a:disabled,
+[data-active-module="voices"] button.secondary:disabled,
+[data-active-module="voices"] a.secondary:disabled,
+button:disabled[data-active-module="voices"],
+a:disabled[data-active-module="voices"],
+button.secondary:disabled[data-active-module="voices"],
+a.secondary:disabled[data-active-module="voices"]{
   /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
   --theme-button-background: var(--lightest-grey);
   --theme-buttontext: var(--medium-grey);
@@ -64,7 +70,7 @@ button.secondary:disabled[data-active-module="sheets"]{
   --theme-button-dropshadow: none;
 }
 
-[data-active-module="sheets"] .collectionPage div.navTitle h1, [data-active-module="sheets"] .topicPanel .navTitle h1 {
+[data-active-module="voices"] .collectionPage div.navTitle h1, [data-active-module="voices"] .topicPanel .navTitle h1 {
   color: black;
   font-size: 30px;
   --hebrew-font: var(--hebrew-sans-serif-font-family);
