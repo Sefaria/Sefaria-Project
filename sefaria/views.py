@@ -1364,20 +1364,60 @@ def modtools_upload_workflowy(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
+    # Handle both single and multiple file uploads
+    files = []
+    if 'wf_file' in request.FILES:
+        # Single file upload (backward compatibility)
+        files = [request.FILES['wf_file']]
+    elif 'workflowys[]' in request.FILES:
+        # Multiple file upload
+        files = request.FILES.getlist("workflowys[]")
+    else:
+        return jsonResponse({"error": "No files provided. Use 'wf_file' for single file or 'workflowys[]' for multiple files."})
+
+    # Handle checkbox parameters - support both boolean and string formats
     c_index = request.POST.get("c_index", False)
+    if isinstance(c_index, str):
+        c_index = c_index.lower() == 'true'
+
     c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    if isinstance(c_version, str):
+        c_version = c_version.lower() == 'true'
+
+    delims = request.POST.get("delims", None) if len(request.POST.get("delims", "")) else None
+    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", "")) else None
 
     uid = request.user.id
-    try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
-        res = wfparser.parse()
-    except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
-    return jsonResponse({"status": "ok", "data": res})
+    # Process files
+    results = []
+    messages = []
+
+    for file in files:
+        try:
+            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                # If the parser returns a specific error, report it
+                raise InputError(f"Error in {file.name}: {res['error']}")
+            results.append(res)
+            messages.append(f"Imported {file.name}")
+        except Exception as e:
+            if len(files) == 1:
+                # Single file - maintain backward compatibility by raising exception
+                raise e
+            else:
+                # Multiple files - return error with partial results
+                error_message = f"Failed to process {file.name}: {e}"
+                return jsonResponse({"error": error_message, "message": ' • '.join(messages)})
+
+    # Return response based on number of files
+    if len(files) == 1:
+        # Single file - maintain backward compatibility
+        return jsonResponse({"status": "ok", "data": results[0]})
+    else:
+        # Multiple files - return summary message
+        return jsonResponse({"status": "ok", "message": ' • '.join(messages)})
 
 @staff_member_required
 def links_upload_api(request):
