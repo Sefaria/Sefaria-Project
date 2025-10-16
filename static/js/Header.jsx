@@ -20,7 +20,8 @@ import {HeaderAutocomplete} from './HeaderAutocomplete'
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuItemWithIcon, DropdownLanguageToggle } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
-  
+import ModuleSwitcherTooltip from './common/ModuleSwitcherTooltip';
+
 const LoggedOutDropdown = ({module}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
@@ -138,35 +139,41 @@ const LoggedInDropdown = ({module}) => {
 );
 }
 
-const ModuleSwitcher = () => {
-  return (
-              <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-                <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
-                  <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")}/>
-                </button>
-              }>
+const ModuleSwitcher = ({multiPanel, mobileMenuButtonRef}) => {
+  const dropdownRef = useRef(null);
+  return (    
+  <ModuleSwitcherTooltip targetRef={dropdownRef} multiPanel={multiPanel} mobileTargetRef={mobileMenuButtonRef}>
+    <div ref={dropdownRef}>
+      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
+        <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
+          <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")}/>
+        </button>
+      }>
           <div className='dropdownLinks-options'>
-              <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={"Library"}/>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator/>
-              <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE} targetModule={Sefaria.VOICES_MODULE}>  
-                  <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
-                  <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator/>
-              <DropdownMenuItem url={'/products'} newTab={true}>
-                <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
-              </DropdownMenuItem>
+            <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE} targetModule={Sefaria.LIBRARY_MODULE}>
+                <DropdownMenuItemWithIcon icon={'/static/icons/library_icon.svg'} textEn={"Library"}/>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem url={"/"} newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE} targetModule={Sefaria.VOICES_MODULE}>  
+                <DropdownMenuItemWithIcon icon={'/static/icons/sheets_icon.svg'} textEn={'Sheets'}/>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem url={'https://developers.sefaria.org'} newTab={true}>
+                <DropdownMenuItemWithIcon icon={'/static/icons/developers_icon.svg'} textEn={'Developers'}/>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItem url={'/products'} newTab={true}>
+              <InterfaceText text={{'he': 'לכל המוצרים שלנו', 'en': 'See all products ›'}}/>
+            </DropdownMenuItem>
           </div>
       </DropdownMenu>
+    </div>
+  </ModuleSwitcherTooltip>
 );
 }
 
 const Header = (props) => {
+  const mobileMenuButtonRef = useRef(null);
 
   useEffect(() => {
     const handleFirstTab = (e) => {
@@ -289,8 +296,7 @@ const Header = (props) => {
                 setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
         { Sefaria._uid && (props.module ===Sefaria.LIBRARY_MODULE ? librarySavedIcon : sheetsNotificationsIcon) }
-
-          <ModuleSwitcher />
+           <ModuleSwitcher multiPanel={props.multiPanel} mobileMenuButtonRef={mobileMenuButtonRef} />
 
           { Sefaria._uid ?
             <LoggedInDropdown module={props.module}/>
@@ -304,9 +310,11 @@ const Header = (props) => {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
-            <i className="fa fa-bars"></i>
-          </button>
+          <ModuleSwitcherTooltip targetRef={null} multiPanel={props.multiPanel} mobileTargetRef={mobileMenuButtonRef}>
+            <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+              <i className="fa fa-bars"></i>
+            </button>
+          </ModuleSwitcherTooltip>
         </div>
 
         <div className="mobileHeaderCenter">
