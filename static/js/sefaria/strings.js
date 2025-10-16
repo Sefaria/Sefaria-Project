@@ -686,11 +686,12 @@ const Strings = {
     "Note author profile picture": "תמונת פרופיל כותב ההערה",
     "Open dropdown": "פתח תפריט נפתח",
     "Collection Logo": "לוגו אסופה",
-    // Additional mobile menu and interface icons
     "Settings": "הגדרות",
     "Library": "ספריה",
+    "Voices": "חיבורים",
     "Developers": "מפתחים",
     "Products": "מוצרים",
+    "More from Sefaria": "מוצרים נוספים",
     "User uploaded media": "מדיה שהועלתה על ידי משתמש",
     "Edit collection": "ערוך אסופה",
     "Subscribe to newsletter": "הרשמה לניוזלטר",
