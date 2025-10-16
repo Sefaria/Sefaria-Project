@@ -74,7 +74,11 @@ const UserStatModeChooser = ({modes, activeMode, setMode}) => (
 
 const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
     <div className={"userStatModeButton" + (thisMode === activeMode?" active":"")}
-         onClick  ={()=>setMode(thisMode)}>
+         onClick={()=>setMode(thisMode)}
+         role="button" 
+         tabIndex="0" 
+         aria-label={`Switch to ${thisMode} mode`}
+         aria-pressed={thisMode === activeMode}>
         <span>{Sefaria._(thisMode)}</span>
     </div>
 );
@@ -148,7 +152,7 @@ const OverallActivityBlock = ({user_data}) => (
 
 const StatCard = ({icon_file, name, number}) => (
     <div className="statcard">
-        <img src={"static/img/" + icon_file}/>
+        <img src={"static/img/" + icon_file} alt={name}/>
         <div className="statcardValue">{number}</div>
         <div className="statcardLabel">{Sefaria._(name)}</div>
     </div>

@@ -15,6 +15,7 @@ function ToggleSwitch({name, disabled, onChange, isChecked}) {
                 checked={isChecked && !disabled}
                 aria-checked={isChecked}
                 role="switch"
+                aria-labelledby={`${name}-label`}
             />
             <label className="toggle-switch-label" htmlFor={name}>
               <span className="toggle-switch-inner" />
