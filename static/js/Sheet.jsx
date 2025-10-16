@@ -535,8 +535,8 @@ class SheetOutsideText extends Component {
 
    const paragraphsToBreaks = (html)=> {
     return html
-      .replace(/<\/p>\s*<p>/gi, '<br/>')
-      .replace(/<p[^>]*>/gi, '')
+      .replace(/<\/p>\s*<p>/g, '<br/>')
+      .replace(/<p( [^>]*)?>/g, '')
       .replace(/<\/p>/gi, '<br/>');
     }
 
