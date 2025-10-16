@@ -1,5 +1,4 @@
-FROM us-east1-docker.pkg.dev/production-deployment/containers/base-web:3.9-bullseye
-ARG TYPE=build-prod
+FROM python:3.9-slim
 
 # Set the working directory to /app
 WORKDIR /app
