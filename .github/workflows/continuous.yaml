@@ -95,7 +95,7 @@ jobs:
       - build-generic
     strategy:
       matrix:
-        app: [ asset, linker ]
+        app: [ asset ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
