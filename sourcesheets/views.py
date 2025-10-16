@@ -171,8 +171,11 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    if sheet_id in SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE]:
-        return redirect(SITE_SETTINGS['HELP_CENTER_REDIRECTS'][request.LANGUAGE_CODE][sheet_id])
+    # Handle help center redirects with language fallback
+    help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
+    lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
+    if lang_code in help_center_redirects and sheet_id in help_center_redirects[lang_code]:
+        return redirect(help_center_redirects[lang_code][sheet_id])
     
     embed = request.GET.get('embed', '0')
     if embed != '1' and editorMode is False:
