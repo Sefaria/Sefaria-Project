@@ -177,8 +177,14 @@ class WorkflowyModeratorTool extends Component{
     constructor(props) {
     super(props);
     this.handleWfSubmit = this.handleWfSubmit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleFileChange = this.handleFileChange.bind(this);
     this.wfFileInput = React.createRef();
-    this.state = {c_index: true};
+    this.state = {
+      c_index: true,
+      files: [],
+      multipleFiles: false
+    };
   }
 
   handleInputChange(event) {
@@ -191,18 +197,48 @@ class WorkflowyModeratorTool extends Component{
     });
   }
 
+  handleFileChange(event) {
+    const files = Array.from(event.target.files);
+    this.setState({
+      files: files,
+      multipleFiles: files.length > 1
+    });
+  }
+
   handleWfSubmit(event) {
     event.preventDefault();
-    /*console.log(
-      `Selected file - ${this.wfFileInput.current.files[0].name}`
-    );*/
-    this.setState({uploading: true, uploadMessage:"Uploading..."});
-    const data = new FormData(event.target);
-    console.log(data);
+
+    if (this.state.files.length === 0) {
+      this.setState({uploadMessage: "Please select at least one file", error: true, errorIsHTML: false});
+      return;
+    }
+
+    this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 ? 's' : ''}...`});
+
+    const data = new FormData();
+
+    // Add files - use appropriate field name based on number of files
+    if (this.state.files.length === 1) {
+      // Single file - use original field name for backward compatibility
+      data.append('wf_file', this.state.files[0]);
+    } else {
+      // Multiple files - use array field name
+      this.state.files.forEach(file => {
+        data.append('workflowys[]', file);
+      });
+    }
+
+    // Add other form data
+    data.append('c_index', this.state.c_index);
+    data.append('c_version', this.state.c_version || false);
+    data.append('delims', this.state.delims || '');
+    data.append('term_scheme', this.state.term_scheme || '');
+
     const request = new Request(
         '/modtools/upload_text',
         {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
     );
+
     fetch(request, {
       method: 'POST',
       mode: 'same-origin',
@@ -223,8 +259,14 @@ class WorkflowyModeratorTool extends Component{
                 console.log("okay response", resp_json);
                 this.setState({uploading: false,
                     error: false,
-                    uploadMessage:resp_json["data"]["message"],
-                    uploadResult: JSON.stringify(resp_json["data"]["index"], undefined, 4)})
+                    uploadMessage: resp_json.data ? resp_json.data.message : resp_json.message,
+                    uploadResult: resp_json.data ? JSON.stringify(resp_json.data.index, undefined, 4) : resp_json.message});
+
+                // Clear files after successful upload
+                this.setState({files: [], multipleFiles: false});
+                if (this.wfFileInput.current) {
+                  this.wfFileInput.current.value = '';
+                }
             });
         }
     }).catch(error => {
@@ -252,8 +294,20 @@ class WorkflowyModeratorTool extends Component{
         </div>
         <form id="wf-file-form" className="workflowy-tool-form" onSubmit={this.handleWfSubmit}>
            <label>
-              Upload Workflowy file:
-              <input type="file" name="wf_file" ref={this.wfFileInput} />
+              Upload Workflowy file(s):
+              <input
+                type="file"
+                name="wf_file"
+                ref={this.wfFileInput}
+                multiple
+                accept=".opml"
+                onChange={this.handleFileChange}
+              />
+              {this.state.files.length > 0 && (
+                <div style={{fontSize: "12px", color: "#666", marginTop: "4px"}}>
+                  Selected: {this.state.files.map(f => f.name).join(', ')}
+                </div>
+              )}
            </label>
            <label>
               Create Index Record:
@@ -289,9 +343,19 @@ class WorkflowyModeratorTool extends Component{
                 value={this.state.term_scheme}
                 onChange={this.handleInputChange} />
             </label>
-             <button className="modtoolsButton" name="wf-submit" type="submit">
-                <span className="int-en">Upload</span>
-                <span className="int-he">Upload</span>
+             <button
+               className="modtoolsButton"
+               name="wf-submit"
+               type="submit"
+               disabled={this.state.uploading || this.state.files.length === 0}
+             >
+                <span className="int-en">
+                  {this.state.uploading ? 'Uploading...' :
+                   this.state.files.length > 1 ? `Upload ${this.state.files.length} Files` : 'Upload'}
+                </span>
+                <span className="int-he">
+                  {this.state.uploading ? 'מעלה...' : 'העלאה'}
+                </span>
              </button>
          </form>
         <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
