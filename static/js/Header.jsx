@@ -207,7 +207,7 @@ const Header = (props) => {
                               </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
                                         <a
-                                          href="/sheets/notifications"
+                                          href="/notifications"
                                           data-target-module={Sefaria.VOICES_MODULE}
                                           onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                         >
@@ -250,7 +250,7 @@ const Header = (props) => {
           {props.module === Sefaria.VOICES_MODULE && 
           <>
             <a
-              href="/sheets/topics"
+              href="/topics"
               data-target-module={Sefaria.VOICES_MODULE}
               className="textLink"
               onKeyDown={(e) => Util.handleKeyboardClick(e)}
@@ -258,7 +258,7 @@ const Header = (props) => {
               <InterfaceText context="Header">Topics</InterfaceText>
             </a>
             <a
-              href="/sheets/collections"
+              href="/collections"
               data-target-module={Sefaria.VOICES_MODULE}
               className="textLink"
               onKeyDown={(e) => Util.handleKeyboardClick(e)}
@@ -456,11 +456,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       }
       {module === Sefaria.VOICES_MODULE && 
       <>
-        <a href="/sheets/topics" data-target-module={Sefaria.VOICES_MODULE} onClick={close}>
+        <a href="/topics" data-target-module={Sefaria.VOICES_MODULE} onClick={close}>
           <img src="/static/icons/topic.svg" alt={Sefaria._("Topics")} />
           <InterfaceText context="Header">Topics</InterfaceText>
         </a>
-        <a href="/sheets/collections" onClick={close} className="textsPageLink" data-target-module={Sefaria.VOICES_MODULE}>
+        <a href="/collections" onClick={close} className="textsPageLink" data-target-module={Sefaria.VOICES_MODULE}>
           <img src="/static/icons/collection.svg" alt={Sefaria._("Collections")} />
           <InterfaceText context="Header">Collections</InterfaceText>
         </a>
@@ -491,11 +491,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
               <InterfaceText>Profile</InterfaceText>
             </div>
             </a>
-            <a href="/sheets/saved" onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
+            <a href="/saved" onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
               <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
               {<InterfaceText text={{en: "Saved & History", he: "שמורים והיסטוריה"}} />}
             </a>
-            <a href="/sheets/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
+            <a href="/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
               <img src="/static/icons/notification.svg" alt={Sefaria._("Notifications")} />
               <InterfaceText>Notifications</InterfaceText>
             </a>
@@ -531,7 +531,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <hr />
         
         { module === Sefaria.LIBRARY_MODULE &&
-        <a href="/sheets/" data-target-module={Sefaria.VOICES_MODULE}>
+        <a href="/" data-target-module={Sefaria.VOICES_MODULE}>
           <img src="/static/icons/sheets-mobile-icon.svg" alt={Sefaria._("Sheets")} />
           <InterfaceText>Sheets</InterfaceText>
         </a>
