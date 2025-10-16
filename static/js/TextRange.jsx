@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import Component from 'react-class';
 import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
@@ -95,11 +96,6 @@ class TextRange extends Component {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
-    }
-  }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
-      this.handleClick(event);
     }
   }
   setData() {
@@ -394,7 +390,7 @@ class TextRange extends Component {
       </div>;
     } else { sidebarNum = null;}
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
+      <div className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -523,11 +519,6 @@ class TextSegment extends Component {
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
     }
   }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
-      this.handleClick(event);
-    }
-  }
   formatItag(lang, text) {
     let $newElement = $("<div>" + text + "</div>");
     const textValue = function(i) {
@@ -653,8 +644,9 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
-           data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
+           className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)}
+           data-ref={this.props.sref}
+           aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
