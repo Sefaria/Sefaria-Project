@@ -11,12 +11,15 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
     git \
-    && apt-get update && apt-get install -y curl \
+    python3-dev \
+    build-essential \
+    curl \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
