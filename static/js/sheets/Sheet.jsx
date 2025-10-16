@@ -82,6 +82,7 @@ class Sheet extends Component {
                         handleCollectionsChange={this.handleCollectionsChange}
                         editorSaveState={this.props.editorSaveState}
                         setEditorSaveState={this.props.setEditorSaveState}
+                        showGuide={this.props.showGuide}
                     />
                   </div>
                   {this.getSidebar(sheet, true)}
