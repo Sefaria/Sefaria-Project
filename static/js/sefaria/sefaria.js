@@ -3316,7 +3316,7 @@ _media: {},
       // Returns a sheet's title with fallback to "Untitled" 
       let title = sheet?.title;
       
-      if (!title || title === "" || title === null) {
+      if (!title) {
         return Sefaria._("Untitled");
       }
       
