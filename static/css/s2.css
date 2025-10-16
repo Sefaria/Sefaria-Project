@@ -2773,6 +2773,9 @@ input.resourcesLink {
   font-size: 14px;
   margin-inline-start: 10px;
 }
+.saveLine .timeStamp {
+  align-self: center;
+}
 .savedHistoryMessage {
   color: var(--dark-grey);
 }
