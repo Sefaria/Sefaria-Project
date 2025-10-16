@@ -1,5 +1,5 @@
 from django_hosts import patterns, host
-from sefaria import settings    
+from django.conf import settings
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from urllib.parse import urlparse
 import re
