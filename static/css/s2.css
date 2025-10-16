@@ -2761,6 +2761,8 @@ input.resourcesLink {
 }
 .savedHistoryList .story .storyBody {
   color: var(--dark-grey);
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .savedHistoryList .saveButton {
   visibility: hidden;
