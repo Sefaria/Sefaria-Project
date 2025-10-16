@@ -350,7 +350,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a className="button small white" href={`/sheets/collections/${slug}/settings`} data-target-module={Sefaria.activeModule}>
+  <a className="button small white" href={`/collections/${slug}/settings`} data-target-module={Sefaria.activeModule}>
     <img className="buttonIcon" src="/static/icons/tools-write-note.svg" alt={Sefaria._("Edit collection")} /><InterfaceText>Edit</InterfaceText>
   </a>
 );
