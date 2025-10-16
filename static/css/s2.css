@@ -1698,21 +1698,24 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .navTitleTab {
   margin-inline-end: 26px;
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
 }
 .navTitleTab:hover {
   color: inherit;
   text-decoration: none;
 }
 .navTitleTab.current {
-  color: inherit;
+  color: var(--dark-grey);
   pointer-events: none;
 }
 .readerNavMenu h1 .navTitleTab img {
   height: 14px;
   margin-inline-end: 6px;
+  filter: brightness(1.5); /* Lightens #666666 to #999999 (--medium-grey-legacy) */
 }
-.readerNavMenu h1 .navTitleTab.current img {filter: brightness(0.5);}
+.readerNavMenu h1 .navTitleTab.current img {
+  filter: brightness(1); /* Keep at #666666 (--dark-grey) */
+}
 .sidebarLayout {
   display: flex;
   flex-direction: row;
