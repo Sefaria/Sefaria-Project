@@ -7,7 +7,6 @@ import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
-import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
@@ -31,6 +30,7 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
+import Button from './common/Button';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -825,7 +825,7 @@ class ReaderApp extends Component {
       currentUrl += window.location.hash;
       hist.url += window.location.hash;
     }
-    
+
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
@@ -854,7 +854,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
@@ -2354,11 +2353,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
+            <Button href="#main" className="skip-link">{Sefaria._("Skip to main content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {panels}
+              <main id="main" role="main">
+                {panels}
+              </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />
@@ -2418,7 +2420,6 @@ const sefariaSetup = Sefaria.setup;
 const { unpackDataFromProps, loadServerData } = Sefaria;
 export {
   ReaderApp,
-  Footer,
   sefariaSetup,
   unpackDataFromProps,
   loadServerData,
