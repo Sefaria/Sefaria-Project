@@ -3629,3 +3629,36 @@ form.globalUpdateForm + div.notificationsList {
 .updateTextarea {
   width: 100%;
 }
+
+/* Newsletter Page Styles */
+.staticPage .staticPageHeader.newsletter {
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+}
+
+.interface-english .staticPage .staticPageHeader.newsletter {
+  background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-en.png");
+}
+
+.interface-hebrew .staticPage .staticPageHeader.newsletter {
+  background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-he.png");
+}
+
+.staticPage .feature .featureIframe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.staticPage .feature .featureIframe iframe {
+  width: 454px;
+  height: 800px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border-radius: 6px;
+}
+
+.staticPageUserQuote img {
+  background-color: white !important;
+}

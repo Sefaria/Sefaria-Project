@@ -3100,6 +3100,179 @@ const ProductsPage = memo(() => {
 });
 
 
+const HeaderForNewsletterPage = () => {
+  var enTitle="Stay Connected"
+  var enText="Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria."
+  var heText="הרשמו לרשימת התפוצה שלנו כדי לקבל משאבי לימוד ולהתעדכן במה שקורה בספריא."
+  var heTitle="הישארו מחוברים"
+  return <div className="staticPageHeader newsletter">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="staticPageHeaderTextBox newsletter">
+        <h1>
+          <span className="int-en">{enTitle}</span>
+          <span className="int-he">{heTitle}</span>
+        </h1>
+        <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+      </div>
+    </div>
+  </div>
+};
+
+const EnhancedFeature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor, link, iframeSrc}) => (
+    <div className="feature">
+        <div className="staticPageBlockInner flexContainer">
+            <div className="featureText" style={{borderColor: borderColor}}>
+                <div className="featureHeader">
+                    <ConditionalLink link={link}>
+                        <h3>
+                            <span className="int-en">{enTitle}</span>
+                            <span className="int-he">{heTitle}</span>
+                        </h3>
+                    </ConditionalLink>
+                </div>
+                <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+                <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+            </div>
+            {iframeSrc ? (
+                <div className="featureIframe">
+                    <iframe
+                        src={iframeSrc}
+                        title={enTitle}
+                        style={{
+                            width: '454px',
+                            height: '800px',
+                            border: 'none',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                            borderRadius: '6px'
+                        }}
+                    />
+                </div>
+            ) : (
+                <ConditionalLink link={link}>
+                    <div className="featureImage">
+                        <img className="int-en" src={enImg} alt={enImgAlt}/>
+                        <img className="int-he" src={heImg} alt={heImgAlt}/>
+                    </div>
+                </ConditionalLink>
+            )}
+        </div>
+    </div>
+);
+
+const EnhancedUserQuote = ({enText, heText, enImage, heImage, enName, heName}) =>
+    <div className="staticPageUserQuote">
+        <div className="staticPageUserQuoteContent">
+            <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+            <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+        </div>
+        <div className="staticPageUserQuoteNameBox">
+            <img className="int-en" src={enImage} style={{backgroundColor: 'white'}} />
+            <img className="int-he" src={heImage} style={{backgroundColor: 'white'}} />
+            <div className="staticPageUserQuoteName">
+                <span className="int-en" dangerouslySetInnerHTML={{__html:enName}} />
+                <span className="int-he" dangerouslySetInnerHTML={{__html:heName}} />
+            </div>
+        </div>
+    </div>;
+
+const NewsletterPage = () => (
+    <StaticPage>
+        <HeaderForNewsletterPage/>
+        <GreyBox>
+            <H2Block en="Learn about our weekly study emails to help you dive deeper into the texts." he="למדו על הדואר השבועי שלנו שעוזר לכם להעמיק בטקסטים."/>
+        </GreyBox>
+        <EnhancedFeature
+            enTitle="Weekly Parashah Study Companion"
+            enText="<p>Each week we send out a guide to help you learn the weekly Torah reading. This resource includes historical context, discussion questions, and connections to other texts in our library.</p><p>These study guides support curious readers of all levels, from those who are encountering Jewish texts for the first time to experienced learners seeking new perspectives.</p>"
+            heTitle="מדריך לפרשת השבוע"
+            heText="<p>כל שבוע אנו שולחים מדריך שעוזר ללמוד את פרשת השבוע. המשאב הזה כולל הקשר היסטורי, שאלות לדיון וקשרים לטקסטים אחרים בספרייה שלנו.</p><p>מדריכי הלימוד האלה תומכים בקוראים סקרנים מכל הרמות, מאלה שפוגשים טקסטים יהודיים בפעם הראשונה ועד ללומדים מנוסים המחפשים נקודות מבט חדשות.</p>"
+            borderColor="#004E5F"
+            iframeSrc="/static/files/weekly-parashah-bereshit-email-example.html"
+        />
+        <EnhancedFeature
+            enTitle="Timeless Topics"
+            enText="<p>Discover the connections between ancient wisdom and contemporary life with our topic guides. Each issue explores a theme through multiple lenses, drawing from various periods and perspectives in Jewish thought.</p><p>Whether you're interested in ethics, philosophy, or practical life guidance, these emails help you explore how Jewish texts speak to timeless questions.</p>"
+            heTitle="נושאים נצחיים"
+            heText="<p>גלו את הקשרים בין חכמה עתיקה לחיים עכשוויים עם מדריכי הנושאים שלנו. כל גיליון חוקר נושא דרך עדשות מרובות, תוך שימוש בתקופות ונקודות מבט שונות במחשבת ישראל.</p><p>בין אם אתם מתעניינים באתיקה, פילוסופיה או הדרכה מעשית לחיים, המיילים הללו עוזרים לכם לחקור כיצד טקסטים יהודיים מדברים אל שאלות נצחיות.</p>"
+            borderColor="#004E5F"
+            iframeSrc="/static/files/topics-silence-email-example.html"
+        />
+        <GreyBox>
+            <H2Block en="What the people are saying..." he="מה אנשים אומרים..."/>
+            <Section>
+                <ResponsiveNBox
+                    threshold2={768}
+                    content={[
+                        <EnhancedUserQuote
+                            enText="The weekly Torah portion emails help me understand the text in a much deeper way. I really appreciate how they connect different sources and commentaries."
+                            heText="המיילים השבועיים של פרשת השבוע עוזרים לי להבין את הטקסט בצורה הרבה יותר עמוקה. אני מעריכה איך הם מחברים מקורות ופרשנויות שונות."
+                            enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                            heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                            enName="Sarah K."
+                            heName="שרה ק."
+                        />,
+                        <EnhancedUserQuote
+                            enText="Sefaria's topic emails are brilliant. They help me see how ancient wisdom applies to modern questions and challenges."
+                            heText="המיילים בנושאים של ספריא מבריקים. הם עוזרים לי לראות איך חכמה עתיקה חלה על שאלות ואתגרים מודרניים."
+                            enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                            heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                            enName="David M."
+                            heName="דוד מ."
+                        />
+                    ]}
+                />
+            </Section>
+        </GreyBox>
+        <ButtonRow white={true}>
+            <SimpleButton
+                href="https://donate.sefaria.org"
+                he_href="https://donate.sefaria.org/he"
+                en="Donate"
+                he="לתרומה"
+                white={false}
+                newTab={true}
+            />
+            <SimpleButton
+                href="/testimonials"
+                he_href="/testimonials"
+                en="Leave a Testimonial"
+                he="כתבו המלצה"
+                white={false}
+            />
+            <SimpleButton
+                href="https://sponsor.sefaria.org"
+                he_href="https://sponsor.sefaria.org"
+                en="Claim Your Letter in the Torah"
+                he="הוסיפו את האות שלכם בתורה"
+                white={false}
+                newTab={true}
+            />
+        </ButtonRow>
+        <div className="staticPageCallToActionFooter">
+            <div className="staticPageBlockInner flexContainer light">
+                <div className="staticPageCallToActionText">
+                    <h2 className="staticPageCallToActionTextTitle">
+                        <span className="int-en">Ready to get started?</span>
+                        <span className="int-he">מוכנים להתחיל?</span>
+                    </h2>
+                    <span className="int-en">Join thousands of learners who receive our weekly study resources.</span>
+                    <span className="int-he">הצטרפו לאלפי לומדים שמקבלים את משאבי הלימוד השבועיים שלנו.</span>
+                </div>
+                <div className="staticPageCallToActionButton">
+                    <SimpleButton
+                        href="https://sefaria.nationbuilder.com/newsletter_signup"
+                        he_href="https://sefaria.nationbuilder.com/newsletter_signup"
+                        en="Sign Up for Our Newsletter"
+                        he="הרשמו לניוזלטר שלנו"
+                        white={true}
+                        newTab={true}
+                    />
+                </div>
+            </div>
+        </div>
+    </StaticPage>
+);
+
 export {
     SheetsLandingPage,
     PBSC2020LandingPage,
@@ -3113,4 +3286,5 @@ export {
     JobsPage,
     TeamMembersPage,
     ProductsPage,
+    NewsletterPage,
 };
