@@ -84,6 +84,57 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   );
 }
 
+/**
+ * DropdownModuleItem - A dropdown menu item for module navigation with a colored dot indicator
+ *
+ * Used primarily in the module switcher to allow navigation between different Sefaria modules
+ * (Library, Voices, Developers). Displays a colored dot and bilingual text.
+ *
+ * @param {string} url - The destination URL for the link
+ * @param {boolean} newTab - Whether to open the link in a new tab
+ * @param {string} [targetModule] - The target module identifier (e.g., Sefaria.LIBRARY_MODULE).
+ *                                  If provided, the URL will be constructed using Sefaria.util.fullURL
+ * @param {string} dotColor - CSS variable name for the colored dot (e.g., '--sefaria-blue', '--sheets-green')
+ * @param {Object} text - Bilingual text object with 'en' and 'he' keys
+ * @param {string} text.en - English text to display
+ * @param {string} text.he - Hebrew text to display
+ *
+ * @example
+ * <DropdownModuleItem
+ *   url={"/"}
+ *   newTab={false}
+ *   targetModule={Sefaria.LIBRARY_MODULE}
+ *   dotColor={'--sefaria-blue'}
+ *   text={{ en: "Library", he: "ספריה" }}
+ * />
+ */
+const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
+  const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+  return (
+    <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
+       href={fullURL}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
+       target={newTab ? '_blank' : null}>
+      <div className="dropdownHeader">
+        <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
+        <span className='dropdownHeaderText'>
+          <InterfaceText text={text}/>
+        </span>
+      </div>
+    </a>
+  );
+}
+DropdownModuleItem.propTypes = {
+  url: PropTypes.string.isRequired,
+  newTab: PropTypes.bool.isRequired,
+  targetModule: PropTypes.string,
+  dotColor: PropTypes.string.isRequired,
+  text: PropTypes.shape({
+    en: PropTypes.string.isRequired,
+    he: PropTypes.string.isRequired
+  }).isRequired
+};
+
 const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     /**
      * `buttonComponent` is a React component for the opening/closing of a button.
@@ -218,7 +269,8 @@ const DropdownLanguageToggle = () => {
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
     DropdownMenuItemLink,
-    DropdownMenuItem, 
+    DropdownMenuItem,
     DropdownMenuItemWithCallback,
+    DropdownModuleItem,
     DropdownLanguageToggle
   };
