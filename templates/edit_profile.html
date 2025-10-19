@@ -18,10 +18,10 @@
                     <span class="int-en">Cancel</span>
                     <span class="int-he">בטל</span>
                 </a>
-                <div id="saveProfile" class="saveProfileButton button small blue control-elem" tabindex="0" role="button" >
+                <button id="saveProfile" class="saveProfileButton button small blue control-elem" type="button">
                     <span class="int-en">Save</span>
                     <span class="int-he">שמור</span>
-                </div>
+                </button>
             </div>
         </h1>
         <div id="profileBox">
@@ -149,8 +149,8 @@
 {% block js %}
 	<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
 	<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
-	{% include "js/django-csrf.js" %}
-	<script>
+	<script src="{% static 'js/django-csrf.js' %}"></script>
+    <script>
 
 		CKEDITOR.config.font_names =
 			'Arial/Arial, Helvetica, sans-serif;' +

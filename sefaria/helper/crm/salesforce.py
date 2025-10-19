@@ -4,7 +4,7 @@ import time
 import json
 
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
-from sefaria import settings as sls
+from django.conf import settings as sls
 
 from typing import Any, Optional
 
