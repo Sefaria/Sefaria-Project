@@ -3314,13 +3314,7 @@ _media: {},
     },
     getSheetTitle: function(sheet) {
       // Returns a sheet's title with fallback to "Untitled" 
-      let title = sheet?.title;
-      
-      if (!title) {
-        return Sefaria._("Untitled");
-      }
-      
-      return title.stripHtml();
+      return sheet?.title?.stripHtml() || Sefaria._("Untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
