@@ -795,6 +795,10 @@ class ReaderApp extends Component {
     return hist;
   }
   updateHistoryState(replace) {
+    // Always reset replaceHistory flag first, before any early returns
+    const shouldReplace = replace;
+    this.replaceHistory = false;
+    
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -805,7 +809,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
 
-    if (replace) {
+    if (shouldReplace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
       if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
@@ -818,7 +822,6 @@ class ReaderApp extends Component {
     }
 
     $("title").html(hist.title);
-    this.replaceHistory = false;
 
     this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
@@ -1300,10 +1303,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
     }
     this.setState(new_state);
-    // Reset replaceHistory to false to avoid breaking subsequent navigation
-    if (replaceHistory) {
-      this.replaceHistory = false;
-    }
   }
   didDefaultPanelSettingsChange(state){
     if ("settings" in state){
@@ -2266,7 +2265,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       openMobileNavMenu={this.toggleMobileNavMenu}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
-                      openURL={this.openURL}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
                       setSidebarSearchQuery={setSidebarSearchQuery}
