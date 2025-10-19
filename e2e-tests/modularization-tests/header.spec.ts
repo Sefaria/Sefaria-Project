@@ -1,19 +1,22 @@
 import { test, expect, Page } from '@playwright/test';
 import { HeaderTestHelpers } from './headerMDL';
 import { hideAllModalsAndPopups } from '../utils';
+import { UtilTestHelpers } from './utilsMDL';
 import { URLS, SELECTORS, EXTERNAL_URLS, SITE_CONFIGS, SEARCH_DROPDOWN, AUTH_CONSTANTS } from './constantsMDL';
 
 test.describe('Modularization Header Tests', () => {
   let helpers: HeaderTestHelpers;
+  let utils: UtilTestHelpers;
   
   test.beforeEach(async ({ page }) => {
     helpers = new HeaderTestHelpers(page);
-    await helpers.navigateAndHideModals(URLS.LIBRARY);
+    utils = new UtilTestHelpers(page);
+    await utils.navigateAndHideModals(URLS.LIBRARY);
   });
 
   test('MOD-H001: Logo navigation functionality (EXPECTED TO FAIL)', async ({ page }) => {
     for (const [siteName, config] of Object.entries(SITE_CONFIGS)) {
-      await helpers.navigateAndHideModals(config.url);
+      await utils.navigateAndHideModals(config.url);
       
       // Navigate to Topics, then try to go back via logo
       await helpers.clickAndVerifyNavigation('Topics', /topics/);
@@ -36,40 +39,40 @@ test.describe('Modularization Header Tests', () => {
     
     // Test main navigation links
     for (const link of config.mainLinks) {
-      await helpers.navigateAndHideModals(config.url);
+      await utils.navigateAndHideModals(config.url);
       await helpers.clickAndVerifyNavigation(link.name, link.expectedUrl);
     }
     
     // Test donate and help link (new tab)
-    await helpers.navigateAndHideModals(config.url);
+    await utils.navigateAndHideModals(config.url);
     await helpers.clickAndVerifyNewTab('Donate', EXTERNAL_URLS.DONATE);
   
-    await helpers.navigateAndHideModals(config.url);
+    await utils.navigateAndHideModals(config.url);
     await helpers.clickAndVerifyNewTab('Help', EXTERNAL_URLS.HELP);
   });
 
   test('MOD-H003: Sheets header navigation and elements', async ({ page }) => {
     const config = SITE_CONFIGS.VOICES;
-    await helpers.navigateAndHideModals(config.url);
+    await utils.navigateAndHideModals(config.url);
     
     // Test logo visibility
     await expect(page.locator(config.logo)).toBeVisible();
     
     // Test main navigation links
     for (const link of config.mainLinks) {
-      await helpers.navigateAndHideModals(config.url);
+      await utils.navigateAndHideModals(config.url);
       await helpers.clickAndVerifyNavigation(link.name, link.expectedUrl);
     }
     
     // Test donate and help links (new tabs)
-    await helpers.navigateAndHideModals(config.url);
+    await utils.navigateAndHideModals(config.url);
     await helpers.clickAndVerifyNewTab('Donate', EXTERNAL_URLS.DONATE);
     
-    await helpers.navigateAndHideModals(config.url);
+    await utils.navigateAndHideModals(config.url);
     await helpers.clickAndVerifyNewTab('Help', EXTERNAL_URLS.HELP);
     
     // Test action button (Create)
-    await helpers.navigateAndHideModals(config.url);
+    await utils.navigateAndHideModals(config.url);
     await helpers.testActionButton(config);
   });
 
@@ -78,7 +81,7 @@ test.describe('Modularization Header Tests', () => {
     await helpers.testSearch('Genesis 1:1', /Genesis/);
     
     // Test Sheets search
-    await helpers.navigateAndHideModals(URLS.VOICES);
+    await utils.navigateAndHideModals(URLS.VOICES);
     await helpers.testSearch('Passover', /search|Passover/);
   });
 
@@ -97,7 +100,7 @@ test.describe('Modularization Header Tests', () => {
     
     // Test Sheets navigation (new tab)
     let newPage = await helpers.selectDropdownOption('Sheets', true);
-    await expect(newPage!).toHaveURL(/voices\.modularization\.cauldron\.sefaria\.org/);
+    await expect(newPage!).toHaveURL(SITE_CONFIGS.VOICES.url);
     await newPage!.close();
     
     // Test Developers navigation (new tab)
@@ -131,10 +134,16 @@ test.describe('Modularization Header Tests', () => {
     await expect(page).toHaveURL(/category/);
   });
 
-  test('MOD-H009: Keyboard navigation accessibility', async ({ page }) => {
+  test('MOD-H009a: Header - Keyboard navigation accessibility ', async ({ page }) => {
     for (const [siteName, config] of Object.entries(SITE_CONFIGS)) {
-      await helpers.navigateAndHideModals(config.url);
+      await utils.navigateAndHideModals(config.url);
       await helpers.testTabOrder(config.tabOrder);
+    }
+  });
+
+  test('MOD-H009b: Module switcher - Keyboard navigation accessibility', async ({ page }) => {
+    for (const [siteName, config] of Object.entries(SITE_CONFIGS)) {
+      await utils.navigateAndHideModals(config.url);
       await helpers.testModuleSwitcherKeyboard();
     }
   });
@@ -147,7 +156,7 @@ test.describe('Modularization Header Tests', () => {
 
   test('MOD-H011: Sheets - Search dropdown sections and icons validation', async ({ page }) => {
     // Navigate to Sheets site for testing
-    await helpers.navigateAndHideModals(URLS.VOICES);
+    await utils.navigateAndHideModals(URLS.VOICES);
     
     // Test search dropdown with 'rashi' to trigger Topics, Authors, and Users sections
     await helpers.testSearchDropdown('rashi', SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_SECTIONS, SEARCH_DROPDOWN.VOICES_EXCLUDED_SECTIONS);
@@ -156,7 +165,7 @@ test.describe('Modularization Header Tests', () => {
 
   test('MOD-H012: User authentication flow across both sites', async ({ page }) => {
     // Test Library site authentication
-    await helpers.navigateAndHideModals(URLS.LIBRARY);
+    await utils.navigateAndHideModals(URLS.LIBRARY);
     
     // Login with superuser (known working credentials)
     await helpers.loginWithCredentials(URLS.LIBRARY, 'superUser');
@@ -165,7 +174,7 @@ test.describe('Modularization Header Tests', () => {
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
     // Navigate to Sheets - auth should persist
-    await helpers.navigateAndHideModals(URLS.VOICES);
+    await utils.navigateAndHideModals(URLS.VOICES);
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
     // Test logout
@@ -212,11 +221,11 @@ test.describe('Modularization Header Tests', () => {
 
   test('MOD-H014: Create New Sheet button functionality when logged in', async ({ page }) => {
     // Navigate to Sheets site and login
-    await helpers.navigateAndHideModals(URLS.VOICES);
+    await utils.navigateAndHideModals(URLS.VOICES);
     await helpers.loginWithCredentials(URLS.VOICES, 'superUser');
     
     // After login, navigate back to Sheets home to avoid any redirect issues
-    await helpers.navigateAndHideModals(URLS.VOICES);
+    await utils.navigateAndHideModals(URLS.VOICES);
     
     // Verify logged-in state on Sheets
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
@@ -246,7 +255,7 @@ test.describe('Modularization Header Tests', () => {
     
     // Close guide overlay if it appears after creating a sheet
     await hideAllModalsAndPopups(page);
-    await helpers.closeGuideOverlay();
+    await utils.closeGuideOverlay();
     
     // Verify navigation to either /sheets/new or a newly created sheet (with numeric ID)
     // The Create button may directly create a sheet rather than going to a creation form
@@ -273,7 +282,7 @@ test.describe('Modularization Header Tests', () => {
       // Now delete the sheet to clean up
       
       // Make sure guide overlay is closed (may reappear)
-      await helpers.closeGuideOverlay();
+      await utils.closeGuideOverlay();
       
       // Click the Options button (ellipses)
       const optionsButton = page.locator('img[src="/static/icons/ellipses.svg"]');

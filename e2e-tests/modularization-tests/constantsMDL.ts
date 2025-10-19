@@ -84,15 +84,14 @@ export const SITE_CONFIGS = {
       { selector: '.header a.textLink[href="/texts"]', description: 'Texts link' },
       { selector: '.header a.textLink[href="/topics"]', description: 'Topics link' },
       { selector: '.header a.textLink.donate', description: 'Donate link' },
-      { selector: '.header input.search[placeholder="Search"]', description: 'Search input' },
+      { selector: '.header input.search', description: 'Search input' },
       { selector: '.header img.keyboardInputInitiator', description: 'Virtual keyboard icon' },
-      // Match either anchor or button for the action button
+      // Action button (anchor with role=button) - sign up
       { selector: '.header .sefaria-common-button', description: 'Sign Up / Create button' },
-      { selector: '.header a[href="/register"]', description: 'Sign Up link' },
-      { selector: '.header a[href="https://help.sefaria.org/hc/en-us"]', description: 'Help link' },
-      { selector: '.header img[alt="Toggle Interface Language Menu"]', description: 'Language dropdown button' },
+      { selector: '.header .help a', description: 'Help link' },
+      { selector: '.header img[src="/static/icons/globe-wire.svg"]', description: 'Language globe button' },
       { selector: '.header button.header-dropdown-button[aria-label="Library"]', description: 'Module switcher button' },
-      { selector: '.header button.header-dropdown-button[aria-label="Account menu"]', description: 'User menu button' }
+      { selector: '.header button.header-dropdown-button[aria-label="Account menu"]', description: 'User menu button' },
     ]
   },
   VOICES: {
@@ -108,11 +107,13 @@ export const SITE_CONFIGS = {
       { selector: '.header a.textLink[href="/topics"]', description: 'Topics link' },
       { selector: '.header a.textLink[href="/collections"]', description: 'Collections link' },
       { selector: '.header a.textLink.donate', description: 'Donate link' },
-      { selector: '.header input.search[placeholder="Search"]', description: 'Search input' },
+      { selector: '.header input.search', description: 'Search input' },
       { selector: '.header img.keyboardInputInitiator', description: 'Virtual keyboard icon' },
       { selector: '.header .sefaria-common-button', description: 'Create button' },
-      { selector: '.header a[href="/sheets/new"]', description: 'Create link' },
-      { selector: '.header a[href="https://help.sefaria.org/hc/en-us"]', description: 'Help link' }
+      { selector: '.header .help a', description: 'Help link' },
+      { selector: '.header img[src="/static/icons/globe-wire.svg"]', description: 'Language globe button' },
+      { selector: '.header button.header-dropdown-button[aria-label="Library"]', description: 'Module switcher button' },
+      { selector: '.header button.header-dropdown-button[aria-label="Account menu"]', description: 'User menu button' }
     ]
   }
 } as const;

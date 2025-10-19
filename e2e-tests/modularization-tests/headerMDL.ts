@@ -9,24 +9,7 @@ import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, SearchDropdownSec
 export class HeaderTestHelpers {
   constructor(private page: Page) {}
 
-  /**
-   * Navigates to a URL and hides all modals/popups to ensure clean test state.
-   * @param url - The URL to navigate to
-   */
-  async navigateAndHideModals(url: string) {
-    await this.page.goto(url);
-    await hideAllModalsAndPopups(this.page);
-  }
-
-  /**
-   * Closes the guide overlay if it appears on sheet creation or navigation.
-   * This is a wrapper around the hideTipsAndTricks utility function.
-   * @returns Promise<void>
-   */
-  async closeGuideOverlay(): Promise<void> {
-    await hideTipsAndTricks(this.page);
-  }
-
+ 
   /**
    * Clicks a navigation link in the banner and verifies it navigates to the expected URL.
    * @param linkName - The accessible name of the link to click
@@ -137,7 +120,8 @@ export class HeaderTestHelpers {
     for (const item of tabOrder) {
       await this.page.keyboard.press('Tab');
       const element = this.page.locator(item.selector).first();
-      await expect(element, `Expected focus on ${item.description}`).toBeFocused();
+      const currentlyFocused = await this.page.evaluate(() => document.activeElement?.textContent?.trim() || 'none');
+      await expect(element, `Expected focus on ${item.description}, but focused on ${currentlyFocused}`).toBeFocused();
     }
   }
 
@@ -156,7 +140,8 @@ export class HeaderTestHelpers {
     for (const option of moduleOptions) {
       await this.page.keyboard.press('Tab');
       const moduleOption = this.page.locator(SELECTORS.DROPDOWN_OPTION).filter({ hasText: option });
-      await expect(moduleOption).toBeFocused();
+      const currentlyFocused = await this.page.evaluate(() => document.activeElement?.textContent?.trim() || 'none');
+      await expect(moduleOption, `Expected focus on ${option}, but focused on ${currentlyFocused}`).toBeFocused();
     }
     
     // Close with Escape
