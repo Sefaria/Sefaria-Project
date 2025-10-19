@@ -31,6 +31,7 @@ const SheetsHomePageSidebar = ({includeFooter = false}) => {
     const sidebarModules = [
     {type: "WhatIsSefariaVoices"},
     {type: "CreateASheet"},
+    {"type": "VoicesNewsletterSignUp"}
   ];
     return <NavSidebar sidebarModules={sidebarModules} includeFooter={includeFooter} />
 }

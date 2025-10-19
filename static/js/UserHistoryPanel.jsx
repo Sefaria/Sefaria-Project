@@ -14,6 +14,7 @@ import {
   LoadingMessage,
   InterfaceText,
 } from './Misc';
+import Util from './sefaria/util';
 
 
 const filterDataByType = (data) => {
@@ -56,18 +57,22 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const title = (
     <span className="sans-serif">
-
-      <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }>
-        <img src="/static/icons/bookmark.svg" />
+      <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
+      className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
+      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+        <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href="/history" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}>
-        <img src="/static/icons/clock.svg" />
+      <a href="/history" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
+      className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
+      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+        <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
         <InterfaceText>History</InterfaceText>
       </a>
       { Sefaria.activeModule === "library" &&
-        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}>
-        <img src="/static/icons/notes-icon.svg" />
+        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+        <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
         <InterfaceText>Notes</InterfaceText>
       </a> }
     </span>
