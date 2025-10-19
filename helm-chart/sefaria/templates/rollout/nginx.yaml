@@ -14,6 +14,7 @@ spec:
       activeService: nginx-{{ .Values.deployEnv }}
       previewService: nginx-{{ .Values.deployEnv }}-preview
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
         templates:
           - templateName: rollout-ready-{{ .Values.deployEnv }}
@@ -21,6 +22,7 @@ spec:
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
   selector:
     matchLabels:
       app: nginx-{{ .Values.deployEnv }}

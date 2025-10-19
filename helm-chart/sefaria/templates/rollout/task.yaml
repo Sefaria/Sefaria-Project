@@ -18,6 +18,7 @@ spec:
     blueGreen:
       activeService: task-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
         templates:
           # - templateName: rollout-readiness-{{ .Values.deployEnv }}
@@ -25,6 +26,7 @@ spec:
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
   selector:
     matchLabels:
       app: tasks-{{ .Values.deployEnv }}

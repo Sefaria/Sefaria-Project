@@ -38,5 +38,5 @@ data:
 
     nginx -c /nginx.conf -g 'daemon off;'
 
-  nginx.template.conf: |-
+  nginx.template.conf: |
     {{- tpl (.Files.Get "conf/nginx.template.conf.tpl") . | nindent 4 }}
