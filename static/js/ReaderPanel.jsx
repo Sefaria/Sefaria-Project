@@ -902,7 +902,7 @@ class ReaderPanel extends Component {
           key="connections" />
       );
     }
-    
+
     if (this.state.menuOpen === "navigation") {
 
       const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
@@ -1073,8 +1073,7 @@ class ReaderPanel extends Component {
           navHome={this.openMenu.bind(null, "navigation")}
           multiPanel={this.props.multiPanel}
           initialWidth={this.state.width}
-          interfaceLang={this.props.interfaceLang}
-          openURL={this.props.openURL} />
+          interfaceLang={this.props.interfaceLang} />
       );
 
     } else if (this.state.menuOpen === "collectionsPublic") {
@@ -1278,7 +1277,6 @@ ReaderPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   topicTestVersion:            PropTypes.string,
-  openURL:                     PropTypes.func,
 };
 
 
