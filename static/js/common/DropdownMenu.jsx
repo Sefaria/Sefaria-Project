@@ -282,10 +282,6 @@ const DropdownLanguageToggle = () => {
     </>
   )
 }
-DropdownLanguageToggle.propTypes = {
-    currentLang: PropTypes.string,
-}
-
   export {
     DropdownMenu,
     DropdownMenuSeparator,
