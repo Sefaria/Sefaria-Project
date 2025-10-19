@@ -798,6 +798,7 @@ class ReaderPanel extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}
           editorSaveState={this.props.editorSaveState}
           setEditorSaveState={this.props.setEditorSaveState}
+          showGuide={this.getGuideType() && this.showGuide.bind(this)}
         />;
     }
 
