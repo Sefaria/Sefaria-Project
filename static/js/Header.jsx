@@ -204,7 +204,7 @@ const Header = (props) => {
 
   const librarySavedIcon = <div className='librarySavedIcon'>
                                 <a
-                                  href="/texts/saved"
+                                  href="/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
                                   onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                 >
@@ -212,13 +212,6 @@ const Header = (props) => {
                                 </a>
                               </div>;
 
-  const logo = props.module === Sefaria.LIBRARY_MODULE ? libraryLogo : sheetsLogo;
-
-  const librarySavedIcon = <div className='librarySavedIcon'>
-                                  <a href="/saved" data-target-module={Sefaria.LIBRARY_MODULE}>
-                                    <img src='/static/icons/bookmarks.svg' alt='Saved items' />
-                                  </a>
-                                </div>;
   const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
     <a
       href="/notifications"
