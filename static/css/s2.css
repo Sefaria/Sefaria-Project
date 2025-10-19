@@ -5655,6 +5655,7 @@ h1.topic-landing-header {
   display: flex;
   flex-direction: row;
   text-align: left;
+  align-items: center;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
@@ -6760,11 +6761,6 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsHeader .readerNavMenuCloseButton.circledX,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
-}
-
-.interface-hebrew .connectionsHeader .readerNavMenuCloseButton.circledX,
-.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
-  line-height: unset;
 }
 
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
