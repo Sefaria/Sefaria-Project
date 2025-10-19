@@ -258,10 +258,6 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
 
 const DropdownLanguageToggle = () => {
-  const onClick = (e, language) => {
-    e.preventDefault();
-    window.location.href = `/interface/${language}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
-  }
   return (
     <>
       <div className="languageHeader">
