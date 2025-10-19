@@ -278,6 +278,7 @@ class ReaderApp extends Component {
     }
 
     this.setContainerMode();
+    // Pass this.replaceHistory flag to updateHistoryState - it will be reset there
     this.updateHistoryState(this.replaceHistory);
   }
 
@@ -794,9 +795,17 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  updateHistoryState(replace) {
-    // Always reset replaceHistory flag first, before any early returns
-    const shouldReplace = replace;
+  updateHistoryState(shouldReplace) {
+    // IMPORTANT: reset replaceHistory flag first, before any early returns such as !this.shouldHistoryUpdate() or return;
+    // 
+    // The this.replaceHistory system works as follows:
+    // 1. Various ReaderPanel methods set this.replaceHistory = true when they want
+    //    the NEXT history update to use replaceState instead of pushState
+    //    (e.g., tab changes, collection name updates, connection focus changes)
+    // 2. componentDidUpdate calls updateHistoryState(this.replaceHistory)
+    // 3. We MUST reset this.replaceHistory = false immediately to prevent it from
+    //    "sticking" and affecting ALL future history updates
+    // 4. We use the shouldReplace parameter for this specific update
     this.replaceHistory = false;
     
     if (!this.shouldHistoryUpdate()) {
@@ -1284,6 +1293,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
   setPanelState(n, state, replaceHistory) {
+    // Set replaceHistory flag - this will be consumed and reset by updateHistoryState
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
