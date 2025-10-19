@@ -1,12 +1,14 @@
 import {InterfaceText} from "../Misc";
 import React from "react";
+import Util from "../sefaria/util";
 const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl, analyticsEventName, analyticsLinkType}) => {
     return <div className="card">
-                <a href={cardTitleHref} 
+                <a href={cardTitleHref}
                 className="cardTitle" onClick={oncardTitleClick}
                 data-anl-text={cardTitle?.en}
                 data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
                 data-target-module={Sefaria.activeModule}
+                onKeyDown={(e) => Util.handleKeyboardClick(e)}
                 >
                     <InterfaceText text={cardTitle}/>
                 </a>
@@ -19,6 +21,7 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                         data-anl-text={bottomLinkText.en}
                         data-anl-event={analyticsEventName ? `${analyticsEventName}:click` : null}
                         data-target-module={Sefaria.activeModule}
+                        onKeyDown={(e) => Util.handleKeyboardClick(e)}
                       >
                       <InterfaceText markdown={{en: bottomLinkText.en, he: bottomLinkText.he}} disallowedMarkdownElements={['p', 'a']}/>
                       </a>

@@ -1,17 +1,16 @@
 {% load render_bundle from webpack_loader %}
-{% load sefaria_tags %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 
 <head>
 
 	<title>{{ page_title }} | Sefaria</title>
 	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link rel="stylesheet" href="{% static 'js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css' %}">
 	<link rel="stylesheet" href="{% static 'css/reader.css' %}">
     <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
@@ -157,14 +156,14 @@
 			<div id="addVersionHeaderRight">
 
 				<div id="textTypeForm">
-					<label class="option">
+					<span class="option">
 						<input type="radio" id="originalRadio" name="newTextType" value="original" checked="checked">
-						Original Translation
-					</label>
-					<label class="option">
+						<label for="originalRadio">Original Translation</label>
+					</span>
+					<span class="option">
 						<input type="radio" id="copyRadio" name="newTextType" value="copy">
-						Copied Text
-					</label>
+						<label for="copyRadio">Copied Text</label>
+					</span>
 					<span id="showOriginal"></span>
 				</div>
 				<div id="cc0Message" class="alert">
@@ -202,8 +201,6 @@
 	</div>
 
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
-
-<div id="footerContainer"></div>
 
 {% autoescape off %}
 	{% if request.user.is_authenticated %}
