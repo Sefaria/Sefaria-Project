@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
-import {useCurrentPath} from "../Hooks";
 import Util from '../sefaria/util';
 
 const DropdownMenuSeparator = () => {
@@ -32,6 +31,22 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
       {children}
     </a>
 
+  );
+}
+
+const NextRedirectAnchor = ({url, children, className}) => {
+  const onClick = (e) => {
+    e.preventDefault();
+    window.location.href = `${url}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
+  }
+  return (
+    <a className={className || 'interfaceLinks-option int-bi dropdownItem'}
+       href='#'
+       onClick={(e) => onClick(e)}
+       onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
+    >
+      {children}
+    </a>
   );
 }
 
@@ -243,9 +258,10 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
 
 const DropdownLanguageToggle = () => {
-  const next = Sefaria.getNextParamString(useCurrentPath());
-  const englishLink = Sefaria.util.fullURL(`/interface/english?${next}`);
-  const hebrewLink = Sefaria.util.fullURL(`/interface/hebrew?${next}`);
+  const onClick = (e, language) => {
+    e.preventDefault();
+    window.location.href = `/interface/${language}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
+  }
   return (
     <>
       <div className="languageHeader">
@@ -253,13 +269,19 @@ const DropdownLanguageToggle = () => {
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
-        <a className={`englishLanguageLink ${(Sefaria.interfaceLang === 'english') ? 'active': ''}`} href={englishLink}>
+        <NextRedirectAnchor
+           className={`englishLanguageLink ${(Sefaria.interfaceLang === 'english') ? 'active': ''}`}
+           url={'/interface/english'}
+        >
           English
-        </a>
+        </NextRedirectAnchor>
       </span>
-      <a className={`hebrewLanguageLink ${(Sefaria.interfaceLang === 'hebrew') ? 'active': ''}`} href={hebrewLink}>
+      <NextRedirectAnchor
+          className={`hebrewLanguageLink ${(Sefaria.interfaceLang === 'hebrew') ? 'active': ''}`}
+           url={'/interface/hebrew'}
+      >
         עברית
-      </a>
+      </NextRedirectAnchor>
       </div>
     </>
   )
@@ -272,6 +294,7 @@ DropdownLanguageToggle.propTypes = {
     DropdownMenu,
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
+    NextRedirectAnchor,
     DropdownMenuItemLink,
     DropdownMenuItem,
     DropdownMenuItemWithCallback,

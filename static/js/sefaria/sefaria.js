@@ -11,7 +11,6 @@ import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
 import FilterNode from "./FilterNode";
-import {useCurrentPath} from "../Hooks";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
 
@@ -3551,9 +3550,6 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
-  getNextParamString(rawPath) {
-    return `next=${encodeURIComponent(rawPath)}`;
-  }
 });
 
 Sefaria.unpackDataFromProps = function(props) {
