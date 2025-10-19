@@ -649,7 +649,7 @@ const MobileInterfaceLanguageToggle = () => {
     <>
       <NextRedirectAnchor url="/interface/hebrew" className="int-he">עברית</NextRedirectAnchor>
       <span className="separator">•</span>
-      <NextRedirectAnchor href="/interface/english" className="int-en inactive">English</NextRedirectAnchor>
+      <NextRedirectAnchor url="/interface/english" className="int-en inactive">English</NextRedirectAnchor>
     </>
     :
     <>
