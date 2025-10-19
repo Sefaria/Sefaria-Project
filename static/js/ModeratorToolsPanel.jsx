@@ -229,8 +229,8 @@ class WorkflowyModeratorTool extends Component{
     }
 
     // Add other form data
-    data.append('c_index', this.state.c_index);
-    data.append('c_version', this.state.c_version || false);
+    data.append('c_index', this.state.c_index ? 'true' : 'false');
+    data.append('c_version', this.state.c_version ? 'true' : 'false');
     data.append('delims', this.state.delims || '');
     data.append('term_scheme', this.state.term_scheme || '');
 

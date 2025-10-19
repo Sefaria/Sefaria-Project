@@ -53,7 +53,7 @@ from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, parse_bool
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
@@ -1376,14 +1376,9 @@ def modtools_upload_workflowy(request):
         return jsonResponse({"error": "No files provided. Use 'wf_file' for single file or 'workflowys[]' for multiple files."})
 
     # Handle checkbox parameters - support both boolean and string formats
-    c_index = request.POST.get("c_index", False)
-    if isinstance(c_index, str):
-        c_index = c_index.lower() == 'true'
-
-    c_version = request.POST.get("c_version", False)
-    if isinstance(c_version, str):
-        c_version = c_version.lower() == 'true'
-
+    c_index = parse_bool(request.POST.get("c_index", False))
+    c_version = parse_bool(request.POST.get("c_version", False))
+    
     delims = request.POST.get("delims", None) if len(request.POST.get("delims", "")) else None
     term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", "")) else None
 
