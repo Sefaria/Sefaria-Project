@@ -20,8 +20,8 @@ export const AUTH_CONSTANTS = {
 
 export const SELECTORS = {
   LOGO: {
-    LIBRARY: 'img[alt="Sefaria Logo"]',
-    VOICES: 'img[alt="Sefaria Sheets Logo"]'
+    LIBRARY: 'img[alt="Sefaria library logo"]',
+    VOICES: 'img[alt="Sefaria voices logo"]'
   },
   ICONS: {
     LANGUAGE: 'img[src="/static/icons/globe-wire.svg"]',
@@ -29,6 +29,7 @@ export const SELECTORS = {
     USER_MENU: 'img[src="/static/icons/logged_out.svg"]'
   },
   DROPDOWN_OPTION: 'a.interfaceLinks-option',
+  MODULE_DROPDOWN_OPTIONS: '.dropdownLinks-menu a.dropdownItem',
   BANNER: '[role="banner"]'
 } as const;
 
@@ -69,6 +70,15 @@ export const SEARCH_DROPDOWN = {
     VOICES_SHOW_ALL: 'rashi', // "rashi" shows Topics, Authors, and Users on Sheets
   }
 } as const;
+
+export const MODULE_SWITCHER ={
+  options: [
+    { name: 'Library', url: URLS.LIBRARY },
+    { name: 'Voices', url: URLS.VOICES },
+    { name: 'Developers', url: EXTERNAL_URLS.DEVELOPERS },
+    { name: 'More from Sefaria ›', url: /\/products$/ }
+  ]
+}
 
 export const SITE_CONFIGS = {
   LIBRARY: {

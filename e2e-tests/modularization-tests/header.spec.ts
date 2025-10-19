@@ -51,7 +51,7 @@ test.describe('Modularization Header Tests', () => {
     await helpers.clickAndVerifyNewTab('Help', EXTERNAL_URLS.HELP);
   });
 
-  test('MOD-H003: Sheets header navigation and elements', async ({ page }) => {
+  test('MOD-H003: Voices header navigation and elements', async ({ page }) => {
     const config = SITE_CONFIGS.VOICES;
     await utils.navigateAndHideModals(config.url);
     
@@ -87,7 +87,8 @@ test.describe('Modularization Header Tests', () => {
 
   test('MOD-H005: Language switcher functionality', async ({ page }) => {
     await expect(page.locator('body')).toHaveClass(/interface-english/);
-    
+    await expect(page.getByRole('link', { name: 'Texts' })).toBeVisible();
+
     await helpers.openDropdown(SELECTORS.ICONS.LANGUAGE);
     await helpers.selectDropdownOption('עברית');
     
@@ -96,10 +97,9 @@ test.describe('Modularization Header Tests', () => {
   });
 
   test('MOD-H006: Module switcher navigation', async ({ page }) => {
+    // Test Voices navigation (new tab)
     await helpers.openDropdown(SELECTORS.ICONS.MODULE_SWITCHER);
-    
-    // Test Sheets navigation (new tab)
-    let newPage = await helpers.selectDropdownOption('Sheets', true);
+    let newPage = await helpers.selectDropdownOption('Voices', true);
     await expect(newPage!).toHaveURL(SITE_CONFIGS.VOICES.url);
     await newPage!.close();
     
@@ -154,8 +154,8 @@ test.describe('Modularization Header Tests', () => {
     await helpers.testSearchDropdownIcons('mid', SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS);    
   });
 
-  test('MOD-H011: Sheets - Search dropdown sections and icons validation', async ({ page }) => {
-    // Navigate to Sheets site for testing
+  test('MOD-H011: Voices - Search dropdown sections and icons validation', async ({ page }) => {
+    // Navigate to Voices site for testing
     await utils.navigateAndHideModals(URLS.VOICES);
     
     // Test search dropdown with 'rashi' to trigger Topics, Authors, and Users sections
@@ -173,7 +173,7 @@ test.describe('Modularization Header Tests', () => {
     // Verify logged-in state on Library
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
-    // Navigate to Sheets - auth should persist
+    // Navigate to Voices - auth should persist
     await utils.navigateAndHideModals(URLS.VOICES);
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
@@ -220,14 +220,14 @@ test.describe('Modularization Header Tests', () => {
   });
 
   test('MOD-H014: Create New Sheet button functionality when logged in', async ({ page }) => {
-    // Navigate to Sheets site and login
+    // Navigate to Voices site and login
     await utils.navigateAndHideModals(URLS.VOICES);
     await helpers.loginWithCredentials(URLS.VOICES, 'superUser');
     
-    // After login, navigate back to Sheets home to avoid any redirect issues
+    // After login, navigate back to Voices home to avoid any redirect issues
     await utils.navigateAndHideModals(URLS.VOICES);
     
-    // Verify logged-in state on Sheets
+    // Verify logged-in state on Voices
     await expect(helpers.isLoggedIn()).resolves.toBe(true);
     
     // Find and test the Create button
@@ -312,6 +312,10 @@ test.describe('Modularization Header Tests', () => {
       const deletionUrl = page.url();
       const isOnProfilePage = /\/profile\//.test(deletionUrl);
       expect(isOnProfilePage).toBeTruthy();
+    } 
+    else {
+      // Throw error if not on expected pages
+      throw new Error(`Unexpected URL after clicking Create: ${currentUrl}`);
     }
     
     // Cleanup: logout

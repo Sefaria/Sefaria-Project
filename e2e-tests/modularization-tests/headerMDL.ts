@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { hideAllModalsAndPopups, hideTipsAndTricks } from '../utils';
-import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, SearchDropdownSection, SearchDropdownIcon, AUTH_CONSTANTS, AuthUser } from './constantsMDL';
+import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, AUTH_CONSTANTS, AuthUser, MODULE_SWITCHER } from './constantsMDL';
 
 /**
  * Helper class for testing header functionality across Sefaria's modularization sites.
@@ -11,7 +11,7 @@ export class HeaderTestHelpers {
 
  
   /**
-   * Clicks a navigation link in the banner and verifies it navigates to the expected URL.
+   * Clicks a navigation link in the banner and verifies it navigates to the expected URL on the same tab.
    * @param linkName - The accessible name of the link to click
    * @param expectedUrl - RegExp pattern that the resulting URL should match
    */
@@ -132,16 +132,15 @@ export class HeaderTestHelpers {
   async testModuleSwitcherKeyboard() {
     await this.openDropdown(SELECTORS.ICONS.MODULE_SWITCHER);
     
-    const libraryOption = this.page.locator(SELECTORS.DROPDOWN_OPTION).filter({ hasText: 'Library' });
+    const libraryOption = this.page.locator(SELECTORS.MODULE_DROPDOWN_OPTIONS).filter({ hasText: 'Library' });
     await expect(libraryOption).toBeVisible();
     
     // Tab through module options
-    const moduleOptions = ['Library', 'Sheets', 'Developers'];
-    for (const option of moduleOptions) {
+    for (const option of MODULE_SWITCHER.options) {
       await this.page.keyboard.press('Tab');
-      const moduleOption = this.page.locator(SELECTORS.DROPDOWN_OPTION).filter({ hasText: option });
+      const moduleOption = this.page.locator(SELECTORS.MODULE_DROPDOWN_OPTIONS).filter({ hasText: option.name });
       const currentlyFocused = await this.page.evaluate(() => document.activeElement?.textContent?.trim() || 'none');
-      await expect(moduleOption, `Expected focus on ${option}, but focused on ${currentlyFocused}`).toBeFocused();
+      await expect(moduleOption, `Expected focus on ${option.name}, but focused on ${currentlyFocused}`).toBeFocused();
     }
     
     // Close with Escape
