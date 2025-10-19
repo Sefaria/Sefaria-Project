@@ -257,12 +257,41 @@ class WorkflowyModeratorTool extends Component{
         }else{
             response.json().then(resp_json=>{
                 console.log("okay response", resp_json);
-                this.setState({uploading: false,
-                    error: false,
-                    uploadMessage: resp_json.data ? resp_json.data.message : resp_json.message,
-                    uploadResult: resp_json.data ? JSON.stringify(resp_json.data.index, undefined, 4) : resp_json.message});
 
-                // Clear files after successful upload
+                const successes = resp_json.successes || [];
+                const failures = resp_json.failures || [];
+
+                let uploadMessage = "";
+                let uploadResult = "";
+
+                // Build summary message
+                if (failures.length === 0) {
+                    uploadMessage = `Successfully imported ${successes.length} file${successes.length > 1 ? 's' : ''}`;
+                } else if (successes.length === 0) {
+                    uploadMessage = `All ${failures.length} file${failures.length > 1 ? 's' : ''} failed`;
+                } else {
+                    uploadMessage = `${successes.length} succeeded, ${failures.length} failed`;
+                }
+
+                // Build detailed result
+                const parts = [];
+                if (successes.length > 0) {
+                    parts.push("Successes:\n" + successes.map(f => `  ✓ ${f}`).join('\n'));
+                }
+                if (failures.length > 0) {
+                    parts.push("Failures:\n" + failures.map(f => `  ✗ ${f.file}: ${f.error}`).join('\n'));
+                }
+                uploadResult = parts.join('\n\n');
+
+                this.setState({
+                    uploading: false,
+                    error: failures.length > 0,
+                    errorIsHTML: false,
+                    uploadMessage: uploadMessage,
+                    uploadResult: uploadResult
+                });
+
+                // Clear files after upload
                 this.setState({files: [], multipleFiles: false});
                 if (this.wfFileInput.current) {
                   this.wfFileInput.current.value = '';

@@ -1384,35 +1384,24 @@ def modtools_upload_workflowy(request):
 
     uid = request.user.id
 
-    # Process files
-    results = []
-    messages = []
+    # Process files - collect both successes and errors
+    successes = []
+    failures = []
 
     for file in files:
         try:
             wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
             res = wfparser.parse()
             if res.get("error"):
-                # If the parser returns a specific error, report it
-                raise InputError(f"Error in {file.name}: {res['error']}")
-            results.append(res)
-            messages.append(f"Imported {file.name}")
+                raise InputError(res['error'])
+            successes.append(file.name)
         except Exception as e:
-            if len(files) == 1:
-                # Single file - maintain backward compatibility by raising exception
-                raise e
-            else:
-                # Multiple files - return error with partial results
-                error_message = f"Failed to process {file.name}: {e}"
-                return jsonResponse({"error": error_message, "message": ' • '.join(messages)})
+            failures.append({"file": file.name, "error": str(e)})
 
-    # Return response based on number of files
-    if len(files) == 1:
-        # Single file - maintain backward compatibility
-        return jsonResponse({"status": "ok", "data": results[0]})
-    else:
-        # Multiple files - return summary message
-        return jsonResponse({"status": "ok", "message": ' • '.join(messages)})
+    return jsonResponse({
+        "successes": successes,
+        "failures": failures
+    })
 
 @staff_member_required
 def links_upload_api(request):
