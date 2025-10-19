@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { InterfaceText } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
 import {useCurrentPath} from "../Hooks";
+import Util from '../sefaria/util';
 
 const DropdownMenuSeparator = () => {
 
@@ -25,7 +26,9 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
     <a className={cssClasses}
        href={fullURL}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
+    >
       {children}
     </a>
 
@@ -41,7 +44,9 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
     <a className={`interfaceLinks-option int-bi dropdownItem`}
        href={url}
        target={newTab ? '_blank' : null}
-       data-prevent-close={preventClose}>
+       data-prevent-close={preventClose}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
+    >
       {children}
     </a>
   );
@@ -49,7 +54,14 @@ const DropdownMenuItemLink = ({url, children, newTab, preventClose = false}) => 
 
 const DropdownMenuItemWithCallback = ({onClick, children, preventClose = false}) => {
   return (
-    <div className={'interfaceLinks-option int-bi dropdownItem'} onClick={onClick} data-prevent-close={preventClose}>
+    <div
+      className={'interfaceLinks-option int-bi dropdownItem'}
+      onClick={onClick}
+      data-prevent-close={preventClose}
+      role="button"
+      tabIndex="0"
+      onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
+    >
         {children}
     </div>
   );
@@ -59,7 +71,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
-        <img src={icon} />
+        <img src={icon} alt={Sefaria._("Menu icon")} />
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>
@@ -72,6 +84,57 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   </>
   );
 }
+
+/**
+ * DropdownModuleItem - A dropdown menu item for module navigation with a colored dot indicator
+ *
+ * Used primarily in the module switcher to allow navigation between different Sefaria modules
+ * (Library, Voices, Developers). Displays a colored dot and bilingual text.
+ *
+ * @param {string} url - The destination URL for the link
+ * @param {boolean} newTab - Whether to open the link in a new tab
+ * @param {string} [targetModule] - The target module identifier (e.g., Sefaria.LIBRARY_MODULE).
+ *                                  If provided, the URL will be constructed using Sefaria.util.fullURL
+ * @param {string} dotColor - CSS variable name for the colored dot (e.g., '--sefaria-blue', '--sheets-green')
+ * @param {Object} text - Bilingual text object with 'en' and 'he' keys
+ * @param {string} text.en - English text to display
+ * @param {string} text.he - Hebrew text to display
+ *
+ * @example
+ * <DropdownModuleItem
+ *   url={"/"}
+ *   newTab={false}
+ *   targetModule={Sefaria.LIBRARY_MODULE}
+ *   dotColor={'--sefaria-blue'}
+ *   text={{ en: "Library", he: "ספריה" }}
+ * />
+ */
+const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
+  const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+  return (
+    <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
+       href={fullURL}
+       onKeyDown={(e) => Util.handleKeyboardClick(e)}
+       target={newTab ? '_blank' : null}>
+      <div className="dropdownHeader">
+        <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
+        <span className='dropdownHeaderText'>
+          <InterfaceText text={text}/>
+        </span>
+      </div>
+    </a>
+  );
+}
+DropdownModuleItem.propTypes = {
+  url: PropTypes.string.isRequired,
+  newTab: PropTypes.bool.isRequired,
+  targetModule: PropTypes.string,
+  dotColor: PropTypes.string.isRequired,
+  text: PropTypes.shape({
+    en: PropTypes.string.isRequired,
+    he: PropTypes.string.isRequired
+  }).isRequired
+};
 
 const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     /**
@@ -86,7 +149,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
      */
 
     const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef(null);
     const wrapperRef = useRef(null);
+    const buttonRef = useRef(null);
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
@@ -123,12 +188,49 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
         };
     }, []);
 
+    useEffect(() => {
+        if (isOpen && menuRef.current) {
+            Util.focusFirstElement(menuRef.current);
+        }
+    }, [isOpen]);
+
+    const handleMenuKeyDown = (e) => {
+        Util.trapFocusWithTab(e, {
+            container: menuRef.current,
+            onClose: () => setIsOpen(false),
+            returnFocusRef: buttonRef.current
+        });
+    };
+
     return (
         <div className={positioningClass} ref={wrapperRef}>
-           <div className="dropdownLinks-button" onClick={handleButtonClick}>
-              {buttonComponent}
+           <div
+             className="dropdownLinks-button"
+           >
+              {/* 
+                Using React.cloneElement to inject dropdown behavior into the button.
+                We receive a pre-created React element (e.g., <DisplaySettingsButton/>) and need to add:
+                - onClick: toggle the dropdown
+                - ref: manage focus for keyboard navigation
+                - tabIndex & onKeyDown: ensure keyboard accessibility (Space/Enter to activate)
+                
+                This approach allows parent components to pass any button element they want,
+                while DropdownMenu handles the dropdown logic without the parent needing to know
+                the implementation details.
+              */}
+              {React.cloneElement(buttonComponent, {
+                onClick: handleButtonClick,
+                ref: buttonRef,
+                tabIndex: 0,
+                onKeyDown: (e) => Util.handleKeyboardClick(e, handleButtonClick)
+              })}
           </div>
-          <div className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} onClick={handleContentsClick}>
+          <div 
+            className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} 
+            onClick={handleContentsClick}
+            ref={menuRef}
+            onKeyDown={handleMenuKeyDown}
+          >
               {children}
           </div>
         </div>
@@ -171,7 +273,8 @@ DropdownLanguageToggle.propTypes = {
     DropdownMenuSeparator,
     DropdownMenuItemWithIcon,
     DropdownMenuItemLink,
-    DropdownMenuItem, 
+    DropdownMenuItem,
     DropdownMenuItemWithCallback,
+    DropdownModuleItem,
     DropdownLanguageToggle
   };
