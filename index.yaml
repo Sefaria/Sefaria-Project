@@ -1232,6 +1232,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.67.0-mod-ingress-edge-cases.1.tgz
     version: 0.67.0-mod-ingress-edge-cases.1
   - apiVersion: v2
+    appVersion: v6.36.2
+    created: "2025-10-20T10:06:26.247921216Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 3a0f77f79fb855cd3396a53d9cd2b0ddc36e8853b0c1b66ad49e1e8cb8ccbf3b
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.67.0-fixnginxredirect.1.tgz
+    version: 0.67.0-fixnginxredirect.1
+  - apiVersion: v2
     appVersion: v6.35.5
     created: "2025-09-28T08:08:25.468578421Z"
     description: Chart to deploy complete Sefaria environment
@@ -10260,4 +10275,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-10-20T07:58:39.684521791Z"
+generated: "2025-10-20T10:06:26.245570275Z"
