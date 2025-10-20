@@ -1096,7 +1096,6 @@ class ReaderPanel extends Component {
     } else if (["texts-saved", "texts-history", "notes"].includes(this.state.menuOpen)) {
       menu = (
           <LibraryUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}
               openNav={this.openMenu.bind(null, "navigation")}
@@ -1109,7 +1108,6 @@ class ReaderPanel extends Component {
     } else if (["sheets-saved", "sheets-history"].includes(this.state.menuOpen)) {
       menu = (
           <SheetsUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}
               openNav={this.openMenu.bind(null, "navigation")}
