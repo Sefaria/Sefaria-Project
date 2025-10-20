@@ -199,7 +199,9 @@ const Header = (props) => {
 
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
-    <img src={path} className="home" alt={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
+    <a href='/'>
+      <img src={path} className="home" alt={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
+    </a>
   );
 
   const librarySavedIcon = <div className='librarySavedIcon'>

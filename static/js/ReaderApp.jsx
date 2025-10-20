@@ -1172,7 +1172,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
-      this.showLibrary();
+      this.showRoot();
 
     } else if (path === "/texts") {
       this.showLibrary();
@@ -1773,7 +1773,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const state = {panels: this.state.panels};
     if (state.panels.length === 0) {
-      this.showLibrary();
+      this.showRoot();
     } else {
       this.setState(state);
     }
@@ -1802,6 +1802,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       state.settings.language = "english";
     }
     this.setSinglePanelState(state);
+  }
+  showRoot() {
+    if (Sefaria.activeModule === 'voices') {
+      this.showCommunity();
+    } else {
+      this.showLibrary();
+    }
   }
   showSearch(searchQuery) {
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
