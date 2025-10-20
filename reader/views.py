@@ -3179,7 +3179,7 @@ def topics_list_api(request):
     API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
-    all_topics = get_all_topics(limit, activeModule=request.active_module)
+    all_topics = get_all_topics(limit, active_module=request.active_module)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=True, with_html=True)
