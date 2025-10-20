@@ -123,7 +123,7 @@ const StoryTitleBlock = ({url, he, en, children}) => {
 
 
 const StoryBodyBlock = ({children}) => (
-    <SimpleContentBlock classes="storyBody">
+    <SimpleContentBlock classes="storyBody serif">
         {children}
     </SimpleContentBlock>
 );

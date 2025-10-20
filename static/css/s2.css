@@ -13280,8 +13280,6 @@ body .homeFeedWrapper .content {
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
 }
 /*HACK to make English text of sources in topic pages ltr*/
 .interface-hebrew .storyBody {
