@@ -58,7 +58,7 @@ redis:
     limits:
       memory: "1500Mi"
       cpu: "200m"
-gpuServer: "http://gpu-server.gpu-server.svc.cluster.local:8000"
+gpuServer: "http://gpu-server.gpu-server.svc.cluster.local"
 nodejs:
   containerImage:
     imageRegistry:
