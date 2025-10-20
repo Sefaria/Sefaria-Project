@@ -39,12 +39,6 @@ http {
     keepalive 32;
   }
 
-  {{- if .Values.linker.enabled }}
-  upstream linker_upstream {
-    server ${LINKER_HOST}:80;
-  }
-  {{- end }}
-
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
     keepalive 32;
@@ -161,20 +155,6 @@ http {
       access_log off;
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
-
-    {{- if $.Values.linker.enabled }}
-    location /api/find-refs {
-      proxy_send_timeout  300;
-      proxy_read_timeout  300;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://linker_upstream;
-    }
-    {{- end }}
 
     {{- range $.Values.domains.modules }}
     {{- $subdomain := index .subdomains $code }}
@@ -297,20 +277,6 @@ http {
       access_log off;
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
-
-    {{- if $.Values.linker.enabled }}
-    location /api/find-refs {
-      proxy_send_timeout  300;
-      proxy_read_timeout  300;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://linker_upstream;
-    }
-    {{- end }}
   } # server
 
   {{- end }}
