@@ -1012,9 +1012,6 @@ p.registration-links a:hover{
   gap: 16px;
   margin-top: 57px;
 }
-#accountSettingsPage .headerWithButtons .start {
-  display: none;
-}
 #accountSettingsPage .headerWithButtons h1 {
   flex: 0 0 auto;
   text-align: start;
@@ -1110,11 +1107,8 @@ p.registration-links a:hover{
   #accountSettingsPage .headerWithButtons h1 {
     margin-bottom: 0;
   }
-  #accountSettingsPage .headerWithButtons .start,
   #accountSettingsPage .headerWithButtons .end {
     text-align: end;
-  }
-  #accountSettingsPage .headerWithButtons .end {
     gap: 4px;
   }
   #accountSettingsPage .headerWithButtons .button.small {
@@ -1141,11 +1135,8 @@ p.registration-links a:hover{
   #accountSettingsPage .headerWithButtons h1 {
     width: 100%;
   }
-  #accountSettingsPage .headerWithButtons .start,
   #accountSettingsPage .headerWithButtons .end {
     text-align: start;
-  }
-  #accountSettingsPage .headerWithButtons .end {
     justify-content: flex-start;
   }
 }
