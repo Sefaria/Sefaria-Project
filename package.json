@@ -70,6 +70,7 @@
     "js-cookie": "^2.2.1",
     "patch-package": "^6.2.2",
     "prop-types": "^15.6.0",
+    "p-retry": "^7.0.0",
     "querystring": "^0.2.0",
     "react": "^16.8.6",
     "react-class": "^3.2.2",
