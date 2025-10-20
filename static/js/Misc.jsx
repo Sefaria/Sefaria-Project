@@ -2986,7 +2986,7 @@ const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
-        <a href={"/sheets/collections/" + slug} data-target-module={Sefaria.VOICES_MODULE}>
+        <a href={"/collections/" + slug} data-target-module={Sefaria.VOICES_MODULE}>
           <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt={Sefaria._("Collection Logo")}/>
         </a>
       </div>
@@ -3117,12 +3117,13 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide}) => {
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
       <div className="items">
+        {showGuide && <GuideButton onShowGuide={showGuide} />}
         {languageToggle}
         {sheetOptions}
       </div>

@@ -1,3 +1,5 @@
+import Sefaria from "./sefaria";
+
 const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
@@ -646,6 +648,8 @@ const Strings = {
     "Sefaria Linker": "במרשתת ההפניות",
 
     //alt tags
+    'Sefaria library logo': 'לוגו ספריית ספריא',
+    'Sefaria voices logo': 'לוגו חיבורים בספריא',
     "Bookmarks": "שמורים",
     "Toggle Interface Language Menu" : "פתח תפריט שפת ממשק",
     "book icon": "סמל ספר",
@@ -686,11 +690,12 @@ const Strings = {
     "Note author profile picture": "תמונת פרופיל כותב ההערה",
     "Open dropdown": "פתח תפריט נפתח",
     "Collection Logo": "לוגו אסופה",
-    // Additional mobile menu and interface icons
     "Settings": "הגדרות",
     "Library": "ספריה",
+    "Voices": "חיבורים",
     "Developers": "מפתחים",
     "Products": "מוצרים",
+    "More from Sefaria": "מוצרים נוספים",
     "User uploaded media": "מדיה שהועלתה על ידי משתמש",
     "Edit collection": "ערוך אסופה",
     "Subscribe to newsletter": "הרשמה לניוזלטר",
