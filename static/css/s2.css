@@ -4264,6 +4264,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: space-between;
   align-items: center;
 }
+/* Add grey line under Filter button on mobile only */
+.singlePanel .searchContent .searchTopMatter {
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 5px;
+}
 .searchTopMatter .type-buttons {
   display: flex;
   flex-direction: row;
