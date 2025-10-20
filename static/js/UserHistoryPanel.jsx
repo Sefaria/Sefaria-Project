@@ -120,10 +120,13 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   useEffect(() => {
     setItems(store.loaded ? store.items : null);
   }, [menuOpen]);
+  
+  const savedParam = menuOpen === 'saved' ? '&saved=1' : '';
+  const voicesParam = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '&voices=1' : '';
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
-    url: "/api/profile/user_history?secondary=0&annotate=1" + (menuOpen === 'saved' ? '&saved=1' : ''),
+    url: "/api/profile/user_history?secondary=0&annotate=1" + savedParam + voicesParam,
     setter: data => {
       if (!store.loaded) {
         store.items = []; // Initialize items only once

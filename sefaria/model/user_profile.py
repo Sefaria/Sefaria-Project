@@ -198,7 +198,7 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, voices=None, serialized=False, annotate=False, limit=0, skip=0):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -208,8 +208,8 @@ class UserHistory(abst.AbstractMongoRecord):
             query["$or"] = ref_clauses
         if saved is not None:
             query["saved"] = saved
-        if sheets is not None:
-            query["is_sheet"] = sheets
+        if voices is not None:
+            query["is_sheet"] = voices
         if secondary is not None:
             query["secondary"] = secondary
         if last_place is not None:
@@ -628,21 +628,21 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-    def get_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_history(self, oref=None, saved=None, secondary=None, voices=None, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
         """
         personal user history
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
-        :param sheets: ditto
+        :param voices: ditto
         :param serialized: for return from API call
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
         if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, voices=voices, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)

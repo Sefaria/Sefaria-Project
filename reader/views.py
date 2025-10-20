@@ -189,8 +189,8 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications(scope=active_module).client_contents(),
-            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
+            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False, voices=active_module == VOICES_MODULE)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
+            "last_place": profile.get_history(last_place=True, secondary=False, voices=active_module == VOICES_MODULE, serialized=True)
         }
     else:
         user_data = {
@@ -3990,8 +3990,8 @@ def user_history_api(request):
             skip = int(request.GET.get("skip", 0))
             limit = int(request.GET.get("limit", 100))
             annotate = bool(int(request.GET.get("annotate", 0)))
-            sheets = getattr(request, "active_module", LIBRARY_MODULE) == VOICES_MODULE
-            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, sheets=sheets, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
+            voices = bool(request.GET.get("voices", None))
+            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, voices=voices, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
