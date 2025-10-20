@@ -25,8 +25,14 @@ http {
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
-  # TODO review this CORS setting
-  add_header 'Access-Control-Allow-Origin' '*';
+  # Add CORS header only if not already set
+  # For simple requests, only Access-Control-Allow-Origin is needed.
+  # For more complex requests, we need more headers. CORS for these requests are handled in Django.
+  map $sent_http_access_control_allow_origin $cors_header {
+    ''      *;     # if ACAO not already set, use "*"
+    default '';    # otherwise, make it empty so add_header emits nothing
+  }
+  add_header 'Access-Control-Allow-Origin' $cors_header always;
 
   upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
