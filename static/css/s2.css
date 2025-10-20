@@ -4841,7 +4841,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   top: 120px;
   inset-inline-start: 0;
   padding-bottom: 10px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
   overflow-y: auto;
 }
 .singlePanel .autocomplete-dropdown:has(*){
