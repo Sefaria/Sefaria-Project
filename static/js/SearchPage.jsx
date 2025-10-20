@@ -26,7 +26,6 @@ class SearchPage extends Component {
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
-    const isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -58,7 +57,7 @@ class SearchPage extends Component {
               <div className="contentInner">
 
                 <div className="searchTopLine">
-                  <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
+                  <h1 className="serif">
                     <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
                     <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
                     {this.props.query}
