@@ -66,12 +66,11 @@ class SearchPage extends Component {
                   </h1>
                   <div className="searchTopMatter">
                     <div className="searchResultCount">
-                      {this.props.totalResults?.getValue() > 0 ?
+                      {this.props.totalResults?.getValue() > 0 &&
                         <>
                           <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
                           <InterfaceText>Results</InterfaceText>
-                        </>
-                        : null}
+                        </>}
                     </div>
                     <div>
                       {Sefaria.multiPanel && !this.props.compare ?
