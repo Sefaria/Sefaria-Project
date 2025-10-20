@@ -35,15 +35,15 @@ export class SidebarTestHelpers {
 
   // Verify a module contains non-empty descriptive text
   async verifyModuleHasText(headingText: string) {
-  const module = this.getModuleByHeading(headingText);
-  // ensure module and its heading are visible
-  const heading = module.getByRole('heading', { name: new RegExp(headingText, 'i') });
-  await expect(heading).toBeVisible();
-    // look for paragraph or span text inside the module
-    const textLocator = module.locator('p.sidebarModuleText, span.int-en');
-    await expect(textLocator.first()).toBeVisible();
-    const txt = await textLocator.first().innerText();
-    expect(txt.trim().length).toBeGreaterThan(5);
+    const module = this.getModuleByHeading(headingText);
+    // ensure module and its heading are visible
+    const heading = module.getByRole('heading', { name: new RegExp(headingText, 'i') });
+    await expect(heading).toBeVisible();
+      // look for paragraph or span text inside the module
+      const textLocator = module.locator('p.sidebarModuleText, span.int-en');
+      await expect(textLocator.first()).toBeVisible();
+      const txt = await textLocator.first().innerText();
+      expect(txt.trim().length).toBeGreaterThan(5);
   }
 
   // Verify a button inside a module (by heading) exists and matches href/behavior
