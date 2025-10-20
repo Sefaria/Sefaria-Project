@@ -1059,8 +1059,7 @@ p.registration-links a:hover{
   margin-bottom: 10px;
 }
 #accountSettingsPage .form-section{
-  margin: 2px auto 20px auto;
-  margin-left: 1px;
+  margin: 2px auto 20px 1px;
 }
 #accountSettingsPage input[disabled="disabled"] {
   background-color: #FBFBFA;
@@ -1117,11 +1116,6 @@ p.registration-links a:hover{
     font-size: 14px;
     line-height: 18px;
     margin: 0;
-  }
-  #accountSettingsPage .headerWithButtons .button.small.transparent {
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
   }
 }
 
