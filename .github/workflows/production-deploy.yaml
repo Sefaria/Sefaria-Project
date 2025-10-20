@@ -105,7 +105,7 @@ jobs:
       - workflow-check
     strategy:
       matrix:
-        app: [ asset, linker ]
+        app: [ asset ]
     steps:
       - uses: actions/checkout@v4
         with:
