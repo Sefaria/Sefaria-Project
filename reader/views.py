@@ -1035,7 +1035,8 @@ def saved_content(request):
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
-    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
+    voices = request.active_module == VOICES_MODULE
+    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20, voices=voices)}}
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
@@ -1043,7 +1044,8 @@ def saved_content(request):
 def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
+        voices = request.active_module == VOICES_MODULE
+        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20, voices=voices) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}

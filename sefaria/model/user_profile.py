@@ -198,7 +198,7 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, voices=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, voices=False, serialized=False, annotate=False, limit=0, skip=0):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -208,8 +208,7 @@ class UserHistory(abst.AbstractMongoRecord):
             query["$or"] = ref_clauses
         if saved is not None:
             query["saved"] = saved
-        if voices is not None:
-            query["is_sheet"] = voices
+        query["is_sheet"] = voices
         if secondary is not None:
             query["secondary"] = secondary
         if last_place is not None:
