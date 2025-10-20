@@ -5,7 +5,6 @@ import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import { NavSidebar, SidebarModules } from './NavSidebar';
-import Footer from'./Footer';
 import {
   InterfaceText,
   LoadingMessage,
@@ -20,10 +19,8 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   const [dataLoaded, setDataLoaded] = useState(!!Sefaria.community);
 
   const sidebarModules = [
-    {type: "JoinTheConversation"},
     {type: dataLoaded ? "WhoToFollow" : null, props: {toggleSignUpModal}},
     {type: "Promo"},
-    {type: "ExploreCollections"},
     {type: "SupportSefaria", props: {blue: true}},
     {type: "StayConnected"},
   ];
@@ -64,7 +61,6 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );
@@ -101,13 +97,7 @@ const RecentlyPublished = ({multiPanel, toggleSignUpModal}) => {
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
           recentSheets.map(s => <FeaturedSheet sheet={s} showDate={true} toggleSignUpModal={toggleSignUpModal} />);
-  const joinTheConversation = (
-    <div className="navBlock">
-      <SidebarModules type={"JoinTheConversation"} props={{wide:multiPanel}} />
-    </div>
-  );
   if (recentSheets) {
-    recentSheetsContent.splice(6, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white loadMore" onClick={loadMore}>
         <InterfaceText context="RecentlyPublished">Load More</InterfaceText>
@@ -171,7 +161,7 @@ const FeaturedSheet = ({sheet, showDate, trackClicks, toggleSignUpModal}) => {
         <InterfaceText text={heading} />
       </div>
       : null}
-      <a href={`/sheets/${id}`} className="navBlockTitle" onClick={trackClicks ? trackClick : null}>
+      <a href={`/sheets/${id}`} className="navBlockTitle" data-target-module={Sefaria.VOICES_MODULE} onClick={trackClicks ? trackClick : null}>
         <InterfaceText>{title}</InterfaceText>
       </a>
       {summary ?
@@ -276,7 +266,7 @@ const AboutParashah = ({content}) => {
           <InterfaceText context="AboutParashah">Torah Reading</InterfaceText>
         </div>
         <div className="calendarRef">
-          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
           <a href={`/${ref.url}`} className="serif">
             <InterfaceText text={ref} />
           </a> 
@@ -309,7 +299,7 @@ const AboutCalendar = ({content}) => {
         </div>
         {readings.map(ref => (
           <div className="calendarRef" key={ref.url}>
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
             <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 
@@ -340,7 +330,7 @@ const AboutDiscover = ({content}) => {
           <InterfaceText>Readings</InterfaceText>
         </div>
           <div className="calendarRef" key={ref.url}>
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
             <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 

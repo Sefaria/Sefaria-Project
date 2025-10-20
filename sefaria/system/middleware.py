@@ -8,16 +8,40 @@ from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.urls import resolve
 
-from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
+from sefaria.constants.model import LIBRARY_MODULE
+
 import structlog
+import json
 logger = structlog.get_logger(__name__)
+
+
+
+class MiddlewareURLMixin:
+    excluded_url_names = set()  # Set of URL names to exclude
+    excluded_url_prefixes = set()  # Set of URL path prefixes to exclude
+
+    def should_process_request(self, request):
+        # Check URL name
+        try:
+            url_name = resolve(request.path_info).url_name
+            if url_name in self.excluded_url_names:
+                return False
+        except:
+            pass
+
+        # Check path prefixes
+        if any(request.path.startswith(prefix) for prefix in self.excluded_url_prefixes):
+            return False
+
+        return True
 
 
 class SharedCacheMiddleware(MiddlewareMixin):
@@ -50,7 +74,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             request.interfaceLang = "english"
             request.contentLang = "bilingual"
@@ -84,8 +108,8 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                 interface = domain_lang
             else:
                 redirect_domain = None
-                for domain in DOMAIN_LANGUAGES:
-                    if DOMAIN_LANGUAGES[domain] == interface:
+                for domain in settings.DOMAIN_LANGUAGES:
+                    if settings.DOMAIN_LANGUAGES[domain] == interface:
                         redirect_domain = domain
                 if redirect_domain:
                     # When detected language doesn't match current domain langauge, redirect
@@ -124,7 +148,6 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             translation_language_preference_suggestion = None
 
         # VERSION PREFERENCE
-        import json
         from urllib.parse import unquote
         version_preferences_by_corpus_cookie = json.loads(unquote(request.COOKIES.get("version_preferences_by_corpus", "null")))
         request.version_preferences_by_corpus = (profile is not None and getattr(profile, "version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie or {}
@@ -146,7 +169,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
+            domain = [d for d in settings.DOMAIN_LANGUAGES if settings.DOMAIN_LANGUAGES[d] == lang][0]
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
@@ -169,8 +192,8 @@ def current_domain_lang(request):
     domain_lang = None
     for protocol in ("https://", "http://"):
         full_domain = protocol + current_domain
-        if full_domain in DOMAIN_LANGUAGES:
-            domain_lang = DOMAIN_LANGUAGES[full_domain]
+        if full_domain in settings.DOMAIN_LANGUAGES:
+            domain_lang = settings.DOMAIN_LANGUAGES[full_domain]
     return domain_lang
 
 
@@ -181,7 +204,7 @@ class CORSDebugMiddleware(MiddlewareMixin):
         However, nginx isn't normally running when debugging with localhost
         """
         origin = request.get_host()
-        if ('localhost' in origin or '127.0.0.1' in origin) and DEBUG:
+        if ('localhost' in origin or '127.0.0.1' in origin) and settings.DEBUG:
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET"
             response["Access-Control-Allow-Headers"] = "*"
@@ -218,4 +241,48 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class ModuleMiddleware(MiddlewareURLMixin):
+    excluded_url_prefixes = {
+        '/linker.js',
+        '/interface/',
+        '/api/',
+        '/apple-app-site-association',
+        '/static/',
+    }
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.default_module = LIBRARY_MODULE
+
+    def _set_active_module(self, request):
+        """
+        Determine the active module based on the request host using DOMAIN_MODULES.
+        Returns the module name if found, the default module otherwise.
+        """        
+        current_hostname = urlparse(f"http://{request.get_host()}").hostname
+        
+        for module in settings.DOMAIN_MODULES.values():
+            for module_name, module_domain in module.items():
+                if current_hostname == urlparse(module_domain).hostname:
+                    return module_name            
+        return self.default_module
+            
+    
+    def __call__(self, request):
+        if not self.should_process_request(request):
+            request.active_module = self.default_module
+            return self.get_response(request)
+
+        request.active_module = self._set_active_module(request)
+        return self.get_response(request)
+
+    #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
+    # a TemplateResponse in our reader.views.render
+    def process_template_response(self, request, response):
+        # For template responses, add active_module to context
+        if hasattr(response, 'context_data'):
+            response.context_data['active_module'] = request.active_module
         return response

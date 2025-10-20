@@ -52,6 +52,17 @@ test('Check no redirection when user is admin', async ({ context }) => {
 
 });
 
+test('Footer is sticky on topic page', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/topics');
+  await page.getByRole('link', { name: 'Jewish Calendar' }).click();
+  await page.getByRole('link', { name: 'Rosh Hashanah' }).first().isVisible();
+  await page.mouse.wheel(0, 1000);
+  await page.getByText('Ways to Give').isVisible();
+  await page.getByRole('link', { name: 'Rosh Hashanah' }).click();
+  await page.mouse.wheel(0, 1000);
+  await page.getByText('Ways to Give').isVisible();
+});
+
 test('Filter topics', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/all/a');
   // wait for getByText('Loading...') to disappear

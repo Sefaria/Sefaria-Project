@@ -6,29 +6,66 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: nginx-ingress
+    kubernetes.io/tls-acme: "true"
   {{- if .Values.instrumentation.enabled }}
     nginx.ingress.kubernetes.io/enable-opentracing: "true"
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
     nginx.ingress.kubernetes.io/jaeger-propagation-format: w3c
   {{- end }}
-  {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
-  {{- end }}
 spec:
   tls:
-    - secretName: {{ template "sefaria.secrets.originTls" . }}
-    {{- if or .Values.ingress.secrets.originIlTls.data .Values.ingress.secrets.originIlTls.ref }}
-    - secretName: {{ template "sefaria.secrets.originIlTls" . }}
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+    {{- $wwwDomain := printf "www.%s" $rootDomain }}
+    - secretName: {{ tpl .cert $ | default ( printf "origin-%s-$s-tls"  $.Values.deployEnv $code ) }}
+      hosts:
+        - {{ $rootDomain }}
+        - {{ $wwwDomain }}
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+        - {{ $subdomain }}
+    {{- end }}
+    {{- end }}
     {{- end }}
   rules:
-    {{- range .Values.ingress.hosts }}
-    - host: {{ tpl .host $ | quote }}
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+    {{- $wwwDomain := printf "www.%s" $rootDomain }}
+    - host: {{ $rootDomain }}
       http:
         paths:
           - pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ .serviceName | default "nginx" }}-{{ $.Values.deployEnv }}
+                name: nginx-{{ $.Values.deployEnv }}
                 port:
-                  number: {{ .port | default "80" }}
+                  number: 80
+    - host: {{ $wwwDomain }}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-{{ $.Values.deployEnv }}
+                port:
+                  number: 80
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+    - host: {{ $subdomain }}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-{{ $.Values.deployEnv }}
+                port:
+                  number: 80
+    {{- end }}
+    {{- end }}
     {{- end }}

@@ -8,7 +8,8 @@ import re
 from functools import wraps
 from itertools import zip_longest
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-
+from django.conf import settings
+from sefaria.system.exceptions import InputError
 """
 Time utils
 """
@@ -523,6 +524,20 @@ def short_to_long_lang_code(code):
         code = "english"
     return code
 
+def get_language_specific_domain_modules(interfaceLang):
+    interface_lang_code = get_short_lang(interfaceLang)
+    language_specific_domain_modules = settings.DOMAIN_MODULES.get(interface_lang_code, settings.DOMAIN_MODULES['en'])
+    return language_specific_domain_modules
+
+def get_short_lang(language):
+    """
+    Converts a language to a code.
+    :param language: 'english' or 'hebrew'
+    :return: A short language code 'he' or 'en'
+    """
+    if language not in ["english", "hebrew"]:
+        raise InputError("Invalid language. Must be 'english' or 'hebrew'.")
+    return "en" if language == "english" else "he"
 
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """

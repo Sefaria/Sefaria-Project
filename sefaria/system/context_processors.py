@@ -6,7 +6,6 @@ Djagno Context Processors, for decorating all HTTP requests with common data.
 import json
 from datetime import datetime
 from functools import wraps
-
 from django.template.loader import render_to_string
 
 from sefaria.settings import *
@@ -14,7 +13,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
 from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, get_language_specific_domain_modules
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
 
@@ -86,6 +85,13 @@ def base_props(request):
 
 
 @user_only
+def module_context(request):
+    return {
+        'active_module': request.active_module,
+        'domain_modules': get_language_specific_domain_modules(request.interfaceLang)
+    }
+
+@user_only
 def cache_timestamp(request):
     return {
         "last_cached": library.get_last_cached_time(),
@@ -104,93 +110,6 @@ def large_data(request):
         "terms_json": library.get_simple_term_mapping_json(),
         'virtual_books': library.get_virtual_books()
     }
-
-
-HEADER = {
-    'logged_in': {'english': None, 'hebrew': None},
-    'logged_out': {'english': None, 'hebrew': None},
-    'logged_in_mobile': {'english': None, 'hebrew': None},
-    'logged_out_mobile': {'english': None, 'hebrew': None},
-}
-@user_only
-def header_html(request):
-    """
-    Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
-    Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
-    """
-    global HEADER
-    if USE_NODE:
-        lang = request.interfaceLang
-        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": None,
-                                                 "interfaceLang": lang,
-                                                 "_siteSettings": SITE_SETTINGS})
-
-        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": True,
-                                                 "interfaceLang": lang,
-                                                 "notificationCount": 0,
-                                                 "profile_pic_url": "",
-                                                 "full_name": "",
-                                                 "_siteSettings": SITE_SETTINGS})
-
-        MOBILE_LOGGED_OUT_HEADER = HEADER["logged_out_mobile"][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": None,
-                                                 "interfaceLang": lang,
-                                                 "multiPanel": False,
-                                                 "_siteSettings": SITE_SETTINGS})
-
-        MOBILE_LOGGED_IN_HEADER = HEADER["logged_in_mobile"][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": True,
-                                                 "interfaceLang": lang,
-                                                 "notificationCount": 0,
-                                                 "profile_pic_url": "",
-                                                 "full_name": "",
-                                                 "multiPanel": False,
-                                                 "_siteSettings": SITE_SETTINGS})
-
-
-
-        LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
-        LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
-        MOBILE_LOGGED_OUT_HEADER = "" if "appLoading" in MOBILE_LOGGED_OUT_HEADER else MOBILE_LOGGED_OUT_HEADER
-        MOBILE_LOGGED_IN_HEADER = "" if "appLoading" in MOBILE_LOGGED_IN_HEADER else MOBILE_LOGGED_IN_HEADER
-        HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
-        HEADER['logged_in'][lang] = LOGGED_IN_HEADER
-        HEADER['logged_out_mobile'][lang] = MOBILE_LOGGED_OUT_HEADER
-        HEADER['logged_in_mobile'][lang] = MOBILE_LOGGED_IN_HEADER
-    else:
-        LOGGED_OUT_HEADER = ""
-        LOGGED_IN_HEADER = ""
-        MOBILE_LOGGED_OUT_HEADER = ""
-        MOBILE_LOGGED_IN_HEADER = ""
-    
-    return {
-        "logged_in_header":  LOGGED_IN_HEADER,
-        "logged_out_header": LOGGED_OUT_HEADER,
-        "logged_in_mobile_header":     MOBILE_LOGGED_IN_HEADER,
-        "logged_out_mobile_header": MOBILE_LOGGED_OUT_HEADER,
-    }
-
-
-FOOTER = {'english': None, 'hebrew': None}
-@user_only
-def footer_html(request):
-    global FOOTER
-    lang = request.interfaceLang
-    if USE_NODE:
-        FOOTER[lang] = FOOTER[lang] or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
-        FOOTER[lang] = "" if "appLoading" in FOOTER[lang] else FOOTER[lang]
-    else:
-        FOOTER[lang] = ""
-    return {
-        "footer": FOOTER[lang]
-    }
-
 
 @user_only
 def body_flags(request):

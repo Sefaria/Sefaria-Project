@@ -12,9 +12,9 @@ from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
-from sefaria.model.tests.topic_test import topic_pool
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
 logger = structlog.get_logger(__name__)
@@ -202,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    def complete(self, instring, limit=0, redirected=False, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -216,7 +216,7 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
@@ -259,7 +259,7 @@ class Completions(object):
         "Term": "Term",
         "User": "User"}
 
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -285,7 +285,7 @@ class Completions(object):
         self._candidate_type_counters = defaultdict(int)
         self._type_limit = 3
         self.type = type
-        self.topic_pool = topic_pool
+        self.active_module = active_module
         self.exact_continuations = exact_continuations
         self.order_by_matched_length = order_by_matched_length
 
@@ -334,36 +334,47 @@ class Completions(object):
             return c[1]["order"]
         else:
             return c[1]["order"] * 100
+    
+    def _type_to_active_module(self, co):
+        """
+        Given a completion object, `co`, return a list of what modules it can show for.
+        'Topic' is the special case where we don't know whether the current `co` is relevant unless we check its `topic_pools`
+        """
+        normalized_type = self._type_norm_map[co["type"]]
+        normalized_type_to_allowed_modules_map = {  
+            "ref": [LIBRARY_MODULE],
+            "Term": [LIBRARY_MODULE],
+            "TocCategory": [LIBRARY_MODULE],
+            "User": [VOICES_MODULE],
+            "Collection": [VOICES_MODULE],
+            "Topic": co.get("topic_pools", [])
+        }
+        return normalized_type_to_allowed_modules_map[normalized_type]
 
-    def _filter_completions_by_type(self, completion_strings, completion_objects):
-        filtered_completions = [
-            (cs, co)
-            for cs, co in zip(completion_strings, completion_objects)
-            if self._has_required_type(co)
-        ]
+    def _filter_completions(self, completion_strings, completion_objects):
+        """
+        Filters out completion objects based on whether each object satisfies the type and topic pool constraints of this Completions instance.
+        Completion objects are filtered out if:
+          - The object's normalized_type should show in the library module only and we're currently in sheets module (and vice versa)
+          - The object is a topic but the Completions' `active_module` is not found in the particular topic's `topic_pools` list
+          - A type is specified for this Completions instance, but the object's normalized type does not match it.
+        """
+        filtered_completions = []
+        for cs, co in zip(completion_strings, completion_objects):
+            allowed_modules = self._type_to_active_module(co)
+            if self.active_module and self.active_module not in allowed_modules:
+                continue
+            if self.type and self._type_norm_map[co["type"]] != self.type:
+                continue
+            filtered_completions.append((cs, co))
+
         list1, list2 = zip(*filtered_completions) if filtered_completions else ([], [])
         return list(list1), list(list2)
-
-    def _has_required_type(self, completion_object):
-        if not self.type:
-            return True
-
-        co_type = completion_object["type"]
-        normalized_type = self._type_norm_map[co_type]
-
-        if normalized_type != self.type:
-            return False
-
-        if normalized_type == 'Topic' and self.topic_pool:
-            return self.topic_pool in completion_object["topic_pools"]
-
-        return True
-
 
     def _collect_candidates(self):
         # Match titles that begin exactly this way
         cs, co = self.get_new_continuations_from_string(self.normal_string)
-        cs, co = self._filter_completions_by_type(cs, co)
+        cs, co = self._filter_completions(cs, co)
 
         joined = list(zip(cs, co))
         if len(joined):
@@ -388,7 +399,7 @@ class Completions(object):
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
             cs, co =  self.get_new_continuations_from_string(edit)
-            cs, co = self._filter_completions_by_type(cs, co)
+            cs, co = self._filter_completions(cs, co)
 
             self._raw_completion_strings += cs
             self._completion_objects += co
@@ -414,7 +425,7 @@ class Completions(object):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
-                    _, all_v = self._filter_completions_by_type(all_v, all_v)
+                    _, all_v = self._filter_completions(all_v, all_v)
                 except KeyError:
                     all_v = []
                 for v in all_v:

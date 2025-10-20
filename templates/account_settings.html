@@ -12,14 +12,14 @@
             <span class="int-he">הגדרות חשבון</span>
         </h1>
         <div class="end">
-            <a class="button small transparent control-elem" href="/my/profile">
+            <button type="button" class="button small transparent control-elem" onclick="navigateBack()">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
-            </a>
-            <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
+            </button>
+            <button type="button" class="button small blue control-elem saveAccountSettingsBtn">
                 <span class="int-en">Save</span>
                 <span class="int-he">שמירה</span>
-            </div>
+            </button>
         </div>
     </div>
 	<div id="emailNotifications" class="section">
@@ -155,14 +155,14 @@
             </div>
         </div>
         <div class="saveCancel">
-            <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
+            <button type="button" class="button small blue control-elem saveAccountSettingsBtn">
                 <span class="int-en">Save</span>
                 <span class="int-he">שמירה</span>
-            </div>
-            <a class="button transparent small control-elem" href="/my/profile">
+            </button>
+            <button type="button" class="button transparent small control-elem" onclick="navigateBack()">
                 <span class="int-en">Cancel</span>
                 <span class="int-he">ביטול</span>
-            </a>
+            </button>
         </div>
     </div>
 	</div>
@@ -172,6 +172,18 @@
 
 {% block js %}
 	<script>
+		// Handle navigation with history fallback
+		function navigateBack() {
+			if (history.length > 2) {
+				// if history is not empty, go back:
+				window.history.back();
+			} else {
+				// go to fallback url:
+				window.history.replaceState(null, null, '/texts');
+				window.location.reload();
+			}
+		}
+
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
@@ -196,7 +208,8 @@
                 }
             });
 
-			$("#saveAccountSettings").click(function(){
+			// Single handler for all save buttons using class selector
+            $(".saveAccountSettingsBtn").click(function(){
 			    const $newTransLangPref = $("#translationLanguagePreference .toggleOption.on").attr("data-value");
 				let profile = {
                     settings: {
@@ -223,13 +236,14 @@
 						if ($newTransLangPref !== "{{ translation_language_preference }}") {
                             Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
-						window.location = "/my/profile";
 					}
 				});
 			});
-            $("#saveAccountSettings").keyup(function(e){
+            
+            // Single keyup handler for all save buttons
+            $(".saveAccountSettingsBtn").keyup(function(e){
                 if (e.keyCode === 13) {
-                    $("#saveAccountSettings").trigger("click");
+                    $(this).trigger("click");
                 }
             });
             $("#change-email").click(function () {
