@@ -176,7 +176,7 @@ http {
     {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
     {{- range .redirects }}
     location ~ ^/{{ . }}(/.*|$) {
-        return 307 https://{{ $subdomain }}$1;
+        return 307 https://{{ $subdomain }}/{{ . }}$1;
     }
     {{- end }}
     {{- end }}
