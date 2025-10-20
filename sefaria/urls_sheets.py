@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
+from django.shortcuts import redirect
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 import sourcesheets.views as sheets_views
 import reader.views as reader_views
@@ -12,6 +13,10 @@ admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
 handler404 = 'reader.views.custom_page_not_found'
 
+def sheets_redirect_view(request):
+    """Redirect /sheets to home page on voices.sefaria.org"""
+    return redirect("/")
+
 urlpatterns = [
     url(r'^$', sheets_views.sheets_home_page, name='home'),
     url(r'sheets-with-ref/(?P<tref>.+)$', sheets_views.sheets_with_ref),
@@ -20,7 +25,7 @@ urlpatterns = [
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
 
-    url(r'^sheets/?$', sheets_views.sheets_home_page, name='sheets'),
+    url(r'^sheets/?$', sheets_redirect_view, name='sheets'),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),

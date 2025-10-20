@@ -1213,6 +1213,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/torahtracker") {
       this.showUserStats();
 
+    } else if (path === "/sheets") {
+      // Redirect /sheets to home page on voices.sefaria.org
+      this.openURL("/", true);
+      return;
+
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
 
