@@ -2283,12 +2283,12 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
-    def lacks_amud(cls, part, lang):
+    def lacks_amud(cls, part, lang: str):
         if lang == "he":
             return re.search(cls.amud_patterns["he"], part) is None
         else:
             return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
-    
+
     @classmethod
     def parse_range_end(cls, ref, parts, base):
         """
@@ -2693,7 +2693,7 @@ class AddressVolume(AddressInteger):
         )
         """
     }
-    
+
 class AddressSiman(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Ss]iman)?\s*)""",
