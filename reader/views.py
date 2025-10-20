@@ -3990,7 +3990,8 @@ def user_history_api(request):
             skip = int(request.GET.get("skip", 0))
             limit = int(request.GET.get("limit", 100))
             annotate = bool(int(request.GET.get("annotate", 0)))
-            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
+            sheets = getattr(request, "active_module", LIBRARY_MODULE) == VOICES_MODULE
+            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, sheets=sheets, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

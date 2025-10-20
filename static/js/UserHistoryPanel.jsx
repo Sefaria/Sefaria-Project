@@ -17,16 +17,6 @@ import {
 import Util from './sefaria/util';
 
 
-const filterDataByType = (data) => {
-  return data.filter(item => {
-    if (Sefaria.activeModule === 'library') {
-      return !item.is_sheet;
-    } else {
-      return item.is_sheet;
-    }
-  });
-}
-
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
 
   const [notes, setNotes] = useState(null);
@@ -50,7 +40,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
     return {
       'loaded': currentDataStore?.loaded || false, 
-      'items': currentDataStore?.items ? filterDataByType(currentDataStore.items) : []
+      'items': currentDataStore?.items || []
     };
   }, [menuOpen, Sefaria.saved?.loaded, Sefaria.saved?.items, Sefaria.userHistory?.loaded, Sefaria.userHistory?.items]); // Re-create when these change
     
@@ -140,11 +130,8 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
         store.loaded = true;
       }
 
-      // Filter the data based on whether it's a sheet or not
-      const filteredData = filterDataByType(data);
-
-      // Push the filtered data into the store
-      store.items.push(...filteredData);
+      // Push the data into the store (already filtered and deduped by backend)
+      store.items.push(...data);
 
       // Update the state with the modified items array
       setItems(store.items.slice());
@@ -175,20 +162,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   
   return (
     <div className="savedHistoryList">
-      {items.reduce((accum, curr, index) => {
-        // reduce consecutive history items with the same text/sheet
-        if (!accum.length || (menuOpen === 'saved')) {return accum.concat([curr]); }
-        const prev = accum[accum.length-1];
-
-        if (curr.is_sheet && curr.sheet_id === prev.sheet_id) {
-          return accum;
-        } else if (!curr.is_sheet && curr.book === prev.book) {
-          return accum;
-        } else {
-          return accum.concat(curr);
-        }
-      }, [])
-      .map((item, iitem) => {
+      {items.map((item, iitem) => {
         const key = item.ref + "|" + item.time_stamp + "|" + iitem;
         
         const timeStamp = (menuOpen === 'saved') ? null : (

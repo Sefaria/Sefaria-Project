@@ -215,7 +215,24 @@ class UserHistory(abst.AbstractMongoRecord):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
+            items = [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
+            if not saved:
+                # Deduplicate consecutive items with the same book or sheet_id for history mode
+                deduped_items = []
+                for item in items:
+                    if not deduped_items:
+                        deduped_items.append(item)
+                    else:
+                        prev = deduped_items[-1]
+                        # Check if current item is different from previous
+                        if item.get('is_sheet') and item.get('sheet_id') == prev.get('sheet_id'):
+                            continue  # Skip duplicate sheet
+                        elif not item.get('is_sheet') and item.get('book') == prev.get('book'):
+                            continue  # Skip duplicate book
+                        else:
+                            deduped_items.append(item)
+                return deduped_items
+            return items
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
 
     @staticmethod
