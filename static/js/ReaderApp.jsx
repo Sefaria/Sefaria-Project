@@ -464,6 +464,11 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
+          case "voices":
+            hist.title = Sefaria._("Voices on Sefaria");
+            hist.url = "";
+            hist.mode = 'voices';
+            break;
           case "sheetsWithRef":
             hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
@@ -1803,9 +1808,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     this.setSinglePanelState(state);
   }
+  showVoices() {
+    let state = {menuOpen: 'voices', mode: 'Menu'};
+    state = this.makePanelState(state);
+    this.setSinglePanelState(state);
+  }
   showRoot() {
     if (Sefaria.activeModule === 'voices') {
-      this.showCommunity();
+      this.showVoices();
     } else {
       this.showLibrary();
     }

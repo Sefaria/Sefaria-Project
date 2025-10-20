@@ -693,6 +693,7 @@ const Strings = {
     "Settings": "הגדרות",
     "Library": "ספריה",
     "Voices": "חיבורים",
+    "Voices on Sefaria": "חיבורים בספריא",
     "Developers": "מפתחים",
     "Products": "מוצרים",
     "More from Sefaria": "מוצרים נוספים",
