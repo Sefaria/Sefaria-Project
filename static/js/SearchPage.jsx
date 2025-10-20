@@ -65,7 +65,7 @@ class SearchPage extends Component {
                     <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
                   </h1>
                   <div className="searchTopMatter">
-                    <div className="searchResultCount sans-serif">
+                    <div className="searchResultCount">
                       {this.props.totalResults?.getValue() > 0 ?
                         <>
                           <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
