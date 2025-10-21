@@ -28,6 +28,7 @@ def teardown_module(module):
             pass
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 def test_dup_index_save():
     title = 'Test Commentator Name'
     model.IndexSet({"title": title}).delete()
@@ -230,6 +231,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
     assert getattr(commentator_idx, "nodes", None) is not None"""
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 def test_index_title_setter():
     title = 'Test Index Name'
     he_title = "דוגמא"
@@ -393,6 +395,7 @@ def test_get_dependent_indices(book_title, dependence_type, structure_match, exp
         assert title not in res
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 def test_index_update():
     '''
     :return: Test:
@@ -430,6 +433,7 @@ def test_index_update():
     model.IndexSet({"title": ti}).delete()
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 def test_index_delete():
     #Simple Text
     ti = "Test Del"
@@ -559,6 +563,7 @@ def test_version_walk_thru_contents():
         version.walk_thru_contents(action)
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 class TestModifyVersion:
     simpleIndexTitle = "Test ModifyVersion Simple " + test_uid
     complexIndexTitle = "Test ModifyVersion Complex " + test_uid
@@ -735,6 +740,7 @@ class TestModifyVersion:
         assert (len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len)
 
 
+@pytest.mark.usefixtures("mock_toc_callbacks")
 class TestVersionActualLanguage:
     myIndexTitle = "Test VersionActualLanguage " + test_uid
     vtitle = "Version TEST"
