@@ -1095,7 +1095,6 @@ class ReaderPanel extends Component {
     } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
         <UserHistoryPanel              
-            multiPanel={this.props.multiPanel}
             menuOpen={this.state.menuOpen}
             openMenu={this.openMenu}
             openNav={this.openMenu.bind(null, "navigation")}

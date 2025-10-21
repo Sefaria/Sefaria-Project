@@ -166,15 +166,7 @@ REDIS_URL = "redis://127.0.0.1"
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 ENABLE_LINKER = False
-RAW_REF_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None,
-}
-
-RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None,
-}
+GPU_SERVER_URL = "http://localhost:5000"
 
 LOGGING = {
     'version': 1,

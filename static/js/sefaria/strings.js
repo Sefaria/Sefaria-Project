@@ -695,7 +695,7 @@ const Strings = {
     "Voices": "חיבורים",
     "Developers": "מפתחים",
     "Products": "מוצרים",
-    "More from Sefaria": "מוצרים נוספים",
+    "More from Sefaria": "עוד מספריא",
     "User uploaded media": "מדיה שהועלתה על ידי משתמש",
     "Edit collection": "ערוך אסופה",
     "Subscribe to newsletter": "הרשמה לניוזלטר",

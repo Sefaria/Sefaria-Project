@@ -242,10 +242,7 @@ data:
     SLACK_URL = os.getenv("SLACK_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
-
-    RAW_REF_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
-
-    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
+    GPU_SERVER_URL = f'http://{os.getenv("GPU_SERVER_HOST")}:8000'
 
     LOGGING = {
         'version': 1,
