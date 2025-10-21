@@ -1669,9 +1669,6 @@ def find_holiday_in_hebcal_results(response):
                     return topic.contents()
     return None
 
-def next_holiday(request):
-    return redirect(f'/_api/topics/seasonal-topic?lang={request.interfaceLang[:2]}')
-
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
