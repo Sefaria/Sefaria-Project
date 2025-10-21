@@ -60,7 +60,7 @@
   font-size: 16px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -101,7 +101,7 @@
   color: #333;
 }
 .static a.button.transparent {
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .refLink {
   text-decoration: none;
@@ -139,10 +139,10 @@
 .static .quotation {
   text-align: center;
   font-weight: bold;
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .quotation a {
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .quotation he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -292,14 +292,14 @@
 }
 #homePage .description .int-en,
 #homePage .description .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 #homePage .description .int-he {
   font-style: normal;
 }
 #homePage .dedication {
   margin: -12px 0 34px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
@@ -310,7 +310,7 @@
 }
 #homePage #homeBlog .blogTag {
   text-transform: uppercase;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 20px;
   letter-spacing: 1px;
   font-size: 15px;
@@ -323,7 +323,7 @@
   text-align: justify;
 }
 #homePage a {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 #homePage a.refLink {
@@ -345,7 +345,7 @@
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 20px;
   border-bottom: none;
   text-transform: uppercase;
@@ -378,10 +378,10 @@
   margin: 0px 0;
 }
 #homeProgress .stat .int-en {
-  color: #999;
+  color: var(--medium-grey);
 }
 #homeProgress .stat .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 #homeProgress #moreMetrics {
   display: block;
@@ -395,7 +395,7 @@
 }
 #homeConnect #mailingListTitle {
   margin-bottom: 40px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 #homeConnect #mailingListTitle .int-en {
@@ -455,17 +455,17 @@
 #profileTagline {
   margin-bottom: 24px;
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
 }
 #profileSnippets > div {
   display: inline-block;
-  color: #999;
+  color: var(--medium-grey);
   margin: 2px 7px;
   font-size: 14px;
   font-weight: lighter;
 }
 #profileSnippets a {
-  color: #999
+  color: var(--medium-grey)
 }
 #profilePage #buttons {
   margin: 24px 0 50px;
@@ -501,7 +501,7 @@
 }
 #activityList {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   padding: 0;
 }
 .interface-hebrew #activityList {
@@ -621,20 +621,20 @@ input#id_email{
   margin-top: 20px;
   display: block;
   text-align: center;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   font-style: normal;
   text-decoration: none;
 }
 .registrationContent a.registration-links:hover{
-  color: #666;
+  color: var(--dark-grey);
 }
 p.registration-links a{
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: none;
 }
 p.registration-links a:hover{
-  color: #666;
+  color: var(--dark-grey);
   text-decoration: none;
 }
 #visualizationsPage {
@@ -785,7 +785,7 @@ p.registration-links a:hover{
 #teamPage h2{
   font-size: 16px;
   letter-spacing: 2px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: center;
   margin-bottom: 40px;
 }
@@ -860,7 +860,7 @@ p.registration-links a:hover{
   line-height: 2;
 }
 #editProfilePage {
-  color: #666;
+  color: var(--dark-grey);
 }
 #editProfilePage .inner {
   position: relative;
@@ -1011,7 +1011,7 @@ p.registration-links a:hover{
 }
 #accountSettingsPage input {
   width: 100%;
-  color: #999;
+  color: var(--medium-grey);
   box-sizing: border-box;
   padding: 15px 12px;
   border: none;
@@ -1027,7 +1027,7 @@ p.registration-links a:hover{
 #accountSettingsPage input::placeholder{
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
   padding-bottom: 15px;
   font-style: normal;
 }
@@ -1044,7 +1044,7 @@ p.registration-links a:hover{
   color: #CB6158;
 }
 #accountSettingsPage #email-edit-ok{
-  color: #666;
+  color: var(--dark-grey);
 }
 #accountSettingsPage #reading-history-warning{
   display: none;
@@ -1066,7 +1066,7 @@ p.registration-links a:hover{
   line-height: 1.1em;
 }
 #personPage #bio{
-  color: #666;
+  color: var(--dark-grey);
 }
 #personPage a,
 #peoplePage a,
@@ -1103,7 +1103,7 @@ p.registration-links a:hover{
   padding-top: 10px;
 }
 #peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
 }
 #talmudicPeoplePage .talmudic-generation {
@@ -1158,7 +1158,7 @@ p.registration-links a:hover{
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #activityPage #activityFeed {
-  color: #666;
+  color: var(--dark-grey);
 }
 #activityPage #activityFeed a {
   color: #333;
@@ -1290,7 +1290,7 @@ p.registration-links a:hover{
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   direction: ltr;
@@ -1320,7 +1320,7 @@ p.registration-links a:hover{
   padding: 0;
 }
 #digitizedBySefaria .sub {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 13px;
 }
 #digitizedBySefaria ul {
@@ -1499,7 +1499,7 @@ p.registration-links a:hover{
 }
 #edPage .dedication {
   margin: -12px 0 34px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
@@ -1509,7 +1509,7 @@ p.registration-links a:hover{
   position: relative;
 }
 #edPage a {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 #edPage a.refLink {
@@ -1525,7 +1525,7 @@ p.registration-links a:hover{
 }
 #edConnect #mailingListTitle {
   margin-bottom: 40px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 #edConnect #mailingListEmail {
@@ -2019,7 +2019,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-feature-settings: 'cpsp' on;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
   text-align: end;
@@ -2101,7 +2101,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
   line-height: 58px;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: initial;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
@@ -2148,7 +2148,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 289px;
   height: 46px;
   background: #FFFFFF;
-  border: 1px solid #666666;
+  border: 1px solid var(--dark-grey);
   box-sizing: border-box;
   border-radius: 6px;
 }
@@ -2157,7 +2157,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   line-height: 22px;
-  color: #999;
+  color: var(--medium-grey);
   font-style: normal;
 }
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox .inputWithNestedImageSubmit{
@@ -2195,7 +2195,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 26px;
   text-align: center;
   letter-spacing: 0.1em;
-  color: #666666;
+  color: var(--dark-grey);
   margin: 5% 10%;
   justify-content: space-around;
 }
@@ -2554,7 +2554,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-feature-settings: 'cpsp' on;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
   text-align: end;
@@ -2592,7 +2592,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
   line-height: 58px;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: initial;
 }
 
@@ -2914,7 +2914,7 @@ display: none;
   font-weight: 500;
   font-size: 30px;
   line-height: 35px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .staticPage.donate .staticPageH2 span {
   color: #000;
@@ -3106,7 +3106,7 @@ display: none;
 .staticPageAbout h2 {
   font-size: 22px;
   font-weight: 500;
-  color: #666;
+  color: var(--dark-grey);
   line-height: 26px;
   margin: 0 0 19px 0;
 }
@@ -3298,7 +3298,7 @@ form.globalUpdateForm + div.notificationsList {
 }
 #supportersPage p{
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   text-align: left;
   max-width: revert;
 }
@@ -3366,7 +3366,7 @@ form.globalUpdateForm + div.notificationsList {
   min-width: max-content;
   padding: 10px;
   margin: 0;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #aboutSidebar a {
   text-decoration: none !important;

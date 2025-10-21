@@ -20,6 +20,7 @@ import re
 import uuid
 from dataclasses import asdict
 
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -51,11 +52,11 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_language_specific_domain_modules
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, DOMAIN_MODULES, MODULE_ROUTES, STATICFILES_DIRS, DEFAULT_MODULE
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, DOMAIN_MODULES, STATICFILES_DIRS, DEFAULT_HOST    
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -170,7 +171,7 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        active_module = getattr(request, "active_module", "library")
+        active_module = getattr(request, "active_module", LIBRARY_MODULE)
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -213,13 +214,12 @@ def base_props(request):
             "last_place": []
         }
     user_data.update({
-        "activeModule": getattr(request, "active_module", "library"),
+        "activeModule": getattr(request, "active_module", LIBRARY_MODULE),
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": DOMAIN_MODULES,
-        "moduleRoutes": MODULE_ROUTES,
+        "domainModules": get_language_specific_domain_modules(request.interfaceLang),
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
@@ -287,11 +287,15 @@ def catchall(request, tref, sheet=None):
         response['Location'] += "?%s" % params if params else ""
         return response
 
+    active_module = getattr(request, "active_module", LIBRARY_MODULE)
+
     for version in ['ven', 'vhe']:
         if request.GET.get(version) and '|' not in request.GET.get(version):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
+        if active_module != LIBRARY_MODULE:
+            raise Http404
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
@@ -1021,21 +1025,23 @@ def calendars(request):
     return menu_page(request, page="calendars", title=title, desc=desc)
 
 
-@login_required
-def saved(request):
-    title = _("My Saved Content")
-    desc = _("See your saved content on Sefaria")
-    profile = UserProfile(user_obj=request.user)
-    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="texts-saved", title=title, desc=desc)
+
 
 @login_required
-def sheets_saved(request):
+def saved_content(request):
+    """
+    Unified saved content view that works for both library and sheets modules
+    """
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    return menu_page(request, props, page="sheets-saved", title=title, desc=desc)
+    
+    # Determine page name based on active module
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
+    page_name = "sheets-saved" if active_module == VOICES_MODULE else "texts-saved"
+    
+    return menu_page(request, props, page=page_name, title=title, desc=desc)
 
 
 def get_user_history_props(request):
@@ -1046,17 +1052,22 @@ def get_user_history_props(request):
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}
 
-def user_history(request):
-    props = get_user_history_props(request)
-    title = _("My User History")
-    desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="texts-history", title=title, desc=desc)
 
-def sheets_user_history(request):
+
+@login_required
+def user_history_content(request):
+    """
+    Unified user history view that works for both library and sheets modules
+    """
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    return menu_page(request, props, page="sheets-history", title=title, desc=desc)
+    
+    # Determine page name based on active module
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
+    page_name = "sheets-history" if active_module == VOICES_MODULE  else "texts-history"
+    
+    return menu_page(request, props, page=page_name, title=title, desc=desc)
 
 @login_required
 def notes(request):
@@ -1074,7 +1085,7 @@ def user_stats(request):
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    active_module = getattr(request, 'active_module', 'library')
+    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
     notifications = UserProfile(user_obj=request.user).recent_notifications(scope=active_module)
     props = {
         "notifications": notifications.client_contents(),
@@ -2924,7 +2935,7 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
-    scope = str(request.GET.get("scope", "library"))
+    scope = str(request.GET.get("scope", LIBRARY_MODULE))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
@@ -3102,7 +3113,7 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
-    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == "library" else "Explore Source Sheets by Topic on Sefaria"
+    desc = "Explore Jewish Texts by Topic on Sefaria" if request.active_module == LIBRARY_MODULE else "Explore Source Sheets by Topic on Sefaria"
     return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _(desc),
@@ -3117,18 +3128,24 @@ def topic_page(request, slug, test_version=None):
     """
     Page of an individual Topic
     """
+    from django_topics.utils import get_topic_pool_name_for_module
+    
     slug = SluggedAbstractMongoRecord.normalize_slug(slug)
     topic_obj = Topic.init(slug)
-    if topic_obj is None or request.active_module not in topic_obj.get_pools():
+    
+    # Get the actual pool name that should be used for this active_module
+    expected_pool_name = get_topic_pool_name_for_module(request.active_module)
+    
+    if topic_obj is None or expected_pool_name not in topic_obj.get_pools():
         raise Http404
 
     short_lang = get_short_lang(request.interfaceLang)
     desc = title = ""
     short_title = topic_obj.get_primary_title(short_lang)
-    if request.active_module == "library":
+    if request.active_module == LIBRARY_MODULE:
         title = short_title + " | " + _("Texts from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
-    elif request.active_module == "sheets":
+    elif request.active_module == VOICES_MODULE:
         title = short_title + " | " + _("Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Source Sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
 
@@ -3296,9 +3313,15 @@ def topic_graph_api(request, topic):
 @catch_error_as_json
 def topic_pool_api(request, pool_name):
     from django_topics.models import Topic as DjangoTopic
+    from django_topics.utils import get_topic_pool_name_for_module
+    
+    # Map the pool_name to the correct topic pool based on active_module
+    # If pool_name is 'voices', we need to use 'sheets' pool
+    expected_pool_name = get_topic_pool_name_for_module(pool_name)
+    
     n_samples = int(request.GET.get("n"))
     order = request.GET.get("order", "random")
-    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, pool_name, n_samples)
+    topic_slugs = DjangoTopic.objects.sample_topic_slugs(order, expected_pool_name, n_samples)
     response = [Topic.init(slug).contents() for slug in topic_slugs]
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -3983,7 +4006,7 @@ def profile_redirect(request, uid, page=1):
     """"
     Redirect to the profile of the logged in user.
     """
-    return redirect("/sheets/profile/%s" % uid, permanent=True)
+    return redirect("/profile/%s" % uid, permanent=True)
 
 
 @login_required
@@ -3991,7 +4014,7 @@ def my_profile(request):
     """
     Redirect to a user profile
     """
-    url = "/sheets/profile/%s" % UserProfile(id=request.user.id).slug
+    url = "/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
     return redirect(url)
@@ -4155,6 +4178,7 @@ def dashboard(request):
 
     return render_template(request,'dashboard.html', None, {
         "states": states,
+        "renderStatic": True
     })
 
 
@@ -4742,7 +4766,7 @@ def module_favicon(request, filename):
     """
     
     # Get the active module and default to the same default as middleware
-    active_module = getattr(request, 'active_module', DEFAULT_MODULE)
+    active_module = getattr(request, 'active_module', DEFAULT_HOST)
     
     # Construct the path to the module-specific icon file
     # Filename comes from the capture group in the URL pattern
@@ -4864,7 +4888,7 @@ def dynamic_manifest(request, filename):
     Serve module-specific web manifest with dynamic scope and start_url.
     Supports both Hebrew and English.
     """
-    active_module = getattr(request, 'active_module', DEFAULT_MODULE)
+    active_module = getattr(request, 'active_module', DEFAULT_HOST)
     lang = getattr(request, 'interfaceLang', 'english')
 
     # Always use "/" for scope to allow PWA control over all paths

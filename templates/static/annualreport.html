@@ -1,7 +1,7 @@
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
     <title>Sefaria Annual Report {{ reportYear }}</title>
     <meta charset="utf-8"/>
