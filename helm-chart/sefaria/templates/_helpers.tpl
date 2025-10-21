@@ -169,3 +169,43 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
 {{- end }}
 
+{{- define "config.domainLanguage" }}
+{{- $domains := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- $lang := .language -}}
+  {{- $code := .code -}}
+  {{- $_ := set $domains (printf "https://%s" $rootDomain) $lang }}
+  {{- $_ := set $domains (printf "https://www.%s" $rootDomain) $lang }}
+  {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+      {{- $fullSubdomain := printf "https://%s.%s" $subdomain $rootDomain }}
+      {{- $_ := set $domains $fullSubdomain $lang }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- toYaml $domains }}
+{{- end }}
+
+{{- define "config.domainModules" }}
+{{- $map := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $code := .code -}}
+  {{- $langMap := dict -}}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- $_ := set $langMap "library" (printf "https://www.%s" $rootDomain) }}
+  {{- range $.Values.domains.modules }}
+    {{- $name := .name -}}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+      {{- $fullDomain := printf "https://%s.%s" $subdomain $rootDomain }}
+      {{- $_ := set $langMap $name $fullDomain }}
+    {{- end }}
+  {{- end }}
+  {{- $_ := set $map $code $langMap }}
+{{- end }}
+{{- toYaml $map }}
+{{- end }}

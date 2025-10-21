@@ -111,6 +111,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'django_hosts.middleware.HostsRequestMiddleware',  # must be first
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,7 +131,7 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
-
+    'django_hosts.middleware.HostsResponseMiddleware',  # must be last
 ]
 
 ROOT_URLCONF = 'sefaria.urls'
@@ -161,13 +162,14 @@ INSTALLED_APPS = (
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'django_hosts',
 )
 
 LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = 'table_of_contents'
+LOGIN_REDIRECT_URL = 'home'
 
-LOGOUT_REDIRECT_URL = 'table_of_contents'
+LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
@@ -320,8 +322,6 @@ if os.getenv("COOLIFY"):
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 
-DEFAULT_MODULE = 'library'
-
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
@@ -351,3 +351,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+ROOT_HOSTCONF = 'sefaria.hosts'
+DEFAULT_HOST = 'library'

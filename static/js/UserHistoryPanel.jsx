@@ -14,6 +14,7 @@ import {
   LoadingMessage,
   InterfaceText,
 } from './Misc';
+import Util from './sefaria/util';
 
 
 const filterDataByType = (data, dataSource) => {
@@ -60,23 +61,37 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     "history": "/texts/history"
   };
   const sheetsURLs = {
-    "saved": "/sheets/saved",
-    "history": "/sheets/history"
+    "saved": "/saved",
+    "history": "/history"
   };
 
   const title = (
     <span className="sans-serif">
-      <a href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved } data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }>
-        <img src="/static/icons/bookmark.svg" />
+      <a
+        href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved }
+        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
+        className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}
+      >
+        <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history } data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.SHEETS_MODULE} className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}>
-        <img src="/static/icons/clock.svg" />
+      <a
+        href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history }
+        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
+        className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}
+      >
+        <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
         <InterfaceText>History</InterfaceText>
       </a>
       { dataSource === "library" &&
-        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}>
-        <img src="/static/icons/notes-icon.svg" />
+        <a
+          href="/texts/notes"
+          className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
+          onKeyDown={(e) => Util.handleKeyboardClick(e)}
+        >
+        <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
         <InterfaceText>Notes</InterfaceText>
       </a> }
     </span>
@@ -100,8 +115,8 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           <div className="contentInner">
             <div className="navTitle sans-serif-in-hebrew">
               <h1>{ title }</h1>
-              {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
+              {Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC &&
+              <LanguageToggleButton toggleLanguage={toggleLanguage} />}
             </div>
             { menuOpen === 'notes' ?
                   <NotesList notes={notes} />
@@ -130,10 +145,9 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
-
-const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+const LibraryUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+    <UserHistoryPanel menuOpen={menuOpen}
                       toggleLanguage={toggleLanguage}
                       openDisplaySettings={openDisplaySettings}
                       openNav={openNav}
@@ -143,9 +157,9 @@ const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySet
   )
 };
 
-const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+const SheetsUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+    <UserHistoryPanel menuOpen={menuOpen}
                       toggleLanguage={toggleLanguage}
                       openDisplaySettings={openDisplaySettings}
                       openNav={openNav}

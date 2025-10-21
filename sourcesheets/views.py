@@ -35,6 +35,7 @@ from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
+from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params
 from sefaria.sheets import clean_source, bleach_text
@@ -63,9 +64,9 @@ def annotate_user_links(sources):
 from django.utils.translation import ugettext as _
 from reader.views import menu_page
 def sheets_home_page(request):
-    title = _("Sheets on Sefaria")
+    title = _("Voices on Sefaria")
     desc  = _("Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos.")
-    return menu_page(request, page="sheets", title=title, desc=desc)
+    return menu_page(request, page="voices", title=title, desc=desc)
 
 @login_required
 @ensure_csrf_cookie
@@ -165,19 +166,24 @@ def make_sheet_class_string(sheet):
 
     return " ".join(classes)
 
-
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
+    help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
+    lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
+    redirect_url = help_center_redirects.get(lang_code, {}).get(str(sheet_id))
+    if redirect_url:
+        return redirect(redirect_url)
+    
     embed = request.GET.get('embed', '0')
-
     if embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 

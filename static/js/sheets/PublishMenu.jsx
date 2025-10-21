@@ -5,6 +5,7 @@ import Modal from "../common/modal";
 import ReactTags from "react-tag-autocomplete";
 import Button from "../common/Button";
 
+
 const PublishModal = ({close, status, sheetID, postSheet}) => {
   // `status` is 'public' or 'unlisted'.  we are going to toggle the status.  if it's 'public' we want to unlist it
   // so this modal simply posts the new status.  If it's 'unlisted', we want to give the user the PublishMenu component
@@ -152,7 +153,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setSummary(newSummary);
   }
   const handlePublish = () => {
-    sheet.title = title === "" ? "Untitled" : title;
+    sheet.title = Sefaria.sheets.getSheetTitle({ title });
     sheet.summary = summary;
     sheet.topics = tags.map(tag => ({
           asTyped: tag.name,
@@ -194,7 +195,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
                     suggestions={suggestions}
                     onDelete={onTagDelete}
                     placeholderText={Sefaria._("Add a topic...")}
-                    delimiters={["Enter", "Tab", ","]}
+                    delimiters={["Enter", ","]}
                     onAddition={onTagAddition}
                     onValidate={onTagValidate}
                     onInput={updateSuggestedTags}
@@ -202,7 +203,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
             </div>
             {validation.validationFailed !== "none" &&
                 <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
-            <Button className="small" onClick={handlePublish}>Publish</Button>
+            <Button className="button small" onClick={handlePublish}>Publish</Button>
         </div>
     </>
 }

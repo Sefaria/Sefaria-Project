@@ -11,6 +11,7 @@ import Util from './util';
 import $ from './sefariaJquery';
 import Cookies from 'js-cookie';
 import FilterNode from "./FilterNode";
+import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
 
 let Sefaria = Sefaria || {
@@ -20,6 +21,8 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
+  VOICES_MODULE,
+  LIBRARY_MODULE,
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -515,12 +518,10 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  SHEETS_MODULE: "sheets",
-  LIBRARY_MODULE: "library",
   getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.  
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
-    // example: module = "sheets" -> returns URL object with href of "https://sheets.sefaria.org"
+    // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
     module = module || Sefaria.activeModule;
     const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
     try {
@@ -530,8 +531,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    //change this to just check Sefaria.org not domain modules
-    return url.hostname.includes('sefaria.org');
+    return Object.values(Sefaria.domainModules).some(href => url.href.startsWith(href));
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
@@ -974,7 +974,8 @@ Sefaria = extend(Sefaria, {
       "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
       "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
       "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "unknown": "#"
     }
     return licenseMap;
   },
@@ -1456,8 +1457,6 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
       if (!ref) {
-        console.log("_saveItemsByRef encountered an item without a ref field:");
-        console.log(data[i]);
         continue;
       }
       var refs = "anchorRefExpanded" in data[i] ? data[i].anchorRefExpanded : Sefaria.splitRangingRef(ref);
@@ -2085,6 +2084,15 @@ _media: {},
         key:   poolName + queryString,
         store: this._TopicsByPool
     });
+  },
+  getTopicPoolNameForModule: function(activeModule) {
+    // Maps active_module to the correct topic pool name
+    // When active_module is 'voices', use 'sheets' pool
+    const moduleToPoolMapping = {
+      'library': 'library',
+      'voices': 'sheets',  // When active_module is 'voices', use 'sheets' pool
+    };
+    return moduleToPoolMapping[activeModule] || activeModule;
   },
     getLangSpecificTopicPoolName: function(poolName){
       const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
@@ -2772,7 +2780,9 @@ _media: {},
     /*
     Returns true if topic should be displayed in the topic list, topic TOC, or topic page side column.
      */
-    const inActiveModule = topic?.pools?.includes(Sefaria.activeModule);
+    // Get the actual pool name that should be used for this activeModule
+    const expectedPoolName = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
+    const inActiveModule = topic?.pools?.includes(expectedPoolName);
     return !!topic?.shouldDisplay && inActiveModule;
   },
   sortTopicsCompareFn: function(a, b) {
@@ -2867,11 +2877,11 @@ _media: {},
      In the sheets module, every source is under the "Sheets" tab.
      */
     let tabKey, title;
-    if (Sefaria.activeModule === 'sheets' && refObj.is_sheet) {
+    if (Sefaria.activeModule === Sefaria.VOICES_MODULE && refObj.is_sheet) {
       tabKey = 'sheets';
       title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
     } 
-    else if (Sefaria.activeModule === 'library' && !refObj?.is_sheet) {
+    else if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE && !refObj?.is_sheet) {
       if (linkType === 'popular-writing-of') {
         tabKey = linkType;
         title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
@@ -2928,7 +2938,7 @@ _media: {},
       tabObj.refs = [...tabObj.refs];  // dont want it to be set
     }
 
-    if (Sefaria.activeModule === 'library') {
+    if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       // turn "sources" tab into 'super-set', containing all refs from all tabs:
       if (tabs["notable-sources"]) {
         if (!tabs.sources) {
@@ -2973,7 +2983,7 @@ _media: {},
   trendingSheetsTopics: {},
   trendingLibraryTopics: {},
   getTrendingTopics: function(n=10) {
-    return this.activeModule === "library" ? this.getTrendingLibraryTopics(n) : this.getTrendingSheetsTopics(n);
+    return this.activeModule === Sefaria.LIBRARY_MODULE ? this.getTrendingLibraryTopics(n) : this.getTrendingSheetsTopics(n);
   },
   getTrendingLibraryTopics: function(n=10) {
     const url = `api/topics/trending?n=${n}&pool=general_${Sefaria.interfaceLang.slice(0, 2)}`;
@@ -3149,7 +3159,7 @@ _media: {},
       return sheet;
     },
     deleteSheetById: function(id) {
-      return Sefaria._ApiPromise(`/api/sheets/${id}/delete`);
+      return Sefaria.apiRequestWithBody(`/api/sheets/${id}/delete`, null, null, "POST");
     },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy="date", offset=0, numberToRetrieve=0) {
@@ -3300,6 +3310,10 @@ _media: {},
     },
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
+    },
+    getSheetTitle: function(sheet) {
+      // Returns a sheet's title with fallback to "Untitled" 
+      return sheet?.title?.stripHtml() || Sefaria._("Untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
@@ -3536,7 +3550,7 @@ _media: {},
     }
   },
   getLogoutUrl: () => {
-    const next = Sefaria.activeModule === 'sheets' ? 'sheets' : 'texts';
+    const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
 });
@@ -3627,7 +3641,6 @@ Sefaria.unpackBaseProps = function(props){
       "numLibraryTopics",
       "_siteSettings",
       "domainModules",
-      "moduleRoutes",
       "_debug"
   ];
   for (const element of dataPassedAsProps) {
