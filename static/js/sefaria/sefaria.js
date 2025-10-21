@@ -2975,11 +2975,7 @@ _media: {},
   },
   _seasonalTopic: {},
   getSeasonalTopic: function() {
-    return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/_api/topics/seasonal-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
-        key: (new Date()).toLocaleDateString(),
-        store: this._seasonalTopic,
-    });
+    return this.getUpcomingDay('holiday');
   },
   trendingSheetsTopics: {},
   trendingLibraryTopics: {},
