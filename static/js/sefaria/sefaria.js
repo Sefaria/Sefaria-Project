@@ -1457,8 +1457,6 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
       if (!ref) {
-        console.log("_saveItemsByRef encountered an item without a ref field:");
-        console.log(data[i]);
         continue;
       }
       var refs = "anchorRefExpanded" in data[i] ? data[i].anchorRefExpanded : Sefaria.splitRangingRef(ref);

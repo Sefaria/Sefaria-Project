@@ -115,8 +115,8 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
           <div className="contentInner">
             <div className="navTitle sans-serif-in-hebrew">
               <h1>{ title }</h1>
-              {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
+              {Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC &&
+              <LanguageToggleButton toggleLanguage={toggleLanguage} />}
             </div>
             { menuOpen === 'notes' ?
                   <NotesList notes={notes} />
@@ -145,10 +145,9 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
-
-const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+const LibraryUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+    <UserHistoryPanel menuOpen={menuOpen}
                       toggleLanguage={toggleLanguage}
                       openDisplaySettings={openDisplaySettings}
                       openNav={openNav}
@@ -158,9 +157,9 @@ const LibraryUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySet
   )
 };
 
-const SheetsUserHistoryPanelWrapper = (menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal) => {
+const SheetsUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
   return (
-    <UserHistoryPanel menuOpen={menuOpen.menuOpen}
+    <UserHistoryPanel menuOpen={menuOpen}
                       toggleLanguage={toggleLanguage}
                       openDisplaySettings={openDisplaySettings}
                       openNav={openNav}

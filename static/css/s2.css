@@ -1698,21 +1698,24 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .navTitleTab {
   margin-inline-end: 26px;
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
 }
 .navTitleTab:hover {
   color: inherit;
   text-decoration: none;
 }
 .navTitleTab.current {
-  color: inherit;
+  color: var(--dark-grey);
   pointer-events: none;
 }
 .readerNavMenu h1 .navTitleTab img {
   height: 14px;
   margin-inline-end: 6px;
+  filter: brightness(1.5); /* Lightens #666666 to #999999 (--medium-grey-legacy) when not focused */
 }
-.readerNavMenu h1 .navTitleTab.current img {filter: brightness(0.5);}
+.readerNavMenu h1 .navTitleTab.current img {
+  filter: brightness(1); /* Keep at #666666 (--dark-grey) when tab is focused*/
+}
 .sidebarLayout {
   display: flex;
   flex-direction: row;
@@ -2773,8 +2776,23 @@ input.resourcesLink {
   font-size: 14px;
   margin-inline-start: 10px;
 }
+.saveLine .timeStamp {
+  align-self: center;
+}
 .savedHistoryMessage {
   color: var(--dark-grey);
+}
+/* Mobile: Prevent horizontal scroll in Saved/History/Notes views */
+@media (max-width: 540px) {
+  /* Hide tooltips (they extend beyond viewport and don't work on mobile anyway) */
+  .savedHistoryList .saveButton.tooltip-toggle::before,
+  .noteListing .tooltip-toggle::before {
+    display: none;
+  }
+  /* Contain floated action buttons to prevent overflow */
+  .noteListing {
+    overflow: hidden;
+  }
 }
 .readerNavCategories {
   width: 100%;
@@ -13257,14 +13275,11 @@ body .homeFeedWrapper .content {
   background-position-x: right;
 }
 
-
 .story .storyBody {
   clear: both;
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 /*HACK to make English text of sources in topic pages ltr*/
 .interface-hebrew .storyBody {
