@@ -2973,7 +2973,6 @@ _media: {},
         store: this._featuredTopic,
     });
   },
-  _seasonalTopic: {},
   getSeasonalTopic: function() {
     return this.getUpcomingDay('holiday');
   },
@@ -3748,7 +3747,6 @@ Sefaria.resetCache = function() {
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};
-    this._seasonalTopic = {};
     this._index = {};
     this._indexDetails = {};
     this._bookSearchPathFilter  = {};
