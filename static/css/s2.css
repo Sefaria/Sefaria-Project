@@ -854,7 +854,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   direction: ltr;
 }
 .header .interfaceLinks .interfaceLinks-option:hover {
-  background-color: var(--lighter-grey);
+  background-color: var(--highlight-blue);
 }
 .header .languageFlex .interfaceLinks-option:hover {
   background-color: var(--lighter-grey);
@@ -5883,25 +5883,6 @@ big {
   left: auto;
   right: -50px;
 }
-/* GuideButton styles */
-.rightButtons .guideButton {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  height: 56px;
-  cursor: pointer;
-  margin-inline-end: 15px;
-  padding-top: 3px;
-}
-.rightButtons .guideButton.tooltip-toggle::before {
-  top: 47px;
-}
-
-/* Bulb icon alignment adjustments to match SaveButton */
-.rightButtons .guideButton img {
-  height: 18px;
-}
-
 /* ArrowButton styles for navigation arrows */
 .arrowButton {
   width: 20px;
@@ -9258,6 +9239,24 @@ a.sheetAuthorName:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.sheetMetaDataBox .guideButton {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-inline-end: 8px;
+}
+.sheetMetaDataBox .guideButton img {
+  height: 16px;
+  width: auto;
+  margin-top: 6px;
+}
+.sheetMetaDataBox .guideButton.tooltip-toggle::before {
+  font-weight: bold;
+}
+.interface-hebrew .sheetMetaDataBox .guideButton img {
+  height: 28px;
+  margin-top: 0;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
@@ -15065,8 +15064,16 @@ span.ref-link-color-3 {color: blue}
   color: var(--selected-option);
 }
 
+.dropdownDot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .dropdownHeaderText {
-  padding-left: 10px;
+  padding-inline-start: 10px;
 }
 
 .dropdownDesc {
@@ -15162,8 +15169,8 @@ span.ref-link-color-3 {color: blue}
   top: 35px;
   position: absolute;
   z-index: 1;
-  width: 150px;
-  background: #FBFBFA;
+  width: 200px;
+  background: #FFFFFF;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   display:none;
@@ -15188,6 +15195,43 @@ span.ref-link-color-3 {color: blue}
   padding-block-end: 10px;
 }
 
+.dropdownItem:hover {
+  background-color: var(--highlight-blue);
+  text-decoration: none;
+}
+
+.dropdownLogoItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header .headerDropdownMenu .dropdownLogo {
+  width: 100px;
+  height: 32px;
+}
+
+.dropdownMoreItem {
+  text-align: center;
+}
+
+/* Module switcher specific styles for seamless hover */
+.moduleDropdown .dropdownSeparator {
+  margin-block: 0;
+}
+
+.moduleDropdown a.dropdownItem.dropdownModuleItem {
+  padding-block: 15px;
+}
+
+.moduleDropdown > .dropdownItem:first-child {
+  padding-block: 15px;
+}
+
+.moduleDropdown > .dropdownItem:last-child {
+  padding-block: 15px;
+}
+
 .sheetsInPanel .dropdownItem {
   cursor: pointer;
 }
@@ -15204,30 +15248,29 @@ span.ref-link-color-3 {color: blue}
 }
 .interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .interface-english .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .interface-hebrew .header .headerDropdownMenu .dropdownLinks-menu {
   left: 0px;
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .interface-hebrew .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu  {
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .dropdownLinks-options {
   display: flex;
   flex-direction: column;
-  max-width: 220px;
 }
 
 /*.dropdownLinks-options > * {*/

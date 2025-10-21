@@ -25,19 +25,19 @@ http {
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
-  # TODO review this CORS setting
-  add_header 'Access-Control-Allow-Origin' '*';
+  # Add CORS header only if not already set
+  # For simple requests, only Access-Control-Allow-Origin is needed.
+  # For more complex requests, we need more headers. CORS for these requests are handled in Django.
+  map $sent_http_access_control_allow_origin $cors_header {
+    ''      *;     # if ACAO not already set, use "*"
+    default '';    # otherwise, make it empty so add_header emits nothing
+  }
+  add_header 'Access-Control-Allow-Origin' $cors_header always;
 
-  upstream varnish_upstream {
+  upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
     keepalive 32;
   }
-
-  {{- if .Values.linker.enabled }}
-  upstream linker_upstream {
-    server ${LINKER_HOST}:80;
-  }
-  {{- end }}
 
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
@@ -55,23 +55,24 @@ http {
     }
 
     location / {
-        proxy_pass http://varnish_upstream;
+        proxy_pass http://varnishupstream;
     }
   }
 
-  {{- range $k, $v := .Values.domains }}
-  {{- $subdomains := list }}
-  {{- $root := $v.root }}
+  {{- range .Values.domains.root }}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+  {{- $code := .code }}
+  {{- $wwwDomain := printf "www.%s" $rootDomain }}
   server {
     listen 80;
     listen [::]:80;
-    server_name {{ tpl $root $ }};
-    return 301 https://www.$host$request_uri;
+    server_name {{ $rootDomain }};
+    return 301 https://{{ $wwwDomain }}$request_uri;
   }
 
   server {
     listen 80;
-    server_name www.{{ tpl $root $ }};
+    server_name {{ $wwwDomain }};
     listen [::]:80;
     # parameterize line below
     # Look into security cost of simply serving every host
@@ -80,11 +81,6 @@ http {
     # Return error on forbidden methods
     if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
       return 405;
-    }
-
-    # Redirect insecure requests to HTTPS
-    if ($http_x_forwarded_proto = "http") {
-        return 301 https://www.$host$request_uri;
     }
 
     # protect all non-allowed elasticsearch paths
@@ -138,7 +134,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location /static/mobile/message-en.json {
@@ -160,37 +156,27 @@ http {
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
 
-    {{- if $.Values.linker.enabled }}
-    location /api/find-refs {
-      proxy_send_timeout  300;
-      proxy_read_timeout  300;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://linker_upstream;
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+    {{- range .redirects }}
+    location ~ ^/{{ . }}(/.*|$) {
+        return 307 https://{{ $subdomain }}/{{ . }}$1;
     }
     {{- end }}
-
-    {{- range $path, $sub := $v.redirects }}
-    location ~ ^/{{ $path }}(/.*|$) {
-        return 307 https://{{ $sub }}.{{ tpl $root $ }}$1;
-    }
     {{- end }}
-  } # server
-
-  {{- range $path, $sub := $v.redirects }}
-    {{- if not (has $sub $subdomains) }}
-      {{- $subdomains = append $subdomains $sub }}
     {{- end }}
-  {{- end }}
-  {{- range $subdomains }}
+  }
+
+  {{- range $.Values.domains.modules }}
+  {{- $subdomain := index .subdomains $code }}
+  {{- if $subdomain }}
+
   server {
     listen 80;
     listen [::]:80;
-    server_name {{ . }}.{{ tpl $root $ }};
+    server_name {{ $subdomain }}.{{ $rootDomain }};
 
     # parameterize line below
     # Look into security cost of simply serving every host
@@ -199,11 +185,6 @@ http {
     # Return error on forbidden methods
     if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
       return 405;
-    }
-
-    # Redirect insecure requests to HTTPS
-    if ($http_x_forwarded_proto = "http") {
-        return 301 https://www.$host$request_uri;
     }
 
     # protect all non-allowed elasticsearch paths
@@ -250,7 +231,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location ~ /api/ {
@@ -259,7 +240,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location / {
@@ -267,7 +248,6 @@ http {
       opentracing on;
       opentracing_propagate_context;
       {{- end }}
-      rewrite ^/(.*)$ /{{ $v }}/$1 break;
       proxy_send_timeout  300;
       proxy_read_timeout  300;
       proxy_set_header Host $host;
@@ -276,7 +256,7 @@ http {
       proxy_set_header X-Forwarded-Proto https;
       proxy_set_header X-Forwarded-Port 443;
       proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://varnish_upstream;
+      proxy_pass http://varnishupstream;
     }
 
     location /static/mobile/message-en.json {
@@ -297,24 +277,12 @@ http {
       access_log off;
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
-
-    {{- if $.Values.linker.enabled }}
-    location /api/find-refs {
-      proxy_send_timeout  300;
-      proxy_read_timeout  300;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://linker_upstream;
-    }
-    {{- end }}
   } # server
 
   {{- end }}
-  {{ end }}
+  {{- end }}
+  {{- end }}
+
   types {
     text/html                             html htm shtml;
     text/css                              css;
