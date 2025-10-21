@@ -56,11 +56,11 @@
     <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.svg?v=2" sizes="any">
     <link rel="icon" type="image/png" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.png?v=2" sizes="96x96">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v=2">
-    <link rel="manifest" href="/manifests/{{ active_module }}/site.webmanifest?v=2">
+    <link rel="manifest" href="/site.webmanifest?v=2">
     {# In the future in case there are more than 2 modules, define a custom filter with a dictionary that maps module names to colors/strings #}
-    <meta name="theme-color" content="{% if active_module == 'sheets' %}#5D956F{% else %}#18345D{% endif %}">
+    <meta name="theme-color" content="{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}">
     <meta name="apple-mobile-web-app-title"
-          content="{% if active_module == 'sheets' %}
+          content="{% if active_module == 'voices' %}
                     {% if lang == 'hebrew' or lang == 'he' %}חיבורים{% else %}Voices{% endif %}
                   {% else %}
                     {% if lang == 'hebrew' or lang == 'he' %}ספרייה{% else %}Library{% endif %}

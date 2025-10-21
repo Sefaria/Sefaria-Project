@@ -3,7 +3,7 @@
 from django.conf.urls import url
 from django.http import HttpResponseRedirect
 import reader.views as reader_views
-from sefaria.settings import STATIC_URL, MODULE_ROUTES
+from sefaria.settings import STATIC_URL
 from sites.sefaria.site_settings import SITE_SETTINGS
 
 
@@ -67,7 +67,7 @@ site_urlpatterns = [
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),
-    url(r'^manifests/(?P<module>%s)/(?P<filename>site\.webmanifest|manifest\.json)/?$' % "|".join(MODULE_ROUTES.keys()), reader_views.dynamic_manifest),
+    url(r'^(?P<filename>site\.webmanifest|manifest\.json)/?$', reader_views.dynamic_manifest),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),

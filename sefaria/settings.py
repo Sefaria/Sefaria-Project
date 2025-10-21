@@ -320,12 +320,7 @@ if os.getenv("COOLIFY"):
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 
-# Set default module from MODULE_ROUTES configuration
-# Takes the first module key, which should be the primary/default module
-try:
-    DEFAULT_MODULE = next(iter(MODULE_ROUTES.keys()))
-except (NameError, AttributeError):
-    DEFAULT_MODULE = 'library'  # Fallback if MODULE_ROUTES not defined
+DEFAULT_MODULE = 'library'
 
 WEBPACK_LOADER = {
     'DEFAULT': {

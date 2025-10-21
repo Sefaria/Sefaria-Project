@@ -4859,24 +4859,17 @@ def application_health_api(request):
     return http.JsonResponse(resp, status=statusCode)
 
 
-def dynamic_manifest(request, module, filename):
+def dynamic_manifest(request, filename):
     """
     Serve module-specific web manifest with dynamic scope and start_url.
     Supports both Hebrew and English.
     """
-    active_module = module
+    active_module = getattr(request, 'active_module', DEFAULT_MODULE)
     lang = getattr(request, 'interfaceLang', 'english')
-
-    # Set start_url to ensure users land on the correct module entry point when launching PWA
-    if active_module == DEFAULT_MODULE or active_module not in MODULE_ROUTES:
-        start_url = "/"
-    else:
-        # For modules like sheets, use their route path as the entry point
-        # Ensures users go to /sheets/ rather than just / when launching the PWA
-        start_url = MODULE_ROUTES.get(active_module, "/")
 
     # Always use "/" for scope to allow PWA control over all paths
     scope = "/"
+    start_url = "/"
 
     context = {
         'active_module': active_module,

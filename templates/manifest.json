@@ -1,6 +1,6 @@
 {% load static %}{
-  "name": "{% if active_module == 'sheets' %}{% if is_hebrew %}ספריא חיבורים{% else %}Sefaria Voices{% endif %}{% else %}{% if is_hebrew %}ספריא ספרייה{% else %}Sefaria Library{% endif %}{% endif %}",
-  "short_name": "{% if active_module == 'sheets' %}{% if is_hebrew %}חיבורים{% else %}Voices{% endif %}{% else %}{% if is_hebrew %}ספרייה{% else %}Library{% endif %}{% endif %}",
+  "name": "{% if active_module == 'voices' %}{% if is_hebrew %}ספריא חיבורים{% else %}Sefaria Voices{% endif %}{% else %}{% if is_hebrew %}ספריא ספרייה{% else %}Sefaria Library{% endif %}{% endif %}",
+  "short_name": "{% if active_module == 'voices' %}{% if is_hebrew %}חיבורים{% else %}Voices{% endif %}{% else %}{% if is_hebrew %}ספרייה{% else %}Library{% endif %}{% endif %}",
   "start_url": "{{ start_url }}",
   "scope": "{{ scope }}",
   "icons": [
@@ -21,8 +21,8 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "{% if active_module == 'sheets' %}#5D956F{% else %}#18345D{% endif %}",
-  "background_color": "{% if active_module == 'sheets' %}#5D956F{% else %}#18345D{% endif %}",
+  "theme_color": "{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}",
+  "background_color": "{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}",
   "display": "standalone",
   "orientation": "portrait-primary"{% if is_hebrew %},
   "dir": "rtl",
