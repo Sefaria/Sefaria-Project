@@ -1669,7 +1669,6 @@ def find_holiday_in_hebcal_results(response):
                     return topic.contents()
     return None
 
-@catch_error_as_json
 def next_holiday(request):
     return redirect(f'/_api/topics/seasonal-topic?lang={request.interfaceLang[:2]}')
 
