@@ -2176,7 +2176,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         hidden={hideHeader}
         mobileNavMenuOpen={this.state.mobileNavMenuOpen}
         onMobileMenuButtonClick={this.toggleMobileNavMenu}
-        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && ["navigation", "texts-saved", "sheets-saved", "texts-history", "sheets-history", "notes"].includes(this.state.panels?.[0]?.menuOpen)}
+        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && ["navigation", "saved", "history", "notes"].includes(this.state.panels?.[0]?.menuOpen)}
         toggleLanguage={this.toggleLanguageInFirstPanel}
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow}
