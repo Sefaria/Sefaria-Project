@@ -25,19 +25,19 @@ http {
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
-  # TODO review this CORS setting
-  add_header 'Access-Control-Allow-Origin' '*';
+  # Add CORS header only if not already set
+  # For simple requests, only Access-Control-Allow-Origin is needed.
+  # For more complex requests, we need more headers. CORS for these requests are handled in Django.
+  map $sent_http_access_control_allow_origin $cors_header {
+    ''      *;     # if ACAO not already set, use "*"
+    default '';    # otherwise, make it empty so add_header emits nothing
+  }
+  add_header 'Access-Control-Allow-Origin' $cors_header always;
 
   upstream varnishupstream {
     server ${VARNISH_HOST}:8040;
     keepalive 32;
   }
-
-  {{- if .Values.linker.enabled }}
-  upstream linker_upstream {
-    server ${LINKER_HOST}:80;
-  }
-  {{- end }}
 
   upstream elasticsearch_upstream {
     server ${SEARCH_HOST}:9200;
@@ -155,20 +155,6 @@ http {
       access_log off;
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
-
-    {{- if $.Values.linker.enabled }}
-    location /api/find-refs {
-      proxy_send_timeout  300;
-      proxy_read_timeout  300;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://linker_upstream;
-    }
-    {{- end }}
 
     {{- range $.Values.domains.modules }}
     {{- $subdomain := index .subdomains $code }}
@@ -291,20 +277,6 @@ http {
       access_log off;
       proxy_pass https://storage.googleapis.com/sefaria-sitemaps$request_uri;
     }
-
-    {{- if $.Values.linker.enabled }}
-    location /api/find-refs {
-      proxy_send_timeout  300;
-      proxy_read_timeout  300;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://linker_upstream;
-    }
-    {{- end }}
   } # server
 
   {{- end }}

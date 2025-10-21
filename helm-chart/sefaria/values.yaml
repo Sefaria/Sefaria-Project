@@ -117,67 +117,6 @@ web:
       # Reference to an existing secret in the cluster
       ref:
 
-linker:
-  enabled: false
-  # key-pair values to load into web pod environment.  Takes precedence over global localsettings
-  model_paths:
-    # english model supports people and refs
-    en: "gs://sefaria-ml-models/en_ner_model.tar.gz"
-    he: "gs://sefaria-ml-models/ref_model.tar.gz"
-  part_model_paths:
-    en: "gs://sefaria-ml-models/en_subref_model.tar.gz"
-    he: "gs://sefaria-ml-models/subref_model.tar.gz"
-  localsettings:
-  # APP: web
-  containerImage:
-    # Full path of the image registry imclusive of the image name
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-linker
-    # Commit id of the repo for which the image build has been triggered.
-    tag: latest
-  replicaCount: 1
-  serviceAccount: linker
-  resources:
-    web:
-      gunicornWorkerCount: 1
-      gunicornThreadCount: 1
-      resources:
-        requests:
-          memory: "2Gi"
-          cpu: "100m"
-          nvidia.com/gpu: 1
-        limits:
-          memory: "3Gi"
-          cpu: "1000m"
-          nvidia.com/gpu: 1
-    djangoLog:
-      requests:
-        memory: "100Mi"
-        cpu: "50m"
-      limits:
-        memory: "150Mi"
-        cpu: "100m"
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Equal
-      value: present
-      effect: NoSchedule
-  secrets:
-    googleClient:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-    logging:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-    schoolLookup:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name
@@ -255,6 +194,7 @@ varnish:
     tag: 0.32.0
 
 tasks:
+  localsettings: {}
   enabled: false
   resources:
     requests:
@@ -277,6 +217,11 @@ tasks:
       ref: sentinel-password
   queues:
     llm: default-llm
+
+# Takes the url of an NER server instance
+# Will automatically enable internal settings to communicate with the NER server
+# Required for Rambi Cronjob
+gpuServer: ""
 
 # Declare domains handled by this sefaria instance for both app and ingress config
 # Root domains implicitly handle the library module and do not feature redirects
