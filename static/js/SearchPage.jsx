@@ -40,6 +40,25 @@ class SearchPage extends Component {
         moreToLoad={this.props.moreToLoad}
         topics={this.props.topics}
     />;
+
+    const resultCount = this.props.totalResults?.getValue() > 0 && (
+      <>
+        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
+        <InterfaceText>Results</InterfaceText>
+      </>
+    );
+
+    const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
+      <SearchSortBox
+          type={this.props.type}
+          sortTypeArray={this.props.sortTypeArray}
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          sortType={this.props.searchState.sortType}/>
+      :
+      <SearchFilterButton
+          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+          nFilters={this.props.searchState.appliedFilters.length}/>;
+
     if (this.props.searchInBook) {
       return searchResultList;
     }
@@ -65,23 +84,10 @@ class SearchPage extends Component {
                   </h1>
                   <div className="searchTopMatter">
                     <div className="searchResultCount">
-                      {this.props.totalResults?.getValue() > 0 &&
-                        <>
-                          <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-                          <InterfaceText>Results</InterfaceText>
-                        </>}
+                      {resultCount}
                     </div>
                     <div>
-                      {Sefaria.multiPanel && !this.props.compare ?
-                          <SearchSortBox
-                              type={this.props.type}
-                              sortTypeArray={this.props.sortTypeArray}
-                              updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                              sortType={this.props.searchState.sortType}/>
-                          :
-                          <SearchFilterButton
-                              openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                              nFilters={this.props.searchState.appliedFilters.length}/>}
+                      {sortFilterControls}
                     </div>
                   </div>
                 </div>
