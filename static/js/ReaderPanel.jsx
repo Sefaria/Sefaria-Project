@@ -1102,9 +1102,8 @@ class ReaderPanel extends Component {
             toggleLanguage={this.toggleLanguage}
             compare={this.state.compare}
             toggleSignUpModal={this.props.toggleSignUpModal} />
-      );
-      
-    } else if (this.state.menuOpen === "sheets") {
+      );      
+    } else if (this.state.menuOpen === "voices") {
       menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
               setTopic={this.setTopic}
               multiPanel={this.props.multiPanel}

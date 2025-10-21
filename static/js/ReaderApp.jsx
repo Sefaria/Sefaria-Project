@@ -464,6 +464,11 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
+          case "voices":
+            hist.title = Sefaria._("Voices on Sefaria");
+            hist.url = "";
+            hist.mode = 'voices';
+            break;
           case "sheetsWithRef":
             hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
@@ -1162,7 +1167,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
-      this.showLibrary();
+      this.showRoot();
 
     } else if (path === "/texts") {
       this.showLibrary();
@@ -1757,7 +1762,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const state = {panels: this.state.panels};
     if (state.panels.length === 0) {
-      this.showLibrary();
+      this.showRoot();
     } else {
       this.setState(state);
     }
@@ -1786,6 +1791,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       state.settings.language = "english";
     }
     this.setSinglePanelState(state);
+  }
+  showVoices() {
+    let state = {menuOpen: 'voices', mode: 'Menu'};
+    state = this.makePanelState(state);
+    this.setSinglePanelState(state);
+  }
+  showRoot() {
+    if (Sefaria.activeModule === 'voices') {
+      this.showVoices();
+    } else {
+      this.showLibrary();
+    }
   }
   showSearch(searchQuery) {
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
