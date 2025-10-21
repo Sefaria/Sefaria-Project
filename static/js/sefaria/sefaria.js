@@ -2823,7 +2823,7 @@ _media: {},
       }
       return this._cachedApiPromise({
           url:   `${this.apiHost}/api/calendars/topics/${day}`,
-          key:   day,
+          key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });
   },
