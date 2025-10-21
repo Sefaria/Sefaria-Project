@@ -4260,18 +4260,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   font-size: 30px;
   color: #000;
-  margin-bottom: 5px;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font:  var(--hebrew-sans-serif-font-family);
-}
-.searchContent h1.englishQuery {
-  font-size: 30px;
-}
-.searchContent h1.hebrewQuery {
-  font-family: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 10px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font:  var(--hebrew-serif-font-family);
 }
 .searchContent .searchTopLine {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 .searchContent .searchResultCount {
   color: var(--dark-grey);
@@ -4279,10 +4273,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
-  border-bottom: 1px solid var(--light-grey);
-  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
+}
+/* Add grey line under Filter button on mobile only */
+.singlePanel .searchContent .searchTopMatter {
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 5px;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -4856,6 +4853,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   top: 120px;
   inset-inline-start: 0;
   padding-bottom: 10px;
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
 }
 .singlePanel .autocomplete-dropdown:has(*){
   width: 100vw;
