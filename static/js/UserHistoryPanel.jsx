@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
@@ -36,14 +36,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     });
   }, [menuOpen]);
 
-  const memoizedStore = useMemo(() => {
-    const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
-    return {
-      'loaded': currentDataStore?.loaded || false, 
-      'items': currentDataStore?.items || []
-    };
-  }, [menuOpen, Sefaria.saved?.loaded, Sefaria.saved?.items, Sefaria.userHistory?.loaded, Sefaria.userHistory?.items]); // Re-create when these change
-    
+  const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
+  const store = {
+    'loaded': currentDataStore?.loaded || false, 
+    'items': currentDataStore?.items || []
+  };
 
   const title = (
     <span className="sans-serif">
@@ -90,7 +87,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={memoizedStore}
+                    store={store}
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
