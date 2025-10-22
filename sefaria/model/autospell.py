@@ -335,7 +335,6 @@ class Completions(object):
         else:
             return c[1]["order"] * 100
     
-<<<<<<< HEAD
     def _filter_completions_by_type(self, completion_strings, completion_objects):
         filtered_completions = [
             (cs, co)
