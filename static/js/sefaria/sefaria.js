@@ -1355,7 +1355,7 @@ Sefaria = extend(Sefaria, {
       Array.isArray(value)
         ? value.map(v => encodePair(key, v))
         : `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-    let queryString = Object.entries(params)
+    const queryString = Object.entries(params)
       .flatMap(([key, value]) => encodePair(key, value))
       .join('&');
     return queryString && "?" + queryString;
@@ -1363,7 +1363,7 @@ Sefaria = extend(Sefaria, {
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, limit = undefined, types=undefined, topicPool=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
-    let params = {
+    const params = {
       ...(limit !== undefined && { limit }),
       ...(types !== undefined && { type: types }),
       ...(topicPool !== undefined && { topic_pool: topicPool }),
@@ -2083,7 +2083,7 @@ _media: {},
     let params = {};
     if (numOfTopics != undefined) { params["n"] = numOfTopics; }
     if (order != undefined) { params["order"] = order; }
-    let queryString = Sefaria.buildQueryString(params);
+    const queryString = Sefaria.buildQueryString(params);
     const url = this.apiHost + "/api/topics/pools/" + encodeURIComponent(poolName) + queryString;
 
     const shouldBeCached = order != undefined && order != 'random';
