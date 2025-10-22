@@ -2659,7 +2659,7 @@ _media: {},
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
       const skip = Sefaria.userHistory.items.length;
-      const sheets_only = Sefaria.activeModule === Sefaria.VOICES_MODULE ? 1 : 0;
+      const sheets_only = Number(Sefaria.activeModule === Sefaria.VOICES_MODULE);
       const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}&sheets_only=${sheets_only}`;
       fetch(url)
           .then(response => response.json())
