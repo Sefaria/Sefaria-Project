@@ -398,6 +398,11 @@ urlpatterns += [
 
 ]
 
+# Async Tasks
+urlpatterns += [
+    url(r'^api/async/(?P<task_id>.+)$', sefaria_views.async_task_status_api),
+]
+
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]

@@ -19,6 +19,19 @@ previousServicesCount: "3"
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
 
+# enabling this feature creates an ephemeral database image prepopulated with test data
+# It is intended for use within the sefaria automated testing environment
+# For development environments
+# - install mongo using an upstream chart
+# - enable restore
+# - populate the settings with the appropriate connection details
+mongo:
+  enabled: false
+  image:
+    registry: us-east1-docker.pkg.dev/development-205018/sefaria-public
+    image: sefaria-mongo
+    tag: latest
+
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
 restore:
@@ -95,67 +108,6 @@ web:
       # Reference to an existing secret in the cluster
       ref:
     elasticCertificate:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-
-linker:
-  enabled: false
-  # key-pair values to load into web pod environment.  Takes precedence over global localsettings
-  model_paths:
-    # english model supports people and refs
-    en: "gs://sefaria-ml-models/en_ner_model.tar.gz"
-    he: "gs://sefaria-ml-models/ref_model.tar.gz"
-  part_model_paths:
-    en: "gs://sefaria-ml-models/en_subref_model.tar.gz"
-    he: "gs://sefaria-ml-models/subref_model.tar.gz"
-  localsettings:
-  # APP: web
-  containerImage:
-    # Full path of the image registry imclusive of the image name
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-linker
-    # Commit id of the repo for which the image build has been triggered.
-    tag: latest
-  replicaCount: 1
-  serviceAccount: linker
-  resources:
-    web:
-      gunicornWorkerCount: 1
-      gunicornThreadCount: 1
-      resources:
-        requests:
-          memory: "2Gi"
-          cpu: "100m"
-          nvidia.com/gpu: 1
-        limits:
-          memory: "3Gi"
-          cpu: "1000m"
-          nvidia.com/gpu: 1
-    djangoLog:
-      requests:
-        memory: "100Mi"
-        cpu: "50m"
-      limits:
-        memory: "150Mi"
-        cpu: "100m"
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Equal
-      value: present
-      effect: NoSchedule
-  secrets:
-    googleClient:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-    logging:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-    schoolLookup:
       # for local testing purposes or CI pipeline use input a value
       # data:
       # Reference to an existing secret in the cluster
@@ -238,6 +190,7 @@ varnish:
     tag: 0.32.0
 
 tasks:
+  localsettings: {}
   enabled: false
   resources:
     requests:
@@ -260,6 +213,11 @@ tasks:
       ref: sentinel-password
   queues:
     llm: default-llm
+
+# Takes the url of an NER server instance
+# Will automatically enable internal settings to communicate with the NER server
+# Required for Rambi Cronjob
+gpuServer: ""
 
 ingress:
  # You can set path: serviceName: and port: for each host. By default they are
