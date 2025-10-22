@@ -2198,12 +2198,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       widths = panelStates.map( panel => evenWidth );
     }
 
-    // Header should not show box-shadow over panels that have color line
-    const menuOpen = this.state.panels?.[0]?.menuOpen;
-    const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
-    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel || this.state.panels?.[0]?.mode === "Sheet";
-    // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
-    const hideHeader = !this.props.multiPanel && !this.state.headerMode && !menuOpen;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2212,13 +2206,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         openURL={this.openURL}
         headerMode={this.props.headerMode}
         openTopic={this.openTopic}
-        hidden={hideHeader}
+        firstPanel={this.state.panels?.[0]}
         mobileNavMenuOpen={this.state.mobileNavMenuOpen}
         onMobileMenuButtonClick={this.toggleMobileNavMenu}
-        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && ["navigation", "texts-saved", "sheets-saved", "texts-history", "sheets-history", "notes"].includes(this.state.panels?.[0]?.menuOpen)}
         toggleLanguage={this.toggleLanguageInFirstPanel}
-        firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
-        hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         module={Sefaria.activeModule}/>
