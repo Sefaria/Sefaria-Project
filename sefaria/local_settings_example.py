@@ -5,6 +5,7 @@ import sys
 import structlog
 import sefaria.system.logging as sefaria_logging
 import os
+import json
 
 # These are things you need to change!
 
@@ -37,6 +38,10 @@ DATABASES = {
     }
 }"""
 
+
+################ User-defined Settings ###########################################################################
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {
@@ -44,11 +49,12 @@ DOMAIN_LANGUAGES = {
     "http://english.example.org": "english",
 }
 
+DOMAIN_MODULES = {
+    "library": "http://localhost:8000",
+    "voices": "http://voices.localhost:8000",  
+}
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 
-################ These are things you can change! ###########################################################################
-#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
@@ -127,9 +133,8 @@ SITE_PACKAGE = "sites.sefaria"
 
 
 
-################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
+################ Default Settings (Don't change these unless you know what you are doing) ###############################
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -332,3 +337,21 @@ if "pytest" in sys.modules:
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
+
+# Session cookie settings for cross-subdomain support
+# Set this to your top-level domain (e.g., '.example.com') to allow session cookies
+# to work across all subdomains. The leading dot is important!
+SESSION_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
+SESSION_COOKIE_SECURE = True  # Set to True if using HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Recommended for security
+SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+# CSRF cookie settings for cross-subdomain support
+# Set this to your top-level domain to allow CSRF tokens to work across subdomains
+CSRF_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
+CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
+CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this

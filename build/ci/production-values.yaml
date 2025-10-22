@@ -122,37 +122,10 @@ tasks:
 ingress:
   hosts:
     - host: "sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
+      tlsRef: origin-tls-prod2
     - host: "sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "www.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "www.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
+      tlsRef: origin-il-tls-prod2
+  # Deprecated but left in place for switchover.
   secrets:
     originTls:
       ref: origin-tls-prod2
@@ -230,6 +203,7 @@ localSettings:
     "https://www.sefaria.org": "english",
     "https://www.sefaria.org.il": "hebrew",
   }
+  DOMAIN_MODULES: {"library": "https://www.sefaria.org", "sheets": "https://sheets.sefaria.org"}
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
@@ -245,3 +219,12 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "SALESFORCE"
   FAIL_GRACEFULLY: "True"
+  SESSION_COOKIE_DOMAIN: ".sefaria.org"
+  SESSION_COOKIE_SECURE: true
+  SESSION_COOKIE_HTTPONLY: true
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_DOMAIN: ".sefaria.org"
+  CSRF_COOKIE_SECURE: true
+  CSRF_COOKIE_HTTPONLY: false
+  CSRF_COOKIE_SAMESITE: "Lax"
+

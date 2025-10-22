@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
 from webpack_loader import utils as webpack_utils
 
-from sefaria import settings as sls
+from django.conf import settings as sls
 # from sefaria.model.user_profile import UserProfile
 
 

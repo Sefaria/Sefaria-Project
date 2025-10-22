@@ -19,6 +19,10 @@ previousServicesCount: "3"
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
 
+# controls whether rollout pre-promotion analysis is enabled
+rollouts:
+  prePromotionAnalysis: true
+
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
 # For development environments
@@ -219,40 +223,34 @@ tasks:
 # Required for Rambi Cronjob
 gpuServer: ""
 
-ingress:
- # You can set path: serviceName: and port: for each host. By default they are
- # set to '/*', 'nginx', '80' respectively for each. Do note that changing this
- # means you'll have to change the nginx service as well.
-  hosts:
-    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-  annotations: {}
-  secrets:
-    # This TLS is referenced for Prod and Democracy deployments. Use the ref: or
-    # data: fields for either deployments.
-    originTls:
-      # If you're using a refenrece to an existing secret then the data: section
-      # should be commented out and vice-versa.
-      # Reference to an existing secret in the cluster
-      # "cauldron-wildcard-letsencrypt" is for cauldrons, wildcard cert managed
-      # via infrastructure
-      ref:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      #   cert:
-      #   key:
-    # This TLS is referenced only for Prod deployments.
-    originIlTls:
-      # If you're using a refenrece to an existing secret then the data: section
-      # should be commented out and vice-versa.
-      # Reference to an existing secret in the cluster
-      ref:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      #   cert:
-      #   key:
+# Declare domains handled by this sefaria instance for both app and ingress config
+# Root domains implicitly handle the library module and do not feature redirects
+# Each root domain should have a language and code
+# Modules definitions include
+#   module name
+#   a subdomain per corresponding language root
+#   root domain paths that should redirect into the module
+# Cookie domain will be set to the first domain in the root list
+domains:
+  root:
+    - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      cert: "{{ .Values.deployEnv }}-tls"
+      language: english
+      code: en
+#   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
+#     cert: "{{ .Values.deployEnv }}-il-tls"
+#     language: hebrew
+#     code: he
+  modules:
+    - name: voices
+      subdomains:
+        en: voices
+        he: chiburim
+      redirects:
+        - sheets
+        - collection
+        - community
+        - profile
 
 nginx:
   containerImage:
@@ -403,6 +401,18 @@ cronJobs:
   weeklyEmailNotifications:
     enabled: false
 
+# Domain configuration - can be overridden per environment
+domainConfig:
+  # Default: empty domain language mapping for cauldrons
+  domainLanguage: {}
+  # Default domain modules for cauldrons
+  domainModules:
+    library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
+    sheets: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  # Default cookie domains
+  sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+
 localSettings:
   DEBUG: true
   DOMAIN_LANGUAGE: {}
@@ -422,6 +432,14 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
+  SESSION_COOKIE_DOMAIN: ".sefaria.org"
+  SESSION_COOKIE_SECURE: true
+  SESSION_COOKIE_HTTPONLY: true
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_DOMAIN: ".sefaria.org"
+  CSRF_COOKIE_SECURE: true
+  CSRF_COOKIE_HTTPONLY: false
+  CSRF_COOKIE_SAMESITE: "Lax"
 
 instrumentation:
   enabled: false

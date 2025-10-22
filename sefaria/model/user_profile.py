@@ -10,6 +10,7 @@ from django.utils.translation import ugettext as _, ungettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
+from sefaria.constants.model import LIBRARY_MODULE
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
@@ -591,13 +592,14 @@ class UserProfile(object):
         """Returns true if this user is followed by uid"""
         return uid in self.followers.uids
 
-    def recent_notifications(self):
+    def recent_notifications(self, scope=LIBRARY_MODULE):
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().recent_for_user(self.id)
+        return NotificationSet().recent_for_user(self.id, scope=scope)
 
-    def unread_notification_count(self):
+    def unread_notification_count(self, scope=LIBRARY_MODULE):
+        # TODO: Why do we not need to scope the notifications to the module here?
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().unread_for_user(self.id).count()
+        return NotificationSet().unread_for_user(self.id, scope=scope).count()
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
