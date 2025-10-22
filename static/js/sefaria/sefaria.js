@@ -1349,7 +1349,17 @@ Sefaria = extend(Sefaria, {
       return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
-
+  buildQueryString(params) {
+    // params is an object where value is string or array of strings
+    const encodePair = (key, value) =>
+      Array.isArray(value)
+        ? value.map(v => encodePair(key, v))
+        : `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+    let queryString = Object.entries(params)
+      .flatMap(([key, value]) => encodePair(key, value))
+      .join('&');
+    return queryString && "?" + queryString;
+  },
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, limit = undefined, types=undefined, topicPool=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
@@ -1360,14 +1370,7 @@ Sefaria = extend(Sefaria, {
       ...(exactContinuations !== undefined && { exact_continuations: 1 }),
       ...(orderByMatchedLength !== undefined && { order_by_matched_length: 1 }),
     };
-    let queryString = Object.keys(params).map(key => {
-        const value = params[key];
-        if (Array.isArray(value)) {
-            return value.map(v => `${encodeURIComponent(key)}=${encodeURIComponent(v)}`).join('&');
-        }
-        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-    }).join('&');
-    queryString = (queryString ? "?" + queryString : "");
+    const queryString = Sefaria.buildQueryString(params);
     return this._cachedApiPromise({
         url:   this.apiHost + "/api/name/" + encodeURIComponent(trimmed_name) + queryString,
         key:   trimmed_name + queryString,
@@ -2080,8 +2083,7 @@ _media: {},
     let params = {};
     if (numOfTopics != undefined) { params["n"] = numOfTopics; }
     if (order != undefined) { params["order"] = order; }
-    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
-    queryString = (queryString ? "?" + queryString : "");
+    let queryString = Sefaria.buildQueryString(params);
     const url = this.apiHost + "/api/topics/pools/" + encodeURIComponent(poolName) + queryString;
 
     const shouldBeCached = order != undefined && order != 'random';
