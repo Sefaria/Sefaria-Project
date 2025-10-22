@@ -195,7 +195,7 @@ const Header = (props) => {
 
   const librarySavedIcon = <div className='librarySavedIcon'>
                                 <a
-                                  href="/texts/saved"
+                                  href="/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
                                   onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                 >
@@ -394,7 +394,7 @@ const LoggedInButtons = ({ headerMode }) => {
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   return (
     <div className="loggedIn accountLinks">
-      <a href="/texts/saved" aria-label="See My Saved Texts">
+      <a href="/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
       </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
@@ -463,7 +463,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             {module === Sefaria.LIBRARY_MODULE &&
               <>
-                <a href="/texts/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
+                <a href="/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
                   <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
                   {<InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />}
                 </a>

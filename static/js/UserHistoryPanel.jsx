@@ -17,27 +17,13 @@ import {
 import Util from './sefaria/util';
 
 
-const filterDataByType = (data, dataSource) => {
-  return data.filter(item => {
-    if (dataSource === 'sheets') {
-      return item.is_sheet;
-    } else {
-      return !item.is_sheet; // Keep only non-sheets (texts)
-    }
-  });
-}
-
-const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal, dataSource}) => {
-
-  const initialStore = menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? Sefaria.saved : Sefaria.userHistory;
+const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
 
   const [notes, setNotes] = useState(null);
-  const [dataStore, setDataStore] = useState(initialStore);
-
   const contentRef = useRef();
 
   useEffect(() => {
-    Sefaria.allPrivateNotes((data) => {
+    menuOpen === 'notes' && Sefaria.activeModule === 'library' && Sefaria.allPrivateNotes((data) => {
       if (Array.isArray(data)) {
         const flattenedNotes = data.map(note => ({
           ref: note.ref,
@@ -48,57 +34,36 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         console.error('Unexpected data format:', data);
       }
     });
-  }, []);
+  }, [menuOpen]);
 
-  useEffect(() => {
-    // Switch dataStore whenever menuOpen changes
-    const newDataStore = menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? Sefaria.saved : Sefaria.userHistory;
-    setDataStore(newDataStore);
-  }, [menuOpen, Sefaria.saved, Sefaria.userHistory]);
-
-  const libraryURLs = {
-    "saved": "/texts/saved",
-    "history": "/texts/history"
-  };
-  const sheetsURLs = {
-    "saved": "/saved",
-    "history": "/history"
+  const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
+  const store = {
+    'loaded': currentDataStore?.loaded || false, 
+    'items': currentDataStore?.items || []
   };
 
   const title = (
     <span className="sans-serif">
-      <a
-        href={ dataSource === 'library' ?  libraryURLs.saved : sheetsURLs.saved }
-        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
-        className={"navTitleTab" + (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved' ? ' current' : '') }
-        onKeyDown={(e) => Util.handleKeyboardClick(e)}
-      >
+      <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
+      className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
+      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
         <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
         <InterfaceText>Saved</InterfaceText>
       </a>
-      <a
-        href={ dataSource === "library" ?  libraryURLs.history : sheetsURLs.history }
-        data-target-module={dataSource === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
-        className={"navTitleTab" + (menuOpen === 'texts-history' || menuOpen === 'sheets-history' ? ' current' : '')}
-        onKeyDown={(e) => Util.handleKeyboardClick(e)}
-      >
+      <a href="/history" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
+      className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
+      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
         <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
         <InterfaceText>History</InterfaceText>
       </a>
-      { dataSource === "library" &&
-        <a
-          href="/texts/notes"
-          className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
-          onKeyDown={(e) => Util.handleKeyboardClick(e)}
-        >
+      { Sefaria.activeModule === "library" &&
+        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
         <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
         <InterfaceText>Notes</InterfaceText>
       </a> }
     </span>
   );
-
-  const sheetsDataStore = {'loaded': true, 'items': filterDataByType(dataStore?.items, 'sheets')};
-  const libraryDataStore =  {'loaded': true, 'items': filterDataByType(dataStore?.items, 'library')};
 
   const sidebarModules = [
     {type: "Promo"},
@@ -122,12 +87,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
                   <NotesList notes={notes} />
                  :
                   <UserHistoryList
-                    store={ dataSource === 'sheets' ? sheetsDataStore : libraryDataStore }
+                    store={store}
                     scrollableRef={contentRef}
                     menuOpen={menuOpen}
                     toggleSignUpModal={toggleSignUpModal}
-                    key={menuOpen}
-                    dataSource={dataSource}/>
+                    key={menuOpen}/>
             }
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
@@ -145,52 +109,29 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
-const LibraryUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
-  return (
-    <UserHistoryPanel menuOpen={menuOpen}
-                      toggleLanguage={toggleLanguage}
-                      openDisplaySettings={openDisplaySettings}
-                      openNav={openNav}
-                      compare={compare}
-                      toggleSignUpModal={toggleSignUpModal}
-                      dataSource={'library'} />
-  )
-};
 
-const SheetsUserHistoryPanelWrapper = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare, toggleSignUpModal}) => {
-  return (
-    <UserHistoryPanel menuOpen={menuOpen}
-                      toggleLanguage={toggleLanguage}
-                      openDisplaySettings={openDisplaySettings}
-                      openNav={openNav}
-                      compare={compare}
-                      toggleSignUpModal={toggleSignUpModal}
-                      dataSource={'sheets'} />
-  )
-};
-
-const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dataSource}) => {
+const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
 
   // Store changes when switching tabs, reset items
   useEffect(() => {
     setItems(store.loaded ? store.items : null);
-  }, [store]);
+  }, [menuOpen]);
+  
+  const savedParam = menuOpen === 'saved' ? '&saved=1' : '';
+  const sheetsOnlyParam = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '&sheets_only=1' : '';
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
-    url: "/api/profile/user_history?secondary=0&annotate=1" + ((menuOpen === 'sheets-saved' || menuOpen === 'texts-saved') ? '&saved=1' : ''),
+    url: "/api/profile/user_history?secondary=0&annotate=1" + savedParam + sheetsOnlyParam,
     setter: data => {
       if (!store.loaded) {
         store.items = []; // Initialize items only once
         store.loaded = true;
       }
 
-      // Filter the data based on whether it's a sheet or not
-      const filteredData = filterDataByType(data, dataSource);
-
-      // Push the filtered data into the store
-      store.items.push(...filteredData);
+      // Push the data into the store (already filtered and deduped by backend)
+      store.items.push(...data);
 
       // Update the state with the modified items array
       setItems(store.items.slice());
@@ -200,7 +141,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
   });
 
 
-  if ((menuOpen === 'texts-history' || menuOpen === 'sheets-history') && !Sefaria.is_history_enabled) {
+  if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
         <span className="int-en">Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
@@ -212,7 +153,7 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
   } else if (items.length === 0) {
     return (
       <div className="savedHistoryMessage sans-serif">
-        {(menuOpen === 'texts-history' || menuOpen === "sheets-history") ?
+        {menuOpen === 'history' ?
         <InterfaceText>Texts and sheets that you read will be available for you to see here.</InterfaceText>
         : <InterfaceText>Click the bookmark icon on texts or sheets to save them here.</InterfaceText>}
       </div>
@@ -221,23 +162,10 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
   
   return (
     <div className="savedHistoryList">
-      {items.reduce((accum, curr, index) => {
-        // reduce consecutive history items with the same text/sheet
-        if (!accum.length || (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved')) {return accum.concat([curr]); }
-        const prev = accum[accum.length-1];
-
-        if (curr.is_sheet && curr.sheet_id === prev.sheet_id) {
-          return accum;
-        } else if (!curr.is_sheet && curr.book === prev.book) {
-          return accum;
-        } else {
-          return accum.concat(curr);
-        }
-      }, [])
-      .map((item, iitem) => {
+      {items.map((item, iitem) => {
         const key = item.ref + "|" + item.time_stamp + "|" + iitem;
         
-        const timeStamp = (menuOpen === 'texts-saved' || menuOpen === 'sheets-saved') ? null : (
+        const timeStamp = (menuOpen === 'saved') ? null : (
           <div className="timeStamp sans-serif">
             { Sefaria.util.naturalTime(item.time_stamp, {short: true}) }
           </div>
@@ -281,4 +209,3 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal, dat
 
 
 export default UserHistoryPanel;
-export { SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper };
