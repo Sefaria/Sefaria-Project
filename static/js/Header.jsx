@@ -316,7 +316,7 @@ const Header = (props) => {
   );
 
   // Language toggle logic - show on mobile for specific menu pages
-  const languageToggleMenus = ["navigation", "texts-saved", "sheets-saved", "texts-history", "sheets-history", "notes"];
+  const languageToggleMenus = ["navigation", "saved", "history", "notes"];
   const hasLanguageToggle = isMobile && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props.firstPanel?.menuOpen);
 
   const mobileHeaderContent = (
