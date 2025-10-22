@@ -1353,13 +1353,13 @@ Sefaria = extend(Sefaria, {
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, limit = undefined, types=undefined, topicPool=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
-    let params = {};
-    // if (refOnly) { params["ref_only"] = 1; }
-    if (limit != undefined) { params["limit"] = limit; }
-    if (types != undefined) { params["type"] = types; }
-    if (topicPool !== undefined) { params["topic_pool"] = topicPool; }
-    if (exactContinuations) { params["exact_continuations"] = 1; }
-    if (orderByMatchedLength) { params["order_by_matched_length"] = 1; }
+    let params = {
+      ...(limit !== undefined && { limit }),
+      ...(types !== undefined && { type: types }),
+      ...(topicPool !== undefined && { topic_pool: topicPool }),
+      ...(exactContinuations !== undefined && { exact_continuations: 1 }),
+      ...(orderByMatchedLength !== undefined && { order_by_matched_length: 1 }),
+    };
     let queryString = Object.keys(params).map(key => {
         const value = params[key];
         if (Array.isArray(value)) {
