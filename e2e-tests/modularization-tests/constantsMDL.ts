@@ -1,5 +1,5 @@
 export const URLS = {
-  LIBRARY: 'https://modularization.cauldron.sefaria.org',
+  LIBRARY: 'https://www.modularization.cauldron.sefaria.org',
   VOICES: 'https://voices.modularization.cauldron.sefaria.org'
 } as const;
 

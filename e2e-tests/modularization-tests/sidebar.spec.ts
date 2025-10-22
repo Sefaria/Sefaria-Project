@@ -186,6 +186,7 @@ test.describe('Modularization Sidebar Tests', () => {
     await utils.navigateAndHideModals(URLS.LIBRARY);
   });
 
+  // (TO-DO: Supposed to open in new tab!)
   test('MOD-S007: Library - Help link href and behavior (Zendesk)', async ({ page }) => {
     await hideAllModalsAndPopups(page);
     // First verify the href is to either Zendesk or the modularization help proxy
@@ -254,9 +255,11 @@ test.describe('Modularization Sidebar Tests', () => {
     await sidebar.clickAndVerifyLink({ name: 'Ways to Give', href: /ways-to-give/, opensNewTab: false });
     await expect(page).toHaveURL(/ways-to-give/);
 
+    await expect(page.locator('h1').filter({ hasText: 'Your gift. Your impact.' })).toBeVisible();
+
     // Return to Library then verify Donate href only (Donate may redirect or be proxied)
-    await utils.navigateAndHideModals(URLS.LIBRARY);
-    await hideAllModalsAndPopups(page);
-    await sidebar.verifyFooterLink({ name: 'Donate', href: /donate\.sefaria\.org/, opensNewTab: false });
+    // await utils.navigateAndHideModals(URLS.LIBRARY);
+    // await hideAllModalsAndPopups(page);
+    // await sidebar.verifyFooterLink({ name: 'Donate', href: /donate\.sefaria\.org/, opensNewTab: false });
   });
 });

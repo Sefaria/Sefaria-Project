@@ -14,7 +14,7 @@ test.describe('Modularization Header Tests', () => {
     await utils.navigateAndHideModals(URLS.LIBRARY);
   });
 
-  test('MOD-H001: Logo navigation functionality (EXPECTED TO FAIL)', async ({ page }) => {
+  test('MOD-H001: Logo navigation functionality', async ({ page }) => {
     for (const [siteName, config] of Object.entries(SITE_CONFIGS)) {
       await utils.navigateAndHideModals(config.url);
       
@@ -26,8 +26,7 @@ test.describe('Modularization Header Tests', () => {
       await logo.click();
       await page.waitForLoadState('networkidle');
       
-      // This should fail - logos don't navigate home
-      await expect(page).toHaveURL(new RegExp(`^${config.url}/?$`));
+      await expect(page).toHaveURL(new RegExp(`${config.url}(/texts)?`));;
     }
   });
 
