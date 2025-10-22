@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -1341,6 +1340,7 @@ def bulk_download_versions_api(request):
     return response
 
 
+
 def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
@@ -1387,7 +1387,6 @@ def _get_text_version_file(format, title, lang, versionTitle):
     return content
 
 
-
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
@@ -1405,6 +1404,115 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+@staff_member_required
+def check_index_dependencies_api(request, title):
+    """
+    Check what dependencies exist for a given index title.
+    Used by NodeTitleEditor to warn about potential impacts of title changes.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+
+    try:
+        # Get dependent indices (commentaries, etc.)
+        dependent_indices = library.get_dependant_indices(title, full_records=False)
+
+        # Get version count
+        version_count = db.texts.count_documents({"title": title})
+
+        # Get link count (approximate)
+        from sefaria.model.text import prepare_index_regex_for_dependency_process
+        try:
+            index = library.get_index(title)
+            pattern = prepare_index_regex_for_dependency_process(index)
+            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
+        except:
+            link_count = 0
+
+        return jsonResponse({
+            "title": title,
+            "dependent_indices": dependent_indices,
+            "dependent_count": len(dependent_indices),
+            "version_count": version_count,
+            "link_count": link_count,
+            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
+        })
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
+
+
+
+@staff_member_required
+def indices_by_version_api(request):
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+    vtitle = request.GET.get("versionTitle")
+    lang   = request.GET.get("language")
+    if not vtitle:
+        return jsonResponse({"error": "versionTitle param required"})
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)      # same query as bulk-version tool
+    return jsonResponse({"indices": sorted(indices)})
+
+
+# ───────────────────────────────────────────────────────────────────────────
+
+
+@staff_member_required
+def version_indices_api(request):
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+    """
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...]}
+    """
+    from sefaria.model import Version
+    vtitle  = request.GET.get("versionTitle")
+    lang    = request.GET.get("language")
+    if not vtitle:
+        raise InputError("versionTitle is required")
+
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)          # 4–5 ms
+    return jsonResponse({"indices": sorted(indices)})
+
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    """
+    Body JSON:
+      {"versionTitle":"Example 2025",
+       "language":"he",
+       "indices":["Genesis","Exodus"],
+       "updates":{"license":"CC-BY","versionNotes":"Second draft"}}
+    """
+    from sefaria.model import Version
+    data = json.loads(request.body)
+    vtitle, lang, indices, updates = (
+        data["versionTitle"], data["language"],
+        data["indices"],       data["updates"]
+    )
+    if not indices:
+        raise InputError("indices may not be empty")
+
+    for t in indices:
+        v = Version().load({"title": t,
+                            "versionTitle": vtitle,
+                            "language": lang})
+        if not v:
+            raise InputError(f'No Version "{vtitle}" in "{t}"')
+        for k, val in updates.items():
+            setattr(v, k, val)
+        v.save()                                # retains full history / cache hooks
+    return jsonResponse({"status":"ok","count":len(indices)})
 
 
 @staff_member_required
@@ -1431,20 +1539,60 @@ def modtools_upload_workflowy(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
+    # Handle both single and multiple file uploads
+    files = []
+    if 'wf_file' in request.FILES:
+        # Single file upload (backward compatibility)
+        files = [request.FILES['wf_file']]
+    elif 'workflowys[]' in request.FILES:
+        # Multiple file upload
+        files = request.FILES.getlist("workflowys[]")
+    else:
+        return jsonResponse({"error": "No files provided. Use 'wf_file' for single file or 'workflowys[]' for multiple files."})
+
+    # Handle checkbox parameters - support both boolean and string formats
     c_index = request.POST.get("c_index", False)
+    if isinstance(c_index, str):
+        c_index = c_index.lower() == 'true'
+
     c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    if isinstance(c_version, str):
+        c_version = c_version.lower() == 'true'
+
+    delims = request.POST.get("delims", None) if len(request.POST.get("delims", "")) else None
+    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", "")) else None
 
     uid = request.user.id
-    try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
-        res = wfparser.parse()
-    except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
-    return jsonResponse({"status": "ok", "data": res})
+    # Process files
+    results = []
+    messages = []
+
+    for file in files:
+        try:
+            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                # If the parser returns a specific error, report it
+                raise InputError(f"Error in {file.name}: {res['error']}")
+            results.append(res)
+            messages.append(f"Imported {file.name}")
+        except Exception as e:
+            if len(files) == 1:
+                # Single file - maintain backward compatibility by raising exception
+                raise e
+            else:
+                # Multiple files - return error with partial results
+                error_message = f"Failed to process {file.name}: {e}"
+                return jsonResponse({"error": error_message, "message": ' • '.join(messages)})
+
+    # Return response based on number of files
+    if len(files) == 1:
+        # Single file - maintain backward compatibility
+        return jsonResponse({"status": "ok", "data": results[0]})
+    else:
+        # Multiple files - return summary message
+        return jsonResponse({"status": "ok", "message": ' • '.join(messages)})
 
 @staff_member_required
 def links_upload_api(request):
