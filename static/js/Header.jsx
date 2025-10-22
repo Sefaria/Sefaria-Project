@@ -195,7 +195,7 @@ const Header = (props) => {
 
   const librarySavedIcon = <div className='librarySavedIcon'>
                                 <a
-                                  href="/texts/saved"
+                                  href="/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
                                   onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                 >
@@ -219,7 +219,12 @@ const Header = (props) => {
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
-  if (props.hidden && !props.mobileNavMenuOpen) {
+  // Header visibility logic - on mobile, hide when viewing text content (but not sheets or menus)
+  const isMobile = !props.multiPanel;
+  const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+  const hidden = isMobile && !props.headerMode && isViewingTextContent;
+
+  if (hidden && !props.mobileNavMenuOpen) {
     return null;
   }
 
@@ -299,6 +304,10 @@ const Header = (props) => {
     </>
   );
 
+  // Language toggle logic - show on mobile for specific menu pages
+  const languageToggleMenus = ["navigation", "saved", "history", "notes"];
+  const hasLanguageToggle = isMobile && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props.firstPanel?.menuOpen);
+
   const mobileHeaderContent = (
     <>
       <div>
@@ -311,18 +320,22 @@ const Header = (props) => {
         {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
       </div>
 
-      {props.hasLanguageToggle ?
-        <div className={props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+      {hasLanguageToggle ?
+        <div className={props.firstPanel?.settings?.language + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
     </>
   );
 
+  // Box shadow styling - don't show shadow over panels with color line (book toc in all contexts, text content on mobile)
+  const hasColorLine = props.firstPanel?.menuOpen === "book toc" || (isMobile && isViewingTextContent);
+  const hasBoxShadow = !hasColorLine;
+
   const headerClasses = classNames({ header: 1, mobile: !props.multiPanel });
   const headerInnerClasses = classNames({
     headerInner: 1,
-    boxShadow: props.hasBoxShadow,
+    boxShadow: hasBoxShadow,
     mobile: !props.multiPanel
   });
   return (
@@ -353,7 +366,7 @@ Header.propTypes = {
   showSearch: PropTypes.func.isRequired,
   openTopic: PropTypes.func.isRequired,
   openURL: PropTypes.func.isRequired,
-  hasBoxShadow: PropTypes.bool.isRequired,
+  firstPanel: PropTypes.object,
   module: PropTypes.string.isRequired,
 };
 
@@ -394,7 +407,7 @@ const LoggedInButtons = ({ headerMode }) => {
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   return (
     <div className="loggedIn accountLinks">
-      <a href="/texts/saved" aria-label="See My Saved Texts">
+      <a href="/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
       </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
@@ -463,7 +476,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             {module === Sefaria.LIBRARY_MODULE &&
               <>
-                <a href="/texts/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
+                <a href="/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
                   <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
                   {<InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />}
                 </a>

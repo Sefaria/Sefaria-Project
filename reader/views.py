@@ -189,8 +189,8 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications(scope=active_module).client_contents(),
-            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
+            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False, sheets_only=active_module == VOICES_MODULE)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
+            "last_place": profile.get_history(last_place=True, secondary=False, sheets_only=active_module == VOICES_MODULE, serialized=True)
         }
     else:
         user_data = {
@@ -1035,19 +1035,17 @@ def saved_content(request):
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
-    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    
-    # Determine page name based on active module
-    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
-    page_name = "sheets-saved" if active_module == VOICES_MODULE else "texts-saved"
-    
-    return menu_page(request, props, page=page_name, title=title, desc=desc)
+    sheets_only = request.active_module == VOICES_MODULE
+    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20, sheets_only=sheets_only)}}
+    return menu_page(request, props, page="saved", title=title, desc=desc)
+
 
 
 def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
+        sheets_only = request.active_module == VOICES_MODULE
+        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20, sheets_only=sheets_only) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}
@@ -1062,12 +1060,8 @@ def user_history_content(request):
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    
-    # Determine page name based on active module
-    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
-    page_name = "sheets-history" if active_module == VOICES_MODULE  else "texts-history"
-    
-    return menu_page(request, props, page=page_name, title=title, desc=desc)
+    return menu_page(request, props, page="history", title=title, desc=desc)
+
 
 @login_required
 def notes(request):
@@ -3998,7 +3992,8 @@ def user_history_api(request):
             skip = int(request.GET.get("skip", 0))
             limit = int(request.GET.get("limit", 100))
             annotate = bool(int(request.GET.get("annotate", 0)))
-            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
+            sheets_only = bool(int(request.GET.get("sheets_only", 0)))
+            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, sheets_only=sheets_only, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
