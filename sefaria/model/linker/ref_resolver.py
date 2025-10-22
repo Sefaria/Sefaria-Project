@@ -320,11 +320,19 @@ class RefResolver:
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
         elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
-            # can't be sure about future ibid inferences
-            # TODO can probably salvage parts of history if matches are ambiguous within one book
+            seen = set()
+            for r in temp_resolved:
+                if getattr(r, "is_ambiguous", False):
+                    for rr in r.resolved_raw_refs:
+                        if rr.ref is None:
+                            continue
+                        oid = rr.ref.order_id()
+                        if oid in seen:
+                            continue
+                        seen.add(oid)
+                        self._ibid_history.last_refs = rr.ref
             # if ref is None, match is likely to AltStructNode
             # TODO this node still has useful info. Try to salvage it.
-            self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
 
