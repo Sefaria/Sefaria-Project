@@ -59,7 +59,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Ensure we don't get redirected
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
     },
 
     // {

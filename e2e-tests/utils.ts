@@ -299,7 +299,6 @@ export const toggleLanguage = async (page: Page, language: string) => {
         await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
         await page.waitForLoadState('domcontentloaded');
         if (await verifyLanguage()) {
-            console.log('Strategy 1 (URL navigation) succeeded');
             return;
         }
     } catch (error) {
@@ -307,7 +306,6 @@ export const toggleLanguage = async (page: Page, language: string) => {
     }
     // Strategy 2: UI-based language change
     try {
-        console.log(`Strategy 2: UI-based language change`);
         const isLoggedIn = await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible().catch(() => false);
         if (isLoggedIn) {
             await page.locator('.myProfileBox .profile-pic').click();
