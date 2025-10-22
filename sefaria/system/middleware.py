@@ -17,6 +17,7 @@ from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse
 from sefaria.constants.model import LIBRARY_MODULE
+from sefaria.utils.util import get_module_aware_domain
 
 import structlog
 import json
@@ -107,12 +108,14 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
-                redirect_domain = None
-                for domain in settings.DOMAIN_LANGUAGES:
-                    if settings.DOMAIN_LANGUAGES[domain] == interface:
-                        redirect_domain = domain
-                if redirect_domain:
-                    # When detected language doesn't match current domain langauge, redirect
+                # Get current module to preserve context during language switching
+                current_module = getattr(request, 'active_module', LIBRARY_MODULE)
+                
+                # Use module-aware domain resolution
+                redirect_domain = get_module_aware_domain(interface, current_module)
+                
+                if redirect_domain and redirect_domain != '/':
+                    # When detected language doesn't match current domain language, redirect
                     path = request.get_full_path()
                     path = path + ("&" if "?" in path else "?") + "set-language-cookie"
                     return redirect(redirect_domain + path)
