@@ -9231,6 +9231,9 @@ button.appButton.iconOnly img {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.singlePanel .sheetMetaDataBox {
+  margin-block-start: 75px;
+}
 .sheetMetaDataBox .profile-pic {
   width: 30px;
   height: 30px;
