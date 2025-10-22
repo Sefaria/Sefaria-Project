@@ -14,6 +14,7 @@ from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
 logger = structlog.get_logger(__name__)
@@ -334,6 +335,7 @@ class Completions(object):
         else:
             return c[1]["order"] * 100
     
+<<<<<<< HEAD
     def _filter_completions_by_type(self, completion_strings, completion_objects):
         filtered_completions = [
             (cs, co)

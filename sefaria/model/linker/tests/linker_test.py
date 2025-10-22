@@ -194,6 +194,10 @@ crrd = create_raw_ref_data
     [crrd(['@ברמב"ם', '#פ"ח', '@מהל\' תרומות', '#הי"א']), ("Mishneh Torah, Heave Offerings 8:11",)],
     [crrd(["@באה\"ע", "#סימן קנ\"ה", "#סי\"ד"]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(['@פירש"י', '@בקידושין', '#דף פ\' ע"א']), ("Rashi on Kiddushin 80a",)],
+    [crrd(["@מורה נבוכים", "#חלק א", "#פרק א"]), ("Guide for the Perplexed, Part 1, Chapter 1",)],
+    [crrd(["@מורה נבוכים", "#חלק ג'", "@הקדמה"]), ("Guide for the Perplexed, Part 3, Introduction",)],
+    [crrd(["@מורה נבוכים", '#ח"ג', '#פמ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
+    [crrd(["@מורה נבוכים", '#ג', '#מ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
     # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
     [crrd(['@יבמות', '#לט ע״ב']), ["Yevamot 39b"]],
     [crrd(['@פרשת שלח לך']), ['Parashat Shelach']],

@@ -37,6 +37,7 @@ import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
+import Util from './sefaria/util';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
@@ -654,9 +655,9 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
-  const sheetsURL = Sefaria.getModuleURL(Sefaria.SHEETS_MODULE);
+  const sheetsURL = Sefaria.getModuleURL(Sefaria.VOICES_MODULE);
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${sheetsURL.origin}/sheets/sheets-with-ref/${normalizedRef}`, '_blank');
+  window.open(`${sheetsURL.origin}/sheets-with-ref/${normalizedRef}`, '_blank');
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
@@ -924,8 +925,8 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website" role="button" tabindex="0" onKeyUp={(event) => event.key==='Enter' && this.setFilter(site.name)} onClick={() => this.setFilter(site.name)} key={site.name}>
-          <img className="icon" src={site.faviconUrl} />
+        return (<div className="website" role="button" tabindex="0" onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
+          <img className="icon" src={site.faviconUrl} alt={Sefaria._("Website icon")} />
           <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);
       });
@@ -1023,16 +1024,25 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
     classes[iconName] = 1;
     iconElem = (<i className={classNames(classes)} />)
   } else if (image) {
-    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
+    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt={en} />);
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
+  const isLink = !!url;
   const nameClass = en.camelize();
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
     <div className={classNames({toolsButtonContainer: 1, highlighted: highlighted})}>
-      <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
+      <a
+        href={isLink ? url : undefined}
+        className={wrapperClasses}
+        data-name={en}
+        onClick={clickHandler}
+        role={isLink ? undefined : "button"}
+        tabIndex={0}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, clickHandler)}
+      >
         {iconElem}
         <span className="toolsButtonText">
           {control === "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
@@ -1143,8 +1153,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input className="shareInput" id="sheetShareLink" value={this.props.url} aria-label="Shareable link"/>
           </div>
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
@@ -1227,17 +1237,31 @@ class AddNoteBox extends Component {
     return (
       <div className="addNoteBox">
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
-        <div className="button fillWidth" onClick={this.saveNote}>
+        <div
+          className="button fillWidth"
+          role="button"
+          tabIndex="0"
+          aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
+          onClick={this.saveNote}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, this.saveNote)}
+        >
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמירה" : "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
-          <div className="button white fillWidth" onClick={this.props.onCancel}>
+          <div
+            className="button white fillWidth"
+            role="button"
+            tabIndex="0"
+            aria-label={Sefaria._("Cancel")}
+            onClick={this.props.onCancel}
+            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.onCancel)}
+          >
             <span className="int-en">Cancel</span>
             <span className="int-he">בטל</span>
           </div> : null}
         {this.props.noteId ?
-          (<div className="deleteNote" onClick={this.deleteNote}>
+          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={(e) => Util.handleKeyboardClick(e, this.deleteNote)}>
             <span className="int-en">Delete Note</span>
             <span className="int-he">מחיקת הערה</span>
           </div>) : null}
@@ -1287,10 +1311,10 @@ class MyNotes extends Component {
   }
   render() {
     const myNotesData = Sefaria.privateNotes(this.props.srefs);
-    const myNotes = myNotesData ? myNotesData.map(function (note) {
-      let editNote = function () {
+    const myNotes = myNotesData ? myNotesData.map((note) => {
+      const editNote = () => {
         this.props.editNote(note);
-      }.bind(this);
+      };
       return (<Note
         text={note.text}
         isPrivate={!note.public}
@@ -1300,7 +1324,7 @@ class MyNotes extends Component {
         ownerImageUrl={note.ownerImageUrl}
         editNote={editNote}
         key={note._id} />);
-    }.bind(this)) : null;
+    }) : null;
 
     return myNotes ? (
       <div className="noteList myNoteList">
@@ -1404,7 +1428,13 @@ class AddConnectionBox extends Component {
           <span className="int-en">Choose a text to connect.</span>
           <span className="int-he">בחר טקסט לקישור</span>
 
-          <div className="button fillWidth" onClick={this.props.openComparePanel}>
+          <div 
+            className="button fillWidth" 
+            role="button"
+            tabIndex="0"
+            onClick={this.props.openComparePanel}
+            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.openComparePanel)}
+          >
             <span className="int-en">Browse</span>
             <span className="int-he">סייר</span>
           </div>

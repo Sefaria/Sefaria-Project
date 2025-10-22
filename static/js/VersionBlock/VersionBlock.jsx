@@ -295,7 +295,7 @@ class VersionBlock extends Component {
       return (
           <div className="versionBlock">
             <div className="versionBlockHeading">
-              <div className="versionTitle" role="heading">
+              <div className="versionTitle" role="heading" aria-level="2">
               <VersionBlockHeader
                     text={vtitle["text"]}
                     onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}

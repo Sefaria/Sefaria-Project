@@ -78,7 +78,7 @@ class NotificationsPanel extends Component {
               <div className="notificationsTopContainer">
                 <div className="notificationsHeaderBox">
                   <h1>
-                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt="Notification icon"/>
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt={Sefaria._("Notification icon")}/>
                     <InterfaceText>Notifications</InterfaceText>
                   </h1>
                 </div>
@@ -119,11 +119,11 @@ const Notifications = ({type, props}) => {
 const EmptyNotificationsMessage = () => {
   return (
         <div className="emptyNotificationPage">
-          <div className="emptyNotificationsTitle" aria-label="No notifications message title">
+          <div className="emptyNotificationsTitle" aria-label={Sefaria._("No notifications message title")}>
             <InterfaceText en={"Looks like you don’t have any notifications yet."} 
                            he={"נראה שעדיין אין לך התראות"}/>
           </div>
-          <div className="emptyNotificationsMessage" aria-label="No notifications message body">
+          <div className="emptyNotificationsMessage" aria-label={Sefaria._("No notifications message body")}>
             <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
                            he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
           </div>
@@ -134,7 +134,7 @@ const EmptyNotificationsMessage = () => {
 
 const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
   
-  let image = imageUrl ? <img src={imageUrl} /> : null
+  let image = imageUrl ? <img src={imageUrl} alt={Sefaria._("Notification image")} /> : null
   image     = imageLink ? <a href={imageLink}>{image}</a> : image;
 
   return (
@@ -165,14 +165,14 @@ const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
 const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
-      <a href={content.profileUrl} data-target-module={Sefaria.SHEETS_MODULE} className="notificationUserName">{content.name}</a>&nbsp;
+      <a href={content.profileUrl} data-target-module={Sefaria.VOICES_MODULE} className="notificationUserName">{content.name}</a>&nbsp;
       <InterfaceText>published a new sheet</InterfaceText>
     </>
   );
 
   const body = (
     <>
-      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-target-module={Sefaria.SHEETS_MODULE}>{content.sheet_title}</a>
+      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-target-module={Sefaria.VOICES_MODULE}>{content.sheet_title}</a>
       {content.summary ?
       <div className="sheetSummary">
         {content.summary}
@@ -202,7 +202,7 @@ const SheetLikeNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-target-module={Sefaria.SHEETS_MODULE}>{content.sheet_title}</a>
+      <a className="sheetTitle" href={"/sheets/" + content.sheet_id} data-target-module={Sefaria.VOICES_MODULE}>{content.sheet_title}</a>
     </>
   );
 
@@ -257,7 +257,7 @@ const CollectionAddNotification = ({date, content}) => {
 
   const body = (
     <>
-      <a className="collectionName" data-target-module={Sefaria.SHEETS_MODULE} href={"/sheets/collections/" + content.collection_slug}>
+      <a className="collectionName" data-target-module={Sefaria.VOICES_MODULE} href={"/collections/" + content.collection_slug}>
         {content.collection_name}
       </a>
     </>
