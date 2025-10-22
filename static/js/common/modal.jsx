@@ -19,11 +19,19 @@ const Modal = ({ children, close }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+    }
+  };
+
   return (
     <dialog
       ref={dialogRef}
       className="dialogModal"
       onClick={handleClickOutside}
+      onKeyDown={handleKeyDown}
     >
       <div className="modal-content">
         {children}

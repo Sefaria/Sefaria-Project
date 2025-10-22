@@ -24,7 +24,7 @@ class SheetSource extends Component {
           data-node={this.props.source.node}
           aria-label={"Click to see connections to this source"}
           tabIndex="0"
-          onKeyPress={this.props.handleKeyPress} >
+          onKeyDown={this.props.handleKeyDown} >
           {this.props.source.title ?
           <div className="customSourceTitle" role="heading" aria-level="3">
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>
@@ -34,7 +34,7 @@ class SheetSource extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="ref">
               {this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}
-              <a href={"/" + Sefaria.normRef(this.props.source.ref)}>{this.props.source.heRef}</a>
+              <a href={"/" + Sefaria.normRef(this.props.source.ref)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.heRef}</a>
             </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
@@ -43,7 +43,7 @@ class SheetSource extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="ref">
               {this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}
-              <a href={"/" + Sefaria.normRef(this.props.source.ref)}>{this.props.source.ref}</a>
+              <a href={"/" + Sefaria.normRef(this.props.source.ref)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.ref}</a>
             </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
@@ -128,11 +128,21 @@ class SheetOutsideText extends Component {
         this.props.highlight && "highlight",
         this.props.source.options ? this.props.source.options.indented : null
     );
+    const paragraphsToBreaks = (html)=> {
+    return html
+      .replace(/<\/p>\s*<p>/g, '<br/>')
+      .replace(/<p( [^>]*)?>/g, '')
+      .replace(/<\/p>/g, '<br/>');
+    }
+
+    const outsideHTML = paragraphsToBreaks(
+      Sefaria.util.cleanHTML(this.props.source.outsideText)
+    );
     return (
       <section className="SheetOutsideText">
         <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
-              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
+              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: outsideHTML} }></div>
           </div>
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
@@ -188,9 +198,13 @@ class SheetMedia extends Component {
     var mediaClass = "media fullWidth";
     var mediaURL = this.props.source.media;
     var caption  = this.props.source.caption;
+    let parsedUrl
+    if (mediaURL) {
+      parsedUrl = new URL(mediaURL);
+    }
 
     if (this.isImage()) {
-      mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
+      mediaLink = '<img class="addedMedia" src="' + mediaURL + '" alt="' + Sefaria._("User uploaded image") + '" />';
     }
     else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
@@ -200,6 +214,23 @@ class SheetMedia extends Component {
     }
     else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
+    }
+    else if (parsedUrl && parsedUrl.hostname.includes("spotify.com")) {
+      const [,, type] = parsedUrl.pathname.split("/");
+
+      // Spotify embed heights are fixed by Spotify's player design.
+      // DO NOT change these values — reducing them will cut off content.
+      const SPOTIFY_IFRAME_HEIGHT_WITH_METADATA = 152; // episode
+      const SPOTIFY_IFRAME_HEIGHT_COMPACT = 80; // music tracks
+      const height = type === "episode" ? SPOTIFY_IFRAME_HEIGHT_WITH_METADATA : SPOTIFY_IFRAME_HEIGHT_COMPACT;
+      return `<iframe 
+        src=${mediaURL}
+        width="100%"
+        height="${height}"
+        frameborder="0"
+        allow="autoplay; encrypted-media" 
+        loading="lazy">
+      </iframe>`;
     }
     else if (mediaURL.match(/\.(mp3)$/i) != null) {
       mediaLink = '<audio src="' + mediaURL + '" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
