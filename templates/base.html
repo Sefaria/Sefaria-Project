@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load render_bundle from webpack_loader %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
@@ -48,17 +49,24 @@
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- https://realfavicongenerator.net -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}?v=xQzLlLp7oR">
-    <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
-    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
-    <link rel="shortcut icon" href="{% static 'icons/favicon.ico'%}?v=xQzLlLp7oR">
-    <meta name="theme-color" content="#273557">
-
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    
+    {% with lang=request.interfaceLang|default:"english" %}
+    <link rel="shortcut icon" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.ico?v=2" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.svg?v=2" sizes="any">
+    <link rel="icon" type="image/png" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.png?v=2" sizes="96x96">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest?v=2">
+    {# In the future in case there are more than 2 modules, define a custom filter with a dictionary that maps module names to colors/strings #}
+    <meta name="theme-color" content="{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}">
+    <meta name="apple-mobile-web-app-title"
+          content="{% if active_module == 'voices' %}
+                    {% trans 'Voices' %}
+                  {% else %}
+                    {% trans 'Library' %}
+                  {% endif %}">
+    {% endwith %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}
     <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
