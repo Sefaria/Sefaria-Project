@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load render_bundle from webpack_loader %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
@@ -61,9 +62,9 @@
     <meta name="theme-color" content="{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}">
     <meta name="apple-mobile-web-app-title"
           content="{% if active_module == 'voices' %}
-                    {% if lang == 'hebrew' or lang == 'he' %}חיבורים{% else %}Voices{% endif %}
+                    {% trans 'Voices' %}
                   {% else %}
-                    {% if lang == 'hebrew' or lang == 'he' %}ספרייה{% else %}Library{% endif %}
+                    {% trans 'Library' %}
                   {% endif %}">
     {% endwith %}
 
