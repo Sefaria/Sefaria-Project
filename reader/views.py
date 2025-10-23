@@ -95,6 +95,13 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
+# File extension to content type mapping for favicon serving
+FAVICON_CONTENT_TYPES = {
+    '.ico': 'image/x-icon',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml'
+}
+
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
@@ -4771,16 +4778,10 @@ def module_favicon(request, filename):
     # Construct the path to the module-specific icon file
     # Filename comes from the capture group in the URL pattern
     icon_path = os.path.join(STATICFILES_DIRS[0], 'icons', active_module, filename)
-    
-    # Set appropriate content type based on file extension
-    extensions_to_content_types_map = {
-        '.ico': 'image/x-icon',
-        '.png': 'image/png',
-        '.svg': 'image/svg+xml'
-    }
-    
+
+    # Determine content type based on file extension
     file_extension = os.path.splitext(filename)[1].lower()
-    content_type = extensions_to_content_types_map[file_extension]
+    content_type = FAVICON_CONTENT_TYPES[file_extension]
 
     response = FileResponse(open(icon_path, 'rb'), content_type=content_type)
     
