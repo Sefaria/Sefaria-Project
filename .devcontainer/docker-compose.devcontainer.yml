@@ -1,0 +1,38 @@
+# Sefaria Development Container - Docker Compose Override
+# This file extends the base docker-compose.yml with devcontainer-specific settings focused on orchestration.
+#
+# DERIVATION NOTES:
+# - Uses existing services from docker-compose.yml (db, cache, postgres, node)
+# - Overrides only the 'web' service for development-specific build context and dependencies
+# - All service names and dependencies match docker-compose.yml
+
+version: '3'
+
+services:
+  web:
+    # [RECOMMENDATION] Build from devcontainer Dockerfile instead of main Dockerfile
+    # Reason: Devcontainer Dockerfile includes development tools (mongosh, redis-cli, etc.)
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+
+    # [REVERT] Run devcontainer service as root to mirror legacy expectations and avoid permission issues
+    user: root
+
+    # [DERIVED] Keep stdin open and allocate pseudo-TTY for interactive development
+    # Source: Original docker-compose.devcontainer.yml configuration
+    # Reason: Allows interactive commands and better terminal experience
+    stdin_open: true
+    tty: true
+
+    # [DERIVED] Service dependencies from docker-compose.yml
+    # Source: docker-compose.yml web service depends_on: db, cache, postgres
+    # Note: 'node' service not included as dependency to allow independent startup
+    depends_on:
+      - db
+      - cache
+      - postgres
+
+# NOTE: Runtime settings (command override, env vars, interactive flags, node_modules volume)
+#       were moved to devcontainer.json so that tooling-driven configuration remains centralized.
+#       Other services (db, cache, postgres, node) continue to inherit from the base docker-compose.yml.
