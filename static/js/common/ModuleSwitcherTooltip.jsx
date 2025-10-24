@@ -24,6 +24,35 @@ const TOOLTIP_SHIFT_PADDING = 8;
 const TOOLTIP_Z_INDEX = 9999;
 const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 
+// Arrow style configuration based on placement and language
+const ARROW_STYLE_CONFIG = {
+  mobileHebrewRight: (middlewareData) => ({
+    position: 'absolute',
+    right: ARROW_OFFSET_OUTSIDE,
+    ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
+  }),
+  mobileEnglishLeft: (middlewareData) => ({
+    position: 'absolute',
+    left: ARROW_OFFSET_OUTSIDE,
+    ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
+  }),
+  desktop: (middlewareData, placement) => {
+    const staticSide = {
+      top: 'bottom',
+      right: 'left',
+      bottom: 'top',
+      left: 'right',
+    }[placement];
+    
+    return {
+      position: 'absolute',
+      ...(middlewareData.arrow?.x != null && { left: `${middlewareData.arrow.x}px` }),
+      ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
+      [staticSide]: ARROW_OFFSET_OUTSIDE,
+    };
+  },
+};
+
 const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRef }) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
   const isMobile = !multiPanel;
@@ -85,36 +114,20 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
     ? (isHebrew ? PLACEMENT_CONFIG.mobileHebrew : PLACEMENT_CONFIG.mobileEnglish) 
     : PLACEMENT_CONFIG.desktop);
 
-  const isMobileTooltip = isMobile => !!isMobile;
+  // Calculate arrow position using modern functional approach
+  const getArrowConfigKey = () => {
+    const conditions = [
+      [isMobile && placement === 'right' && isHebrew, 'mobileHebrewRight'],
+      [isMobile && placement === 'left' && !isHebrew, 'mobileEnglishLeft'],
+      [true, 'desktop'], // fallback
+    ];
+    
+    return conditions.find(([condition]) => condition)?.[1];
+  };
 
-  let arrowStyle;
-  if (isMobileTooltip(isMobile) && placement === 'right' && isHebrew) {
-    arrowStyle = {
-      position: 'absolute',
-      right: ARROW_OFFSET_OUTSIDE,
-      top: middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px` : '',
-    };
-  } else if (isMobileTooltip(isMobile) && placement === 'left' && !isHebrew) {
-    arrowStyle = {
-      position: 'absolute',
-      left: ARROW_OFFSET_OUTSIDE,
-      top: middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px` : '',
-    };
-  } else {
-    // Desktop or fallback: canonical Floating UI logic
-    const staticSide = {
-      top: 'bottom',
-      right: 'left', 
-      bottom: 'top',
-      left: 'right',
-    }[placement];
-    arrowStyle = {
-      position: 'absolute',
-      ...(middlewareData.arrow?.x != null && { left: `${middlewareData.arrow.x}px` }),
-      ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
-      [staticSide]: ARROW_OFFSET_OUTSIDE,
-    };
-  }
+  const configKey = getArrowConfigKey();
+  const arrowStyleFactory = ARROW_STYLE_CONFIG[configKey];
+  const arrowStyle = arrowStyleFactory(middlewareData, placement);
 
   const tooltipContent = (
     <div>
