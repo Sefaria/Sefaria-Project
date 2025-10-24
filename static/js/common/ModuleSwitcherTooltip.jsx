@@ -11,53 +11,110 @@ import {
 import { InterfaceText } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
 
+// Configuration constants
+const PLACEMENT_CONFIG = {
+  desktop: 'bottom',
+  mobileHebrew: 'right',
+  mobileEnglish: 'left',
+};
+
+const ARROW_OFFSET_OUTSIDE = '-4px';
+const TOOLTIP_OFFSET = 10;
+const TOOLTIP_SHIFT_PADDING = 8;
+const TOOLTIP_Z_INDEX = 9999;
+const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
+
 const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRef }) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
   const isMobile = !multiPanel;
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const arrowRef = useRef(null);
 
-  const TOOLTIP_OFFSET = 50;
-  const RTL_MULTIPLIER = isHebrew ? 1 : -1;
-
-  // Get the appropriate target element based on mobile/desktop
+  // Get target element
   const targetElement = isMobile ? (mobileTargetRef || targetRef) : targetRef;
 
-  // Set up floating-ui
+  // Setup floating-ui
   const { x, y, refs, strategy, middlewareData, update } = useFloating({
-    placement: isMobile ? 'right' : 'top',
+    placement: isMobile 
+      ? (isHebrew ? PLACEMENT_CONFIG.mobileHebrew : PLACEMENT_CONFIG.mobileEnglish) 
+      : PLACEMENT_CONFIG.desktop,
     middleware: [
-      offset(10),
+      offset(TOOLTIP_OFFSET),
       flip(),
-      shift({ padding: 8 }),
+      shift({ padding: TOOLTIP_SHIFT_PADDING }),
       arrowMiddleware({ element: arrowRef }),
     ],
   });
 
+  // Show tooltip if not dismissed
   useEffect(() => {
-    const dismissed = localStorage.getItem('sefaria.moduleSwitcherTooltipDismissed');
-    if (dismissed !== 'true') {
+    const dismissed = localStorage.getItem(STORAGE_KEY);
+    if (dismissed !== 'true' && targetElement?.current) {
       setTooltipVisible(true);
     }
-  }, []);
+  }, [targetElement]);
 
-  // Set reference element and enable auto-update positioning
+  // Set reference element
   useEffect(() => {
-    if (!targetElement?.current) return;
-    refs.setReference(targetElement.current);
-    if (!isTooltipVisible || !refs.floating.current) return;
-    const cleanup = autoUpdate(
-      targetElement.current,
-      refs.floating.current,
-      update
-    );
-    return cleanup;
-  }, [isTooltipVisible, targetElement, refs, update]);
+    if (targetElement?.current) {
+      refs.setReference(targetElement.current);
+    }
+  }, [targetElement, refs]);
+
+  // Auto-update positioning
+  useEffect(() => {
+    if (isTooltipVisible && targetElement?.current && refs.floating.current) {
+      return autoUpdate(targetElement.current, refs.floating.current, update);
+    }
+  }, [isTooltipVisible, targetElement, refs.floating.current, update]);
+
+  // After setTooltipVisible(true) is called, force an update in a useEffect
+  useEffect(() => {
+    if (isTooltipVisible && update) {
+      update();
+    }
+  }, [isTooltipVisible, update]);
 
   const hideTooltip = () => {
     setTooltipVisible(false);
-    localStorage.setItem('sefaria.moduleSwitcherTooltipDismissed', 'true');
+    localStorage.setItem(STORAGE_KEY, 'true');
   };
+
+  // Calculate arrow position based on placement
+  const placement = middlewareData.placement || (isMobile 
+    ? (isHebrew ? PLACEMENT_CONFIG.mobileHebrew : PLACEMENT_CONFIG.mobileEnglish) 
+    : PLACEMENT_CONFIG.desktop);
+
+  const isMobileTooltip = isMobile => !!isMobile;
+
+  let arrowStyle;
+  if (isMobileTooltip(isMobile) && placement === 'right' && isHebrew) {
+    arrowStyle = {
+      position: 'absolute',
+      right: ARROW_OFFSET_OUTSIDE,
+      top: middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px` : '',
+    };
+  } else if (isMobileTooltip(isMobile) && placement === 'left' && !isHebrew) {
+    arrowStyle = {
+      position: 'absolute',
+      left: ARROW_OFFSET_OUTSIDE,
+      top: middlewareData.arrow?.y != null ? `${middlewareData.arrow.y}px` : '',
+    };
+  } else {
+    // Desktop or fallback: canonical Floating UI logic
+    const staticSide = {
+      top: 'bottom',
+      right: 'left', 
+      bottom: 'top',
+      left: 'right',
+    }[placement];
+    arrowStyle = {
+      position: 'absolute',
+      ...(middlewareData.arrow?.x != null && { left: `${middlewareData.arrow.x}px` }),
+      ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
+      [staticSide]: ARROW_OFFSET_OUTSIDE,
+    };
+  }
 
   const tooltipContent = (
     <div>
@@ -76,33 +133,15 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
     </div>
   );
 
-  // Calculate arrow position
-  const effectiveOffset = isMobile ? 0 : TOOLTIP_OFFSET * RTL_MULTIPLIER;
-  const arrowX = middlewareData.arrow?.x - effectiveOffset;
-  const arrowY = middlewareData.arrow?.y;
-  const placement = middlewareData.placement || (isMobile ? 'right' : 'top');
-  const staticSide = {
-    top: 'top',
-    right: 'left',
-    bottom: 'top',
-    left: 'right',
-  }[placement.split('-')[0]];
-  const arrowStyle = {
-    left: arrowX !== undefined ? `${arrowX}px` : '',
-    top: arrowY !== undefined ? `${arrowY}px` : '',
-    [staticSide]: '-4px',
-  };
-
-  // Render tooltip in a portal
-  const tooltipElement = isTooltipVisible && (
+  const tooltipElement = isTooltipVisible && targetElement?.current && (
     <div
       ref={refs.setFloating}
       className={`floating-ui-tooltip${isHebrew ? ' interface-he' : ''}`}
       style={{
         position: strategy,
         top: y ?? 0,
-        left: x + effectiveOffset,
-        width: 'max-content',
+        left: x ?? 0,
+        zIndex: TOOLTIP_Z_INDEX,
       }}
     >
       <div className="floating-ui-tooltip-content">

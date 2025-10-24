@@ -319,7 +319,7 @@ const Header = (props) => {
         <div>
           <ModuleSwitcherTooltip targetRef={null} multiPanel={props.multiPanel} mobileTargetRef={mobileMenuButtonRef}>
             <div>
-              <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+              <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
                 <i className="fa fa-bars"></i>
               </button>
             </div>
