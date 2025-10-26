@@ -14986,7 +14986,9 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .content .contentInner {
   width: 875px;
 }
-.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar,
+.sheetsHomepage .sidebarLayout .sheetsTopicTOC,
+.sheetsHomepage .sidebarLayout .voicesBodyTitle {
   margin-inline-start: 10%;
 }
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
@@ -15021,7 +15023,7 @@ span.ref-link-color-3 {color: blue}
   margin-bottom: 10px;
 }
 .singlePanel .sheetsHomepage .sidebarLayout {
-  margin-top: revert;
+  margin-top: 15px;
 }
 
 .singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
