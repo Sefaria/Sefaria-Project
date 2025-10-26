@@ -751,6 +751,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding-block-start: 5px;
   padding-block-end: 2px;
 }
+.globeLanguageToggle .languageHeader {
+  padding: 12px;
+  border-bottom: 1px solid #CCCCCC;
+}
 
 .header .interfaceLinks {
   display: flex;
@@ -842,7 +846,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 4px;
   max-width: 220px;
 }
-.header .interfaceLinks .interfaceLinks-option {
+.header .interfaceLinks .interfaceLinks-option,
+.globeLanguageToggle .englishLanguageLink,
+.globeLanguageToggle .hebrewLanguageLink {
   display: flex;
   text-decoration: none;
   font-style: normal;
@@ -866,7 +872,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
+.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi,
+.interface-hebrew .globeLanguageToggle .englishLanguageLink,
+.interface-hebrew .globeLanguageToggle .hebrewLanguageLink {
   direction: rtl;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
@@ -928,7 +936,9 @@ div.interfaceLinks-row a {
 .header .profile-menu-he {
   color: var(--dark-grey);
 }
-.header .interfaceLinks-option::before {
+.header .interfaceLinks-option::before,
+.globeLanguageToggle .hebrewLanguageLink::before,
+.globeLanguageToggle .englishLanguageLink::before {
   content: "";
   font-family: FontAwesome;
   color: var(--dark-grey);
@@ -945,11 +955,15 @@ a.interfaceLinks-option.int-bi.inactive {
 a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   padding: 7px;
 }
-.header .interfaceLinks-option.active::before {
+.header .interfaceLinks-option.active::before,
+.globeLanguageToggle .hebrewLanguageLink.active::before,
+.globeLanguageToggle .englishLanguageLink.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
-.header .interfaceLinks-option.inactive::before {
+.header .interfaceLinks-option.inactive::before,
+.globeLanguageToggle .hebrewLanguageLink::before,
+.globeLanguageToggle .englishLanguageLink::before {
   content: "";
   padding: 0 15px;
 }
@@ -1700,21 +1714,24 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .navTitleTab {
   margin-inline-end: 26px;
-  color: var(--medium-grey);
+  color: var(--medium-grey-legacy);
 }
 .navTitleTab:hover {
   color: inherit;
   text-decoration: none;
 }
 .navTitleTab.current {
-  color: inherit;
+  color: var(--dark-grey);
   pointer-events: none;
 }
 .readerNavMenu h1 .navTitleTab img {
   height: 14px;
   margin-inline-end: 6px;
+  filter: brightness(1.5); /* Lightens #666666 to #999999 (--medium-grey-legacy) when not focused */
 }
-.readerNavMenu h1 .navTitleTab.current img {filter: brightness(0.5);}
+.readerNavMenu h1 .navTitleTab.current img {
+  filter: brightness(1); /* Keep at #666666 (--dark-grey) when tab is focused*/
+}
 .sidebarLayout {
   display: flex;
   flex-direction: row;
@@ -2775,8 +2792,23 @@ input.resourcesLink {
   font-size: 14px;
   margin-inline-start: 10px;
 }
+.saveLine .timeStamp {
+  align-self: center;
+}
 .savedHistoryMessage {
   color: var(--dark-grey);
+}
+/* Mobile: Prevent horizontal scroll in Saved/History/Notes views */
+@media (max-width: 540px) {
+  /* Hide tooltips (they extend beyond viewport and don't work on mobile anyway) */
+  .savedHistoryList .saveButton.tooltip-toggle::before,
+  .noteListing .tooltip-toggle::before {
+    display: none;
+  }
+  /* Contain floated action buttons to prevent overflow */
+  .noteListing {
+    overflow: hidden;
+  }
 }
 .readerNavCategories {
   width: 100%;
@@ -4244,18 +4276,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   font-size: 30px;
   color: #000;
-  margin-bottom: 5px;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font:  var(--hebrew-sans-serif-font-family);
-}
-.searchContent h1.englishQuery {
-  font-size: 30px;
-}
-.searchContent h1.hebrewQuery {
-  font-family: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 10px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font:  var(--hebrew-serif-font-family);
 }
 .searchContent .searchTopLine {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 .searchContent .searchResultCount {
   color: var(--dark-grey);
@@ -4263,10 +4289,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
-  border-bottom: 1px solid var(--light-grey);
-  flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
+}
+/* Add grey line under Filter button on mobile only */
+.singlePanel .searchContent .searchTopMatter {
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 5px;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -4839,6 +4868,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   top: 120px;
   inset-inline-start: 0;
   padding-bottom: 10px;
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
 }
 .singlePanel .autocomplete-dropdown:has(*){
   width: 100vw;
@@ -13249,14 +13280,11 @@ body .homeFeedWrapper .content {
   background-position-x: right;
 }
 
-
 .story .storyBody {
   clear: both;
   margin: 10px 0;
   text-align: justify;
   font-size: 18px;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 /*HACK to make English text of sources in topic pages ltr*/
 .interface-hebrew .storyBody {
@@ -14946,7 +14974,9 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .content .contentInner {
   width: 875px;
 }
-.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar,
+.sheetsHomepage .sidebarLayout .sheetsTopicTOC,
+.sheetsHomepage .sidebarLayout .voicesBodyTitle {
   margin-inline-start: 10%;
 }
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
@@ -14981,7 +15011,7 @@ span.ref-link-color-3 {color: blue}
   margin-bottom: 10px;
 }
 .singlePanel .sheetsHomepage .sidebarLayout {
-  margin-top: revert;
+  margin-top: 15px;
 }
 
 .singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
@@ -15156,6 +15186,9 @@ span.ref-link-color-3 {color: blue}
 } */
 .header .headerDropdownMenu .dropdownLinks-menu a {
   color: #000000;
+}
+.header .headerDropdownMenu .dropdownLinks-menu .globeLanguageToggle a {
+  color: #666666;
 }
 .sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
@@ -15563,6 +15596,19 @@ span.ref-link-color-3 {color: blue}
   padding-inline: 15px;
   margin-top: 7px;
 }
+.globeLanguageToggle .dropdownLanguageToggle {
+  flex-direction: column;
+  align-items: unset;
+  height: unset;
+  padding: 4px 0;
+}
+.interface-hebrew .globeLanguageToggle .dropdownLanguageToggle {
+  flex-direction: column-reverse;
+}
+.globeLanguageToggle .englishLanguageLink:hover,
+.globeLanguageToggle .hebrewLanguageLink:hover {
+  background-color: var(--lighter-grey);
+}
 .interface-english .dropdownLanguageToggle a.hebrewLanguageLink,
 .interface-hebrew .dropdownLanguageToggle a.englishLanguageLink {
   color: #666666;
@@ -15573,11 +15619,14 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 2px;
 }
 
-
-
 .englishLanguageButton::after {
   content: "•";
   padding: 6px;
+}
+
+.globeLanguageToggle .englishLanguageButton::after {
+  content: none;
+  padding: unset;
 }
 
 .profilePicAndButtonContainer {

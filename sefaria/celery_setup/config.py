@@ -6,8 +6,8 @@ from enum import Enum
 
 
 class CeleryQueue(Enum):
-    TASKS = CELERY_QUEUES['tasks']
-    LLM = CELERY_QUEUES['llm']
+    TASKS = CELERY_QUEUES.get('tasks', 'TASK QUEUE UNDEFINED')
+    LLM = CELERY_QUEUES.get('llm', 'LLM QUEUE UNDEFINED')
 
 
 def generate_config_from_env():

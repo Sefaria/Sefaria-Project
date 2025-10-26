@@ -974,7 +974,8 @@ Sefaria = extend(Sefaria, {
       "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
       "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
       "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "unknown": "#"
     }
     return licenseMap;
   },
@@ -1349,18 +1350,28 @@ Sefaria = extend(Sefaria, {
       return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
-
+  buildQueryString(params) {
+    // params is an object where value is string or array of strings
+    const encodePair = (key, value) =>
+      Array.isArray(value)
+        ? value.map(v => encodePair(key, v))
+        : `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+    const queryString = Object.entries(params)
+      .flatMap(([key, value]) => encodePair(key, value))
+      .join('&');
+    return queryString && "?" + queryString;
+  },
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, limit = undefined, type=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
+  getName: function(name, limit = undefined, types=undefined, topicPool=undefined, exactContinuations=undefined, orderByMatchedLength=undefined) {
     const trimmed_name = name.trim();
-    let params = {active_module: this.activeModule};
-    // if (refOnly) { params["ref_only"] = 1; }
-    if (limit != undefined) { params["limit"] = limit; }
-    if (type != undefined) { params["type"] = type; }
-    if (exactContinuations) { params["exact_continuations"] = 1; }
-    if (orderByMatchedLength) { params["order_by_matched_length"] = 1; }
-    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
-    queryString = (queryString ? "?" + queryString : "");
+    const params = {
+      ...(limit !== undefined && { limit }),
+      ...(types !== undefined && { type: types }),
+      ...(topicPool !== undefined && { topic_pool: topicPool }),
+      ...(exactContinuations !== undefined && { exact_continuations: 1 }),
+      ...(orderByMatchedLength !== undefined && { order_by_matched_length: 1 }),
+    };
+    const queryString = Sefaria.buildQueryString(params);
     return this._cachedApiPromise({
         url:   this.apiHost + "/api/name/" + encodeURIComponent(trimmed_name) + queryString,
         key:   trimmed_name + queryString,
@@ -1456,8 +1467,6 @@ Sefaria = extend(Sefaria, {
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
       if (!ref) {
-        console.log("_saveItemsByRef encountered an item without a ref field:");
-        console.log(data[i]);
         continue;
       }
       var refs = "anchorRefExpanded" in data[i] ? data[i].anchorRefExpanded : Sefaria.splitRangingRef(ref);
@@ -2073,8 +2082,7 @@ _media: {},
     let params = {};
     if (numOfTopics != undefined) { params["n"] = numOfTopics; }
     if (order != undefined) { params["order"] = order; }
-    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
-    queryString = (queryString ? "?" + queryString : "");
+    const queryString = Sefaria.buildQueryString(params);
     const url = this.apiHost + "/api/topics/pools/" + encodeURIComponent(poolName) + queryString;
 
     const shouldBeCached = order != undefined && order != 'random';
@@ -3311,6 +3319,10 @@ _media: {},
     },
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
+    },
+    getSheetTitle: function(sheet) {
+      // Returns a sheet's title with fallback to "Untitled" 
+      return sheet?.title?.stripHtml() || Sefaria._("Untitled");
     }
   },
   testUnknownNewEditorSaveError: false,

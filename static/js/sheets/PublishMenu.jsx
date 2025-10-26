@@ -110,7 +110,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     }
     const updateSuggestedTags = (input) => {
     if (input === "") return
-    Sefaria.getName(input, 5, "Topic").then(d => {
+    Sefaria.getName(input, 5, ["Topic"]).then(d => {
         const topics = d.completion_objects
             .map((filteredObj, index) => ({
                 id: index,
@@ -153,7 +153,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setSummary(newSummary);
   }
   const handlePublish = () => {
-    sheet.title = title === "" ? "Untitled" : title;
+    sheet.title = Sefaria.sheets.getSheetTitle({ title });
     sheet.summary = summary;
     sheet.topics = tags.map(tag => ({
           asTyped: tag.name,
