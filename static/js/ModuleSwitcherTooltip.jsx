@@ -19,49 +19,9 @@ const PLACEMENT_CONFIG = {
   mobileEnglish: 'left',
 };
 
-const ARROW_OFFSET_OUTSIDE = '-4px';
 const TOOLTIP_OFFSET = 10;
 const TOOLTIP_SHIFT_PADDING = 8;
 const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
-
-// Arrow style configuration based on placement and language
-// Each function returns CSS styles for positioning the tooltip arrow
-const ARROW_STYLE_CONFIG = {
-  // For Hebrew mobile interface: tooltip appears on right side, arrow points left
-  mobileHebrewRight: (middlewareData) => ({
-    position: 'absolute',
-    right: ARROW_OFFSET_OUTSIDE, // Position arrow outside the tooltip border
-    // Use floating-ui calculated Y position for vertical centering
-    ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
-  }),
-  // For English mobile interface: tooltip appears on left side, arrow points right
-  mobileEnglishLeft: (middlewareData) => ({
-    position: 'absolute',
-    left: ARROW_OFFSET_OUTSIDE, // Position arrow outside the tooltip border
-    // Use floating-ui calculated Y position for vertical centering
-    ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
-  }),
-  // For desktop: tooltip can appear on any side, arrow adapts accordingly
-  desktop: (middlewareData, placement) => {
-    // Map tooltip placement to the opposite side for arrow positioning
-    // e.g., if tooltip is on 'bottom', arrow should be on 'top' of tooltip
-    const staticSide = {
-      top: 'bottom',
-      right: 'left',
-      bottom: 'top',
-      left: 'right',
-    }[placement];
-    
-    return {
-      position: 'absolute',
-      // Use floating-ui calculated positions for precise arrow placement
-      ...(middlewareData.arrow?.x != null && { left: `${middlewareData.arrow.x}px` }),
-      ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
-      // Position arrow outside the tooltip on the appropriate side
-      [staticSide]: ARROW_OFFSET_OUTSIDE,
-    };
-  },
-};
 
 const ModuleSwitcherTooltip = ({ targetRef, children }) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
@@ -145,26 +105,23 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
     ? (isHebrew ? PLACEMENT_CONFIG.mobileHebrew : PLACEMENT_CONFIG.mobileEnglish) 
     : PLACEMENT_CONFIG.desktop);
 
-  // Determine which arrow style configuration to use based on device type, placement, and language
-  // Uses a functional approach with condition-value pairs for clean logic flow
-  const getArrowConfigKey = () => {
-    const conditions = [
-      // Hebrew mobile: tooltip on right, arrow points left
-      [isMobile && placement === 'right' && isHebrew, 'mobileHebrewRight'],
-      // English mobile: tooltip on left, arrow points right
-      [isMobile && placement === 'left' && !isHebrew, 'mobileEnglishLeft'],
-      // Desktop or any other case: use adaptive desktop configuration
-      [true, 'desktop'], // fallback
-    ];
-    
-    // Find the first condition that matches and return its corresponding config key
-    return conditions.find(([condition]) => condition)?.[1];
+  // Determine CSS class name for arrow positioning based on device type, placement, and language
+  const getArrowClassName = () => {
+    if (isMobile && isHebrew && placement === 'right') {
+      return 'floating-ui-arrow mobile-hebrew-right';
+    }
+    if (isMobile && !isHebrew && placement === 'left') {
+      return 'floating-ui-arrow mobile-english-left';
+    }
+    // Desktop: use placement-based class
+    return `floating-ui-arrow desktop-${placement}`;
   };
 
-  // Get the appropriate arrow style factory function and generate the CSS styles
-  const configKey = getArrowConfigKey();
-  const arrowStyleFactory = ARROW_STYLE_CONFIG[configKey];
-  const arrowStyle = arrowStyleFactory(middlewareData, placement);
+  // Only use inline styles for dynamic positioning calculated by floating-ui
+  const arrowDynamicStyle = {
+    ...(middlewareData.arrow?.x != null && { left: `${middlewareData.arrow.x}px` }),
+    ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
+  };
 
   const tooltipContent = (
     <div>
@@ -198,8 +155,8 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
       </div>
       <div
         ref={arrowRef}
-        className="floating-ui-arrow"
-        style={arrowStyle}
+        className={getArrowClassName()}
+        style={arrowDynamicStyle}
       />
     </div>
   );

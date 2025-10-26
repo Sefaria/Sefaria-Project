@@ -15306,6 +15306,33 @@ span.ref-link-color-3 {color: blue}
   transform: rotate(45deg);
 }
 
+/* Mobile Hebrew - arrow on right side pointing left */
+.floating-ui-arrow.mobile-hebrew-right {
+  right: -4px;
+}
+
+/* Mobile English - arrow on left side pointing right */
+.floating-ui-arrow.mobile-english-left {
+  left: -4px;
+}
+
+/* Desktop - arrow positioning based on tooltip placement */
+.floating-ui-arrow.desktop-top {
+  bottom: -4px;
+}
+
+.floating-ui-arrow.desktop-bottom {
+  top: -4px;
+}
+
+.floating-ui-arrow.desktop-left {
+  right: -4px;
+}
+
+.floating-ui-arrow.desktop-right {
+  left: -4px;
+}
+
 /* End of Floating UI tooltip styles for Module Switcher */
 .sheetsInPanel .dropdownItem {
   cursor: pointer;
