@@ -97,7 +97,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button variant="" className="sefaria-common-button  small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
+  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
