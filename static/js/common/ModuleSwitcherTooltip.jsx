@@ -104,6 +104,31 @@ const ModuleSwitcherTooltip = ({ targetRef, children, multiPanel, mobileTargetRe
     }
   }, [isTooltipVisible, update]);
 
+  // Handle clicks outside the tooltip to hide it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isTooltipVisible && targetElement?.current && refs.floating.current) {
+        const targetEl = targetElement.current;
+        const tooltipEl = refs.floating.current;
+
+        // Check if click is outside both the target element and the tooltip
+        if (!targetEl.contains(event.target) && !tooltipEl.contains(event.target)) {
+          hideTooltip();
+        }
+      }
+    };
+
+    if (isTooltipVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isTooltipVisible, targetElement, refs.floating]);
+
   const hideTooltip = () => {
     setTooltipVisible(false);
     localStorage.setItem(STORAGE_KEY, 'true');
