@@ -169,18 +169,31 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
+            logger.info(
+                "LanguageCookieMiddleware: set-language-cookie param detected",
+                current_host=request.get_host(),
+                current_path=request.path,
+                detected_lang=lang
+            )
             domain = [d for d in settings.DOMAIN_LANGUAGES if settings.DOMAIN_LANGUAGES[d] == lang][0]
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            response = redirect(domain + path + params_string)
+            final_url = domain + path + params_string
+            logger.info(
+                "LanguageCookieMiddleware: Setting cookie and redirecting",
+                language=lang,
+                redirect_to=final_url
+            )
+            response = redirect(final_url)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()
+                logger.debug("LanguageCookieMiddleware: Saved to user profile", user_id=request.user.id)
             return response
 
 

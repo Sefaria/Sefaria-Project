@@ -296,9 +296,19 @@ class Util {
     static fullURL(relativePath, moduleTarget) {
       if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
         const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://voices.sefaria.org' or 'https://www.sefaria.org')
-        return moduleURL.origin + relativePath;
+        const result = moduleURL.origin + relativePath;
+        console.log('[Util.fullURL] Building full URL', {
+          relativePath,
+          moduleTarget,
+          moduleURL: moduleURL.href,
+          result,
+          currentModule: Sefaria.activeModule,
+          currentLang: Sefaria.interfaceLang
+        });
+        return result;
       }
       // If it's already a full URL or not a relative path, return as is
+      console.log('[Util.fullURL] Path is already full URL', { relativePath });
       return relativePath;
     }
     static isUrl(string) {

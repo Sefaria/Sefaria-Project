@@ -519,14 +519,23 @@ Sefaria = extend(Sefaria, {
     return result;
   },
   getModuleURL: function(module=null) {
-    // returns a URL object with the href of the module's subdomain.  
+    // returns a URL object with the href of the module's subdomain.
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
     module = module || Sefaria.activeModule;
     const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
+    console.log('[Sefaria.getModuleURL] Getting module URL', {
+      requestedModule: module,
+      activeModule: Sefaria.activeModule,
+      interfaceLang: Sefaria.interfaceLang,
+      domainModules: Sefaria.domainModules,
+      resolvedHref: href,
+      apiHost: Sefaria.apiHost
+    });
     try {
       return new URL(href);
-    } catch {
+    } catch (e) {
+      console.error('[Sefaria.getModuleURL] Failed to create URL', { href, error: e });
       return false;
     }
   },
