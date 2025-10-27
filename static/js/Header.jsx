@@ -147,7 +147,7 @@ const ModuleSwitcher = () => {
   const trackItemClick = (data) => {
     gtag("event", "modswitch_item_click", {
       feature_name: "module_switcher",
-      text: data.label
+      text: data.text
     });
   };
 
@@ -161,7 +161,7 @@ const ModuleSwitcher = () => {
                   onItemClick={trackItemClick}>
                     
       <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsLabel="About">
+        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsText="About">
           <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
 
         </DropdownMenuItem>

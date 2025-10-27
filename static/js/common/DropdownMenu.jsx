@@ -12,7 +12,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsLabel = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsText = null}) => {
 
   if (!newTab){
     newTab = false;
@@ -26,8 +26,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       data-analytics-item={analyticsLabel ? "link" : null}
-       data-analytics-label={analyticsLabel}
+       data-analytics-text={analyticsText}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
@@ -133,9 +132,7 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
        href={fullURL}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
        target={newTab ? '_blank' : null}
-       data-analytics-item="module"
-       data-analytics-label={text.en}
-       data-analytics-target={targetModule}>
+       data-analytics-text={text.en}>
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
         <span className='dropdownHeaderText'>
@@ -189,16 +186,12 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, onOpen, onCl
       e.stopPropagation();
 
       // Check if the clicked element has analytics data
-      const analyticsItem = e.target.closest('[data-analytics-item]');
+      const analyticsItem = e.target.closest('[data-analytics-text]');
       if (analyticsItem && onItemClick) {
-        const itemType = analyticsItem.getAttribute('data-analytics-item');
-        const label = analyticsItem.getAttribute('data-analytics-label');
-        const target = analyticsItem.getAttribute('data-analytics-target');
+        const text = analyticsItem.getAttribute('data-analytics-text');
 
         onItemClick({
-          itemType: itemType,
-          label: label,
-          target: target
+          text: text
         });
       }
 
