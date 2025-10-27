@@ -89,7 +89,7 @@ test.describe('Modularization Header Tests', () => {
     await expect(page.getByRole('link', { name: 'Texts' })).toBeVisible();
 
     await helpers.openDropdown(SELECTORS.ICONS.LANGUAGE);
-    await helpers.selectDropdownOption('עברית');
+    await helpers.selectDropdownOption('עברית', false, SELECTORS.LANGUAGE_SWITCHER_GLOBE);
     
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
     await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();

@@ -86,10 +86,12 @@ export class HeaderTestHelpers {
    * Selects an option from a dropdown menu, with support for new tab navigation.
    * @param optionText - The text content of the dropdown option to select
    * @param shouldOpenNewTab - Whether the option should open in a new tab (default: false)
+   * @param dropdownSelector - Optional custom selector for the dropdown options (defaults to SELECTORS.DROPDOWN_OPTION)
    * @returns Promise<Page | null> - The new page if opened in new tab, null otherwise
    */
-  async selectDropdownOption(optionText: string, shouldOpenNewTab = false) {
-    const option = this.page.locator(SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText });
+  async selectDropdownOption(optionText: string, shouldOpenNewTab = false, dropdownSelector?: string) {
+    const baseSelector = dropdownSelector || SELECTORS.DROPDOWN_OPTION;
+    const option = this.page.locator(baseSelector).filter({ hasText: optionText }).first();
     
     if (shouldOpenNewTab) {
       const [newPage] = await Promise.all([

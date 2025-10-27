@@ -29,6 +29,7 @@ export const SELECTORS = {
     USER_MENU: 'img[src="/static/icons/logged_out.svg"]'
   },
   DROPDOWN_OPTION: 'a.interfaceLinks-option',
+  LANGUAGE_SWITCHER_GLOBE: 'div.dropdownLanguageToggle',
   MODULE_DROPDOWN_OPTIONS: '.dropdownLinks-menu a.dropdownItem',
   BANNER: '[role="banner"]'
 } as const;
