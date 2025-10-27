@@ -82,6 +82,7 @@ class Sheet extends Component {
                         handleCollectionsChange={this.handleCollectionsChange}
                         editorSaveState={this.props.editorSaveState}
                         setEditorSaveState={this.props.setEditorSaveState}
+                        showGuide={this.props.showGuide}
                     />
                   </div>
                   {this.getSidebar(sheet, true)}
@@ -92,7 +93,6 @@ class Sheet extends Component {
           style={this.props.style}
           sources={sheet.sources}
           title={sheet.title}
-          handleClick={this.handleClick}
           sheetSourceClick={this.props.onSegmentClick}
           highlightedNode={this.props.highlightedNode} // for example, "3" -- the third node in the sheet
           highlightedRefs={this.props.highlightedRefs} // for example, ["Genesis 1:1"] or ["Sheet 4:3"] -- the actual source
@@ -133,6 +133,7 @@ class Sheet extends Component {
       const usingEditor = shouldUseEditor(sheet?.id);
       content = usingEditor ? this.getEditor(sheet) : this.getReader(sheet);
     }
+    return <div className={classes}>{content}</div>;
   }
 }
 

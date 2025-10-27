@@ -5,7 +5,7 @@ import { AddToSourceSheetBox } from "../AddToSourceSheet";
 import React, {useContext, useEffect, useState} from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
-import Button from "../common/Button";
+
 import ReactTags from "react-tag-autocomplete";
 import {layoutOptions} from "../constants";
 import {ReaderPanelContext} from "../context";
@@ -88,7 +88,7 @@ const CopyModal = ({close, sheetID}) => {
 
   const getCopySuccessMessage = () => {
     return <><InterfaceText>Success!</InterfaceText>
-              <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.SHEETS_MODULE} target='_blank'>
+              <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.VOICES_MODULE} target='_blank'>
               <InterfaceText>View your Copy</InterfaceText>
               </a>
           </>;

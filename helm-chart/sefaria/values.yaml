@@ -19,6 +19,10 @@ previousServicesCount: "3"
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
 
+# controls whether rollout pre-promotion analysis is enabled
+rollouts:
+  prePromotionAnalysis: true
+
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
 # For development environments
@@ -113,67 +117,6 @@ web:
       # Reference to an existing secret in the cluster
       ref:
 
-linker:
-  enabled: false
-  # key-pair values to load into web pod environment.  Takes precedence over global localsettings
-  model_paths:
-    # english model supports people and refs
-    en: "gs://sefaria-ml-models/en_ner_model.tar.gz"
-    he: "gs://sefaria-ml-models/ref_model.tar.gz"
-  part_model_paths:
-    en: "gs://sefaria-ml-models/en_subref_model.tar.gz"
-    he: "gs://sefaria-ml-models/subref_model.tar.gz"
-  localsettings:
-  # APP: web
-  containerImage:
-    # Full path of the image registry imclusive of the image name
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-linker
-    # Commit id of the repo for which the image build has been triggered.
-    tag: latest
-  replicaCount: 1
-  serviceAccount: linker
-  resources:
-    web:
-      gunicornWorkerCount: 1
-      gunicornThreadCount: 1
-      resources:
-        requests:
-          memory: "2Gi"
-          cpu: "100m"
-          nvidia.com/gpu: 1
-        limits:
-          memory: "3Gi"
-          cpu: "1000m"
-          nvidia.com/gpu: 1
-    djangoLog:
-      requests:
-        memory: "100Mi"
-        cpu: "50m"
-      limits:
-        memory: "150Mi"
-        cpu: "100m"
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Equal
-      value: present
-      effect: NoSchedule
-  secrets:
-    googleClient:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-    logging:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-    schoolLookup:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      # Reference to an existing secret in the cluster
-      ref:
-
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name
@@ -251,6 +194,7 @@ varnish:
     tag: 0.32.0
 
 tasks:
+  localsettings: {}
   enabled: false
   resources:
     requests:
@@ -274,15 +218,39 @@ tasks:
   queues:
     llm: default-llm
 
-ingress:
-  hosts:
-    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      # Reference to existing secret for usecases like cloudflare origin cert
-      # Secret must also cover all subdomains
-      tlsRef: ""
-  annotations: {}
-  # subdomain are specified as { subdomain: path } mapping a . subdomain to a path on the web pod
-  subdomains: {}
+# Takes the url of an NER server instance
+# Will automatically enable internal settings to communicate with the NER server
+# Required for Rambi Cronjob
+gpuServer: ""
+
+# Declare domains handled by this sefaria instance for both app and ingress config
+# Root domains implicitly handle the library module and do not feature redirects
+# Each root domain should have a language and code
+# Modules definitions include
+#   module name
+#   a subdomain per corresponding language root
+#   root domain paths that should redirect into the module
+# Cookie domain will be set to the first domain in the root list
+domains:
+  root:
+    - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      cert: "{{ .Values.deployEnv }}-tls"
+      language: english
+      code: en
+#   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
+#     cert: "{{ .Values.deployEnv }}-il-tls"
+#     language: hebrew
+#     code: he
+  modules:
+    - name: voices
+      subdomains:
+        en: voices
+        he: chiburim
+      redirects:
+        - sheets
+        - collection
+        - community
+        - profile
 
 nginx:
   containerImage:
@@ -432,6 +400,18 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
+
+# Domain configuration - can be overridden per environment
+domainConfig:
+  # Default: empty domain language mapping for cauldrons
+  domainLanguage: {}
+  # Default domain modules for cauldrons
+  domainModules:
+    library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
+    sheets: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  # Default cookie domains
+  sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
 
 localSettings:
   DEBUG: true

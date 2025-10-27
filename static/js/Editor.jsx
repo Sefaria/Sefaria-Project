@@ -331,15 +331,12 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                if (!/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
+                if (/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
                     return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
-                }
-                else
-                {
-                    return paragraphHTML
+                } else {
+                    return `<p>${paragraphHTML}</p>` // use wrapping "p"s to enable deserializer to parse nodes properly, otherwise lists get lost. The reason p's are used instead of divs is to prevent extra spacing.
                 }
             }
-
             case 'list-item': {
                 const liHtml = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
@@ -565,6 +562,8 @@ function parseSheetItemHTML(rawhtml) {
 
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove the final line break (exactly one)
+    preparseHtml = preparseHtml.replace(/(?:\r\n|\r|\n)$/, '');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -1016,7 +1015,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         if (input === "") {
             return results;
         }
-        const d = await Sefaria.getName(input, 5, 'ref');
+        const d = await Sefaria.getName(input, 5, ['ref']);
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
@@ -1257,7 +1256,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("User uploaded media")} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
@@ -2433,7 +2432,7 @@ const Leaf = ({attributes, children, leaf}) => {
         children = <u>{children}</u>
     }
     if (leaf.big) {
-        children = <big>{children}</big>
+        children = <span className="big-text">{children}</span> // big-text is a replacement for the obsolete <big> tag that was used
     }
     if (leaf.small) {
         children = <small>{children}</small>
@@ -2678,7 +2677,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
         {<img src={stateToIcon[state]} alt={localize(state)} />}
-        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
 }
@@ -3296,7 +3295,8 @@ const SefariaEditor = (props) => {
                             editable={true}
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
-                            sheetOptions={sheetOptions}/>
+                            sheetOptions={sheetOptions}
+                            showGuide={props.showGuide}/>
               </span>
           <span  ref={editorContentContainer}>
             {canUseDOM &&

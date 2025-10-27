@@ -7,9 +7,18 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
-  DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
-  DOMAIN_MODULES: {{ .Values.localSettings.DOMAIN_MODULES | toJson | quote }}
-  MODULE_ROUTES: {{ .Values.localSettings.MODULE_ROUTES | toJson | quote }}
+  # Automatic domain configuration - single source of truth
+  DOMAIN_LANGUAGE: {{ include "config.domainLanguage" . | fromYaml | toJson | quote }}
+  DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
+  # Session cookie settings for cross-subdomain support within this cauldron
+  SESSION_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
+  SESSION_COOKIE_SECURE: "true"
+  SESSION_COOKIE_HTTPONLY: "true"
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
+  CSRF_COOKIE_SECURE: "true"
+  CSRF_COOKIE_HTTPONLY: "false"
+  CSRF_COOKIE_SAMESITE: "Lax"
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
   FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
@@ -40,11 +49,3 @@ data:
   SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
-  SESSION_COOKIE_DOMAIN: {{ .Values.localSettings.SESSION_COOKIE_DOMAIN | quote }}
-  SESSION_COOKIE_SECURE: "{{ .Values.localSettings.SESSION_COOKIE_SECURE }}"
-  SESSION_COOKIE_HTTPONLY: "{{ .Values.localSettings.SESSION_COOKIE_HTTPONLY }}"
-  SESSION_COOKIE_SAMESITE: {{ .Values.localSettings.SESSION_COOKIE_SAMESITE | quote }}
-  CSRF_COOKIE_DOMAIN: {{ .Values.localSettings.CSRF_COOKIE_DOMAIN | quote }}
-  CSRF_COOKIE_SECURE: "{{ .Values.localSettings.CSRF_COOKIE_SECURE }}"
-  CSRF_COOKIE_HTTPONLY: "{{ .Values.localSettings.CSRF_COOKIE_HTTPONLY }}"
-  CSRF_COOKIE_SAMESITE: {{ .Values.localSettings.CSRF_COOKIE_SAMESITE | quote }}
