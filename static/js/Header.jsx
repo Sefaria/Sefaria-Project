@@ -170,8 +170,6 @@ const ModuleSwitcher = () => {
 }
 
 const Header = (props) => {
-  const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
     const handleFirstTab = (e) => {
       if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
@@ -187,19 +185,9 @@ const Header = (props) => {
     }
   }, []);
 
-  // Notification state logic
-  useEffect(() => {
-    if (props.headerMode) {
-      setIsClient(true);
-    }
-  }, [props.headerMode]);
-
-  const unread = props.headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
+  const unread = props.headerMode ? ((Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
-
-  // Debug logging for notifications
-  console.log("Header notifications - unread:", unread);
-  console.log("Header notifications - classes:", notificationsClasses);
+  const mobileNotificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
 
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
@@ -298,7 +286,6 @@ const Header = (props) => {
               href="/notifications"
               data-target-module={Sefaria.VOICES_MODULE}
               onKeyDown={(e) => Util.handleKeyboardClick(e)}
-              key={`notificationCount-C-${unread}`}
               className={notificationsClasses}
             >
               <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
@@ -358,7 +345,8 @@ const Header = (props) => {
           openURL={props.openURL}
           close={props.onMobileMenuButtonClick}
           module={props.module}
-          headerMode={props.headerMode} />
+          mobileNotificationsClasses={mobileNotificationsClasses}
+          />
       }
       <GlobalWarningMessage />
     </div>
@@ -401,47 +389,12 @@ const LoggedOutButtons = ({ mobile, loginOnly }) => {
   );
 }
 
-
-const LoggedInButtons = ({ headerMode }) => {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    if (headerMode) {
-      setIsClient(true);
-    }
-  }, []);
-  const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
-  const notificationsClasses = classNames({ notifications: 1, unread: unread });
-  return (
-    <div className="loggedIn accountLinks">
-      <a href="/texts/saved" aria-label="See My Saved Texts">
-        <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-      </a>
-      <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
-        <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
-      </a>
-      {Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
-      <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`} />
-    </div>
-  );
-}
-
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, headerMode }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, mobileNotificationsClasses }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    if (headerMode) {
-      setIsClient(true);
-    }
-  }, []);
-  const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
-  const notificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
-  console.log(unread);
-  console.log(notificationsClasses);
- 
-    
+      
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
       <div className="searchLine">
@@ -511,7 +464,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                   <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
                   {<InterfaceText text={{ en: "Saved & History", he: "שמורים והיסטוריה" }} />}
                 </a>
-                <a href="/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE} key={`notificationCount-C-${unread}`} className={notificationsClasses}>
+                <a href="/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE} className={mobileNotificationsClasses}>
                   <img src="/static/icons/notification.svg" alt={Sefaria._("Notifications")} />
                   <InterfaceText>Notifications</InterfaceText>
                 </a>

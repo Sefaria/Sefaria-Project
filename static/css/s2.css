@@ -1019,8 +1019,15 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   border-radius: 4px;
   display: block;
   top: 20px;
-  right: 15px;
   position: absolute;
+}
+
+.interface-english .mobileNavMenu a.mobile-notifications.mobile-unread::after {
+  left: 15px;
+}
+
+.interface-hebrew .mobileNavMenu a.mobile-notifications.mobile-unread::after {
+  right: 15px;
 }
 .header .login {
   color: var(--dark-grey);
