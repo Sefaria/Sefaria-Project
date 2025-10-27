@@ -13,7 +13,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
 from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code, get_language_specific_domain_modules
+from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
 
@@ -88,7 +88,7 @@ def base_props(request):
 def module_context(request):
     return {
         'active_module': request.active_module,
-        'domain_modules': get_language_specific_domain_modules(request.interfaceLang)
+        'domain_modules': DOMAIN_MODULES
     }
 
 @user_only
