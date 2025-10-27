@@ -286,13 +286,43 @@ class ModuleMiddleware(MiddlewareURLMixin):
         """
         Determine the active module based on the request host using DOMAIN_MODULES.
         Returns the module name if found, the default module otherwise.
-        """        
+        """
         current_hostname = urlparse(f"http://{request.get_host()}").hostname
-        
-        for module in settings.DOMAIN_MODULES.values():
-            for module_name, module_domain in module.items():
-                if current_hostname == urlparse(module_domain).hostname:
-                    return module_name            
+
+        logger.info(
+            "ModuleMiddleware._set_active_module: Starting module detection",
+            current_host=request.get_host(),
+            current_hostname=current_hostname,
+            domain_modules=settings.DOMAIN_MODULES
+        )
+
+        for lang_code, lang_modules in settings.DOMAIN_MODULES.items():
+            logger.debug(
+                "ModuleMiddleware: Checking language",
+                lang_code=lang_code,
+                modules=lang_modules
+            )
+            for module_name, module_domain in lang_modules.items():
+                module_hostname = urlparse(module_domain).hostname
+                logger.debug(
+                    "ModuleMiddleware: Checking module",
+                    module_name=module_name,
+                    module_domain=module_domain,
+                    module_hostname=module_hostname,
+                    matches=(current_hostname == module_hostname)
+                )
+                if current_hostname == module_hostname:
+                    logger.info(
+                        "ModuleMiddleware: Module matched",
+                        detected_module=module_name,
+                        matched_domain=module_domain
+                    )
+                    return module_name
+
+        logger.info(
+            "ModuleMiddleware: No module match, using default",
+            default_module=self.default_module
+        )
         return self.default_module
             
     

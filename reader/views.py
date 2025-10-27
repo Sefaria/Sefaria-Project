@@ -8,6 +8,7 @@ from elasticsearch import Elasticsearch
 from random import choice
 import json
 import urllib.request, urllib.parse, urllib.error
+from urllib.parse import urlparse
 from bson.json_util import dumps
 import socket
 import bleach
@@ -1336,19 +1337,26 @@ def interface_language_redirect(request, language):
     target_lang_code = get_short_lang(language)
     target_domain = DOMAIN_MODULES.get(target_lang_code, {}).get(current_module)
 
+    # Compare hostnames properly (not substring match)
+    current_host = request.get_host()
+    target_host = urlparse(target_domain).hostname if target_domain else None
+    needs_domain_switch = target_host and current_host != target_host
+
     logger.info(
         "Language redirect lookup",
         current_module=current_module,
         target_lang_code=target_lang_code,
         target_domain=target_domain,
-        current_url=current_url
+        current_host=current_host,
+        target_host=target_host,
+        needs_domain_switch=needs_domain_switch
     )
 
-    if target_domain and target_domain not in request.build_absolute_uri():
+    if needs_domain_switch:
         # Switching domains - preserve path and add set-language-cookie param
         logger.info(
             "Switching domains",
-            from_domain=request.get_host(),
+            from_domain=current_host,
             to_domain=target_domain,
             path=next
         )
