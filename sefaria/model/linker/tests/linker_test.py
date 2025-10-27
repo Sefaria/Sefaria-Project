@@ -34,6 +34,40 @@ def test_resolved_raw_ref_clone():
 
 crrd = create_raw_ref_data
 
+def test_multiple_ambiguities():
+    """
+    Test that multiple ambiguities are handled correctly by the linker.
+    """
+    # Initialize linker and reference resolver
+    linker = library.get_linker('en')
+    ref_resolver = linker._ref_resolver
+
+    # Set ibid history context
+    ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
+    ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
+
+    # Raw references setup
+    raw_refs = [
+        create_raw_ref_data(["&ibid."], lang='en'),
+        create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
+    ]
+
+    matches = [
+        ref_resolver.resolve_raw_ref(context, raw)[0]
+        for raw, context, *_ in raw_refs
+    ]
+
+    assert matches[0].is_ambiguous
+    assert matches[1].is_ambiguous
+    assert {ref.ref for ref in matches[0].resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
+    assert {ref.ref for ref in matches[1].resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
+
+
+
+
+
+
+
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
