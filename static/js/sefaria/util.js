@@ -843,12 +843,14 @@ class Util {
         
         // Extract hostnames from all domain modules
         const hostnames = [];
-        for (const [_, moduleUrl] of Object.entries(Sefaria.domainModules)) {
-            try {
-                const url = new URL(moduleUrl);
-                hostnames.push(url.hostname);
-            } catch (e) {
-                // Invalid URL - skip this module
+        for (const [_, langModules] of Object.entries(Sefaria.domainModules)) {
+            for (const [_, moduleUrl] of Object.entries(langModules)) {
+                try {
+                    const url = new URL(moduleUrl);
+                    hostnames.push(url.hostname);
+                } catch (e) {
+                    // Invalid URL - skip this module
+                }
             }
         }
         

@@ -518,16 +518,19 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  getModuleURL: function(module=null) {
+  getModuleURL: function(module=null, interfaceLang=null) {
     // returns a URL object with the href of the module's subdomain.
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
     module = module || Sefaria.activeModule;
-    const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
+    interfaceLang = interfaceLang || Sefaria.interfaceLang;
+    const langCode = interfaceLang === "hebrew" ? "he" : "en";
+    const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
     console.log('[Sefaria.getModuleURL] Getting module URL', {
       requestedModule: module,
       activeModule: Sefaria.activeModule,
-      interfaceLang: Sefaria.interfaceLang,
+      interfaceLang: interfaceLang,
+      langCode: langCode,
       domainModules: Sefaria.domainModules,
       resolvedHref: href,
       apiHost: Sefaria.apiHost
@@ -540,7 +543,10 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    return Object.values(Sefaria.domainModules).some(href => url.href.startsWith(href));
+    // Check if URL starts with any domain from any language's modules
+    return Object.values(Sefaria.domainModules).some(langModules =>
+      Object.values(langModules).some(href => url.href.startsWith(href))
+    );
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
