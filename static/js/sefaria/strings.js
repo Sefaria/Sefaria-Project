@@ -54,7 +54,7 @@ const Strings = {
     "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא כדי ליצור ולשתף מקורות יהודיים. אנו מזמינים אתכם לקחת חלק בשיח זה.",
     "Create with Sefaria": "צרו בעזרת ספריא",
     "Mobile Apps": "יישומון לטלפון הנייד",
-    "Branch Change Succesful": "שינוי ענף צלח",
+    "Branch Change Succesful": "שינוי ענף צלח 123",
     "Weekly Torah Portion": "פרשת השבוע",
     "All Learning Schedules": "לוחות לימוד נוספים",
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
