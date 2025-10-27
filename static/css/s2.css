@@ -509,7 +509,8 @@ input.noselect {
   padding: 0;
 }
 .header .my-profile,
-.header .notifications {
+.header .notifications,
+.header .mobile-notifications {
   display: inline-block;
   vertical-align: middle;
   position: relative;
@@ -607,6 +608,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: var(--dark-grey);
   font-size: 16px;
   padding: 15px;
+  position: relative;
 }
 .mobileNavMenu hr {
   border: none;
@@ -995,6 +997,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     display: none;
   }
 }
+.header .mobile-notifications.mobile-unread::after,
 .header .notifications.unread::after {
   content:"";
   background-color: #CB6158;
@@ -1004,6 +1007,19 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   display: block;
   top: 3px;
   right: 1px;
+  position: absolute;
+}
+
+/* Mobile navigation menu notification styles */
+.mobileNavMenu a.mobile-notifications.mobile-unread::after {
+  content:"";
+  background-color: #CB6158;
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  display: block;
+  top: 20px;
+  right: 15px;
   position: absolute;
 }
 .header .login {

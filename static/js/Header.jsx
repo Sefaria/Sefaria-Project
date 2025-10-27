@@ -187,6 +187,20 @@ const Header = (props) => {
     }
   }, []);
 
+  // Notification state logic
+  useEffect(() => {
+    if (props.headerMode) {
+      setIsClient(true);
+    }
+  }, [props.headerMode]);
+
+  const unread = props.headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
+  const notificationsClasses = classNames({ notifications: 1, unread: unread });
+
+  // Debug logging for notifications
+  console.log("Header notifications - unread:", unread);
+  console.log("Header notifications - classes:", notificationsClasses);
+
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
     <a href='/'>
@@ -204,15 +218,6 @@ const Header = (props) => {
                                 </a>
                               </div>;
 
-  const sheetsNotificationsIcon = <div className='sheetsNotificationsHeaderIcon'>
-    <a
-      href="/notifications"
-      data-target-module={Sefaria.VOICES_MODULE}
-      onKeyDown={(e) => Util.handleKeyboardClick(e)}
-    >
-      <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
-    </a>
-  </div>;
 
   const headerRef = useOnceFullyVisible(() => {
     sa_event("header_viewed", { impression_type: "regular_header" });
@@ -276,7 +281,7 @@ const Header = (props) => {
           openTopic={props.openTopic}
           openURL={props.openURL}
         />
-
+        
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
         {props.module === Sefaria.VOICES_MODULE && <CreateButton />}
         {Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
@@ -287,7 +292,19 @@ const Header = (props) => {
             translationLanguagePreference={props.translationLanguagePreference}
             setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
-        {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : sheetsNotificationsIcon)}
+        {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon :
+          <div className='sheetsNotificationsHeaderIcon'>
+            <a
+              href="/notifications"
+              data-target-module={Sefaria.VOICES_MODULE}
+              onKeyDown={(e) => Util.handleKeyboardClick(e)}
+              key={`notificationCount-C-${unread}`}
+              className={notificationsClasses}
+            >
+              <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
+            </a>
+          </div>
+        )}
 
         <ModuleSwitcher />
 
@@ -340,7 +357,8 @@ const Header = (props) => {
           openTopic={props.openTopic}
           openURL={props.openURL}
           close={props.onMobileMenuButtonClick}
-          module={props.module} />
+          module={props.module}
+          headerMode={props.headerMode} />
       }
       <GlobalWarningMessage />
     </div>
@@ -407,11 +425,23 @@ const LoggedInButtons = ({ headerMode }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, headerMode }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    if (headerMode) {
+      setIsClient(true);
+    }
+  }, []);
+  const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
+  const notificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
+  console.log(unread);
+  console.log(notificationsClasses);
+ 
+    
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
       <div className="searchLine">
@@ -481,7 +511,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                   <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
                   {<InterfaceText text={{ en: "Saved & History", he: "שמורים והיסטוריה" }} />}
                 </a>
-                <a href="/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
+                <a href="/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE} key={`notificationCount-C-${unread}`} className={notificationsClasses}>
                   <img src="/static/icons/notification.svg" alt={Sefaria._("Notifications")} />
                   <InterfaceText>Notifications</InterfaceText>
                 </a>
