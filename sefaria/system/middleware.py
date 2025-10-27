@@ -175,16 +175,28 @@ class LanguageCookieMiddleware(MiddlewareMixin):
                 current_path=request.path,
                 detected_lang=lang
             )
-            domain = [d for d in settings.DOMAIN_LANGUAGES if settings.DOMAIN_LANGUAGES[d] == lang][0]
+
+            # Get current module to ensure we stay on the correct module's domain
+            current_module = getattr(request, "active_module", LIBRARY_MODULE)
+            lang_code = "en" if lang == "english" else "he"
+
+            # Look up domain from DOMAIN_MODULES instead of DOMAIN_LANGUAGES
+            # to ensure module-aware redirection
+            target_domain = settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
+
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            final_url = domain + path + params_string
+            final_url = target_domain + path + params_string
+
             logger.info(
                 "LanguageCookieMiddleware: Setting cookie and redirecting",
                 language=lang,
+                current_module=current_module,
+                lang_code=lang_code,
+                target_domain=target_domain,
                 redirect_to=final_url
             )
             response = redirect(final_url)
