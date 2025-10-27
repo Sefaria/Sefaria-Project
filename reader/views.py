@@ -55,7 +55,7 @@ from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_use
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_language_specific_domain_modules
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -1315,19 +1315,21 @@ def interface_language_redirect(request, language):
     """
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
+    Preserves current module and path when switching language.
     """
     next = request.GET.get("next")
-    if not next or not is_safe_url(
-        url=next,
-        allowed_hosts=set(ALLOWED_HOSTS)
-    ):
+    if not next or not is_safe_url(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
         next = "/"
 
-    for domain in DOMAIN_LANGUAGES:
-        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
-            next = domain + next
-            next = next + ("&" if "?" in next else "?") + "set-language-cookie"
-            break
+    # Look up the target domain based on current module + target language
+    current_module = getattr(request, "active_module", LIBRARY_MODULE)
+    target_lang_code = get_short_lang(language)
+    target_domain = DOMAIN_MODULES.get(target_lang_code, {}).get(current_module)
+
+    if target_domain and target_domain not in request.build_absolute_uri():
+        # Switching domains - preserve path and add set-language-cookie param
+        next = target_domain + next
+        next = next + ("&" if "?" in next else "?") + "set-language-cookie"
 
     response = redirect(next)
 
