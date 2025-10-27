@@ -12,7 +12,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsLabel = null}) => {
 
   if (!newTab){
     newTab = false;
@@ -26,6 +26,8 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
+       data-analytics-item={analyticsLabel ? "link" : null}
+       data-analytics-label={analyticsLabel}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
@@ -130,7 +132,10 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
-       target={newTab ? '_blank' : null}>
+       target={newTab ? '_blank' : null}
+       data-analytics-item="module"
+       data-analytics-label={text.en}
+       data-analytics-target={targetModule}>
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
         <span className='dropdownHeaderText'>
@@ -151,7 +156,7 @@ DropdownModuleItem.propTypes = {
   }).isRequired
 };
 
-const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
+const DropdownMenu = ({children, buttonComponent, positioningClass, onOpen, onClose, onItemClick}) => {
     /**
      * `buttonComponent` is a React component for the opening/closing of a button.
      * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
@@ -163,26 +168,51 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
      * component and all its children, so when clicking on children their onClick won't be executed.
      */
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [dropdownState, setDropdownState] = useState(false);
     const menuRef = useRef(null);
     const wrapperRef = useRef(null);
     const buttonRef = useRef(null);
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
-      setIsOpen(isOpen => !isOpen);
+      setDropdownState(dropdownState => {
+        const isOpen = !dropdownState;
+        if (isOpen) {
+          onOpen && onOpen();
+        } else {
+          onClose && onClose();
+        }
+        return isOpen;
+      });
     };
     const handleContentsClick = (e) => {
       e.stopPropagation();
+
+      // Check if the clicked element has analytics data
+      const analyticsItem = e.target.closest('[data-analytics-item]');
+      if (analyticsItem && onItemClick) {
+        const itemType = analyticsItem.getAttribute('data-analytics-item');
+        const label = analyticsItem.getAttribute('data-analytics-label');
+        const target = analyticsItem.getAttribute('data-analytics-target');
+
+        onItemClick({
+          itemType: itemType,
+          label: label,
+          target: target
+        });
+      }
+
       const preventClose = e.target.closest('[data-prevent-close="true"]');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
-        setIsOpen(false);
+        setDropdownState(false);
+        onClose && onClose();
       }
     }
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
-          setIsOpen(false);
+          setDropdownState(false);
+          onClose && onClose();
       }
     };
     const handleClickOutside = (event) => {
@@ -190,7 +220,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             wrapperRef.current &&
             !wrapperRef.current.contains(event.target)
         ) {
-            setIsOpen(false);
+            setDropdownState(false);
+            onClose && onClose();
         }
     };
 
@@ -204,15 +235,15 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     }, []);
 
     useEffect(() => {
-        if (isOpen && menuRef.current) {
+        if (dropdownState && menuRef.current) {
             Util.focusFirstElement(menuRef.current);
         }
-    }, [isOpen]);
+    }, [dropdownState]);
 
     const handleMenuKeyDown = (e) => {
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
-            onClose: () => setIsOpen(false),
+            onClose: () => setDropdownState(false),
             returnFocusRef: buttonRef.current
         });
     };
@@ -241,7 +272,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
               })}
           </div>
           <div 
-            className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} 
+            className={`dropdownLinks-menu ${ dropdownState ? "open" : "closed"}`} 
             onClick={handleContentsClick}
             ref={menuRef}
             onKeyDown={handleMenuKeyDown}
