@@ -161,7 +161,7 @@ const ModuleSwitcher = () => {
                   onItemClick={trackItemClick}>
                     
       <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsText="About">
+        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsText="About Sefaria">
           <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
 
         </DropdownMenuItem>
@@ -186,7 +186,7 @@ const ModuleSwitcher = () => {
           dotColor={'--devportal-purple'}
           text={{ en: "Developers", he: Sefaria._("Developers") }} />
         <DropdownMenuSeparator />
-        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
+        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsText="More">
           <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
         </DropdownMenuItem>
       </div>
