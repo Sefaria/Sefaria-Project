@@ -23,6 +23,45 @@ import json
 logger = structlog.get_logger(__name__)
 
 
+def get_lang_code_from_interface_lang(interface_lang):
+    """
+    Convert interface language string to short code.
+
+    Args:
+        interface_lang: "english" or "hebrew"
+    Returns:
+        "en" or "he"
+    """
+    return "he" if interface_lang == "hebrew" else "en"
+
+
+def get_domain_for_lang_and_module(lang_code, module):
+    """
+    Get the domain URL for a specific language code and module.
+
+    Args:
+        lang_code: "en" or "he"
+        module: module name (e.g., "library", "voices")
+    Returns:
+        Domain URL string or None if not found
+    """
+    return settings.DOMAIN_MODULES.get(lang_code, {}).get(module)
+
+
+def current_domain_lang(request):
+    """
+    Returns the pinned language for the current domain, or None if current domain is not pinned.
+    Uses DOMAIN_LANGUAGES for backward compatibility.
+    """
+    current_domain = request.get_host()
+    domain_lang = None
+    for protocol in ("https://", "http://"):
+        full_domain = protocol + current_domain
+        if full_domain in settings.DOMAIN_LANGUAGES:
+            domain_lang = settings.DOMAIN_LANGUAGES[full_domain]
+    return domain_lang
+
+
 
 class MiddlewareURLMixin:
     excluded_url_names = set()  # Set of URL names to exclude
@@ -101,20 +140,31 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         if domain_lang and domain_lang != interface:
             # For crawlers, don't redirect -- just return the pinned language
-            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider", 
+            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
             if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
-                redirect_domain = None
-                for domain in settings.DOMAIN_LANGUAGES:
-                    if settings.DOMAIN_LANGUAGES[domain] == interface:
-                        redirect_domain = domain
+                # Get the current module to preserve it when redirecting
+                current_module = getattr(request, 'active_module', LIBRARY_MODULE)
+                target_lang_code = get_lang_code_from_interface_lang(interface)
+                redirect_domain = get_domain_for_lang_and_module(target_lang_code, current_module)
+
                 if redirect_domain:
-                    # When detected language doesn't match current domain langauge, redirect
+                    # When detected language doesn't match current domain language, redirect
+                    # while preserving the current module
                     path = request.get_full_path()
                     path = path + ("&" if "?" in path else "?") + "set-language-cookie"
+                    logger.info(
+                        "LanguageSettingsMiddleware: Redirecting to match interface language",
+                        current_domain=request.get_host(),
+                        current_module=current_module,
+                        target_lang=interface,
+                        target_lang_code=target_lang_code,
+                        redirect_domain=redirect_domain,
+                        path=path
+                    )
                     return redirect(redirect_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language
@@ -178,11 +228,11 @@ class LanguageCookieMiddleware(MiddlewareMixin):
 
             # Get current module to ensure we stay on the correct module's domain
             current_module = getattr(request, "active_module", LIBRARY_MODULE)
-            lang_code = "en" if lang == "english" else "he"
+            lang_code = get_lang_code_from_interface_lang(lang)
 
             # Look up domain from DOMAIN_MODULES instead of DOMAIN_LANGUAGES
             # to ensure module-aware redirection
-            target_domain = settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
+            target_domain = get_domain_for_lang_and_module(lang_code, current_module)
 
             path = quote(request.path, safe='/')
             params = request.GET.copy()
@@ -207,19 +257,6 @@ class LanguageCookieMiddleware(MiddlewareMixin):
                 p.save()
                 logger.debug("LanguageCookieMiddleware: Saved to user profile", user_id=request.user.id)
             return response
-
-
-def current_domain_lang(request):
-    """
-    Returns the pinned language for the current domain, or None if current domain is not pinned.
-    """
-    current_domain = request.get_host()
-    domain_lang = None
-    for protocol in ("https://", "http://"):
-        full_domain = protocol + current_domain
-        if full_domain in settings.DOMAIN_LANGUAGES:
-            domain_lang = settings.DOMAIN_LANGUAGES[full_domain]
-    return domain_lang
 
 
 class CORSDebugMiddleware(MiddlewareMixin):
