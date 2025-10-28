@@ -518,13 +518,12 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  getModuleURL: function(module=null, interfaceLang=null) {
+  getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
     module = module || Sefaria.activeModule;
-    interfaceLang = interfaceLang || Sefaria.interfaceLang;
-    const langCode = interfaceLang === "hebrew" ? "he" : "en";
+    const langCode = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
     const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
     try {
       return new URL(href);
