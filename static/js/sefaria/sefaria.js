@@ -2668,8 +2668,9 @@ _media: {},
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
       const skip = Sefaria.userHistory.items.length;
-      const sheets_only = Number(Sefaria.activeModule === Sefaria.VOICES_MODULE);
-      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}&sheets_only=${sheets_only}`;
+      const saved = 0;
+      const sheetsOnly = Number(Sefaria.activeModule === Sefaria.VOICES_MODULE);
+      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}&saved=${saved}&sheets_only=${sheetsOnly}`;
       fetch(url)
           .then(response => response.json())
           .then(data => {

@@ -122,12 +122,12 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     setItems(store.loaded ? store.items : null);
   }, [menuOpen]);
   
-  const savedParam = menuOpen === 'saved' ? '&saved=1' : '';
-  const sheetsOnlyParam = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '&sheets_only=1' : '';
+  const saved = Number(menuOpen === 'saved');
+  const sheetsOnly = Number(Sefaria.activeModule === Sefaria.VOICES_MODULE);
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
-    url: "/api/profile/user_history?secondary=0&annotate=1" + savedParam + sheetsOnlyParam,
+    url: `/api/profile/user_history?secondary=0&annotate=1&saved=${saved}&sheets_only=${sheetsOnly}`,
     setter: data => {
       if (!store.loaded) {
         store.items = []; // Initialize items only once
