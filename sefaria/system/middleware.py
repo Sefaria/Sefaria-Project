@@ -12,7 +12,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_short_lang
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse
@@ -21,18 +21,6 @@ from sefaria.constants.model import LIBRARY_MODULE
 import structlog
 import json
 logger = structlog.get_logger(__name__)
-
-
-def get_lang_code_from_interface_lang(interface_lang):
-    """
-    Convert interface language string to short code.
-
-    Args:
-        interface_lang: "english" or "hebrew"
-    Returns:
-        "en" or "he"
-    """
-    return "he" if interface_lang == "hebrew" else "en"
 
 
 def get_domain_for_lang_and_module(lang_code, module):
@@ -53,20 +41,17 @@ def current_domain_lang(request):
     Returns the pinned language for the current domain, or None if current domain is not pinned.
     Uses DOMAIN_MODULES to detect which language the current domain belongs to.
     """
-    current_domain = request.get_host()
+    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
+        return None
 
-    # Check DOMAIN_MODULES - find which language contains the current domain
-    if hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES:
-        for protocol in ("https://", "http://"):
-            full_domain = protocol + current_domain
-            # Iterate through each language's module dictionary
-            for lang_code, modules in settings.DOMAIN_MODULES.items():
-                if isinstance(modules, dict):
-                    # Check if current domain matches any module URL in this language
-                    for module_name, module_url in modules.items():
-                        if module_url == full_domain:
-                            # Map 'en' to 'english', 'he' to 'hebrew'
-                            return 'english' if lang_code == 'en' else 'hebrew' if lang_code == 'he' else lang_code
+    current_hostname = urlparse(f"http://{request.get_host()}").hostname
+
+    for lang_code, modules in settings.DOMAIN_MODULES.items():
+        if not isinstance(modules, dict):
+            continue
+        for module_url in modules.values():
+            if urlparse(module_url).hostname == current_hostname:
+                return 'english' if lang_code == 'en' else 'hebrew'
 
     return None
 
@@ -157,7 +142,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             else:
                 # Get the current module to preserve it when redirecting
                 current_module = getattr(request, 'active_module', LIBRARY_MODULE)
-                target_lang_code = get_lang_code_from_interface_lang(interface)
+                target_lang_code = get_short_lang(interface)
                 redirect_domain = get_domain_for_lang_and_module(target_lang_code, current_module)
 
                 if redirect_domain:
@@ -221,7 +206,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
         if "set-language-cookie" in request.GET and lang:
             # Get current module to ensure we stay on the correct module's domain
             current_module = getattr(request, "active_module", LIBRARY_MODULE)
-            lang_code = get_lang_code_from_interface_lang(lang)
+            lang_code = get_short_lang(lang)
 
             # Look up domain from DOMAIN_MODULES to ensure module-aware redirection
             target_domain = get_domain_for_lang_and_module(lang_code, current_module)

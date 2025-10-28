@@ -524,11 +524,6 @@ def short_to_long_lang_code(code):
         code = "english"
     return code
 
-def get_language_specific_domain_modules(interfaceLang):
-    interface_lang_code = get_short_lang(interfaceLang)
-    language_specific_domain_modules = settings.DOMAIN_MODULES.get(interface_lang_code, settings.DOMAIN_MODULES['en'])
-    return language_specific_domain_modules
-
 def get_short_lang(language):
     """
     Converts a language to a code.
