@@ -529,6 +529,23 @@ def get_language_specific_domain_modules(interfaceLang):
     language_specific_domain_modules = settings.DOMAIN_MODULES.get(interface_lang_code, settings.DOMAIN_MODULES['en'])
     return language_specific_domain_modules
 
+def get_module_aware_domain(target_language, current_module):
+    """
+    Get the target domain for a specific language and module combination.
+    :param target_language: 'english' or 'hebrew'
+    :param current_module: 'library' or 'voices'
+    :return: Full domain URL for the target language/module combination
+    """
+    target_lang_code = get_short_lang(target_language)
+    
+    if target_lang_code in settings.DOMAIN_MODULES:
+        module_domains = settings.DOMAIN_MODULES[target_lang_code]
+        if current_module in module_domains:
+            return module_domains[current_module]
+    
+    # Fallback to English library if not found
+    return settings.DOMAIN_MODULES.get('en', {}).get('library', '/')
+
 def get_short_lang(language):
     """
     Converts a language to a code.

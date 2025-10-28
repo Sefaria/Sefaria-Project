@@ -89,6 +89,8 @@ from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
 
+from sefaria.utils.util import get_module_aware_domain
+
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
@@ -1314,8 +1316,9 @@ def terms_editor(request, term=None):
 def interface_language_redirect(request, language):
     """
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
-    and redirects to `next` url param.
+    and redirects to `next` url param while preserving module context.
     """
+    
     next = request.GET.get("next")
     if not next or not is_safe_url(
         url=next,
@@ -1323,11 +1326,32 @@ def interface_language_redirect(request, language):
     ):
         next = "/"
 
-    for domain in DOMAIN_LANGUAGES:
-        if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
-            next = domain + next
-            next = next + ("&" if "?" in next else "?") + "set-language-cookie"
-            break
+    # Get current module context, default to library
+    current_module = getattr(request, 'active_module', None)
+    
+    # If module is not set, try to detect it from the current domain
+    if not current_module:
+        from sefaria.system.middleware import ModuleMiddleware
+        middleware = ModuleMiddleware(lambda r: None)
+        current_module = middleware._set_active_module(request)
+    
+    # Find target domain using module-aware lookup
+    target_domain = get_module_aware_domain(language, current_module)
+    
+    # Check if we need to redirect to a different domain
+    current_host = request.get_host()
+    target_host = urlparse(target_domain).netloc if target_domain.startswith('http') else target_domain
+    
+    if target_host and current_host != target_host:
+        # Clean up the next path - remove /texts if it's the only path for voices module
+        if current_module == 'voices' and next == '/texts':
+            next = '/'
+        # For library module, preserve /texts path
+        elif current_module == LIBRARY_MODULE and next == '/':
+            next = '/texts'
+            
+        next = target_domain + next
+        next = next + ("&" if "?" in next else "?") + "set-language-cookie"
 
     response = redirect(next)
 
