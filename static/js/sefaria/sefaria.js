@@ -3312,9 +3312,9 @@ _media: {},
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     },
-    getSheetTitle: function(sheet) {
+    getSheetTitle: function(title) {
       // Returns a sheet's title with fallback to "Untitled" 
-      return sheet?.title?.stripHtml() || Sefaria._("Untitled");
+      return title?.stripHtml() || Sefaria._("Untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
