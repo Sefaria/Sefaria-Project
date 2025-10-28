@@ -3395,6 +3395,9 @@ a.cardTitle:hover {
   margin: 30px 0;
   width: 33%;
 }
+.singlePanel .sheetContentSidebar {
+  width: 0;
+}
 .bookPage .currentSection,
 .bookPage .authorStatement {
   font-size: 17px;
