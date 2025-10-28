@@ -64,10 +64,9 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
            className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
            onKeyDown={(e) => Util.handleKeyboardClick(e)}
         >
-        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-        <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
-        <InterfaceText>Notes</InterfaceText>
-      </a> }
+          <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
+          <InterfaceText>Notes</InterfaceText>
+        </a> }
     </span>
   );
 
@@ -116,6 +115,32 @@ UserHistoryPanel.propTypes = {
 };
 
 
+const dedupeItems = (items, saved) => {
+  /*
+  Deduplicates consecutive items with the same book or sheet_id.  In 'saved' mode, we don't deduplicate.
+  :param items: list of UserHistory objects to deduplicate
+  :param saved: bool: True if the items are saved, False if not
+  :return: list of deduplicated items
+  */
+  if (saved) {
+    return items; // Don't deduplicate saved items
+  }
+  
+  const deduped = [];
+  let prev = {};
+  
+  for (const item of items) {
+    const key = item.is_sheet ? 'sheet_id' : 'book';
+    if (item[key] !== prev[key]) {
+      deduped.push(item);
+      prev = item;
+    }
+  }
+  
+  return deduped;
+};
+
+
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
   
@@ -131,12 +156,11 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
         store.loaded = true;
       }
 
-      // Push the data into the store (already filtered and deduped by backend)
+      // Push the raw data into the store (no deduping yet)
       store.items.push(...data);
 
-      // Update the state with the modified items array
-      setItems(store.items.slice());
-
+      // Deduplicate when displaying (for history only, not saved)
+      setItems(dedupeItems(store.items.slice(), menuOpen === 'saved'));
     },
     itemsPreLoaded: items ? items.length : 0,
   });

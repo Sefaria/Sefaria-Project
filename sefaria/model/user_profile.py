@@ -215,28 +215,8 @@ class UserHistory(abst.AbstractMongoRecord):
             query["last_place"] = last_place
         if serialized:
             items = [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
-            deduped_items = UserHistory.deduplicate_items(items, saved=saved)
-            return deduped_items
+            return items 
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
-        
-    @staticmethod
-    def deduplicate_items(items, saved=False):
-        """
-        Deduplicates consecutive items with the same book or sheet_id.  In 'saved' mode, we don't deduplicate.
-        :param items: list of UserHistory objects to deduplicate
-        :param saved: bool: True if the items are saved, False if not
-        :return: list of deduplicated items
-        """
-        if not saved:
-            deduped_items = []
-            prev = {}
-            for item in items:
-                key = 'sheet_id' if item.get('is_sheet') else 'book'
-                if item.get(key) != prev.get(key):
-                    deduped_items.append(item)
-                    prev = item
-            return deduped_items
-        return items
 
     @staticmethod
     def delete_user_history(uid, exclude_saved=True, exclude_last_place=False):
