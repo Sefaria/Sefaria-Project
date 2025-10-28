@@ -165,15 +165,6 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                     # while preserving the current module
                     path = request.get_full_path()
                     path = path + ("&" if "?" in path else "?") + "set-language-cookie"
-                    logger.info(
-                        "LanguageSettingsMiddleware: Redirecting to match interface language",
-                        current_domain=request.get_host(),
-                        current_module=current_module,
-                        target_lang=interface,
-                        target_lang_code=target_lang_code,
-                        redirect_domain=redirect_domain,
-                        path=path
-                    )
                     return redirect(redirect_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language
@@ -228,19 +219,11 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            logger.info(
-                "LanguageCookieMiddleware: set-language-cookie param detected",
-                current_host=request.get_host(),
-                current_path=request.path,
-                detected_lang=lang
-            )
-
             # Get current module to ensure we stay on the correct module's domain
             current_module = getattr(request, "active_module", LIBRARY_MODULE)
             lang_code = get_lang_code_from_interface_lang(lang)
 
-            # Look up domain from DOMAIN_MODULES instead of DOMAIN_LANGUAGES
-            # to ensure module-aware redirection
+            # Look up domain from DOMAIN_MODULES to ensure module-aware redirection
             target_domain = get_domain_for_lang_and_module(lang_code, current_module)
 
             path = quote(request.path, safe='/')
@@ -250,21 +233,12 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             params_string = "?" + params_string if params_string else ""
             final_url = target_domain + path + params_string
 
-            logger.info(
-                "LanguageCookieMiddleware: Setting cookie and redirecting",
-                language=lang,
-                current_module=current_module,
-                lang_code=lang_code,
-                target_domain=target_domain,
-                redirect_to=final_url
-            )
             response = redirect(final_url)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()
-                logger.debug("LanguageCookieMiddleware: Saved to user profile", user_id=request.user.id)
             return response
 
 
@@ -334,40 +308,12 @@ class ModuleMiddleware(MiddlewareURLMixin):
         """
         current_hostname = urlparse(f"http://{request.get_host()}").hostname
 
-        logger.info(
-            "ModuleMiddleware._set_active_module: Starting module detection",
-            current_host=request.get_host(),
-            current_hostname=current_hostname,
-            domain_modules=settings.DOMAIN_MODULES
-        )
-
-        for lang_code, lang_modules in settings.DOMAIN_MODULES.items():
-            logger.debug(
-                "ModuleMiddleware: Checking language",
-                lang_code=lang_code,
-                modules=lang_modules
-            )
+        for lang_modules in settings.DOMAIN_MODULES.values():
             for module_name, module_domain in lang_modules.items():
                 module_hostname = urlparse(module_domain).hostname
-                logger.debug(
-                    "ModuleMiddleware: Checking module",
-                    module_name=module_name,
-                    module_domain=module_domain,
-                    module_hostname=module_hostname,
-                    matches=(current_hostname == module_hostname)
-                )
                 if current_hostname == module_hostname:
-                    logger.info(
-                        "ModuleMiddleware: Module matched",
-                        detected_module=module_name,
-                        matched_domain=module_domain
-                    )
                     return module_name
 
-        logger.info(
-            "ModuleMiddleware: No module match, using default",
-            default_module=self.default_module
-        )
         return self.default_module
             
     
