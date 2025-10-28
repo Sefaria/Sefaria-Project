@@ -529,7 +529,6 @@ Sefaria = extend(Sefaria, {
     try {
       return new URL(href);
     } catch (e) {
-      console.error('[Sefaria.getModuleURL] Failed to create URL', { href, error: e });
       return false;
     }
   },
