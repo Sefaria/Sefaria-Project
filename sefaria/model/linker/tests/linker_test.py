@@ -36,33 +36,38 @@ crrd = create_raw_ref_data
 
 def test_multiple_ambiguities():
     """
-    Test that multiple ambiguities are handled correctly by the linker.
+    Exercise ambiguity resolution while simulating sequential ibid-history updates
+    using bulk_resolve (which updates history between items).
     """
-    # Initialize linker and reference resolver
     linker = library.get_linker('en')
     ref_resolver = linker._ref_resolver
 
-    # Set ibid history context
+    # Seed two different last matches to make the ambiguity meaningful
     ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
     ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
 
-    # Raw references setup
-    raw_refs = [
-        create_raw_ref_data(["&ibid."], lang='en'),
-        create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
-    ]
+    # Minimal ibid chain: first plain ibid, then ibid with verse 39
+    # create_raw_ref_data(...) usually returns (raw_ref, context, lang, ...)
+    r1 = create_raw_ref_data(["&ibid."], lang='en')
+    r2 = create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
 
-    matches = [
-        ref_resolver.resolve_raw_ref(context, raw)[0]
-        for raw, context, *_ in raw_refs
-    ]
+    raw_refs = [r1[0], r2[0]]
 
-    assert matches[0].is_ambiguous
-    assert matches[1].is_ambiguous
-    assert {ref.ref for ref in matches[0].resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
-    assert {ref.ref for ref in matches[1].resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
+    # Run through the resolver in order, preserving seeded ibids
+    resolved = ref_resolver.bulk_resolve(
+        raw_refs,
+        book_context_ref=None,
+        reset_ibids=False,
+    )
 
+    m0 = resolved[0]
+    m1 = resolved[1]
 
+    # Expectations: both ambiguous between the two seeded books; verse 39 maps accordingly
+    assert m0.is_ambiguous
+    assert m1.is_ambiguous
+    assert {ref.ref for ref in m0.resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
+    assert {ref.ref for ref in m1.resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
 
 
 
