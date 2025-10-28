@@ -57,7 +57,7 @@ from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, parse_bool
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
@@ -1431,20 +1431,44 @@ def modtools_upload_workflowy(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
-    c_index = request.POST.get("c_index", False)
-    c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    # Handle both single and multiple file uploads
+    files = []
+    if 'wf_file' in request.FILES:
+        # Single file upload (backward compatibility)
+        files = [request.FILES['wf_file']]
+    elif 'workflowys[]' in request.FILES:
+        # Multiple file upload
+        files = request.FILES.getlist("workflowys[]")
+    else:
+        return jsonResponse({"error": "No files provided. Use 'wf_file' for single file or 'workflowys[]' for multiple files."})
+
+    # Handle checkbox parameters - support both boolean and string formats
+    c_index = parse_bool(request.POST.get("c_index", False))
+    c_version = parse_bool(request.POST.get("c_version", False))
+    
+    delims = request.POST.get("delims", None) if len(request.POST.get("delims", "")) else None
+    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", "")) else None
 
     uid = request.user.id
-    try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
-        res = wfparser.parse()
-    except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
-    return jsonResponse({"status": "ok", "data": res})
+    # Process files - collect both successes and errors
+    successes = []
+    failures = []
+
+    for file in files:
+        try:
+            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                raise InputError(res['error'])
+            successes.append(file.name)
+        except Exception as e:
+            failures.append({"file": file.name, "error": str(e)})
+
+    return jsonResponse({
+        "successes": successes,
+        "failures": failures
+    })
 
 @staff_member_required
 def links_upload_api(request):
