@@ -145,7 +145,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk):
         existing.delete()
 
 @app.task(name="linker.delete_and_save_new_links")
-def delete_and_save_new_links(payload: dict) -> list[dict]:
+def delete_and_save_new_links(payload: dict) -> None:
     if not payload:
         return []
 
