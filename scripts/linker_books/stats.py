@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # for x in yo:
     #     print(x.title)
     # print(len(yo))
-    where_term_is_used("seder-olam-rabbah")
+    where_term_is_used("mekhilta-derabbi-yishmael")
 
 """
 of
