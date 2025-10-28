@@ -103,6 +103,10 @@ venv/
 ##################
 /data/backup
 
+# Devcontainer Mongo backups #
+##############################
+/.devcontainer/sefaria-mongo-backup/
+
 # Private Data Files # 
 ##################
 /data/private
