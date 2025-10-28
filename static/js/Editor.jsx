@@ -3296,7 +3296,8 @@ const SefariaEditor = (props) => {
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
                             sheetOptions={sheetOptions}
-                            showGuide={props.showGuide}/>
+                            showGuide={props.showGuide}
+                            toggleSignUpModal={props.toggleSignUpModal}/>
               </span>
           <span  ref={editorContentContainer}>
             {canUseDOM &&

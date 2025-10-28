@@ -6,14 +6,6 @@ import { UserBackground } from "../UserProfile";
 import { EditorSaveStateIndicator } from "../Editor";
 
 const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModal, collections, topics, editorSaveState}) => {
-    const [loading, setLoading] = useState(true);
-    const [profile, setProfile] = useState(null);
-    useEffect(() => {
-        Sefaria.profileAPI(authorUrl.replace("/profile/", "")).then(profile => {
-            setProfile(profile);
-            setLoading(false);
-        })
-    });
     const authorName = <a href={authorUrl} className="sheetAuthorName">
                                     {Sefaria._(authorStatement)}
                                 </a>;
@@ -25,13 +17,29 @@ const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModa
                 name={authorStatement}
             />
             {authorName}
-            {!loading && <SheetProfileInfo profile={profile} toggleSignUpModal={toggleSignUpModal}/>}
+            <SheetProfileInfo authorUrl={authorUrl} toggleSignUpModal={toggleSignUpModal}/>
             {topics.length > 0 && <SheetSidebarList items={topics} type={"topics"}/>}
             {collections.length > 0 && <SheetSidebarList items={collections} type={"collections"}/>}
     </div>;
 }
 
-const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
+export const SheetProfileInfo = ({authorUrl, toggleSignUpModal}) => {
+    const [loading, setLoading] = useState(true);
+    const [profile, setProfile] = useState(null);
+    
+    useEffect(() => {
+        if (authorUrl) {
+            Sefaria.profileAPI(authorUrl.replace("/profile/", "")).then(profile => {
+                setProfile(profile);
+                setLoading(false);
+            });
+        }
+    }, [authorUrl]);
+    
+    if (loading || !profile) {
+        return null;
+    }
+    
     const profileFollowers = <div className="profileFollowers">
                                              <InterfaceText>{String(profile.followers.length)}</InterfaceText>&nbsp;
                                              <InterfaceText>followers</InterfaceText>

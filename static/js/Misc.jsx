@@ -31,6 +31,7 @@ import {
   DropdownMenuItemWithIcon,
 } from "./common/DropdownMenu";
 import Button from "./common/Button";
+import {SheetProfileInfo} from "./sheets/SheetSidebar";
 
 function useOnceFullyVisible(onVisible, key) {
   const targetRef = useRef(null);
@@ -3099,7 +3100,7 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide, authorUrl, toggleSignUpModal}) => {
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
@@ -3114,6 +3115,7 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
                                                        className="summary"
                                                        editable={editable}
                                                        blurCallback={summaryCallback}/>}
+    {!Sefaria.multiPanel && <SheetProfileInfo authorUrl={authorUrl} toggleSignUpModal={toggleSignUpModal}/>}
   </div>
 }
 
