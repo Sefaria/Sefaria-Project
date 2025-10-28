@@ -34,6 +34,39 @@ def test_resolved_raw_ref_clone():
 
 crrd = create_raw_ref_data
 
+def test_multiple_ambiguities():
+    """
+    Exercise ambiguity resolution while simulating sequential ibid-history updates
+    using bulk_resolve (which updates history between items).
+    """
+    linker = library.get_linker('en')
+    ref_resolver = linker._ref_resolver
+
+    # Seed two different last matches to make the ambiguity meaningful
+    ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
+    ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
+
+    # create_raw_ref_data(...) usually returns (raw_ref, context, lang, ...)
+    r1 = create_raw_ref_data(["&ibid."], lang='en')
+    r2 = create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
+
+    raw_refs = [r1[0], r2[0]]
+
+    resolved = ref_resolver.bulk_resolve(
+        raw_refs,
+        book_context_ref=None,
+        reset_ibids=False,
+    )
+
+    m0 = resolved[0]
+    m1 = resolved[1]
+
+    # Expectations: both ambiguous between the two seeded books
+    assert m0.is_ambiguous
+    assert m1.is_ambiguous
+    assert {ref.ref for ref in m0.resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
+    assert {ref.ref for ref in m1.resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
+
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
