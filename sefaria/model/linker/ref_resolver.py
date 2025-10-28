@@ -321,7 +321,7 @@ class RefResolver:
             self.reset_ibid_history()
         elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
             for r in temp_resolved:
-                if getattr(r, "is_ambiguous", False):
+                if r.is_ambiguous:
                     for rr in r.resolved_raw_refs:
                         if rr.ref is None:
                             continue
