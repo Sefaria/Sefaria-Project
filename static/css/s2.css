@@ -749,6 +749,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding-block-start: 5px;
   padding-block-end: 2px;
 }
+.globeLanguageToggle .languageHeader {
+  padding: 12px;
+  border-bottom: 1px solid #CCCCCC;
+}
 
 .header .interfaceLinks {
   display: flex;
@@ -840,7 +844,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 4px;
   max-width: 220px;
 }
-.header .interfaceLinks .interfaceLinks-option {
+.header .interfaceLinks .interfaceLinks-option,
+.globeLanguageToggle .englishLanguageLink,
+.globeLanguageToggle .hebrewLanguageLink {
   display: flex;
   text-decoration: none;
   font-style: normal;
@@ -864,7 +870,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
+.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi,
+.interface-hebrew .globeLanguageToggle .englishLanguageLink,
+.interface-hebrew .globeLanguageToggle .hebrewLanguageLink {
   direction: rtl;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
@@ -926,7 +934,9 @@ div.interfaceLinks-row a {
 .header .profile-menu-he {
   color: var(--dark-grey);
 }
-.header .interfaceLinks-option::before {
+.header .interfaceLinks-option::before,
+.globeLanguageToggle .hebrewLanguageLink::before,
+.globeLanguageToggle .englishLanguageLink::before {
   content: "";
   font-family: FontAwesome;
   color: var(--dark-grey);
@@ -943,11 +953,15 @@ a.interfaceLinks-option.int-bi.inactive {
 a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   padding: 7px;
 }
-.header .interfaceLinks-option.active::before {
+.header .interfaceLinks-option.active::before,
+.globeLanguageToggle .hebrewLanguageLink.active::before,
+.globeLanguageToggle .englishLanguageLink.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
-.header .interfaceLinks-option.inactive::before {
+.header .interfaceLinks-option.inactive::before,
+.globeLanguageToggle .hebrewLanguageLink::before,
+.globeLanguageToggle .englishLanguageLink::before {
   content: "";
   padding: 0 15px;
 }
@@ -14975,7 +14989,9 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .content .contentInner {
   width: 875px;
 }
-.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar,
+.sheetsHomepage .sidebarLayout .sheetsTopicTOC,
+.sheetsHomepage .sidebarLayout .voicesBodyTitle {
   margin-inline-start: 10%;
 }
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
@@ -15010,7 +15026,7 @@ span.ref-link-color-3 {color: blue}
   margin-bottom: 10px;
 }
 .singlePanel .sheetsHomepage .sidebarLayout {
-  margin-top: revert;
+  margin-top: 15px;
 }
 
 .singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
@@ -15185,6 +15201,9 @@ span.ref-link-color-3 {color: blue}
 } */
 .header .headerDropdownMenu .dropdownLinks-menu a {
   color: #000000;
+}
+.header .headerDropdownMenu .dropdownLinks-menu .globeLanguageToggle a {
+  color: #666666;
 }
 .sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
@@ -15594,6 +15613,19 @@ span.ref-link-color-3 {color: blue}
   padding-inline: 15px;
   margin-top: 7px;
 }
+.globeLanguageToggle .dropdownLanguageToggle {
+  flex-direction: column;
+  align-items: unset;
+  height: unset;
+  padding: 4px 0;
+}
+.interface-hebrew .globeLanguageToggle .dropdownLanguageToggle {
+  flex-direction: column-reverse;
+}
+.globeLanguageToggle .englishLanguageLink:hover,
+.globeLanguageToggle .hebrewLanguageLink:hover {
+  background-color: var(--lighter-grey);
+}
 .interface-english .dropdownLanguageToggle a.hebrewLanguageLink,
 .interface-hebrew .dropdownLanguageToggle a.englishLanguageLink {
   color: #666666;
@@ -15604,11 +15636,14 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 2px;
 }
 
-
-
 .englishLanguageButton::after {
   content: "•";
   padding: 6px;
+}
+
+.globeLanguageToggle .englishLanguageButton::after {
+  content: none;
+  padding: unset;
 }
 
 .profilePicAndButtonContainer {
