@@ -39,15 +39,8 @@ const NextRedirectAnchor = ({url, children, className}) => {
     e.preventDefault();
     const currentPath = Sefaria.util.currentPath();
     const targetUrl = `${url}?next=${encodeURIComponent(currentPath)}`;
-    console.log('[DropdownMenu] Language/navigation link clicked', {
-      url,
-      currentPath,
-      targetUrl,
-      currentModule: Sefaria.activeModule,
-      currentLang: Sefaria.interfaceLang
-    });
     window.location.href = targetUrl;
-  }
+  };
   return (
     <a className={className || 'interfaceLinks-option int-bi dropdownItem'}
        href='#'
@@ -142,21 +135,9 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
     fullURL += separator + 'set-language-cookie';
   }
 
-  const onClick = (e) => {
-    console.log('[DropdownModuleItem] Module switch clicked', {
-      targetModule,
-      url,
-      fullURL,
-      currentModule: Sefaria.activeModule,
-      currentLang: Sefaria.interfaceLang,
-      newTab
-    });
-  };
-
   return (
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}
-       onClick={onClick}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
        target={newTab ? '_blank' : null}>
       <div className="dropdownHeader">
