@@ -93,8 +93,6 @@ def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
 
     # Prepare the minimal info the next task needs
     linked_refs = sorted({s["ref"] for s in spans})  # unique + stable
-    print("tracking_args.kwargs", linking_args.kwargs)
-    print(type(linking_args.kwargs))
     return {
         "ref": linking_args.ref,
         "linked_refs": linked_refs,
@@ -212,10 +210,3 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
 
     # Use canvas piping to chain:
     return (sig1 | sig2).apply_async()
-
-def enqueue_linking_chain_debug(linking_args: LinkingArgs):
-    from dataclasses import asdict
-    payload = link_segment_with_worker_logic(asdict(linking_args))  # sync, hits breakpoints
-    if payload is None:  # mirror the chain's stop-on-none behavior
-        return []
-    return delete_and_save_new_links_logic(payload)
