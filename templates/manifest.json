@@ -1,6 +1,8 @@
-{% load static %}{
-  "name": "{% if active_module == 'voices' %}{% if is_hebrew %}ספריא חיבורים{% else %}Sefaria Voices{% endif %}{% else %}{% if is_hebrew %}ספריא ספרייה{% else %}Sefaria Library{% endif %}{% endif %}",
-  "short_name": "{% if active_module == 'voices' %}{% if is_hebrew %}חיבורים{% else %}Voices{% endif %}{% else %}{% if is_hebrew %}ספרייה{% else %}Library{% endif %}{% endif %}",
+{% load static %}
+{% load i18n %}
+{
+  "name": "{% if active_module == 'voices' %}Sefaria {% trans 'Voices' %}{% else %}Sefaria {% trans 'Library' %}{% endif %}",
+  "short_name": "{% if active_module == 'voices' %}{% trans 'Voices' %}{% else %}{% trans 'Library' %}{% endif %}",
   "start_url": "{{ start_url }}",
   "scope": "{{ scope }}",
   "icons": [
