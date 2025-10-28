@@ -251,10 +251,9 @@ class ModuleMiddleware(MiddlewareURLMixin):
         """
         current_hostname = urlparse(f"http://{request.get_host()}").hostname
 
-        for lang_modules in settings.DOMAIN_MODULES.values():
-            for module_name, module_domain in lang_modules.items():
-                module_hostname = urlparse(module_domain).hostname
-                if current_hostname == module_hostname:
+        for module in settings.DOMAIN_MODULES.values():
+            for module_name, module_domain in module.items():
+                if current_hostname == urlparse(module_domain).hostname:
                     return module_name
 
         return self.default_module
