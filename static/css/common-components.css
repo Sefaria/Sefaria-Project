@@ -2,7 +2,7 @@
 button.sefaria-common-button,
 a.sefaria-common-button {
     all: unset; /* Resets all properties */
-    display: inline-block; /* Ensure button remains an inline element */
+    display: inline-flex; /* Ensure button remains an inline element */
     box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
     margin: 0; /* Reset margin */
     padding: 0; /* Reset padding */
@@ -51,7 +51,6 @@ a.sefaria-common-button {
     cursor: pointer;
     font-size: 16px;
     box-sizing: border-box;
-    display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1; 

@@ -10,35 +10,24 @@ import {
   GlobalWarningMessage,
   InterfaceLanguageMenu,
   InterfaceText,
-  getCurrentPage,
   LanguageToggleButton,
   DonateLink,
   useOnceFullyVisible
 } from './Misc';
 import { ProfilePic } from "./ProfilePic";
 import { HeaderAutocomplete } from './HeaderAutocomplete'
-import { DropdownMenu, DropdownMenuSeparator, DropdownMenuItem, DropdownModuleItem, DropdownLanguageToggle } from './common/DropdownMenu';
+import {
+  DropdownMenu,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+  DropdownModuleItem,
+  DropdownLanguageToggle,
+  NextRedirectAnchor
+} from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
 
-const LoggedOutDropdown = ({ module }) => {
-  const [isClient, setIsClient] = useState(false);
-  const [next, setNext] = useState("/");
-  const [loginLink, setLoginLink] = useState("/login?next=/");
-  const [registerLink, setRegisterLink] = useState("/register?next=/");
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (isClient) {
-      setNext(encodeURIComponent(Sefaria.util.currentPath()));
-      setLoginLink("/login?next=" + next);
-      setRegisterLink("/register?next=" + next);
-    }
-  })
-
+const LoggedOutDropdown = ({module}) => {
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
       <button className="header-dropdown-button" aria-label={Sefaria._("Account menu")}>
@@ -46,12 +35,12 @@ const LoggedOutDropdown = ({ module }) => {
       </button>
     }>
       <div className='dropdownLinks-options'>
-        <DropdownMenuItem url={loginLink}>
+        <NextRedirectAnchor url='/login'>
           <InterfaceText text={{ 'en': 'Log in', 'he': 'התחברות' }} />
-        </DropdownMenuItem>
-        <DropdownMenuItem url={registerLink}>
+        </NextRedirectAnchor>
+        <NextRedirectAnchor url='/register'>
           <InterfaceText text={{ 'en': 'Sign up', 'he': 'להרשמה' }} />
-        </DropdownMenuItem>
+        </NextRedirectAnchor>
         <DropdownMenuSeparator />
         <DropdownLanguageToggle />
         <DropdownMenuSeparator />
@@ -369,37 +358,24 @@ Header.propTypes = {
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly }) => {
-  const [isClient, setIsClient] = useState(false);
-  const [next, setNext] = useState("/");
-  const [loginLink, setLoginLink] = useState("/login?next=/");
-  const [registerLink, setRegisterLink] = useState("/register?next=/");
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-  useEffect(() => {
-    if (isClient) {
-      setNext(encodeURIComponent(Sefaria.util.currentPath()));
-      setLoginLink("/login?next=" + next);
-      setRegisterLink("/register?next=" + next);
-    }
-  })
-  const classes = classNames({ accountLinks: !mobile, anon: !mobile });
+  const classes = classNames({accountLinks: !mobile, anon: !mobile});
+
   return (
     <div className={classes}>
       {loginOnly && (
-        <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
+        <NextRedirectAnchor className="login loginLink" url={'/login'}>
           {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("Login")} /> : null}
           <InterfaceText>Log in</InterfaceText>
-        </a>)}
+        </NextRedirectAnchor>)}
       {loginOnly ? null :
         <span>
-          <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
+          <NextRedirectAnchor className="login signupLink" url={'/register'}>
             {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("Login")} /> : null}
             <InterfaceText>Sign up</InterfaceText>
-          </a>
-          <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
+          </NextRedirectAnchor>
+          <NextRedirectAnchor className="login loginLink" url={'/login'}>
             <InterfaceText>Log in</InterfaceText>
-          </a>
+          </NextRedirectAnchor>
         </span>}
 
     </div>
@@ -642,8 +618,8 @@ const ProfilePicMenu = ({ len, url, name }) => {
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active' : ''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
-                <a className={`${(Sefaria.interfaceLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
+                <NextRedirectAnchor className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} url='/interface/hebrew'>עברית</NextRedirectAnchor>
+                <NextRedirectAnchor className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} url='/interface/english'>English</NextRedirectAnchor>
               </div>
               <div><a className="interfaceLinks-row bottom" id="help-link" href={Sefaria._v({
                 he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
@@ -664,19 +640,17 @@ const ProfilePicMenu = ({ len, url, name }) => {
 
 
 const MobileInterfaceLanguageToggle = () => {
-  const currentURL = getCurrentPage();
-
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">עברית</a>
+      <NextRedirectAnchor url="/interface/hebrew" className="int-he">עברית</NextRedirectAnchor>
       <span className="separator">•</span>
-      <a href={"/interface/english?next=" + currentURL} className="int-en inactive">English</a>
+      <NextRedirectAnchor url="/interface/english" className="int-en inactive">English</NextRedirectAnchor>
     </>
     :
     <>
-      <a href={"/interface/english?next=" + currentURL} className="int-en">English</a>
+      <NextRedirectAnchor url="/interface/english" className="int-en">English</NextRedirectAnchor>
       <span className="separator">•</span>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">עברית</a>
+      <NextRedirectAnchor url="/interface/hebrew" className="int-he inactive">עברית</NextRedirectAnchor>
     </>;
 
   return (

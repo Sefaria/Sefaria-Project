@@ -337,7 +337,7 @@ class AddToSourceSheetBox extends Component {
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet, i) => {
       let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
-      let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
+      let title = Sefaria.sheets.getSheetTitle(sheet?.title);
       let selectSheet = this.selectSheet.bind(this, sheet);
       const isSelected = !!(this.state.selectedSheet && this.state.selectedSheet.id == sheet.id);
       const isFocused = i === this.state.focusedSheetIndex;
@@ -389,7 +389,7 @@ class AddToSourceSheetBox extends Component {
               isOpen: this.state.sheetListOpen
             })}
           >
-            {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
+            {this.state.sheetsLoaded ? Sefaria.sheets.getSheetTitle(this.state.selectedSheet?.title) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}
           </Button>
           {this.state.sheetListOpen ?
           <div className="dropdownListBox noselect">
