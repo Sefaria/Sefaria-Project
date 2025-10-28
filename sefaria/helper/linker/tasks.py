@@ -1,7 +1,7 @@
 """
 Celery tasks for the LLM server
 """
-
+from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
 from sefaria.settings import USE_VARNISH
@@ -208,14 +208,15 @@ def delete_and_save_new_links(payload: dict) -> list[dict]:
             break
 
 def enqueue_linking_chain(linking_args: LinkingArgs):
+    print(CELERY_QUEUES)
     sig1 = signature(
         "linker.link_segment_with_worker",
         args=(asdict(linking_args),),
-        options={"queue": "linker"}   # optional routing
+        options={"queue": CELERY_QUEUES["linker"]}
     )
     sig2 = signature(
         "linker.delete_and_save_new_links",
-        options={"queue": "linker"} # add if you want it on same/different queue
+        options={"queue": CELERY_QUEUES["linker"]}
     )
 
     # Use canvas piping to chain:
