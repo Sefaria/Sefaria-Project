@@ -42,13 +42,6 @@ DATABASES = {
 ################ User-defined Settings ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
-}
-
 DOMAIN_MODULES = {
     "library": "http://localhost:8000",
     "voices": "http://voices.localhost:8000",  
