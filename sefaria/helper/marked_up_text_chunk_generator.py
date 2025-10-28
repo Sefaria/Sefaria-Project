@@ -1,7 +1,7 @@
 
 import structlog
 from sefaria.model.text import Ref, TextChunk, Version
-from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs, enqueue_linking_chain, enqueue_linking_chain_debug
+from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
 
 
 logger = structlog.get_logger(__name__)
@@ -47,7 +47,6 @@ class MarkedUpTextChunkGenerator:
                                    lang=lang, vtitle=vtitle,
                                    user_id=self.user_id, kwargs=self.kwargs)
         enqueue_linking_chain(linking_args)
-        # enqueue_linking_chain_debug(linking_args)
 
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:

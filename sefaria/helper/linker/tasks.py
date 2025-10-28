@@ -65,11 +65,6 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         "tracker_kwargs": <optional dict>
       }
     """
-    return link_segment_with_worker_logic(linking_args_dict)
-
-
-
-def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
@@ -102,7 +97,6 @@ def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
         "tracker_kwargs": linking_args.kwargs or {},
     }
 
-
 def _extract_resolved_spans(resolved_refs):
     spans = []
     for resolved_ref in resolved_refs:
@@ -128,14 +122,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk):
         existing.delete()
 
 @app.task(name="linker.delete_and_save_new_links")
-def delete_and_save_new_links(payload: [dict]) -> list[dict]:
-    """
-    Runs after `link_segment_with_worker`. If the payload is None (no spans), do nothing.
-    """
-    return delete_and_save_new_links_logic(payload)
-
-
-def delete_and_save_new_links_logic(payload: [dict]):
+def delete_and_save_new_links(payload: [dict]) -> None:
     if not payload:
         return []
 
@@ -192,10 +179,6 @@ def delete_and_save_new_links_logic(payload: [dict]):
             if r not in found:
                 tracker.delete(user, Link, exLink._id)
             break
-
-    return links
-
-
 
 def enqueue_linking_chain(linking_args: LinkingArgs):
     sig1 = signature(
