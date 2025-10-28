@@ -134,7 +134,13 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
  * />
  */
 const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
-  const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+  let fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+
+  // When switching modules, append set-language-cookie to preserve language preference
+  if (targetModule && targetModule !== Sefaria.activeModule) {
+    const separator = fullURL.includes('?') ? '&' : '?';
+    fullURL += separator + 'set-language-cookie';
+  }
 
   const onClick = (e) => {
     console.log('[DropdownModuleItem] Module switch clicked', {

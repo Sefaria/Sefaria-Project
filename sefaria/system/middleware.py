@@ -51,15 +51,24 @@ def get_domain_for_lang_and_module(lang_code, module):
 def current_domain_lang(request):
     """
     Returns the pinned language for the current domain, or None if current domain is not pinned.
-    Uses DOMAIN_LANGUAGES for backward compatibility.
+    Uses DOMAIN_MODULES to detect which language the current domain belongs to.
     """
     current_domain = request.get_host()
-    domain_lang = None
-    for protocol in ("https://", "http://"):
-        full_domain = protocol + current_domain
-        if full_domain in settings.DOMAIN_LANGUAGES:
-            domain_lang = settings.DOMAIN_LANGUAGES[full_domain]
-    return domain_lang
+
+    # Check DOMAIN_MODULES - find which language contains the current domain
+    if hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES:
+        for protocol in ("https://", "http://"):
+            full_domain = protocol + current_domain
+            # Iterate through each language's module dictionary
+            for lang_code, modules in settings.DOMAIN_MODULES.items():
+                if isinstance(modules, dict):
+                    # Check if current domain matches any module URL in this language
+                    for module_name, module_url in modules.items():
+                        if module_url == full_domain:
+                            # Map 'en' to 'english', 'he' to 'hebrew'
+                            return 'english' if lang_code == 'en' else 'hebrew' if lang_code == 'he' else lang_code
+
+    return None
 
 
 
