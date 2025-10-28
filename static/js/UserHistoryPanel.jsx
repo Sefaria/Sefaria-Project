@@ -57,7 +57,11 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         <InterfaceText>History</InterfaceText>
       </a>
       { Sefaria.activeModule === "library" &&
-        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
+        <a 
+           href="/texts/notes" 
+           className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
+           onKeyDown={(e) => Util.handleKeyboardClick(e)}
+        >
         onKeyDown={(e) => Util.handleKeyboardClick(e)}>
         <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
         <InterfaceText>Notes</InterfaceText>
