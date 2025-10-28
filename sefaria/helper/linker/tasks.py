@@ -41,9 +41,6 @@ class DeleteAndSaveLinksMsg:
     user_id: Optional[str] = None
     tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
-
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "DeleteAndSaveLinksMsg":
         return cls(
@@ -121,7 +118,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         user_id=linking_args.user_id,
         tracker_kwargs=linking_args.kwargs,
     )
-    return msg.to_dict()
+    return asdict(msg)
 
 def _extract_resolved_spans(resolved_refs):
     spans = []
@@ -213,7 +210,7 @@ def delete_and_save_new_links(payload: dict) -> list[dict]:
 def enqueue_linking_chain(linking_args: LinkingArgs):
     sig1 = signature(
         "linker.link_segment_with_worker",
-        args=(linking_args.__dict__,),
+        args=(asdict(linking_args),),
         options={"queue": "linker"}   # optional routing
     )
     sig2 = signature(
