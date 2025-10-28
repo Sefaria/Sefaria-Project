@@ -11,8 +11,10 @@ from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model import Ref
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
-from dataclasses import dataclass
+from dataclasses import dataclass, field, asdict
 import structlog
+from typing import Any, Dict, List, Optional
+
 
 logger = structlog.get_logger(__name__)
 
@@ -29,6 +31,29 @@ class LinkingArgs:
     vtitle: str
     user_id: str = None  # optional, for tracker
     kwargs: dict = None  # optional, for tracke
+
+@dataclass(frozen=True)
+class DeleteAndSaveLinksMsg:
+    ref: str
+    linked_refs: List[str]
+    vtitle: Optional[str] = None
+    lang: Optional[str] = None
+    user_id: Optional[str] = None
+    tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "DeleteAndSaveLinksMsg":
+        return cls(
+            ref=d["ref"],
+            linked_refs=list(d.get("linked_refs", [])),
+            vtitle=d.get("vtitle"),
+            lang=d.get("lang"),
+            user_id=d.get("user_id"),
+            tracker_kwargs=d.get("tracker_kwargs") or {},
+        )
 
 
 @worker_init.connect
@@ -88,14 +113,15 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
 
     # Prepare the minimal info the next task needs
     linked_refs = sorted({s["ref"] for s in spans})  # unique + stable
-    return {
-        "ref": linking_args.ref,
-        "linked_refs": linked_refs,
-        "vtitle": linking_args.vtitle,
-        "lang": linking_args.lang,
-        "user_id": linking_args.user_id,
-        "tracker_kwargs": linking_args.kwargs or {},
-    }
+    msg = DeleteAndSaveLinksMsg(
+        ref=linking_args.ref,
+        linked_refs=linked_refs,
+        vtitle=linking_args.vtitle,
+        lang=linking_args.lang,
+        user_id=linking_args.user_id,
+        tracker_kwargs=linking_args.kwargs,
+    )
+    return msg.to_dict()
 
 def _extract_resolved_spans(resolved_refs):
     spans = []
@@ -122,15 +148,20 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk):
         existing.delete()
 
 @app.task(name="linker.delete_and_save_new_links")
-def delete_and_save_new_links(payload: [dict]) -> None:
+def delete_and_save_new_links(payload: dict) -> list[dict]:
     if not payload:
         return []
 
-    target_oref = Ref(payload["ref"])
-    linked_orefs = [Ref(r) for r in payload.get("linked_refs", [])]
-    text_id = Version().load({"versionTitle": payload.get("vtitle"), "language": payload.get("lang")})._id if payload.get("vtitle") and payload.get("lang") else None
-    user = payload.get("user_id")     # pass-through for tracker
-    kwargs = payload.get("tracker_kwargs", {})
+    msg = DeleteAndSaveLinksMsg.from_dict(payload)
+
+    target_oref = Ref(msg.ref)
+    linked_orefs = [Ref(r) for r in msg.linked_refs]
+    text_id = None
+    if msg.vtitle and msg.lang:
+        text_id = Version().load({"versionTitle": msg.vtitle, "language": msg.lang})._id
+
+    user = msg.user_id
+    kwargs = msg.tracker_kwargs
 
     found = []   # normal refs discovered in this run
     links = []   # links actually created
@@ -167,7 +198,6 @@ def delete_and_save_new_links(payload: [dict]) -> None:
 
     # Remove existing links that are no longer supported by the text
     for exLink in existingLinks:
-        print(exLink)
         for r in exLink.refs:
             if r == target_oref.normal():  # current base ref
                 continue
