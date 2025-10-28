@@ -208,15 +208,14 @@ def delete_and_save_new_links(payload: dict) -> list[dict]:
             break
 
 def enqueue_linking_chain(linking_args: LinkingArgs):
-    print(CELERY_QUEUES)
     sig1 = signature(
         "linker.link_segment_with_worker",
         args=(asdict(linking_args),),
-        options={"queue": CELERY_QUEUES["linker"]}
+        options={"queue": CELERY_QUEUES["tasks"]}
     )
     sig2 = signature(
         "linker.delete_and_save_new_links",
-        options={"queue": CELERY_QUEUES["linker"]}
+        options={"queue": CELERY_QUEUES["tasks"]}
     )
 
     # Use canvas piping to chain:
