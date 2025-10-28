@@ -53,7 +53,6 @@ def test_multiple_ambiguities():
 
     raw_refs = [r1[0], r2[0]]
 
-    # Run through the resolver in order, preserving seeded ibids
     resolved = ref_resolver.bulk_resolve(
         raw_refs,
         book_context_ref=None,
