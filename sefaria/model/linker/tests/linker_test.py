@@ -46,7 +46,6 @@ def test_multiple_ambiguities():
     ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
     ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
 
-    # Minimal ibid chain: first plain ibid, then ibid with verse 39
     # create_raw_ref_data(...) usually returns (raw_ref, context, lang, ...)
     r1 = create_raw_ref_data(["&ibid."], lang='en')
     r2 = create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
@@ -62,15 +61,11 @@ def test_multiple_ambiguities():
     m0 = resolved[0]
     m1 = resolved[1]
 
-    # Expectations: both ambiguous between the two seeded books; verse 39 maps accordingly
+    # Expectations: both ambiguous between the two seeded books
     assert m0.is_ambiguous
     assert m1.is_ambiguous
     assert {ref.ref for ref in m0.resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
     assert {ref.ref for ref in m1.resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
-
-
-
-
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
