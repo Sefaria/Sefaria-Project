@@ -53,7 +53,7 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_redirect_domain_for_language
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
@@ -1333,9 +1333,7 @@ def interface_language_redirect(request, language):
         next = "/"
 
     # Look up the target domain based on current module + target language
-    current_module = getattr(request, "active_module", LIBRARY_MODULE)
-    target_lang_code = get_short_lang(language)
-    target_domain = DOMAIN_MODULES.get(target_lang_code, {}).get(current_module)
+    target_domain = get_redirect_domain_for_language(request, language)
 
     # Compare hostnames properly (not substring match)
     current_host = request.get_host()

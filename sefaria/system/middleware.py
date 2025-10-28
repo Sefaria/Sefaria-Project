@@ -12,7 +12,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_short_lang
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse
@@ -21,19 +21,6 @@ from sefaria.constants.model import LIBRARY_MODULE
 import structlog
 import json
 logger = structlog.get_logger(__name__)
-
-
-def get_domain_for_lang_and_module(lang_code, module):
-    """
-    Get the domain URL for a specific language code and module.
-
-    Args:
-        lang_code: "en" or "he"
-        module: module name (e.g., "library", "voices")
-    Returns:
-        Domain URL string or None if not found
-    """
-    return settings.DOMAIN_MODULES.get(lang_code, {}).get(module)
 
 
 def current_domain_lang(request):
@@ -140,10 +127,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
-                # Get the current module to preserve it when redirecting
-                current_module = getattr(request, 'active_module', LIBRARY_MODULE)
-                target_lang_code = get_short_lang(interface)
-                redirect_domain = get_domain_for_lang_and_module(target_lang_code, current_module)
+                redirect_domain = get_redirect_domain_for_language(request, interface)
 
                 if redirect_domain:
                     # When detected language doesn't match current domain language, redirect
@@ -204,12 +188,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     def process_request(self, request):
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
-            # Get current module to ensure we stay on the correct module's domain
-            current_module = getattr(request, "active_module", LIBRARY_MODULE)
-            lang_code = get_short_lang(lang)
-
-            # Look up domain from DOMAIN_MODULES to ensure module-aware redirection
-            target_domain = get_domain_for_lang_and_module(lang_code, current_module)
+            target_domain = get_redirect_domain_for_language(request, lang)
 
             path = quote(request.path, safe='/')
             params = request.GET.copy()

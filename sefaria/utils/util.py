@@ -7,7 +7,7 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
-from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
+from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD, LIBRARY_MODULE
 from django.conf import settings
 from sefaria.system.exceptions import InputError
 """
@@ -533,6 +533,19 @@ def get_short_lang(language):
     if language not in ["english", "hebrew"]:
         raise InputError("Invalid language. Must be 'english' or 'hebrew'.")
     return "en" if language == "english" else "he"
+
+
+def get_redirect_domain_for_language(request, interface_lang):
+    """
+    Get the redirect domain URL for a given interface language while preserving the current module.
+
+    :param request: Django request object
+    :param interface_lang: 'english' or 'hebrew'
+    :return: Full domain URL (e.g., 'https://www.sefaria.org') or None
+    """
+    current_module = getattr(request, 'active_module', LIBRARY_MODULE)
+    lang_code = get_short_lang(interface_lang)
+    return settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
 
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """
