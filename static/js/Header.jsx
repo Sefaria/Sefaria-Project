@@ -185,7 +185,7 @@ const Header = (props) => {
     }
   }, []);
 
-  const unread = props.headerMode ? ((Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
+  const unread = !!Sefaria.notificationCount;
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   const mobileNotificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
 
@@ -205,6 +205,17 @@ const Header = (props) => {
                                   <img src='/static/icons/bookmarks.svg' alt={Sefaria._('Saved items')} />
                                 </a>
                               </div>;
+
+  const voicesNotificationIcon = <div className='sheetsNotificationsHeaderIcon'>
+                              <a
+                                href="/notifications"
+                                data-target-module={Sefaria.VOICES_MODULE}
+                                onKeyDown={(e) => Util.handleKeyboardClick(e)}
+                                className={notificationsClasses}
+                              >
+                                <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
+                              </a>
+                            </div>;
 
 
   const headerRef = useOnceFullyVisible(() => {
@@ -280,18 +291,7 @@ const Header = (props) => {
             translationLanguagePreference={props.translationLanguagePreference}
             setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
-        {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon :
-          <div className='sheetsNotificationsHeaderIcon'>
-            <a
-              href="/notifications"
-              data-target-module={Sefaria.VOICES_MODULE}
-              onKeyDown={(e) => Util.handleKeyboardClick(e)}
-              className={notificationsClasses}
-            >
-              <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
-            </a>
-          </div>
-        )}
+        {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : voicesNotificationIcon)}
 
         <ModuleSwitcher />
 
