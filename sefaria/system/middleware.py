@@ -12,7 +12,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse
@@ -21,27 +21,6 @@ from sefaria.constants.model import LIBRARY_MODULE
 import structlog
 import json
 logger = structlog.get_logger(__name__)
-
-
-def current_domain_lang(request):
-    """
-    Returns the pinned language for the current domain, or None if current domain is not pinned.
-    Uses DOMAIN_MODULES to detect which language the current domain belongs to.
-    """
-    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
-        return None
-
-    current_hostname = urlparse(f"http://{request.get_host()}").hostname
-
-    for lang_code, modules in settings.DOMAIN_MODULES.items():
-        if not isinstance(modules, dict):
-            continue
-        for module_url in modules.values():
-            if urlparse(module_url).hostname == current_hostname:
-                return 'english' if lang_code == 'en' else 'hebrew'
-
-    return None
-
 
 
 class MiddlewareURLMixin:

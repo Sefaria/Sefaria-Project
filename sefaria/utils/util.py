@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
+from urllib.parse import urlparse
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD, LIBRARY_MODULE
 from django.conf import settings
 from sefaria.system.exceptions import InputError
@@ -533,6 +534,29 @@ def get_short_lang(language):
     if language not in ["english", "hebrew"]:
         raise InputError("Invalid language. Must be 'english' or 'hebrew'.")
     return "en" if language == "english" else "he"
+
+
+def current_domain_lang(request):
+    """
+    Returns the pinned language for the current domain, or None if current domain is not pinned.
+    Uses DOMAIN_MODULES to detect which language the current domain belongs to.
+
+    :param request: Django request object
+    :return: 'english', 'hebrew', or None
+    """
+    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
+        return None
+
+    current_hostname = urlparse(f"http://{request.get_host()}").hostname
+
+    for lang_code, modules in settings.DOMAIN_MODULES.items():
+        if not isinstance(modules, dict):
+            continue
+        for module_url in modules.values():
+            if urlparse(module_url).hostname == current_hostname:
+                return 'english' if lang_code == 'en' else 'hebrew'
+
+    return None
 
 
 def get_redirect_domain_for_language(request, interface_lang):
