@@ -160,7 +160,7 @@ $(function() {
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.getName(ref, undefined, 'ref').then(function(q) {
+		Sefaria.getName(ref, undefined, ['ref']).then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");

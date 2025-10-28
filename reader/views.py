@@ -1670,26 +1670,6 @@ def find_holiday_in_hebcal_results(response):
     return None
 
 @catch_error_as_json
-def next_holiday(request):
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
-    import requests
-    current_date = datetime.now().date()
-    date_in_three_months = current_date + relativedelta(months=+3)
-
-    # Format the date as YYYY-MM-DD
-    current_date = current_date.strftime('%Y-%m-%d')
-    date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
-    response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}")
-    if response.status_code == 200:
-        topic = find_holiday_in_hebcal_results(response)
-        if topic:
-            return jsonResponse(topic)
-        else:
-            return jsonResponse({"error": "Couldn't find any topics corresponding to HebCal results"})
-    else:
-        return jsonResponse({"error": "Couldn't establish connection with HebCal API"})
-@catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
 
@@ -2674,14 +2654,14 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, topic_override=False, type=None, active_module=None, exact_continuations=False, order_by_matched_length=False):
+def get_name_completions(name, limit, topic_override=False, types=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
     """
     Function to get completions (objects and titles) for a given name.
     :param name: string to get completions for
     :param limit: int number of items to return
     :param topic_override: bool
-    :param type: string - get only completions of objects of this specific type
-    :param active_module: string - filter out objects irrelevant for this module ('library' vs 'sheets').  If active_module is None, results for both modules are returned.
+    :param types: list of strings - get only completions of objects of those specific types
+    :param topic_pool: string - get completions of topic-objects of this specific topic pool
     :param exact_continuations: bool - if true get only completions of objects whose title contains an exact match to 'name'
     :param order_by_matched_length: bool - if true return completion objects by ascending order of length - such that shorter titles whose greater part is a match to 'name' will appear first.
     """
@@ -2710,7 +2690,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, active_mo
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
         else:
-            completions, completion_objects = completer.complete(name, limit, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+            completions, completion_objects = completer.complete(name, limit, types=types, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
             object_data = completer.get_object(name)
 
     except DictionaryEntryNotFoundError as e:
@@ -2720,7 +2700,7 @@ def get_name_completions(name, limit, topic_override=False, type=None, active_mo
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions, completion_objects = completer.complete(name, limit, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+        completions, completion_objects = completer.complete(name, limit, types=types, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         object_data = completer.get_object(name)
 
     return {
@@ -2741,11 +2721,11 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    type = request.GET.get("type", None)
-    active_module = request.GET.get('active_module', None)
+    types = request.GET.getlist("type", None)
+    topic_pool = request.GET.get("topic_pool", None)
     exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
     order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
-    completions_dict = get_name_completions(name, LIMIT, topic_override, type=type, active_module=active_module, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+    completions_dict = get_name_completions(name, LIMIT, topic_override, types=types, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
     d = {
@@ -3179,7 +3159,7 @@ def topics_list_api(request):
     API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
-    all_topics = get_all_topics(limit, activeModule=request.active_module)
+    all_topics = get_all_topics(limit, active_module=request.active_module)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=True, with_html=True)
@@ -3391,7 +3371,7 @@ def topic_ref_bulk_api(request):
 def seasonal_topic_api(request):
     from django_topics.models import SeasonalTopic
 
-    lang = request.GET.get("lang")
+    lang = request.LANGUAGE_CODE
     cb = request.GET.get("callback", None)
     diaspora = request.GET.get("diaspora", False)
 
