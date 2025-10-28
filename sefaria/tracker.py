@@ -155,9 +155,8 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
         generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
         # # Some commentaries can generate links to their base text automatically
         # linker = oref.autolinker(user=user)
-        v = Version().load({"_id": version_id})
-        title, lang = v.versionTitle, v.language
-        generator.generate(oref, lang, title)
+
+        generator.generate_from_ref_and_version_id(oref, version_id)
 
         if USE_VARNISH:
             invalidate_linked(oref)
