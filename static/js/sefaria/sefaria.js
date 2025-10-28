@@ -526,15 +526,6 @@ Sefaria = extend(Sefaria, {
     interfaceLang = interfaceLang || Sefaria.interfaceLang;
     const langCode = interfaceLang === "hebrew" ? "he" : "en";
     const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
-    console.log('[Sefaria.getModuleURL] Getting module URL', {
-      requestedModule: module,
-      activeModule: Sefaria.activeModule,
-      interfaceLang: interfaceLang,
-      langCode: langCode,
-      domainModules: Sefaria.domainModules,
-      resolvedHref: href,
-      apiHost: Sefaria.apiHost
-    });
     try {
       return new URL(href);
     } catch (e) {
@@ -1063,7 +1054,6 @@ Sefaria = extend(Sefaria, {
     settings         = settings || {};
     const key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
-    //console.log("Saving", key);
     const refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
@@ -1100,7 +1090,6 @@ Sefaria = extend(Sefaria, {
 
       for (let i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
-        // console.log("calling spanning prefetch " + data.spanningRefs[i])
         Sefaria.getText(data.spanningRefs[i], spanningContextSettings)
       }
     }
@@ -1273,7 +1262,6 @@ Sefaria = extend(Sefaria, {
       const bPath = Sefaria._tocOrderLookup[b];
 
       if (!(Array.isArray(aPath) && Array.isArray(bPath))) {
-          console.log(`Failed to compare paths: ${a} and ${b}`);
           return 0;
       }
 
@@ -2724,7 +2712,6 @@ _media: {},
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
         Sefaria.userHistory.items = new_hist_array.concat(user_history);
 
-        //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
           // check if we've reached the cookie size limit
           const cookie_hist = JSON.parse(cookie("user_history"));
@@ -3721,7 +3708,6 @@ Sefaria.setup = function(data, props = null, resetCache = false) {
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    //console.log(`sending user logged in status to GA, uid as bool: ${!!Sefaria._uid} | analytics id: ${Sefaria._analytics_uid}`);
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
