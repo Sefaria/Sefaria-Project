@@ -3313,7 +3313,7 @@ _media: {},
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     },
     getSheetTitle: function(title) {
-      // Returns a sheet's title with fallback to "Untitled" 
+      // Useful for displaying sheet titles in the UI without HTML tags and handling null or empty values by falling back to "Untitled"
       return title?.stripHtml() || Sefaria._("Untitled");
     }
   },
