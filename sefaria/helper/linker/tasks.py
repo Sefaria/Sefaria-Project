@@ -217,6 +217,4 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
         "linker.delete_and_save_new_links",
         options={"queue": CELERY_QUEUES["tasks"]}
     )
-
-    # Use canvas piping to chain:
     return (sig1 | sig2).apply_async()
