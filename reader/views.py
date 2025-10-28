@@ -1045,7 +1045,10 @@ def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         sheets_only = request.active_module == VOICES_MODULE
-        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20, sheets_only=sheets_only) if profile.settings.get("reading_history", True) else []
+        reading_history_enabled = profile.settings.get("reading_history", True)
+        uhistory = []
+        if reading_history_enabled:
+            uhistory = profile.get_history(secondary=False, serialized=True, annotate=True, limit=20, sheets_only=sheets_only)
     else:
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}

@@ -23,17 +23,19 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   const contentRef = useRef();
 
   useEffect(() => {
-    menuOpen === 'notes' && Sefaria.activeModule === 'library' && Sefaria.allPrivateNotes((data) => {
-      if (Array.isArray(data)) {
-        const flattenedNotes = data.map(note => ({
-          ref: note.ref,
-          text: note.text
-        }));
-        setNotes(flattenedNotes);
-      } else {
-        console.error('Unexpected data format:', data);
-      }
-    });
+    if (menuOpen === 'notes' && Sefaria.activeModule === 'library') {
+      Sefaria.allPrivateNotes((data) => {
+        if (Array.isArray(data)) {
+          const flattenedNotes = data.map(note => ({
+            ref: note.ref,
+            text: note.text
+          }));
+          setNotes(flattenedNotes);
+        } else {
+          console.error('Unexpected data format:', data);
+        }
+      });
+    }
   }, [menuOpen]);
 
   const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
@@ -116,11 +118,6 @@ UserHistoryPanel.propTypes = {
 
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
-
-  // Store changes when switching tabs, reset items
-  useEffect(() => {
-    setItems(store.loaded ? store.items : null);
-  }, [menuOpen]);
   
   const saved = Number(menuOpen === 'saved');
   const sheetsOnly = Number(Sefaria.activeModule === Sefaria.VOICES_MODULE);
