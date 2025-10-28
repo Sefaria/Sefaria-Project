@@ -131,7 +131,11 @@ class ResolvedRef(abst.Cloneable):
     def count_by_part_type(parts) -> Dict[RefPartType, int]:
         part_type_counts = defaultdict(int)
         for part in parts:
-            part_type_counts[part.type] += 1
+            if part.type == RefPartType.RANGE:
+                # for the sake of counting equivalent parts, we can consider a ranged part to be numbered since they are interchangeable in a citation
+                part_type_counts[RefPartType.NUMBERED] += 1
+            else:
+                part_type_counts[part.type] += 1
         return part_type_counts
 
     def get_node_children(self):
