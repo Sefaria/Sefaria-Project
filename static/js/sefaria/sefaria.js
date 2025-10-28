@@ -2831,7 +2831,7 @@ _media: {},
       }
       return this._cachedApiPromise({
           url:   `${this.apiHost}/api/calendars/topics/${day}`,
-          key:   day,
+          key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });
   },
@@ -2981,13 +2981,8 @@ _media: {},
         store: this._featuredTopic,
     });
   },
-  _seasonalTopic: {},
   getSeasonalTopic: function() {
-    return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/_api/topics/seasonal-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
-        key: (new Date()).toLocaleDateString(),
-        store: this._seasonalTopic,
-    });
+    return this.getUpcomingDay('holiday');
   },
   trendingSheetsTopics: {},
   trendingLibraryTopics: {},
@@ -3764,7 +3759,6 @@ Sefaria.resetCache = function() {
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};
-    this._seasonalTopic = {};
     this._index = {};
     this._indexDetails = {};
     this._bookSearchPathFilter  = {};
