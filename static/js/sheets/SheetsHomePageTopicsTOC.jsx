@@ -41,7 +41,7 @@ const SheetsHoliday = ({handleClick}) => {
   useEffect(() => {
     Sefaria.getUpcomingDay('holiday').then(data => {setHoliday(data?.topic || null)});
   }, []);
-  if (Object.keys(holiday).length === 0) {
+  if (Object.keys(holiday || {}).length === 0) {
     return <div className="navBlock">Loading...</div>
   }
   return <TopicTOCCard topic={holiday} setTopic={handleClick} showDescription={true}/>;
