@@ -172,6 +172,7 @@ def base_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         active_module = getattr(request, "active_module", LIBRARY_MODULE)
+        sheets_only = active_module == VOICES_MODULE
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -189,8 +190,8 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications(scope=active_module).client_contents(),
-            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False, sheets_only=active_module == VOICES_MODULE)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(last_place=True, secondary=False, sheets_only=active_module == VOICES_MODULE, serialized=True)
+            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False, sheets_only=sheets_only)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
+            "last_place": profile.get_history(last_place=True, secondary=False, sheets_only=sheets_only, serialized=True)
         }
     else:
         user_data = {

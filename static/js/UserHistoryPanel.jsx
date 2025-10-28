@@ -40,7 +40,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
   const store = {
-    'loaded': currentDataStore?.loaded || false, 
+    'loaded': currentDataStore?.loaded || false,
     'items': currentDataStore?.items || []
   };
 
