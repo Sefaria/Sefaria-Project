@@ -39,7 +39,11 @@ const SheetsParashah = ({handleClick}) => {
 const SheetsHoliday = ({handleClick}) => {
   const [holiday, setHoliday] = useState({});
   useEffect(() => {
-    Sefaria.getUpcomingDay('holiday').then(setHoliday);
+    Sefaria.getUpcomingDay('holiday').then(data => {
+      if (data && data.topic) {
+        setHoliday(data.topic);
+      }
+    });
   }, []);
   if (Object.keys(holiday).length === 0) {
     return <div className="navBlock">Loading...</div>
