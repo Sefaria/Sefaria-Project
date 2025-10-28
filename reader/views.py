@@ -1319,17 +1319,8 @@ def interface_language_redirect(request, language):
     Preserves current module and path when switching language.
     """
     next = request.GET.get("next")
-    current_url = request.build_absolute_uri()
-
-    logger.info(
-        "interface_language_redirect called",
-        target_language=language,
-        current_url=current_url,
-        next_param=next
-    )
 
     if not next or not is_safe_url(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
-        logger.debug("next path invalid or empty, defaulting to /", original_next=next)
         next = "/"
 
     # Look up the target domain based on current module + target language
@@ -1340,34 +1331,11 @@ def interface_language_redirect(request, language):
     target_host = urlparse(target_domain).hostname if target_domain else None
     needs_domain_switch = target_host and current_host != target_host
 
-    logger.info(
-        "Language redirect lookup",
-        current_module=current_module,
-        target_lang_code=target_lang_code,
-        target_domain=target_domain,
-        current_host=current_host,
-        target_host=target_host,
-        needs_domain_switch=needs_domain_switch
-    )
-
     if needs_domain_switch:
         # Switching domains - preserve path and add set-language-cookie param
-        logger.info(
-            "Switching domains",
-            from_domain=current_host,
-            to_domain=target_domain,
-            path=next
-        )
         next = target_domain + next
         next = next + ("&" if "?" in next else "?") + "set-language-cookie"
-    else:
-        logger.info(
-            "Same domain or no target domain",
-            target_domain=target_domain,
-            staying_on_path=next
-        )
 
-    logger.info("Redirecting", final_redirect_url=next, language=language)
     response = redirect(next)
 
     response.set_cookie("interfaceLang", language)
@@ -1375,7 +1343,6 @@ def interface_language_redirect(request, language):
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language
         p.save()
-        logger.debug("Saved language preference to user profile", user_id=request.user.id)
 
     return response
 
