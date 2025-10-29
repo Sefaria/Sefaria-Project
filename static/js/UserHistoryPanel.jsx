@@ -26,10 +26,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
     if (menuOpen === 'notes' && Sefaria.activeModule === 'library') {
       Sefaria.allPrivateNotes((data) => {
         if (Array.isArray(data)) {
-          const flattenedNotes = data.map(note => ({
-            ref: note.ref,
-            text: note.text
-          }));
+          const flattenedNotes = data.map(({ref, text}) => ({ref, text}));
           setNotes(flattenedNotes);
         } else {
           console.error('Unexpected data format:', data);
