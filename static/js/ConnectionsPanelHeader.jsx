@@ -39,6 +39,17 @@ class ConnectionsPanelHeader extends Component {
       $container.css({marginRight: width, marginLeft: 0});
     }
   }
+  // Returns null when only one language should show, the display settings dropdown in most modes, or the English/Hebrew toggle for the remaining cases.
+  getLanguageSwitcher(showOneLanguage, isEnglishUI, langUrl) {
+    if (showOneLanguage) {
+      return null;
+    }
+    const excludedModes = ["Resources", "ConnectionsList"];
+    if (!excludedModes.includes(this.props.connectionsMode)) {
+      return <DropdownMenu buttonContent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+    }
+    return isEnglishUI ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} /> : null;
+  }
   onClick(e) {
     e.preventDefault();
     const previousMode = this.getPreviousMode();
@@ -119,11 +130,7 @@ class ConnectionsPanelHeader extends Component {
       const closeUrl = Sefaria.util.removeUrlParam("with");
       const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC;
       const isEnglishUI = this.props.interfaceLang === "english";
-      const toggleButton = (showOneLanguage)
-          ? null
-          : (this.props.connectionsMode === 'TextList')
-            ? <DropdownMenu buttonContent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
-            : (isEnglishUI ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} /> : null);
+      const toggleButton = this.getLanguageSwitcher(showOneLanguage, isEnglishUI, langUrl);
 
       return (<div className="connectionsPanelHeader">
                 {title}
