@@ -293,13 +293,22 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-    static fullURL(relativePath, moduleTarget) {
+    static fullURL(relativePath, moduleTarget, preserveLanguageOnModuleSwitch = true) {
+      let url = relativePath;
+
       if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
         const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://voices.sefaria.org' or 'https://www.sefaria.org')
-        return moduleURL.origin + relativePath;
+        url = moduleURL.origin + relativePath;
       }
-      // If it's already a full URL or not a relative path, return as is
-      return relativePath;
+
+      // When switching between modules (e.g., Library → Voices), append set-language-cookie parameter
+      // to preserve the user's language preference across different domains.
+      if (preserveLanguageOnModuleSwitch && moduleTarget && moduleTarget !== Sefaria.activeModule) {
+        const separator = url.includes('?') ? '&' : '?';
+        url += separator + 'set-language-cookie';
+      }
+
+      return url;
     }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
