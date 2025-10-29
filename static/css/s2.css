@@ -3396,7 +3396,7 @@ a.cardTitle:hover {
   width: 33%;
 }
 .singlePanel .sheetContentSidebar {
-  width: 0;
+  width: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
