@@ -4623,6 +4623,48 @@ def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
+def settings_profile_redirect(request):
+    """
+    Redirect /settings/profile from library module to voices module
+    """
+    # Only redirect if on library module to avoid redirect loops
+    if getattr(request, 'active_module', LIBRARY_MODULE) != LIBRARY_MODULE:
+        raise Http404
+    
+    # Get the voices domain from settings
+    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
+    voices_domain = domain_modules[VOICES_MODULE]
+    target_url = f"{voices_domain}/settings/profile"
+    
+    # Preserve query parameters
+    params = request.GET.urlencode()
+    if params:
+        target_url += f"?{params}"
+    
+    return redirect(target_url, permanent=True)
+
+
+def community_to_voices_redirect(request):
+    """
+    Redirect /community from library module to voices module root
+    """
+    # Only redirect if on library module to avoid redirect loops
+    if getattr(request, 'active_module', LIBRARY_MODULE) != LIBRARY_MODULE:
+        raise Http404
+    
+    # Get the voices domain from settings
+    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
+    voices_domain = domain_modules[VOICES_MODULE]
+    target_url = voices_domain + "/"
+    
+    # Preserve query parameters
+    params = request.GET.urlencode()
+    if params:
+        target_url += f"?{params}"
+    
+    return redirect(target_url, permanent=True)
+
+
 def _get_sheet_tag_garden(tag):
     garden_key = "sheets.tagged.{}".format(tag)
     g = Garden().load({"key": garden_key})
