@@ -43,8 +43,14 @@ DATABASES = {
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 DOMAIN_MODULES = {
-    "library": "http://localhost:8000",
-    "voices": "http://voices.localhost:8000",  
+    "en": {
+        "library": "http://localhost:8000",
+        "voices": "http://voices.localhost:8000",
+    },
+    "he": {
+        "library": "http://localhost:8000",
+        "voices": "http://voices.localhost:8000",
+    }
 }
 ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 
