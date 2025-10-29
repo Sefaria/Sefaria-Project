@@ -541,6 +541,9 @@ def current_domain_lang(request):
     Returns the pinned language for the current domain, or None if current domain is not pinned.
     Uses DOMAIN_MODULES to detect which language the current domain belongs to.
 
+    If the hostname matches multiple languages (e.g., in local development where both languages
+    use localhost), returns None to indicate the domain is not language-pinned.
+
     :param request: Django request object
     :return: 'english', 'hebrew', or None
     """
@@ -548,15 +551,22 @@ def current_domain_lang(request):
         return None
 
     current_hostname = urlparse(f"http://{request.get_host()}").hostname
+    matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
         if not isinstance(modules, dict):
             continue
         for module_url in modules.values():
             if urlparse(module_url).hostname == current_hostname:
-                return 'english' if lang_code == 'en' else 'hebrew'
+                matched_langs.append(lang_code)
+                break  # Only need to match once per language
 
-    return None
+    # If we matched multiple languages, domain is ambiguous - not pinned. Happens on Local
+    if len(matched_langs) != 1:
+        return None
+
+    # Only return language if domain uniquely identifies it
+    return 'english' if matched_langs[0] == 'en' else 'hebrew'
 
 
 def get_redirect_domain_for_language(request, interface_lang):
