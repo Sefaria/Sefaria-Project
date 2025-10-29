@@ -3,6 +3,7 @@ import tempfile
 import cProfile
 import pstats
 from io import StringIO
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import translation
@@ -108,7 +109,12 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             else:
                 redirect_domain = get_redirect_domain_for_language(request, interface)
 
-                if redirect_domain:
+                # Check if redirect would actually change the domain (prevents redirect loops in local dev)
+                current_host = request.get_host()
+                target_host = urlparse(redirect_domain).hostname if redirect_domain else None
+                needs_domain_switch = target_host and current_host != target_host
+
+                if redirect_domain and needs_domain_switch:
                     # When detected language doesn't match current domain language, redirect
                     # while preserving the current module
                     path = request.get_full_path()
