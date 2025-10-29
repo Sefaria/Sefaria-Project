@@ -61,7 +61,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
 
 const PublishMenu = ({sheet, publishCallback}) => {
   const reactTags = React.createRef();
-  const [title, setTitle] = useState(sheet.title.stripHtmlConvertLineBreaks() || "");
+  const [title, setTitle] = useState(Sefaria.sheets.getSheetTitle(sheet.title));
   const [summary, setSummary] = useState(sheet.summary || "");
   const [suggestions, setSuggestions] = useState([]);
   const [validation, setValidation] = useState({
@@ -153,7 +153,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setSummary(newSummary);
   }
   const handlePublish = () => {
-    sheet.title = Sefaria.sheets.getSheetTitle({ title });
+    sheet.title = Sefaria.sheets.getSheetTitle(title);
     sheet.summary = summary;
     sheet.topics = tags.map(tag => ({
           asTyped: tag.name,
