@@ -46,17 +46,19 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const title = (
     <span className="sans-serif">
-      <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
-      className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
-      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-        <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
-        <InterfaceText>Saved</InterfaceText>
+      <a href="/saved" 
+        data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
+        className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+          <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
+          <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href="/history" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
-      className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
-      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-        <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
-        <InterfaceText>History</InterfaceText>
+      <a href="/history" 
+        className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
+        data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+          <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
+          <InterfaceText>History</InterfaceText>
       </a>
       { Sefaria.activeModule === "library" &&
         <a 
@@ -115,28 +117,22 @@ UserHistoryPanel.propTypes = {
 };
 
 
-const dedupeItems = (items, saved) => {
+const dedupeItems = (items) => {
   /*
-  Deduplicates consecutive items with the same book or sheet_id.  In 'saved' mode, we don't deduplicate.
+  Deduplicates consecutive items with the same book or sheet_id.
+  Only deduplicates items of the same type (both sheets or both books).
   :param items: list of UserHistory objects to deduplicate
-  :param saved: bool: True if the items are saved, False if not
   :return: list of deduplicated items
   */
-  if (saved) {
-    return items; // Don't deduplicate saved items
-  }
-  
   const deduped = [];
-  let prev = {};
-  
+  let prevKey;
   for (const item of items) {
     const key = item.is_sheet ? 'sheet_id' : 'book';
-    if (item[key] !== prev[key]) {
+    if (item[key] !== prevKey) {
       deduped.push(item);
-      prev = item;
+      prevKey = item[key];
     }
   }
-  
   return deduped;
 };
 
@@ -144,12 +140,16 @@ const dedupeItems = (items, saved) => {
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
   const [items, setItems] = useState(store.loaded ? store.items : null);
   
-  const saved = Number(menuOpen === 'saved');
-  const sheetsOnly = Number(Sefaria.activeModule === Sefaria.VOICES_MODULE);
+  const params = new URLSearchParams({
+    saved:  +(menuOpen === 'saved'),
+    sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
+    secondary: 0,
+    annotate: 1,
+  });
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
-    url: `/api/profile/user_history?secondary=0&annotate=1&saved=${saved}&sheets_only=${sheetsOnly}`,
+    url: `/api/profile/user_history?${params.toString()}`,
     setter: data => {
       if (!store.loaded) {
         store.items = []; // Initialize items only once
@@ -160,7 +160,8 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
       store.items.push(...data);
 
       // Deduplicate when displaying (for history only, not saved)
-      setItems(dedupeItems(store.items.slice(), menuOpen === 'saved'));
+      const dedupedItems = menuOpen === 'saved' ? store.items.slice() : dedupeItems(store.items.slice());
+      setItems(dedupedItems);
     },
     itemsPreLoaded: items ? items.length : 0,
   });
