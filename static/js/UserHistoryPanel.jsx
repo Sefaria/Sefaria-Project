@@ -135,7 +135,15 @@ const dedupeItems = (items) => {
 
 
 const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
-  const [items, setItems] = useState(store.loaded ? store.items : null);
+  // Store raw items in state (never deduped)
+  const [rawItems, setRawItems] = useState(store.loaded ? store.items.slice() : null);
+  
+  // Compute display items: dedupe for history, keep as-is for saved
+  // This automatically recalculates whenever rawItems or menuOpen changes
+  const items = useMemo(() => {
+    if (!rawItems) return null;
+    return menuOpen === 'saved' ? rawItems : dedupeItems(rawItems);
+  }, [rawItems, menuOpen]);
   
   const params = new URLSearchParams({
     saved:  +(menuOpen === 'saved'),
@@ -156,11 +164,10 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
       // Push the raw data into the store (no deduping yet)
       store.items.push(...data);
 
-      // Deduplicate when displaying (for history only, not saved)
-      const dedupedItems = menuOpen === 'saved' ? store.items.slice() : dedupeItems(store.items.slice());
-      setItems(dedupedItems);
+      // Update state with raw data - useMemo will handle transformation
+      setRawItems(store.items.slice());
     },
-    itemsPreLoaded: items ? items.length : 0,
+    itemsPreLoaded: rawItems ? rawItems.length : 0,
   });
 
 
