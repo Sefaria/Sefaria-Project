@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
@@ -116,18 +116,18 @@ UserHistoryPanel.propTypes = {
 
 const dedupeItems = (items) => {
   /*
-  Deduplicates consecutive items with the same book or sheet_id.
-  Only deduplicates items of the same type (both sheets or both books).
+  Deduplicates consecutive items with the same book or sheet_id.  
+  Essentially, we don't want two history items in a row that are of the same book (or if we're in voices, the same sheet).
   :param items: list of UserHistory objects to deduplicate
   :return: list of deduplicated items
   */
   const deduped = [];
-  let prevKey;
+  const key = Sefaria.activeModule === Sefaria.VOICES_MODULE ? 'sheet_id' : 'book';  
+  let prev;
   for (const item of items) {
-    const key = item.is_sheet ? 'sheet_id' : 'book';
-    if (item[key] !== prevKey) {
+    if (item[key] !== prev) {
       deduped.push(item);
-      prevKey = item[key];
+      prev = item[key];
     }
   }
   return deduped;
