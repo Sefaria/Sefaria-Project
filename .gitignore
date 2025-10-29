@@ -143,6 +143,7 @@ dump/*
 /playwright-report/
 /playwright/.cache/
 /test-results/
+e2e-test-logs
 /playwright-report/
 /playwright/.cache/
 /playwright-profile/
