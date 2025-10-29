@@ -13,7 +13,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang, needs_domain_switch, add_set_language_cookie_param
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse
@@ -109,16 +109,11 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             else:
                 redirect_domain = get_redirect_domain_for_language(request, interface)
 
-                # Check if redirect would actually change the domain (prevents redirect loops in local dev)
-                current_host = request.get_host()
-                target_host = urlparse(redirect_domain).hostname if redirect_domain else None
-                needs_domain_switch = target_host and current_host != target_host
-
-                if redirect_domain and needs_domain_switch:
+                if needs_domain_switch(request, redirect_domain):
                     # When detected language doesn't match current domain language, redirect
                     # while preserving the current module
                     path = request.get_full_path()
-                    path = path + ("&" if "?" in path else "?") + "set-language-cookie"
+                    path = add_set_language_cookie_param(path)
                     return redirect(redirect_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language

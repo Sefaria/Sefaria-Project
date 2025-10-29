@@ -53,7 +53,7 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_redirect_domain_for_language
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_redirect_domain_for_language, needs_domain_switch, add_set_language_cookie_param
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
@@ -1326,15 +1326,10 @@ def interface_language_redirect(request, language):
     # Look up the target domain based on current module + target language
     target_domain = get_redirect_domain_for_language(request, language)
 
-    # Compare hostnames properly (not substring match)
-    current_host = request.get_host()
-    target_host = urlparse(target_domain).hostname if target_domain else None
-    needs_domain_switch = target_host and current_host != target_host
-
-    if needs_domain_switch:
+    if needs_domain_switch(request, target_domain):
         # Switching domains - preserve path and add set-language-cookie param
         next = target_domain + next
-        next = next + ("&" if "?" in next else "?") + "set-language-cookie"
+        next = add_set_language_cookie_param(next)
 
     response = redirect(next)
 

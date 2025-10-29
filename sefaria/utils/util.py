@@ -581,6 +581,39 @@ def get_redirect_domain_for_language(request, interface_lang):
     lang_code = get_short_lang(interface_lang)
     return settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
 
+
+def needs_domain_switch(request, target_domain):
+    """
+    Determine if switching to target_domain requires a domain change.
+
+    Compares the current request host with the target domain's hostname.
+    Returns False if domains are the same (prevents redirect loops in local dev).
+
+    :param request: Django request object
+    :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
+    :return: Boolean indicating if domain switch is needed
+    """
+    if not target_domain:
+        return False
+
+    current_host = request.get_host()
+    target_host = urlparse(target_domain).hostname
+    return target_host and current_host != target_host
+
+
+def add_set_language_cookie_param(url):
+    """
+    Add the 'set-language-cookie' parameter to a URL.
+
+    Used when redirecting across domains to preserve language preferences.
+
+    :param url: URL string
+    :return: URL with set-language-cookie parameter appended
+    """
+    separator = "&" if "?" in url else "?"
+    return url + separator + "set-language-cookie"
+
+
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """
     Wrapper for babel.languages.get_territory_language_info
