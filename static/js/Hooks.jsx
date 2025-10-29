@@ -273,7 +273,6 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
-
 export {
   useScrollToLoad,
   usePaginatedScroll,

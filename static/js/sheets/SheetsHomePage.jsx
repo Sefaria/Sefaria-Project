@@ -2,6 +2,7 @@ import React  from 'react';
 import PropTypes from 'prop-types';
 import {NavSidebar, SidebarFooter} from "../NavSidebar";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
+import {InterfaceText} from "../Misc";
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
      * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
@@ -31,6 +32,7 @@ const SheetsHomePageSidebar = ({includeFooter = false}) => {
     const sidebarModules = [
     {type: "WhatIsSefariaVoices"},
     {type: "CreateASheet"},
+    {"type": "VoicesNewsletterSignUp"}
   ];
     return <NavSidebar sidebarModules={sidebarModules} includeFooter={includeFooter} />
 }
@@ -56,6 +58,7 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
         {sheetsHeroBanner}
         <div className="sidebarLayout">
           <div className="contentInner">
+            <h1 className="voicesBodyTitle"><InterfaceText>Explore User-Created Content by Topic</InterfaceText></h1>
             <div className="sheetsTopics">
             <>
             {sheetsTopicsCalendar}

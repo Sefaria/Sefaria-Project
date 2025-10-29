@@ -123,7 +123,7 @@ const StoryTitleBlock = ({url, he, en, children}) => {
 
 
 const StoryBodyBlock = ({children}) => (
-    <SimpleContentBlock classes="storyBody">
+    <SimpleContentBlock classes="storyBody serif">
         {children}
     </SimpleContentBlock>
 );
@@ -291,16 +291,16 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=
 
   return (
     <StoryFrame cls="textPassageStory">
-      <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
-          <SaveLine
-            dref={text.ref}
-            versions={versions}
-            toggleSignUpModal={toggleSignUpModal}
-            classes={"storyTitleWrapper"}
-            afterChildren={afterSave || null} >
-              <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
-          </SaveLine>
-      </CategoryHeader>
+      <SaveLine
+        dref={text.ref}
+        versions={versions}
+        toggleSignUpModal={toggleSignUpModal}
+        classes={"storyTitleWrapper"}
+        afterChildren={afterSave || null} >
+          <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
+            <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+          </CategoryHeader>
+      </SaveLine>
       <ColorBarBox tref={text.ref}>
           <StoryBodyBlock>
             {content}

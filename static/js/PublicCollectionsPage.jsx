@@ -101,7 +101,7 @@ const CollectionBlockListing = ({data}) => {
     <div className="navBlock">
       <a href={`/collections/${data.slug}`} className="navBlockTitle" data-target-module={Sefaria.VOICES_MODULE}>
         <div className="collectionListingImageBox">
-          <img className="collectionListingImage" src={data.imageUrl} alt="Collection Logo"/>
+          <img className="collectionListingImage" src={data.imageUrl} alt={Sefaria._("Collection Logo")}/>
         </div>
         <InterfaceText>{data.name}</InterfaceText>
       </a>

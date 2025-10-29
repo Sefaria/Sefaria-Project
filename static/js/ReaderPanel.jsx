@@ -798,6 +798,7 @@ class ReaderPanel extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}
           editorSaveState={this.props.editorSaveState}
           setEditorSaveState={this.props.setEditorSaveState}
+          showGuide={this.getGuideType() && this.showGuide.bind(this)}
         />;
     }
 
@@ -1095,7 +1096,6 @@ class ReaderPanel extends Component {
     } else if (["texts-saved", "texts-history", "notes"].includes(this.state.menuOpen)) {
       menu = (
           <LibraryUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}
               openNav={this.openMenu.bind(null, "navigation")}
@@ -1108,7 +1108,6 @@ class ReaderPanel extends Component {
     } else if (["sheets-saved", "sheets-history"].includes(this.state.menuOpen)) {
       menu = (
           <SheetsUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
               menuOpen={this.state.menuOpen}
               openMenu={this.openMenu}
               openNav={this.openMenu.bind(null, "navigation")}
@@ -1118,7 +1117,7 @@ class ReaderPanel extends Component {
               toggleSignUpModal={this.props.toggleSignUpModal}/>
       );
 
-    } else if (this.state.menuOpen === "sheets") {
+    } else if (this.state.menuOpen === "voices") {
       menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
                               multiPanel={this.props.multiPanel}
                               setTopic={this.setTopic}/>);
@@ -1372,10 +1371,7 @@ class ReaderControls extends Component {
       if (this.props.sheetTitle === null) {
         title = heTitle = Sefaria._("Loading...");
       } else {
-        title = heTitle = this.props.sheetTitle;
-        if (title === "") {
-          title = heTitle = Sefaria._("Untitled")
-        }
+        title = heTitle = Sefaria.sheets.getSheetTitle(this.props.sheetTitle);
       }
 
     } else if (data) {

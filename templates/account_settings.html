@@ -6,7 +6,6 @@
 <div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
 	<div class="headerWithButtons">
-        <div class="start"></div>
         <h1>
             <span class="int-en">Account Settings</span>
             <span class="int-he">הגדרות חשבון</span>
@@ -236,7 +235,6 @@
 						if ($newTransLangPref !== "{{ translation_language_preference }}") {
                             Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
-						navigateBack();
 					}
 				});
 			});

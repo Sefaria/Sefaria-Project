@@ -252,12 +252,15 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
 
     return (
       <div id="searchBox"
-           className={searchBoxClasses}>
+           className={searchBoxClasses}
+           role="search"
+           aria-label={Sefaria._("Site search")}>
         <SearchButton onClick={handleSearchButtonClick} />
         <input
           className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
+          aria-label={Sefaria._("Search for Texts or Keywords Here")}
           onKeyDown={handleSearchKeyDown}
           onFocus={focusSearch}
           onBlur={blurSearch}
@@ -362,7 +365,8 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           return[];
         }
         try {
-        const d = await Sefaria.getName(inputValue);
+        let types = Sefaria.activeModule === Sefaria.VOICES_MODULE ? ['Topic', 'User', 'Collection'] : undefined;
+        const d = await Sefaria.getName(inputValue, undefined, types, Sefaria.activeModule);
 
         let comps = d["completion_objects"].map(o => {
           const c = {...o};

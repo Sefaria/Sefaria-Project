@@ -8,6 +8,7 @@ import {
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import Button from "../common/Button";
+
 import { SignUpModalKind } from "../sefaria/signupModalContent";
 import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
 import PublishModal from "./PublishMenu";
@@ -96,11 +97,11 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button className="small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
+  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
-          <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
+          <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt={Sefaria._("Options")}/>}>
             <div className="dropdownLinks-options">
               <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
                 <SaveButtonWithText historyObject={historyObjectForSheet}/>
