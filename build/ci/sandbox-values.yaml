@@ -57,7 +57,8 @@ secrets:
     ref: slack-webhook-helm
 localSettings:
   DEBUG: false
-  DOMAIN_MODULES: '{"en": {"library": "https://www.${NAME}.cauldron.sefaria.org", "voices": "https://voices.${NAME}.cauldron.sefaria.org"}, "he": {"library": "https://www.${NAME}.cauldron.sefaria.org", "voices": "https://voices.${NAME}.cauldron.sefaria.org"}}'
+  DOMAIN_LANGUAGE: {}
+  DOMAIN_MODULES: '{"library": "https://${NAME}.cauldron.sefaria.org", "sheets": "https://sheets.${NAME}.cauldron.sefaria.org"}'
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://${NAME}.cauldron.sefaria.org" 
