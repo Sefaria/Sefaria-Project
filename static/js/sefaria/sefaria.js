@@ -548,27 +548,16 @@ Sefaria = extend(Sefaria, {
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
 
-    // TEMP: Debug logging
-    console.log('[TEMP] getModuleURL called with module:', module);
-    console.log('[TEMP] Sefaria.activeModule:', Sefaria.activeModule);
-    console.log('[TEMP] Sefaria.interfaceLang:', Sefaria.interfaceLang);
-    console.log('[TEMP] Sefaria.domainModules:', Sefaria.domainModules);
-
     module = module || Sefaria.activeModule;
     const langCode = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
-    console.log('[TEMP] langCode:', langCode); // TEMP
-    console.log('[TEMP] Looking up domainModules[' + langCode + '][' + module + ']'); // TEMP
 
     const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
-    console.log('[TEMP] href resolved to:', href); // TEMP
-    console.log('[TEMP] Sefaria.apiHost fallback:', Sefaria.apiHost); // TEMP
 
     try {
       const url = new URL(href);
-      console.log('[TEMP] Created URL object:', url); // TEMP
       return url;
     } catch (e) {
-      console.error('[TEMP] Error creating URL:', e); // TEMP
+      console.error('Error creating URL:', e);
       return false;
     }
   },

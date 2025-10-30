@@ -222,12 +222,6 @@ def base_props(request):
             "saved": {"loaded": False, "items": []},
             "last_place": []
         }
-    # TEMP: Debug logging for DOMAIN_MODULES
-    logger.info("[TEMP] base_props DOMAIN_MODULES",
-                domain_modules=DOMAIN_MODULES,
-                interface_lang=request.interfaceLang,
-                active_module=getattr(request, "active_module", LIBRARY_MODULE))
-
     user_data.update({
         "activeModule": getattr(request, "active_module", LIBRARY_MODULE),
         "last_cached": library.get_last_cached_time(),

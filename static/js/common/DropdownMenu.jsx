@@ -127,13 +127,8 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
  * />
  */
 const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
-  // TEMP: Debug logging
-  console.log('[TEMP] DropdownModuleItem rendering with:', { url, newTab, targetModule, dotColor, text });
-
   // fullURL automatically appends set-language-cookie when switching modules to preserve language preference
   const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
-
-  console.log('[TEMP] DropdownModuleItem fullURL result:', fullURL); // TEMP
 
   return (
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"

@@ -167,16 +167,9 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         lang = current_domain_lang(request)
-        # TEMP: Debug logging
-        logger.info("[TEMP] LanguageCookieMiddleware",
-                    has_set_language_cookie="set-language-cookie" in request.GET,
-                    lang=lang,
-                    request_path=request.path,
-                    request_get=dict(request.GET))
 
         if "set-language-cookie" in request.GET and lang:
             target_domain = get_redirect_domain_for_language(request, lang)
-            logger.info("[TEMP] Processing set-language-cookie", target_domain=target_domain)  # TEMP
 
             path = quote(request.path, safe='/')
             params = request.GET.copy()
@@ -184,8 +177,6 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
             final_url = target_domain + path + params_string
-
-            logger.info("[TEMP] Redirecting to", final_url=final_url, setting_cookie=lang)  # TEMP
 
             response = redirect(final_url)
             response.set_cookie("interfaceLang", lang)
