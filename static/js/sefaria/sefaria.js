@@ -518,6 +518,31 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
+  _domainHostnamesCache: null,
+  getDomainHostnames: function() {
+    // Returns a Set of all hostnames from domainModules.
+    // Cached for performance
+    if (this._domainHostnamesCache) {
+      return this._domainHostnamesCache;
+    }
+
+    const hostnames = new Set();
+    if (this.domainModules && typeof this.domainModules === 'object') {
+      for (const langModules of Object.values(this.domainModules)) {
+        for (const moduleUrl of Object.values(langModules)) {
+          try {
+            const url = new URL(moduleUrl);
+            hostnames.add(url.hostname);
+          } catch (e) {
+            // Invalid URL - skip this module
+          }
+        }
+      }
+    }
+
+    this._domainHostnamesCache = hostnames;
+    return hostnames;
+  },
   getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
@@ -532,10 +557,9 @@ Sefaria = extend(Sefaria, {
     }
   },
   isSefariaURL: function(url) {
-    // Check if URL starts with any domain from any language's modules
-    return Object.values(Sefaria.domainModules).some(langModules =>
-      Object.values(langModules).some(href => url.href.startsWith(href))
-    );
+    // Check if URL's hostname matches any of our domain hostnames
+    const hostnames = this.getDomainHostnames();
+    return hostnames.has(url.hostname);
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }

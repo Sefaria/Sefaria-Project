@@ -835,29 +835,13 @@ class Util {
      * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
      */
     static getCookieDomain() {
-        // Check if Sefaria.domainModules is available
-        if (!Sefaria.domainModules || typeof Sefaria.domainModules !== 'object') {
-            return null;
-        }
-        
-        // Extract hostnames from all domain modules
-        const hostnames = [];
-        for (const [_, langModules] of Object.entries(Sefaria.domainModules)) {
-            for (const [_, moduleUrl] of Object.entries(langModules)) {
-                try {
-                    const url = new URL(moduleUrl);
-                    hostnames.push(url.hostname);
-                } catch (e) {
-                    // Invalid URL - skip this module
-                }
-            }
-        }
-        
+        const hostnames = Array.from(Sefaria.getDomainHostnames());
+
         // Skip domain setting for empty hostnames and local development.
         // IP addresses don't have subdomain support.
         // Browsers don't allow setting cookies with domain ".localhost"
         // For localhost development, we need to dismiss the cookie banner on each module if we are using sheets.localhost
-        if (!hostnames.length || hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
+        if (hostnames.length === 0 || hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
             return null;
         }
         
