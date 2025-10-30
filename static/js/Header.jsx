@@ -185,6 +185,18 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
+  
+  const mobile = !props.multiPanel;
+
+  
+  const shouldHide = () => {
+    // Header visibility logic - on mobile, return null when we are viewing library content.  When we return null,
+    // we either display no component at the top of the screen or display ReaderControls at the top of the screen, essentially as the header.
+    // If the mobile nav menu is open, even when vieiwng a book, we still want the header to display.
+    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+    const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
+    return hidden;
+  }
 
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
@@ -219,14 +231,8 @@ const Header = (props) => {
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
-  // Header visibility logic - on mobile, hide when viewing text content (but not sheets or menus)
-  const isMobile = !props.multiPanel;
-  const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
-  const hidden = isMobile && !props.headerMode && isViewingTextContent;
-
-  if (hidden && !props.mobileNavMenuOpen) {
-    return null;
-  }
+  
+  if (shouldHide()) return null;
 
   const headerContent = (
     <>
@@ -306,7 +312,7 @@ const Header = (props) => {
 
   // Language toggle logic - show on mobile for specific menu pages
   const languageToggleMenus = ["navigation", "saved", "history", "notes"];
-  const hasLanguageToggle = isMobile && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props.firstPanel?.menuOpen);
+  const hasLanguageToggle = !Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props.firstPanel?.menuOpen);
 
   const mobileHeaderContent = (
     <>
@@ -328,23 +334,21 @@ const Header = (props) => {
     </>
   );
 
-  // Box shadow styling - don't show shadow over panels with color line (book toc in all contexts, text content on mobile)
-  const hasColorLine = props.firstPanel?.menuOpen === "book toc" || (isMobile && isViewingTextContent);
-  const hasBoxShadow = !hasColorLine;
-
-  const headerClasses = classNames({ header: 1, mobile: !props.multiPanel });
+  // Box shadow styling - don't show shadow over panels with color line (book toc in all contexts)
+  const hasBoxShadow = !props.firstPanel?.menuOpen === "book toc";;
+  const headerClasses = classNames({ header: 1, mobile: mobile });
   const headerInnerClasses = classNames({
     headerInner: 1,
     boxShadow: hasBoxShadow,
-    mobile: !props.multiPanel
+    mobile: mobile
   });
   return (
     <div className={headerClasses} role="banner" ref={headerRef}>
       <div className={headerInnerClasses}>
-        {props.multiPanel ? headerContent : mobileHeaderContent}
+        {!mobile ? headerContent : mobileHeaderContent}
       </div>
 
-      {props.multiPanel ? null :
+      {mobile ? null :
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
