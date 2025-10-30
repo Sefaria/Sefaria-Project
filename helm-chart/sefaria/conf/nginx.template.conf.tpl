@@ -62,6 +62,9 @@ http {
   {{- range .Values.domains.root }}
   {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
   {{- $code := .code }}
+  {{- if kindIs "slice" .code }}
+    {{- $code = index .code 0 }}
+  {{- end }}
   {{- $wwwDomain := printf "www.%s" $rootDomain }}
   server {
     listen 80;
