@@ -185,6 +185,18 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
+  
+  const mobile = !props.multiPanel;
+
+  
+  const shouldHide = () => {
+    // Header visibility logic - on mobile, return null when we are viewing library content.  When we return null,
+    // we either display no component at the top of the screen or display ReaderControls at the top of the screen, essentially as the header.
+    // If the mobile nav menu is open, even when vieiwng a book, we still want the header to display.
+    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+    const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
+    return hidden;
+  }
 
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
@@ -219,9 +231,8 @@ const Header = (props) => {
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
-  if (props.hidden && !props.mobileNavMenuOpen) {
-    return null;
-  }
+  
+  if (shouldHide()) return null;
 
   const headerContent = (
     <>
@@ -299,6 +310,10 @@ const Header = (props) => {
     </>
   );
 
+  // Language toggle logic - show on mobile for specific menu pages
+  const languageToggleMenus = ["navigation", "saved", "history", "notes"];
+  const hasLanguageToggle = !Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props.firstPanel?.menuOpen);
+
   const mobileHeaderContent = (
     <>
       <div>
@@ -311,27 +326,29 @@ const Header = (props) => {
         {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
       </div>
 
-      {props.hasLanguageToggle ?
-        <div className={props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+      {hasLanguageToggle ?
+        <div className={props.firstPanel?.settings?.language + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
     </>
   );
 
-  const headerClasses = classNames({ header: 1, mobile: !props.multiPanel });
+  // Box shadow styling - don't show shadow over panels with color line (book toc in all contexts)
+  const hasBoxShadow = !props.firstPanel?.menuOpen === "book toc";;
+  const headerClasses = classNames({ header: 1, mobile: mobile });
   const headerInnerClasses = classNames({
     headerInner: 1,
-    boxShadow: props.hasBoxShadow,
-    mobile: !props.multiPanel
+    boxShadow: hasBoxShadow,
+    mobile: mobile
   });
   return (
     <div className={headerClasses} role="banner" ref={headerRef}>
       <div className={headerInnerClasses}>
-        {props.multiPanel ? headerContent : mobileHeaderContent}
+        {!mobile ? headerContent : mobileHeaderContent}
       </div>
 
-      {props.multiPanel ? null :
+      {mobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
@@ -353,8 +370,13 @@ Header.propTypes = {
   showSearch: PropTypes.func.isRequired,
   openTopic: PropTypes.func.isRequired,
   openURL: PropTypes.func.isRequired,
-  hasBoxShadow: PropTypes.bool.isRequired,
+  firstPanel: PropTypes.object,
   module: PropTypes.string.isRequired,
+  mobileNavMenuOpen: PropTypes.bool,
+  onMobileMenuButtonClick: PropTypes.func,
+  toggleLanguage: PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly }) => {
