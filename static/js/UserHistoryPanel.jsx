@@ -123,11 +123,11 @@ const dedupeItems = (items) => {
   */
   const deduped = [];
   const key = Sefaria.activeModule === Sefaria.VOICES_MODULE ? 'sheet_id' : 'book';  
-  let prev;
+  let prevValue;
   for (const item of items) {
-    if (item[key] !== prev) {
+    if (item[key] !== prevValue) { // item[key] is the name of the sheet or book
       deduped.push(item);
-      prev = item[key];
+      prevValue = item[key];
     }
   }
   return deduped;
