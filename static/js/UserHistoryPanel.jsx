@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
@@ -138,13 +138,6 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
   // Store raw items in state (never deduped)
   const [rawItems, setRawItems] = useState(store.loaded ? store.items.slice() : null);
   
-  // Compute display items: dedupe for history, keep as-is for saved
-  // This automatically recalculates whenever rawItems or menuOpen changes
-  const items = useMemo(() => {
-    if (!rawItems) return null;
-    return menuOpen === 'saved' ? rawItems : dedupeItems(rawItems);
-  }, [rawItems, menuOpen]);
-  
   const params = new URLSearchParams({
     saved:  +(menuOpen === 'saved'),
     sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
@@ -169,8 +162,14 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     },
     itemsPreLoaded: rawItems ? rawItems.length : 0,
   });
-
-
+  
+    
+  // Compute display items: dedupe for history, keep as-is for saved
+  let items;    
+  if (rawItems) {
+    items = menuOpen === 'saved' ? rawItems : dedupeItems(rawItems);
+  }
+  
   if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
