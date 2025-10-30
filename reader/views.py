@@ -8,7 +8,6 @@ from elasticsearch import Elasticsearch
 from random import choice
 import json
 import urllib.request, urllib.parse, urllib.error
-from urllib.parse import urlparse
 from bson.json_util import dumps
 import socket
 import bleach
