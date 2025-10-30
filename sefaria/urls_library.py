@@ -44,7 +44,7 @@ urlpatterns = [
 
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^settings/profile?$', reader_views.settings_profile_redirect),
+    url(r'^settings/profile/?$', reader_views.settings_profile_redirect),
 
     url(r'^community/?$', reader_views.community_to_voices_redirect),
 

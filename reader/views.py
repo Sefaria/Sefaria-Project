@@ -4627,14 +4627,10 @@ def settings_profile_redirect(request):
     """
     Redirect /settings/profile from library module to voices module
     """
-    # Only redirect if on library module to avoid redirect loops
-    if getattr(request, 'active_module', LIBRARY_MODULE) != LIBRARY_MODULE:
-        raise Http404
-    
     # Get the voices domain from settings
     domain_modules = get_language_specific_domain_modules(request.interfaceLang)
     voices_domain = domain_modules[VOICES_MODULE]
-    target_url = f"{voices_domain}/settings/profile"
+    target_url = urllib.parse.urljoin(voices_domain, "/settings/profile")
     
     # Preserve query parameters
     params = request.GET.urlencode()
@@ -4648,14 +4644,10 @@ def community_to_voices_redirect(request):
     """
     Redirect /community from library module to voices module root
     """
-    # Only redirect if on library module to avoid redirect loops
-    if getattr(request, 'active_module', LIBRARY_MODULE) != LIBRARY_MODULE:
-        raise Http404
-    
     # Get the voices domain from settings
     domain_modules = get_language_specific_domain_modules(request.interfaceLang)
     voices_domain = domain_modules[VOICES_MODULE]
-    target_url = voices_domain + "/"
+    target_url = urllib.parse.urljoin(voices_domain, "/")
     
     # Preserve query parameters
     params = request.GET.urlencode()
