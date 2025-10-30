@@ -569,16 +569,16 @@ def current_domain_lang(request):
     return short_to_long_lang_code(matched_langs[0])
 
 
-def get_redirect_domain_for_language(request, interface_lang):
+def get_redirect_domain_for_language(request, target_lang):
     """
     Get the redirect domain URL for a given interface language while preserving the current module.
 
     :param request: Django request object
-    :param interface_lang: 'english' or 'hebrew'
+    :param target_lang: 'english' or 'hebrew'
     :return: Full domain URL (e.g., 'https://www.sefaria.org') or None
     """
     current_module = getattr(request, 'active_module', LIBRARY_MODULE)
-    lang_code = get_short_lang(interface_lang)
+    lang_code = get_short_lang(target_lang)
     return settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
 
 
