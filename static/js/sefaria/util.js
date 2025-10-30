@@ -294,11 +294,17 @@ class Util {
                 window.location.pathname + window.location.search;
     }
     static fullURL(relativePath, moduleTarget, preserveLanguageOnModuleSwitch = true) {
+      // TEMP: Debug logging for URL construction
+      console.log('[TEMP] fullURL called with:', { relativePath, moduleTarget, preserveLanguageOnModuleSwitch });
+
       let url = relativePath;
 
       if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
         const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://voices.sefaria.org' or 'https://www.sefaria.org')
+        console.log('[TEMP] getModuleURL returned:', moduleURL); // TEMP
+        console.log('[TEMP] moduleURL.origin:', moduleURL?.origin); // TEMP
         url = moduleURL.origin + relativePath;
+        console.log('[TEMP] url after prepending origin:', url); // TEMP
       }
 
       // When switching between modules (e.g., Library → Voices), append set-language-cookie parameter
@@ -306,8 +312,10 @@ class Util {
       if (preserveLanguageOnModuleSwitch && moduleTarget && moduleTarget !== Sefaria.activeModule) {
         const separator = url.includes('?') ? '&' : '?';
         url += separator + 'set-language-cookie';
+        console.log('[TEMP] url after adding set-language-cookie:', url); // TEMP
       }
 
+      console.log('[TEMP] fullURL returning:', url); // TEMP
       return url;
     }
     static isUrl(string) {
