@@ -46,6 +46,79 @@
 			"sheets": "{% trans "Number of Source Sheets" %}"
 	};
 
+	var paletteColors = {
+		darkteal:  "#004e5f",
+		raspberry: "#7c406f",
+		green:     "#5d956f",
+		paleblue:  "#9ab8cb",
+		blue:      "#4871bf",
+		orange:    "#cb6158",
+		lavender:  "#7f85a9",
+		yellow:    "#ccb479",
+		purple:    "#594176",
+		teal:      "#00827f"
+	};
+
+	var metricColors = {
+		totalWords: paletteColors.blue,
+		heWords: paletteColors.darkteal,
+		transWords: paletteColors.teal,
+		sctWords: paletteColors.orange,
+		contributors: paletteColors.purple,
+		links: paletteColors.raspberry,
+		sheets: paletteColors.green
+	};
+
+	var metricUnits = {
+			"totalWords": "{% trans "Words" %}",
+			"heWords": "{% trans "Words" %}",
+			"transWords": "{% trans "Words" %}",
+			"sctWords": "{% trans "Words" %}",
+			"contributors": "{% trans "Contributors" %}",
+			"links": "{% trans "Links" %}",
+			"sheets": "{% trans "Source Sheets" %}"
+	};
+
+	var hexToRgba = function(hex, alpha) {
+		if (!hex) {
+			return "rgba(0, 0, 0, " + alpha + ")";
+		}
+		var sanitized = hex.replace("#", "");
+		if (sanitized.length === 3) {
+			sanitized = sanitized.split("").map(function(char) {
+				return char + char;
+			}).join("");
+		}
+		var bigint = parseInt(sanitized, 16);
+		var r = (bigint >> 16) & 255;
+		var g = (bigint >> 8) & 255;
+		var b = bigint & 255;
+		return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+	};
+
+	var formatNumber = function(value) {
+		if (value === null || value === undefined) {
+			return "—";
+		}
+		var numericValue = Number(value);
+		if (isNaN(numericValue)) {
+			return value;
+		}
+		return numericValue.toLocaleString();
+	};
+
+	if (window.Chart && window.Chart.defaults) {
+		Chart.defaults.color = "#2A3B52";
+		Chart.defaults.font.family = '"Roboto","Helvetica Neue","Helvetica",sans-serif';
+		Chart.defaults.font.size = 14;
+		Chart.defaults.elements.line.borderWidth = 3;
+		Chart.defaults.elements.point.radius = 0;
+		Chart.defaults.elements.point.hitRadius = 15;
+		Chart.defaults.transitions.active.animation.duration = 200;
+		Chart.defaults.plugins.tooltip.cornerRadius = 6;
+		Chart.defaults.plugins.tooltip.displayColors = false;
+	}
+
 	var labels = [];
 	for (var i = 0; i < metrics.length; i++) {
 		var timestamp = metrics[i]["timestamp"]["$date"];
@@ -79,8 +152,18 @@
 	var makeChart = function(field) {
 		var dataset = makeData(field);
 		var canvasId = field + "Canvas";
+		var color = metricColors[field] || paletteColors.blue;
 		var $container = $("<div>", { id: field, "class": "chart" });
-		$container.append($("<span>", { "class": "chartLabel", text: titles[field] }));
+		var $header = $("<div>", { "class": "chartHeader" });
+		$header.append($("<span>", { "class": "chartTitle", text: titles[field] }));
+		var latestValue = dataset.length ? dataset[dataset.length - 1] : null;
+		var $valueGroup = $("<div>", { "class": "chartValueGroup" });
+		$valueGroup.append($("<span>", { "class": "chartValue", text: formatNumber(latestValue) }));
+		if (metricUnits[field]) {
+			$valueGroup.append($("<span>", { "class": "chartSubtitle", text: metricUnits[field] }));
+		}
+		$header.append($valueGroup);
+		$container.append($header);
 		var $canvasWrapper = $("<div>", { "class": "chartCanvasWrapper" });
 		var $canvas = $("<canvas>", { id: canvasId });
 		$canvasWrapper.append($canvas);
@@ -100,20 +183,42 @@
 				datasets: [{
 					label: titles[field],
 					data: dataset,
-					borderColor: "#4871bf",
-					backgroundColor: "rgba(72, 113, 191, 0.1)",
-					pointRadius: 0,
-					pointHoverRadius: 3,
-					tension: 0.3,
+					borderColor: color,
+					backgroundColor: hexToRgba(color, 0.18),
+					pointBackgroundColor: color,
+					pointHoverBackgroundColor: color,
+					pointHoverRadius: 5,
+					pointHoverBorderWidth: 0,
+					tension: 0.35,
 					fill: true
 				}]
 			},
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
+				interaction: {
+					mode: "index",
+					intersect: false
+				},
 				plugins: {
 					legend: {
 						display: false
+					},
+					tooltip: {
+						backgroundColor: "#073570",
+						borderColor: hexToRgba(color, 0.4),
+						borderWidth: 1,
+						titleColor: "#ffffff",
+						bodyColor: "#ffffff",
+						callbacks: {
+							label: function(context) {
+								var value = context.parsed.y;
+								if (value && typeof value.toLocaleString === "function") {
+									value = value.toLocaleString();
+								}
+								return context.dataset.label + ": " + value;
+							}
+						}
 					}
 				},
 				scales: {
@@ -124,7 +229,12 @@
 						}
 					},
 					y: {
+						grid: {
+							color: "rgba(7, 53, 112, 0.08)",
+							drawBorder: false
+						},
 						ticks: {
+							padding: 10,
 							callback: function(value) {
 								if (typeof value.toLocaleString === "function") {
 									return value.toLocaleString();

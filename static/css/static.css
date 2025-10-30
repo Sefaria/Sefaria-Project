@@ -1334,22 +1334,51 @@ p.registration-links a:hover{
 }
 #metricsPage .chart {
   margin-bottom: 80px;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e9ef;
+  border-radius: 12px;
+  padding: 24px;
+  background-color: #ffffff;
+  box-shadow: 0 12px 24px rgba(14, 39, 67, 0.06);
+}
+#metricsPage .chartHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+#metricsPage .chartTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #073570;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#metricsPage .chartValueGroup {
+  text-align: right;
+}
+#metricsPage .chartValue {
+  display: block;
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 600;
+  color: #004e5f;
+}
+#metricsPage .chartSubtitle {
+  display: block;
+  font-size: 14px;
+  color: rgba(7, 53, 112, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
 }
 #metricsPage .chartCanvasWrapper {
   position: relative;
   height: 360px;
+  margin: 0 16px;
 }
 #metricsPage .chart canvas {
   width: 100% !important;
   height: 100% !important;
-}
-#metricsPage .chartLabel {
-  text-align: center;
-  display: block;
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #digitizedBySefaria p {
   margin-bottom: 20px;
