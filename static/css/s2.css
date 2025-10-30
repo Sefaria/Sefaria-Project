@@ -3402,7 +3402,7 @@ a.cardTitle:hover {
   max-width: revert;
 }
 .singlePanel .sheetContentSidebar {
-  padding-inline-start: 10%;
+  padding-inline: 10%;
   width: revert;
   margin: revert;
 }
