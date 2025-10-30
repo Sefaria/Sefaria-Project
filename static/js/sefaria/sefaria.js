@@ -549,7 +549,7 @@ Sefaria = extend(Sefaria, {
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
 
     module = module || Sefaria.activeModule;
-    const langCode = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    const langCode = Sefaria._getShortInterfaceLang();
 
     const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
 
