@@ -37,8 +37,10 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
 const NextRedirectAnchor = ({url, children, className}) => {
   const onClick = (e) => {
     e.preventDefault();
-    window.location.href = `${url}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
-  }
+    const currentPath = Sefaria.util.currentPath();
+    const targetUrl = `${url}?next=${encodeURIComponent(currentPath)}`;
+    window.location.href = targetUrl;
+  };
   return (
     <a className={className || 'interfaceLinks-option int-bi dropdownItem'}
        href='#'
@@ -125,7 +127,9 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
  * />
  */
 const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
+  // fullURL automatically appends set-language-cookie when switching modules to preserve language preference
   const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+
   return (
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}

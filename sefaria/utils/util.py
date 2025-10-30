@@ -7,7 +7,8 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
-from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
+from urllib.parse import urlparse
+from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD, LIBRARY_MODULE
 from django.conf import settings
 from sefaria.system.exceptions import InputError
 """
@@ -524,11 +525,6 @@ def short_to_long_lang_code(code):
         code = "english"
     return code
 
-def get_language_specific_domain_modules(interfaceLang):
-    interface_lang_code = get_short_lang(interfaceLang)
-    language_specific_domain_modules = settings.DOMAIN_MODULES.get(interface_lang_code, settings.DOMAIN_MODULES['en'])
-    return language_specific_domain_modules
-
 def get_short_lang(language):
     """
     Converts a language to a code.
@@ -538,6 +534,85 @@ def get_short_lang(language):
     if language not in ["english", "hebrew"]:
         raise InputError("Invalid language. Must be 'english' or 'hebrew'.")
     return "en" if language == "english" else "he"
+
+
+def current_domain_lang(request):
+    """
+    Returns the pinned language for the current domain, or None if current domain is not pinned.
+    Uses DOMAIN_MODULES to detect which language the current domain belongs to.
+
+    If the hostname matches multiple languages (e.g., in local development where both languages
+    use localhost), returns None to indicate the domain is not language-pinned.
+
+    :param request: Django request object
+    :return: 'english', 'hebrew', or None
+    """
+    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
+        return None
+
+    current_hostname = urlparse(f"http://{request.get_host()}").hostname
+    matched_langs = []
+
+    for lang_code, modules in settings.DOMAIN_MODULES.items():
+        if not isinstance(modules, dict):
+            continue
+        for module_url in modules.values():
+            if urlparse(module_url).hostname == current_hostname:
+                matched_langs.append(lang_code)
+                break  # Only need to match once per language
+
+    # If we matched multiple languages, domain is ambiguous - not pinned. Happens on Local
+    if len(matched_langs) != 1:
+        return None
+
+    # Only return language if domain uniquely identifies it
+    return short_to_long_lang_code(matched_langs[0])
+
+
+def get_redirect_domain_for_language(request, target_lang):
+    """
+    Get the redirect domain URL for a given interface language while preserving the current module.
+
+    :param request: Django request object
+    :param target_lang: 'english' or 'hebrew'
+    :return: Full domain URL (e.g., 'https://www.sefaria.org') or None
+    """
+    current_module = getattr(request, 'active_module', LIBRARY_MODULE)
+    lang_code = get_short_lang(target_lang)
+    return settings.DOMAIN_MODULES.get(lang_code, {}).get(current_module)
+
+
+def needs_domain_switch(request, target_domain):
+    """
+    Determine if switching to target_domain requires a domain change.
+
+    Compares the current request host with the target domain's hostname.
+    Returns False if domains are the same (prevents redirect loops in local dev).
+
+    :param request: Django request object
+    :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
+    :return: Boolean indicating if domain switch is needed
+    """
+    if not target_domain:
+        return False
+
+    current_host = request.get_host()
+    target_host = urlparse(target_domain).hostname
+    return target_host and current_host != target_host
+
+
+def add_set_language_cookie_param(url):
+    """
+    Add the 'set-language-cookie' parameter to a URL.
+
+    Used when redirecting across domains to preserve language preferences.
+
+    :param url: URL string
+    :return: URL with set-language-cookie parameter appended
+    """
+    separator = "&" if "?" in url else "?"
+    return url + separator + "set-language-cookie"
+
 
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """

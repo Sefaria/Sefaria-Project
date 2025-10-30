@@ -3,6 +3,7 @@ import tempfile
 import cProfile
 import pstats
 from io import StringIO
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import translation
@@ -12,16 +13,15 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang, needs_domain_switch, add_set_language_cookie_param
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-from urllib.parse import quote, urlparse
+from urllib.parse import quote, urlparse, urljoin
 from sefaria.constants.model import LIBRARY_MODULE
 
 import structlog
 import json
 logger = structlog.get_logger(__name__)
-
 
 
 class MiddlewareURLMixin:
@@ -101,20 +101,19 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         if domain_lang and domain_lang != interface:
             # For crawlers, don't redirect -- just return the pinned language
-            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider", 
+            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
             if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
-                redirect_domain = None
-                for domain in settings.DOMAIN_LANGUAGES:
-                    if settings.DOMAIN_LANGUAGES[domain] == interface:
-                        redirect_domain = domain
-                if redirect_domain:
-                    # When detected language doesn't match current domain langauge, redirect
+                redirect_domain = get_redirect_domain_for_language(request, interface)
+
+                if needs_domain_switch(request, redirect_domain):
+                    # When detected language doesn't match current domain language, redirect
+                    # while preserving the current module
                     path = request.get_full_path()
-                    path = path + ("&" if "?" in path else "?") + "set-language-cookie"
+                    path = add_set_language_cookie_param(path)
                     return redirect(redirect_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language
@@ -162,39 +161,30 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
 class LanguageCookieMiddleware(MiddlewareMixin):
     """
-    If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain, 
+    If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain,
     then redirect to a URL without the param (so the urls with the param don't get loose in wild).
-    Allows one domain to set a cookie on another. 
+    Allows one domain to set a cookie on another.
     """
     def process_request(self, request):
         lang = current_domain_lang(request)
+
         if "set-language-cookie" in request.GET and lang:
-            domain = [d for d in settings.DOMAIN_LANGUAGES if settings.DOMAIN_LANGUAGES[d] == lang][0]
+            target_domain = get_redirect_domain_for_language(request, lang)
+
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            response = redirect(domain + path + params_string)
+            final_url = urljoin(target_domain, path) + params_string
+
+            response = redirect(final_url)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()
             return response
-
-
-def current_domain_lang(request):
-    """
-    Returns the pinned language for the current domain, or None if current domain is not pinned.
-    """
-    current_domain = request.get_host()
-    domain_lang = None
-    for protocol in ("https://", "http://"):
-        full_domain = protocol + current_domain
-        if full_domain in settings.DOMAIN_LANGUAGES:
-            domain_lang = settings.DOMAIN_LANGUAGES[full_domain]
-    return domain_lang
 
 
 class CORSDebugMiddleware(MiddlewareMixin):
@@ -247,7 +237,6 @@ class ProfileMiddleware(MiddlewareMixin):
 class ModuleMiddleware(MiddlewareURLMixin):
     excluded_url_prefixes = {
         '/linker.js',
-        '/interface/',
         '/api/',
         '/apple-app-site-association',
         '/static/',
@@ -261,13 +250,14 @@ class ModuleMiddleware(MiddlewareURLMixin):
         """
         Determine the active module based on the request host using DOMAIN_MODULES.
         Returns the module name if found, the default module otherwise.
-        """        
+        """
         current_hostname = urlparse(f"http://{request.get_host()}").hostname
-        
+
         for module in settings.DOMAIN_MODULES.values():
             for module_name, module_domain in module.items():
                 if current_hostname == urlparse(module_domain).hostname:
-                    return module_name            
+                    return module_name
+
         return self.default_module
             
     
