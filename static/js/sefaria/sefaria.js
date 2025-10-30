@@ -2667,9 +2667,17 @@ _media: {},
   },
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
-      const skip = Sefaria.userHistory.items.length;
-      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
-      fetch(url)
+    const params = new URLSearchParams({
+      secondary: 0,
+      annotate: 1,
+      limit,
+      skip: Sefaria.userHistory.items.length,
+      saved: 0,
+      sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
+    });
+    
+    const url = `/api/profile/user_history?${params.toString()}`;
+    fetch(url)
           .then(response => response.json())
           .then(data => {
               Sefaria.userHistory.loaded = true;
