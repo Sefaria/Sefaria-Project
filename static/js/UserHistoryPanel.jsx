@@ -23,45 +23,49 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
   const contentRef = useRef();
 
   useEffect(() => {
-    menuOpen === 'notes' && Sefaria.activeModule === 'library' && Sefaria.allPrivateNotes((data) => {
-      if (Array.isArray(data)) {
-        const flattenedNotes = data.map(note => ({
-          ref: note.ref,
-          text: note.text
-        }));
-        setNotes(flattenedNotes);
-      } else {
-        console.error('Unexpected data format:', data);
-      }
-    });
+    if (menuOpen === 'notes' && Sefaria.activeModule === 'library') {
+      Sefaria.allPrivateNotes((data) => {
+        if (Array.isArray(data)) {
+          const flattenedNotes = data.map(({ref, text}) => ({ref, text}));
+          setNotes(flattenedNotes);
+        } else {
+          console.error('Unexpected data format:', data);
+        }
+      });
+    }
   }, [menuOpen]);
 
   const currentDataStore = menuOpen === 'saved' ? Sefaria.saved : Sefaria.userHistory;
   const store = {
-    'loaded': currentDataStore?.loaded || false, 
+    'loaded': currentDataStore?.loaded || false,
     'items': currentDataStore?.items || []
   };
 
   const title = (
     <span className="sans-serif">
-      <a href="/saved" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
-      className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
-      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-        <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
-        <InterfaceText>Saved</InterfaceText>
+      <a href="/saved" 
+        data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
+        className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+          <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
+          <InterfaceText>Saved</InterfaceText>
       </a>
-      <a href="/history" data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
-      className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
-      onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-        <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
-        <InterfaceText>History</InterfaceText>
+      <a href="/history" 
+        className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
+        data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
+        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
+          <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
+          <InterfaceText>History</InterfaceText>
       </a>
       { Sefaria.activeModule === "library" &&
-        <a href="/texts/notes" className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
-        onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-        <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
-        <InterfaceText>Notes</InterfaceText>
-      </a> }
+        <a 
+           href="/texts/notes" 
+           className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
+           onKeyDown={(e) => Util.handleKeyboardClick(e)}
+        >
+          <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
+          <InterfaceText>Notes</InterfaceText>
+        </a> }
     </span>
   );
 
@@ -110,37 +114,62 @@ UserHistoryPanel.propTypes = {
 };
 
 
-const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
-  const [items, setItems] = useState(store.loaded ? store.items : null);
+const dedupeItems = (items) => {
+  /*
+  Deduplicates consecutive items with the same book or sheet_id.  
+  Essentially, we don't want two history items in a row that are of the same book (or if we're in voices, the same sheet).
+  :param items: list of UserHistory objects to deduplicate
+  :return: list of deduplicated items
+  */
+  const deduped = [];
+  const key = Sefaria.activeModule === Sefaria.VOICES_MODULE ? 'sheet_id' : 'book';  
+  let prevValue;
+  for (const item of items) {
+    if (item[key] !== prevValue) { // item[key] is the name of the sheet or book
+      deduped.push(item);
+      prevValue = item[key];
+    }
+  }
+  return deduped;
+};
 
-  // Store changes when switching tabs, reset items
-  useEffect(() => {
-    setItems(store.loaded ? store.items : null);
-  }, [menuOpen]);
+
+const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) => {
+  // Store raw items in state (never deduped)
+  const [rawItems, setRawItems] = useState(store.loaded ? store.items.slice() : null);
   
-  const savedParam = menuOpen === 'saved' ? '&saved=1' : '';
-  const sheetsOnlyParam = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '&sheets_only=1' : '';
+  const params = new URLSearchParams({
+    saved:  +(menuOpen === 'saved'),
+    sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
+    secondary: 0,
+    annotate: 1,
+  });
 
   useScrollToLoad({
     scrollableRef: scrollableRef,
-    url: "/api/profile/user_history?secondary=0&annotate=1" + savedParam + sheetsOnlyParam,
+    url: `/api/profile/user_history?${params.toString()}`,
     setter: data => {
       if (!store.loaded) {
         store.items = []; // Initialize items only once
         store.loaded = true;
       }
 
-      // Push the data into the store (already filtered and deduped by backend)
+      // Push the raw data into the store (no deduping yet)
       store.items.push(...data);
 
-      // Update the state with the modified items array
-      setItems(store.items.slice());
-
+      // Update state with raw data - useMemo will handle transformation
+      setRawItems(store.items.slice());
     },
-    itemsPreLoaded: items ? items.length : 0,
+    itemsPreLoaded: rawItems ? rawItems.length : 0,
   });
-
-
+  
+    
+  // Compute display items: dedupe for history, keep as-is for saved
+  let items;    
+  if (rawItems) {
+    items = menuOpen === 'saved' ? rawItems : dedupeItems(rawItems);
+  }
+  
   if (menuOpen === 'history' && !Sefaria.is_history_enabled) {
     return (
       <div className="savedHistoryMessage">
