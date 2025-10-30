@@ -34,6 +34,7 @@ from sefaria.model.user_profile import *
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
+from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags
 from sefaria.site.site_settings import SITE_SETTINGS
 
@@ -889,6 +890,7 @@ def user_tag_list_api(request, user_id):
     response["Cache-Control"] = "max-age=3600"
     return response
 
+@django_cache(timeout=6 * 60 * 60)
 def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
