@@ -3099,8 +3099,9 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide, authorImage, authorStatement, authorUrl}) => {
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+  
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
@@ -3114,6 +3115,22 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
                                                        className="summary"
                                                        editable={editable}
                                                        blurCallback={summaryCallback}/>}
+    {!Sefaria.multiPanel && (authorImage || authorUrl) && (
+      <div className="sheetAuthorInfo">
+        {authorImage && (
+          <ProfilePic
+            url={authorImage}
+            len={30}
+            name={authorStatement}
+          />
+        )}
+        {authorUrl && (
+          <a href={authorUrl} className="sheetAuthorName">
+            {Sefaria._(authorStatement)}
+          </a>
+        )}
+      </div>
+    )}
   </div>
 }
 
