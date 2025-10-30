@@ -80,8 +80,7 @@ def base_props(request):
 @user_only
 def module_context(request):
     return {
-        'active_module': request.active_module,
-        'domain_modules': DOMAIN_MODULES
+        'active_module': request.active_module
     }
 
 @user_only
