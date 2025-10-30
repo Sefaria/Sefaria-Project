@@ -175,7 +175,10 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- range .Values.domains.root }}
   {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
   {{- $lang := .language -}}
-  {{- $code := .code -}}
+  {{- $code := .code }}
+  {{- if kindIs "slice" .code }}
+    {{- $code = index .code 0 }}
+  {{- end }}
   {{- $_ := set $domains (printf "https://%s" $rootDomain) $lang }}
   {{- $_ := set $domains (printf "https://www.%s" $rootDomain) $lang }}
   {{- range $.Values.domains.modules }}
@@ -193,19 +196,25 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- $map := dict -}}
 {{- $deployEnv := .Values.deployEnv -}}
 {{- range .Values.domains.root }}
-  {{- $code := .code -}}
-  {{- $langMap := dict -}}
+  {{- $codes := .code -}}
+  {{- if not (kindIs "slice" $codes) -}}
+    {{- $codes = list $codes -}}
+  {{- end -}}
   {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
-  {{- $_ := set $langMap "library" (printf "https://www.%s" $rootDomain) }}
-  {{- range $.Values.domains.modules }}
-    {{- $name := .name -}}
-    {{- $subdomain := index .subdomains $code }}
-    {{- if $subdomain }}
-      {{- $fullDomain := printf "https://%s.%s" $subdomain $rootDomain }}
-      {{- $_ := set $langMap $name $fullDomain }}
+  {{- range $codes }}
+    {{- $code := . -}}
+    {{- $langMap := dict -}}
+    {{- $_ := set $langMap "library" (printf "https://www.%s" $rootDomain) }}
+    {{- range $.Values.domains.modules }}
+      {{- $name := .name -}}
+      {{- $subdomain := index .subdomains $code }}
+      {{- if $subdomain }}
+        {{- $fullDomain := printf "https://%s.%s" $subdomain $rootDomain }}
+        {{- $_ := set $langMap $name $fullDomain }}
+      {{- end }}
     {{- end }}
+    {{- $_ := set $map $code $langMap }}
   {{- end }}
-  {{- $_ := set $map $code $langMap }}
 {{- end }}
 {{- toYaml $map }}
 {{- end }}
