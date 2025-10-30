@@ -89,28 +89,14 @@ class TestLanguageModuleSwitching:
         When: User switches to Hebrew
         Then: User should arrive at Hebrew Library (www.sefariastaging-il.org)
         """
-        
-        # STEP 1: Create a request to the English Library domain
         request = factory.get('/', HTTP_HOST='www.sefariastaging.org')
-        
-        # STEP 2: Set up the request as if user wants to switch to Hebrew
-        # The user currently has English cookie, but wants Hebrew
-        request.COOKIES = {'interfaceLang': 'hebrew'}  # User clicked Hebrew!
-        
-        # STEP 3: Add user (anonymous for simplicity)
+        request.COOKIES = {'interfaceLang': 'hebrew'}
         request.user = AnonymousUser()
-        
-        # STEP 4: Add user agent
         request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
-        
-        # STEP 5: Set the active module (Library)
         request.active_module = LIBRARY_MODULE
-        
-        # STEP 6: Call the middleware (this is where the magic happens!)
+
         response = language_middleware.process_request(request)
-        
-        # STEP 7: Assert the results
-        # The middleware should redirect to Hebrew domain
+
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
         assert 'www.sefariastaging-il.org' in response.url, "Should redirect to Hebrew domain"
@@ -124,13 +110,12 @@ class TestLanguageModuleSwitching:
         cookie middleware should set the interfaceLang cookie.
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
-        
-        # Simulate browser arriving at voices.sefariastaging.org?set-language-cookie
+
         request = factory.get('/?set-language-cookie', HTTP_HOST='voices.sefariastaging.org')
         request.user = AnonymousUser()
         request.active_module = VOICES_MODULE
-        request.interfaceLang = 'english'  # Set by LanguageSettingsMiddleware earlier
-        
+        request.interfaceLang = 'english'
+
         response = cookie_middleware.process_request(request)
         
         # Should redirect to clean URL and set cookie
@@ -148,19 +133,14 @@ class TestLanguageModuleSwitching:
         When: User switches to English
         Then: User should arrive on English Library (www.sefariastaging.org)
         """
-        # Create a request to the Hebrew Library domain
         request = factory.get('/', HTTP_HOST='www.sefariastaging-il.org')
-        
-        # Set up the request as if user wants to switch to English
-        # The user currently has Hebrew cookie, but wants English
-        request.COOKIES = {'interfaceLang': 'english'}  
-
+        request.COOKIES = {'interfaceLang': 'english'}
         request.user = AnonymousUser()
         request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
         request.active_module = LIBRARY_MODULE
+
         response = language_middleware.process_request(request)
-        
-        # Assert the results - middleware should redirect to English domain
+
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
         assert 'www.sefariastaging.org' in response.url, "Should redirect to English domain"
@@ -176,13 +156,12 @@ class TestLanguageModuleSwitching:
         Then: User should arrive on Hebrew Voices (chiburim.sefariastaging-il.org)
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
-        
-        # Simulate browser arriving at chiburim.sefariastaging-il.org?set-language-cookie
+
         request = factory.get('/?set-language-cookie', HTTP_HOST='chiburim.sefariastaging-il.org')
         request.user = AnonymousUser()
         request.active_module = VOICES_MODULE
-        request.interfaceLang = 'hebrew'  # Set by LanguageSettingsMiddleware earlier
-        
+        request.interfaceLang = 'hebrew'
+
         response = cookie_middleware.process_request(request)
         
         # Should redirect to clean URL and set cookie
@@ -200,19 +179,14 @@ class TestLanguageModuleSwitching:
         When: User switches to Hebrew
         Then: User should arrive on Hebrew Voices (chiburim.sefariastaging-il.org)
         """
-        # Create a request to the English Voices domain
         request = factory.get('/', HTTP_HOST='voices.sefariastaging.org')
-        
-        # Set up the request as if user wants to switch to Hebrew
-        # The user currently has English cookie, but wants Hebrew
-        request.COOKIES = {'interfaceLang': 'hebrew'}  
-
+        request.COOKIES = {'interfaceLang': 'hebrew'}
         request.user = AnonymousUser()
         request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
         request.active_module = VOICES_MODULE
+
         response = language_middleware.process_request(request)
-        
-        # Assert the results - middleware should redirect to Hebrew domain
+
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
         assert 'chiburim.sefariastaging-il.org' in response.url, "Should redirect to Hebrew domain"
@@ -227,13 +201,12 @@ class TestLanguageModuleSwitching:
         Then: User should arrive on English Library (www.sefariastaging.org)
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
-        
-        # Simulate browser arriving at www.sefariastaging.org?set-language-cookie
+
         request = factory.get('/?set-language-cookie', HTTP_HOST='www.sefariastaging.org')
         request.user = AnonymousUser()
-        request.active_module = VOICES_MODULE
-        request.interfaceLang = 'english'  # Set by LanguageSettingsMiddleware earlier
-        
+        request.active_module = LIBRARY_MODULE
+        request.interfaceLang = 'english'
+
         response = cookie_middleware.process_request(request)
         
         # Should redirect to clean URL and set cookie
@@ -251,19 +224,14 @@ class TestLanguageModuleSwitching:
         When: User switches to English
         Then: User should arrive on English Voices (voices.sefariastaging.org)
         """
-         # Create a request to the Hebrew voices domain
         request = factory.get('/', HTTP_HOST='chiburim.sefariastaging-il.org')
-        
-        # Set up the request as if user wants to switch to English
-        # The user currently has Hebrew cookie, but wants English
-        request.COOKIES = {'interfaceLang': 'english'}  
-
+        request.COOKIES = {'interfaceLang': 'english'}
         request.user = AnonymousUser()
         request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
         request.active_module = VOICES_MODULE
+
         response = language_middleware.process_request(request)
-        
-        # Assert the results - middleware should redirect to English domain
+
         assert response is not None, "Middleware should return a redirect"
         assert response.status_code == 302, "Should be a redirect (302)"
         assert 'voices.sefariastaging.org' in response.url, "Should redirect to English domain"
@@ -279,13 +247,12 @@ class TestLanguageModuleSwitching:
         Then: User should arrive on Hebrew Library (www.sefariastaging-il.org)
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
-        
-        # Simulate browser arriving at www.sefariastaging-il.org?set-language-cookie
+
         request = factory.get('/?set-language-cookie', HTTP_HOST='www.sefariastaging-il.org')
         request.user = AnonymousUser()
-        request.active_module = VOICES_MODULE
-        request.interfaceLang = 'hebrew'  # Set by LanguageSettingsMiddleware earlier
-        
+        request.active_module = LIBRARY_MODULE
+        request.interfaceLang = 'hebrew'
+
         response = cookie_middleware.process_request(request)
         
         # Should redirect to clean URL and set cookie
