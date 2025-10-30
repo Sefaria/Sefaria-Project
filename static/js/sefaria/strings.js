@@ -83,7 +83,7 @@ const Strings = {
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
-    "Explore User-Created Content by Topic": "חיפוש תוכן מקורי לפי נושא",
+    "Explore User-Created Content by Topic": "מצאו דפים לפי נושא",
     "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
     "Trending Topics": "נושאים נפוצים",
