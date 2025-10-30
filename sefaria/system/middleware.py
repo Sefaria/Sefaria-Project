@@ -16,7 +16,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang, needs_domain_switch, add_set_language_cookie_param
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-from urllib.parse import quote, urlparse
+from urllib.parse import quote, urlparse, urljoin
 from sefaria.constants.model import LIBRARY_MODULE
 
 import structlog
@@ -176,7 +176,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            final_url = target_domain + path + params_string
+            final_url = urljoin(target_domain, path) + params_string
 
             response = redirect(final_url)
             response.set_cookie("interfaceLang", lang)

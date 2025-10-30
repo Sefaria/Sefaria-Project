@@ -6,6 +6,7 @@ from elasticsearch_dsl import Search
 from random import choice
 import json
 import urllib.request, urllib.parse
+from urllib.parse import urljoin
 from bson.json_util import dumps
 import socket
 import bleach
@@ -1327,7 +1328,7 @@ def interface_language_redirect(request, language):
 
     if needs_domain_switch(request, target_domain):
         # Switching domains - preserve path and add set-language-cookie param
-        next = target_domain + next
+        next = urljoin(target_domain, next)
         next = add_set_language_cookie_param(next)
 
     response = redirect(next)
