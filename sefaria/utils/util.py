@@ -566,7 +566,7 @@ def current_domain_lang(request):
         return None
 
     # Only return language if domain uniquely identifies it
-    return 'english' if matched_langs[0] == 'en' else 'hebrew'
+    return short_to_long_lang_code(matched_langs[0])
 
 
 def get_redirect_domain_for_language(request, interface_lang):
