@@ -199,11 +199,7 @@ instrumentation:
 localSettings:
   DEBUG: false
   OFFLINE: "False"
-  DOMAIN_LANGUAGE: {
-    "https://www.sefaria.org": "english",
-    "https://www.sefaria.org.il": "hebrew",
-  }
-  DOMAIN_MODULES: {"library": "https://www.sefaria.org", "sheets": "https://sheets.sefaria.org"}
+  DOMAIN_MODULES: {"en": {"library": "https://www.sefaria.org", "voices": "https://voices.sefaria.org"}, "he": {"library": "https://www.sefaria.org.il", "voices": "https://voices.sefaria.org.il"}}
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
