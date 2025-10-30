@@ -28,7 +28,7 @@
 {% endblock %}
 
 {% block js %} 
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
 	var metrics = {% autoescape off %}{{ metrics_json }}{% endautoescape %};
 	
@@ -46,16 +46,6 @@
 			"sheets": "{% trans "Number of Source Sheets" %}"
 	};
 
-	var types = {
-			"totalWords": "{% trans "Words" %}",
-			"heWords": "{% trans "Words" %}",
-			"transWords": "{% trans "Words" %}",
-			"sctWords": "{% trans "Words" %}",
-			"contributors": "{% trans "Contributors" %}",
-			"links": "{% trans "Links" %}",
-			"sheets": "{% trans "Source Sheets" %}"
-	};
-
 	var labels = [];
 	for (var i = 0; i < metrics.length; i++) {
 		var timestamp = metrics[i]["timestamp"]["$date"];
@@ -67,37 +57,89 @@
 		labels.push(month + " " + date + ", " + a.getFullYear());
 	}
 
+	var chartInstances = {};
+
+	var destroyCharts = function() {
+		for (var key in chartInstances) {
+			if (chartInstances.hasOwnProperty(key) && chartInstances[key]) {
+				chartInstances[key].destroy();
+			}
+		}
+		chartInstances = {};
+	};
+
 	var makeData = function(field) {
-		var data = [['Day', types[field]]];
+		var data = [];
 		for (var i = 0; i < metrics.length; i++) {
-			data.push([labels[i], metrics[i][field]]);
+			data.push(metrics[i][field]);
 		}
 		return data;
 	};
 
 	var makeChart = function(field) {
-		var data = makeData(field);
-		var data = google.visualization.arrayToDataTable(data);
+		var dataset = makeData(field);
+		var canvasId = field + "Canvas";
+		var $container = $("<div>", { id: field, "class": "chart" });
+		$container.append($("<span>", { "class": "chartLabel", text: titles[field] }));
+		var $canvasWrapper = $("<div>", { "class": "chartCanvasWrapper" });
+		var $canvas = $("<canvas>", { id: canvasId });
+		$canvasWrapper.append($canvas);
+		$container.append($canvasWrapper);
+		$("#metricsBox").append($container);
 
-		var options = {
-		  title: titles[field],
-		  curveType: 'function',
-		  legend: 'none',
-		  colors: ["#4871bf"],
-		  hAxis: {
-	         baselineColor: '#fff',
-	         gridlineColor: '#fff',
-	         textPosition: 'none'
-		  }
-		};
+		var ctx = document.getElementById(canvasId).getContext("2d");
 
-		$("#metricsBox").append("<div id='" + field + "' class='chart'></div>");
-		var chart = new google.visualization.LineChart(document.getElementById(field));
+		if (chartInstances[field]) {
+			chartInstances[field].destroy();
+		}
 
-		chart.draw(data, options);
+		chartInstances[field] = new Chart(ctx, {
+			type: "line",
+			data: {
+				labels: labels,
+				datasets: [{
+					label: titles[field],
+					data: dataset,
+					borderColor: "#4871bf",
+					backgroundColor: "rgba(72, 113, 191, 0.1)",
+					pointRadius: 0,
+					pointHoverRadius: 3,
+					tension: 0.3,
+					fill: true
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					legend: {
+						display: false
+					}
+				},
+				scales: {
+					x: {
+						display: false,
+						grid: {
+							display: false
+						}
+					},
+					y: {
+						ticks: {
+							callback: function(value) {
+								if (typeof value.toLocaleString === "function") {
+									return value.toLocaleString();
+								}
+								return value;
+							}
+						}
+					}
+				}
+			}
+		});
 	};
 
 	var makeCharts = function() {
+		destroyCharts();
 		$("#metricsBox").empty();
 		for (var field in titles) {
     		if (titles.hasOwnProperty(field)) {
@@ -107,8 +149,7 @@
 	};
 
 	$(function() {
-		google.charts.load('current', {'packages':['corechart']});
-		google.charts.setOnLoadCallback(makeCharts);
+		makeCharts();
 	});
 </script>
 {% endblock %}

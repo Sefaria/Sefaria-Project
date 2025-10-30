@@ -1336,6 +1336,14 @@ p.registration-links a:hover{
   margin-bottom: 80px;
   border: 1px solid #ddd;
 }
+#metricsPage .chartCanvasWrapper {
+  position: relative;
+  height: 360px;
+}
+#metricsPage .chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
 #metricsPage .chartLabel {
   text-align: center;
   display: block;
