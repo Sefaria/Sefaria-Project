@@ -163,6 +163,7 @@ def test_multiple_ambiguities():
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
     [crrd(['&Ibid', '#12'], prev_trefs=["Exodus 1:7"], lang='en'), ["Exodus 1:12", "Exodus 12"]],  # ambiguous ibid when context is segment level (not clear if this is really ambiguous. maybe should only have segment level result)
+    [crrd(['&Ibid'], prev_trefs=["Genesis 41:15-16"], lang='en'), ("Genesis 41:15-16",)],
     [crrd(['#ב'], prev_trefs=["Genesis 1"]), ["Genesis 1:2", "Genesis 2"]],  # ambiguous ibid
     [crrd(['#ב', '#ז'], prev_trefs=["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
     [crrd(['@בראשית', '&שם', '#ז'], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
@@ -430,7 +431,7 @@ def test_get_section_contexts(context_tref, match_title, common_title, expected_
     context_ref = Ref(context_tref)
     match_index = library.get_index(match_title)
     common_index = library.get_index(common_title)
-    section_contexts = RefResolver._get_section_contexts(context_ref, match_index, common_index)
+    section_contexts, ranged_context = RefResolver._get_section_contexts(context_ref, match_index, common_index)
     if len(section_contexts) != len(expected_sec_cons):
         print(f"Found {len(section_contexts)} sec cons instead of {len(expected_sec_cons)}")
         for sec_con in section_contexts:
@@ -438,6 +439,22 @@ def test_get_section_contexts(context_tref, match_title, common_title, expected_
     assert len(section_contexts) == len(expected_sec_cons)
     for i, (addr_str, sec_name, address) in enumerate(expected_sec_cons):
         assert section_contexts[i] == SectionContext(schema.AddressType.to_class_by_address_type(addr_str), sec_name, address)
+    assert ranged_context is None
+
+
+def test_get_section_contexts_range():
+    context_ref = Ref("Genesis 41:15-16")
+    match_index = library.get_index("Genesis")
+    common_index = library.get_index("Genesis")
+    section_contexts, ranged_context = RefResolver._get_section_contexts(context_ref, match_index, common_index)
+    assert [sec.address for sec in section_contexts] == context_ref.sections
+    assert ranged_context is not None
+    # toSections may include leading values that mirror sections (e.g. chapter)
+    expected_to = list(context_ref.toSections) if context_ref.toSections else list(context_ref.sections)
+    if len(expected_to) < len(section_contexts):
+        prefix_len = len(section_contexts) - len(expected_to)
+        expected_to = list(context_ref.sections[:prefix_len]) + expected_to
+    assert [sec.address for sec in ranged_context.toSections] == expected_to
 
 
 def test_address_matches_section_context():

@@ -5,7 +5,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RangedSectionContext
 from ne_span import NESpan, RefPartType
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
@@ -514,7 +514,7 @@ class RefResolver:
         return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
 
     @staticmethod
-    def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> List[SectionContext]:
+    def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> Tuple[List[SectionContext], Optional[RangedSectionContext]]:
         """
         Currently doesn't work if any of the indexes are complex texts
         Returns list section contexts extracted from `context_node`
@@ -531,20 +531,15 @@ class RefResolver:
                 # complex text
                 return set()
 
-        if context_ref.is_range():
-            # SectionContext doesn't seem to make sense for ranged refs (It works incidentally when context is parsha
-            # and input is "See beginning of parsha pasuk 1" but not sure we want to plan for that case)
-            return []
-
         context_node = context_ref.index_node
         if not hasattr(context_node, 'addressTypes'):
             # complex text
-            return []
+            return [], None
         referenceable_sections = getattr(context_node, 'referenceableSections', [True]*len(context_node.addressTypes))
         context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames, referenceable_sections))
         match_sec_set  = get_section_set(match_index)
         common_sec_set = get_section_set(common_index) & match_sec_set & set(context_sec_list)
-        if len(common_sec_set) == 0: return []
+        if len(common_sec_set) == 0: return [], None
         sec_contexts = []
         for isec, sec_tuple in enumerate(context_sec_list):
             if sec_tuple in common_sec_set and isec < len(context_ref.sections):
@@ -552,7 +547,23 @@ class RefResolver:
                 if not referenceable: continue
                 addr_type = schema.AddressType.to_class_by_address_type(addr_type_str)
                 sec_contexts += [SectionContext(addr_type, sec_name, context_ref.sections[isec])]
-        return sec_contexts
+        ranged_context = None
+        if context_ref.is_range() and len(sec_contexts) > 0:
+            to_sections = list(context_ref.toSections) if context_ref.toSections else []
+            # extend to_sections so it's same length as sec_contexts
+            if len(to_sections) == 0:
+                to_sections = list(context_ref.sections[:len(sec_contexts)])
+            elif len(to_sections) < len(sec_contexts):
+                prefix_len = len(sec_contexts) - len(to_sections)
+                to_sections = list(context_ref.sections[:prefix_len]) + to_sections
+            to_sec_contexts = []
+            for sec_context, to_section in zip(sec_contexts, to_sections):
+                addr_type = sec_context.addr_type
+                sec_name = sec_context.section_name
+                to_sec_contexts += [SectionContext(addr_type, sec_name, to_section)]
+            if len(to_sec_contexts) == len(sec_contexts):
+                ranged_context = RangedSectionContext(sec_contexts, to_sec_contexts)
+        return sec_contexts, ranged_context
 
     @staticmethod
     def _get_all_term_contexts(node: schema.SchemaNode, include_root=False) -> List[TermContext]:
@@ -586,17 +597,31 @@ class RefResolver:
         matches = []
         for common_base_text in (context_titles & match_titles):
             common_index = text.library.get_index(common_base_text)
-            sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
+            sec_contexts, ranged_context = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
             term_contexts = RefResolver._get_all_term_contexts(context_ref.index_node, include_root=False)
-            context_to_consider = sec_contexts + term_contexts
+            context_to_consider = []
+            if ranged_context:
+                context_to_consider.append(ranged_context)
+            context_to_consider += sec_contexts + term_contexts
             temp_matches = self._get_refined_ref_part_matches_recursive(ref_part_match, ref_parts + context_to_consider)
 
             # remove matches which don't use context
             temp_matches = list(filter(lambda x: len(set(x.get_resolved_parts(include={ContextPart})) & set(context_to_consider)) > 0, temp_matches))
+            if context_type == ContextType.IBID and len(temp_matches) > 0:
+                candidate_refs = [(match.ref.normal() if match.ref else "None") for match in temp_matches]
+                # print(f"[RefResolver debug] IBID candidates for '{ref_part_match.raw_entity.text}': {candidate_refs}")
             for match in temp_matches:
                 match.context_ref = context_ref
                 match.context_type = context_type
-                match.context_parts += sec_contexts + term_contexts
+                used_contexts = set(match.get_resolved_parts(include={ContextPart}))
+                if ranged_context and ranged_context in used_contexts:
+                    match.context_parts = [ranged_context] + match.context_parts
+                match.context_parts += [part for part in sec_contexts + term_contexts if part in used_contexts and part not in match.context_parts]
+
+            if ranged_context:
+                ranged_matches = [m for m in temp_matches if ranged_context in set(m.get_resolved_parts(include={ContextPart}))]
+                if len(ranged_matches) > 0:
+                    temp_matches = ranged_matches
 
             matches += temp_matches
         return matches
