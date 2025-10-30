@@ -1,4 +1,4 @@
-from typing import Union, Optional, Iterable
+from typing import Union, Optional, Iterable, List
 from sefaria.model import abstract as abst
 from sefaria.model import schema
 from ne_span import NESpan, NEDoc, RefPartType, NamedEntityType
@@ -186,6 +186,32 @@ class SectionContext(ContextPart):
 
     def __hash__(self):
         return hash(f"{self.addr_type.__class__}|{self.section_name}|{self.address}")
+
+
+class RangedSectionContext(ContextPart):
+    """
+    Represents a ranged section in a context ref.
+    """
+
+    def __init__(self, sections: List[SectionContext], to_sections: List[SectionContext]) -> None:
+        super().__init__(RefPartType.RANGE, None)
+        self.sections = sections
+        self.toSections = to_sections
+
+    @property
+    def text(self):
+        start = ", ".join(str(sec.address) for sec in self.sections)
+        end = ", ".join(str(sec.address) for sec in self.toSections)
+        return f"{self.__class__.__name__}([{start}] -> [{end}])"
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return self.text
+
+    def __hash__(self):
+        return hash(tuple(self.sections) + tuple(self.toSections))
 
 
 class RangedRawRefParts(RawRefPart):
