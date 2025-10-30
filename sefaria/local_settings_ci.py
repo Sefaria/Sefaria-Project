@@ -2,7 +2,7 @@
 from datetime import timedelta
 import structlog
 import os
-
+import json
 
 DATABASES = {
     'default': {
@@ -22,8 +22,11 @@ DOMAIN_LANGUAGES = {
     "http://hebrew.example.org": "hebrew",
     "http://english.example.org": "english",
 }
-
-
+DOMAIN_MODULES = {
+    "library": "http://localhost:8000",
+    "voices": "http://voices.localhost:8000",
+}
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 ADMINS = (
@@ -42,7 +45,6 @@ CACHES = {
 SITE_PACKAGE = "sites.sefaria"
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', "0.0.0.0", '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -164,15 +166,7 @@ REDIS_URL = "redis://127.0.0.1"
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 ENABLE_LINKER = False
-RAW_REF_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None,
-}
-
-RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None,
-}
+GPU_SERVER_URL = "http://localhost:5000"
 
 LOGGING = {
     'version': 1,

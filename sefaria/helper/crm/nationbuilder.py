@@ -3,7 +3,7 @@ from rauth import OAuth2Service
 import time
 import json
 
-from sefaria import settings as sls
+from django.conf import settings as sls
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 
 base_url = "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com"

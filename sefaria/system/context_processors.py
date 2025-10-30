@@ -6,7 +6,6 @@ Djagno Context Processors, for decorating all HTTP requests with common data.
 import json
 from datetime import datetime
 from functools import wraps
-
 from django.template.loader import render_to_string
 
 from sefaria.settings import *
@@ -14,7 +13,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
 from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.util import short_to_long_lang_code, get_language_specific_domain_modules
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
 
@@ -88,7 +87,8 @@ def base_props(request):
 @user_only
 def module_context(request):
     return {
-        'active_module': request.active_module
+        'active_module': request.active_module,
+        'domain_modules': get_language_specific_domain_modules(request.interfaceLang)
     }
 
 @user_only
@@ -110,22 +110,6 @@ def large_data(request):
         "terms_json": library.get_simple_term_mapping_json(),
         'virtual_books': library.get_virtual_books()
     }
-
-
-FOOTER = {'english': None, 'hebrew': None}
-@user_only
-def footer_html(request):
-    global FOOTER
-    lang = request.interfaceLang
-    if USE_NODE:
-        FOOTER[lang] = FOOTER[lang] or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
-        FOOTER[lang] = "" if "appLoading" in FOOTER[lang] else FOOTER[lang]
-    else:
-        FOOTER[lang] = ""
-    return {
-        "footer": FOOTER[lang]
-    }
-
 
 @user_only
 def body_flags(request):
