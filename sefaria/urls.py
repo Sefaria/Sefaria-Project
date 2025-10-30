@@ -16,6 +16,7 @@ import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
 import guides.views as guides_views
+from sefaria.heapdump import heapdump_view
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -48,6 +49,11 @@ urlpatterns = [
     url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
     url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
     url(r'^torahtracker/?$', reader_views.user_stats),
+]
+
+# Operational tooling
+urlpatterns += [
+    url(r'^admin/heapdump/$', heapdump_view, name="heapdump"),
 ]
 
 # People Pages
