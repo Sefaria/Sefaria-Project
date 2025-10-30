@@ -12,6 +12,8 @@ import { SearchPage } from "./searchPage"
 import { UserMenu } from "./userMenu"
 import { SourceTextPage } from "./sourceTextPage"
 import { SheetEditorPage } from "./sheetEditorPage"
+import { ModuleHeaderPage } from "./moduleHeaderPage"
+import { ModuleSidebarPage } from "./moduleSidebarPage"
 
 export class PageManager{
     private readonly page: Page
@@ -26,7 +28,9 @@ export class PageManager{
     private readonly userMenu: UserMenu
     private readonly sourceTextPage: SourceTextPage
     private readonly sheetEditorPage: SheetEditorPage
-    
+    private readonly moduleHeaderPage: ModuleHeaderPage
+    private readonly moduleSidebarPage: ModuleSidebarPage
+
 
     constructor(page: Page, language: string){
         this.page = page
@@ -41,6 +45,8 @@ export class PageManager{
         this.userMenu = new UserMenu(page, language)
         this.sourceTextPage = new SourceTextPage(page, language)
         this.sheetEditorPage = new SheetEditorPage(page, language)
+        this.moduleHeaderPage = new ModuleHeaderPage(page, language)
+        this.moduleSidebarPage = new ModuleSidebarPage(page, language)
     }
 
     navigateFromBannerTo(){
@@ -86,5 +92,13 @@ export class PageManager{
 
     onSourceSheetEditorPage(){
         return this.sheetEditorPage
+    }
+
+    onModuleHeader(){
+        return this.moduleHeaderPage
+    }
+
+    onModuleSidebar(){
+        return this.moduleSidebarPage
     }
 }

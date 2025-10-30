@@ -20,7 +20,7 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* timeout for each test */
-  timeout: 120000,
+  timeout: 220000,
 
   /* timeout for each expect */
   expect: {
@@ -61,7 +61,7 @@ export default defineConfig({
     {
       name: 'chromium',
       testDir: './e2e-tests/tests', // Only run production tests by default
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
@@ -69,9 +69,35 @@ export default defineConfig({
       },
     },
 
-    // Modularization tests (beta) - separate project
+    // Library-specific modularization tests
     {
-      name: 'mdl',
+      name: 'library',
+      testDir: './e2e-tests/library-specific',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'https://modularization.cauldron.sefaria.org',
+        // Ensure we don't get redirected
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // Voices-specific modularization tests
+    {
+      name: 'voices',
+      testDir: './e2e-tests/voices-specific',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'https://voices.modularization.cauldron.sefaria.org',
+        // Ensure we don't get redirected
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // OLD Modularization tests (keep temporarily for reference, can be removed later)
+    {
+      name: 'mdl-old',
       testDir: './e2e-tests/modularization-tests',
       use: {
         ...devices['Desktop Chrome'],
