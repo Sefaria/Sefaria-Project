@@ -269,11 +269,11 @@ class TestLanguageModuleSwitching:
     @production_settings
     def test_english_library_switch_to_hebrew_prod(self, factory, language_middleware):
         """
-        Given: User is on English Library (www.sefariag.org)
+        Given: User is on English Library (www.sefaria.org)
         When: User switches to Hebrew
         Then: User should arrive at Hebrew Library (www.sefaria.org.il)
         """
-        request = factory.get('/', HTTP_HOST='www.sefariag.org')
+        request = factory.get('/', HTTP_HOST='www.sefaria.org')
         request.COOKIES = {'interfaceLang': 'hebrew'}
         request.user = AnonymousUser()
         request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
@@ -356,8 +356,8 @@ class TestLanguageModuleSwitching:
         assert response.cookies['interfaceLang'].value == 'hebrew'
     
     # SCENARIO 5: English-Voices → Hebrew
-    @staging_settings
-    def test_english_voices_switch_to_hebrew(self, factory, language_middleware):
+    @production_settings
+    def test_english_voices_switch_to_hebrew_prod(self, factory, language_middleware):
         """
         Given: User is on English Voices (voices.sefaria.org)
         When: User switches to Hebrew
