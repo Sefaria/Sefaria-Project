@@ -4177,7 +4177,7 @@ def metrics(request):
     metrics_json = dumps(metrics)
     return render_template(request,'metrics.html', None,{
         "metrics_json": metrics_json,
-        'renderStatic': True
+        "renderStatic": True
     })
 
 
