@@ -169,29 +169,6 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
 {{- end }}
 
-{{- define "config.domainLanguage" }}
-{{- $domains := dict -}}
-{{- $deployEnv := .Values.deployEnv -}}
-{{- range .Values.domains.root }}
-  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
-  {{- $lang := .language -}}
-  {{- $code := .code }}
-  {{- if kindIs "slice" .code }}
-    {{- $code = index .code 0 }}
-  {{- end }}
-  {{- $_ := set $domains (printf "https://%s" $rootDomain) $lang }}
-  {{- $_ := set $domains (printf "https://www.%s" $rootDomain) $lang }}
-  {{- range $.Values.domains.modules }}
-    {{- $subdomain := index .subdomains $code }}
-    {{- if $subdomain }}
-      {{- $fullSubdomain := printf "https://%s.%s" $subdomain $rootDomain }}
-      {{- $_ := set $domains $fullSubdomain $lang }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-{{- toYaml $domains }}
-{{- end }}
-
 {{- define "config.domainModules" }}
 {{- $map := dict -}}
 {{- $deployEnv := .Values.deployEnv -}}

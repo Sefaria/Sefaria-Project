@@ -235,16 +235,14 @@ domains:
   root:
     - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
       cert: "{{ .Values.deployEnv }}-tls"
-      language: english
-      # multilanguage domains support limited redirect handling
-      # only the first list entry will have redirects set up
+      # multilanguage domains support limited redirect and subdomain handling
+      # only the first list entry will have redirects and subdomains set up
       # for any given module
       code:
         - en
         - he
 #   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
 #     cert: "{{ .Values.deployEnv }}-il-tls"
-#     language: hebrew
 #     code:
 #       - he
   modules:
