@@ -82,6 +82,7 @@ class TestLanguageModuleSwitching:
     # STAGING TESTS
     # ========================================================================
     
+    # SCENARIO 1: English-Library → Hebrew
     @staging_settings
     def test_english_library_switch_to_hebrew(self, factory, language_middleware):
         """
@@ -106,8 +107,10 @@ class TestLanguageModuleSwitching:
     @staging_settings
     def test_voices_with_set_language_cookie_param(self, factory):
         """
-        When user arrives at Voices from Library with set-language-cookie param,
-        cookie middleware should set the interfaceLang cookie.
+        Given: User has clicked to switch from English Library to Voices module
+        When: Browser arrives at English Voices with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
+
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -151,9 +154,9 @@ class TestLanguageModuleSwitching:
     @staging_settings
     def test_hebrew_library_switch_to_voices(self, factory, language_middleware):
         """
-        Given: User is on Hebrew Library (www.sefariastaging-il.org)
-        When: User switches to Voices module
-        Then: User should arrive on Hebrew Voices (chiburim.sefariastaging-il.org)
+        Given: User has clicked to switch from Hebrew Library to Voices module
+        When: Browser arrives at Hebrew Voices with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -196,9 +199,9 @@ class TestLanguageModuleSwitching:
     @staging_settings
     def test_english_voices_switch_to_library(self, factory, language_middleware):
         """
-        Given: User is on English Voices (voices.sefariastaging.org)
-        When: User switches to Library module
-        Then: User should arrive on English Library (www.sefariastaging.org)
+        Given: User has clicked to switch from English Voices to Library module
+        When: Browser arrives at English Library with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -242,9 +245,9 @@ class TestLanguageModuleSwitching:
     @staging_settings
     def test_hebrew_voices_switch_to_library(self, factory, language_middleware):
         """
-        Given: User is on Hebrew Voices (chiburim.sefariastaging-il.org)
-        When: User switches to Library module
-        Then: User should arrive on Hebrew Library (www.sefariastaging-il.org)
+        Given: User has clicked to switch from Hebrew Voices to Library module
+        When: Browser arrives at Hebrew Library with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -266,6 +269,7 @@ class TestLanguageModuleSwitching:
     # PRODUCTION TESTS
     # ========================================================================
     
+    # SCENARIO 1: English-Library → Hebrew
     @production_settings
     def test_english_library_switch_to_hebrew_prod(self, factory, language_middleware):
         """
@@ -290,8 +294,9 @@ class TestLanguageModuleSwitching:
     @production_settings
     def test_voices_with_set_language_cookie_param_prod(self, factory):
         """
-        When user arrives at Voices from Library with set-language-cookie param,
-        cookie middleware should ensure the language stays the same.
+        Given: User has clicked to switch from English Library to Voices module
+        When: Browser arrives at English Voices with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -335,9 +340,9 @@ class TestLanguageModuleSwitching:
     @production_settings
     def test_hebrew_library_switch_to_voices_prod(self, factory, language_middleware):
         """
-        Given: User is on Hebrew Library (www.sefaria.org.il)
-        When: User switches to Voices module
-        Then: User should arrive on Hebrew Voices (chiburim.sefaria.org.il)
+        Given: User has clicked to switch from Hebrew Library to Voices module
+        When: Browser arrives at Hebrew Voices with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -380,9 +385,9 @@ class TestLanguageModuleSwitching:
     @production_settings
     def test_english_voices_switch_to_library_prod(self, factory, language_middleware):
         """
-        Given: User is on English Voices (voices.sefaria.org)
-        When: User switches to Library module
-        Then: User should arrive on English Library (www.sefaria.org)
+        Given: User has clicked to switch from English Voices to Library module
+        When: Browser arrives at English Library with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
@@ -426,9 +431,9 @@ class TestLanguageModuleSwitching:
     @production_settings
     def test_hebrew_voices_switch_to_library_prod(self, factory, language_middleware):
         """
-        Given: User is on Hebrew Voices (chiburim.sefaria.org.il)
-        When: User switches to Library module
-        Then: User should arrive on Hebrew Library (www.sefaria.org.il)
+        Given: User has clicked to switch from Hebrew Voices to Library module
+        When: Browser arrives at Hebrew Library with set-language-cookie parameter
+        Then: Middleware should set cookie and redirect to clean URL
         """
         cookie_middleware = LanguageCookieMiddleware(get_response=lambda r: None)
 
