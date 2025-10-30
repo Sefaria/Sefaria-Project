@@ -348,7 +348,7 @@ const Header = (props) => {
         {!mobile ? headerContent : mobileHeaderContent}
       </div>
 
-      {mobile ? null :
+      {mobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
@@ -372,6 +372,11 @@ Header.propTypes = {
   openURL: PropTypes.func.isRequired,
   firstPanel: PropTypes.object,
   module: PropTypes.string.isRequired,
+  mobileNavMenuOpen: PropTypes.bool,
+  onMobileMenuButtonClick: PropTypes.func,
+  toggleLanguage: PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly }) => {
