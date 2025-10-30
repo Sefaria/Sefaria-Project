@@ -552,6 +552,7 @@ class RefResolver:
             to_sections = list(context_ref.toSections) if context_ref.toSections else []
             # extend to_sections so it's same length as sec_contexts
             if len(to_sections) == 0:
+                # When the library stores only a start, treat the span as repeating the last seen address.
                 to_sections = list(context_ref.sections[:len(sec_contexts)])
             elif len(to_sections) < len(sec_contexts):
                 prefix_len = len(sec_contexts) - len(to_sections)
@@ -601,6 +602,7 @@ class RefResolver:
             term_contexts = RefResolver._get_all_term_contexts(context_ref.index_node, include_root=False)
             context_to_consider = []
             if ranged_context:
+                # Prioritize full-span context so the range refiner runs before numbered sections shrink the ref.
                 context_to_consider.append(ranged_context)
             context_to_consider += sec_contexts + term_contexts
             temp_matches = self._get_refined_ref_part_matches_recursive(ref_part_match, ref_parts + context_to_consider)
@@ -609,16 +611,19 @@ class RefResolver:
             temp_matches = list(filter(lambda x: len(set(x.get_resolved_parts(include={ContextPart})) & set(context_to_consider)) > 0, temp_matches))
             if context_type == ContextType.IBID and len(temp_matches) > 0:
                 candidate_refs = [(match.ref.normal() if match.ref else "None") for match in temp_matches]
+                # Temporary debug output to inspect how IBID context narrows the candidates.
                 # print(f"[RefResolver debug] IBID candidates for '{ref_part_match.raw_entity.text}': {candidate_refs}")
             for match in temp_matches:
                 match.context_ref = context_ref
                 match.context_type = context_type
+                # Record only the context parts that actually contributed to this match.
                 used_contexts = set(match.get_resolved_parts(include={ContextPart}))
                 if ranged_context and ranged_context in used_contexts:
                     match.context_parts = [ranged_context] + match.context_parts
                 match.context_parts += [part for part in sec_contexts + term_contexts if part in used_contexts and part not in match.context_parts]
 
             if ranged_context:
+                # If the range context succeeded, drop fallback matches that ignored it.
                 ranged_matches = [m for m in temp_matches if ranged_context in set(m.get_resolved_parts(include={ContextPart}))]
                 if len(ranged_matches) > 0:
                     temp_matches = ranged_matches
