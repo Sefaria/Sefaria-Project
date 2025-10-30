@@ -3402,7 +3402,9 @@ a.cardTitle:hover {
   max-width: revert;
 }
 .singlePanel .sheetContentSidebar {
+  padding-inline-start: 10%;
   width: revert;
+  margin: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
