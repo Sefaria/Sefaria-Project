@@ -11,6 +11,7 @@ import {
     LoadingRing,
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
+import NewsletterSignUpPageForm from "./NewsletterSignUpPage/NewsletterSignUpPageForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
@@ -3248,28 +3249,7 @@ const NewsletterPage = () => (
                 newTab={true}
             />
         </ButtonRow>
-        <div className="staticPageCallToActionFooter">
-            <div className="staticPageBlockInner flexContainer light">
-                <div className="staticPageCallToActionText">
-                    <h2 className="staticPageCallToActionTextTitle">
-                        <span className="int-en">Ready to get started?</span>
-                        <span className="int-he">מוכנים להתחיל?</span>
-                    </h2>
-                    <span className="int-en">Join thousands of learners who receive our weekly study resources.</span>
-                    <span className="int-he">הצטרפו לאלפי לומדים שמקבלים את משאבי הלימוד השבועיים שלנו.</span>
-                </div>
-                <div className="staticPageCallToActionButton">
-                    <SimpleButton
-                        href="https://sefaria.nationbuilder.com/newsletter_signup"
-                        he_href="https://sefaria.nationbuilder.com/newsletter_signup"
-                        en="Sign Up for Our Newsletter"
-                        he="הרשמו לניוזלטר שלנו"
-                        white={true}
-                        newTab={true}
-                    />
-                </div>
-            </div>
-        </div>
+        <NewsletterSignUpPageForm />
     </StaticPage>
 );
 
