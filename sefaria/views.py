@@ -6,9 +6,11 @@ import json
 import re
 import bleach
 from datetime import datetime, timedelta
+from dataclasses import asdict
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
+from celery.result import AsyncResult
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -32,6 +34,7 @@ from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from functools import wraps
 
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
@@ -42,6 +45,7 @@ from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_sha
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
@@ -51,7 +55,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
-from sefaria.system.decorators import catch_error_as_http
+from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
@@ -350,13 +354,76 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
-@api_view(["POST"])
+@cors_allow_all
+@api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
-    from sefaria.helper.linker.linker import make_find_refs_response
-    try:
-        return jsonResponse(make_find_refs_response(request))
-    except APIInvalidInputException as e:
-        return e.to_json_response()
+    from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
+    from sefaria.helper.linker.tasks import find_refs_api_task
+    request_text, options, metadata = unpack_find_refs_request(request)
+    find_refs_input = FindRefsInput(request_text, options, metadata)
+    async_result = find_refs_api_task.apply_async(
+        args=(asdict(find_refs_input),),
+        queue=CeleryQueue.TASKS.value
+    )
+    logger.info(
+        "find_refs_api:enqueued",
+        task_id=async_result.id,
+        lang=find_refs_input.text.lang,
+        title_len=len(find_refs_input.text.title or ""),
+        body_len=len(find_refs_input.text.body or ""),
+    )
+    return jsonResponse({"task_id": async_result.id}, status=202)
+
+
+@cors_allow_all
+@api_view(["GET", "OPTIONS"])
+def async_task_status_api(request, task_id: str):
+    """
+    Poll the task. If complete, include the result.
+    Otherwise, return state (and any meta/progress).
+    """
+    result = AsyncResult(task_id)
+
+    state = result.state
+
+    payload = {
+        "task_id": task_id,
+        "state": state,
+        "ready": result.ready(),
+    }
+
+    # Include progress/meta if your task updates self.update_state(meta=...)
+    # Celery exposes that as `result.info` even while running
+    if result.info is not None and state not in ("SUCCESS", "FAILURE"):
+        payload["meta"] = result.info
+
+    if result.failed():
+        # result.result is the exception instance
+        payload["error"] = str(result.result)
+        logger.error("async_task_status_api:failed", task_id=task_id, state=state, error=payload["error"]) 
+        return jsonResponse(payload, status=500)
+
+    if result.successful():
+        payload["result"] = result.result
+        # summarize result shape if dict-like
+        try:
+            result_dict = result.result if isinstance(result.result, dict) else {}
+            title_results = len(result_dict.get("title", {}).get("results", []) if isinstance(result_dict.get("title"), dict) else [])
+            body_results = len(result_dict.get("body", {}).get("results", []) if isinstance(result_dict.get("body"), dict) else [])
+        except Exception:
+            title_results, body_results = None, None
+        logger.info(
+            "async_task_status_api:success",
+            task_id=task_id,
+            state=state,
+            title_results=title_results,
+            body_results=body_results,
+        )
+        return jsonResponse(payload, status=200)
+
+    # PENDING / STARTED / RETRY
+    logger.info("async_task_status_api:pending", task_id=task_id, state=state)
+    return jsonResponse(payload, status=202)
 
 
 @api_view(["GET"])

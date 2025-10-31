@@ -5,8 +5,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, SectionContext, ContextPart, TermContext
-from sefaria.model.linker.ne_span import NESpan
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext
+from ne_span import NESpan, RefPartType
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
@@ -320,11 +320,14 @@ class RefResolver:
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
         elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
-            # can't be sure about future ibid inferences
-            # TODO can probably salvage parts of history if matches are ambiguous within one book
+            for r in temp_resolved:
+                if r.is_ambiguous:
+                    for rr in r.resolved_raw_refs:
+                        if rr.ref is None:
+                            continue
+                        self._ibid_history.last_refs = rr.ref
             # if ref is None, match is likely to AltStructNode
             # TODO this node still has useful info. Try to salvage it.
-            self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
 

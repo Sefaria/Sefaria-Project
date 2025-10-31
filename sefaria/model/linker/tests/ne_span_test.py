@@ -1,7 +1,7 @@
 import django
 django.setup()
 import pytest
-from sefaria.model.linker.ne_span import NEDoc, NESpan
+from ne_span import NEDoc, NESpan
 
 
 class TestNEDoc:
