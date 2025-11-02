@@ -294,12 +294,9 @@ class Util {
                 window.location.pathname + window.location.search;
     }
     static fullURL(relativePath, moduleTarget, preserveLanguageOnModuleSwitch = true) {
-      let url = relativePath;
-
-      if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
-        const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://voices.sefaria.org' or 'https://www.sefaria.org')
-        url = moduleURL.origin + relativePath;
-      }
+      let url = relativePath.startsWith("/")
+        ? Sefaria.getModuleURL(moduleTarget).origin + relativePath
+        : relativePath;
 
       // When switching between modules (e.g., Library → Voices), append set-language-cookie parameter
       // to preserve the user's language preference across different domains.
