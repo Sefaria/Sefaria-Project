@@ -45,7 +45,7 @@ export default meta;
 
 export const Primary = {
   args: {
-    onClick: () => alert("Primary button clicked"),
+    onClick: () => console.log("Primary button clicked"),
   },
 };
 
@@ -53,6 +53,27 @@ export const Secondary = {
   args: {
     variant: "sefaria-common-button secondary",
     children: "Secondary",
+  },
+};
+
+export const Large = {
+  args: {
+    size: "large",
+    children: "Large Button",
+  },
+};
+
+export const Small = {
+  args: {
+    size: "small",
+    children: "Small Button",
+  },
+};
+
+export const FullWidth = {
+  args: {
+    size: "fullwidth",
+    children: "Full Width Button",
   },
 };
 

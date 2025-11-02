@@ -3,6 +3,15 @@ const sefariaStub = {
   _siteSettings: { TORAH_SPECIFIC: false },
   _uid: null,
   _debug: false,
+  activeModule: "library",
+  LIBRARY_MODULE: "library",
+  VOICES_MODULE: "voices",
+  domainModules: {
+    library: "https://www.sefaria.org",
+    voices: "https://voices.sefaria.org",
+    developer: "https://developer.sefaria.org",
+  },
+  apiHost: "https://www.sefaria.org",
   _: (input) => input,
   _r: (ref) => ref,
   _v: (value) => {
@@ -14,6 +23,20 @@ const sefariaStub = {
   },
   util: {
     currentPath: () => "/",
+    fullURL: (relativePath, moduleTarget) => {
+      if (!relativePath) {
+        return relativePath;
+      }
+      if (!relativePath.startsWith("/")) {
+        return relativePath;
+      }
+      const moduleUrl = sefariaStub.getModuleURL(moduleTarget);
+      try {
+        return new URL(relativePath, moduleUrl ?? sefariaStub.apiHost).href;
+      } catch {
+        return relativePath;
+      }
+    },
     naturalTime: () => "moments ago",
     localeDate: (isoDate) =>
       new Date(isoDate || Date.now()).toLocaleDateString(),
@@ -31,6 +54,16 @@ const sefariaStub = {
   getSavedItem: () => null,
   toggleSavedItem: () => Promise.resolve(),
   displayTopicTocCategory: () => ({ slug: "main-menu" }),
+  getModuleURL: (moduleTarget = null) => {
+    const moduleKey = moduleTarget || sefariaStub.activeModule;
+    const href =
+      sefariaStub.domainModules?.[moduleKey] ?? sefariaStub.apiHost ?? "";
+    try {
+      return new URL(href);
+    } catch {
+      return new URL(sefariaStub.apiHost || "https://www.sefaria.org");
+    }
+  },
   topic_toc: [],
   toc: [],
   is_moderator: false,
