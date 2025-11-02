@@ -614,6 +614,83 @@ def add_set_language_cookie_param(url):
     return url + separator + "set-language-cookie"
 
 
+def get_cookie_domain(request):
+    """
+    Get the appropriate cookie domain for the current request.
+
+    Finds the common domain suffix for all modules within the current language,
+    allowing cookies to be shared across modules (library/voices) while respecting
+    language-specific domains.
+
+    :param request: Django request object
+    :return: Cookie domain string (e.g., '.sefaria.org') or None if no domain should be set
+    """
+    # Detect language from current domain
+    lang = current_domain_lang(request)
+
+    lang_code = get_short_lang(lang)
+    modules = settings.DOMAIN_MODULES.get(lang_code, {})
+
+    # Extract hostnames for this language's modules
+    hostnames = []
+    for module_url in modules.values():
+        try:
+            hostname = urlparse(module_url).hostname
+            if hostname:
+                hostnames.append(hostname)
+        except Exception:
+            continue
+
+    if not hostnames:
+        return None
+
+    # Localhost and IP addresses don't support domain cookies
+    if any('localhost' in h or re.match(r'^\d+\.\d+\.\d+\.\d+$', h) for h in hostnames):
+        return None
+
+    # Only one module - no need for cross-domain cookie sharing
+    if len(hostnames) == 1:
+        return None
+
+    # Find the longest common domain suffix among hostnames
+    common_suffix = _find_longest_common_domain_suffix(hostnames)
+
+    return common_suffix if common_suffix else None
+
+
+def _find_longest_common_domain_suffix(hostnames):
+    """
+    Find the longest common domain suffix among a list of hostnames.
+    Ensures the suffix starts at a domain boundary (after a dot) to avoid
+    partial matches like extracting 'w' from ['www.test.com', 'wow.test.com'].
+
+    :param hostnames: List of 2+ hostname strings
+    :return: Domain suffix starting with '.' (e.g., '.sefaria.org'), or None if no valid suffix
+    """
+    common_suffix = hostnames[0]
+    for hostname in hostnames[1:]:
+        # Keep removing characters from the beginning until we find a match at a domain boundary
+        while common_suffix:
+            if hostname.endswith(common_suffix) and (common_suffix.startswith('.') or common_suffix == hostname):
+                break
+            common_suffix = common_suffix[1:]
+        if not common_suffix:
+            return None
+
+    # If all hostnames are identical, we need to extract the domain part
+    # e.g., ['example.com', 'example.com'] -> '.example.com'
+    if common_suffix == hostnames[0] and not common_suffix.startswith('.'):
+        # Find first dot and take everything from there
+        dot_index = common_suffix.find('.')
+        if dot_index > 0:
+            common_suffix = common_suffix[dot_index:]
+        else:
+            # No dot found - can't create a valid domain suffix
+            return None
+
+    return common_suffix
+
+
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """
     Wrapper for babel.languages.get_territory_language_info

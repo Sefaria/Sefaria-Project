@@ -13,7 +13,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang, needs_domain_switch, add_set_language_cookie_param
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, get_redirect_domain_for_language, current_domain_lang, needs_domain_switch, add_set_language_cookie_param, get_cookie_domain
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse, urljoin
@@ -179,7 +179,8 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             final_url = urljoin(target_domain, path) + params_string
 
             response = redirect(final_url)
-            response.set_cookie("interfaceLang", lang)
+            cookie_domain = get_cookie_domain(request)
+            response.set_cookie("interfaceLang", lang, domain=cookie_domain)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
