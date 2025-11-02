@@ -661,31 +661,21 @@ def get_cookie_domain(request):
 def _find_longest_common_domain_suffix(hostnames):
     """
     Find the longest common domain suffix among a list of hostnames.
-    Ensures the suffix starts at a domain boundary (after a dot) to avoid
-    partial matches like extracting 'w' from ['www.test.com', 'wow.test.com'].
+
+    Returns the shared domain part starting with a dot.
+    Example: ['www.sefaria.org', 'voices.sefaria.org'] -> '.sefaria.org'
 
     :param hostnames: List of 2+ hostname strings
-    :return: Domain suffix starting with '.' (e.g., '.sefaria.org'), or None if no valid suffix
+    :return: Domain suffix starting with '.' (e.g., '.sefaria.org'), or None if no common suffix
     """
     common_suffix = hostnames[0]
-    for hostname in hostnames[1:]:
-        # Keep removing characters from the beginning until we find a match at a domain boundary
-        while common_suffix:
-            if hostname.endswith(common_suffix) and (common_suffix.startswith('.') or common_suffix == hostname):
-                break
-            common_suffix = common_suffix[1:]
-        if not common_suffix:
-            return None
 
-    # If all hostnames are identical, we need to extract the domain part
-    # e.g., ['example.com', 'example.com'] -> '.example.com'
-    if common_suffix == hostnames[0] and not common_suffix.startswith('.'):
-        # Find first dot and take everything from there
-        dot_index = common_suffix.find('.')
-        if dot_index > 0:
-            common_suffix = common_suffix[dot_index:]
-        else:
-            # No dot found - can't create a valid domain suffix
+    for hostname in hostnames[1:]:
+        # Trim from the beginning until we find a common suffix at a domain boundary
+        while common_suffix and not (hostname.endswith(common_suffix) and common_suffix.startswith('.')):
+            common_suffix = common_suffix[1:]
+
+        if not common_suffix:
             return None
 
     return common_suffix
