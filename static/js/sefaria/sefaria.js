@@ -1,7 +1,7 @@
 import VersionPreferences from "./VersionPreferences";
 
-var extend     = require('extend'),
-    param      = require('querystring').stringify;
+import extend from 'extend';
+import { stringify as param } from 'querystring';
 import Search from './search';
 import Strings from './strings';
 import palette from './palette';
@@ -14,23 +14,24 @@ import FilterNode from "./FilterNode";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
 
-let Sefaria = Sefaria || {
+const initialState = {
   _dataLoaded: false,
-  _inBrowser: (typeof document !== "undefined"),
+  _inBrowser: typeof document !== "undefined",
   toc: [],
   books: [],
   booksDict: {},
   last_place: [],
   VOICES_MODULE,
   LIBRARY_MODULE,
-  apiHost: "" // Defaults to localhost, override to talk another server
+  apiHost: "",
 };
 
-if (typeof window !== 'undefined') {
-    window.Sefaria = Sefaria; // allow access to `Sefaria` from console
-}
+const baseSefaria =
+  typeof window !== "undefined" && window.Sefaria
+    ? window.Sefaria
+    : initialState;
 
-Sefaria = extend(Sefaria, {
+let Sefaria = extend(baseSefaria, {
   _parseRef: {}, // cache for results of local ref parsing
   parseRef: function(q) {
   // Client side ref parsing without depending on book index data.
