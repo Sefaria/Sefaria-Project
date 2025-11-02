@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 
     url(r'^my/profile', reader_views.my_profile),
+    url(r'^profile/?$', reader_views.my_profile),
     url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^settings/profile/?$', reader_views.edit_profile),
 

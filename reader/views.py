@@ -4630,7 +4630,7 @@ def settings_profile_redirect(request):
     # Get the voices domain from settings
     domain_modules = get_language_specific_domain_modules(request.interfaceLang)
     voices_domain = domain_modules[VOICES_MODULE]
-    target_url = urllib.parse.urljoin(voices_domain, "/settings/profile")
+    target_url = urllib.parse.urljoin(voices_domain, "/settings/profile/")
     
     # Preserve query parameters
     params = request.GET.urlencode()
@@ -4648,6 +4648,72 @@ def community_to_voices_redirect(request):
     domain_modules = get_language_specific_domain_modules(request.interfaceLang)
     voices_domain = domain_modules[VOICES_MODULE]
     target_url = urllib.parse.urljoin(voices_domain, "/")
+    
+    # Preserve query parameters
+    params = request.GET.urlencode()
+    if params:
+        target_url += f"?{params}"
+    
+    return redirect(target_url, permanent=True)
+
+
+def collections_redirect(request, slug=None):
+    """
+    Redirect /collections and /collections/[slug] from library module to voices module
+    """
+    # Get the voices domain from settings
+    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
+    voices_domain = domain_modules[VOICES_MODULE]
+    
+    # Build the target URL
+    if slug:
+        target_url = urllib.parse.urljoin(voices_domain, f"/collections/{slug}")
+    else:
+        target_url = urllib.parse.urljoin(voices_domain, "/collections")
+    
+    # Preserve query parameters
+    params = request.GET.urlencode()
+    if params:
+        target_url += f"?{params}"
+    
+    return redirect(target_url, permanent=True)
+
+
+def profile_redirect_to_voices(request, username=None):
+    """
+    Redirect /profile and /profile/[username] from library module to voices module
+    """
+    # Get the voices domain from settings
+    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
+    voices_domain = domain_modules[VOICES_MODULE]
+    
+    # Build the target URL
+    if username:
+        target_url = urllib.parse.urljoin(voices_domain, f"/profile/{username}")
+    else:
+        target_url = urllib.parse.urljoin(voices_domain, "/profile")
+    
+    # Preserve query parameters
+    params = request.GET.urlencode()
+    if params:
+        target_url += f"?{params}"
+    
+    return redirect(target_url, permanent=True)
+
+
+def sheets_redirect_to_voices(request, sheet_id=None):
+    """
+    Redirect /sheets and /sheets/[sheet_id] from library module to voices module
+    """
+    # Get the voices domain from settings
+    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
+    voices_domain = domain_modules[VOICES_MODULE]
+    
+    # Build the target URL
+    if sheet_id:
+        target_url = urllib.parse.urljoin(voices_domain, f"/sheets/{sheet_id}")
+    else:
+        target_url = urllib.parse.urljoin(voices_domain, "/sheets")
     
     # Preserve query parameters
     params = request.GET.urlencode()
