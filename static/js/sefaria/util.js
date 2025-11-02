@@ -293,19 +293,10 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-    static fullURL(relativePath, moduleTarget, preserveLanguageOnModuleSwitch = true) {
-      let url = relativePath.startsWith("/")
+    static fullURL(relativePath, moduleTarget) {
+      return relativePath.startsWith("/")
         ? Sefaria.getModuleURL(moduleTarget).origin + relativePath
         : relativePath;
-
-      // When switching between modules (e.g., Library → Voices), append set-language-cookie parameter
-      // to preserve the user's language preference across different domains.
-      if (preserveLanguageOnModuleSwitch && moduleTarget && moduleTarget !== Sefaria.activeModule) {
-        const separator = url.includes('?') ? '&' : '?';
-        url += separator + 'set-language-cookie';
-      }
-
-      return url;
     }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);

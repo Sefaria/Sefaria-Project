@@ -127,7 +127,6 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
  * />
  */
 const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
-  // fullURL automatically appends set-language-cookie when switching modules to preserve language preference
   const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
 
   return (
