@@ -554,8 +554,6 @@ def current_domain_lang(request):
     matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
-        if not isinstance(modules, dict):
-            continue
         for module_url in modules.values():
             if urlparse(module_url).hostname == current_hostname:
                 matched_langs.append(lang_code)
@@ -593,12 +591,9 @@ def needs_domain_switch(request, target_domain):
     :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
     :return: Boolean indicating if domain switch is needed
     """
-    if not target_domain:
-        return False
-
     current_host = request.get_host()
     target_host = urlparse(target_domain).hostname
-    return target_host and current_host != target_host
+    return current_host != target_host
 
 
 def add_set_language_cookie_param(url):
