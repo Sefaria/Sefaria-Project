@@ -38,8 +38,7 @@ const NextRedirectAnchor = ({url, children, className}) => {
   const onClick = (e) => {
     e.preventDefault();
     const currentPath = Sefaria.util.currentPath();
-    const targetUrl = `${url}?next=${encodeURIComponent(currentPath)}`;
-    window.location.href = targetUrl;
+    window.location.href = `${url}?next=${encodeURIComponent(currentPath)}`;
   };
   return (
     <a className={className || 'interfaceLinks-option int-bi dropdownItem'}
