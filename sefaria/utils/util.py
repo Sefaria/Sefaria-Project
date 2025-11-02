@@ -614,22 +614,25 @@ def add_set_language_cookie_param(url):
     return url + separator + "set-language-cookie"
 
 
-def get_cookie_domain(request):
+def get_cookie_domain(language):
     """
-    Get the appropriate cookie domain for the current request.
+    Get the appropriate cookie domain for a given language.
 
-    Finds the common domain suffix for all modules within the current language,
+    Finds the common domain suffix for all modules within the specified language,
     allowing cookies to be shared across modules (library/voices) while respecting
     language-specific domains.
 
-    :param request: Django request object
+    :param language: 'english' or 'hebrew' (long form)
     :return: Cookie domain string (e.g., '.sefaria.org') or None if no domain should be set
     """
-    # Detect language from current domain
-    lang = current_domain_lang(request)
+    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
+        return None
 
-    lang_code = get_short_lang(lang)
+    lang_code = get_short_lang(language)
     modules = settings.DOMAIN_MODULES.get(lang_code, {})
+
+    if not modules:
+        return None
 
     # Extract hostnames for this language's modules
     hostnames = []

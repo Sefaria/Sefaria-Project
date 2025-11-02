@@ -1333,7 +1333,7 @@ def interface_language_redirect(request, language):
 
     response = redirect(next)
 
-    cookie_domain = get_cookie_domain(request)
+    cookie_domain = get_cookie_domain(language)
     response.set_cookie("interfaceLang", language, domain=cookie_domain)
     if request.user.is_authenticated:
         p = UserProfile(id=request.user.id)

@@ -179,7 +179,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             final_url = urljoin(target_domain, path) + params_string
 
             response = redirect(final_url)
-            cookie_domain = get_cookie_domain(request)
+            cookie_domain = get_cookie_domain(lang)
             response.set_cookie("interfaceLang", lang, domain=cookie_domain)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
