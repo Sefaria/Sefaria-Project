@@ -825,11 +825,11 @@ class Util {
     static getCookieDomain() {
         const hostnames = Array.from(Sefaria.getDomainHostnames());
 
-        // Skip domain setting for empty hostnames and local development.
+        // Skip domain setting for local development.
         // IP addresses don't have subdomain support.
         // Browsers don't allow setting cookies with domain ".localhost"
         // For localhost development, we need to dismiss the cookie banner on each module if we are using sheets.localhost
-        if (hostnames.length === 0 || hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
+        if (hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
             return null;
         }
         
