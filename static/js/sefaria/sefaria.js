@@ -529,12 +529,8 @@ Sefaria = extend(Sefaria, {
     const hostnames = new Set();
     for (const langModules of Object.values(this.domainModules)) {
       for (const moduleUrl of Object.values(langModules)) {
-        try {
-          const url = new URL(moduleUrl);
-          hostnames.add(url.hostname);
-        } catch (e) {
-          // Invalid URL - skip this module
-        }
+        const url = new URL(moduleUrl);
+        hostnames.add(url.hostname);
       }
     }
     
