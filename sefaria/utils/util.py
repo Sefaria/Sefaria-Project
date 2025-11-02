@@ -550,7 +550,7 @@ def current_domain_lang(request):
     if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
-    current_hostname = urlparse(f"http://{request.get_host()}").hostname
+    current_hostname = request.get_host().split(':')[0]  # Strip port if present
     matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
@@ -591,9 +591,9 @@ def needs_domain_switch(request, target_domain):
     :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
     :return: Boolean indicating if domain switch is needed
     """
-    current_host = request.get_host()
-    target_host = urlparse(target_domain).hostname
-    return current_host != target_host
+    current_hostname = request.get_host().split(':')[0]  # Strip port if present
+    target_hostname = urlparse(target_domain).hostname
+    return current_hostname != target_hostname
 
 
 def add_set_language_cookie_param(url):
