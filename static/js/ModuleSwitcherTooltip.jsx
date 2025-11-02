@@ -20,7 +20,7 @@ const PLACEMENT_CONFIG = {
 };
 
 const TOOLTIP_OFFSET = 10;
-const TOOLTIP_SHIFT_PADDING = 8;
+const TOOLTIP_SHIFT_PADDING = 50;
 const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 
 const ModuleSwitcherTooltip = ({ targetRef, children }) => {
@@ -71,29 +71,28 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
     }
   }, [isTooltipVisible, update]);
 
-  // Handle clicks outside the tooltip to hide it
+  // Handle clicks on headerDropdownMenu to hide tooltip
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isTooltipVisible && refs.floating.current) {
-        const tooltipEl = refs.floating.current;
-
-        // Check if click is outside the tooltip only
-        if (!tooltipEl.contains(event.target)) {
+    const handleHeaderDropdownClick = (event) => {
+      if (isTooltipVisible) {
+        // Check if click is on an element with headerDropdownMenu class - The Module Switcher Icon
+        if (event.target.classList.contains('headerDropdownMenu') || 
+            event.target.closest('.headerDropdownMenu')) {
           hideTooltip();
         }
       }
     };
 
     if (isTooltipVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('mousedown', handleHeaderDropdownClick);
+      document.addEventListener('touchstart', handleHeaderDropdownClick);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('mousedown', handleHeaderDropdownClick);
+      document.removeEventListener('touchstart', handleHeaderDropdownClick);
     };
-  }, [isTooltipVisible, refs.floating]);
+  }, [isTooltipVisible]);
 
   const hideTooltip = () => {
     setTooltipVisible(false);
