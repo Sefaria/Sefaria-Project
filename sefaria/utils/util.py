@@ -547,7 +547,7 @@ def current_domain_lang(request):
     :param request: Django request object
     :return: 'english', 'hebrew', or None
     """
-    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
+    if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
     current_hostname = urlparse(f"http://{request.get_host()}").hostname
@@ -625,7 +625,7 @@ def get_cookie_domain(language):
     :param language: 'english' or 'hebrew' (long form)
     :return: Cookie domain string (e.g., '.sefaria.org') or None if no domain should be set
     """
-    if not (hasattr(settings, 'DOMAIN_MODULES') and settings.DOMAIN_MODULES):
+    if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
     lang_code = get_short_lang(language)
