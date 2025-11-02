@@ -161,7 +161,6 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-      actions_variables: 'write'
     needs:
       - build-derived
       - workflow-check
