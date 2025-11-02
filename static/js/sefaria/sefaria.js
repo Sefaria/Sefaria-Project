@@ -527,7 +527,7 @@ Sefaria = extend(Sefaria, {
     }
 
     const hostnames = new Set();
-    if (this.domainModules && typeof this.domainModules === 'object') {
+    for (const langModules of Object.values(this.domainModules)) {
       for (const moduleUrl of Object.values(langModules)) {
         try {
           const url = new URL(moduleUrl);
