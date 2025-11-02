@@ -47,6 +47,7 @@ const sefariaStub = {
     categoryColor: () => "#3366cc",
     refColor: () => "#3366cc",
   },
+  categoryAttribution: () => null,
   track: {
     event: () => {},
     sheets: () => {},
