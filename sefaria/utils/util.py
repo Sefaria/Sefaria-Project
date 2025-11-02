@@ -7,7 +7,7 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD, LIBRARY_MODULE
 from django.conf import settings
 from sefaria.system.exceptions import InputError
@@ -596,17 +596,23 @@ def needs_domain_switch(request, target_domain):
     return current_hostname != target_hostname
 
 
-def add_set_language_cookie_param(url):
+def add_query_param(url, param, value=""):
     """
-    Add the 'set-language-cookie' parameter to a URL.
+    Add or replace a query parameter on the provided URL.
 
-    Used when redirecting across domains to preserve language preferences.
+    Existing occurrences of the same parameter are replaced, and other query
+    parameters (including duplicates) are preserved.
 
     :param url: URL string
-    :return: URL with set-language-cookie parameter appended
+    :param param: Query parameter name
+    :param value: Query parameter value (defaults to empty string)
+    :return: URL string with updated query parameters
     """
-    separator = "&" if "?" in url else "?"
-    return url + separator + "set-language-cookie"
+    parsed = urlparse(url)
+    pairs = [(k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True) if k != param]
+    pairs.append((param, "" if value is None else value))
+    new_query = urlencode(pairs, doseq=True)
+    return urlunparse(parsed._replace(query=new_query))
 
 
 def get_cookie_domain(language):
