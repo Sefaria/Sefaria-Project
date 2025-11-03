@@ -1,7 +1,7 @@
 
 import structlog
 from sefaria.model.text import Ref, TextChunk, Version
-from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs, enqueue_linking_chain, enqueue_linking_chain_debug
+from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
 
 
 logger = structlog.get_logger(__name__)
@@ -40,6 +40,26 @@ class MarkedUpTextChunkGenerator:
             logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()}: {e}")
             raise
 
+    def generate_from_ref_and_version_id(self, ref: Ref, version_id: int) -> None:
+        try:
+            segment_refs = ref.all_segment_refs()
+            logger.info(f"Generating MarkedUpTextChunks for {len(segment_refs)} segment refs from {ref.normal()} and version ID {version_id}")
+
+            version = Version().load_by_id(version_id)
+            if not version:
+                logger.error(f"Version with ID {version_id} not found.")
+                return
+
+            lang = version.language
+            vtitle = version.versionTitle
+
+            for segment_ref in segment_refs:
+                self._generate_single_segment_version(segment_ref, lang, vtitle)
+
+        except Exception as e:
+            logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()} and version ID {version_id}: {e}")
+            raise
+
     ##  Private methods:
 
     def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
@@ -47,7 +67,6 @@ class MarkedUpTextChunkGenerator:
                                    lang=lang, vtitle=vtitle,
                                    user_id=self.user_id, kwargs=self.kwargs)
         enqueue_linking_chain(linking_args)
-        # enqueue_linking_chain_debug(linking_args)
 
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:

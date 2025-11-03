@@ -1,7 +1,7 @@
 """
 Celery tasks for the LLM server
 """
-
+from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
 from sefaria.settings import USE_VARNISH
@@ -11,8 +11,10 @@ from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model import Ref
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
-from dataclasses import dataclass
+from dataclasses import dataclass, field, asdict
 import structlog
+from typing import Any, Dict, List, Optional
+
 
 logger = structlog.get_logger(__name__)
 
@@ -29,6 +31,26 @@ class LinkingArgs:
     vtitle: str
     user_id: str = None  # optional, for tracker
     kwargs: dict = None  # optional, for tracke
+
+@dataclass(frozen=True)
+class DeleteAndSaveLinksMsg:
+    ref: str
+    linked_refs: List[str]
+    vtitle: Optional[str] = None
+    lang: Optional[str] = None
+    user_id: Optional[str] = None
+    tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "DeleteAndSaveLinksMsg":
+        return cls(
+            ref=d["ref"],
+            linked_refs=list(d.get("linked_refs", [])),
+            vtitle=d.get("vtitle"),
+            lang=d.get("lang"),
+            user_id=d.get("user_id"),
+            tracker_kwargs=d.get("tracker_kwargs") or {},
+        )
 
 
 @worker_init.connect
@@ -65,11 +87,6 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         "tracker_kwargs": <optional dict>
       }
     """
-    return link_segment_with_worker_logic(linking_args_dict)
-
-
-
-def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
@@ -93,17 +110,15 @@ def link_segment_with_worker_logic(linking_args_dict: dict) -> dict:
 
     # Prepare the minimal info the next task needs
     linked_refs = sorted({s["ref"] for s in spans})  # unique + stable
-    print("tracking_args.kwargs", linking_args.kwargs)
-    print(type(linking_args.kwargs))
-    return {
-        "ref": linking_args.ref,
-        "linked_refs": linked_refs,
-        "vtitle": linking_args.vtitle,
-        "lang": linking_args.lang,
-        "user_id": linking_args.user_id,
-        "tracker_kwargs": linking_args.kwargs or {},
-    }
-
+    msg = DeleteAndSaveLinksMsg(
+        ref=linking_args.ref,
+        linked_refs=linked_refs,
+        vtitle=linking_args.vtitle,
+        lang=linking_args.lang,
+        user_id=linking_args.user_id,
+        tracker_kwargs=linking_args.kwargs,
+    )
+    return asdict(msg)
 
 def _extract_resolved_spans(resolved_refs):
     spans = []
@@ -130,22 +145,20 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk):
         existing.delete()
 
 @app.task(name="linker.delete_and_save_new_links")
-def delete_and_save_new_links(payload: [dict]) -> list[dict]:
-    """
-    Runs after `link_segment_with_worker`. If the payload is None (no spans), do nothing.
-    """
-    return delete_and_save_new_links_logic(payload)
-
-
-def delete_and_save_new_links_logic(payload: [dict]):
+def delete_and_save_new_links(payload: dict) -> None:
     if not payload:
         return []
 
-    target_oref = Ref(payload["ref"])
-    linked_orefs = [Ref(r) for r in payload.get("linked_refs", [])]
-    text_id = Version().load({"versionTitle": payload.get("vtitle"), "language": payload.get("lang")})._id if payload.get("vtitle") and payload.get("lang") else None
-    user = payload.get("user_id")     # pass-through for tracker
-    kwargs = payload.get("tracker_kwargs", {})
+    msg = DeleteAndSaveLinksMsg.from_dict(payload)
+
+    target_oref = Ref(msg.ref)
+    linked_orefs = [Ref(r) for r in msg.linked_refs]
+    text_id = None
+    if msg.vtitle and msg.lang:
+        text_id = Version().load({"versionTitle": msg.vtitle, "language": msg.lang})._id
+
+    user = msg.user_id
+    kwargs = msg.tracker_kwargs
 
     found = []   # normal refs discovered in this run
     links = []   # links actually created
@@ -182,7 +195,6 @@ def delete_and_save_new_links_logic(payload: [dict]):
 
     # Remove existing links that are no longer supported by the text
     for exLink in existingLinks:
-        print(exLink)
         for r in exLink.refs:
             if r == target_oref.normal():  # current base ref
                 continue
@@ -195,27 +207,14 @@ def delete_and_save_new_links_logic(payload: [dict]):
                 tracker.delete(user, Link, exLink._id)
             break
 
-    return links
-
-
-
 def enqueue_linking_chain(linking_args: LinkingArgs):
     sig1 = signature(
         "linker.link_segment_with_worker",
-        args=(linking_args.__dict__,),
-        options={"queue": "linker"}   # optional routing
+        args=(asdict(linking_args),),
+        options={"queue": CELERY_QUEUES["tasks"]}
     )
     sig2 = signature(
         "linker.delete_and_save_new_links",
-        options={"queue": "linker"} # add if you want it on same/different queue
+        options={"queue": CELERY_QUEUES["tasks"]}
     )
-
-    # Use canvas piping to chain:
     return (sig1 | sig2).apply_async()
-
-def enqueue_linking_chain_debug(linking_args: LinkingArgs):
-    from dataclasses import asdict
-    payload = link_segment_with_worker_logic(asdict(linking_args))  # sync, hits breakpoints
-    if payload is None:  # mirror the chain's stop-on-none behavior
-        return []
-    return delete_and_save_new_links_logic(payload)
