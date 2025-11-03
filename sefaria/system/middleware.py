@@ -177,9 +177,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            final_url = urljoin(target_domain, path) + params_string
-
-            response = redirect(final_url)
+            response = redirect(urljoin(target_domain, path) + params_string)
             cookie_domain = get_cookie_domain(lang)
             response.set_cookie("interfaceLang", lang, domain=cookie_domain)
             if request.user.is_authenticated:
