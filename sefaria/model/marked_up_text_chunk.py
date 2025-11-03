@@ -125,7 +125,7 @@ class MarkedUpTextChunk(AbstractMongoRecord):
             href = Ref(ref).url()
             anchor = (
                 f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'
-                f'{escape(span_citation_text)}</a>'
+                f'{span_citation_text}</a>'
             )
 
             out = out[:start] + anchor + out[end:]
