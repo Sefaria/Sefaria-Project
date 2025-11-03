@@ -248,7 +248,7 @@ domains:
         he: chiburim
       redirects:
         - sheets
-        - collection
+        - collections
         - profile
 
 nginx:
