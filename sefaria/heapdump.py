@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 _SNAPSHOT_LOCK = threading.Lock()
 _LAST_SNAPSHOT: Optional[tracemalloc.Snapshot] = None
-_TERMINATION_SIGNALS: Sequence[int] = (signal.SIGTERM, signal.SIGINT)
 
 
 def _ensure_tracemalloc_running() -> None:
