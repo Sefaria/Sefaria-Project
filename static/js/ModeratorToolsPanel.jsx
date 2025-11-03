@@ -383,7 +383,8 @@ class WorkflowyModeratorTool extends Component{
                    this.state.files.length > 1 ? `Upload ${this.state.files.length} Files` : 'Upload'}
                 </span>
                 <span className="int-he">
-                  {this.state.uploading ? 'מעלה...' : 'העלאה'}
+                  {this.state.uploading ? 'מעלה...' : 
+                   this.state.files.length > 1 ? `העלאת ${this.state.files.length} קבצים` : 'העלאה'}
                 </span>
              </button>
          </form>
