@@ -289,8 +289,8 @@ def classify_index_of_citation():
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", SYSTEM_PROMPT),
-            ("user", USER_PROMPT),
+            ("system", system_prompt),
+            ("user", user_prompt),
         ]
     )
 
