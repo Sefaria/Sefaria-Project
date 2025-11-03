@@ -75,43 +75,43 @@ def get_cookie_domain(language):
     allowing cookies to be shared across modules (library/voices) while respecting
     language-specific domains.
 
-    :param language: 'english' or 'hebrew' (long form)
+    If language is None (ambiguous domain - same domains used for multiple languages),
+    finds the common domain suffix across ALL languages and modules.
+
+    :param language: 'english', 'hebrew' (long form), or None for cross-language domains
     :return: Cookie domain string (e.g., '.sefaria.org') or None if no domain should be set
     """
     if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
-    lang_code = get_short_lang(language)
-    modules = settings.DOMAIN_MODULES.get(lang_code, {})
+    # Collect all relevant module URLs
+    if language:
+        module_urls = settings.DOMAIN_MODULES.get(get_short_lang(language), {}).values()
+    else:
+        # Cross-language: collect and deduplicate URLs since different languages may share domains
+        seen_urls = set()
+        module_urls = []
+        for lang_modules in settings.DOMAIN_MODULES.values():
+            for url in lang_modules.values():
+                if url not in seen_urls:
+                    seen_urls.add(url)
+                    module_urls.append(url)
 
-    if not modules:
-        return None
-
-    # Extract hostnames for this language's modules
+    # Extract hostnames, filtering out localhost and IP addresses
     hostnames = []
-    for module_url in modules.values():
-        try:
-            hostname = urlparse(module_url).hostname
-            if hostname:
-                hostnames.append(hostname)
-        except Exception:
-            continue
+    for url in module_urls:
+        hostname = urlparse(url).hostname
+        if hostname and 'localhost' not in hostname and not re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname):
+            hostnames.append(hostname)
 
-    if not hostnames:
+    # Need at least 2 unique hostnames to justify a cookie domain
+    if len(hostnames) < 2:
         return None
 
-    # Localhost and IP addresses don't support domain cookies
-    if any('localhost' in h or re.match(r'^\d+\.\d+\.\d+\.\d+$', h) for h in hostnames):
-        return None
-
-    # Only one module - no need for cross-domain cookie sharing
-    if len(hostnames) == 1:
-        return None
-
-    # Find the longest common domain suffix among hostnames
+    # Find common suffix and 
     common_suffix = _find_longest_common_domain_suffix(hostnames)
-
-    return common_suffix if common_suffix else None
+    # Validate the suffix is not too broad (e.g., ".sefaria.org" not ".org")
+    return common_suffix if common_suffix and common_suffix.count('.') >= 2 else None
 
 
 def _find_longest_common_domain_suffix(hostnames):
