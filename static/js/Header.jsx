@@ -26,6 +26,7 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
+import ModuleSwitcherTooltip from './ModuleSwitcherTooltip';
 
 const LoggedOutDropdown = ({module}) => {
   return (
@@ -128,8 +129,11 @@ const LoggedInDropdown = ({ module }) => {
 }
 
 const ModuleSwitcher = () => {
+  const dropdownRef = useRef(null);
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
-  return (
+  return (    
+  <ModuleSwitcherTooltip targetRef={dropdownRef}>
+    <div ref={dropdownRef}>
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
       <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
         <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
@@ -166,10 +170,13 @@ const ModuleSwitcher = () => {
         </DropdownMenuItem>
       </div>
     </DropdownMenu>
-  );
+    </div>
+  </ModuleSwitcherTooltip>
+);
 }
 
 const Header = (props) => {
+  const mobileMenuButtonRef = useRef(null);
 
   useEffect(() => {
     const handleFirstTab = (e) => {
@@ -286,9 +293,8 @@ const Header = (props) => {
             translationLanguagePreference={props.translationLanguagePreference}
             setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
-        {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : sheetsNotificationsIcon)}
-
-        <ModuleSwitcher />
+        { Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : sheetsNotificationsIcon) }
+           <ModuleSwitcher />
 
         {Sefaria._uid ?
           <LoggedInDropdown module={props.module} />
@@ -299,13 +305,17 @@ const Header = (props) => {
     </>
   );
 
-  const mobileHeaderContent = (
-    <>
-      <div>
-        <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
-          <i className="fa fa-bars"></i>
-        </button>
-      </div>
+    const mobileHeaderContent = (
+      <>
+        <div>
+          <ModuleSwitcherTooltip targetRef={mobileMenuButtonRef}>
+            <div>
+              <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+                <i className="fa fa-bars"></i>
+              </button>
+            </div>
+          </ModuleSwitcherTooltip>
+        </div>
 
       <div className="mobileHeaderCenter">
         {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
