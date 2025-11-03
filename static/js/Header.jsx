@@ -535,8 +535,8 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         </a>
 
         <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
-          <img src="/static/icons/products-icon.svg" alt={Sefaria._("Products")} />
-          <InterfaceText text={{ en: "All Products", he: "מוצרים" }} />
+          <img src="/static/icons/chevron-down.svg" alt={Sefaria._("Products")} />
+          <InterfaceText>More from Sefaria</InterfaceText>
         </a>
 
         <hr />
