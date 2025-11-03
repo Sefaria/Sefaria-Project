@@ -252,8 +252,7 @@ domains:
         he: voices
       redirects:
         - sheets
-        - collection
-        - community
+        - collections
         - profile
 
 nginx:
