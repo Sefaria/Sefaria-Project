@@ -51,7 +51,8 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, get_redirect_domain_for_language, needs_domain_switch, add_query_param, get_cookie_domain, current_domain_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, add_query_param
+from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
