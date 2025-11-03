@@ -321,6 +321,7 @@ if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash

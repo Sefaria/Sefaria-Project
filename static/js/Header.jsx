@@ -198,7 +198,7 @@ const Header = (props) => {
 
   const librarySavedIcon = <div className='librarySavedIcon'>
                                 <a
-                                  href="/texts/saved"
+                                  href="/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
                                   onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                 >
@@ -447,7 +447,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             {module === Sefaria.LIBRARY_MODULE &&
               <>
-                <a href="/texts/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
+                <a href="/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
                   <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
                   {<InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />}
                 </a>

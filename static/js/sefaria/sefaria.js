@@ -2667,9 +2667,17 @@ _media: {},
   },
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
-      const skip = Sefaria.userHistory.items.length;
-      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
-      fetch(url)
+    const params = new URLSearchParams({
+      secondary: 0,
+      annotate: 1,
+      limit,
+      skip: Sefaria.userHistory.items.length,
+      saved: 0,
+      sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
+    });
+    
+    const url = `/api/profile/user_history?${params.toString()}`;
+    fetch(url)
           .then(response => response.json())
           .then(data => {
               Sefaria.userHistory.loaded = true;
@@ -2831,7 +2839,7 @@ _media: {},
       }
       return this._cachedApiPromise({
           url:   `${this.apiHost}/api/calendars/topics/${day}`,
-          key:   day,
+          key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });
   },
@@ -2981,13 +2989,8 @@ _media: {},
         store: this._featuredTopic,
     });
   },
-  _seasonalTopic: {},
   getSeasonalTopic: function() {
-    return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/_api/topics/seasonal-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
-        key: (new Date()).toLocaleDateString(),
-        store: this._seasonalTopic,
-    });
+    return this.getUpcomingDay('holiday');
   },
   trendingSheetsTopics: {},
   trendingLibraryTopics: {},
@@ -3320,9 +3323,9 @@ _media: {},
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     },
-    getSheetTitle: function(sheet) {
-      // Returns a sheet's title with fallback to "Untitled" 
-      return sheet?.title?.stripHtml() || Sefaria._("Untitled");
+    getSheetTitle: function(title) {
+      // Useful for displaying sheet titles in the UI without HTML tags and handling null or empty values by falling back to "Untitled"
+      return title?.stripHtml() || Sefaria._("Untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
@@ -3764,7 +3767,6 @@ Sefaria.resetCache = function() {
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};
-    this._seasonalTopic = {};
     this._index = {};
     this._indexDetails = {};
     this._bookSearchPathFilter  = {};

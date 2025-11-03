@@ -25,7 +25,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
-from django.http import Http404, QueryDict, HttpResponse
+from django.http import Http404, QueryDict, HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -56,7 +56,7 @@ from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -94,6 +94,13 @@ if USE_VARNISH:
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+# File extension to content type mapping for favicon serving
+FAVICON_CONTENT_TYPES = {
+    '.ico': 'image/x-icon',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml'
+}
 
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
@@ -172,6 +179,7 @@ def base_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         active_module = getattr(request, "active_module", LIBRARY_MODULE)
+        sheets_only = active_module == VOICES_MODULE
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -189,8 +197,8 @@ def base_props(request):
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(scope=active_module),
             "notifications": profile.recent_notifications(scope=active_module).client_contents(),
-            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
+            "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False, sheets_only=sheets_only)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
+            "last_place": profile.get_history(last_place=True, secondary=False, sheets_only=sheets_only, serialized=True)
         }
     else:
         user_data = {
@@ -1035,19 +1043,20 @@ def saved_content(request):
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     profile = UserProfile(user_obj=request.user)
-    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
-    
-    # Determine page name based on active module
-    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
-    page_name = "sheets-saved" if active_module == VOICES_MODULE else "texts-saved"
-    
-    return menu_page(request, props, page=page_name, title=title, desc=desc)
+    sheets_only = request.active_module == VOICES_MODULE
+    props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20, sheets_only=sheets_only)}}
+    return menu_page(request, props, page="saved", title=title, desc=desc)
+
 
 
 def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
+        sheets_only = request.active_module == VOICES_MODULE
+        reading_history_enabled = profile.settings.get("reading_history", True)
+        uhistory = []
+        if reading_history_enabled:
+            uhistory = profile.get_history(secondary=False, serialized=True, annotate=True, limit=20, sheets_only=sheets_only)
     else:
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}
@@ -1062,12 +1071,8 @@ def user_history_content(request):
     props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    
-    # Determine page name based on active module
-    active_module = getattr(request, 'active_module', LIBRARY_MODULE)
-    page_name = "sheets-history" if active_module == VOICES_MODULE  else "texts-history"
-    
-    return menu_page(request, props, page=page_name, title=title, desc=desc)
+    return menu_page(request, props, page="history", title=title, desc=desc)
+
 
 @login_required
 def notes(request):
@@ -1669,26 +1674,6 @@ def find_holiday_in_hebcal_results(response):
                     return topic.contents()
     return None
 
-@catch_error_as_json
-def next_holiday(request):
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
-    import requests
-    current_date = datetime.now().date()
-    date_in_three_months = current_date + relativedelta(months=+3)
-
-    # Format the date as YYYY-MM-DD
-    current_date = current_date.strftime('%Y-%m-%d')
-    date_in_three_months = date_in_three_months.strftime("%Y-%m-%d")
-    response = requests.get(f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&start={current_date}&end={date_in_three_months}")
-    if response.status_code == 200:
-        topic = find_holiday_in_hebcal_results(response)
-        if topic:
-            return jsonResponse(topic)
-        else:
-            return jsonResponse({"error": "Couldn't find any topics corresponding to HebCal results"})
-    else:
-        return jsonResponse({"error": "Couldn't establish connection with HebCal API"})
 @catch_error_as_json
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
@@ -3391,7 +3376,7 @@ def topic_ref_bulk_api(request):
 def seasonal_topic_api(request):
     from django_topics.models import SeasonalTopic
 
-    lang = request.GET.get("lang")
+    lang = request.LANGUAGE_CODE
     cb = request.GET.get("callback", None)
     diaspora = request.GET.get("diaspora", False)
 
@@ -3998,7 +3983,8 @@ def user_history_api(request):
             skip = int(request.GET.get("skip", 0))
             limit = int(request.GET.get("limit", 100))
             annotate = bool(int(request.GET.get("annotate", 0)))
-            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
+            sheets_only = bool(int(request.GET.get("sheets_only", 0)))
+            return jsonResponse(user.get_history(oref=oref, saved=saved, secondary=secondary, sheets_only=sheets_only, serialized=True, annotate=annotate, last_place=last_place, skip=skip, limit=limit))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -4191,6 +4177,7 @@ def metrics(request):
     metrics_json = dumps(metrics)
     return render_template(request,'metrics.html', None,{
         "metrics_json": metrics_json,
+        "renderStatic": True
     })
 
 
@@ -4758,6 +4745,32 @@ def apple_app_site_association(request):
         }
     })
 
+
+def module_favicon(request, filename):
+    """
+    Serve module-specific icon files based on the active module from the root of the hostname.
+    This handles clients that request /favicon.ico, /apple-touch-icon.png, or /favicon.svg directly without parsing an HTML response.
+    """
+    
+    # Get the active module and default to the same default as middleware
+    active_module = getattr(request, 'active_module', DEFAULT_HOST)
+    
+    # Construct the path to the module-specific icon file
+    # Filename comes from the capture group in the URL pattern
+    icon_path = os.path.join(STATICFILES_DIRS[0], 'icons', active_module, filename)
+
+    # Determine content type based on file extension
+    file_extension = os.path.splitext(filename)[1].lower()
+    content_type = FAVICON_CONTENT_TYPES[file_extension]
+
+    response = FileResponse(open(icon_path, 'rb'), content_type=content_type)
+    
+    # Tell client to cache for 1 month, since favicons change infrequently
+    response["Cache-Control"] = "max-age=2592000"
+    
+    return response
+
+
 def android_asset_links_json(request):
     return jsonResponse(
         [{
@@ -4849,3 +4862,33 @@ def application_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
+
+
+def dynamic_manifest(request, filename):
+    """
+    Serve module-specific web manifest with dynamic scope and start_url.
+    Supports both Hebrew and English.
+    """
+    active_module = getattr(request, 'active_module', DEFAULT_HOST)
+    lang = getattr(request, 'interfaceLang', 'english')
+
+    # Always use "/" for scope to allow PWA control over all paths
+    scope = "/"
+    start_url = "/"
+
+    context = {
+        'active_module': active_module,
+        'lang': lang,
+        'start_url': start_url,
+        'scope': scope,
+        'is_hebrew': lang in ('hebrew', 'he'),
+    }
+    
+    response = render(request, 'manifest.json', context, content_type='application/manifest+json')
+    
+    # Use Vary headers to cache different variants based on language preference and host
+    # This should work with the  existing Varnish config and LanguageSettingsMiddleware
+    response["Vary"] = "Accept-Language, Host"
+    response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
+    
+    return response
