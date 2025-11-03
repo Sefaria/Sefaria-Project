@@ -189,9 +189,11 @@ const Header = (props) => {
   const mobile = !props?.multiPanel;
   
   const shouldHide = () => {
-    // Header visibility logic - on mobile, return null when we are viewing library content.  When we return null,
-    // we either display no component at the top of the screen or display ReaderControls at the top of the screen, essentially as the header.
-    // However, if the mobile nav menu is open, even when vieiwng a book, we still want the header to display, and therefore we need to also check mobileNavMenuOpen.
+    // Determines whether or not this component should be displayed or not. 
+    // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
+    // functioning as the header.  This case occurs when viewing a library text in mode "Text"
+    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".    
+    // shouldHide() returns true when the header should be hidden (a) on mobile (b) while viewing library texts (c) when the mobile nav menu is not open.
     const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
     const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
     return hidden;
@@ -311,7 +313,7 @@ const Header = (props) => {
 
   // Language toggle logic - show on mobile for specific menu pages
   const languageToggleMenus = ["navigation", "saved", "history", "notes"];
-  const hasLanguageToggle = !Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
+  const hasLanguageToggle = mobile && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
 
   const mobileHeaderContent = (
     <>
@@ -370,7 +372,13 @@ Header.propTypes = {
   showSearch: PropTypes.func.isRequired,
   openTopic: PropTypes.func.isRequired,
   openURL: PropTypes.func.isRequired,
-  firstPanel: PropTypes.object,
+  firstPanel: PropTypes.shape({
+    menuOpen: PropTypes.string,
+    mode: PropTypes.string,
+    settings: PropTypes.shape({
+      language: PropTypes.string
+    })
+  }),
   module: PropTypes.string.isRequired,
   mobileNavMenuOpen: PropTypes.bool,
   onMobileMenuButtonClick: PropTypes.func,
