@@ -9643,6 +9643,12 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .editorSaveStateIndicator {
   flex-direction: row-reverse;
 }
+.interface-hebrew .sheetContentSidebar .editorSaveStateIndicator {
+  direction: ltr;
+}
+.interface-hebrew .sheetContentSidebar .editorSaveStateIndicator.tooltip-toggle::before {
+  left: auto;
+}
 .floatingEditorIcons{
   display: flex;
   position: sticky;
