@@ -15118,7 +15118,7 @@ span.ref-link-color-3 {color: blue}
   margin-inline-end: 15px;
 }
 
-.interface-hebrew .mobileAccountLinks img[src="/static/icons/chevron-right.svg"] {
+.interface-hebrew .mobileAccountLinks .chevron {
   transform: rotate(180deg);
 }
 
