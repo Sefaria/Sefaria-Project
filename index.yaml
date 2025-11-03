@@ -168,6 +168,21 @@ entries:
     version: 0.68.0-miscmdl-master-merge.1
   - apiVersion: v2
     appVersion: v6.37.4
+    created: "2025-11-03T11:31:02.985533739Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6f06c26cc763091495b0e583d87a1116ef4f9cf740188f92631c6541b6d3c673
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.68.0-fixredirects-community.2.tgz
+    version: 0.68.0-fixredirects-community.2
+  - apiVersion: v2
+    appVersion: v6.37.4
     created: "2025-11-02T15:22:38.407804642Z"
     description: Chart to deploy complete Sefaria environment
     digest: 2cc0da2d8272fad176c83990a7e532fd7ec2143b466ba287baedaefc9b0e4f5b
@@ -10545,4 +10560,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-11-03T11:28:59.685290003Z"
+generated: "2025-11-03T11:31:02.983242833Z"
