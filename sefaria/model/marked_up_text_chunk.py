@@ -1,10 +1,12 @@
-from . import abstract as abst
+from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 from sefaria.model.text import TextChunk, Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from html import escape
+import structlog
+logger = structlog.get_logger(__name__)
 
 
-class MarkedUpTextChunk(abst.AbstractMongoRecord):
+class MarkedUpTextChunk(AbstractMongoRecord):
     """
     MarkedUpTextChunk objects define the quotations and links inside Sefaria texts
     Probably, every Quoting Commentary will have a MarkedUpTextChunk object
@@ -129,3 +131,30 @@ class MarkedUpTextChunk(abst.AbstractMongoRecord):
             out = out[:start] + anchor + out[end:]
 
         return out
+
+
+class MarkedUpTextChunkSet(AbstractMongoSet):
+    recordClass = MarkedUpTextChunk
+
+
+def process_index_title_change_in_marked_up_text_chunks(indx, **kwargs):
+    print("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from .text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = MarkedUpTextChunkSet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+
+
+def process_index_delete_in_marked_up_text_chunks(indx, **kwargs):
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
+    MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
