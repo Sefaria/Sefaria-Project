@@ -15114,6 +15114,10 @@ span.ref-link-color-3 {color: blue}
   flex-shrink: 0;
 }
 
+.mobileAccountLinks .dropdownDot {
+  margin-inline-end: 15px;
+}
+
 .dropdownHeaderText {
   padding-inline-start: 10px;
 }
