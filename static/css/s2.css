@@ -3395,8 +3395,16 @@ a.cardTitle:hover {
   margin: 30px 0;
   width: 33%;
 }
+.singlePanel .sheetMetaDataBox .sidebarLayout {
+  flex-direction: row;
+}
+.singlePanel .sheetContent .dropdownLinks-button img {
+  max-width: revert;
+}
 .singlePanel .sheetContentSidebar {
+  padding-inline: 10%;
   width: revert;
+  margin: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
@@ -9285,6 +9293,9 @@ a.sheetAuthorName:hover {
   justify-content: space-between;
   align-items: center;
 }
+.singlePanel .sheetMetaDataBox .sidebarLayout .items {
+  align-items: flex-start;
+}
 .sheetMetaDataBox .guideButton {
   display: flex;
   align-items: center;
@@ -9306,6 +9317,10 @@ a.sheetAuthorName:hover {
 .marginInlineIndent {
   margin-inline-start: 15px;
   margin-inline-end: 15px;
+}
+.singlePanel .marginInlineIndent {
+  margin-inline-start: 7px;
+  margin-inline-end: 7px;
 }
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
@@ -15143,6 +15158,10 @@ span.ref-link-color-3 {color: blue}
 .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
   padding-top: 3px;
 }
+.singlePanel .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
+  padding-top: 0;
+  margin-top: -7px;
+}
 .header .headerDropdownMenu {
   display: block;
   align-items: center;
@@ -15227,6 +15246,12 @@ span.ref-link-color-3 {color: blue}
   overflow:hidden;
 }
 
+.interface-english .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  right: 5px;
+}
+.interface-hebrew .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  left: 5px;
+}
 .dropdownItem {
   padding-inline: 15px;
   flex-direction: column;
