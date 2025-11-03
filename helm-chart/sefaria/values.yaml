@@ -399,6 +399,11 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
+  importProductionData:
+    enabled: false
+    schedule: "0 2 * * 1"  # Every Monday at 2 AM
+    serviceAccount: database-backup-read
+    dynamicName: true
 
 # Domain configuration - can be overridden per environment
 domainConfig:
