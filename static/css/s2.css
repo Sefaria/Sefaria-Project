@@ -3396,7 +3396,7 @@ a.cardTitle:hover {
   width: 33%;
 }
 .singlePanel .sheetContentSidebar {
-  width: 0;
+  width: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
@@ -9320,7 +9320,6 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 25px;
   text-align: initial;
 }
 .sheetMetaDataBox .title {
