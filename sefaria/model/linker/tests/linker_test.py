@@ -1,8 +1,17 @@
-from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
+from sefaria.model.linker.ref_resolver import (
+    ResolvedRef,
+    ResolutionThoroughness,
+    RefResolver,
+    IbidHistory,
+    ContextMutationOp,
+    ContextMutation,
+    ContextMutationSet,
+)
 from .linker_test_utils import *
 from sefaria.model import schema
+from sefaria.model.linker.match_template import MatchTemplateTrie
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
@@ -30,6 +39,48 @@ def test_resolved_raw_ref_clone():
     rrr = ResolvedRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
+
+
+def test_context_mutation_add_inserts_term(monkeypatch):
+    class DummyTerm:
+        def __init__(self, slug):
+            self.slug = slug
+
+        def get_titles(self, lang):
+            return [self.slug]
+
+    class DummyTermMatcher:
+        def match_term(self, ref_part):
+            if ref_part.text == "Trigger":
+                return [DummyTerm("shulchan_arukh")]
+            return []
+
+        def match_terms(self, ref_parts):
+            matches = []
+            for part in ref_parts:
+                matches += self.match_term(part)
+            return matches
+
+    raw_ref, _, _, _ = create_raw_ref_data(["@Trigger"], lang="en")
+    mutation = ContextMutation(ContextMutationOp.ADD, ["shulchan_arukh"], ["orach_chayyim"])
+    mutation_set = ContextMutationSet()
+    mutation_set.add_mutations([mutation])
+
+    def fake_init(cls, slug):
+        return DummyTerm(slug)
+
+    monkeypatch.setattr(schema.NonUniqueTerm, "init", classmethod(fake_init))
+
+    resolver = RefResolver("en", MatchTemplateTrie("en", nodes=[]), DummyTermMatcher())
+    resolver._apply_context_mutations(raw_ref, mutation_set)
+
+    assert len(raw_ref.parts_to_match) == 2
+    assert raw_ref.parts_to_match[0] == raw_ref.raw_ref_parts[0]
+    assert isinstance(raw_ref.parts_to_match[1], TermContext)
+    assert raw_ref.parts_to_match[1].term.slug == "orach_chayyim"
+
+    resolver._apply_context_mutations(raw_ref, mutation_set)
+    assert len(raw_ref.parts_to_match) == 2
 
 
 crrd = create_raw_ref_data

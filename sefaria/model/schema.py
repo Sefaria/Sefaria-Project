@@ -1217,7 +1217,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", 'referenceable']
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", "ref_resolver_context_mutations", 'referenceable']
 
     def __init__(self, serial=None, **kwargs):
         """

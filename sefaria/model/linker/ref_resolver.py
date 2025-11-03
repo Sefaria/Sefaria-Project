@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
+from typing import List, Union, Dict, Optional, Tuple, Iterable, Set, Sequence, Callable
 from enum import IntEnum, Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
@@ -20,6 +20,76 @@ class ContextType(Enum):
     """
     CURRENT_BOOK = "CURRENT_BOOK"
     IBID = "IBID"
+
+
+class ContextMutationOp(str, Enum):
+    ADD = "add"
+    SWAP = "swap"
+
+
+class ContextMutation:
+    """
+    Wrapper for a context mutation rule declared on a SchemaNode.
+    """
+
+    def __init__(self, op: ContextMutationOp, input_terms: Sequence[str], output_terms: Sequence[str]) -> None:
+        if len(input_terms) == 0:
+            raise ValueError("ContextMutation requires at least one input term")
+        self.op = op
+        self.input_terms = tuple(input_terms)
+        self.output_terms = tuple(output_terms)
+
+    def applies_to(self, matched_terms: Sequence[str]) -> bool:
+        return tuple(matched_terms) == self.input_terms
+
+    def apply(self, raw_parts: List[RawRefPart], term_factory: Callable[[str], TermContext]) -> List[RawRefPart]:
+        if self.op == ContextMutationOp.SWAP:
+            return [term_factory(slug) for slug in self.output_terms]
+        if self.op == ContextMutationOp.ADD:
+            return list(raw_parts) + [term_factory(slug) for slug in self.output_terms]
+        raise ValueError(f"Unknown ContextMutation op {self.op}")
+
+    def __repr__(self) -> str:
+        return f"ContextMutation(op={self.op}, input_terms={self.input_terms}, output_terms={self.output_terms})"
+
+
+class ContextMutationSet:
+    """
+    Collection of ContextMutations keyed by their input tuple with descendant-precedence semantics.
+    """
+
+    def __init__(self) -> None:
+        self._mutations: Dict[Tuple[str, ...], List[ContextMutation]] = {}
+
+    def add_mutations(self, mutations: Iterable[ContextMutation]) -> None:
+        for mutation in mutations:
+            key = mutation.input_terms
+            self._mutations.setdefault(key, []).append(mutation)
+
+    def get(self, input_terms: Sequence[str]) -> Optional[ContextMutation]:
+        key = tuple(input_terms)
+        if key not in self._mutations:
+            return None
+        return self._mutations[key][-1]
+
+    def apply(self, matched_terms: Sequence[str], raw_parts: List[RawRefPart],
+              term_factory: Callable[[str], TermContext]) -> List[RawRefPart]:
+        mutation = self.get(matched_terms)
+        if mutation is None:
+            return raw_parts
+        return mutation.apply(raw_parts, term_factory)
+
+    def __len__(self) -> int:
+        return len(self._mutations)
+
+    def debug_view(self) -> Dict[Tuple[str, ...], List[ContextMutation]]:
+        """
+        Return a shallow copy of the raw mutation mapping for debugging.
+        """
+        return {key: list(value) for key, value in self._mutations.items()}
+
+    def __repr__(self) -> str:
+        return f"ContextMutationSet({self.debug_view()})"
 
 
 # maps ContextTypes that will always (I believe) map to certain RefPartTypes
@@ -370,9 +440,8 @@ class RefResolver:
             if is_non_cts:
                 # TODO assumes context is only first resolved ref
                 book_context_ref = None if resolved_list[0].is_ambiguous else resolved_list[0].ref
-            context_swap_map = None if book_context_ref is None else getattr(book_context_ref.index.nodes,
-                                                                        'ref_resolver_context_swaps', None)
-            self._apply_context_swaps(raw_ref, context_swap_map)
+            context_mutations = self._collect_context_mutations(book_context_ref)
+            self._apply_context_mutations(raw_ref, context_mutations)
             unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
@@ -430,28 +499,99 @@ class RefResolver:
             matches += [match]
         return matches
 
-    def _apply_context_swaps(self, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
-        """
-        Use `context_swap_map` to swap matching element of `ref_parts`
-        Allows us to redefine how a ref part is interpreted depending on the context
-        E.g. some rishonim refer to other rishonim based on nicknames
+    def _collect_context_mutations(self, book_context_ref: Optional[text.Ref]) -> Optional[ContextMutationSet]:
+        if book_context_ref is None:
+            return None
+        node = getattr(book_context_ref, 'index_node', None)
+        if node is None:
+            node = getattr(book_context_ref.index, 'nodes', None)
+        if node is None:
+            return None
+        path_nodes = []
+        curr_node = node
+        while curr_node is not None:
+            path_nodes.append(curr_node)
+            curr_node = getattr(curr_node, 'parent', None)
+        mutation_set = ContextMutationSet()
+        for path_node in reversed(path_nodes):
+            raw_mutations = getattr(path_node, 'ref_resolver_context_mutations', None)
+            if not raw_mutations:
+                continue
+            parsed_mutations = self._parse_context_mutation_data(raw_mutations, path_node)
+            if parsed_mutations:
+                mutation_set.add_mutations(parsed_mutations)
+        return mutation_set if len(mutation_set) > 0 else None
 
-        Modifies `raw_ref` with updated ref_parts
-        """
-        swapped_ref_parts = []
+    @staticmethod
+    def _parse_context_mutation_data(raw_mutations: Iterable[dict], node: schema.SchemaNode) -> List[ContextMutation]:
+        parsed: List[ContextMutation] = []
+        node_title = node.full_title() if hasattr(node, "full_title") else getattr(node, "key", str(node))
+        for raw_mutation in raw_mutations:
+            if not isinstance(raw_mutation, dict):
+                logger.warning("ref_resolver.context_mutation.invalid_format", node=node_title, data=raw_mutation)
+                continue
+            op_token = raw_mutation.get("op")
+            input_terms = raw_mutation.get("input_terms", [])
+            output_terms = raw_mutation.get("output_terms", [])
+            try:
+                op = ContextMutationOp(op_token)
+            except Exception:
+                logger.warning("ref_resolver.context_mutation.invalid_op", node=node_title, op=op_token)
+                continue
+            if not isinstance(input_terms, (list, tuple)) or not all(isinstance(term, str) for term in input_terms):
+                logger.warning("ref_resolver.context_mutation.invalid_input_terms", node=node_title, input_terms=input_terms)
+                continue
+            if not isinstance(output_terms, (list, tuple)) or not all(isinstance(term, str) for term in output_terms):
+                logger.warning("ref_resolver.context_mutation.invalid_output_terms", node=node_title, output_terms=output_terms)
+                continue
+            try:
+                parsed.append(ContextMutation(op, input_terms, output_terms))
+            except ValueError as err:
+                logger.warning("ref_resolver.context_mutation.invalid_mutation", node=node_title, error=str(err))
+        return parsed
+
+    def _apply_context_mutations(self, raw_ref: RawRef, context_mutations: Optional[ContextMutationSet]) -> None:
+        if context_mutations is None or len(context_mutations) == 0:
+            raw_ref.parts_to_match = raw_ref.raw_ref_parts
+            return
         term_matcher = self.get_term_matcher()
-        if context_swap_map is None: return
+        parts_to_match: List[RawRefPart] = []
+        existing_context_slugs = {part.term.slug for part in raw_ref.raw_ref_parts if isinstance(part, TermContext)}
+        term_cache: Dict[str, schema.NonUniqueTerm] = {}
+
+        def term_factory(slug: str) -> TermContext:
+            if slug not in term_cache:
+                term = schema.NonUniqueTerm.init(slug)
+                if term is None:
+                    raise ValueError(f"Unknown term slug: {slug}")
+                term_cache[slug] = term
+            return TermContext(term_cache[slug])
+
         for part in raw_ref.raw_ref_parts:
-            # TODO assumes only one match in term_matches
             term_matches = term_matcher.match_term(part)
-            found_match = False
-            for match in term_matches:
-                if match.slug not in context_swap_map: continue
-                swapped_ref_parts += [TermContext(schema.NonUniqueTerm.init(slug)) for slug in context_swap_map[match.slug]]
-                found_match = True
-                break
-            if not found_match: swapped_ref_parts += [part]
-        raw_ref.parts_to_match = swapped_ref_parts
+            applied = False
+            if term_matches:
+                for match in term_matches:
+                    mutation = context_mutations.get((match.slug,))
+                    if mutation is None:
+                        continue
+                    try:
+                        mutated_parts = mutation.apply([part], term_factory)
+                    except Exception as err:
+                        logger.warning("ref_resolver.context_mutation.apply_failed", slug=match.slug, error=str(err))
+                        continue
+                    for new_part in mutated_parts:
+                        if isinstance(new_part, TermContext):
+                            slug = new_part.term.slug
+                            if mutation.op == ContextMutationOp.ADD and slug in existing_context_slugs:
+                                continue
+                            existing_context_slugs.add(slug)
+                        parts_to_match.append(new_part)
+                    applied = True
+                    break
+            if not applied:
+                parts_to_match.append(part)
+        raw_ref.parts_to_match = parts_to_match
 
     def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
         """
