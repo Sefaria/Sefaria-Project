@@ -4,8 +4,9 @@ Utilities for generating and retrieving on-demand Python heap dumps.
 This module exposes a Django view that captures a snapshot of the current
 Gunicorn worker process, serialises both a human readable report and a
 tracemalloc snapshot to disk, and returns them within a zipped archive for
-download. The handler is authenticated via a shared debug token so that heap
-dumps cannot be triggered accidentally.
+download. Access to the handler is restricted to authenticated Django staff members
+via the @staff_member_required decorator to prevent accidental or unauthorized triggering
+of heap dumps.
 """
 from __future__ import annotations
 
