@@ -186,13 +186,12 @@ const Header = (props) => {
     }
   }, []);
   
-  const mobile = !props.multiPanel;
-
+  const mobile = !props?.multiPanel;
   
   const shouldHide = () => {
     // Header visibility logic - on mobile, return null when we are viewing library content.  When we return null,
     // we either display no component at the top of the screen or display ReaderControls at the top of the screen, essentially as the header.
-    // If the mobile nav menu is open, even when vieiwng a book, we still want the header to display.
+    // However, if the mobile nav menu is open, even when vieiwng a book, we still want the header to display, and therefore we need to also check mobileNavMenuOpen.
     const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
     const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
     return hidden;
@@ -312,7 +311,7 @@ const Header = (props) => {
 
   // Language toggle logic - show on mobile for specific menu pages
   const languageToggleMenus = ["navigation", "saved", "history", "notes"];
-  const hasLanguageToggle = !Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props.firstPanel?.menuOpen);
+  const hasLanguageToggle = !Sefaria.multiPanel && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
 
   const mobileHeaderContent = (
     <>
@@ -331,11 +330,12 @@ const Header = (props) => {
           <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
-    </>
+    </>  
   );
 
-  // Box shadow styling - don't show shadow over panels with color line (book toc in all contexts)
-  const hasBoxShadow = !props.firstPanel?.menuOpen === "book toc";;
+  // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
+  const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
+  const hasBoxShadow = !hasColorLine;
   const headerClasses = classNames({ header: 1, mobile: mobile });
   const headerInnerClasses = classNames({
     headerInner: 1,
