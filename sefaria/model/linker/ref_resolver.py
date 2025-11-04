@@ -88,6 +88,14 @@ class ContextMutationSet:
         """
         return {key: list(value) for key, value in self._mutations.items()}
 
+    def effective_mutations(self) -> Iterable[Tuple[Tuple[str, ...], ContextMutation]]:
+        # Yield (input_terms, mutation) in insertion order, taking the last entry
+        # per key so descendant mutations override ancestors.
+        for key, stack in self._mutations.items():
+            if len(stack) == 0:
+                continue
+            yield key, stack[-1]
+
     def __repr__(self) -> str:
         return f"ContextMutationSet({self.debug_view()})"
 
@@ -555,8 +563,6 @@ class RefResolver:
             raw_ref.parts_to_match = raw_ref.raw_ref_parts
             return
         term_matcher = self.get_term_matcher()
-        parts_to_match: List[RawRefPart] = []
-        existing_context_slugs = {part.term.slug for part in raw_ref.raw_ref_parts if isinstance(part, TermContext)}
         term_cache: Dict[str, schema.NonUniqueTerm] = {}
 
         def term_factory(slug: str) -> TermContext:
@@ -567,30 +573,85 @@ class RefResolver:
                 term_cache[slug] = term
             return TermContext(term_cache[slug])
 
-        for part in raw_ref.raw_ref_parts:
-            term_matches = term_matcher.match_term(part)
-            applied = False
-            if term_matches:
-                for match in term_matches:
-                    mutation = context_mutations.get((match.slug,))
-                    if mutation is None:
+        raw_parts = raw_ref.raw_ref_parts
+        slug_candidates: List[List[str]] = []
+        for part in raw_parts:
+            if isinstance(part, TermContext):
+                slug_candidates.append([part.term.slug])
+            else:
+                term_matches = term_matcher.match_term(part)
+                slug_candidates.append([match.slug for match in term_matches])
+
+        effective_mutations = list(context_mutations.effective_mutations())
+        if len(effective_mutations) == 0:
+            raw_ref.parts_to_match = raw_parts
+            return
+
+        swap_inserts: Dict[int, List[RawRefPart]] = {}
+        swap_removed_indices: Set[int] = set()
+        additions_by_index: Dict[int, List[TermContext]] = defaultdict(list)
+        existing_context_slugs = {part.term.slug for part in raw_parts if isinstance(part, TermContext)}
+
+        from itertools import combinations
+
+        def _match_terms_to_parts(slug_lists: List[List[str]], input_terms: Tuple[str, ...]) -> bool:
+            if len(slug_lists) != len(input_terms):
+                return False
+            from collections import Counter
+            term_counts = Counter(input_terms)
+            def backtrack(idx: int) -> bool:
+                if idx == len(slug_lists):
+                    return all(count == 0 for count in term_counts.values())
+                for slug in slug_lists[idx]:
+                    if term_counts[slug] == 0:
                         continue
-                    try:
-                        mutated_parts = mutation.apply([part], term_factory)
-                    except Exception as err:
-                        logger.warning("ref_resolver.context_mutation.apply_failed", slug=match.slug, error=str(err))
-                        continue
+                    term_counts[slug] -= 1
+                    if backtrack(idx + 1):
+                        return True
+                    term_counts[slug] += 1
+                return False
+            return backtrack(0)
+
+        indices_range = range(len(raw_parts))
+        for input_terms, mutation in effective_mutations:
+            terms_len = len(input_terms)
+            if terms_len == 0:
+                continue
+            for indices in combinations(indices_range, terms_len):
+                if mutation.op == ContextMutationOp.SWAP and any(idx in swap_removed_indices for idx in indices):
+                    continue
+                if not _match_terms_to_parts([slug_candidates[idx] for idx in indices], tuple(input_terms)):
+                    continue
+                matched_parts = [raw_parts[idx] for idx in indices]
+                try:
+                    mutated_parts = mutation.apply(matched_parts, term_factory)
+                except Exception as err:
+                    logger.warning("ref_resolver.context_mutation.apply_failed", slug_sequence=input_terms, error=str(err))
+                    continue
+                if mutation.op == ContextMutationOp.SWAP:
+                    swap_inserts[indices[0]] = mutated_parts
+                    swap_removed_indices.update(indices)
+                else:
                     for new_part in mutated_parts:
-                        if isinstance(new_part, TermContext):
-                            slug = new_part.term.slug
-                            if mutation.op == ContextMutationOp.ADD and slug in existing_context_slugs:
-                                continue
-                            existing_context_slugs.add(slug)
-                        parts_to_match.append(new_part)
-                    applied = True
-                    break
-            if not applied:
-                parts_to_match.append(part)
+                        if isinstance(new_part, TermContext) and new_part.term.slug not in existing_context_slugs:
+                            additions_by_index[indices[-1]].append(new_part)
+                            existing_context_slugs.add(new_part.term.slug)
+
+        parts_to_match: List[RawRefPart] = []
+        for index, part in enumerate(raw_parts):
+            if index in swap_inserts:
+                parts_to_match.extend(swap_inserts[index])
+                for inserted_part in swap_inserts[index]:
+                    if isinstance(inserted_part, TermContext):
+                        existing_context_slugs.add(inserted_part.term.slug)
+            if index in swap_removed_indices:
+                continue
+            parts_to_match.append(part)
+            if isinstance(part, TermContext):
+                existing_context_slugs.add(part.term.slug)
+            if index in additions_by_index:
+                parts_to_match.extend(additions_by_index[index])
+
         raw_ref.parts_to_match = parts_to_match
 
     def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
