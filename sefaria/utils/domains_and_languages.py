@@ -144,9 +144,12 @@ def _find_longest_common_domain_suffix(hostnames):
     common_suffix = hostnames[0]
 
     for hostname in hostnames[1:]:
-        # Trim from the beginning until we find a common suffix at a domain boundary
-        while common_suffix and (not hostname.endswith(common_suffix) or not common_suffix.startswith('.')):
-            common_suffix = common_suffix[1:]
+        # Find the longest suffix that matches domain boundaries
+        common_suffix = next(
+            (common_suffix[i:] for i in range(len(common_suffix))
+             if hostname.endswith(common_suffix[i:]) and common_suffix[i:].startswith('.')),
+            ''
+        )
 
         if not common_suffix:
             return None
