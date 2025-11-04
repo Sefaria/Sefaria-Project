@@ -130,12 +130,20 @@ restore_dump() {
   DUMP_FILE="dump_small.tar.gz"
   DUMP_DATE=$(date +'%d.%m.%y')
 
-  if gsutil cp "gs://sefaria-mongo-backup/private_dump_small_${DUMP_DATE}.tar.gz" "$DUMP_FILE"; then
+  if gsutil cp "gs://sefaria-mongo-backup/private_dump_small_${DUMP_DATE}.tar.gz" "$DUMP_FILE" 2>&1; then
     print_success "Dump downloaded successfully"
   else
     print_error "Failed to download dump"
-    print_warning "The dump for today may not exist yet"
-    print_info "Try using a different date or contact the team for the latest dump"
+    echo ""
+    print_warning "Common reasons for failure:"
+    print_info "1. You may not have access to the sefaria-mongo-backup bucket"
+    print_info "   → Contact your team lead to request access"
+    print_info "2. The dump for today ($DUMP_DATE) may not exist yet"
+    print_info "   → Try again later or ask the team for the latest available dump"
+    print_info "3. You may not be authenticated or have the wrong account selected"
+    print_info "   → Run: gcloud auth login"
+    echo ""
+    print_info "You can restore the dump later using: ./scripts/setup/restore_dump.sh"
     return 1
   fi
 
@@ -267,12 +275,22 @@ main() {
     exit 1
   fi
 
-  # Authenticate
-  print_info "Checking Google Cloud authentication..."
-  if gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q "@"; then
-    print_success "Already authenticated with Google Cloud"
+  # Authenticate (skip if --skip-dump is set)
+  if [ "$SKIP_DUMP" = true ]; then
+    print_info "Skipping Google Cloud authentication (--skip-dump flag)"
+    print_info "If you need to restore the dump later, run: gcloud auth login"
   else
-    authenticate_gcloud
+    print_info "Checking Google Cloud authentication..."
+    if gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q "@"; then
+      print_success "Already authenticated with Google Cloud"
+    else
+      print_warning "You need Google Cloud authentication to download database dumps"
+      authenticate_gcloud || {
+        print_warning "Authentication failed or was skipped"
+        print_info "You can authenticate later with: gcloud auth login"
+        print_info "Then restore the dump with: ./scripts/setup/restore_dump.sh"
+      }
+    fi
   fi
 
   # Set project (optional)
