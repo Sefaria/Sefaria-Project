@@ -103,14 +103,21 @@ detect_os() {
     print_success "Detected Apple Silicon Mac"
 
   elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OS" == "Windows_NT" ]]; then
-    OS="windows"
-    print_warning "Windows support is experimental"
+    print_error "Windows detected - please use the PowerShell setup script"
+    print_info "For Windows 11, run the following in PowerShell (as Administrator):"
+    print_info "  .\\setup.ps1"
+    print_info ""
+    print_info "This bash script is for macOS only."
+    exit 1
 
   else
     print_error "Unsupported operating system: $OSTYPE"
     print_info "Supported platforms:"
-    print_info "  - macOS (Apple Silicon only)"
-    print_info "  - Windows (native, not WSL)"
+    print_info "  - macOS (Apple Silicon only) - use ./setup.sh"
+    print_info "  - Windows 11 - use .\\setup.ps1 in PowerShell"
+    print_info ""
+    print_info "For Intel Macs or Linux, see:"
+    print_info "https://developers.sefaria.org/docs/local-installation-instructions"
     exit 1
   fi
   export OS
@@ -209,9 +216,14 @@ main() {
   print_success "Sefaria development environment is ready!"
   echo ""
   print_info "Next steps:"
-  echo "  1. Start the Django server: python manage.py runserver"
-  echo "  2. In a separate terminal, start the Node server: npm run w"
-  echo "  3. Visit http://localhost:8000 in your browser"
+  echo ""
+  echo -e "  ${GREEN}Quick Start (Recommended):${NC}"
+  echo -e "    ${BLUE}./run.sh${NC}    # Starts both servers automatically"
+  echo ""
+  echo "  Or start servers manually:"
+  echo "    1. Start the Django server: python manage.py runserver"
+  echo "    2. In a separate terminal, start the Node server: npm run w"
+  echo "    3. Visit http://localhost:8000 in your browser"
   echo ""
   print_info "For more information, see the documentation at:"
   echo "  https://developers.sefaria.org/docs/local-installation-instructions"
