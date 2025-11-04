@@ -6,6 +6,8 @@ from django.conf import settings
 from sefaria.constants.model import LIBRARY_MODULE
 from sefaria.utils.util import short_to_long_lang_code, get_short_lang
 
+IPV4_ADDRESS_PATTERN = r'^\d+\.\d+\.\d+\.\d+$'
+
 
 def _get_hostname_without_port(request):
     """
@@ -114,7 +116,7 @@ def get_cookie_domain(language):
     hostnames = []
     for url in module_urls:
         hostname = urlparse(url).hostname
-        if hostname and 'localhost' not in hostname and not re.match(r'^\d+\.\d+\.\d+\.\d+$', hostname):
+        if hostname and 'localhost' not in hostname and not re.match(IPV4_ADDRESS_PATTERN, hostname):
             hostnames.append(hostname)
 
     # Need at least 2 unique hostnames to justify a cookie domain
