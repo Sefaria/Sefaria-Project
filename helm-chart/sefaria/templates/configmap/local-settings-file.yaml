@@ -69,7 +69,7 @@ data:
             'NAME': '{{ .Values.postgres.db }}',
             'USER': os.getenv("DATABASES_USER"),
             'PASSWORD': os.getenv("DATABASES_PASSWORD"),
-            'HOST': '{{ .Values.postgres.host }}',
+            'HOST': {{ if .Values.postgres.host }}'{{ .Values.postgres.host }}'{{ else }}os.getenv("DATABASES_HOST"){{ end }},
             'PORT': os.getenv("DATABASES_PORT"),
         }
     }
