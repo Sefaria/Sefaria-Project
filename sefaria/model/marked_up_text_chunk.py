@@ -117,9 +117,9 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
             span_citation_text = sp["text"]
             if span_citation_text != out[start:end]:
-                raise InputError(
-                    f"MarkedUpTextChunk.apply_spans_to_text: Span text '{span_citation_text}' does not match text slice '{out[start:end]}' for span {sp}"
-                )
+                # citation text saved in MUTC doesn't match the text in the actual segment
+                # this can happen briefly after an edit but before the async task completes
+                continue
 
             ref = sp["ref"]
             href = Ref(ref).url()
