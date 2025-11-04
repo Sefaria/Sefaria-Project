@@ -7,7 +7,6 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
-from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD, LIBRARY_MODULE
 from django.conf import settings
 from sefaria.system.exceptions import InputError
@@ -534,25 +533,6 @@ def get_short_lang(language):
     if language not in ["english", "hebrew"]:
         raise InputError("Invalid language. Must be 'english' or 'hebrew'.")
     return "en" if language == "english" else "he"
-
-
-def add_query_param(url, param, value=""):
-    """
-    Add a query parameter to the provided URL.
-
-    The parameter will be added even if it already exists (allowing duplicates).
-    Other query parameters (including duplicates) are preserved.
-
-    :param url: URL string
-    :param param: Query parameter name
-    :param value: Query parameter value (defaults to empty string)
-    :return: URL string with updated query parameters
-    """
-    parsed = urlparse(url)
-    pairs = parse_qsl(parsed.query, keep_blank_values=True)
-    pairs.append((param, value))
-    new_query = urlencode(pairs, doseq=True)
-    return urlunparse(parsed._replace(query=new_query))
 
 
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):

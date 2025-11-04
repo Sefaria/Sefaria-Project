@@ -13,7 +13,8 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory, add_query_param
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
+from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
