@@ -13,7 +13,11 @@ That's it! The script will install everything you need and guide you through the
 ## Before You Start
 
 ### What You Need
-- A Mac (macOS 10.14 or later) or Windows with WSL2
+- **Apple Silicon Mac** (M1/M2/M3) running macOS 12 or later
+  - **Note**: Intel Macs are not supported by this automated setup
+  - For Intel Macs or other platforms, see [manual installation](https://developers.sefaria.org/docs/local-installation-instructions)
+- **OR Windows 10/11** (native, not WSL)
+  - Windows support is experimental
 - Internet connection
 - About 30 minutes of time
 - 10+ GB of free disk space

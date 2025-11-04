@@ -91,12 +91,26 @@ print_info() {
 detect_os() {
   if [[ "$OSTYPE" == "darwin"* ]]; then
     OS="macos"
-  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+
+    # Check for Apple Silicon
+    if [[ $(uname -m) != "arm64" ]]; then
+      print_error "Intel Macs are not supported by this setup script"
+      print_info "This script is designed for Apple Silicon (M1/M2/M3) Macs"
+      print_info "For Intel Macs, please follow the manual installation instructions at:"
+      print_info "https://developers.sefaria.org/docs/local-installation-instructions"
+      exit 1
+    fi
+    print_success "Detected Apple Silicon Mac"
+
+  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OS" == "Windows_NT" ]]; then
     OS="windows"
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS="linux"
+    print_warning "Windows support is experimental"
+
   else
     print_error "Unsupported operating system: $OSTYPE"
+    print_info "Supported platforms:"
+    print_info "  - macOS (Apple Silicon only)"
+    print_info "  - Windows (native, not WSL)"
     exit 1
   fi
   export OS

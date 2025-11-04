@@ -130,13 +130,20 @@ Standalone script to download and restore MongoDB dump. Created by `setup_gcloud
 ## Requirements
 
 ### macOS
-- macOS 10.14 or later
-- Command Line Tools for Xcode
+- **Apple Silicon (M1/M2/M3) Macs only**
+- macOS 12 (Monterey) or later recommended
+- Command Line Tools for Xcode (installed automatically)
 - Internet connection
 
+**Note**: Intel Macs are not supported by this automated setup. For Intel Macs, please follow the [manual installation instructions](https://developers.sefaria.org/docs/local-installation-instructions).
+
 ### Windows
-- Windows 10 or later with WSL2
+- Windows 10 or later (native Windows, **not** WSL2)
+- PowerShell 5.1 or later
+- Administrator access
 - Internet connection
+
+**Note**: Windows support is experimental. macOS (Apple Silicon) is the recommended platform.
 
 ## What Gets Installed
 

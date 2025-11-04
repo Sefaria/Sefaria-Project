@@ -26,10 +26,16 @@ print_error() { echo -e "${RED}✗ ERROR: $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠ WARNING: $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
 
-# Install Homebrew (macOS)
+# Install Homebrew (macOS Apple Silicon only)
 install_homebrew() {
   if [[ "$OS" != "macos" ]]; then
     return 0
+  fi
+
+  # Verify Apple Silicon
+  if [[ $(uname -m) != "arm64" ]]; then
+    print_error "This script only supports Apple Silicon Macs"
+    exit 1
   fi
 
   if command -v brew &> /dev/null; then
@@ -41,10 +47,8 @@ install_homebrew() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   # Add Homebrew to PATH for Apple Silicon Macs
-  if [[ $(uname -m) == "arm64" ]]; then
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-  fi
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 
   if command -v brew &> /dev/null; then
     print_success "Homebrew installed successfully"
@@ -65,10 +69,9 @@ install_pyenv() {
 
   if [[ "$OS" == "macos" ]]; then
     brew install pyenv pyenv-virtualenv
-  elif [[ "$OS" == "linux" ]]; then
-    curl https://pyenv.run | bash
   else
     print_error "Unsupported OS for pyenv installation"
+    print_info "Only macOS (Apple Silicon) is supported"
     exit 1
   fi
 
@@ -174,12 +177,9 @@ install_mongodb() {
     brew services start mongodb-community
 
     print_success "MongoDB service started"
-  elif [[ "$OS" == "linux" ]]; then
-    print_info "Please install MongoDB manually for Linux"
-    print_info "See: https://docs.mongodb.com/manual/administration/install-on-linux/"
-    exit 1
   else
     print_error "Unsupported OS for MongoDB installation"
+    print_info "Only macOS (Apple Silicon) is supported"
     exit 1
   fi
 }
@@ -219,12 +219,9 @@ install_postgresql() {
     export PATH="/opt/homebrew/opt/postgresql@14/bin:$PATH"
 
     print_success "PostgreSQL installed and started"
-  elif [[ "$OS" == "linux" ]]; then
-    print_info "Please install PostgreSQL manually for Linux"
-    print_info "See: https://www.postgresql.org/download/linux/"
-    exit 1
   else
     print_error "Unsupported OS for PostgreSQL installation"
+    print_info "Only macOS (Apple Silicon) is supported"
     exit 1
   fi
 }
@@ -243,12 +240,9 @@ install_gettext() {
     # Link gettext (Homebrew doesn't link it by default)
     brew link --force gettext
     print_success "gettext installed successfully"
-  elif [[ "$OS" == "linux" ]]; then
-    sudo apt-get update
-    sudo apt-get install -y gettext
-    print_success "gettext installed successfully"
   else
     print_error "Unsupported OS for gettext installation"
+    print_info "Only macOS (Apple Silicon) is supported"
     exit 1
   fi
 }
@@ -265,10 +259,8 @@ install_dev_libraries() {
     else
       print_success "PostgreSQL development libraries already installed"
     fi
-  elif [[ "$OS" == "linux" ]]; then
-    sudo apt-get update
-    sudo apt-get install -y python3-dev libpq-dev
-    print_success "Development libraries installed"
+  else
+    print_info "Skipping development libraries (macOS only)"
   fi
 }
 
