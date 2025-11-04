@@ -536,25 +536,20 @@ def get_short_lang(language):
     return "en" if language == "english" else "he"
 
 
-def add_query_param(url, param, value="", allow_duplicates=False):
+def add_query_param(url, param, value=""):
     """
-    Add or replace a query parameter on the provided URL.
+    Add a query parameter to the provided URL.
 
-    By default, existing occurrences of the same parameter are replaced. Other query
-    parameters (including duplicates) are preserved.
+    The parameter will be added even if it already exists (allowing duplicates).
+    Other query parameters (including duplicates) are preserved.
 
     :param url: URL string
     :param param: Query parameter name
     :param value: Query parameter value (defaults to empty string)
-    :param allow_duplicates: If True, add the parameter even if it already exists.
-                             If False (default), replace existing occurrences.
     :return: URL string with updated query parameters
     """
     parsed = urlparse(url)
-    if allow_duplicates:
-        pairs = parse_qsl(parsed.query, keep_blank_values=True)
-    else:
-        pairs = [(k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True) if k != param]
+    pairs = parse_qsl(parsed.query, keep_blank_values=True)
     pairs.append((param, value))
     new_query = urlencode(pairs, doseq=True)
     return urlunparse(parsed._replace(query=new_query))
