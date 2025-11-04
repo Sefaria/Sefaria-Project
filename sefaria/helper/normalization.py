@@ -149,23 +149,6 @@ class AbstractNormalizer:
         return unnormalized_indices
 
 
-class FootnoteMarkerNormalizer(AbstractNormalizer):
-    """
-    Removes footnote markers from text. These look like <sup class="footnote-marker">1</sup>
-    """
-
-    def __init__(self, repl):
-        super().__init__()
-        self.repl = repl
-        self._fn_marker_reg = r'<sup class="footnote-marker">(?:.*?)</sup>'
-
-    def normalize(self, s, **kwargs):
-        return re.sub(self._fn_marker_reg, self.repl, s)
-
-    def find_text_to_remove(self, s, **kwargs):
-        return [((m.start(), m.end()), self.repl) for m in re.finditer(self._fn_marker_reg, s)]
-
-
 class ITagNormalizer(AbstractNormalizer):
 
     def __init__(self, repl):
@@ -384,7 +367,7 @@ class NormalizerFactory:
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
         "maqaf": ReplaceNormalizer('־', ' '),
         "itag": ITagNormalizer(' '),
-        "fn-marker": FootnoteMarkerNormalizer(' '),
+        "fn-marker": RegexNormalizer('<sup class="footnote-marker">(?:.*?)</sup>', ' '),
         "br-tag": ReplaceNormalizer('<br>', '<br/>'),
         "double-space": RegexNormalizer(r"\s+", " "),
     }
