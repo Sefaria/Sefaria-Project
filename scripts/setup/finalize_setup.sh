@@ -61,8 +61,7 @@ configure_hosts_file() {
   print_info "Adding voices.localhost to /etc/hosts..."
   print_warning "This requires sudo access"
 
-  if [[ "$OS" == "macos" ]] || [[ "$OS" == "linux" ]]; then
-    # Unix-like systems
+  if [[ "$OS" == "macos" ]]; then
     if echo "127.0.0.1    voices.localhost" | sudo tee -a /etc/hosts > /dev/null; then
       print_success "Added voices.localhost to /etc/hosts"
     else
@@ -70,11 +69,9 @@ configure_hosts_file() {
       print_info "You can manually add this line to /etc/hosts:"
       print_info "127.0.0.1    voices.localhost"
     fi
-  elif [[ "$OS" == "windows" ]]; then
-    # Windows
-    print_info "For Windows, add this line to C:\\Windows\\System32\\drivers\\etc\\hosts:"
-    print_info "127.0.0.1    voices.localhost"
-    print_warning "You may need to run as administrator"
+  else
+    print_error "Unsupported OS for hosts file configuration"
+    exit 1
   fi
 }
 
