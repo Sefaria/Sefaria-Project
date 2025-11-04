@@ -10,6 +10,7 @@ from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.model import Ref
+from sefaria.model.linker.ref_resolver import ResolutionThoroughness
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass, field, asdict
 import structlog
@@ -90,7 +91,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
-    output = linker.link(linking_args.text, book_context_ref=book_ref)
+    output = linker.link(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH)
 
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
