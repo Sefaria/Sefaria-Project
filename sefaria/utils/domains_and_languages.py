@@ -7,6 +7,25 @@ from sefaria.constants.model import LIBRARY_MODULE
 from sefaria.utils.util import short_to_long_lang_code, get_short_lang
 
 
+def _get_hostname_without_port(request):
+    """
+    Extract hostname from request, stripping port if present.
+    Handles both IPv4 and IPv6 addresses.
+
+    :param request: Django request object
+    :return: Hostname without port (e.g., 'example.com' or '[2001:db8::1]')
+    """
+    host = request.get_host()
+    # For IPv6, the format is [host]:port
+    # For IPv4, it's host:port
+    if host.startswith('['):
+        # IPv6 with port: [2001:db8::1]:8000 -> [2001:db8::1]
+        return host.split(']')[0] + ']'
+    else:
+        # IPv4: example.com:8000 -> example.com
+        return host.split(':')[0]
+
+
 def current_domain_lang(request):
     """
     Returns the pinned language for the current domain, or None if current domain is not pinned.
@@ -21,7 +40,7 @@ def current_domain_lang(request):
     if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
-    current_hostname = request.get_host().split(':')[0]  # Strip port if present
+    current_hostname = _get_hostname_without_port(request)
     matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
@@ -62,7 +81,7 @@ def needs_domain_switch(request, target_domain):
     :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
     :return: Boolean indicating if domain switch is needed
     """
-    current_hostname = request.get_host().split(':')[0]  # Strip port if present
+    current_hostname = _get_hostname_without_port(request)
     target_hostname = urlparse(target_domain).hostname if target_domain else None
     return target_hostname is not None and current_hostname != target_hostname
 
