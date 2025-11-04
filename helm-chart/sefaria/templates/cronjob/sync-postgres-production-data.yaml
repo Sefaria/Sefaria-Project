@@ -8,7 +8,7 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
-  schedule: {{ .Values.restore.schedule | quote }}
+  schedule: {{ .Values.postgres.schedule | quote }}
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
