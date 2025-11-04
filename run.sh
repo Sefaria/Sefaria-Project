@@ -153,15 +153,31 @@ check_mongodb() {
     sleep 2
   fi
 
-  # Test connection
-  if mongosh --eval "db.version()" --quiet > /dev/null 2>&1 || \
-     mongo --eval "db.version()" --quiet > /dev/null 2>&1; then
-    print_success "MongoDB is running"
+  # Test connection - check for both mongosh and mongo
+  if command -v mongosh &> /dev/null; then
+    if mongosh --eval "db.version()" --quiet > /dev/null 2>&1; then
+      print_success "MongoDB is running"
+      return 0
+    fi
+  fi
+
+  if command -v mongo &> /dev/null; then
+    if mongo --eval "db.version()" --quiet > /dev/null 2>&1; then
+      print_success "MongoDB is running"
+      return 0
+    fi
+  fi
+
+  # If we get here, neither shell could connect
+  if ! command -v mongosh &> /dev/null && ! command -v mongo &> /dev/null; then
+    print_error "MongoDB shell (mongosh or mongo) not found"
+    print_info "MongoDB may be installed but the shell is missing"
+    print_info "Try: brew install mongosh"
   else
     print_error "Cannot connect to MongoDB"
     print_info "Try: brew services restart mongodb-community"
-    exit 1
   fi
+  exit 1
 }
 
 # Check local_settings.py
