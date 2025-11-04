@@ -104,7 +104,6 @@ class UserHistory(abst.AbstractMongoRecord):
     def _validate(self):
         if self.secondary and self.saved:
             raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
-        assert Ref(self.ref), f"Ref failed to resolve: {self.ref}"
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
@@ -251,26 +250,6 @@ class UserHistory(abst.AbstractMongoRecord):
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
-
-    def _read_records(self):
-        """Override to skip records with invalid refs that fail validation."""
-        if self.records is None:
-            self.records = []
-            for rec in self.raw_records:
-                try:
-                    record = self.recordClass(attrs=rec, **self.record_kwargs)
-                    record._validate()  # Explicitly validate when loading
-                    self.records.append(record)
-                except (InputError, AssertionError) as e:
-                    # Skip invalid records and log for monitoring
-                    logger.warning(
-                        "Skipping invalid UserHistory record",
-                        ref=rec.get('ref'),
-                        uid=rec.get('uid'),
-                        error=str(e)
-                    )
-                    continue
-            self.max = len(self.records)
 
     def hits(self):
         return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
