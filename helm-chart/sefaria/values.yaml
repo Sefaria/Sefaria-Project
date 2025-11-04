@@ -399,7 +399,7 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
-  importProductionData:
+  syncProductionData:
     enabled: false
     dynamicName: true
 

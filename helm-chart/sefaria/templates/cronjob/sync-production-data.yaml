@@ -1,10 +1,10 @@
-{{- if and .Values.restore.enabled .Values.cronJobs.importProductionData.enabled }}
+{{- if and .Values.restore.enabled .Values.cronJobs.syncProductionData.enabled }}
 # Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-import-production-data
+  name: {{ .Values.deployEnv }}-sync-production-data
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
@@ -17,14 +17,14 @@ spec:
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
           containers:
-            - name: import-production-data
+            - name: sync-production-data
               image: mongo:4.4
               command: ["/bin/bash"]
               args:
                 - -c
                 - |
                   set -e
-                  echo "Starting import of production data to {{ .Values.deployEnv }}..."
+                  echo "Starting sync of production data to {{ .Values.deployEnv }}..."
 
                   # Download latest backup from production
                   gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
@@ -50,7 +50,7 @@ spec:
                   fi
 
                   # Determine target database name
-                  {{- if .Values.cronJobs.importProductionData.dynamicName }}
+                  {{- if .Values.cronJobs.syncProductionData.dynamicName }}
                   DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
                   {{- else }}
                   DATABASE="${SEFARIA_DB}"
@@ -62,7 +62,7 @@ spec:
                   # Perform the restore
                   mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=dump/sefaria
 
-                  echo "Production data import completed successfully"
+                  echo "Production data sync completed successfully"
               envFrom:
                 - secretRef:
                     name: {{ .Values.secrets.localSettings.ref }}
