@@ -9621,9 +9621,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background: white;
   padding: 3px;
 }
-
-.editorSaveStateIndicator.tooltip-toggle{
-}
 .interface-english .editorSaveStateIndicator.tooltip-toggle::before{
   margin-inline-start: 75px;
 }
@@ -9637,11 +9634,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   font-family: Roboto;
   color: #18345D;
 }
-.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
-  direction: rtl;
-}
-.interface-hebrew .editorSaveStateIndicator {
-  flex-direction: row-reverse;
+.interface-hebrew .sheetContentSidebar .editorSaveStateIndicator.tooltip-toggle::before {
+  left: auto;
 }
 .floatingEditorIcons{
   display: flex;
