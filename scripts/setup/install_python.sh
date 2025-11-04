@@ -3,11 +3,17 @@
 ###############################################################################
 # Install Python Script
 #
-# Installs Python 3.9 using pyenv and sets up virtual environment
+# Installs Python using pyenv and sets up virtual environment
 # Installs all Python dependencies from requirements.txt
 ###############################################################################
 
 set -e
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source version configuration
+source "${SCRIPT_DIR}/versions.sh"
 
 # Source utility functions
 RED='\033[0;31m'
@@ -41,26 +47,37 @@ ensure_pyenv() {
   print_success "pyenv is available"
 }
 
-# Install Python 3.9
-install_python_39() {
-  print_info "Checking for Python 3.9..."
+# Install Python
+install_python() {
+  print_info "Checking for Python ${PYTHON_VERSION}..."
 
-  # Check if Python 3.9 is already installed
-  if pyenv versions | grep -q "3.9.21"; then
-    print_success "Python 3.9.21 already installed"
+  # Check if Python version is already installed
+  if pyenv versions | grep -q "${PYTHON_VERSION}"; then
+    print_success "Python ${PYTHON_VERSION} already installed"
     return 0
   fi
 
-  print_info "Installing Python 3.9.21 (this may take a few minutes)..."
+  print_info "Installing Python ${PYTHON_VERSION} (this may take a few minutes)..."
 
-  # Install Python 3.9.21
-  pyenv install 3.9.21
-
-  if pyenv versions | grep -q "3.9.21"; then
-    print_success "Python 3.9.21 installed successfully"
+  # Try to install specified version
+  if pyenv install "${PYTHON_VERSION}"; then
+    print_success "Python ${PYTHON_VERSION} installed successfully"
   else
-    print_error "Python 3.9.21 installation failed"
-    exit 1
+    print_warning "Python ${PYTHON_VERSION} not available"
+    print_info "Attempting to install latest Python ${PYTHON_MIN_MAJOR}.${PYTHON_MIN_MINOR}.x..."
+
+    # Get latest available version matching major.minor
+    LATEST_VERSION=$(pyenv install --list | grep -E "^  ${PYTHON_MIN_MAJOR}\.${PYTHON_MIN_MINOR}\.[0-9]+$" | tail -1 | tr -d ' ')
+
+    if [ -z "$LATEST_VERSION" ]; then
+      print_error "No Python ${PYTHON_MIN_MAJOR}.${PYTHON_MIN_MINOR}.x version available"
+      exit 1
+    fi
+
+    print_info "Installing Python ${LATEST_VERSION}..."
+    pyenv install "${LATEST_VERSION}"
+    PYTHON_VERSION="${LATEST_VERSION}"
+    print_success "Python ${PYTHON_VERSION} installed successfully"
   fi
 }
 
@@ -69,14 +86,14 @@ create_virtualenv() {
   print_info "Setting up virtual environment 'senv'..."
 
   # Check if senv already exists
-  if pyenv versions | grep -q "3.9.21/envs/senv"; then
+  if pyenv versions | grep -q "/envs/senv"; then
     print_warning "Virtual environment 'senv' already exists"
     print_info "Using existing virtual environment"
     return 0
   fi
 
   # Create virtualenv
-  pyenv virtualenv 3.9.21 senv
+  pyenv virtualenv "${PYTHON_VERSION}" senv
 
   if pyenv versions | grep -q "senv"; then
     print_success "Virtual environment 'senv' created successfully"
@@ -88,7 +105,7 @@ create_virtualenv() {
 
 # Set local Python version
 set_local_python() {
-  print_info "Setting local Python version to 3.9.21/senv..."
+  print_info "Setting local Python version to senv..."
 
   # Create .python-version file
   echo "senv" > .python-version
@@ -163,7 +180,7 @@ main() {
   echo ""
 
   ensure_pyenv
-  install_python_39
+  install_python
   create_virtualenv
   set_local_python
   install_python_dependencies
