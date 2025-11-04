@@ -547,26 +547,26 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
 
         {module === Sefaria.LIBRARY_MODULE &&
           <a href="/" data-target-module={Sefaria.VOICES_MODULE}>
-            <img src="/static/icons/sheets-mobile-icon.svg" alt={Sefaria._("Sheets")} />
-            <InterfaceText>Sheets</InterfaceText>
+            <span className="dropdownDot" style={{backgroundColor: `var(--sheets-green)`}}></span>
+            <InterfaceText>Voices on Sefaria</InterfaceText>
           </a>
         }
 
         {module === Sefaria.VOICES_MODULE &&
           <a href="/texts" data-target-module={Sefaria.LIBRARY_MODULE}>
-            <img src="/static/icons/book.svg" alt={Sefaria._("Library")} />
-            <InterfaceText text={{ en: "Sefaria Library", he: "ספריית ספריא" }} />
+            <span className="dropdownDot" style={{backgroundColor: `var(--sefaria-blue)`}}></span>
+            <InterfaceText>Sefaria Library</InterfaceText>
           </a>
         }
 
         <a href="https://developers.sefaria.org" target="_blank">
-          <img src="/static/icons/dev-portal-mobile-icon.svg" alt={Sefaria._("Developers")} />
-          <InterfaceText text={{ en: "Developers", he: "מפתחים" }} />
+          <span className="dropdownDot" style={{backgroundColor: `var(--devportal-purple)`}}></span>
+          <InterfaceText>Developers on Sefaria</InterfaceText>
         </a>
 
         <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
-          <img src="/static/icons/products-icon.svg" alt={Sefaria._("Products")} />
-          <InterfaceText text={{ en: "All Products", he: "מוצרים" }} />
+          <img className="chevron" src="/static/icons/chevron-right.svg"/>
+          <InterfaceText>More from Sefaria</InterfaceText>
         </a>
 
         <hr />

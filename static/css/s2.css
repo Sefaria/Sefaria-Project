@@ -15143,6 +15143,14 @@ span.ref-link-color-3 {color: blue}
   flex-shrink: 0;
 }
 
+.mobileAccountLinks .dropdownDot {
+  margin-inline-end: 15px;
+}
+
+.interface-hebrew .mobileAccountLinks .chevron {
+  transform: rotate(180deg);
+}
+
 .dropdownHeaderText {
   padding-inline-start: 10px;
 }
