@@ -549,8 +549,7 @@ Sefaria = extend(Sefaria, {
     const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
 
     try {
-      const url = new URL(href);
-      return url;
+      return new URL(href);
     } catch (e) {
       console.error('Error creating URL:', e);
       return false;
