@@ -108,10 +108,13 @@ test.describe('Library Module Header Tests - English', () => {
   test('MOD-H007: User authentication menu', async () => {
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.USER_MENU);
     await pm.onModuleHeader().selectDropdownOption('Log in');
-
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /password/i })).toBeVisible();
+    // Dismiss any leftover overlays and give the login form time to render
+    await hideAllModalsAndPopups(page);
+    await page.waitForTimeout(500);
+    // Use placeholders which are reliable across login implementations
+    await expect(page.getByPlaceholder('Email Address')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByPlaceholder('Password')).toBeVisible({ timeout: 15000 });
   });
 
   test('MOD-H008: Browser navigation controls (back/forward buttons)', async () => {

@@ -79,7 +79,11 @@ export class HeaderTestHelpers {
    */
   async openDropdown(iconSelector: string) {
     const icon = this.page.locator(iconSelector);
+    await icon.waitFor({ state: 'visible', timeout: 5000 });
     await icon.click();
+    // Wait for dropdown options to appear (tolerant)
+    const possibleOptions = this.page.locator(`${SELECTORS.DROPDOWN_OPTION}, ${SELECTORS.MODULE_DROPDOWN_OPTIONS}`);
+    await possibleOptions.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -91,8 +95,11 @@ export class HeaderTestHelpers {
    */
   async selectDropdownOption(optionText: string, shouldOpenNewTab = false, dropdownSelector?: string) {
     const baseSelector = dropdownSelector || SELECTORS.DROPDOWN_OPTION;
+    const dropdownContainer = this.page.locator(SELECTORS.DROPDOWN);
+    await dropdownContainer.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     const option = this.page.locator(baseSelector).filter({ hasText: optionText }).first();
-    
+    await option.waitFor({ state: 'visible', timeout: 10000 });
+
     if (shouldOpenNewTab) {
       const [newPage] = await Promise.all([
         this.page.context().waitForEvent('page'),

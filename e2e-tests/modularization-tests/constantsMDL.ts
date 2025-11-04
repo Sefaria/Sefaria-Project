@@ -28,7 +28,8 @@ export const SELECTORS = {
     MODULE_SWITCHER: 'img[src="/static/icons/module_switcher_icon.svg"]',
     USER_MENU: 'img[src="/static/icons/logged_out.svg"]'
   },
-  DROPDOWN_OPTION: 'a.interfaceLinks-option',
+  DROPDOWN: '.dropdownLinks-menu',
+  DROPDOWN_OPTION: 'a.dropdownItem',
   LANGUAGE_SWITCHER_GLOBE: 'div.dropdownLanguageToggle',
   MODULE_DROPDOWN_OPTIONS: '.dropdownLinks-menu a.dropdownItem',
   BANNER: '[role="banner"]'

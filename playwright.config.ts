@@ -75,7 +75,7 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'https://modularization.cauldron.sefaria.org',
+          baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
@@ -88,7 +88,7 @@ export default defineConfig({
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'https://voices.modularization.cauldron.sefaria.org',
+        baseURL: process.env.SANDBOX_URL ? process.env.SANDBOX_URL.replace('modularization', 'voices.modularization') : 'https://voices.modularization.cauldron.sefaria.org',
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
@@ -101,7 +101,7 @@ export default defineConfig({
       testDir: './e2e-tests/modularization-tests',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'https://modularization.cauldron.sefaria.org',
+        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],

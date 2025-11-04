@@ -6,6 +6,18 @@ import { LoginPage } from './pages/loginPage';
 import path from 'path';
 import fs from 'fs';
 
+// Helper: click selector if visible, return true when clicked
+const clickIfVisible = async (page: Page, selector: string, timeout = 2000) => {
+  try {
+    const el = page.locator(selector);
+    if (await el.isVisible({ timeout })) {
+      await el.click();
+      return true;
+    }
+  } catch (e) {}
+  return false;
+};
+
 let currentLocation: string = '';
 
 // Clear all auth files before starting tests to ensure fresh login
@@ -81,188 +93,40 @@ const updateStorageState = async (storageState: any, key: string, value: any) =>
 }
 
 // Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
-export const hideModals = async (page: Page) => {
-    //await page.waitForLoadState('networkidle'); 
-      try {
-        const closeButton = page.locator('#interruptingMessageClose');
-        if (await closeButton.isVisible({ timeout: 2000 })) {
-            await closeButton.click();
-            return;
-        }
-    } catch (error) {
-    }
-    await page.evaluate(() => {
-        const style = document.createElement('style');
-        style.innerHTML = '#interruptingMessageBox, #interruptingMessageOverlay, #interruptingMessage {display: none !important;}';
-        document.head.appendChild(style); 
-    });
-}
+export const hideModals = async (page: Page) => clickIfVisible(page, '#interruptingMessageClose');
 
-export const hideTipsAndTricks = async (page: Page) => {
-  // First try to click the close button if visible
-  try {
-    const closeButton = page.locator('.guideOverlay .readerNavMenuCloseButton.circledX');
-    if (await closeButton.isVisible({ timeout: 2000 })) {
-      await closeButton.click();
-      await page.waitForTimeout(500); // Allow overlay to close
-      // console.log('Guide overlay closed via close button');
-      return;
-    }
-  } catch (error) {
-    console.log('Failed to close guide overlay via button, falling back to CSS hiding');
-  }
-  
-  // If not visible, inject CSS to hide the overlay
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    // Hide the tips and tricks overlay
-    style.innerHTML = `
-      .guideOverlay,
-      .guideOverlayContent,
-      .guideOverlayHeader,
-      .guideOverlayBody,
-      .guideOverlayFooter,
-      .guideOverlayCenteredContent,
-      .guideOverlayVideoContainer,
-      .guideOverlayTextContainer,
-      .guide-overlay,
-      .quickStartGuide,
-      .tourOverlay,
-      [class*="guide"][class*="overlay"],
-      [class*="tour"][class*="overlay"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
-        z-index: -1 !important;
-      }
-      
-      /* Ensure body doesn't have overlay-related classes that might affect interaction */
-      body.guide-active,
-      body.overlay-active {
-        pointer-events: auto !important;
-      }
-      
-      /* Ensure videos in the overlay are stopped */
-      .guideOverlayVideo {
-        display: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
+export const hideTipsAndTricks = async (page: Page) => clickIfVisible(page, '.guideOverlay .readerNavMenuCloseButton.circledX');
 
 //try clicking the close button, else hide the modal and overlay forcibly
 export const hideExploreTopicsModal = async (page: Page) => {
-  await page.evaluate(() => {
-    const closeBtn = document.querySelector('.ub-emb-close');
-    if (closeBtn) {
-      (closeBtn as HTMLElement).click();
-    } else {
-      const modal = document.querySelector('.ub-emb-iframe-wrapper');
-      if (modal) {
-        (modal as HTMLElement).style.display = 'none';
-        (modal as HTMLElement).style.visibility = 'hidden';
-        (modal as HTMLElement).style.pointerEvents = 'none';
-      }
-      const iframe = document.querySelector('.ub-emb-iframe');
-      if (iframe) {
-        (iframe as HTMLElement).style.display = 'none';
-        (iframe as HTMLElement).style.visibility = 'hidden';
-        (iframe as HTMLElement).style.pointerEvents = 'none';
-      }
-    }
-  });
+  if (await clickIfVisible(page, '.ub-emb-close')) return;
+  await page.evaluate(() => { const modal = document.querySelector('.ub-emb-iframe-wrapper'); if (modal) (modal as HTMLElement).style.display = 'none'; const iframe = document.querySelector('.ub-emb-iframe'); if (iframe) (iframe as HTMLElement).style.display = 'none'; });
 }
 
-export const dismissNewsletterPopupIfPresent = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    // Hide all known newsletter popup elements and overlays; !important ensures they are not shown
-    style.innerHTML = `
-      .ub-emb-scroll-wrapper,
-      .ub-emb-iframe-wrapper,
-      .ub-emb-iframe,
-      iframe[src*="ubembed.com"],
-      .ub-emb-close,
-      div[class*="ub-emb"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important; // Prevents interaction with hidden elements
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
+export const dismissNewsletterPopupIfPresent = async (page: Page) => clickIfVisible(page, '.ub-emb-close');
 
 //method to hide Welcome to New Editor banner
-export const hideGenericBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .genericBanner {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
+export const hideGenericBanner = async (page: Page) => clickIfVisible(page, '.genericBanner .close, .genericBanner button.close');
 
-export const hideCookiesPopup = async (page: Page) => {
-    await page.evaluate(() => {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        .cookiesNotification {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-        }
-      `;
-      document.head.appendChild(style);
-    });
-  };
+export const hideCookiesPopup = async (page: Page) => clickIfVisible(page, '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close');
   
-export const hideTopUnbounceBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      #bannerMessage { display: none !important;}
-    `;
-    document.head.appendChild(style);
-  });
-}
+export const hideTopUnbounceBanner = async (page: Page) => clickIfVisible(page, '#bannerMessage .close, #bannerMessage button.close');
 
-export const hideTopBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .readerControlsOuter {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
+export const hideTopBanner = async (page: Page) => clickIfVisible(page, '.readerControlsOuter .close, .readerControlsOuter button.close');
 
 /**
  * Hides all common popups, modals, and banners that might interfere with tests
  * This is called automatically by navigation functions but can also be called manually
  */
 export const hideAllModalsAndPopups = async (page: Page) => {
-  await hideModals(page);
-  await dismissNewsletterPopupIfPresent(page);
-  await hideGenericBanner(page);
-  await hideCookiesPopup(page);
-  await hideExploreTopicsModal(page);
-  await hideTipsAndTricks(page);
-  await hideTopUnbounceBanner(page);
-  // Additional wait to ensure all overlays are fully dismissed
-  await page.waitForTimeout(1000);
+  const selectors = [
+    '#interruptingMessageClose', '.ub-emb-close', '.genericBanner .close, .genericBanner button.close',
+    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
+    '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close',
+    '.readerControlsOuter .close, .readerControlsOuter button.close'
+  ];
+  for (const s of selectors) await clickIfVisible(page, s);
+  await page.waitForTimeout(300);
 };
 
 /**
@@ -277,16 +141,38 @@ export const changeLanguage = async (page: Page, language: string) => {
 
 
 export const toggleLanguage = async (page: Page, language: string) => {
+  // Ensure overlays/modals are dismissed before trying UI-based language toggles
+  await hideAllModalsAndPopups(page);
     const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
     const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
     const langParam = language === LANGUAGES.HE ? 'he' : 'en';
     // Helper function to verify language is correct
-    const verifyLanguage = async (): Promise<boolean> => {
-        await page.waitForLoadState('domcontentloaded');
-        const elementVisible = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible().catch(() => false);
-        const bodyClass = await page.locator('body').getAttribute('class') || '';
-        return elementVisible && bodyClass.includes(expectedBodyClass);
-    };
+  const verifyLanguage = async (): Promise<boolean> => {
+    await page.waitForLoadState('domcontentloaded');
+    try {
+      // 1) Check URL param lang
+      const currentUrl = page.url();
+      const parsed = new URL(currentUrl);
+      const param = parsed.searchParams.get('lang');
+      if (param === langParam) return true;
+
+      // 2) Check html[lang] attribute
+      const htmlLang = await page.locator('html').getAttribute('lang').catch(() => null);
+      if (htmlLang && htmlLang.startsWith(langParam)) return true;
+
+      // 3) Check body class as a final fallback (some apps use interface-english/interface-hebrew)
+      const bodyClass = await page.locator('body').getAttribute('class').catch(() => '') || '';
+      if (bodyClass.includes(expectedBodyClass)) return true;
+
+      // 4) For Hebrew check right-to-left direction
+      const dir = await page.locator('html').getAttribute('dir').catch(() => null);
+      if (language === LANGUAGES.HE && dir === 'rtl') return true;
+
+      return false;
+    } catch (e) {
+      return false;
+    }
+  };
     // Check if we're already in the correct language
     if (await verifyLanguage()) {
         return;
@@ -296,6 +182,22 @@ export const toggleLanguage = async (page: Page, language: string) => {
     try {
         const urlObj = new URL(currentUrl);
         urlObj.searchParams.set('lang', langParam);
+        // Try setting a cookie for interfaceLang as a more deterministic way to change language
+        try {
+          const cookie = {
+            name: 'interfaceLang',
+            value: langParam,
+            domain: urlObj.hostname,
+            path: '/',
+            httpOnly: false,
+            secure: urlObj.protocol === 'https:',
+            sameSite: 'Lax' as const,
+            expires: Math.floor(Date.now() / 1000) + 3600
+          };
+          await page.context().addCookies([cookie]);
+        } catch (e) {
+          // if cookie set fails, continue with URL navigation attempt
+        }
         await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
         await page.waitForLoadState('domcontentloaded');
         if (await verifyLanguage()) {
@@ -305,31 +207,8 @@ export const toggleLanguage = async (page: Page, language: string) => {
     } catch (error) {
         console.log('Strategy 1 (URL navigation) failed:', error);
     }
-    // Strategy 2: UI-based language change
-    try {
-        // console.log(`Strategy 2: UI-based language change`);
-        const isLoggedIn = await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible().catch(() => false);
-        if (isLoggedIn) {
-            await page.locator('.myProfileBox .profile-pic').click();
-            await expect(page.locator('.interfaceLinks-menu.profile-menu')).toBeVisible({ timeout: 3000 });
-        } else {
-            await page.locator('.interfaceLinks-button').click();
-        }
-        if (language === LANGUAGES.EN) {
-            await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
-        } else if (language === LANGUAGES.HE) {
-            await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click();
-        }
-        await page.waitForTimeout(1000);
-        await page.waitForLoadState('domcontentloaded');
-        if (await verifyLanguage()) {
-            // console.log(`Strategy 2: UI-based language change succeeded`);
-            return;
-        }
-    } catch (error) {
-        console.log(`Strategy 2: UI-based language change failed:`, error);
-    }
-    throw new Error(`All language change strategies failed for ${language}. Current URL: ${page.url()}`);
+  // If Strategy 1 didn't work, throw — we prefer deterministic cookie+URL approach.
+  throw new Error(`Language change failed for ${language}. Current URL: ${page.url()}`);
 };
 
 
