@@ -214,7 +214,17 @@ run_both_servers() {
   cleanup() {
     echo ""
     print_info "Shutting down servers..."
-    kill $DJANGO_PID $WEBPACK_PID 2>/dev/null || true
+
+    # Kill Django server if running
+    if [ -n "$DJANGO_PID" ] && kill -0 $DJANGO_PID 2>/dev/null; then
+      kill $DJANGO_PID 2>/dev/null || true
+    fi
+
+    # Kill Webpack server if running
+    if [ -n "$WEBPACK_PID" ] && kill -0 $WEBPACK_PID 2>/dev/null; then
+      kill $WEBPACK_PID 2>/dev/null || true
+    fi
+
     exit 0
   }
 
