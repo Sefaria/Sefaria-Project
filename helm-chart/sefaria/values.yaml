@@ -403,7 +403,7 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
-  syncProductionData:
+  syncMongoProductionData:
     enabled: false
 
 localSettings:

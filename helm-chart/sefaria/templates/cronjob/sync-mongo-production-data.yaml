@@ -1,10 +1,10 @@
-{{- if and .Values.restore.enabled .Values.cronJobs.syncProductionData.enabled }}
+{{- if and .Values.restore.enabled .Values.cronJobs.syncMongoProductionData.enabled }}
 # Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-sync-production-data
+  name: {{ .Values.deployEnv }}-sync-mongo-production-data
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
@@ -17,7 +17,7 @@ spec:
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
           containers:
-            - name: sync-production-data
+            - name: sync-mongo-production-data
               image: mongo:4.4
               command: ["/bin/bash"]
               args:
