@@ -20,7 +20,7 @@ const PLACEMENT_CONFIG = {
 };
 
 const TOOLTIP_OFFSET = 10;
-const TOOLTIP_SHIFT_PADDING = 50;
+const getTooltipShiftPadding = (isMobile) => isMobile ? 10 : 50;
 const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 
 const ModuleSwitcherTooltip = ({ targetRef, children }) => {
@@ -37,7 +37,7 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
     middleware: [
       offset(TOOLTIP_OFFSET),
       flip(),
-      shift({ padding: TOOLTIP_SHIFT_PADDING }),
+      shift({ padding: getTooltipShiftPadding(isMobile) }),
       arrowMiddleware({ element: arrowRef }),
     ],
   });

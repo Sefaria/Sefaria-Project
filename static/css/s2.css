@@ -89,7 +89,7 @@ a, a:hover {
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
-  --module-switcher-tooltip-background: #A9BDDB;
+  --module-switcher-tooltip-background: #FFFFFF;
   --select-blue: #0056b3;
 }
 
@@ -15269,13 +15269,17 @@ span.ref-link-color-3 {color: blue}
 .floating-ui-tooltip {
   background-color: var(--module-switcher-tooltip-background);
   border-radius: 8px;
-  box-shadow: 0 0px 6px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 9999;
   max-width: 280px;
 }
 
 .floating-ui-tooltip-content {
   padding: 24px;
+  position: relative;
+  z-index: 2;
+  background-color: var(--module-switcher-tooltip-background);
+  border-radius: 8px;
 }
 
 .floating-ui-tooltip-content a {
@@ -15304,6 +15308,8 @@ span.ref-link-color-3 {color: blue}
   height: 8px;
   background-color: var(--module-switcher-tooltip-background);
   transform: rotate(45deg);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 1;
 }
 
 /* Mobile Hebrew - arrow on right side pointing left */
