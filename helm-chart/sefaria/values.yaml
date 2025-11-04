@@ -43,6 +43,7 @@ restore:
   dynamicName: true
   cleanup: true
   bucket: sefaria-mongo-backup
+  schedule: "0 2 * * 1"  # Every Monday at 2 AM
   # tarball:
   serviceAccount: database-backup-read
 
@@ -66,6 +67,13 @@ backup:
     enabled: false
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
+
+# PostgreSQL configuration - can be overridden per environment
+postgres:
+  host: "postgres"
+  db: "sefaria_auth"
+  restore: false
+  sync: false
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings

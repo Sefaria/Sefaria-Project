@@ -1,0 +1,72 @@
+{{- if and .Values.restore.enabled .Values.postgres.sync }}
+# Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-sync-production-postgres
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.restore.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.restore.serviceAccount }}
+          containers:
+            - name: sync-production-postgres
+              image: postgres:{{ .Values.backup.postgres.version }}
+              command: ["/bin/bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Starting sync of production PostgreSQL data to {{ .Values.deployEnv }}..."
+
+                  # Download latest backup from production
+                  gsutil -q cp gs://sefaria-user-backup/dump.sql.gz dump.sql.gz
+
+                  # Extract backup
+                  gunzip dump.sql.gz
+
+                  # Set PostgreSQL connection environment variables
+                  export PGHOST="{{ .Values.postgres.host }}"
+                  export PGUSER="${DATABASES_USER}"
+                  export PGPASSWORD="${DATABASES_PASSWORD}"
+                  export PGDATABASE="{{ .Values.postgres.db }}"
+
+                  echo "Restoring to database: $PGDATABASE"
+                  echo "Using PostgreSQL host: $PGHOST"
+
+                  # Drop and recreate the database to ensure clean sync
+                  echo "Dropping and recreating database..."
+                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "DROP DATABASE IF EXISTS \"$PGDATABASE\";"
+                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";"
+
+                  # Perform the restore
+                  echo "Restoring PostgreSQL data..."
+                  psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" < dump.sql
+
+                  echo "Production PostgreSQL data sync completed successfully"
+              envFrom:
+                - secretRef:
+                    name: {{ .Values.secrets.localSettings.ref }}
+                - secretRef:
+                    name: local-settings-secrets-{{ .Values.deployEnv }}
+                    optional: true
+                - configMapRef:
+                    name: local-settings-{{ .Values.deployEnv }}
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 500Mi
+                limits:
+                  cpu: 750m
+                  memory: "1Gi"
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}
