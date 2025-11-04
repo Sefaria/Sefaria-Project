@@ -1,5 +1,5 @@
 import { expect, Page } from '@playwright/test';
-import { hideAllModalsAndPopups, hideTipsAndTricks } from '../utils';
+import { hideAllModalsAndPopups } from '../utils';
 import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, SearchDropdownSection, SearchDropdownIcon, AUTH_CONSTANTS, AuthUser } from './constantsMDL';
 
 
@@ -21,7 +21,7 @@ export class UtilTestHelpers {
    * @returns Promise<void>
    */
   async closeGuideOverlay(): Promise<void> {
-    await hideTipsAndTricks(this.page);
+    await hideAllModalsAndPopups(this.page);
   }
 
 }

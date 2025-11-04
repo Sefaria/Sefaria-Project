@@ -6,17 +6,7 @@ import { LoginPage } from './pages/loginPage';
 import path from 'path';
 import fs from 'fs';
 
-// Helper: click selector if visible, return true when clicked
-const clickIfVisible = async (page: Page, selector: string, timeout = 2000) => {
-  try {
-    const el = page.locator(selector);
-    if (await el.isVisible({ timeout })) {
-      await el.click();
-      return true;
-    }
-  } catch (e) {}
-  return false;
-};
+// NOTE: per simplification, modal-close attempts are inlined in hideAllModalsAndPopups
 
 let currentLocation: string = '';
 
@@ -92,27 +82,7 @@ const updateStorageState = async (storageState: any, key: string, value: any) =>
   return storageState.cookies;
 }
 
-// Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
-export const hideModals = async (page: Page) => clickIfVisible(page, '#interruptingMessageClose');
-
-export const hideTipsAndTricks = async (page: Page) => clickIfVisible(page, '.guideOverlay .readerNavMenuCloseButton.circledX');
-
-//try clicking the close button, else hide the modal and overlay forcibly
-export const hideExploreTopicsModal = async (page: Page) => {
-  if (await clickIfVisible(page, '.ub-emb-close')) return;
-  await page.evaluate(() => { const modal = document.querySelector('.ub-emb-iframe-wrapper'); if (modal) (modal as HTMLElement).style.display = 'none'; const iframe = document.querySelector('.ub-emb-iframe'); if (iframe) (iframe as HTMLElement).style.display = 'none'; });
-}
-
-export const dismissNewsletterPopupIfPresent = async (page: Page) => clickIfVisible(page, '.ub-emb-close');
-
-//method to hide Welcome to New Editor banner
-export const hideGenericBanner = async (page: Page) => clickIfVisible(page, '.genericBanner .close, .genericBanner button.close');
-
-export const hideCookiesPopup = async (page: Page) => clickIfVisible(page, '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close');
-  
-export const hideTopUnbounceBanner = async (page: Page) => clickIfVisible(page, '#bannerMessage .close, #bannerMessage button.close');
-
-export const hideTopBanner = async (page: Page) => clickIfVisible(page, '.readerControlsOuter .close, .readerControlsOuter button.close');
+// Individual hide helpers removed — use hideAllModalsAndPopups(page) instead.
 
 /**
  * Hides all common popups, modals, and banners that might interfere with tests
@@ -125,7 +95,12 @@ export const hideAllModalsAndPopups = async (page: Page) => {
     '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close',
     '.readerControlsOuter .close, .readerControlsOuter button.close'
   ];
-  for (const s of selectors) await clickIfVisible(page, s);
+  for (const s of selectors) {
+    try {
+      const el = page.locator(s);
+      if (await el.isVisible({ timeout: 1500 })) await el.click();
+    } catch (e) {}
+  }
   await page.waitForTimeout(300);
 };
 

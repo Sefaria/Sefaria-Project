@@ -1,0 +1,97 @@
+{
+  "cookies": [
+    {
+      "name": "csrftoken",
+      "value": "HZeQqWqzoQOg9v6i3KhziicQAblt97xJbpcPIck5cGrmCIoBd7vKJgqClLs5BrRF",
+      "domain": ".modularization.cauldron.sefaria.org",
+      "path": "/",
+      "expires": 1793726582.585728,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__cf_bm",
+      "value": "X.WZbeWFWgAT59cGLuhDIe0myBXWgD4EAf9Bcb5XeyE-1762276987-1.0.1.1-rEpPviRV7sLlKv9QSVcv6FBdts9MXIHs5Gr.TWSn4Z4qDBKmNsazxB_xJlFYUbJaV.hbVD59SBsBNjCZ_XvgIGmM4bu54Qbvxwi1Rpj5Zhg",
+      "domain": ".js.ubembed.com",
+      "path": "/",
+      "expires": 1762278787.392147,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.199699913.1762276988",
+      "domain": ".sefaria.org",
+      "path": "/",
+      "expires": 1796836987.930703,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "version_preferences_by_corpus",
+      "value": "%7B%7D",
+      "domain": "www.modularization.cauldron.sefaria.org",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_hjSessionUser_2695522",
+      "value": "eyJpZCI6IjhlMzMzMDA2LTA4ZmQtNWU4ZS1hODA5LWEzNzg3OWY4MTBjYSIsImNyZWF0ZWQiOjE3NjIyNzcwMDEyNTUsImV4aXN0aW5nIjp0cnVlfQ==",
+      "domain": ".sefaria.org",
+      "path": "/",
+      "expires": 1793813001,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_hjSession_2695522",
+      "value": "eyJpZCI6ImNhMTY2OTU3LTE1ZDctNDI3Yy04ZjFlLTJlMzdiYWQ2ZDUwNiIsImMiOjE3NjIyNzcwMDEyNTYsInMiOjEsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjoxLCJzcCI6MH0=",
+      "domain": ".sefaria.org",
+      "path": "/",
+      "expires": 1762278801,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ga_B0LMV7FCME",
+      "value": "GS2.1.s1762276987$o1$g1$t1762277001$j46$l0$h0",
+      "domain": ".sefaria.org",
+      "path": "/",
+      "expires": 1796837001.279294,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://www.modularization.cauldron.sefaria.org",
+      "localStorage": [
+        {
+          "name": "sa.intersection_observer_api_checked",
+          "value": "true"
+        },
+        {
+          "name": "isReturningVisitor",
+          "value": "true"
+        },
+        {
+          "name": "sa_id",
+          "value": "1e0d7832-7ce7-41c3-901b-51dc1ac3016e"
+        },
+        {
+          "name": "ub-emb-id",
+          "value": "50c5d777a97a4c54acf589362c0e74ba"
+        }
+      ]
+    }
+  ]
+}

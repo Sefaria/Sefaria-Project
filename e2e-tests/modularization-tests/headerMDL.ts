@@ -1,5 +1,5 @@
 import { expect, Page } from '@playwright/test';
-import { hideAllModalsAndPopups, hideTipsAndTricks } from '../utils';
+import { hideAllModalsAndPopups } from '../utils';
 import { SELECTORS, SiteConfig, TabOrderItem, SEARCH_DROPDOWN, AUTH_CONSTANTS, AuthUser, MODULE_SWITCHER } from './constantsMDL';
 
 /**

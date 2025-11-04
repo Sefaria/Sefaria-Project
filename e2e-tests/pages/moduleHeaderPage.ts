@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
-import { hideAllModalsAndPopups, hideTipsAndTricks, changeLanguage } from '../utils';
+import { hideAllModalsAndPopups, changeLanguage } from '../utils';
 import { LANGUAGES } from '../globals';
 import {
   MODULE_SELECTORS,
@@ -240,7 +240,7 @@ export class ModuleHeaderPage extends HelperBase {
 
   // Utility Methods
   async closeGuideOverlay(): Promise<void> {
-    await hideTipsAndTricks(this.page);
+    await hideAllModalsAndPopups(this.page);
   }
 
   private getIconConfig(altText: string): { selector: string; alt: string } | null {
