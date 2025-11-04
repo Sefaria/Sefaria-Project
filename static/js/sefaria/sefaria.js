@@ -741,6 +741,7 @@ Sefaria = extend(Sefaria, {
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
+    "tr": {"name": "Turkish", "nativeName": "Türkçe", "showTranslations": 1, "title": "Türkçe Yahudi Metinleri"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
     "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
   },
@@ -955,7 +956,8 @@ Sefaria = extend(Sefaria, {
       "CC0": "https://creativecommons.org/publicdomain/zero/1.0/",
       "CC-BY": "https://creativecommons.org/licenses/by/3.0/",
       "CC-BY-SA": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
+      "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "unknown": "#"
     }
     return licenseMap;
   },

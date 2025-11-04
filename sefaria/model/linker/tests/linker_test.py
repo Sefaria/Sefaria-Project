@@ -34,6 +34,39 @@ def test_resolved_raw_ref_clone():
 
 crrd = create_raw_ref_data
 
+def test_multiple_ambiguities():
+    """
+    Exercise ambiguity resolution while simulating sequential ibid-history updates
+    using bulk_resolve (which updates history between items).
+    """
+    linker = library.get_linker('en')
+    ref_resolver = linker._ref_resolver
+
+    # Seed two different last matches to make the ambiguity meaningful
+    ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
+    ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
+
+    # create_raw_ref_data(...) usually returns (raw_ref, context, lang, ...)
+    r1 = create_raw_ref_data(["&ibid."], lang='en')
+    r2 = create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
+
+    raw_refs = [r1[0], r2[0]]
+
+    resolved = ref_resolver.bulk_resolve(
+        raw_refs,
+        book_context_ref=None,
+        reset_ibids=False,
+    )
+
+    m0 = resolved[0]
+    m1 = resolved[1]
+
+    # Expectations: both ambiguous between the two seeded books
+    assert m0.is_ambiguous
+    assert m1.is_ambiguous
+    assert {ref.ref for ref in m0.resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
+    assert {ref.ref for ref in m1.resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
+
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
@@ -152,6 +185,8 @@ crrd = create_raw_ref_data
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
     [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
     [crrd(["@Job"], lang='en', prev_trefs=['Job 1:1']), ("Job",)],  # don't use ibid context if there's a match that uses all input
+    [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
+    [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -194,6 +229,10 @@ crrd = create_raw_ref_data
     [crrd(['@ברמב"ם', '#פ"ח', '@מהל\' תרומות', '#הי"א']), ("Mishneh Torah, Heave Offerings 8:11",)],
     [crrd(["@באה\"ע", "#סימן קנ\"ה", "#סי\"ד"]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(['@פירש"י', '@בקידושין', '#דף פ\' ע"א']), ("Rashi on Kiddushin 80a",)],
+    [crrd(["@מורה נבוכים", "#חלק א", "#פרק א"]), ("Guide for the Perplexed, Part 1, Chapter 1",)],
+    [crrd(["@מורה נבוכים", "#חלק ג'", "@הקדמה"]), ("Guide for the Perplexed, Part 3, Introduction",)],
+    [crrd(["@מורה נבוכים", '#ח"ג', '#פמ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
+    [crrd(["@מורה נבוכים", '#ג', '#מ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
     # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
     [crrd(['@יבמות', '#לט ע״ב']), ["Yevamot 39b"]],
     [crrd(['@פרשת שלח לך']), ['Parashat Shelach']],
