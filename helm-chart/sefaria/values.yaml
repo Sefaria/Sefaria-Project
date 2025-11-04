@@ -403,6 +403,8 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
+  syncMongoProductionData:
+    enabled: false
 
 localSettings:
   DEBUG: true
