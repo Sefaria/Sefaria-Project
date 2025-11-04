@@ -86,8 +86,8 @@ create_log_directory() {
     print_success "Log directory created"
   fi
 
-  # Set permissions
-  chmod 777 log
+  # Set permissions (755 = owner rwx, group rx, others rx)
+  chmod 755 log
   print_success "Log directory permissions set"
 }
 
