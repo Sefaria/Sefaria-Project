@@ -148,3 +148,4 @@ e2e-test-logs
 /playwright/.cache/
 /playwright-profile/
 .env
+e2e-tests/auth_*_user.json

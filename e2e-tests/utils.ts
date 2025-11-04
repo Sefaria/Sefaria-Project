@@ -135,14 +135,6 @@ export const toggleLanguage = async (page: Page, language: string) => {
       const htmlLang = await page.locator('html').getAttribute('lang').catch(() => null);
       if (htmlLang && htmlLang.startsWith(langParam)) return true;
 
-      // 3) Check body class as a final fallback (some apps use interface-english/interface-hebrew)
-      const bodyClass = await page.locator('body').getAttribute('class').catch(() => '') || '';
-      if (bodyClass.includes(expectedBodyClass)) return true;
-
-      // 4) For Hebrew check right-to-left direction
-      const dir = await page.locator('html').getAttribute('dir').catch(() => null);
-      if (language === LANGUAGES.HE && dir === 'rtl') return true;
-
       return false;
     } catch (e) {
       return false;
@@ -175,10 +167,7 @@ export const toggleLanguage = async (page: Page, language: string) => {
         }
         await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
         await page.waitForLoadState('domcontentloaded');
-        if (await verifyLanguage()) {
-            console.log('Strategy 1 (URL navigation) succeeded');
-            return;
-        }
+    if (await verifyLanguage()) return;
     } catch (error) {
         console.log('Strategy 1 (URL navigation) failed:', error);
     }
