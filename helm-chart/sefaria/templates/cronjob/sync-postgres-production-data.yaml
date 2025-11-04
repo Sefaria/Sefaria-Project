@@ -26,11 +26,10 @@ spec:
                   set -e
                   echo "Starting sync of production PostgreSQL data to {{ .Values.deployEnv }}..."
 
-                  # Download latest backup from production
-                  gsutil -q cp gs://sefaria-user-backup/dump.sql.gz dump.sql.gz
-
-                  # Extract backup
-                  gunzip dump.sql.gz
+                  # Find and download latest PostgreSQL backup from production
+                  LATEST_DUMP=$(gsutil ls gs://sefaria-user-backup/postgres_*.dump | sort | tail -1)
+                  echo "Found latest backup: $LATEST_DUMP"
+                  gsutil -q cp "$LATEST_DUMP" pg.dump
 
                   # Set PostgreSQL connection environment variables
                   export PGHOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
@@ -41,14 +40,13 @@ spec:
                   echo "Restoring to database: $PGDATABASE"
                   echo "Using PostgreSQL host: $PGHOST"
 
-                  # Drop and recreate the database to ensure clean sync
-                  echo "Dropping and recreating database..."
-                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "DROP DATABASE IF EXISTS \"$PGDATABASE\";"
-                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";"
+                  # Ensure database exists (create if not exists)
+                  echo "Ensuring database exists..."
+                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";" 2>/dev/null || echo "Database already exists"
 
-                  # Perform the restore
-                  echo "Restoring PostgreSQL data..."
-                  psql -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" < dump.sql
+                  # Perform the restore with --clean to update existing tables
+                  echo "Restoring PostgreSQL data (updating existing tables)..."
+                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" pg.dump
 
                   echo "Production PostgreSQL data sync completed successfully"
               envFrom:
