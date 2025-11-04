@@ -411,6 +411,8 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
+  syncPostgresProductionData:
+    enabled: false
 
 localSettings:
   DEBUG: true

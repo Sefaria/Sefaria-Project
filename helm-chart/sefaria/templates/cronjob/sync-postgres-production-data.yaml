@@ -1,10 +1,10 @@
-{{- if and .Values.restore.enabled .Values.postgres.sync }}
+{{- if and .Values.restore.enabled .Values.cronJobs.syncPostgresProductionData.enabled }}
 # Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-sync-production-postgres
+  name: {{ .Values.deployEnv }}-sync-postgres-production-data
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
@@ -17,7 +17,7 @@ spec:
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
           containers:
-            - name: sync-production-postgres
+            - name: sync-postgres-production-data
               image: postgres:{{ .Values.backup.postgres.version }}
               command: ["/bin/bash"]
               args:
