@@ -118,7 +118,6 @@ def _write_summary_file(
         f"Heap dump generated at {timestamp}Z",
         f"Worker PID: {pid}",
         f"Elapsed collection time: {elapsed_seconds:.3f}s",
-        f"Termination signals monitored: {[signal.Signals(sig).name for sig in _TERMINATION_SIGNALS]}",
         "",
         "Top object types by size (Pympler):",
     ]
