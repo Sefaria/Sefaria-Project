@@ -103,7 +103,7 @@ Installs:
 **Windows:** `.\scripts\setup\install_python.ps1`
 
 - **macOS:** Installs Python 3.9.21 via pyenv
-- **Windows:** Uses installed Python 3.10+
+- **Windows:** Uses installed Python 3.9.21
 - Creates virtual environment named 'senv'
 - Installs all requirements from `requirements.txt`
 

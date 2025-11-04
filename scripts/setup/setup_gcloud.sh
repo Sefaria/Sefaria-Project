@@ -125,25 +125,25 @@ restore_dump() {
     return 0
   fi
 
-  # Download dump
-  print_info "Downloading MongoDB dump..."
-  DUMP_FILE="dump_small.tar.gz"
-  DUMP_DATE=$(date +'%d.%m.%y')
+  # Locate most recent dump in GCS
+  BUCKET_PATH="gs://sefaria-mongo-backup"
+  LATEST_ENTRY=$(gsutil ls -l "${BUCKET_PATH}/private_dump_small_*.tar.gz" 2>/dev/null | awk 'NF==3 {print $2 "|" $3}' | sort | tail -n 1)
 
-  if gsutil cp "gs://sefaria-mongo-backup/private_dump_small_${DUMP_DATE}.tar.gz" "$DUMP_FILE" 2>&1; then
+  if [ -z "$LATEST_ENTRY" ]; then
+    print_error "Could not find any dump files in ${BUCKET_PATH}"
+    print_info "You can restore later using: ./scripts/setup/restore_dump.sh"
+    return 1
+  fi
+
+  DUMP_GCS_PATH="${LATEST_ENTRY#*|}"
+  DUMP_FILE="$(basename "$DUMP_GCS_PATH")"
+
+  print_info "Downloading MongoDB dump ($DUMP_FILE)..."
+  if gsutil cp "$DUMP_GCS_PATH" "$DUMP_FILE" 2>&1; then
     print_success "Dump downloaded successfully"
   else
-    print_error "Failed to download dump"
-    echo ""
-    print_warning "Common reasons for failure:"
-    print_info "1. You may not have access to the sefaria-mongo-backup bucket"
-    print_info "   → Contact your team lead to request access"
-    print_info "2. The dump for today ($DUMP_DATE) may not exist yet"
-    print_info "   → Try again later or ask the team for the latest available dump"
-    print_info "3. You may not be authenticated or have the wrong account selected"
-    print_info "   → Run: gcloud auth login"
-    echo ""
-    print_info "You can restore the dump later using: ./scripts/setup/restore_dump.sh"
+    print_error "Failed to download dump from $DUMP_GCS_PATH"
+    print_info "You can restore later using: ./scripts/setup/restore_dump.sh"
     return 1
   fi
 
@@ -223,11 +223,19 @@ main() {
 
   # Download dump
   print_info "Downloading MongoDB dump from Google Cloud Storage..."
-  DUMP_FILE="dump_small.tar.gz"
-  DUMP_DATE=$(date +'%d.%m.%y')
+  BUCKET_PATH="gs://sefaria-mongo-backup"
+  LATEST_ENTRY=$(gsutil ls -l "${BUCKET_PATH}/private_dump_small_*.tar.gz" 2>/dev/null | awk 'NF==3 {print $2 "|" $3}' | sort | tail -n 1)
 
-  gsutil cp "gs://sefaria-mongo-backup/private_dump_small_${DUMP_DATE}.tar.gz" "$DUMP_FILE"
-  print_success "Download complete"
+  if [ -z "$LATEST_ENTRY" ]; then
+    print_error "Could not find any dump files in ${BUCKET_PATH}"
+    exit 1
+  fi
+
+  DUMP_GCS_PATH="${LATEST_ENTRY#*|}"
+  DUMP_FILE="$(basename "$DUMP_GCS_PATH")"
+
+  gsutil cp "$DUMP_GCS_PATH" "$DUMP_FILE"
+  print_success "Download complete ($DUMP_FILE)"
 
   # Extract
   print_info "Extracting archive..."

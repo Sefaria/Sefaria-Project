@@ -81,8 +81,8 @@ function Install-Python {
         # Python not found, continue with installation
     }
 
-    Write-Info "Installing Python 3.10..."
-    winget install -e --id Python.Python.3.10 --silent --accept-package-agreements --accept-source-agreements
+    Write-Info "Installing Python 3.9..."
+    winget install -e --id Python.Python.3.9 --silent --accept-package-agreements --accept-source-agreements
 
     Update-Environment
 
@@ -163,6 +163,46 @@ function Install-MongoDB {
 
     Write-Success "MongoDB installed successfully"
     Write-Info "MongoDB data directory: $mongoDataDir"
+}
+
+# Install MongoDB client utilities (mongosh & database tools)
+function Install-MongoTools {
+    Write-Info "Ensuring MongoDB client tools are installed..."
+
+    $haveMongosh = $false
+    try {
+        $null = mongosh --version
+        $haveMongosh = $true
+    } catch {
+        Write-Info "mongosh not found - installing..."
+        try {
+            winget install -e --id MongoDB.mongosh --silent --accept-package-agreements --accept-source-agreements
+            Update-Environment
+            $null = mongosh --version
+            Write-Success "mongosh installed"
+            $haveMongosh = $true
+        } catch {
+            Write-Warning "Failed to install mongosh automatically"
+        }
+    }
+
+    try {
+        $null = mongorestore --version
+        Write-Success "MongoDB Database Tools already installed"
+    } catch {
+        Write-Info "MongoDB Database Tools not found - installing..."
+        try {
+            winget install -e --id MongoDB.DatabaseTools --silent --accept-package-agreements --accept-source-agreements
+            Update-Environment
+            $null = mongorestore --version
+            Write-Success "MongoDB Database Tools installed"
+        } catch {
+            Write-Warning "Failed to install MongoDB Database Tools automatically"
+            if (-not $haveMongosh) {
+                Write-Warning "mongosh is also missing; please install client tools manually from https://www.mongodb.com/try/download"
+            }
+        }
+    }
 }
 
 # Install PostgreSQL
@@ -318,6 +358,7 @@ Install-Git
 Install-Python
 Install-NodeJS
 Install-MongoDB
+Install-MongoTools
 Install-PostgreSQL
 Install-Gettext
 Install-GCloudSDK

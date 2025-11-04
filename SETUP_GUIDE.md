@@ -301,7 +301,7 @@ The setup script installs:
 - **SQLite** (default) - Simpler alternative to PostgreSQL
 
 ### Languages & Frameworks
-- **Python 3.10+** - Backend language
+- **Python 3.9.x** (currently 3.9.21) - Backend language
 - **Node.js** (latest LTS) - Frontend build tools
 - **Django 1.11** - Backend framework
 - **React** - Frontend framework

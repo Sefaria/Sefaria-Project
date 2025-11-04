@@ -31,7 +31,7 @@ That's it! The script will automatically install everything you need.
 The setup script automatically installs:
 
 ### Core Tools
-- **Python 3.10+** - Backend language
+- **Python 3.9.x** (currently 3.9.21) - Backend language
 - **Node.js LTS** - Frontend build tools
 - **MongoDB Community Server** - Database for Sefaria texts
 - **Git** - Version control (if not already installed)

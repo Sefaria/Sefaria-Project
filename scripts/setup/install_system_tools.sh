@@ -157,30 +157,48 @@ install_nvm() {
 
 # Install MongoDB
 install_mongodb() {
-  if command -v mongod &> /dev/null; then
-    print_success "MongoDB already installed"
-    return 0
-  fi
-
-  print_info "Installing MongoDB..."
-
-  if [[ "$OS" == "macos" ]]; then
-    # Add MongoDB tap
-    brew tap mongodb/brew
-    # Install MongoDB
-    brew install mongodb-community
-
-    print_success "MongoDB installed successfully"
-
-    # Start MongoDB service
-    print_info "Starting MongoDB service..."
-    brew services start mongodb-community
-
-    print_success "MongoDB service started"
-  else
+  if [[ "$OS" != "macos" ]]; then
     print_error "Unsupported OS for MongoDB installation"
     print_info "Only macOS (Apple Silicon) is supported"
     exit 1
+  fi
+
+  if command -v mongod &> /dev/null; then
+    print_success "MongoDB already installed"
+  else
+    print_info "Installing MongoDB..."
+    brew tap mongodb/brew
+    brew install mongodb-community
+    print_success "MongoDB installed successfully"
+  fi
+
+  # Ensure service is running
+  print_info "Starting MongoDB service..."
+  brew services start mongodb-community
+  print_success "MongoDB service started"
+
+  # Ensure mongosh is available
+  if ! command -v mongosh &> /dev/null; then
+    print_info "Installing mongosh client..."
+    brew install mongosh
+  fi
+
+  # Ensure database tools are available (mongorestore, etc.)
+  if ! command -v mongorestore &> /dev/null; then
+    print_info "Installing MongoDB database tools..."
+    brew install mongodb-database-tools
+  fi
+
+  if command -v mongosh &> /dev/null; then
+    print_success "mongosh available"
+  else
+    print_warning "mongosh still missing after installation attempt"
+  fi
+
+  if command -v mongorestore &> /dev/null; then
+    print_success "MongoDB database tools available"
+  else
+    print_warning "mongorestore still missing after installation attempt"
   fi
 }
 

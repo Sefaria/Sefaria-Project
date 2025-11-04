@@ -6,9 +6,9 @@
 ###############################################################################
 
 # Python version
-$PYTHON_VERSION = "3.10.11"
+$PYTHON_VERSION = "3.9.21"
 $PYTHON_MIN_MAJOR = 3
-$PYTHON_MIN_MINOR = 10
+$PYTHON_MIN_MINOR = 9
 
 # Node.js version (LTS)
 $NODE_VERSION = "lts"  # For winget: use "lts" or specific version like "20.11.0"
