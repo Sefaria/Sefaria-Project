@@ -34,6 +34,39 @@ def test_resolved_raw_ref_clone():
 
 crrd = create_raw_ref_data
 
+def test_multiple_ambiguities():
+    """
+    Exercise ambiguity resolution while simulating sequential ibid-history updates
+    using bulk_resolve (which updates history between items).
+    """
+    linker = library.get_linker('en')
+    ref_resolver = linker._ref_resolver
+
+    # Seed two different last matches to make the ambiguity meaningful
+    ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
+    ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
+
+    # create_raw_ref_data(...) usually returns (raw_ref, context, lang, ...)
+    r1 = create_raw_ref_data(["&ibid."], lang='en')
+    r2 = create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
+
+    raw_refs = [r1[0], r2[0]]
+
+    resolved = ref_resolver.bulk_resolve(
+        raw_refs,
+        book_context_ref=None,
+        reset_ibids=False,
+    )
+
+    m0 = resolved[0]
+    m1 = resolved[1]
+
+    # Expectations: both ambiguous between the two seeded books
+    assert m0.is_ambiguous
+    assert m1.is_ambiguous
+    assert {ref.ref for ref in m0.resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
+    assert {ref.ref for ref in m1.resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
+
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
@@ -155,6 +188,8 @@ crrd = create_raw_ref_data
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
     [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
     [crrd(["@Job"], lang='en', prev_trefs=['Job 1:1']), ("Job",)],  # don't use ibid context if there's a match that uses all input
+    [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
+    [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -197,6 +232,10 @@ crrd = create_raw_ref_data
     [crrd(['@ברמב"ם', '#פ"ח', '@מהל\' תרומות', '#הי"א']), ("Mishneh Torah, Heave Offerings 8:11",)],
     [crrd(["@באה\"ע", "#סימן קנ\"ה", "#סי\"ד"]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(['@פירש"י', '@בקידושין', '#דף פ\' ע"א']), ("Rashi on Kiddushin 80a",)],
+    [crrd(["@מורה נבוכים", "#חלק א", "#פרק א"]), ("Guide for the Perplexed, Part 1, Chapter 1",)],
+    [crrd(["@מורה נבוכים", "#חלק ג'", "@הקדמה"]), ("Guide for the Perplexed, Part 3, Introduction",)],
+    [crrd(["@מורה נבוכים", '#ח"ג', '#פמ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
+    [crrd(["@מורה נבוכים", '#ג', '#מ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
     # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
     [crrd(['@יבמות', '#לט ע״ב']), ["Yevamot 39b"]],
     [crrd(['@פרשת שלח לך']), ['Parashat Shelach']],
@@ -307,20 +346,20 @@ class TestResolveRawRef:
     pass
 
 
-@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
-    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
-    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],
-    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
-    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
-    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
-    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8']],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר']],
-    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3")],
+@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts', 'expected_part_strs_list'), [
+    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
+    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],
+    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)'], [['ביצה', 'דף טו ע"ב', 'רש"י', 'ד"ה שמא']]],
+    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית'], [['מנחות', 'מד ע"א', 'תד"ה','טלית']]],
+    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת'''], [['מנחות', 'דף עח ע"א', "תוס'", "ד\"ה אחת"]]],
+    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8'], [['Ex.', '9', '6'], ['12', '8']]],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
+    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3"), [["Genesis", "1", "1"], ["1", "3"]]],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
+def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
     context_oref = context_tref and Ref(context_tref)
     linker = library.get_linker(lang)
-    doc = linker.link(input_str, context_oref, type_filter='citation')
+    doc = linker.link_by_paragraph(input_str, context_oref, type_filter='citation')
     resolved = doc.resolved_refs
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):
@@ -330,9 +369,11 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
     assert len(resolved) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
-    for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
+    for match, expected_pretty_text, expected_part_strs in zip(resolved, expected_pretty_texts, expected_part_strs_list):
         assert input_str[slice(*match.raw_entity.char_indices)] == match.raw_entity.text
         assert match.pretty_text == expected_pretty_text
+        for part, expected_part_str in zip(match.raw_entity.raw_ref_parts, expected_part_strs):
+            assert part.text == expected_part_str
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [

@@ -281,6 +281,7 @@ class ReaderApp extends Component {
     }
 
     this.setContainerMode();
+    // Pass this.replaceHistory flag to updateHistoryState - it will be reset there
     this.updateHistoryState(this.replaceHistory);
   }
 
@@ -797,7 +798,19 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  updateHistoryState(replace) {
+  updateHistoryState(shouldReplace) {
+    // IMPORTANT: reset replaceHistory flag first, before any early returns such as !this.shouldHistoryUpdate() or return;
+    // 
+    // The this.replaceHistory system works as follows:
+    // 1. Various ReaderPanel methods set this.replaceHistory = true when they want
+    //    the NEXT history update to use replaceState instead of pushState
+    //    (e.g., tab changes, collection name updates, connection focus changes)
+    // 2. componentDidUpdate calls updateHistoryState(this.replaceHistory)
+    // 3. We MUST reset this.replaceHistory = false immediately to prevent it from
+    //    "sticking" and affecting ALL future history updates
+    // 4. We use the shouldReplace parameter for this specific update
+    this.replaceHistory = false;
+    
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -808,7 +821,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
 
-    if (replace) {
+    if (shouldReplace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
       if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
@@ -821,7 +834,6 @@ class ReaderApp extends Component {
     }
 
     $("title").html(hist.title);
-    this.replaceHistory = false;
 
     this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
@@ -1284,8 +1296,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
   setPanelState(n, state, replaceHistory) {
+    // Set replaceHistory flag - this will be consumed and reset by updateHistoryState
     this.replaceHistory  = Boolean(replaceHistory);
-    //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version

@@ -6,6 +6,7 @@ from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, 
 from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType, RawRefPartPair
 from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
+from ne_span import RefPartType
 
 
 class ResolvedRefRefiner(ABC):
@@ -124,7 +125,7 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
         for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
             try:
                 ranged_resolved_raw_refs += [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=section.node, ref=section.ref.to(toSection.ref))]
-            except InputError:
+            except (InputError, AttributeError):
                 continue
         if len(section_resolved_raw_refs) == 0:
             ranged_resolved_raw_refs += incomplete_section_refs
