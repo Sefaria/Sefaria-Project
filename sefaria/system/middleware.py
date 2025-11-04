@@ -110,7 +110,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             else:
                 redirect_domain = get_redirect_domain_for_language(request, interface)
 
-                if needs_domain_switch(request, redirect_domain):
+                if needs_domain_switch(request, redirect_domain): # Prevents redirect loop in local/cauldron settings
                     # When detected language doesn't match current domain language, redirect
                     # while preserving the current module
                     path = request.get_full_path()
