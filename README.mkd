@@ -18,6 +18,59 @@ Interested developers can join the [sefaria-dev mailing list](https://groups.goo
 - If you believe you have encountered a bug while using our website or mobile app, you can report it [here](https://sefaria.formstack.com/forms/bug_report).
 - If you find bugs in the code, you can create a [GitHub Issue](https://github.com/sefaria/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open).
 
+## Setup for Voices Locally
+
+This configures a local subdomain for the Voices feature to run alongside the main Sefaria library.
+
+### Steps
+
+1. Add `voices.localhost` to your hosts file:
+   
+   **Unix/Linux/Mac:**
+```bash
+   echo "127.0.0.1    voices.localhost" | sudo tee -a /etc/hosts
+```
+   
+   **Windows (run PowerShell as Administrator):**
+```powershell
+   Add-Content -Path C:\Windows\System32\drivers\etc\hosts -Value "127.0.0.1    voices.localhost"
+```
+   Or manually edit `C:\Windows\System32\drivers\etc\hosts` in Notepad (as Administrator) and add:
+```
+   127.0.0.1    voices.localhost
+```
+
+2. In `local_settings.py`, update `DOMAIN_MODULES` structure and `ALLOWED_HOSTS`:
+```python
+   DOMAIN_MODULES = {
+       "en": {
+           "library": "http://localhost:8000",
+           "voices": "http://voices.localhost:8000"
+       },
+       "he": {
+           "library": "http://localhost:8000",
+           "voices": "http://voices.localhost:8000"
+       }
+   }
+   
+   ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
+```
+   
+   **Remove these if present:**
+   - Any `DOMAIN_LANGUAGES` variable
+   - Duplicate `ALLOWED_HOSTS` entries
+
+3. Install dependencies:
+```bash
+   pip install -r requirements.txt
+```
+
+4. Restart your Django development server.
+
+### Verification
+
+- `http://localhost:8000` should serve the main library
+- `http://voices.localhost:8000` should serve Voices
 
 ## Thanks
 
