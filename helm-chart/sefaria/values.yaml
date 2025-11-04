@@ -405,7 +405,6 @@ cronJobs:
     enabled: false
   syncProductionData:
     enabled: false
-    dynamicName: true
 
 localSettings:
   DEBUG: true

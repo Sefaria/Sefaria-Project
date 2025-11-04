@@ -50,7 +50,7 @@ spec:
                   fi
 
                   # Determine target database name
-                  {{- if .Values.cronJobs.syncProductionData.dynamicName }}
+                  {{- if .Values.restore.dynamicName }}
                   DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
                   {{- else }}
                   DATABASE="${SEFARIA_DB}"
