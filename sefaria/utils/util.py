@@ -550,7 +550,7 @@ def add_query_param(url, param, value=""):
     """
     parsed = urlparse(url)
     pairs = [(k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True) if k != param]
-    pairs.append((param, "" if value is None else value))
+    pairs.append((param, value))
     new_query = urlencode(pairs, doseq=True)
     return urlunparse(parsed._replace(query=new_query))
 
