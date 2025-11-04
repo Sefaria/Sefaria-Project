@@ -3723,6 +3723,7 @@ Sefaria.setup = function(data, props = null, resetCache = false) {
     Sefaria.loadServerData(data);
     let baseProps = props !=null ? props : (typeof DJANGO_VARS === "undefined" ? undefined : DJANGO_VARS.props);
     Sefaria.unpackBaseProps(baseProps);
+    Sefaria.getDomainHostnames(); // Preemptively populate domain hostnames cache
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria._uid);
