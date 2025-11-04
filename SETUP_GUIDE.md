@@ -203,6 +203,8 @@ Then access admin at: http://localhost:8000/admin
 
 **Restore Database Dump:**
 
+**Note:** The restore_dump script is generated during setup and can be used to re-download the latest database dump.
+
 **macOS:**
 ```bash
 ./scripts/setup/restore_dump.sh
@@ -323,8 +325,8 @@ Sefaria-Project/
 ├── activate_senv.ps1           # Activate venv helper (Windows, created by setup)
 ├── scripts/setup/              # Individual setup scripts
 │   ├── README.md              # Detailed documentation
-│   ├── restore_dump.sh        # Restore database (macOS)
-│   ├── restore_dump.ps1       # Restore database (Windows)
+│   ├── restore_dump.sh        # Restore database (macOS, generated during setup)
+│   ├── restore_dump.ps1       # Restore database (Windows, generated during setup)
 │   └── ...                    # Other setup scripts (.sh for macOS, .ps1 for Windows)
 ├── sefaria/
 │   └── local_settings.py      # Your local config (created by setup)

@@ -70,12 +70,21 @@ function Install-Winget {
 function Install-Python {
     Write-Info "Checking Python installation..."
 
-    # Check if Python 3.10 is already installed
+    # Check if Python 3.9 is already installed
     try {
         $pythonVersion = python --version 2>&1
-        if ($pythonVersion -match "Python 3\.(10|11|12)") {
+        if ($pythonVersion -match "Python 3\.9") {
             Write-Success "Python already installed: $pythonVersion"
             return
+        }
+        # Warn if a different version is installed
+        if ($pythonVersion -match "Python 3\.\d+") {
+            Write-Warning "Python $pythonVersion is installed, but 3.9 is recommended"
+            Write-Info "You may encounter compatibility issues with Python 3.10+"
+            $response = Read-Host "Continue with existing Python version? (y/n)"
+            if ($response -eq 'y') {
+                return
+            }
         }
     } catch {
         # Python not found, continue with installation
@@ -92,7 +101,7 @@ function Install-Python {
         Write-Success "Python installed: $pythonVersion"
     } catch {
         Write-ErrorMsg "Python installation failed"
-        Write-Info "Please install Python 3.10 manually from python.org"
+        Write-Info "Please install Python 3.9 manually from python.org"
         exit 1
     }
 

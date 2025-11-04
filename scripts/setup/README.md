@@ -154,7 +154,7 @@ Installs:
 **macOS:** `./scripts/setup/restore_dump.sh`
 **Windows:** `.\scripts\setup\restore_dump.ps1`
 
-Standalone script to download and restore MongoDB dump. Created by setup process.
+**Note:** These standalone scripts are **generated automatically** during the setup process by the `setup_gcloud` script. They are not checked into the repository but are created on your local machine to allow you to restore the MongoDB dump at any time after the initial setup.
 
 ## Requirements
 
