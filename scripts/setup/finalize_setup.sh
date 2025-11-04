@@ -48,6 +48,36 @@ ensure_virtualenv() {
   fi
 }
 
+# Configure hosts file for voices subdomain
+configure_hosts_file() {
+  print_info "Configuring hosts file for voices.localhost..."
+
+  # Check if entry already exists
+  if grep -q "voices.localhost" /etc/hosts 2>/dev/null; then
+    print_success "voices.localhost already configured in /etc/hosts"
+    return 0
+  fi
+
+  print_info "Adding voices.localhost to /etc/hosts..."
+  print_warning "This requires sudo access"
+
+  if [[ "$OS" == "macos" ]] || [[ "$OS" == "linux" ]]; then
+    # Unix-like systems
+    if echo "127.0.0.1    voices.localhost" | sudo tee -a /etc/hosts > /dev/null; then
+      print_success "Added voices.localhost to /etc/hosts"
+    else
+      print_error "Failed to update /etc/hosts"
+      print_info "You can manually add this line to /etc/hosts:"
+      print_info "127.0.0.1    voices.localhost"
+    fi
+  elif [[ "$OS" == "windows" ]]; then
+    # Windows
+    print_info "For Windows, add this line to C:\\Windows\\System32\\drivers\\etc\\hosts:"
+    print_info "127.0.0.1    voices.localhost"
+    print_warning "You may need to run as administrator"
+  fi
+}
+
 # Create log directory
 create_log_directory() {
   print_info "Creating log directory..."
@@ -214,6 +244,7 @@ main() {
   echo ""
 
   ensure_virtualenv
+  configure_hosts_file
   create_log_directory
   run_migrations
   create_superuser

@@ -88,7 +88,24 @@ This skips downloading the ~GB database dump. Useful if you just want to test th
 
 ### Starting the Development Servers
 
-Every time you want to work on Sefaria, you need two terminal windows:
+**Quick Start (Recommended):**
+
+Run both servers with one command:
+```bash
+./run.sh
+```
+
+This will:
+- Check that everything is installed
+- Start MongoDB if not running
+- Start both Django and webpack servers
+- Show logs from both servers
+
+Then open your browser to: **http://localhost:8000**
+
+**Alternative - Manual Start:**
+
+If you prefer separate terminals:
 
 **Terminal 1 - Django (Backend):**
 ```bash
@@ -101,7 +118,12 @@ python manage.py runserver
 npm run w
 ```
 
-Then open your browser to: **http://localhost:8000**
+**Run Script Options:**
+```bash
+./run.sh           # Run both servers (default)
+./run.sh --django  # Run only Django
+./run.sh --webpack # Run only webpack
+```
 
 ### Common Tasks
 
