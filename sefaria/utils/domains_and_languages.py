@@ -113,11 +113,13 @@ def get_cookie_domain(language):
         module_urls = {url for lang_modules in settings.DOMAIN_MODULES.values() for url in lang_modules.values()}
 
     # Extract hostnames, filtering out localhost and IP addresses
-    hostnames = []
-    for url in module_urls:
-        hostname = urlparse(url).hostname
-        if hostname and 'localhost' not in hostname and not re.match(IPV4_ADDRESS_PATTERN, hostname):
-            hostnames.append(hostname)
+    hostnames = [
+        hostname
+        for url in module_urls
+        if (hostname := urlparse(url).hostname)
+        and 'localhost' not in hostname
+        and not re.match(IPV4_ADDRESS_PATTERN, hostname)
+    ]
 
     # Need at least 2 unique hostnames to justify a cookie domain
     if len(hostnames) < 2:
