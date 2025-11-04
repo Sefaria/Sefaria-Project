@@ -108,13 +108,7 @@ def get_cookie_domain(language):
         module_urls = settings.DOMAIN_MODULES.get(get_short_lang(language), {}).values()
     else:
         # Cross-language: collect and deduplicate URLs since different languages may share domains
-        seen_urls = set()
-        module_urls = []
-        for lang_modules in settings.DOMAIN_MODULES.values():
-            for url in lang_modules.values():
-                if url not in seen_urls:
-                    seen_urls.add(url)
-                    module_urls.append(url)
+        module_urls = {url for lang_modules in settings.DOMAIN_MODULES.values() for url in lang_modules.values()}
 
     # Extract hostnames, filtering out localhost and IP addresses
     hostnames = []
