@@ -33,7 +33,7 @@ spec:
                   gunzip dump.sql.gz
 
                   # Set PostgreSQL connection environment variables
-                  export PGHOST="{{ .Values.postgres.host }}"
+                  export PGHOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
                   export PGUSER="${DATABASES_USER}"
                   export PGPASSWORD="${DATABASES_PASSWORD}"
                   export PGDATABASE="{{ .Values.postgres.db }}"
