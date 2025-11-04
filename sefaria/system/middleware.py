@@ -108,14 +108,14 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
                 interface = domain_lang
             else:
-                redirect_domain = get_redirect_domain_for_language(request, interface)
+                target_domain = get_redirect_domain_for_language(request, interface)
 
-                if needs_domain_switch(request, redirect_domain): # Prevents redirect loop in local/cauldron settings
+                if needs_domain_switch(request, target_domain): # Prevents redirect loop in local/cauldron settings
                     # When detected language doesn't match current domain language, redirect
                     # while preserving the current module
                     path = request.get_full_path()
                     path = add_query_param(path, "set-language-cookie")
-                    return redirect(redirect_domain + path)
+                    return redirect(target_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language
 
