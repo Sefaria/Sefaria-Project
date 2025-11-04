@@ -2,17 +2,23 @@
 
 Automated setup scripts for the Sefaria development environment. These scripts will install all dependencies and configure your local development environment.
 
+**Supports:** macOS (Apple Silicon) and Windows 11
+
 ## Quick Start
 
-For a fresh setup on macOS, simply run:
-
+**macOS (Apple Silicon):**
 ```bash
 ./setup.sh
 ```
 
+**Windows 11 (PowerShell as Administrator):**
+```powershell
+.\setup.ps1
+```
+
 This will:
-1. Install all system dependencies (Homebrew, pyenv, nvm, MongoDB, etc.)
-2. Set up Python 3.9 with a virtual environment
+1. Install all system dependencies (Python, Node.js, MongoDB, etc.)
+2. Set up Python with a virtual environment
 3. Install Node.js and npm dependencies
 4. Configure Django database (SQLite by default)
 5. Set up MongoDB
@@ -24,18 +30,31 @@ This will:
 
 ### Basic Usage
 
+**macOS:**
 ```bash
 ./setup.sh
 ```
 
+**Windows:**
+```powershell
+.\setup.ps1
+```
+
 ### Options
 
+**macOS:**
 - `--postgres` - Use PostgreSQL instead of SQLite for Django database
 - `--skip-dump` - Skip downloading and restoring the MongoDB dump
 - `--help` - Show help message
 
+**Windows:**
+- `-Postgres` - Use PostgreSQL instead of SQLite for Django database
+- `-SkipDump` - Skip downloading and restoring the MongoDB dump
+- `-Help` - Show help message
+
 ### Examples
 
+**macOS:**
 ```bash
 # Use PostgreSQL instead of SQLite
 ./setup.sh --postgres
@@ -47,74 +66,84 @@ This will:
 ./setup.sh --postgres --skip-dump
 ```
 
+**Windows:**
+```powershell
+# Use PostgreSQL instead of SQLite
+.\setup.ps1 -Postgres
+
+# Skip MongoDB dump restore (faster setup for testing)
+.\setup.ps1 -SkipDump
+
+# Combine options
+.\setup.ps1 -Postgres -SkipDump
+```
+
 ## Individual Subscripts
 
-Each part of the setup can be run independently for debugging or partial setups:
+Each part of the setup can be run independently for debugging or partial setups.
+
+**Note:** Replace `.sh` with `.ps1` for Windows PowerShell scripts.
 
 ### 1. Check Prerequisites
-```bash
-./scripts/setup/check_prerequisites.sh
-```
+**macOS:** `./scripts/setup/check_prerequisites.sh`
+**Windows:** `.\scripts\setup\check_prerequisites.ps1`
+
 Checks for existing installations and potential conflicts.
 
 ### 2. Install System Tools
-```bash
-./scripts/setup/install_system_tools.sh
-```
+**macOS:** `./scripts/setup/install_system_tools.sh`
+**Windows:** `.\scripts\setup\install_system_tools.ps1`
+
 Installs:
-- Homebrew (macOS package manager)
-- pyenv (Python version manager)
-- nvm (Node version manager)
-- MongoDB
-- PostgreSQL (if `--postgres` flag used)
-- gettext (for translations)
-- Development libraries
+- **macOS:** Homebrew, pyenv, nvm, MongoDB, PostgreSQL (optional), gettext
+- **Windows:** Python, Node.js, MongoDB, PostgreSQL (optional), gettext, Git via winget
 
 ### 3. Install Python
-```bash
-./scripts/setup/install_python.sh
-```
-- Installs Python 3.9.21 via pyenv
+**macOS:** `./scripts/setup/install_python.sh`
+**Windows:** `.\scripts\setup\install_python.ps1`
+
+- **macOS:** Installs Python 3.9.21 via pyenv
+- **Windows:** Uses installed Python 3.10+
 - Creates virtual environment named 'senv'
 - Installs all requirements from `requirements.txt`
 
 ### 4. Install Node.js
-```bash
-./scripts/setup/install_node.sh
-```
-- Installs latest LTS Node.js via nvm
+**macOS:** `./scripts/setup/install_node.sh`
+**Windows:** `.\scripts\setup\install_node.ps1`
+
+- Installs latest LTS Node.js (via nvm on macOS, direct on Windows)
 - Runs `npm install`
 - Builds client assets
 
 ### 5. Setup Database
-```bash
-./scripts/setup/setup_database.sh
-```
+**macOS:** `./scripts/setup/setup_database.sh`
+**Windows:** `.\scripts\setup\setup_database.ps1`
+
 - Creates `sefaria/local_settings.py` from template
 - Configures for SQLite or PostgreSQL
 - Creates PostgreSQL database if needed
 
 ### 6. Setup MongoDB
-```bash
-./scripts/setup/setup_mongodb.sh
-```
-- Starts MongoDB service
+**macOS:** `./scripts/setup/setup_mongodb.sh`
+**Windows:** `.\scripts\setup\setup_mongodb.ps1`
+
+- Starts MongoDB service (or process)
 - Tests MongoDB connection
 - Prepares for dump restoration
 
 ### 7. Setup Google Cloud SDK
-```bash
-./scripts/setup/setup_gcloud.sh
-```
-- Installs Google Cloud SDK
+**macOS:** `./scripts/setup/setup_gcloud.sh`
+**Windows:** `.\scripts\setup\setup_gcloud.ps1`
+
+- Installs/verifies Google Cloud SDK
 - Handles authentication
-- Downloads and restores MongoDB dump
-- Creates standalone `restore_dump.sh` script
+- Creates standalone restore script
 
 ### 8. Finalize Setup
-```bash
-./scripts/setup/finalize_setup.sh
-```
+**macOS:** `./scripts/setup/finalize_setup.sh`
+**Windows:** `.\scripts\setup\finalize_setup.ps1`
+
+- Configures hosts file for voices.localhost
 - Creates log directory with correct permissions
 - Runs Django migrations
 - Optionally creates superuser
@@ -122,10 +151,10 @@ Installs:
 - Displays next steps
 
 ### 9. Restore Database Dump (Standalone)
-```bash
-./scripts/setup/restore_dump.sh
-```
-Standalone script to download and restore MongoDB dump. Created by `setup_gcloud.sh`.
+**macOS:** `./scripts/setup/restore_dump.sh`
+**Windows:** `.\scripts\setup\restore_dump.ps1`
+
+Standalone script to download and restore MongoDB dump. Created by setup process.
 
 ## Requirements
 
@@ -135,7 +164,15 @@ Standalone script to download and restore MongoDB dump. Created by `setup_gcloud
 - Command Line Tools for Xcode (installed automatically)
 - Internet connection
 
-**Note**: This automated setup only supports Apple Silicon Macs. For Intel Macs, Windows, or Linux, please follow the [manual installation instructions](https://developers.sefaria.org/docs/local-installation-instructions).
+**Note**: Intel Macs are not supported by this automated setup. For Intel Macs or Linux, please follow the [manual installation instructions](https://developers.sefaria.org/docs/local-installation-instructions).
+
+### Windows
+- **Windows 11** (or Windows 10 21H2+)
+- PowerShell 5.1 or later (included with Windows)
+- Administrator access (required for installations)
+- Internet connection
+
+**Note**: Native Windows is supported. WSL2/Linux subsystem is not required.
 
 ## What Gets Installed
 
