@@ -96,29 +96,36 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def get_page_title(base_title, page_type="generic", request=None):
+def get_page_title(base_title, page_type="", request=None):
     """
     Generate consistent, module-aware, bilingual page titles.
 
-    Based on requirements in SC-36063. Maps directly to the title specification table.
+    This function takes a base title (which should already be translated via Django's _())
+    and adds the appropriate module suffix based on active_module and interface language.
+
 
     Args:
-        base_title (str): Main content of title (e.g., "Genesis 1:1", sheet name, topic name)
-        page_type (str): One of: "home", "sheet", "topic", "text", "profile",
-                         "collection", "collections", "generic"
+        base_title (str): Main content of title - SHOULD BE ALREADY TRANSLATED via _()
+                         Examples: _("Topics"), ref.normal(), sheet["title"], user.full_name
+        page_type (str): Specifies if it's a specific page type requiring a specific suffix (i.e. home, sheet, topic or collection)
         request: Django request object (provides interfaceLang and active_module)
 
     Returns:
-        str: Formatted bilingual title
+        str: Formatted title with module suffix
 
     Examples:
-        >>> # Sheet page in English
-        >>> get_page_title("My Sources", "sheet", request)
-        "My Sources | Voices on Sefaria"
+        >>> # Generic page (already translated via _())
+        >>> get_page_title(_("Topics"), "generic", request)
+        "נושאים | ספריית ספריא"  # Hebrew Library
 
-        >>> # Topic page in Library module (Hebrew)
-        >>> get_page_title("שבת", "topic", request)
-        "שבת | מקורות מתוך ספריית ספריא"
+        >>> # Sheet page
+        >>> get_page_title("My Torah Sources", "sheet", request)
+        "My Torah Sources | Voices on Sefaria"  # English Voices
+
+    Note:
+        - Base titles should be translated BEFORE calling this function using _()
+        - This function only adds module-specific suffixes
+        - For base title translations, update locale/he/LC_MESSAGES/django.po
     """
     if not request:
         return base_title
@@ -126,39 +133,52 @@ def get_page_title(base_title, page_type="generic", request=None):
     is_hebrew = (request.interfaceLang == "hebrew")
     is_voices = (getattr(request, 'active_module', LIBRARY_MODULE) == VOICES_MODULE)
 
+    # Page title suffix configuration
+    suffixes = {
+        'home': {
+            'voices': {'he': "חיבורים בספריא", 'en': "Voices on Sefaria"},
+            'library': {'he': "ספריא: ספריה יהודית דינמית", 'en': "Sefaria: a Living Library of Jewish Texts Online"}
+        },
+        'topic': {
+            'voices': {'he': "דפים מתוך חיבורים בספריא", 'en': "Sheets from Voices on Sefaria"},
+            'library': {'he': "מקורות מתוך ספריית ספריא", 'en': "Texts from the Sefaria Library"}
+        },
+        'collections': {
+            'he': "חיבורים בספריא", 'en': "Voices on Sefaria"
+        },
+        'collection': {
+            'he': "אוסף מתוך חיבורים בספריא", 'en': "Voices on Sefaria Collection"
+        },
+        'default': {
+            'voices': {'he': "חיבורים בספריא", 'en': "Voices on Sefaria"},
+            'library': {'he': "ספריית ספריא", 'en': "Sefaria Library"}
+        }
+    }
+
+    lang = 'he' if is_hebrew else 'en'
+    module = 'voices' if is_voices else 'library'
+
+    # Special case: Home pages return complete title (not base + suffix pattern)
     if page_type == "home":
-        if is_voices:
-            return "חיבורים בספריא" if is_hebrew else "Voices on Sefaria"
-        else:
-            return "ספריא: ספריה יהודית דינמית" if is_hebrew else "Sefaria: a Living Library of Jewish Texts Online"
+        return suffixes['home'][module][lang]
 
-    elif page_type == "sheet":
-        clean_title = strip_tags(base_title) if base_title else ("ללא כותרת" if is_hebrew else "Untitled")
-        return f"{clean_title} | חיבורים בספריא" if is_hebrew else f"{clean_title} | Voices on Sefaria"
+    # Special case: Sheet titles need cleaning
+    if page_type == "sheet":
+        base_title = strip_tags(base_title) if base_title else ("ללא כותרת" if is_hebrew else "Untitled")
 
-    elif page_type == "topic":
-        if is_voices:
-            return f"{base_title} | דפים מתוך חיבורים בספריא" if is_hebrew else f"{base_title} | Sheets from Voices on Sefaria"
-        else:
-            return f"{base_title} | מקורות מתוך ספריית ספריא" if is_hebrew else f"{base_title} | Texts from the Sefaria Library"
+    # Get appropriate suffix based on page type
+    if page_type in ['collections', 'collection']:
+        # Collections pages are always Voices
+        suffix = suffixes[page_type][lang]
+    elif page_type == 'topic':
+        # Topics have module-specific descriptive suffixes
+        suffix = suffixes['topic'][module][lang]
+    else:
+        # Standard suffix for all other pages
+        suffix = suffixes['default'][module][lang]
 
-    elif page_type == "text":
-        return f"{base_title} | ספריית ספריא" if is_hebrew else f"{base_title} | Sefaria Library"
-
-    elif page_type == "profile":
-        return f"{base_title} | חיבורים בספריא" if is_hebrew else f"{base_title} | Voices on Sefaria"
-
-    elif page_type == "collection":
-        return f"{base_title} | אוסף מתוך חיבורים בספריא" if is_hebrew else f"{base_title} | Voices on Sefaria Collection"
-
-    elif page_type == "collections":
-        return "אוספים | חיבורים בספריא" if is_hebrew else "Collections | Voices on Sefaria"
-
-    else:  # "generic"
-        if is_voices:
-            return f"{base_title} | חיבורים בספריא" if is_hebrew else f"{base_title} | Voices on Sefaria"
-        else:
-            return f"{base_title} | ספריית ספריא" if is_hebrew else f"{base_title} | Sefaria Library"
+    # Combine base title with suffix
+    return f"{base_title} | {suffix}" if base_title else suffix
 
 
 # File extension to content type mapping for favicon serving
