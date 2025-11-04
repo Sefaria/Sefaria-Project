@@ -3,7 +3,7 @@ from itertools import product
 from typing import List
 from sefaria.model.schema import AddressInteger
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet
-from sefaria.model.linker.ref_part import RawRefPart, SectionContext
+from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType, RawRefPartPair
 from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
 from ne_span import RefPartType
@@ -17,7 +17,9 @@ class ResolvedRefRefiner(ABC):
         self.resolved_ref = resolved_ref
 
     def _get_resolved_parts(self):
-        return self.resolved_ref.resolved_parts + [self.part_to_match]
+        part = self.part_to_match
+        matched_parts = part.part_pair if isinstance(part, RawRefPartPair) else [part]
+        return self.resolved_ref.resolved_parts + matched_parts
 
     def _clone_resolved_ref(self, **kwargs) -> 'ResolvedRef':
         return self.resolved_ref.clone(**kwargs)
