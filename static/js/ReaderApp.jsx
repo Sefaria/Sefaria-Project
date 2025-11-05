@@ -443,7 +443,7 @@ class ReaderApp extends Component {
      */
 
     // Get current module (library or voices)
-    const activeModule = Sefaria._siteSettings.ACTIVE_MODULE || 'library';
+    const activeModule = Sefaria.activeModule || 'library';
     const isVoices = (activeModule === 'voices');
 
     // Get language
@@ -498,6 +498,11 @@ class ReaderApp extends Component {
     // Special case: Home pages return complete title (not base + suffix pattern)
     if (pageType === "home") {
       return suffixes.home[module][lang];
+    }
+
+    // Special case: Sheet titles need default if empty
+    if (pageType === "sheet" && !baseTitle) {
+      baseTitle = isHebrew ? "ללא כותרת" : "Untitled";
     }
 
     // Get appropriate suffix based on page type
@@ -699,7 +704,7 @@ class ReaderApp extends Component {
         } else {
           var htitle = state.currentlyVisibleRef;
         }
-        hist.title        = Sefaria._r(htitle);
+        hist.title        = this.getPageTitle(Sefaria._r(htitle));
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
         hist.mode         = "Text";
@@ -734,7 +739,8 @@ class ReaderApp extends Component {
           if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
           if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
         }
-        hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        const connectionsTitle = Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.title    = this.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
 
@@ -753,7 +759,8 @@ class ReaderApp extends Component {
         if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        hist.title    = Sefaria._r(htitle)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        const textAndConnectionsTitle = Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.title    = this.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
@@ -763,7 +770,8 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Sheet") {
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-        hist.title = sheet ? sheet.title.stripHtml() : "";
+        const sheetTitle = sheet ? sheet.title.stripHtml() : "";
+        hist.title = this.getPageTitle(sheetTitle, "sheet");
         const sheetURLSlug = state.highlightedNode ? state.sheetID + "." + state.highlightedNode : state.sheetID;
         const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
