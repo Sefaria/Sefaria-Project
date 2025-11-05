@@ -42,11 +42,13 @@ class ContextMutation:
     def applies_to(self, matched_terms: Sequence[str]) -> bool:
         return tuple(matched_terms) == self.input_terms
 
-    def apply(self, raw_parts: List[RawRefPart], term_factory: Callable[[str], TermContext]) -> List[RawRefPart]:
+    def apply(self, raw_parts: List[RawRefPart], output_contexts: Sequence[TermContext]) -> List[RawRefPart]:
+        if len(output_contexts) != len(self.output_terms):
+            raise ValueError("Mismatch between declared output_terms and provided TermContexts")
         if self.op == ContextMutationOp.SWAP:
-            return [term_factory(slug) for slug in self.output_terms]
+            return list(output_contexts)
         if self.op == ContextMutationOp.ADD:
-            return list(raw_parts) + [term_factory(slug) for slug in self.output_terms]
+            return list(raw_parts) + list(output_contexts)
         raise ValueError(f"Unknown ContextMutation op {self.op}")
 
     def __repr__(self) -> str:
@@ -77,7 +79,8 @@ class ContextMutationSet:
         mutation = self.get(matched_terms)
         if mutation is None:
             return raw_parts
-        return mutation.apply(raw_parts, term_factory)
+        output_contexts = [term_factory(slug) for slug in mutation.output_terms]
+        return mutation.apply(raw_parts, output_contexts)
 
     def __len__(self) -> int:
         return len(self._mutations)
@@ -628,7 +631,8 @@ class RefResolver:
                     continue
                 matched_parts = [raw_parts[idx] for idx in indices]
                 try:
-                    mutated_parts = mutation.apply(matched_parts, term_factory)
+                    output_contexts = [term_factory(slug) for slug in mutation.output_terms]
+                    mutated_parts = mutation.apply(matched_parts, output_contexts)
                 except Exception as err:
                     logger.warning("ref_resolver.context_mutation.apply_failed", slug_sequence=input_terms, error=str(err))
                     # Failed to apply mutation for these parts; check the next combination.
