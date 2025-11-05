@@ -185,6 +185,19 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
+  
+  const mobile = !props?.multiPanel;
+  
+  const shouldHide = () => {
+    // Determines whether or not this component should be displayed or not. 
+    // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
+    // functioning as the header.  This case occurs when viewing a library text in mode "Text"
+    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".    
+    // shouldHide() returns true when the header should be hidden (a) on mobile (b) while viewing library texts (c) when the mobile nav menu is not open.
+    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+    const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
+    return hidden;
+  }
 
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
@@ -219,9 +232,8 @@ const Header = (props) => {
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
-  if (props.hidden && !props.mobileNavMenuOpen) {
-    return null;
-  }
+  
+  if (shouldHide()) return null;
 
   const headerContent = (
     <>
@@ -299,6 +311,10 @@ const Header = (props) => {
     </>
   );
 
+  // Language toggle logic - show on mobile for specific menu pages
+  const languageToggleMenus = ["navigation", "saved", "history", "notes"];
+  const hasLanguageToggle = mobile && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
+
   const mobileHeaderContent = (
     <>
       <div>
@@ -311,27 +327,30 @@ const Header = (props) => {
         {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
       </div>
 
-      {props.hasLanguageToggle ?
-        <div className={props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+      {hasLanguageToggle ?
+        <div className={props.firstPanel?.settings?.language + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
-    </>
+    </>  
   );
 
-  const headerClasses = classNames({ header: 1, mobile: !props.multiPanel });
+  // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
+  const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
+  const hasBoxShadow = !hasColorLine;
+  const headerClasses = classNames({ header: 1, mobile: mobile });
   const headerInnerClasses = classNames({
     headerInner: 1,
-    boxShadow: props.hasBoxShadow,
-    mobile: !props.multiPanel
+    boxShadow: hasBoxShadow,
+    mobile: mobile
   });
   return (
     <div className={headerClasses} role="banner" ref={headerRef}>
       <div className={headerInnerClasses}>
-        {props.multiPanel ? headerContent : mobileHeaderContent}
+        {!mobile ? headerContent : mobileHeaderContent}
       </div>
 
-      {props.multiPanel ? null :
+      {mobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
@@ -353,8 +372,19 @@ Header.propTypes = {
   showSearch: PropTypes.func.isRequired,
   openTopic: PropTypes.func.isRequired,
   openURL: PropTypes.func.isRequired,
-  hasBoxShadow: PropTypes.bool.isRequired,
+  firstPanel: PropTypes.shape({
+    menuOpen: PropTypes.string,
+    mode: PropTypes.string,
+    settings: PropTypes.shape({
+      language: PropTypes.string
+    })
+  }),
   module: PropTypes.string.isRequired,
+  mobileNavMenuOpen: PropTypes.bool,
+  onMobileMenuButtonClick: PropTypes.func,
+  toggleLanguage: PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly }) => {
@@ -517,26 +547,26 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
 
         {module === Sefaria.LIBRARY_MODULE &&
           <a href="/" data-target-module={Sefaria.VOICES_MODULE}>
-            <img src="/static/icons/sheets-mobile-icon.svg" alt={Sefaria._("Sheets")} />
-            <InterfaceText>Sheets</InterfaceText>
+            <span className="dropdownDot" style={{backgroundColor: `var(--sheets-green)`}}></span>
+            <InterfaceText>Voices on Sefaria</InterfaceText>
           </a>
         }
 
         {module === Sefaria.VOICES_MODULE &&
           <a href="/texts" data-target-module={Sefaria.LIBRARY_MODULE}>
-            <img src="/static/icons/book.svg" alt={Sefaria._("Library")} />
-            <InterfaceText text={{ en: "Sefaria Library", he: "ספריית ספריא" }} />
+            <span className="dropdownDot" style={{backgroundColor: `var(--sefaria-blue)`}}></span>
+            <InterfaceText>Sefaria Library</InterfaceText>
           </a>
         }
 
         <a href="https://developers.sefaria.org" target="_blank">
-          <img src="/static/icons/dev-portal-mobile-icon.svg" alt={Sefaria._("Developers")} />
-          <InterfaceText text={{ en: "Developers", he: "מפתחים" }} />
+          <span className="dropdownDot" style={{backgroundColor: `var(--devportal-purple)`}}></span>
+          <InterfaceText>Developers on Sefaria</InterfaceText>
         </a>
 
         <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
-          <img src="/static/icons/products-icon.svg" alt={Sefaria._("Products")} />
-          <InterfaceText text={{ en: "All Products", he: "מוצרים" }} />
+          <img className="chevron" src="/static/icons/chevron-right.svg"/>
+          <InterfaceText>More from Sefaria</InterfaceText>
         </a>
 
         <hr />

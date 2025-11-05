@@ -414,6 +414,8 @@ cronJobs:
     enabled: false
   syncPostgresProductionData:
     enabled: false
+  syncMongoProductionData:
+    enabled: false
 
 localSettings:
   DEBUG: true
