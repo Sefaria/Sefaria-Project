@@ -131,13 +131,13 @@ Installs:
 - Tests MongoDB connection
 - Prepares for dump restoration
 
-### 7. Setup Google Cloud SDK
-**macOS:** `./scripts/setup/setup_gcloud.sh`
+### 7. Restore MongoDB Dump
+**macOS:** `./scripts/setup/setup_mongo_dump.sh`
 **Windows:** `.\scripts\setup\setup_gcloud.ps1`
 
-- Installs/verifies Google Cloud SDK
-- Handles authentication
-- Creates standalone restore script
+- Downloads recommended MongoDB dump
+- Restores data into the `sefaria` database
+- Creates standalone restore script for future updates
 
 ### 8. Finalize Setup
 **macOS:** `./scripts/setup/finalize_setup.sh`
@@ -154,7 +154,7 @@ Installs:
 **macOS:** `./scripts/setup/restore_dump.sh`
 **Windows:** `.\scripts\setup\restore_dump.ps1`
 
-**Note:** These standalone scripts are **generated automatically** during the setup process by the `setup_gcloud` script. They are not checked into the repository but are created on your local machine to allow you to restore the MongoDB dump at any time after the initial setup.
+**Note:** These standalone scripts are **generated automatically** during the setup process by the dump setup script. They are not checked into the repository but are created on your local machine to allow you to restore the MongoDB dump at any time after the initial setup.
 
 ## Requirements
 
@@ -217,7 +217,7 @@ Sefaria-Project/
 │       ├── install_node.sh           # Setup Node.js environment
 │       ├── setup_database.sh         # Configure Django database
 │       ├── setup_mongodb.sh          # Setup MongoDB
-│       ├── setup_gcloud.sh           # Setup Google Cloud SDK
+│       ├── setup_mongo_dump.sh       # Restore MongoDB dump
 │       ├── finalize_setup.sh         # Final setup steps
 │       └── restore_dump.sh           # Restore MongoDB dump (created during setup)
 ├── sefaria/

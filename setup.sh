@@ -200,12 +200,12 @@ main() {
     exit 1
   fi
 
-  # Step 7: Setup Google Cloud SDK (for database dumps)
-  print_header "Step 7: Setting Up Google Cloud SDK"
-  if [ -f "${SETUP_SCRIPTS_DIR}/setup_gcloud.sh" ]; then
-    bash "${SETUP_SCRIPTS_DIR}/setup_gcloud.sh"
+  # Step 7: Restore MongoDB dump
+  print_header "Step 7: Restoring MongoDB Dump"
+  if [ -f "${SETUP_SCRIPTS_DIR}/setup_mongo_dump.sh" ]; then
+    bash "${SETUP_SCRIPTS_DIR}/setup_mongo_dump.sh"
   else
-    print_warning "setup_gcloud.sh not found, skipping..."
+    print_warning "setup_mongo_dump.sh not found, skipping..."
   fi
 
   # Step 8: Finalize setup

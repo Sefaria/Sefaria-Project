@@ -16,6 +16,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 STATE_FILE="${SETUP_STATE_FILE:-"${PROJECT_ROOT}/.setup_state"}"
+PUBLIC_DUMP_URL="https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz"
 
 # Source utility functions
 RED='\033[0;31m'
@@ -35,6 +36,7 @@ write_dump_state() {
   local message="$2"
   local detail="$3"
   local latest_path="$4"
+  local source="$5"
 
   local tmp_file
   tmp_file=$(mktemp)
@@ -48,6 +50,7 @@ write_dump_state() {
     printf 'DUMP_MESSAGE=%q\n' "$message"
     printf 'DUMP_DETAIL=%q\n' "$detail"
     printf 'DUMP_LATEST_PATH=%q\n' "$latest_path"
+    printf 'DUMP_SOURCE=%q\n' "$source"
   } >> "$tmp_file"
 
   mv "$tmp_file" "$STATE_FILE"
@@ -62,6 +65,7 @@ load_setup_state() {
     DUMP_MESSAGE=""
     DUMP_DETAIL=""
     DUMP_LATEST_PATH=""
+    DUMP_SOURCE=""
   fi
 }
 
@@ -157,6 +161,23 @@ run_migrations() {
 create_superuser() {
   print_info "Django superuser creation..."
   echo ""
+
+  local superuser_exists
+  superuser_exists=$(
+    python <<'PYCODE' 2>/dev/null || echo "ERROR"
+from django.contrib.auth import get_user_model
+User = get_user_model()
+print(User.objects.filter(is_superuser=True).exists())
+PYCODE
+  )
+
+  if [ "$superuser_exists" = "True" ]; then
+    print_info "A Django superuser already exists; skipping creation prompt."
+    return 0
+  elif [ "$superuser_exists" = "ERROR" ]; then
+    print_warning "Could not determine if a superuser exists (continuing to prompt)."
+  fi
+
   print_info "You can create a superuser account to access the Django admin"
   print_info "This is optional and can be done later with: python manage.py createsuperuser"
   echo ""
@@ -197,14 +218,14 @@ maybe_restore_dump() {
     return 0
   fi
 
-  local dump_path="${DUMP_LATEST_PATH:-the configured Google Cloud Storage bucket}"
+  local dump_path="${DUMP_LATEST_PATH:-$PUBLIC_DUMP_URL}"
   echo ""
   print_info "MongoDB dump is available at: ${dump_path}"
   read -p "Do you want to restore the MongoDB dump now? (y/n) " -n 1 -r
   echo ""
 
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    write_dump_state "deferred" "MongoDB dump is available (${dump_path}) but restoration was skipped when prompted." ""
+    write_dump_state "deferred" "MongoDB dump is available (${dump_path}) but restoration was skipped when prompted." "" "$dump_path" "${DUMP_SOURCE:-}"
     load_setup_state
     print_info "Skipping MongoDB dump restoration. You can run ./scripts/setup/restore_dump.sh later."
     return 0
@@ -212,7 +233,7 @@ maybe_restore_dump() {
 
   if [ ! -x "${PROJECT_ROOT}/scripts/setup/restore_dump.sh" ]; then
     print_error "restore_dump.sh script is missing or not executable."
-    write_dump_state "failed" "MongoDB dump restoration could not start because restore_dump.sh is missing." "Expected script at scripts/setup/restore_dump.sh"
+    write_dump_state "failed" "MongoDB dump restoration could not start because restore_dump.sh is missing." "Expected script at scripts/setup/restore_dump.sh" "$dump_path" "${DUMP_SOURCE:-}"
     load_setup_state
     return 0
   fi
@@ -224,11 +245,11 @@ maybe_restore_dump() {
   set -e
 
   if [ $restore_exit -eq 0 ]; then
-    write_dump_state "restored" "MongoDB dump restored successfully from ${dump_path}." ""
+    write_dump_state "restored" "MongoDB dump restored successfully from ${dump_path}." "" "$dump_path" "${DUMP_SOURCE:-}"
     load_setup_state
     print_success "MongoDB dump restored successfully."
   else
-    write_dump_state "failed" "MongoDB dump restoration failed. Review the output above and rerun ./scripts/setup/restore_dump.sh." "restore_dump.sh exited with status ${restore_exit}"
+    write_dump_state "failed" "MongoDB dump restoration failed. Review the output above and rerun ./scripts/setup/restore_dump.sh." "restore_dump.sh exited with status ${restore_exit}" "$dump_path" "${DUMP_SOURCE:-}"
     load_setup_state
     print_warning "MongoDB dump restoration failed (exit code ${restore_exit}). See above for details."
   fi
@@ -299,15 +320,22 @@ print_dump_summary() {
     deferred)
       print_warning "${DUMP_MESSAGE:-MongoDB dump restoration was deferred.}"
       print_info "Run ./scripts/setup/restore_dump.sh when you're ready."
+      if [[ "${DUMP_SOURCE:-}" = "public" ]]; then
+        print_info "Direct download URL: ${DUMP_LATEST_PATH:-$PUBLIC_DUMP_URL}"
+      fi
       ;;
     available)
       print_warning "${DUMP_MESSAGE:-MongoDB dump is available but not yet restored.}"
       print_info "Run ./scripts/setup/restore_dump.sh before starting the Django server."
       print_info "The site will raise 'Database sefaria does not exist' until the dump is restored."
+      if [[ "${DUMP_SOURCE:-}" = "public" ]]; then
+        print_info "Direct download URL: ${DUMP_LATEST_PATH:-$PUBLIC_DUMP_URL}"
+      fi
       ;;
     skipped)
       print_info "${DUMP_MESSAGE:-MongoDB dump restoration was skipped by request.}"
       print_info "Restore later with ./scripts/setup/restore_dump.sh if you need production data."
+      print_info "Default download URL: $PUBLIC_DUMP_URL"
       ;;
     blocked)
       print_warning "${DUMP_MESSAGE:-MongoDB dump restoration is blocked.}"

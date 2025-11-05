@@ -147,11 +147,13 @@ PYCODE
     EMPTY_DB)
       print_error "MongoDB 'sefaria' database is empty"
       print_info "Restore the content dump with: ./scripts/setup/restore_dump.sh"
+      print_info "Download URL: https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz"
       exit 1
       ;;
     NO_DB)
       print_error "MongoDB 'sefaria' database not found"
       print_info "Run ./scripts/setup/restore_dump.sh to download and restore the data dump."
+      print_info "Download URL: https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz"
       exit 1
       ;;
     CONNECTION_ERROR)

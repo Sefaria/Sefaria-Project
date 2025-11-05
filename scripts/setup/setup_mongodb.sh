@@ -82,9 +82,7 @@ restore_mongodb_dump() {
     return 0
   fi
 
-  print_info "MongoDB dump restore requires Google Cloud SDK (gcloud)"
-  print_info "This will be handled in the next step (setup_gcloud.sh)"
-  print_warning "You can restore the dump later using the restore_dump.sh script"
+  print_info "MongoDB dump will be restored automatically in the next step."
 }
 
 # Create empty history collection for small dump
@@ -142,9 +140,6 @@ main() {
   print_success "MongoDB setup complete!"
   print_info "MongoDB is running on localhost:27017"
   print_info "Database name: sefaria"
-  echo ""
-  print_warning "NOTE: You still need to restore the database dump"
-  print_info "This will be done in the next step using Google Cloud SDK"
 }
 
 main
