@@ -103,6 +103,33 @@ ensure_prerequisites() {
   fi
 }
 
+required_space_bytes() {
+  # small dump currently ~8GB. add safety margin of 4GB for indexes/logs
+  poll_estimate=${1:-13}
+  echo $((poll_estimate * 1024 * 1024 * 1024))
+}
+
+free_space_bytes() {
+  df -Pk "$1" | awk 'NR==2 {print $4 * 1024}'
+}
+
+ensure_free_space() {
+  local required additional message
+  required=$(required_space_bytes)
+  available=$(free_space_bytes "/opt/homebrew/var/mongodb")
+  local required_gb available_gb
+
+  if [ "$available" -lt "$required" ]; then
+    required_gb=$((required / 1024 / 1024 / 1024))
+    available_gb=$((available / 1024 / 1024 / 1024))
+    printf "\n"
+    print_error "MongoDB data volume is low on space."
+    print_info "Required (estimated): ${required_gb}GB, Available: ${available_gb}GB"
+    print_info "Free space under /opt/homebrew/var/mongodb or move the data directory, then rerun setup."
+    exit 1
+  fi
+}
+
 download_dump() {
   local dest="$1"
   print_info "Downloading MongoDB dump from ${PUBLIC_DUMP_URL}..."
@@ -125,6 +152,7 @@ download_dump() {
 restore_dump() {
   local archive="$1"
   print_info "Extracting dump archive..."
+  rm -rf dump/
   tar xzf "$archive"
   print_success "Extraction complete"
 
@@ -210,6 +238,8 @@ main() {
   fi
 
   ensure_prerequisites
+
+  ensure_free_space
 
   tmp_archive=$(mktemp)
   download_dump "$tmp_archive"
