@@ -134,6 +134,10 @@ static/sheetrank.json
 
 /random_files
 
+# Setup helper artifacts
+.setup_state
+sefaria/local_settings.py.backup.*
+
 # Miscellaneous #
 #################
 
