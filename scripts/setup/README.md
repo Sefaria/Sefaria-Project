@@ -2,8 +2,6 @@
 
 Automated setup scripts for the Sefaria development environment. These scripts will install all dependencies and configure your local development environment.
 
-**Supports:** macOS (Apple Silicon) and Windows 11
-
 ## Quick Start
 
 **macOS (Apple Silicon):**
@@ -11,10 +9,7 @@ Automated setup scripts for the Sefaria development environment. These scripts w
 ./setup.sh
 ```
 
-**Windows 11 (PowerShell as Administrator):**
-```powershell
-.\setup.ps1
-```
+Windows users should follow the [manual installation instructions](https://developers.sefaria.org/docs/local-installation-instructions).
 
 This will:
 1. Install all system dependencies (Python, Node.js, MongoDB, etc.)
@@ -35,22 +30,12 @@ This will:
 ./setup.sh
 ```
 
-**Windows:**
-```powershell
-.\setup.ps1
-```
-
 ### Options
 
 **macOS:**
 - `--postgres` - Use PostgreSQL instead of SQLite for Django database
 - `--skip-dump` - Skip downloading and restoring the MongoDB dump
 - `--help` - Show help message
-
-**Windows:**
-- `-Postgres` - Use PostgreSQL instead of SQLite for Django database
-- `-SkipDump` - Skip downloading and restoring the MongoDB dump
-- `-Help` - Show help message
 
 ### Examples
 
@@ -66,58 +51,37 @@ This will:
 ./setup.sh --postgres --skip-dump
 ```
 
-**Windows:**
-```powershell
-# Use PostgreSQL instead of SQLite
-.\setup.ps1 -Postgres
-
-# Skip MongoDB dump restore (faster setup for testing)
-.\setup.ps1 -SkipDump
-
-# Combine options
-.\setup.ps1 -Postgres -SkipDump
-```
-
 ## Individual Subscripts
 
 Each part of the setup can be run independently for debugging or partial setups.
 
-**Note:** Replace `.sh` with `.ps1` for Windows PowerShell scripts.
-
 ### 1. Check Prerequisites
 **macOS:** `./scripts/setup/check_prerequisites.sh`
-**Windows:** `.\scripts\setup\check_prerequisites.ps1`
 
 Checks for existing installations and potential conflicts.
 
 ### 2. Install System Tools
 **macOS:** `./scripts/setup/install_system_tools.sh`
-**Windows:** `.\scripts\setup\install_system_tools.ps1`
 
 Installs:
-- **macOS:** Homebrew, pyenv, nvm, MongoDB, PostgreSQL (optional), gettext
-- **Windows:** Python, Node.js, MongoDB, PostgreSQL (optional), gettext, Git via winget
+- Homebrew, pyenv, nvm, MongoDB, PostgreSQL (optional), gettext
 
 ### 3. Install Python
 **macOS:** `./scripts/setup/install_python.sh`
-**Windows:** `.\scripts\setup\install_python.ps1`
 
-- **macOS:** Installs Python 3.9.21 via pyenv
-- **Windows:** Uses installed Python 3.9.21
+- Installs Python 3.9.21 via pyenv
 - Creates virtual environment named 'senv'
 - Installs all requirements from `requirements.txt`
 
 ### 4. Install Node.js
 **macOS:** `./scripts/setup/install_node.sh`
-**Windows:** `.\scripts\setup\install_node.ps1`
 
-- Installs latest LTS Node.js (via nvm on macOS, direct on Windows)
+- Installs latest LTS Node.js (via nvm)
 - Runs `npm install`
 - Builds client assets
 
 ### 5. Setup Database
 **macOS:** `./scripts/setup/setup_database.sh`
-**Windows:** `.\scripts\setup\setup_database.ps1`
 
 - Creates `sefaria/local_settings.py` from template
 - Configures for SQLite or PostgreSQL
@@ -125,7 +89,6 @@ Installs:
 
 ### 6. Setup MongoDB
 **macOS:** `./scripts/setup/setup_mongodb.sh`
-**Windows:** `.\scripts\setup\setup_mongodb.ps1`
 
 - Starts MongoDB service (or process)
 - Tests MongoDB connection
@@ -133,7 +96,6 @@ Installs:
 
 ### 7. Restore MongoDB Dump
 **macOS:** `./scripts/setup/setup_mongo_dump.sh`
-**Windows:** `.\scripts\setup\setup_gcloud.ps1`
 
 - Downloads recommended MongoDB dump
 - Restores data into the `sefaria` database
@@ -141,7 +103,6 @@ Installs:
 
 ### 8. Finalize Setup
 **macOS:** `./scripts/setup/finalize_setup.sh`
-**Windows:** `.\scripts\setup\finalize_setup.ps1`
 
 - Configures hosts file for voices.localhost
 - Creates log directory with correct permissions
@@ -152,7 +113,6 @@ Installs:
 
 ### 9. Restore Database Dump (Standalone)
 **macOS:** `./scripts/setup/restore_dump.sh`
-**Windows:** `.\scripts\setup\restore_dump.ps1`
 
 **Note:** These standalone scripts are **generated automatically** during the setup process by the dump setup script. They are not checked into the repository but are created on your local machine to allow you to restore the MongoDB dump at any time after the initial setup.
 
@@ -167,12 +127,7 @@ Installs:
 **Note**: Intel Macs are not supported by this automated setup. For Intel Macs or Linux, please follow the [manual installation instructions](https://developers.sefaria.org/docs/local-installation-instructions).
 
 ### Windows
-- **Windows 11** (or Windows 10 21H2+)
-- PowerShell 5.1 or later (included with Windows)
-- Administrator access (required for installations)
-- Internet connection
-
-**Note**: Native Windows is supported. WSL2/Linux subsystem is not required.
+- Native Windows is no longer supported by this automated setup. Please follow the [manual installation instructions](https://developers.sefaria.org/docs/local-installation-instructions) if you need a Windows environment.
 
 ## What Gets Installed
 

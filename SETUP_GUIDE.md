@@ -9,11 +9,6 @@
 ./setup.sh
 ```
 
-**Windows 11:**
-```powershell
-.\setup.ps1
-```
-
 That's it! The script will install everything you need and guide you through the process.
 
 ## Before You Start
@@ -24,11 +19,7 @@ That's it! The script will install everything you need and guide you through the
 - **Apple Silicon Mac** (M1/M2/M3) running macOS 12 or later
   - **Note**: Intel Macs are not supported by this automated setup
   - For Intel Macs or Linux, see [manual installation](https://developers.sefaria.org/docs/local-installation-instructions)
-
-**Windows:**
-- **Windows 11** (or Windows 10 21H2+)
-- **PowerShell 5.1 or later** (included in Windows)
-- **Administrator access** (required for installation)
+  - Windows users should also follow the manual installation instructions
 
 **Both Platforms:**
 - Internet connection
@@ -57,19 +48,10 @@ cd Sefaria-Project
 ./setup.sh
 ```
 
-**Windows (PowerShell as Administrator):**
-
-**Note:** You may need to enable script execution first. See the "Running scripts is disabled" section in Troubleshooting below if you encounter errors.
-
-```powershell
-.\setup.ps1
-```
-
 The script will:
 - ✅ Check what's already installed on your machine
 - ✅ Install all necessary tools (Python, Node.js, MongoDB, etc.)
   - macOS: via Homebrew, pyenv, nvm
-  - Windows: via winget (Windows Package Manager)
 - ✅ Set up Python and Node.js environments
 - ✅ Create configuration files
 - ✅ Download and restore the database
@@ -97,11 +79,6 @@ Once complete, you'll see a success message with next steps.
 ./setup.sh --postgres
 ```
 
-**Windows:**
-```powershell
-.\setup.ps1 -Postgres
-```
-
 PostgreSQL is more similar to production but takes longer to set up. SQLite is fine for most development work.
 
 ### Skip Database Dump (Faster Setup for Testing)
@@ -111,11 +88,6 @@ PostgreSQL is more similar to production but takes longer to set up. SQLite is f
 ./setup.sh --skip-dump
 ```
 
-**Windows:**
-```powershell
-.\setup.ps1 -SkipDump
-```
-
 This skips downloading the ~GB database dump. Useful if you just want to test the code, not the actual content.
 
 ### Combine Options
@@ -123,11 +95,6 @@ This skips downloading the ~GB database dump. Useful if you just want to test th
 **macOS:**
 ```bash
 ./setup.sh --postgres --skip-dump
-```
-
-**Windows:**
-```powershell
-.\setup.ps1 -Postgres -SkipDump
 ```
 
 ## After Setup
@@ -141,11 +108,6 @@ Run both servers with one command:
 **macOS:**
 ```bash
 ./run.sh
-```
-
-**Windows:**
-```powershell
-.\run.ps1
 ```
 
 This will:
@@ -166,13 +128,7 @@ pyenv activate senv
 python manage.py runserver
 ```
 
-**Windows - PowerShell 1 (Django Backend):**
-```powershell
-.\activate_senv.ps1
-python manage.py runserver
-```
-
-**Both Platforms - Terminal/PowerShell 2 (Webpack Frontend):**
+**Terminal 2 (Webpack Frontend):**
 ```bash
 npm run w
 ```
@@ -184,13 +140,6 @@ npm run w
 ./run.sh           # Run both servers (default)
 ./run.sh --django  # Run only Django
 ./run.sh --webpack # Run only webpack
-```
-
-**Windows:**
-```powershell
-.\run.ps1          # Run both servers (default)
-.\run.ps1 -Django  # Run only Django
-.\run.ps1 -Webpack # Run only webpack
 ```
 
 ### Common Tasks
@@ -208,11 +157,6 @@ Then access admin at: http://localhost:8000/admin
 **macOS:**
 ```bash
 ./scripts/setup/restore_dump.sh
-```
-
-**Windows:**
-```powershell
-.\scripts\setup\restore_dump.ps1
 ```
 
 **Update Dependencies:**
@@ -248,31 +192,6 @@ pyenv virtualenv-delete senv
 ./setup.sh
 ```
 
-### Windows Specific
-
-**"Running scripts is disabled":**
-
-Run this **before** running the setup script. Open PowerShell as Administrator and run:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-Then close and reopen PowerShell as Administrator to run the setup.
-
-**"MongoDB is not running":**
-```powershell
-Start-Service MongoDB
-# Or manually:
-mongod --dbpath C:\data\db
-```
-
-**Need to Start Over?**
-
-Delete virtual environment folder and re-run:
-```powershell
-Remove-Item -Recurse -Force "$env:USERPROFILE\.virtualenvs\senv"
-.\setup.ps1
-```
-
 ### Both Platforms
 
 **"Database dump download failed":**
@@ -290,12 +209,6 @@ The setup script installs:
 - **pyenv** - Manages Python versions
 - **nvm** - Manages Node.js versions
 - **Git** - Already installed on Mac, verified by script
-
-**Windows:**
-- **winget** - Windows Package Manager (built-in to Windows 11)
-- **Python** - Installed directly (no version manager needed)
-- **Node.js** - Installed directly
-- **Git** - Version control system
 
 ### Databases
 - **MongoDB** - Stores Sefaria texts and data
@@ -319,15 +232,11 @@ The setup script installs:
 ```
 Sefaria-Project/
 ├── setup.sh                    # Main setup script (macOS)
-├── setup.ps1                   # Main setup script (Windows)
 ├── run.sh                      # Run dev servers (macOS)
-├── run.ps1                     # Run dev servers (Windows)
-├── activate_senv.ps1           # Activate venv helper (Windows, created by setup)
 ├── scripts/setup/              # Individual setup scripts
 │   ├── README.md              # Detailed documentation
 │   ├── restore_dump.sh        # Restore database (macOS, generated during setup)
-│   ├── restore_dump.ps1       # Restore database (Windows, generated during setup)
-│   └── ...                    # Other setup scripts (.sh for macOS, .ps1 for Windows)
+│   └── ...                    # Other setup scripts (.sh for macOS)
 ├── sefaria/
 │   └── local_settings.py      # Your local config (created by setup)
 ├── log/                        # Django logs (created by setup)
