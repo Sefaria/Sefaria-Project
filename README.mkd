@@ -46,14 +46,8 @@ This configures a local subdomain for the Voices feature to run alongside the ma
    ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 ```
    
-   **Remove these if present:**
-   - Any `DOMAIN_LANGUAGES` variable
-   - Duplicate `ALLOWED_HOSTS` entries
-
-3. Install dependencies:
-```bash
-   pip install -r requirements.txt
-```
+   **Remove if present:**
+   - The `DOMAIN_LANGUAGES` variable
 
 4. Restart your Django development server.
 
