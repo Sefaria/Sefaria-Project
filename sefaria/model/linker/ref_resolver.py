@@ -587,7 +587,8 @@ class RefResolver:
         swap_inserts: Dict[int, List[RawRefPart]] = {}
         swap_removed_indices: Set[int] = set()
         additions_by_index: Dict[int, List[TermContext]] = defaultdict(list)
-        existing_context_slugs = {part.term.slug for part in raw_parts if isinstance(part, TermContext)}
+        # Track context slugs already added so mutations won't insert duplicates.
+        existing_context_slugs: Set[str] = set()
 
         from itertools import combinations, permutations
 
