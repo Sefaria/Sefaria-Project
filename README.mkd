@@ -26,20 +26,10 @@ This configures a local subdomain for the Voices feature to run alongside the ma
 
 1. Add `voices.localhost` to your hosts file:
    
-   **Unix/Linux/Mac:**
 ```bash
    echo "127.0.0.1    voices.localhost" | sudo tee -a /etc/hosts
 ```
    
-   **Windows (run PowerShell as Administrator):**
-```powershell
-   Add-Content -Path C:\Windows\System32\drivers\etc\hosts -Value "127.0.0.1    voices.localhost"
-```
-   Or manually edit `C:\Windows\System32\drivers\etc\hosts` in Notepad (as Administrator) and add:
-```
-   127.0.0.1    voices.localhost
-```
-
 2. In `local_settings.py`, update `DOMAIN_MODULES` structure and `ALLOWED_HOSTS`:
 ```python
    DOMAIN_MODULES = {
@@ -84,5 +74,4 @@ We're grateful to the following organizations for providing us with donated serv
 ## License
 
 [GPL](http://www.gnu.org/copyleft/gpl.html)
-
 
