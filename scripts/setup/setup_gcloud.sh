@@ -8,6 +8,12 @@
 
 set -e
 
+# Resolve directories
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+STATE_FILE="${SETUP_STATE_FILE:-"${PROJECT_ROOT}/.setup_state"}"
+RESTORE_SCRIPT_PATH="${PROJECT_ROOT}/scripts/setup/restore_dump.sh"
+
 # Source utility functions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -19,6 +25,66 @@ print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_error() { echo -e "${RED}✗ ERROR: $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠ WARNING: $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
+
+# Persist dump status so later steps can surface clear guidance
+write_dump_state() {
+  local status="$1"
+  local message="$2"
+  local detail="$3"
+  local latest_path="$4"
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
+  if [ -f "$STATE_FILE" ]; then
+    # Preserve any other state entries
+    grep -v '^DUMP_' "$STATE_FILE" > "$tmp_file" || true
+  fi
+
+  {
+    echo "DUMP_STATUS=$status"
+    printf 'DUMP_MESSAGE=%q\n' "$message"
+    printf 'DUMP_DETAIL=%q\n' "$detail"
+    printf 'DUMP_LATEST_PATH=%q\n' "$latest_path"
+  } >> "$tmp_file"
+
+  mv "$tmp_file" "$STATE_FILE"
+}
+
+# Check dump availability without blocking the overall setup
+check_dump_availability() {
+  if [ "$SKIP_DUMP" = true ]; then
+    print_info "Skipping dump availability test (--skip-dump flag)"
+    write_dump_state "skipped" "MongoDB dump restoration skipped by --skip-dump flag." ""
+    return 0
+  fi
+
+  if ! command -v gsutil &> /dev/null; then
+    print_warning "gsutil (Google Cloud SDK storage CLI) not found; cannot check dump availability"
+    write_dump_state "blocked" "Google Cloud SDK tools are missing, so the MongoDB dump cannot be restored automatically." "Install Google Cloud SDK or ensure gsutil is on PATH."
+    return 0
+  fi
+
+  if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q "@"; then
+    print_warning "No active Google Cloud authentication detected; skipping dump restoration."
+    write_dump_state "blocked" "No active Google Cloud authentication. Run 'gcloud auth login' before restoring the MongoDB dump." "gcloud auth list did not report an active account."
+    return 0
+  fi
+
+  local bucket_path="gs://sefaria-mongo-backup"
+  local latest_entry
+  latest_entry=$(gsutil ls -l "${bucket_path}/private_dump_small_*.tar.gz" 2>/dev/null | awk 'NF==3 {print $2 "|" $3}' | sort | tail -n 1)
+
+  if [ -z "$latest_entry" ]; then
+    print_warning "No MongoDB dump found in ${bucket_path}; you may not have access or the bucket is empty."
+    write_dump_state "not_found" "No MongoDB dump was found in ${bucket_path}. Reach out to the Sefaria team to confirm access or bucket contents." "gsutil ls returned no matching private_dump_small_*.tar.gz files."
+    return 0
+  fi
+
+  local dump_gcs_path="${latest_entry#*|}"
+  print_success "MongoDB dump located: ${dump_gcs_path}"
+  write_dump_state "available" "MongoDB dump available at ${dump_gcs_path}. Restoration will be offered after the main setup." "" "$dump_gcs_path"
+}
 
 # Check if gcloud is installed
 check_gcloud() {
@@ -182,7 +248,7 @@ restore_dump() {
 create_restore_script() {
   print_info "Creating standalone restore_dump.sh script..."
 
-  cat > scripts/setup/restore_dump.sh << 'EOF'
+  cat > "${RESTORE_SCRIPT_PATH}" << 'EOF'
 #!/bin/bash
 
 ###############################################################################
@@ -263,7 +329,7 @@ main() {
 main
 EOF
 
-  chmod +x scripts/setup/restore_dump.sh
+  chmod +x "${RESTORE_SCRIPT_PATH}"
   print_success "Created scripts/setup/restore_dump.sh"
 }
 
@@ -307,12 +373,12 @@ main() {
   # Create restore script for future use
   create_restore_script
 
-  # Restore dump
-  restore_dump
+  # Check dump availability; restoration happens during finalization
+  check_dump_availability
 
   echo ""
   print_success "Google Cloud SDK setup complete!"
-  print_info "You can restore the dump later using: ./scripts/setup/restore_dump.sh"
+  print_info "A dedicated restore script is available at: ./scripts/setup/restore_dump.sh"
 }
 
 main

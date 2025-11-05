@@ -12,6 +12,11 @@
 
 set -e
 
+# Resolve directories and shared state
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+STATE_FILE="${SETUP_STATE_FILE:-"${PROJECT_ROOT}/.setup_state"}"
+
 # Source utility functions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -24,6 +29,42 @@ print_error() { echo -e "${RED}✗ ERROR: $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠ WARNING: $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
 
+# Shared dump status helpers
+write_dump_state() {
+  local status="$1"
+  local message="$2"
+  local detail="$3"
+  local latest_path="$4"
+
+  local tmp_file
+  tmp_file=$(mktemp)
+
+  if [ -f "$STATE_FILE" ]; then
+    grep -v '^DUMP_' "$STATE_FILE" > "$tmp_file" || true
+  fi
+
+  {
+    echo "DUMP_STATUS=$status"
+    printf 'DUMP_MESSAGE=%q\n' "$message"
+    printf 'DUMP_DETAIL=%q\n' "$detail"
+    printf 'DUMP_LATEST_PATH=%q\n' "$latest_path"
+  } >> "$tmp_file"
+
+  mv "$tmp_file" "$STATE_FILE"
+}
+
+load_setup_state() {
+  if [ -f "$STATE_FILE" ]; then
+    # shellcheck disable=SC1090
+    source "$STATE_FILE"
+  else
+    DUMP_STATUS=""
+    DUMP_MESSAGE=""
+    DUMP_DETAIL=""
+    DUMP_LATEST_PATH=""
+  fi
+}
+
 # Ensure virtualenv is activated
 ensure_virtualenv() {
   print_info "Ensuring Python virtual environment is active..."
@@ -31,9 +72,9 @@ ensure_virtualenv() {
   # Source pyenv
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init --path)" || true
-  eval "$(pyenv init -)" || true
-  eval "$(pyenv virtualenv-init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv init --path)" || true
+  eval "$(PYENV_SHELL=bash pyenv init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv virtualenv-init -)" || true
 
   # Activate senv
   export PYENV_VERSION=senv
@@ -130,6 +171,69 @@ create_superuser() {
   fi
 }
 
+# Offer dump restoration at the end of the setup process
+maybe_restore_dump() {
+  load_setup_state
+
+  case "${DUMP_STATUS:-}" in
+    restored)
+      print_success "MongoDB dump already restored."
+      return 0
+      ;;
+    skipped)
+      print_info "${DUMP_MESSAGE}"
+      return 0
+      ;;
+    blocked|not_found|failed)
+      print_warning "${DUMP_MESSAGE}"
+      [ -n "${DUMP_DETAIL}" ] && print_info "Details: ${DUMP_DETAIL}"
+      return 0
+      ;;
+  esac
+
+  if [ "${DUMP_STATUS:-}" != "available" ]; then
+    # No information recorded yet
+    print_warning "MongoDB dump availability is unknown. You can attempt a restore with ./scripts/setup/restore_dump.sh."
+    return 0
+  fi
+
+  local dump_path="${DUMP_LATEST_PATH:-the configured Google Cloud Storage bucket}"
+  echo ""
+  print_info "MongoDB dump is available at: ${dump_path}"
+  read -p "Do you want to restore the MongoDB dump now? (y/n) " -n 1 -r
+  echo ""
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    write_dump_state "deferred" "MongoDB dump is available (${dump_path}) but restoration was skipped when prompted." ""
+    load_setup_state
+    print_info "Skipping MongoDB dump restoration. You can run ./scripts/setup/restore_dump.sh later."
+    return 0
+  fi
+
+  if [ ! -x "${PROJECT_ROOT}/scripts/setup/restore_dump.sh" ]; then
+    print_error "restore_dump.sh script is missing or not executable."
+    write_dump_state "failed" "MongoDB dump restoration could not start because restore_dump.sh is missing." "Expected script at scripts/setup/restore_dump.sh"
+    load_setup_state
+    return 0
+  fi
+
+  print_info "Restoring MongoDB dump... (this may take several minutes)"
+  set +e
+  bash "${PROJECT_ROOT}/scripts/setup/restore_dump.sh"
+  local restore_exit=$?
+  set -e
+
+  if [ $restore_exit -eq 0 ]; then
+    write_dump_state "restored" "MongoDB dump restored successfully from ${dump_path}." ""
+    load_setup_state
+    print_success "MongoDB dump restored successfully."
+  else
+    write_dump_state "failed" "MongoDB dump restoration failed. Review the output above and rerun ./scripts/setup/restore_dump.sh." "restore_dump.sh exited with status ${restore_exit}"
+    load_setup_state
+    print_warning "MongoDB dump restoration failed (exit code ${restore_exit}). See above for details."
+  fi
+}
+
 # Verify complete setup
 verify_setup() {
   print_info "Verifying complete setup..."
@@ -180,6 +284,49 @@ print(len(db.list_collection_names()) > 0)
   fi
 
   echo ""
+}
+
+# Summarize dump status for the final output
+print_dump_summary() {
+  load_setup_state
+  echo ""
+  echo -e "${BLUE}MongoDB Dump Summary:${NC}"
+
+  case "${DUMP_STATUS:-unknown}" in
+    restored)
+      print_success "${DUMP_MESSAGE:-MongoDB dump restored successfully.}"
+      ;;
+    deferred)
+      print_warning "${DUMP_MESSAGE:-MongoDB dump restoration was deferred.}"
+      print_info "Run ./scripts/setup/restore_dump.sh when you're ready."
+      ;;
+    available)
+      print_warning "${DUMP_MESSAGE:-MongoDB dump is available but not yet restored.}"
+      print_info "Run ./scripts/setup/restore_dump.sh to restore the data."
+      ;;
+    skipped)
+      print_info "${DUMP_MESSAGE:-MongoDB dump restoration was skipped by request.}"
+      ;;
+    blocked)
+      print_warning "${DUMP_MESSAGE:-MongoDB dump restoration is blocked.}"
+      [ -n "${DUMP_DETAIL}" ] && print_info "Details: ${DUMP_DETAIL}"
+      print_info "Once resolved, run ./scripts/setup/restore_dump.sh."
+      ;;
+    not_found)
+      print_warning "${DUMP_MESSAGE:-MongoDB dump could not be located.}"
+      [ -n "${DUMP_DETAIL}" ] && print_info "Details: ${DUMP_DETAIL}"
+      print_info "Contact the Sefaria team for access, then run ./scripts/setup/restore_dump.sh."
+      ;;
+    failed)
+      print_error "${DUMP_MESSAGE:-MongoDB dump restoration failed.}"
+      [ -n "${DUMP_DETAIL}" ] && print_info "Details: ${DUMP_DETAIL}"
+      print_info "After addressing the issue, rerun ./scripts/setup/restore_dump.sh."
+      ;;
+    *)
+      print_warning "MongoDB dump status unknown."
+      print_info "You can attempt a restore with ./scripts/setup/restore_dump.sh."
+      ;;
+  esac
 }
 
 # Print next steps
@@ -245,12 +392,15 @@ main() {
   print_info "Finalizing setup..."
   echo ""
 
+  load_setup_state
   ensure_virtualenv
   configure_hosts_file
   create_log_directory
   run_migrations
   create_superuser
+  maybe_restore_dump
   verify_setup
+  print_dump_summary
   print_next_steps
 }
 

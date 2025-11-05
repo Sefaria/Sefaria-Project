@@ -62,6 +62,12 @@ export USE_POSTGRES
 export SKIP_DUMP
 export SCRIPT_DIR
 
+# Shared setup state file (used for cross-step summaries)
+SETUP_STATE_FILE="${SCRIPT_DIR}/.setup_state"
+rm -f "${SETUP_STATE_FILE}"
+touch "${SETUP_STATE_FILE}"
+export SETUP_STATE_FILE
+
 # Utility functions
 print_header() {
   echo ""
