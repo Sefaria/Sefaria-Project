@@ -4641,8 +4641,8 @@ def settings_profile_redirect(request):
     Redirect /settings/profile from library module to voices module
     """
     # Get the voices domain from settings
-    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
-    voices_domain = domain_modules[VOICES_MODULE]
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
     target_url = urllib.parse.urljoin(voices_domain, "/settings/profile/")
     
     # Preserve query parameters
@@ -4658,8 +4658,8 @@ def community_to_voices_redirect(request):
     Redirect /community from library module to voices module root
     """
     # Get the voices domain from settings
-    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
-    voices_domain = domain_modules[VOICES_MODULE]
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
     target_url = urllib.parse.urljoin(voices_domain, "/")
     
     # Preserve query parameters
@@ -4675,8 +4675,8 @@ def collections_redirect(request, slug=None):
     Redirect /collections and /collections/[slug] from library module to voices module
     """
     # Get the voices domain from settings
-    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
-    voices_domain = domain_modules[VOICES_MODULE]
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
     
     # Build the target URL
     if slug:
@@ -4697,8 +4697,8 @@ def profile_redirect_to_voices(request, username=None):
     Redirect /profile and /profile/[username] from library module to voices module
     """
     # Get the voices domain from settings
-    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
-    voices_domain = domain_modules[VOICES_MODULE]
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
     
     # Build the target URL
     if username:
@@ -4719,8 +4719,8 @@ def sheets_redirect_to_voices(request, sheet_id=None):
     Redirect /sheets and /sheets/[sheet_id] from library module to voices module
     """
     # Get the voices domain from settings
-    domain_modules = get_language_specific_domain_modules(request.interfaceLang)
-    voices_domain = domain_modules[VOICES_MODULE]
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
     
     # Build the target URL
     if sheet_id:
