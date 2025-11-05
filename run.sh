@@ -91,24 +91,13 @@ check_python() {
   eval "$(PYENV_SHELL=bash pyenv init -)" || true
   eval "$(PYENV_SHELL=bash pyenv virtualenv-init -)" || true
 
-  # Check if senv exists
-  if ! pyenv versions | grep -q "senv"; then
-    print_error "Virtual environment 'senv' not found"
-    print_info "Run ./setup.sh to create the Python environment"
-    exit 1
+  if python -c "import django" 2>/dev/null; then
+    print_success "Python environment OK"
+    return 0
   fi
 
-  # Activate senv
-  export PYENV_VERSION=senv
-
-  # Check if Django is installed
-  if ! python -c "import django" 2>/dev/null; then
-    print_error "Django not installed in virtual environment"
-    print_info "Run: pip install -r requirements.txt"
-    exit 1
-  fi
-
-  print_success "Python environment OK"
+  print_error "Django not available; activate your environment or run ./setup.sh"
+  exit 1
 }
 
 # Ensure MongoDB has required data
