@@ -2,7 +2,9 @@
 """
 Custom Sefaria Tags for Django Templates
 """
+import hashlib
 import json
+import os
 import re
 import dateutil.parser
 import urllib.request, urllib.parse, urllib.error
@@ -10,6 +12,7 @@ import math
 from urllib.parse import urlparse
 from datetime import datetime
 from django import template
+from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
@@ -522,3 +525,16 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
+
+
+@register.simple_tag
+def get_static_file_hash(path):
+    """
+    Returns an MD5 hash of a file in the static directory
+    """
+    file_path = os.path.join(settings.STATIC_ROOT, path)
+    if not os.path.exists(file_path):
+        return ""
+        
+    with open(file_path, 'rb') as f:
+        return hashlib.md5(f.read()).hexdigest()[:8]
