@@ -5,6 +5,7 @@ from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
+from sefaria.model.passage import PassageSet, Passage
 from sefaria.system.exceptions import InputError
 from bisect import bisect_right
 
@@ -290,6 +291,8 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
             children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
             if serial['depth'] == 1:
                 return children
+        if self._ja_node.has_passage_children():
+            children += [PassageNodeSet(context_ref)]
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
         return children + [NumberedReferenceableBookNode(new_ja)]
 
@@ -431,6 +434,34 @@ class DiburHamatchilNode(abst.AbstractMongoRecord, ReferenceableBookNode):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return DiburHamatchilMatch(1.0, dh, dh_index)
         return DiburHamatchilMatch(0.0, None, dh_index)
+    
+    
+class PassageNode(ReferenceableBookNode):
+    
+    def __init__(self, passage: Passage):
+        self._passage = passage
+        
+    def ref(self) -> text.Ref:
+        return self._passage.ref()
+        
+    def get_match_template_trie(self, *args, **kwargs):
+        return self._passage.get_match_template_trie(*args, **kwargs)
+    
+    
+class PassageNodeSet(ReferenceableBookNode):
+    
+    def __init__(self, ref: text.Ref):
+        query = {
+            "$or": [
+                {'ref_list': {'$regex': r}} for r in ref.regex(as_list=True)
+            ],
+            "match_templates": {"$exists": True}
+        }
+        self._passages = PassageSet(query)
+        
+    def get_children(self, *args, **kwargs) -> List['PassageNode']:
+        return [PassageNode(passage) for passage in self._passages]
+        
 
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet, ReferenceableBookNode):

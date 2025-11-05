@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from itertools import product
 from typing import List
 from sefaria.model.schema import AddressInteger
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet, PassageNodeSet
 from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType, RawRefPartPair
 from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
@@ -170,6 +170,16 @@ class ResolvedRefRefinerForDiburHamatchilPart(ResolvedRefRefiner):
         if isinstance(node, DiburHamatchilNodeSet):
             return self.__get_refined_matches_for_dh_part(lang, self.part_to_match, node)
         return []
+    
+    
+class ResolvedRefRefinerForPassage(ResolvedRefRefiner):
+    
+    def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
+        resolved_refs = []
+        for passage_node in self.node.get_children():
+            if passage_node.get_match_template_trie(lang).has_continuations(self.part_to_match.key(), key_is_id=self.part_to_match.key_is_id):
+                resolved_refs.append(self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=passage_node.ref()))
+        return resolved_refs
 
 
 class ResolvedRefRefinerCatchAll(ResolvedRefRefiner):
