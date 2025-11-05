@@ -105,6 +105,7 @@ EOF
 
   cat >> sefaria/local_settings.py <<'EOF'
 
+# --- Local overrides appended by setup.sh ---
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 ADMINS = (
@@ -113,8 +114,10 @@ ADMINS = (
 
 ADMIN_PATH = 'admin'
 
+# Provide a deterministic but obviously non-production secret
 SECRET_KEY = 'local-development-secret-key-change-in-production'
 
+# Leave blank unless you have a service account JSON locally
 GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 
 EOF

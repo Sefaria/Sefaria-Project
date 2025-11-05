@@ -67,6 +67,7 @@ load_setup_state() {
 database_has_data() {
   local has_db has_collections
 
+  # Skip download when Mongo already holds the content (common on reruns)
   if ! command -v mongosh &> /dev/null; then
     return 1
   fi
@@ -88,11 +89,13 @@ ensure_prerequisites() {
     exit 1
   fi
 
+  # Bail early if MongoDB itself is down so the user can start it first
   if ! pgrep -x mongod >/dev/null 2>&1; then
     print_error "MongoDB is not running. Start it with: brew services start mongodb-community"
     exit 1
   fi
 
+  # Prefer curl but fall back to wget so we work on fresh macOS installs
   if command -v curl &> /dev/null; then
     DOWNLOADER="curl"
   elif command -v wget &> /dev/null; then
@@ -104,7 +107,7 @@ ensure_prerequisites() {
 }
 
 required_space_bytes() {
-  # small dump currently ~8GB. add safety margin of 4GB for indexes/logs
+  # The public dump is ~8GB today; keep a safety margin for indexes/logs
   poll_estimate=${1:-13}
   echo $((poll_estimate * 1024 * 1024 * 1024))
 }
@@ -152,7 +155,7 @@ download_dump() {
 restore_dump() {
   local archive="$1"
   print_info "Extracting dump archive..."
-  rm -rf dump/
+  rm -rf dump/  # ensure old extractions don't accumulate
   tar xzf "$archive"
   print_success "Extraction complete"
 
