@@ -87,9 +87,9 @@ check_python() {
   # Source pyenv
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init --path)" || true
-  eval "$(pyenv init -)" || true
-  eval "$(pyenv virtualenv-init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv init --path)" || true
+  eval "$(PYENV_SHELL=bash pyenv init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv virtualenv-init -)" || true
 
   # Check if senv exists
   if ! pyenv versions | grep -q "senv"; then
@@ -109,6 +109,66 @@ check_python() {
   fi
 
   print_success "Python environment OK"
+}
+
+# Ensure MongoDB has required data
+check_mongodb_data() {
+  print_info "Checking MongoDB content..."
+
+  # Use project virtualenv (if not already set)
+  export PYENV_VERSION=${PYENV_VERSION:-senv}
+
+  local status
+  status=$(python <<'PYCODE' 2>/dev/null || echo "PY_ERROR")
+from pymongo import MongoClient
+client = MongoClient("localhost", 27017, serverSelectionTimeoutMS=2000)
+try:
+    client.server_info()
+except Exception:
+    print("CONNECTION_ERROR")
+    raise SystemExit
+
+db_names = client.list_database_names()
+if "sefaria" not in db_names:
+    print("NO_DB")
+    raise SystemExit
+
+collections = client["sefaria"].list_collection_names()
+if collections:
+    print("READY")
+else:
+    print("EMPTY_DB")
+PYCODE
+
+  case "$status" in
+    READY)
+      print_success "MongoDB contains the 'sefaria' database"
+      ;;
+    EMPTY_DB)
+      print_error "MongoDB 'sefaria' database is empty"
+      print_info "Restore the content dump with: ./scripts/setup/restore_dump.sh"
+      exit 1
+      ;;
+    NO_DB)
+      print_error "MongoDB 'sefaria' database not found"
+      print_info "Run ./scripts/setup/restore_dump.sh to download and restore the data dump."
+      exit 1
+      ;;
+    CONNECTION_ERROR)
+      print_error "Unable to query MongoDB for database list"
+      print_info "Ensure mongod is running and accessible at localhost:27017"
+      exit 1
+      ;;
+    PY_ERROR)
+      print_error "Python check for MongoDB content failed"
+      print_info "Ensure pymongo is installed in the virtual environment"
+      exit 1
+      ;;
+    *)
+      print_error "Unexpected MongoDB content check result: $status"
+      exit 1
+      ;;
+  esac
 }
 
 # Check Node environment
@@ -286,6 +346,7 @@ main() {
 
   if [ "$RUN_DJANGO" = true ]; then
     check_python
+    check_mongodb_data
   fi
 
   if [ "$RUN_WEBPACK" = true ]; then

@@ -220,19 +220,8 @@ main() {
   # Complete!
   print_header "Setup Complete!"
   print_success "Sefaria development environment is ready!"
-  echo ""
-  print_info "Next steps:"
-  echo ""
-  echo -e "  ${GREEN}Quick Start (Recommended):${NC}"
-  echo -e "    ${BLUE}./run.sh${NC}    # Starts both servers automatically"
-  echo ""
-  echo "  Or start servers manually:"
-  echo "    1. Start the Django server: python manage.py runserver"
-  echo "    2. In a separate terminal, start the Node server: npm run w"
-  echo "    3. Visit http://localhost:8000 in your browser"
-  echo ""
-  print_info "For more information, see the documentation at:"
-  echo "  https://developers.sefaria.org/docs/local-installation-instructions"
+  print_info "Review the summary above for MongoDB status and next steps."
+  print_info "Documentation: https://developers.sefaria.org/docs/local-installation-instructions"
   echo ""
 }
 
