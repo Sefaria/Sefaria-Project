@@ -87,7 +87,7 @@ def needs_domain_switch(request, target_domain):
     target_hostname = urlparse(target_domain).hostname if target_domain else None
     return target_hostname is not None and current_hostname != target_hostname
 
-
+# Comment for PR for Cauldron
 def get_cookie_domain(language):
     """
     Get the appropriate cookie domain for a given language.
