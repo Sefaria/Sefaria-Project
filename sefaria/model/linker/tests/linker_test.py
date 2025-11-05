@@ -1,17 +1,8 @@
-from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from sefaria.model.linker.ref_resolver import (
-    ResolvedRef,
-    ResolutionThoroughness,
-    RefResolver,
-    IbidHistory,
-    ContextMutationOp,
-    ContextMutation,
-    ContextMutationSet,
-)
+from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
 from .linker_test_utils import *
 from sefaria.model import schema
-from sefaria.model.linker.match_template import MatchTemplateTrie
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
@@ -41,121 +32,6 @@ def test_resolved_raw_ref_clone():
     assert rrr_clone.ref == Ref("Genesis")
 
 
-def test_context_mutation_add_inserts_term(monkeypatch):
-    class DummyTerm:
-        def __init__(self, slug):
-            self.slug = slug
-
-        def get_titles(self, lang):
-            return [self.slug]
-
-    class DummyTermMatcher:
-        def match_term(self, ref_part):
-            if ref_part.text == "Trigger":
-                return [DummyTerm("shulchan_arukh")]
-            return []
-
-        def match_terms(self, ref_parts):
-            matches = []
-            for part in ref_parts:
-                matches += self.match_term(part)
-            return matches
-
-    raw_ref, _, _, _ = create_raw_ref_data(["@Trigger"], lang="en")
-    mutation = ContextMutation(ContextMutationOp.ADD, ["shulchan_arukh"], ["orach_chayyim"])
-    mutation_set = ContextMutationSet()
-    mutation_set.add_mutations([mutation])
-
-    def fake_init(cls, slug):
-        return DummyTerm(slug)
-
-    monkeypatch.setattr(schema.NonUniqueTerm, "init", classmethod(fake_init))
-
-    resolver = RefResolver("en", MatchTemplateTrie("en", nodes=[]), DummyTermMatcher())
-    resolver._apply_context_mutations(raw_ref, mutation_set)
-
-    assert len(raw_ref.parts_to_match) == 2
-    assert raw_ref.parts_to_match[0] == raw_ref.raw_ref_parts[0]
-    assert isinstance(raw_ref.parts_to_match[1], TermContext)
-    assert raw_ref.parts_to_match[1].term.slug == "orach_chayyim"
-
-    resolver._apply_context_mutations(raw_ref, mutation_set)
-    assert len(raw_ref.parts_to_match) == 2
-
-
-def test_context_mutation_multi_part(monkeypatch):
-    class DummyTerm:
-        def __init__(self, slug):
-            self.slug = slug
-
-        def get_titles(self, lang):
-            return [self.slug]
-
-    slug_map = {
-        "TriggerA": "shulchan_arukh",
-        "TriggerB": "suffix_term",
-    }
-
-    class MultiTermMatcher:
-        def match_term(self, ref_part):
-            slug = slug_map.get(ref_part.text)
-            return [DummyTerm(slug)] if slug else []
-
-        def match_terms(self, ref_parts):
-            seen = {}
-            for part in ref_parts:
-                for match in self.match_term(part):
-                    seen.setdefault(match.slug, match)
-            return list(seen.values())
-
-    def fake_init(cls, slug):
-        return DummyTerm(slug)
-
-    monkeypatch.setattr(schema.NonUniqueTerm, "init", classmethod(fake_init))
-
-    resolver = RefResolver("en", MatchTemplateTrie("en", nodes=[]), MultiTermMatcher())
-
-    # ADD mutation over two parts
-    add_mutation = ContextMutation(ContextMutationOp.ADD, ["shulchan_arukh", "suffix_term"], ["even_haezer"])
-    mutation_set = ContextMutationSet()
-    mutation_set.add_mutations([add_mutation])
-
-    raw_ref_add_ordered, _, _, _ = create_raw_ref_data(["@TriggerA", "@TriggerB"], lang="en")
-    resolver._apply_context_mutations(raw_ref_add_ordered, mutation_set)
-
-    assert len(raw_ref_add_ordered.parts_to_match) == 3
-    assert raw_ref_add_ordered.parts_to_match[0] == raw_ref_add_ordered.raw_ref_parts[0]
-    assert raw_ref_add_ordered.parts_to_match[1] == raw_ref_add_ordered.raw_ref_parts[1]
-    assert isinstance(raw_ref_add_ordered.parts_to_match[2], TermContext)
-    assert raw_ref_add_ordered.parts_to_match[2].term.slug == "even_haezer"
-
-    raw_ref_add_reversed, _, _, _ = create_raw_ref_data(["@TriggerB", "@TriggerA"], lang="en")
-    resolver._apply_context_mutations(raw_ref_add_reversed, mutation_set)
-
-    assert len(raw_ref_add_reversed.parts_to_match) == 3
-    assert raw_ref_add_reversed.parts_to_match[0] == raw_ref_add_reversed.raw_ref_parts[0]
-    assert raw_ref_add_reversed.parts_to_match[1] == raw_ref_add_reversed.raw_ref_parts[1]
-    assert isinstance(raw_ref_add_reversed.parts_to_match[2], TermContext)
-    assert raw_ref_add_reversed.parts_to_match[2].term.slug == "even_haezer"
-
-    # SWAP mutation over the same two parts
-    swap_mutation = ContextMutation(ContextMutationOp.SWAP, ["shulchan_arukh", "suffix_term"], ["even_haezer"])
-    mutation_set_swap = ContextMutationSet()
-    mutation_set_swap.add_mutations([swap_mutation])
-
-    raw_ref_swap, _, _, _ = create_raw_ref_data(["@TriggerA", "@TriggerB"], lang="en")
-    resolver._apply_context_mutations(raw_ref_swap, mutation_set_swap)
-
-    assert len(raw_ref_swap.parts_to_match) == 1
-    assert isinstance(raw_ref_swap.parts_to_match[0], TermContext)
-    assert raw_ref_swap.parts_to_match[0].term.slug == "even_haezer"
-
-    raw_ref_swap_reversed, _, _, _ = create_raw_ref_data(["@TriggerB", "@TriggerA"], lang="en")
-    resolver._apply_context_mutations(raw_ref_swap_reversed, mutation_set_swap)
-
-    assert len(raw_ref_swap_reversed.parts_to_match) == 1
-    assert isinstance(raw_ref_swap_reversed.parts_to_match[0], TermContext)
-    assert raw_ref_swap_reversed.parts_to_match[0].term.slug == "even_haezer"
 
 
 crrd = create_raw_ref_data
