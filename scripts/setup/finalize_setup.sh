@@ -163,13 +163,7 @@ create_superuser() {
   echo ""
 
   local superuser_exists
-  superuser_exists=$(
-    python <<'PYCODE' 2>/dev/null || echo "ERROR"
-from django.contrib.auth import get_user_model
-User = get_user_model()
-print(User.objects.filter(is_superuser=True).exists())
-PYCODE
-  )
+  superuser_exists=$(python manage.py shell -c "from django.contrib.auth import get_user_model; User=get_user_model(); import sys; sys.stdout.write(str(User.objects.filter(is_superuser=True).exists()))" 2>/dev/null || echo "ERROR")
 
   if [ "$superuser_exists" = "True" ]; then
     print_info "A Django superuser already exists; skipping creation prompt."

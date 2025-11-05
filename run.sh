@@ -119,7 +119,9 @@ check_mongodb_data() {
   export PYENV_VERSION=${PYENV_VERSION:-senv}
 
   local status
-  status=$(python <<'PYCODE' 2>/dev/null || echo "PY_ERROR")
+  if ! status=$(python <<'PYCODE' 2>/dev/null); then
+    status="PY_ERROR"
+  fi
 from pymongo import MongoClient
 client = MongoClient("localhost", 27017, serverSelectionTimeoutMS=2000)
 try:
