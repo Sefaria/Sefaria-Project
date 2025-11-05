@@ -211,7 +211,7 @@ export class ModuleHeaderPage extends HelperBase {
   }
 
   // Accessibility Methods
-  async testTabOrder(_tabOrder: any[]) {
+  async testTabOrder(_tabOrder: readonly any[]) {
     // Ensure overlays are dismissed and header is visible for accessibility checks
     await hideAllModalsAndPopups(this.page);
     try {
