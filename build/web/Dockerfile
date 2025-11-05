@@ -15,7 +15,8 @@ RUN npm run $TYPE
 
 COPY . /app/
 
-RUN python manage.py collectstatic
+# Collect static files, ignoring demos.css which is not used in production
+RUN python manage.py collectstatic --ignore demos.css
 
 ENTRYPOINT ["/bin/bash", "-c"]
 EXPOSE 80
