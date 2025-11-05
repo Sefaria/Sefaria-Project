@@ -624,7 +624,7 @@ class RefResolver:
         @param ref_parts:
         @return:
         """
-        named_parts = [part for part in ref_parts if part.type == RefPartType.NAMED]
+        named_parts = [part for part in ref_parts if part.type == RefPartType.NAMED and not part.is_context]
         named_part_pairs = []
         for i, part in enumerate(named_parts[:-1]):
             next_part = named_parts[i+1]
