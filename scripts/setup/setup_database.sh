@@ -105,6 +105,8 @@ EOF
 
   cat >> sefaria/local_settings.py <<'EOF'
 
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 ADMINS = (
     ('Local Admin', 'admin@localhost'),
 )
