@@ -2001,10 +2001,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   filter: none;
   opacity: .6;
 }
-.navSidebar button.appButton.white img {
+.navSidebar .appButton.white img {
   opacity: 1;
 }
-.navSidebar button.appButton.ios img {
+.navSidebar .appButton.ios img {
   margin-top: -5px;
 }
 .navSidebar .button + .button {
@@ -8957,15 +8957,15 @@ a .button:hover {
   width: 14px;
   margin-top: -3px;
 }
-button.appButton {
+.appButton {
   box-shadow: none;
   border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
-button.appButton img {
+.appButton img {
   margin-inline-end: 5px;
 }
-button.appButton.iconOnly {
+.appButton.iconOnly {
   width: 40px;
   height: 40px;
   box-sizing: border-box;
@@ -8975,7 +8975,7 @@ button.appButton.iconOnly {
   justify-content: center;
   align-items: center;
 }
-button.appButton.iconOnly img {
+.appButton.iconOnly img {
   width: 18px;
   height: 18px;
   margin: 0;
