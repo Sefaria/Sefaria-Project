@@ -33,9 +33,9 @@ ensure_pyenv() {
   if ! command -v pyenv &> /dev/null; then
     export PYENV_ROOT="$HOME/.pyenv"
     export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)" || true
-    eval "$(pyenv init -)" || true
-    eval "$(pyenv virtualenv-init -)" || true
+    eval "$(PYENV_SHELL=bash pyenv init --path)" || true
+    eval "$(PYENV_SHELL=bash pyenv init -)" || true
+    eval "$(PYENV_SHELL=bash pyenv virtualenv-init -)" || true
   fi
 
   if ! command -v pyenv &> /dev/null; then
@@ -85,6 +85,12 @@ install_python() {
 create_virtualenv() {
   print_info "Setting up virtual environment 'senv'..."
 
+  if ! pyenv commands 2>/dev/null | grep -q "^virtualenv$"; then
+    print_error "pyenv-virtualenv plugin is not available"
+    print_info "Re-run './setup.sh' to reinstall system tools or run 'brew install pyenv-virtualenv'"
+    exit 1
+  fi
+
   # Check if senv already exists
   if pyenv versions | grep -q "/envs/senv"; then
     print_warning "Virtual environment 'senv' already exists"
@@ -113,8 +119,8 @@ set_local_python() {
   print_success "Local Python version set to senv"
 
   # Activate the virtualenv for current session
-  eval "$(pyenv init -)"
-  eval "$(pyenv virtualenv-init -)"
+  eval "$(PYENV_SHELL=bash pyenv init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv virtualenv-init -)" || true
   pyenv activate senv || true
 }
 
@@ -126,6 +132,8 @@ install_python_dependencies() {
     print_error "requirements.txt not found!"
     exit 1
   fi
+
+  ensure_pg_config
 
   # Ensure we're using the senv virtualenv
   export PYENV_VERSION=senv
@@ -171,6 +179,47 @@ verify_installation() {
   else
     print_error "pymongo not found - installation may have failed"
     exit 1
+  fi
+}
+
+# Ensure pg_config (from libpq) is on PATH for building psycopg2
+ensure_pg_config() {
+  if command -v pg_config &> /dev/null; then
+    print_info "pg_config already available on PATH"
+    return 0
+  fi
+
+  local LIBPQ_PREFIX="/opt/homebrew/opt/libpq"
+
+  if [ -x "${LIBPQ_PREFIX}/bin/pg_config" ]; then
+    print_info "Configuring environment for PostgreSQL client libraries..."
+    case ":${PATH}:" in
+      *":${LIBPQ_PREFIX}/bin:"*) ;;
+      *) export PATH="${LIBPQ_PREFIX}/bin:${PATH}" ;;
+    esac
+
+    if [[ -n "${LDFLAGS}" ]]; then
+      export LDFLAGS="-L${LIBPQ_PREFIX}/lib ${LDFLAGS}"
+    else
+      export LDFLAGS="-L${LIBPQ_PREFIX}/lib"
+    fi
+
+    if [[ -n "${CPPFLAGS}" ]]; then
+      export CPPFLAGS="-I${LIBPQ_PREFIX}/include ${CPPFLAGS}"
+    else
+      export CPPFLAGS="-I${LIBPQ_PREFIX}/include"
+    fi
+
+    if [[ -n "${PKG_CONFIG_PATH}" ]]; then
+      export PKG_CONFIG_PATH="${LIBPQ_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+    else
+      export PKG_CONFIG_PATH="${LIBPQ_PREFIX}/lib/pkgconfig"
+    fi
+
+    print_success "pg_config configured for build"
+  else
+    print_warning "pg_config not found; installing PostgreSQL client libraries may be required"
+    print_info "You can install them by running: brew install libpq"
   fi
 }
 

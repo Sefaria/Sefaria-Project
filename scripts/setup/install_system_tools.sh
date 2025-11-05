@@ -140,9 +140,9 @@ EOF
   # Source the config for current session
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init --path)" || true
-  eval "$(pyenv init -)" || true
-  eval "$(pyenv virtualenv-init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv init --path)" || true
+  eval "$(PYENV_SHELL=bash pyenv init -)" || true
+  eval "$(PYENV_SHELL=bash pyenv virtualenv-init -)" || true
 
   print_success "pyenv installed and configured"
 }
