@@ -108,9 +108,7 @@ check_mongodb_data() {
   export PYENV_VERSION=${PYENV_VERSION:-senv}
 
   local status
-  if ! status=$(python <<'PYCODE' 2>/dev/null); then
-    status="PY_ERROR"
-  fi
+  if ! status=$(python <<'PYCODE' 2>/dev/null
 from pymongo import MongoClient
 client = MongoClient("localhost", 27017, serverSelectionTimeoutMS=2000)
 try:
@@ -130,6 +128,9 @@ if collections:
 else:
     print("EMPTY_DB")
 PYCODE
+  ); then
+    status="PY_ERROR"
+  fi
 
   case "$status" in
     READY)
