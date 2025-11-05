@@ -32,6 +32,8 @@ import sefaria.model.text
 import sefaria.model as m
 from sefaria.model.text import library, AbstractIndex
 
+import structlog
+logger = structlog.get_logger(__name__)
 
 register = template.Library()
 
@@ -529,12 +531,14 @@ def sheet_via_absolute_link(sheet_id):
 
 @register.simple_tag
 def get_static_file_hash(path):
-    """
-    Returns an MD5 hash of a file in the static directory
-    """
-    file_path = os.path.join(settings.STATIC_ROOT, path)
-    if not os.path.exists(file_path):
-        return ""
-        
-    with open(file_path, 'rb') as f:
-        return hashlib.md5(f.read()).hexdigest()[:8]
+	"""
+	Returns an MD5 hash of a file in the static directory
+	"""
+	file_path = os.path.join(settings.STATIC_ROOT, path)
+	if not os.path.exists(file_path):
+		# Log warning if file does not exist
+		logger.warning(f"Static file not found for hashing: {file_path}")
+		return ""
+		
+	with open(file_path, 'rb') as f:
+		return hashlib.md5(f.read()).hexdigest()[:8]
