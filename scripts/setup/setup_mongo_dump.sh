@@ -64,6 +64,22 @@ load_setup_state() {
   fi
 }
 
+database_has_data() {
+  local has_db has_collections
+
+  if ! command -v mongosh &> /dev/null; then
+    return 1
+  fi
+
+  has_db=$(mongosh --quiet --eval "db.getMongo().getDBNames().includes('sefaria')" 2>/dev/null || echo "false")
+  if [ "$has_db" != "true" ]; then
+    return 1
+  fi
+
+  has_collections=$(mongosh --quiet sefaria --eval "db.getCollectionNames().length > 0" 2>/dev/null || echo "false")
+  [ "$has_collections" = "true" ]
+}
+
 ensure_prerequisites() {
   print_info "Checking dump restore prerequisites..."
 
@@ -177,6 +193,13 @@ main() {
     write_dump_state "skipped" "MongoDB dump restoration skipped by --skip-dump flag." "" "$PUBLIC_DUMP_URL" "skipped"
     create_restore_script
     print_success "MongoDB dump setup skipped."
+    return 0
+  fi
+
+  if database_has_data; then
+    print_info "MongoDB already contains data; skipping dump download."
+    write_dump_state "restored" "MongoDB dump already present; restore skipped." "" "$PUBLIC_DUMP_URL" "public"
+    create_restore_script
     return 0
   fi
 
