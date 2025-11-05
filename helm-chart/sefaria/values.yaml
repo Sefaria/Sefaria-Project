@@ -235,21 +235,24 @@ domains:
   root:
     - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
       cert: "{{ .Values.deployEnv }}-tls"
-      language: english
-      code: en
+      # multilanguage domains support limited redirect and subdomain handling
+      # only the first list entry will have redirects and subdomains set up
+      # for any given module
+      code:
+        - en
+        - he
 #   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
 #     cert: "{{ .Values.deployEnv }}-il-tls"
-#     language: hebrew
-#     code: he
+#     code:
+#       - he
   modules:
     - name: voices
       subdomains:
         en: voices
-        he: chiburim
+        he: voices
       redirects:
         - sheets
-        - collection
-        - community
+        - collections
         - profile
 
 nginx:
@@ -400,18 +403,8 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
-
-# Domain configuration - can be overridden per environment
-domainConfig:
-  # Default: empty domain language mapping for cauldrons
-  domainLanguage: {}
-  # Default domain modules for cauldrons
-  domainModules:
-    library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
-    sheets: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
-  # Default cookie domains
-  sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
-  csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  syncMongoProductionData:
+    enabled: false
 
 localSettings:
   DEBUG: true
