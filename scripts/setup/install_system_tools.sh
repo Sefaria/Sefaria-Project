@@ -62,6 +62,8 @@ install_homebrew() {
 install_pyenv() {
   if command -v pyenv &> /dev/null; then
     print_success "pyenv already installed: $(pyenv --version)"
+    ensure_pyenv_virtualenv_plugin
+    configure_pyenv_shell
     return 0
   fi
 
@@ -76,7 +78,30 @@ install_pyenv() {
   fi
 
   # Add pyenv to shell configuration
+  ensure_pyenv_virtualenv_plugin
   configure_pyenv_shell
+}
+
+# Ensure pyenv-virtualenv plugin is installed
+ensure_pyenv_virtualenv_plugin() {
+  if command -v pyenv &> /dev/null && pyenv commands 2>/dev/null | grep -q "^virtualenv$"; then
+    print_success "pyenv-virtualenv plugin already available"
+    return 0
+  fi
+
+  print_info "Installing pyenv-virtualenv plugin..."
+
+  if [[ "$OS" == "macos" ]]; then
+    if brew list pyenv-virtualenv &> /dev/null; then
+      print_info "pyenv-virtualenv already installed via Homebrew"
+    else
+      brew install pyenv-virtualenv
+    fi
+  else
+    print_error "Unsupported OS for pyenv-virtualenv installation"
+    print_info "Only macOS (Apple Silicon) is supported"
+    exit 1
+  fi
 }
 
 # Configure pyenv in shell
