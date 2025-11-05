@@ -739,7 +739,9 @@ class ReaderApp extends Component {
           if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
           if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
         }
-        const connectionsTitle = Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        const connectionsTitle = hist.sources === "all" ?
+          Sefaria._r(ref) :
+          Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources);
         hist.title    = this.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
@@ -759,7 +761,9 @@ class ReaderApp extends Component {
         if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        const textAndConnectionsTitle = Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        const textAndConnectionsTitle = hist.sources === "all" ?
+          Sefaria._r(htitle) :
+          Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources);
         hist.title    = this.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
