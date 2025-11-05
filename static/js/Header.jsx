@@ -412,7 +412,6 @@ const LoggedOutButtons = ({ mobile, loginOnly }) => {
   );
 }
 
-
 const LoggedInButtons = ({ headerMode }) => {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
