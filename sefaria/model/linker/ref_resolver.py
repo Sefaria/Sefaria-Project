@@ -576,11 +576,8 @@ class RefResolver:
         raw_parts = raw_ref.raw_ref_parts
         slug_candidates: List[List[str]] = []
         for part in raw_parts:
-            if isinstance(part, TermContext):
-                slug_candidates.append([part.term.slug])
-            else:
-                term_matches = term_matcher.match_term(part)
-                slug_candidates.append([match.slug for match in term_matches])
+            term_matches = term_matcher.match_term(part)
+            slug_candidates.append([match.slug for match in term_matches])
 
         effective_mutations = list(context_mutations.effective_mutations())
         if len(effective_mutations) == 0:
@@ -592,44 +589,51 @@ class RefResolver:
         additions_by_index: Dict[int, List[TermContext]] = defaultdict(list)
         existing_context_slugs = {part.term.slug for part in raw_parts if isinstance(part, TermContext)}
 
-        from itertools import combinations
+        from itertools import combinations, permutations
 
         def _match_terms_to_parts(slug_lists: List[List[str]], input_terms: Tuple[str, ...]) -> bool:
+            # Check whether we can assign the required input slugs to the candidate parts.
+            # Brute-force over permutations to keep the logic easy to follow.
             if len(slug_lists) != len(input_terms):
                 return False
-            from collections import Counter
-            term_counts = Counter(input_terms)
-            def backtrack(idx: int) -> bool:
-                if idx == len(slug_lists):
-                    return all(count == 0 for count in term_counts.values())
-                for slug in slug_lists[idx]:
-                    if term_counts[slug] == 0:
-                        continue
-                    term_counts[slug] -= 1
-                    if backtrack(idx + 1):
-                        return True
-                    term_counts[slug] += 1
-                return False
-            return backtrack(0)
+            if len(input_terms) == 0:
+                return True
+            indices = range(len(input_terms))
+            for perm in permutations(indices):
+                matches_all = True
+                for part_idx, term_idx in enumerate(perm):
+                    term_slug = input_terms[term_idx]
+                    if term_slug not in slug_lists[part_idx]:
+                        matches_all = False
+                        break
+                if matches_all:
+                    return True
+            return False
 
         indices_range = range(len(raw_parts))
+        # Try each mutation against every index combination of the right length, ensuring
+        # the candidate parts can satisfy the required input slugs before scheduling the mutation.
         for input_terms, mutation in effective_mutations:
             terms_len = len(input_terms)
             if terms_len == 0:
+                # No input slugs to bind, nothing to do.
                 continue
             for indices in combinations(indices_range, terms_len):
                 if mutation.op == ContextMutationOp.SWAP and any(idx in swap_removed_indices for idx in indices):
+                    # Skip swaps that intersect indices already consumed by another swap.
                     continue
                 if not _match_terms_to_parts([slug_candidates[idx] for idx in indices], tuple(input_terms)):
+                    # Combination cannot realize the mutation's required slug sequence.
                     continue
                 matched_parts = [raw_parts[idx] for idx in indices]
                 try:
                     mutated_parts = mutation.apply(matched_parts, term_factory)
                 except Exception as err:
                     logger.warning("ref_resolver.context_mutation.apply_failed", slug_sequence=input_terms, error=str(err))
+                    # Failed to apply mutation for these parts; check the next combination.
                     continue
                 if mutation.op == ContextMutationOp.SWAP:
-                    swap_inserts[indices[0]] = mutated_parts
+                    swap_inserts[indices[0]] = list(mutated_parts)
                     swap_removed_indices.update(indices)
                 else:
                     for new_part in mutated_parts:
