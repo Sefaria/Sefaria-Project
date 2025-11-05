@@ -739,9 +739,10 @@ class ReaderApp extends Component {
           if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
           if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
         }
-        const connectionsTitle = hist.sources === "all" ?
-          Sefaria._r(ref) :
-          Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources);
+        const shouldShowSource = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
+        const connectionsTitle = shouldShowSource ?
+          Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(ref);
         hist.title    = this.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
@@ -761,9 +762,10 @@ class ReaderApp extends Component {
         if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        const textAndConnectionsTitle = hist.sources === "all" ?
-          Sefaria._r(htitle) :
-          Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources);
+        const shouldShowSourceInTitle = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
+        const textAndConnectionsTitle = shouldShowSourceInTitle ?
+          Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(htitle);
         hist.title    = this.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
