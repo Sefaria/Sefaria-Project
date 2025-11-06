@@ -169,41 +169,22 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         lang = current_domain_lang(request)
-        logger.info("TEMP: LanguageCookieMiddleware.process_request",
-                    current_host=request.get_host(),
-                    current_domain_lang=lang,
-                    has_set_language_cookie_param="set-language-cookie" in request.GET,
-                    active_module=getattr(request, 'active_module', 'unknown'))
 
         if "set-language-cookie" in request.GET and lang:
-            logger.info("TEMP: Processing set-language-cookie request", lang=lang)
-
             target_domain = get_redirect_domain_for_language(request, lang)
-            logger.info("TEMP: Target domain for cookie setting", target_domain=target_domain)
 
             path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-
-            redirect_url = urljoin(target_domain, path) + params_string
-            logger.info("TEMP: Final redirect URL", redirect_url=redirect_url)
-
-            response = redirect(redirect_url)
+            response = redirect(urljoin(target_domain, path) + params_string)
             cookie_domain = get_cookie_domain(lang)
-
-            logger.info("TEMP: Setting cookie in middleware",
-                        cookie_domain=cookie_domain,
-                        language=lang,
-                        current_host=request.get_host())
-
             response.set_cookie("interfaceLang", lang, domain=cookie_domain)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()
-                logger.info("TEMP: Saved language to user profile in middleware", user_id=request.user.id)
             return response
 
 
