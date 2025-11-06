@@ -1320,6 +1320,11 @@ def interface_language_redirect(request, language):
     and redirects to `next` url param.
     Preserves current module and path when switching language.
     """
+    logger.info("TEMP: interface_language_redirect called",
+                target_language=language,
+                current_host=request.get_host(),
+                active_module=getattr(request, 'active_module', 'unknown'))
+
     next = request.GET.get("next")
 
     if not next or not is_safe_url(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
@@ -1327,25 +1332,38 @@ def interface_language_redirect(request, language):
 
     # Look up the target domain based on current module + target language
     target_domain = get_redirect_domain_for_language(request, language)
+    logger.info("TEMP: Target domain for language switch", target_domain=target_domain)
 
     if needs_domain_switch(request, target_domain):
+        logger.info("TEMP: Domain switch needed")
         # Switching domains - preserve path and add set-language-cookie param
         next = urljoin(target_domain, next)
         next = add_query_param(next, "set-language-cookie")
+        logger.info("TEMP: Redirect URL with set-language-cookie", redirect_url=next)
+    else:
+        logger.info("TEMP: No domain switch needed")
 
     response = redirect(next)
 
     # Set cookie on current domain (before redirect), using current domain's cookie domain
     # This ensures both the source and target domains get cookies set
     current_lang = current_domain_lang(request)
+    logger.info("TEMP: Current domain language", current_lang=current_lang)
+
     # current_lang is None in localhost (domain not pinned to language)
     # In that case, cookie_domain=None sets cookie on exact current host
     cookie_domain = get_cookie_domain(current_lang) if current_lang else None
+    logger.info("TEMP: Setting cookie on current domain",
+                cookie_domain=cookie_domain,
+                language=language,
+                current_lang=current_lang)
+
     response.set_cookie("interfaceLang", language, domain=cookie_domain)
     if request.user.is_authenticated:
         p = UserProfile(id=request.user.id)
         p.settings["interface_language"] = language
         p.save()
+        logger.info("TEMP: Saved language to user profile", user_id=request.user.id)
 
     return response
 

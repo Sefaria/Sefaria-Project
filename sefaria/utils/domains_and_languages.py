@@ -6,6 +6,9 @@ from django.conf import settings
 from sefaria.constants.model import LIBRARY_MODULE
 from sefaria.utils.util import short_to_long_lang_code, get_short_lang
 
+import structlog
+logger = structlog.get_logger(__name__)
+
 IPV4_ADDRESS_PATTERN = r'^\d+\.\d+\.\d+\.\d+$'
 
 
@@ -102,15 +105,22 @@ def get_cookie_domain(language):
     :param language: 'english', 'hebrew' (long form), or None for cross-language domains
     :return: Cookie domain string (e.g., '.sefaria.org') or None if no domain should be set
     """
+    logger.info("TEMP: get_cookie_domain called", language=language)
+    logger.info("TEMP: DOMAIN_MODULES configuration", domain_modules=getattr(settings, 'DOMAIN_MODULES', None))
+
     if not getattr(settings, 'DOMAIN_MODULES', None):
+        logger.warning("TEMP: No DOMAIN_MODULES configured")
         return None
 
     # Collect all relevant module URLs
     if language:
-        module_urls = settings.DOMAIN_MODULES.get(get_short_lang(language), {}).values()
+        short_lang = get_short_lang(language)
+        module_urls = settings.DOMAIN_MODULES.get(short_lang, {}).values()
+        logger.info("TEMP: Module URLs for language", language=language, short_lang=short_lang, module_urls=list(module_urls))
     else:
         # Cross-language: collect and deduplicate URLs since different languages may share domains
         module_urls = {url for lang_modules in settings.DOMAIN_MODULES.values() for url in lang_modules.values()}
+        logger.info("TEMP: Cross-language module URLs", module_urls=list(module_urls))
 
     # Extract hostnames, filtering out localhost and IP addresses
     hostnames = [
@@ -120,15 +130,21 @@ def get_cookie_domain(language):
         and 'localhost' not in hostname
         and not re.match(IPV4_ADDRESS_PATTERN, hostname)
     ]
+    logger.info("TEMP: Extracted hostnames", hostnames=hostnames)
 
     # Need at least 2 unique hostnames to justify a cookie domain
     if len(hostnames) < 2:
+        logger.info("TEMP: Not enough hostnames for cookie domain", hostname_count=len(hostnames))
         return None
 
-    # Find common suffix and 
+    # Find common suffix and
     common_suffix = _find_longest_common_domain_suffix(hostnames)
+    logger.info("TEMP: Common suffix found", common_suffix=common_suffix)
+
     # Validate the suffix is not too broad (e.g., ".sefaria.org" not ".org")
-    return common_suffix if common_suffix and common_suffix.count('.') >= 2 else None
+    result = common_suffix if common_suffix and common_suffix.count('.') >= 2 else None
+    logger.info("TEMP: Final cookie domain result", cookie_domain=result, suffix_dot_count=common_suffix.count('.') if common_suffix else 0)
+    return result
 
 
 def _find_longest_common_domain_suffix(hostnames):
@@ -141,17 +157,23 @@ def _find_longest_common_domain_suffix(hostnames):
     :param hostnames: List of 2+ hostname strings
     :return: Domain suffix starting with '.' (e.g., '.sefaria.org'), or None if no common suffix
     """
+    logger.info("TEMP: _find_longest_common_domain_suffix called", hostnames=hostnames)
     common_suffix = hostnames[0]
+    logger.info("TEMP: Starting with first hostname as suffix", initial_suffix=common_suffix)
 
-    for hostname in hostnames[1:]:
+    for idx, hostname in enumerate(hostnames[1:], 1):
+        logger.info("TEMP: Comparing with hostname", iteration=idx, hostname=hostname, current_suffix=common_suffix)
         # Find the longest suffix that matches domain boundaries
         common_suffix = next(
             (common_suffix[i:] for i in range(len(common_suffix))
              if hostname.endswith(common_suffix[i:]) and common_suffix[i:].startswith('.')),
             ''
         )
+        logger.info("TEMP: Updated common suffix", iteration=idx, new_suffix=common_suffix)
 
         if not common_suffix:
+            logger.info("TEMP: No common suffix found")
             return None
 
+    logger.info("TEMP: Final common suffix", final_suffix=common_suffix)
     return common_suffix
