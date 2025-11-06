@@ -1,4 +1,4 @@
-from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
 from .linker_test_utils import *
@@ -371,6 +371,36 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
         assert match.pretty_text == expected_pretty_text
         for part, expected_part_str in zip(match.raw_entity.raw_ref_parts, expected_part_strs):
             assert part.text == expected_part_str
+
+
+def test_context_mutation_swap_for_peninei_family_introduction():
+    base_context_ref = Ref("Peninei Halakhah, Family, Introduction")
+
+    mutation = {
+        "op": "swap",
+        "input_terms": ["genesis"],
+        "output_terms": ["even-haezer", "shulchan-arukh"],
+    }
+
+    raw_ref, context_ref, lang, _ = create_raw_ref_data(
+        ["@Genesis", "#25", "#4"],
+        context_tref=base_context_ref.normal(),
+        lang="en",
+    )
+    assert context_ref == base_context_ref
+
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.reset_ibid_history()
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+
+    with temporary_context_mutations(base_context_ref, [mutation], append=True):
+        matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+
+    assert len(matches) == 1
+    resolved = matches[0]
+    assert not getattr(resolved, "is_ambiguous", False)
+    assert resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [

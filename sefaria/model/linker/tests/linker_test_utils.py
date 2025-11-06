@@ -1,8 +1,11 @@
 import pytest
 from typing import List
 from functools import reduce
+from contextlib import contextmanager
+from copy import deepcopy
 from ne_span import NEDoc, RefPartType
 from sefaria.model.text import Ref, library
+from sefaria.model import schema
 from sefaria.model.linker.ref_part import RawRef, RawRefPart
 from sefaria.settings import ENABLE_LINKER
 
@@ -151,3 +154,65 @@ def print_spans(raw_ref: RawRef):
     print('Spans:')
     for i, part in enumerate(raw_ref.raw_ref_parts):
         print(f'{i}) {part.text}')
+
+
+_MISSING = object()
+
+
+@contextmanager
+def temporary_context_mutations(target, mutations, *, append: bool = False):
+    """
+    Temporarily attach ref_resolver context mutations to a SchemaNode.
+
+    :param target: SchemaNode (or Ref whose index_node should be patched).
+    :param mutations: Iterable of mutation dicts.
+    :param append: When True, extend any existing mutations instead of replacing.
+    """
+    def _resolve_node(obj):
+        if isinstance(obj, schema.SchemaNode):
+            return obj
+        if isinstance(obj, Ref):
+            node = getattr(obj, "index_node", None)
+            if node is not None:
+                return node
+            index = getattr(obj, "index", None)
+            node = getattr(index, "nodes", None) if index is not None else None
+            if node is not None:
+                return node
+            raise ValueError(f"Could not determine schema node for Ref {obj.normal()}")
+        raise TypeError("temporary_context_mutations expects a SchemaNode or Ref as target")
+
+    node = _resolve_node(target)
+    original = getattr(node, "ref_resolver_context_mutations", _MISSING)
+
+    mutations_list = list(mutations)
+    if not mutations_list and (not append or original is _MISSING):
+        # No-op request; nothing to patch.
+        yield node
+        return
+
+    if append and original is not _MISSING and original is not None:
+        new_value = deepcopy(original) + deepcopy(mutations_list)
+    else:
+        new_value = deepcopy(mutations_list)
+
+    if new_value:
+        node.ref_resolver_context_mutations = new_value
+    else:
+        if original is _MISSING:
+            yield node
+            return
+        if original is None:
+            node.ref_resolver_context_mutations = None
+        else:
+            node.ref_resolver_context_mutations = deepcopy(original)
+        yield node
+        return
+
+    try:
+        yield node
+    finally:
+        if original is _MISSING:
+            delattr(node, "ref_resolver_context_mutations")
+        else:
+            node.ref_resolver_context_mutations = original
