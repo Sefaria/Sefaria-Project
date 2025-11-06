@@ -42,24 +42,43 @@ def current_domain_lang(request):
     :param request: Django request object
     :return: 'english', 'hebrew', or None
     """
+    logger.info("TEMP: current_domain_lang called", current_host=request.get_host())
+    logger.info("TEMP: DOMAIN_MODULES in current_domain_lang", domain_modules=getattr(settings, 'DOMAIN_MODULES', None))
+
     if not getattr(settings, 'DOMAIN_MODULES', None):
+        logger.warning("TEMP: No DOMAIN_MODULES configured in current_domain_lang")
         return None
 
     current_hostname = _get_hostname_without_port(request)
+    logger.info("TEMP: Current hostname extracted", current_hostname=current_hostname)
     matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
-        for module_url in modules.values():
-            if urlparse(module_url).hostname == current_hostname:
+        logger.info("TEMP: Checking language", lang_code=lang_code, modules=modules)
+        for module_name, module_url in modules.items():
+            parsed_hostname = urlparse(module_url).hostname
+            logger.info("TEMP: Comparing hostnames",
+                       module_name=module_name,
+                       module_url=module_url,
+                       parsed_hostname=parsed_hostname,
+                       current_hostname=current_hostname,
+                       match=parsed_hostname == current_hostname)
+            if parsed_hostname == current_hostname:
                 matched_langs.append(lang_code)
+                logger.info("TEMP: Hostname matched for language", lang_code=lang_code)
                 break  # Only need to match once per language
+
+    logger.info("TEMP: All matched languages", matched_langs=matched_langs, count=len(matched_langs))
 
     # If we matched multiple languages, domain is ambiguous - not pinned. Happens on Local
     if len(matched_langs) != 1:
+        logger.info("TEMP: Domain not pinned - returning None", reason="multiple matches" if len(matched_langs) > 1 else "no matches")
         return None
 
     # Only return language if domain uniquely identifies it
-    return short_to_long_lang_code(matched_langs[0])
+    result = short_to_long_lang_code(matched_langs[0])
+    logger.info("TEMP: Domain pinned to language", lang_code=matched_langs[0], result=result)
+    return result
 
 
 def get_redirect_domain_for_language(request, target_lang):
