@@ -30,7 +30,7 @@ class LinkerEntityRecognizer:
     def __init_normalizer(self) -> NormalizerComposer:
         # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
         # important that normalization is equivalent to normalization done at training time
-        normalizer_steps = ['unidecode', 'html', 'double-space']
+        normalizer_steps = ['unidecode', 'fn-marker', 'html', 'double-space']
         if self._lang == 'he':
             normalizer_steps += ['maqaf', 'cantillation']
         return NormalizerComposer(normalizer_steps)

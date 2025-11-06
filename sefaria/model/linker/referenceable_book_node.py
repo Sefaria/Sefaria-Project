@@ -131,8 +131,11 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
             # assume leaves are contiguous. If this is wrong, will be disproven later in the function
             if len(leaves) == 0:
                 return "N/A"
-            approx_ref = leaves[0].ref().to(leaves[-1].ref())
-            return approx_ref.order_id()
+            try:
+                approx_ref = leaves[0].ref().to(leaves[-1].ref())
+                return approx_ref.order_id()
+            except:
+                return leaves[0].ref().order_id()
         return self.ref().order_id()
 
 
