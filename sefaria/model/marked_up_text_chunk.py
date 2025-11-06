@@ -4,6 +4,7 @@ from sefaria.system.exceptions import InputError, DuplicateRecordError
 from html import escape
 from enum import Enum
 from abc import ABC, abstractmethod
+from bisect import bisect_right
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -62,9 +63,6 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         }
     }
     
-    def get_spans(self):
-        pass
-
     def _validate(self):
         super()._validate()
         oref = Ref(self.ref)
@@ -98,6 +96,41 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
     def __str__(self):
         return "TextSpan: {}".format(self.ref)
+    
+    def add_non_overlapping_spans(self, new_spans: list[dict]) -> None:
+        """
+        Add spans from new_spans to self.spans, ignoring any span from new_spans that overlaps
+        with any span in self.spans.
+        Doesn't save.
+
+        Assumes self.spans has no internal overlaps.
+        """
+        # Make a sorted copy of A for searching; keep original A order for the result.
+        self_spans = sorted(self.spans, key=lambda s: s["charRange"][0])
+        self_starts = [s["charRange"][0] for s in self_spans]
+
+        def overlaps(a, b):
+            a_start, a_end = a["charRange"]
+            b_start, b_end = b["charRange"]
+            return (a_start < b_end) and (b_start < a_end)  # half-open
+
+        accepted_new_spans = []
+        for b in new_spans:
+            b_start, _ = b["charRange"]
+            # idx is first A with start > b_start
+            idx = bisect_right(self_starts, b_start)
+
+            # Only possible overlaps are with A[idx-1] and A[idx] (since A is disjoint and sorted)
+            o = False
+            if idx - 1 >= 0 and overlaps(self_spans[idx - 1], b):
+                o = True
+            elif idx < len(self_spans) and overlaps(self_spans[idx], b):
+                o = True
+
+            if not o:
+                accepted_new_spans.append(b)
+
+        self.spans.extend(accepted_new_spans)
 
     def apply_spans_to_text(self, text):
         """
