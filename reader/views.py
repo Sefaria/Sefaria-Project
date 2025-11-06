@@ -1350,9 +1350,10 @@ def interface_language_redirect(request, language):
     current_lang = current_domain_lang(request)
     logger.info("TEMP: Current domain language", current_lang=current_lang)
 
-    # current_lang is None in localhost (domain not pinned to language)
-    # In that case, cookie_domain=None sets cookie on exact current host
-    cookie_domain = get_cookie_domain(current_lang) if current_lang else None
+    # current_lang is None when domain is not pinned to a single language (e.g., localhost, cauldron)
+    # In that case, get_cookie_domain(None) finds the common suffix across all languages/modules
+    # If no common suffix exists, cookie_domain=None sets cookie on exact current host
+    cookie_domain = get_cookie_domain(current_lang)
     logger.info("TEMP: Setting cookie on current domain",
                 cookie_domain=cookie_domain,
                 language=language,
