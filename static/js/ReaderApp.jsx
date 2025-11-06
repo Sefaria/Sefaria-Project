@@ -446,76 +446,47 @@ class ReaderApp extends Component {
     const activeModule = Sefaria.activeModule || 'library';
     const isVoices = (activeModule === 'voices');
 
-    // Get language
-    const shortLang = Sefaria._getShortInterfaceLang();
-    const isHebrew = (shortLang === 'he');
-
-    // Page title suffix configuration (matches Python implementation)
+    // Page title suffix configuration - using Sefaria._() for translations
     const suffixes = {
       home: {
-        voices: {
-          he: "חיבורים בספריא",
-          en: "Voices on Sefaria"
-        },
-        library: {
-          he: "ספריא: ספריה יהודית דינמית",
-          en: "Sefaria: a Living Library of Jewish Texts Online"
-        }
+        voices: Sefaria._("Voices on Sefaria"),
+        library: Sefaria._("Sefaria: a Living Library of Jewish Texts Online")
       },
       topic: {
-        voices: {
-          he: "דפים מתוך חיבורים בספריא",
-          en: "Sheets from Voices on Sefaria"
-        },
-        library: {
-          he: "מקורות מתוך ספריית ספריא",
-          en: "Texts from the Sefaria Library"
-        }
+        voices: Sefaria._("Sheets from Voices on Sefaria"),
+        library: Sefaria._("Texts from the Sefaria Library")
       },
-      collections: {
-        he: "חיבורים בספריא",
-        en: "Voices on Sefaria"
-      },
-      collection: {
-        he: "אוסף מתוך חיבורים בספריא",
-        en: "Voices on Sefaria Collection"
-      },
+      collections: Sefaria._("Voices on Sefaria"),
+      collection: Sefaria._("Voices on Sefaria Collection"),
       default: {
-        voices: {
-          he: "חיבורים בספריא",
-          en: "Voices on Sefaria"
-        },
-        library: {
-          he: "ספריית ספריא",
-          en: "Sefaria Library"
-        }
+        voices: Sefaria._("Voices on Sefaria"),
+        library: Sefaria._("Sefaria Library")
       }
     };
 
-    const lang = isHebrew ? 'he' : 'en';
     const module = isVoices ? 'voices' : 'library';
 
     // Special case: Home pages return complete title (not base + suffix pattern)
     if (pageType === "home") {
-      return suffixes.home[module][lang];
+      return suffixes.home[module];
     }
 
     // Special case: Sheet titles need default if empty
     if (pageType === "sheet" && !baseTitle) {
-      baseTitle = isHebrew ? "ללא כותרת" : "Untitled";
+      baseTitle = Sefaria._("Untitled");
     }
 
     // Get appropriate suffix based on page type
     let suffix;
     if (pageType === 'collections' || pageType === 'collection') {
       // Collections pages are always Voices
-      suffix = suffixes[pageType][lang];
+      suffix = suffixes[pageType];
     } else if (pageType === 'topic') {
       // Topics have module-specific descriptive suffixes
-      suffix = suffixes.topic[module][lang];
+      suffix = suffixes.topic[module];
     } else {
       // Default suffix for all other pages (pageType === "" or anything else)
-      suffix = suffixes.default[module][lang];
+      suffix = suffixes.default[module];
     }
 
     // Combine base title with suffix

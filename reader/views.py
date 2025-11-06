@@ -130,52 +130,46 @@ def get_page_title(base_title, page_type="", request=None):
     if not request:
         return base_title
 
-    is_hebrew = (request.interfaceLang == "hebrew")
     is_voices = (getattr(request, 'active_module', LIBRARY_MODULE) == VOICES_MODULE)
 
-    # Page title suffix configuration
+    # Page title suffix configuration - using _() for translations
     suffixes = {
         'home': {
-            'voices': {'he': "חיבורים בספריא", 'en': "Voices on Sefaria"},
-            'library': {'he': "ספריא: ספריה יהודית דינמית", 'en': "Sefaria: a Living Library of Jewish Texts Online"}
+            'voices': _("Voices on Sefaria"),
+            'library': _("Sefaria: a Living Library of Jewish Texts Online")
         },
         'topic': {
-            'voices': {'he': "דפים מתוך חיבורים בספריא", 'en': "Sheets from Voices on Sefaria"},
-            'library': {'he': "מקורות מתוך ספריית ספריא", 'en': "Texts from the Sefaria Library"}
+            'voices': _("Sheets from Voices on Sefaria"),
+            'library': _("Texts from the Sefaria Library")
         },
-        'collections': {
-            'he': "חיבורים בספריא", 'en': "Voices on Sefaria"
-        },
-        'collection': {
-            'he': "אוסף מתוך חיבורים בספריא", 'en': "Voices on Sefaria Collection"
-        },
+        'collections': _("Voices on Sefaria"),
+        'collection': _("Voices on Sefaria Collection"),
         'default': {
-            'voices': {'he': "חיבורים בספריא", 'en': "Voices on Sefaria"},
-            'library': {'he': "ספריית ספריא", 'en': "Sefaria Library"}
+            'voices': _("Voices on Sefaria"),
+            'library': _("Sefaria Library")
         }
     }
 
-    lang = 'he' if is_hebrew else 'en'
     module = 'voices' if is_voices else 'library'
 
     # Special case: Home pages return complete title (not base + suffix pattern)
     if page_type == "home":
-        return suffixes['home'][module][lang]
+        return suffixes['home'][module]
 
     # Special case: Sheet titles need cleaning
     if page_type == "sheet":
-        base_title = strip_tags(base_title) if base_title else ("ללא כותרת" if is_hebrew else "Untitled")
+        base_title = strip_tags(base_title) if base_title else _("Untitled")
 
     # Get appropriate suffix based on page type
     if page_type in ['collections', 'collection']:
         # Collections pages are always Voices
-        suffix = suffixes[page_type][lang]
+        suffix = suffixes[page_type]
     elif page_type == 'topic':
         # Topics have module-specific descriptive suffixes
-        suffix = suffixes['topic'][module][lang]
+        suffix = suffixes['topic'][module]
     else:
         # Standard suffix for all other pages
-        suffix = suffixes['default'][module][lang]
+        suffix = suffixes['default'][module]
 
     # Combine base title with suffix
     return f"{base_title} | {suffix}" if base_title else suffix
