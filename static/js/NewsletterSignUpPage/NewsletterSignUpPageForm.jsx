@@ -116,8 +116,8 @@ export default function NewsletterSignUpPageForm() {
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
     // Check if user is logged in via Sefaria global object
-    const isLoggedIn = !!(Sefaria.uid && Sefaria.email);
-    const userEmail = isLoggedIn ? Sefaria.email : null;
+    const isLoggedIn = !!Sefaria._uid;
+    const userEmail = isLoggedIn ? Sefaria._email : null;
 
     setFormStatus(prev => ({
       ...prev,
@@ -298,8 +298,8 @@ export default function NewsletterSignUpPageForm() {
   // ========== VALIDATION ==========
 
   const validateFormData = () => {
-    // Check required fields
-    if (!formData.firstName.trim()) {
+    // Logged-out users need to provide first name
+    if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
       return 'Please enter your first name.';
     }
 
