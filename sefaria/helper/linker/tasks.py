@@ -8,7 +8,7 @@ from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MarkedUpTextChunkSpanType
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType
 from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
@@ -130,7 +130,7 @@ def _extract_resolved_spans(resolved_refs):
         spans.append({
             "charRange": entity.char_indices,
             "text": entity.text,
-            "type": MarkedUpTextChunkSpanType.CITATION,
+            "type": MUTCSpanType.CITATION,
             "ref": resolved_ref.ref.normal(),
         })
     return spans
@@ -143,7 +143,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk):
         "versionTitle": chunk.versionTitle,
     })
     if existing:
-        existing.spans = list(filter(lambda span: span["type"] == MarkedUpTextChunkSpanType.NAMED_ENTITY.value, existing.spans))
+        existing.spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
         if len(existing.spans) == 0:
             existing.delete()
         else:
