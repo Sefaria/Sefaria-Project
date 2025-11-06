@@ -40,6 +40,7 @@ class DeleteAndSaveLinksMsg:
     vtitle: Optional[str] = None
     lang: Optional[str] = None
     user_id: Optional[str] = None
+    version_id: Optional[int] = None
     tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -117,6 +118,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         vtitle=linking_args.vtitle,
         lang=linking_args.lang,
         user_id=linking_args.user_id,
+        version_id=linking_args.kwargs.get('version_id'),
         tracker_kwargs=linking_args.kwargs,
     )
     return asdict(msg)
@@ -154,9 +156,6 @@ def delete_and_save_new_links(payload: dict) -> None:
 
     target_oref = Ref(msg.ref)
     linked_orefs = [Ref(r) for r in msg.linked_refs]
-    text_id = None
-    if msg.vtitle and msg.lang:
-        text_id = Version().load({"versionTitle": msg.vtitle, "language": msg.lang})._id
 
     user = msg.user_id
     kwargs = msg.tracker_kwargs
@@ -168,7 +167,7 @@ def delete_and_save_new_links(payload: dict) -> None:
         "refs": target_oref.normal(),
         "auto": True,
         "generated_by": "add_links_from_text",
-        "source_text_oid": text_id
+        "source_text_oid": msg.version_id,
     }).array()
 
     for linked_oref in linked_orefs:
@@ -177,7 +176,7 @@ def delete_and_save_new_links(payload: dict) -> None:
             "type": "",
             "auto": True,
             "generated_by": "add_links_from_text",
-            "source_text_oid": text_id,
+            "source_text_oid": msg.version_id,
             "inline_citation": True
         }
         found.append(linked_oref.normal())
@@ -207,6 +206,7 @@ def delete_and_save_new_links(payload: dict) -> None:
             if r not in found:
                 tracker.delete(user, Link, exLink._id)
             break
+
 
 def enqueue_linking_chain(linking_args: LinkingArgs):
     sig1 = signature(
