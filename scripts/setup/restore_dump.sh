@@ -17,12 +17,38 @@ if ! pgrep -x mongod >/dev/null 2>&1; then
 fi
 
 tmp_file=$(mktemp)
-if command -v curl &> /dev/null; then
-  curl -fL "$PUBLIC_DUMP_URL" -o "$tmp_file"
-else
-  wget -O "$tmp_file" "$PUBLIC_DUMP_URL"
-fi
+max_retries=3
+retry=0
 
+echo "Downloading MongoDB dump (this is a large file ~1.6GB)..."
+
+while [ $retry -lt $max_retries ]; do
+  if [ $retry -gt 0 ]; then
+    echo "Retry attempt $retry of $((max_retries - 1))..."
+  fi
+
+  if command -v curl &> /dev/null; then
+    if curl -C - -fL "$PUBLIC_DUMP_URL" -o "$tmp_file" --progress-bar; then
+      break
+    fi
+  else
+    if wget -c -O "$tmp_file" "$PUBLIC_DUMP_URL"; then
+      break
+    fi
+  fi
+
+  retry=$((retry + 1))
+  if [ $retry -lt $max_retries ]; then
+    echo "Download interrupted. Retrying in 5 seconds..."
+    sleep 5
+  else
+    echo "Failed to download MongoDB dump after $max_retries attempts" >&2
+    rm -f "$tmp_file"
+    exit 1
+  fi
+done
+
+echo "Extracting and restoring dump..."
 tar xzf "$tmp_file"
 mongorestore --drop
 mongosh sefaria --eval "db.createCollection('history')" --quiet 2>/dev/null || \

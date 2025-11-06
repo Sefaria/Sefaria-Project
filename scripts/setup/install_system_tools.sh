@@ -295,12 +295,34 @@ install_dev_libraries() {
   print_info "Installing development libraries..."
 
   if [[ "$OS" == "macos" ]]; then
-    # Install PostgreSQL development libraries (needed even if not using PostgreSQL)
+    # Why install libpq even if not using PostgreSQL: The psycopg2 Python package
+    # (required in requirements.txt) needs PostgreSQL client libraries to compile,
+    # regardless of whether the app uses PostgreSQL or SQLite as the Django database.
     if ! brew list libpq &> /dev/null; then
       brew install libpq
       print_success "PostgreSQL development libraries installed"
     else
       print_success "PostgreSQL development libraries already installed"
+    fi
+
+    # Why install abseil: The google-re2 Python package requires the Abseil C++ library
+    # for compilation. Abseil provides foundational C++ utilities that RE2 depends on.
+    # Without this, pip will fail with "fatal error: 'absl/strings/string_view.h' file not found"
+    if ! brew list abseil &> /dev/null; then
+      brew install abseil
+      print_success "Abseil C++ library installed"
+    else
+      print_success "Abseil C++ library already installed"
+    fi
+
+    # Why install re2: Provides the actual RE2 regular expression library that google-re2
+    # wraps. While google-re2 could build its own RE2, using the system library ensures
+    # consistency and avoids compilation issues with newer Abseil versions that require C++17.
+    if ! brew list re2 &> /dev/null; then
+      brew install re2
+      print_success "RE2 library installed"
+    else
+      print_success "RE2 library already installed"
     fi
   else
     print_info "Skipping development libraries (macOS only)"

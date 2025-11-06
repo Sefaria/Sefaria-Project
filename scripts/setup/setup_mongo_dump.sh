@@ -135,21 +135,53 @@ ensure_free_space() {
 
 download_dump() {
   local dest="$1"
+  # Why 3 retries: Large file downloads over consumer internet connections often fail
+  # due to temporary network issues. 3 attempts balances reliability with not wasting
+  # too much time on persistent network problems.
+  local max_retries=3
+  local retry=0
+
   print_info "Downloading MongoDB dump from ${PUBLIC_DUMP_URL}..."
+  # Why inform about file size: Sets user expectations for download time and helps
+  # them understand if the download appears stuck or is just progressing slowly.
+  print_info "This is a large file (~1.6GB) and may take several minutes..."
 
-  if [ "$DOWNLOADER" = "curl" ]; then
-    if ! curl -fL "$PUBLIC_DUMP_URL" -o "$dest"; then
-      print_error "Failed to download MongoDB dump from ${PUBLIC_DUMP_URL}"
-      exit 1
+  while [ $retry -lt $max_retries ]; do
+    if [ $retry -gt 0 ]; then
+      print_info "Retry attempt $retry of $((max_retries - 1))..."
     fi
-  else
-    if ! wget -O "$dest" "$PUBLIC_DUMP_URL"; then
-      print_error "Failed to download MongoDB dump from ${PUBLIC_DUMP_URL}"
-      exit 1
-    fi
-  fi
 
-  print_success "Download complete ($(basename "$dest"))"
+    if [ "$DOWNLOADER" = "curl" ]; then
+      # Why -C -: Enables resume capability so if download fails at 42%, next attempt
+      # starts from 42% instead of 0%. Critical for large files over unreliable connections.
+      # Why --progress-bar: Provides visual feedback that download is progressing, replacing
+      # the default percentage output which can be unclear for multi-GB files.
+      if curl -C - -fL "$PUBLIC_DUMP_URL" -o "$dest" --progress-bar; then
+        print_success "Download complete ($(basename "$dest"))"
+        return 0
+      fi
+    else
+      # Why -c: wget's equivalent to curl's -C -, enables resuming partial downloads
+      if wget -c -O "$dest" "$PUBLIC_DUMP_URL"; then
+        print_success "Download complete ($(basename "$dest"))"
+        return 0
+      fi
+    fi
+
+    retry=$((retry + 1))
+    if [ $retry -lt $max_retries ]; then
+      # Why 5 second delay: Gives temporary network issues time to resolve before retrying.
+      # Too short means retrying immediately during an outage; too long wastes user time.
+      print_warning "Download interrupted. Retrying in 5 seconds..."
+      sleep 5
+    fi
+  done
+
+  print_error "Failed to download MongoDB dump after $max_retries attempts"
+  # Why suggest restore_dump.sh: Gives users a way to retry without re-running entire
+  # setup, especially useful if they've already completed other setup steps.
+  print_info "You can retry the download later by running: ./scripts/setup/restore_dump.sh"
+  exit 1
 }
 
 restore_dump() {
@@ -174,6 +206,9 @@ restore_dump() {
 }
 
 create_restore_script() {
+  # Why create a standalone restore script: Allows users to re-download and restore
+  # the MongoDB dump without re-running the entire setup process. Useful for data
+  # resets, troubleshooting, or recovering from failed initial setup.
   cat > "$RESTORE_SCRIPT_PATH" <<'INNER'
 #!/bin/bash
 
@@ -194,12 +229,45 @@ if ! pgrep -x mongod >/dev/null 2>&1; then
 fi
 
 tmp_file=$(mktemp)
-if command -v curl &> /dev/null; then
-  curl -fL "$PUBLIC_DUMP_URL" -o "$tmp_file"
-else
-  wget -O "$tmp_file" "$PUBLIC_DUMP_URL"
-fi
+# Why 3 retries in standalone script: Same network reliability concerns apply when
+# users manually run this script, possibly even more so since they may be running
+# it specifically because the download failed during initial setup.
+max_retries=3
+retry=0
 
+echo "Downloading MongoDB dump (this is a large file ~1.6GB)..."
+
+while [ $retry -lt $max_retries ]; do
+  if [ $retry -gt 0 ]; then
+    echo "Retry attempt $retry of $((max_retries - 1))..."
+  fi
+
+  if command -v curl &> /dev/null; then
+    # Why -C - and --progress-bar: Same resume and progress feedback benefits as in
+    # setup_mongo_dump.sh, ensuring consistent behavior between automated and manual runs.
+    if curl -C - -fL "$PUBLIC_DUMP_URL" -o "$tmp_file" --progress-bar; then
+      break
+    fi
+  else
+    # Why -c: wget resume capability, consistent with main download function
+    if wget -c -O "$tmp_file" "$PUBLIC_DUMP_URL"; then
+      break
+    fi
+  fi
+
+  retry=$((retry + 1))
+  if [ $retry -lt $max_retries ]; then
+    # Why 5 second delay: Same network recovery time as main script
+    echo "Download interrupted. Retrying in 5 seconds..."
+    sleep 5
+  else
+    echo "Failed to download MongoDB dump after $max_retries attempts" >&2
+    rm -f "$tmp_file"
+    exit 1
+  fi
+done
+
+echo "Extracting and restoring dump..."
 tar xzf "$tmp_file"
 mongorestore --drop
 mongosh sefaria --eval "db.createCollection('history')" --quiet 2>/dev/null || \

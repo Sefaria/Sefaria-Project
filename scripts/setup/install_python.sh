@@ -221,6 +221,56 @@ ensure_pg_config() {
     print_warning "pg_config not found; installing PostgreSQL client libraries may be required"
     print_info "You can install them by running: brew install libpq"
   fi
+
+  # Why configure abseil and re2: Even though these are installed via Homebrew,
+  # pip's build system doesn't automatically know where to find them. We must
+  # explicitly tell the C++ compiler where the headers and libraries are located.
+  local ABSEIL_PREFIX="/opt/homebrew/opt/abseil"
+  local RE2_PREFIX="/opt/homebrew/opt/re2"
+
+  if [ -d "${ABSEIL_PREFIX}" ] && [ -d "${RE2_PREFIX}" ]; then
+    print_info "Configuring environment for abseil and re2 libraries..."
+
+    # Why add include paths: Tells the C++ compiler where to find header files like
+    # absl/strings/string_view.h. Without this, compilation fails with "file not found" errors.
+    # We check for existing CPPFLAGS to preserve any previously set flags (like for libpq).
+    if [[ -n "${CPPFLAGS}" ]]; then
+      export CPPFLAGS="-I${ABSEIL_PREFIX}/include -I${RE2_PREFIX}/include ${CPPFLAGS}"
+    else
+      export CPPFLAGS="-I${ABSEIL_PREFIX}/include -I${RE2_PREFIX}/include"
+    fi
+
+    # Why add library paths: Tells the linker where to find compiled libraries (.dylib files)
+    # at link time. Without this, linking fails even if compilation succeeds.
+    if [[ -n "${LDFLAGS}" ]]; then
+      export LDFLAGS="-L${ABSEIL_PREFIX}/lib -L${RE2_PREFIX}/lib ${LDFLAGS}"
+    else
+      export LDFLAGS="-L${ABSEIL_PREFIX}/lib -L${RE2_PREFIX}/lib"
+    fi
+
+    # Why add pkg-config paths: Some build systems use pkg-config to discover library
+    # locations and compiler flags. This provides an alternative discovery mechanism.
+    if [[ -n "${PKG_CONFIG_PATH}" ]]; then
+      export PKG_CONFIG_PATH="${ABSEIL_PREFIX}/lib/pkgconfig:${RE2_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+    else
+      export PKG_CONFIG_PATH="${ABSEIL_PREFIX}/lib/pkgconfig:${RE2_PREFIX}/lib/pkgconfig"
+    fi
+
+    # Why set C++17: Modern abseil (20250814.1+) requires C++17 features. Without this,
+    # compilation fails with "C++ versions less than C++17 are not supported" error.
+    # Even though we're using google-re2==1.1 which has pre-built wheels, we set this
+    # for future compatibility if users need to rebuild or if dependencies change.
+    if [[ -n "${CXXFLAGS}" ]]; then
+      export CXXFLAGS="-std=c++17 ${CXXFLAGS}"
+    else
+      export CXXFLAGS="-std=c++17"
+    fi
+
+    print_success "abseil and re2 configured for build"
+  else
+    print_warning "abseil or re2 not found"
+    print_info "You can install them by running: brew install abseil re2"
+  fi
 }
 
 # Main function
