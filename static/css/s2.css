@@ -15119,8 +15119,8 @@ span.ref-link-color-3 {color: blue}
   height: 16px;
 }
 
-.mobileModuleSwitcher{
-  display: flex !important;
+.mobileNavMenu .mobileAccountLinks .mobileModuleSwitcher {
+  display: flex;
   align-items: center;
 }
 
