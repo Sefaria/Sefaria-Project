@@ -2,8 +2,15 @@ from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 from sefaria.model.text import TextChunk, Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from html import escape
+from enum import Enum
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+class MarkedUpTextChunkSpanType(Enum):
+    QUOTE = "quote"
+    NAMED_ENTITY = "named-entity"
+    CITATION = "citation"
 
 
 class MarkedUpTextChunk(AbstractMongoRecord):
@@ -43,16 +50,16 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                     "text": {"type": "string", "required": True},
                     "type": {
                         "type": "string",
-                        "allowed": ["quote", "citation"],
+                        "allowed": [x.value for x in MarkedUpTextChunkSpanType],
                         "required": True
                     },
-                    "ref": {"type": "string", "required": True}
+                    "ref": {"type": "string", "required": False},
+                    "topicSlug": {"type": "string", "required": False},
                 }
             },
             "required": True
         }
     }
-
 
     def _validate(self):
         super()._validate()
@@ -73,22 +80,20 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
 
         for span in self.spans:
+            if span['type'] == MarkedUpTextChunkSpanType.CITATION.value and 'ref' not in span:
+                raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
+            if span['type'] == MarkedUpTextChunkSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
+                raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
             text = tc.text
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
-                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}"
+                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span.get('ref', span.get('topicSlug'))}"
                                  f": expected '{span['text']}', found '{citation_text}'.")
 
         return True
 
-    def _normalize(self):
-        self.ref = Ref(self.ref).normal()
-        for span in self.spans:
-            span['ref'] = Ref(span['ref']).normal()
-
     def __str__(self):
         return "TextSpan: {}".format(self.ref)
-
 
     def apply_spans_to_text(self, text):
         """
