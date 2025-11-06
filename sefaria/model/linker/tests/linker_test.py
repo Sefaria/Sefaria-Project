@@ -378,34 +378,77 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
             assert part.text == expected_part_str
 
 
-def test_context_mutation_swap_for_peninei_family_introduction():
+def test_context_mutations():
     base_context_ref = Ref("Peninei Halakhah, Family, Introduction")
 
-    mutation = {
+    swap_mutation = {
         "op": "swap",
-        "input_terms": ["genesis"],
+        "input_terms": ["dummy-title"],
         "output_terms": ["even-haezer", "shulchan-arukh"],
     }
+    add_mutation = {
+        "op": "add",
+        "input_terms": ["shulchan-arukh"],
+        "output_terms": ["even-haezer"],
+    }
 
-    raw_ref, context_ref, lang, _ = create_raw_ref_data(
-        ["@Genesis", "#25", "#4"],
+    swap_raw_ref, swap_context_ref, lang, _ = create_raw_ref_data(
+        ["@Dummy Title", "#25", "#4"],
         context_tref=base_context_ref.normal(),
         lang="en",
     )
-    assert context_ref == base_context_ref
+    add_raw_ref, add_context_ref, _, _ = create_raw_ref_data(
+        ["@Shulchan Arukh", "#25", "#4"],
+        context_tref=base_context_ref.normal(),
+        lang="en",
+    )
+    assert swap_context_ref == base_context_ref
+    assert add_context_ref == base_context_ref
 
     linker = library.get_linker(lang)
     ref_resolver = linker._ref_resolver
     ref_resolver.reset_ibid_history()
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
 
-    with temporary_context_mutations(base_context_ref, [mutation], append=True):
-        matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+    temporary_terms = [
+        {
+            "slug": "shulchan-arukh",
+            "titles": [
+                {"text": "Shulchan Arukh", "lang": "en", "primary": True},
+            ],
+        },
+        {
+            "slug": "even-haezer",
+            "titles": [
+                {"text": "Even HaEzer", "lang": "en", "primary": True},
+            ],
+        },
+        {
+            "slug": "dummy-title",
+            "titles": [
+                {"text": "Dummy Title", "lang": "en", "primary": True},
+            ],
+        }
 
-    assert len(matches) == 1
-    resolved = matches[0]
-    assert not getattr(resolved, "is_ambiguous", False)
-    assert resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+    ]
+
+    with temporary_non_unique_terms(temporary_terms, ref_resolver=ref_resolver):
+        with temporary_context_mutations(base_context_ref, [swap_mutation], append=True):
+            swap_matches = ref_resolver.resolve_raw_ref(swap_context_ref, swap_raw_ref)
+        with temporary_context_mutations(base_context_ref, [add_mutation], append=True):
+            add_matches = ref_resolver.resolve_raw_ref(add_context_ref, add_raw_ref)
+
+    assert len(swap_matches) == 1
+    swap_resolved = swap_matches[0]
+    assert not getattr(swap_resolved, "is_ambiguous", False)
+    assert swap_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
+
+    assert len(add_matches) == 1
+    add_resolved = add_matches[0]
+    assert not getattr(add_resolved, "is_ambiguous", False)
+    assert add_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
