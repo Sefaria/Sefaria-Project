@@ -40,7 +40,7 @@ class MarkedUpTextChunkGenerator:
             logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()}: {e}")
             raise
 
-    def generate_from_ref_and_version_id(self, ref: Ref, version_id: int) -> None:
+    def generate_from_ref_and_version_id(self, ref: Ref, version_id: str) -> None:
         try:
             segment_refs = ref.all_segment_refs()
             logger.info(f"Generating MarkedUpTextChunks for {len(segment_refs)} segment refs from {ref.normal()} and version ID {version_id}")
@@ -80,7 +80,7 @@ class MarkedUpTextChunkGenerator:
                 continue
             self.generate(segment_ref, lang, vtitle)
 
-    def _generate_single_segment_version(self, segment_ref: Ref, lang: str, vtitle: str, version_id: int) -> None:
+    def _generate_single_segment_version(self, segment_ref: Ref, lang: str, vtitle: str, version_id: str) -> None:
         text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
         if not text_chunk.text:
             logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")

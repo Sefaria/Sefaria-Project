@@ -13,6 +13,7 @@ from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass, field, asdict
+from bson import ObjectId
 import structlog
 from typing import Any, Dict, List, Optional
 
@@ -40,7 +41,7 @@ class DeleteAndSaveLinksMsg:
     vtitle: Optional[str] = None
     lang: Optional[str] = None
     user_id: Optional[str] = None
-    version_id: Optional[int] = None
+    version_id: Optional[str] = None
     tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -167,7 +168,7 @@ def delete_and_save_new_links(payload: dict) -> None:
         "refs": target_oref.normal(),
         "auto": True,
         "generated_by": "add_links_from_text",
-        "source_text_oid": msg.version_id,
+        "source_text_oid": ObjectId(msg.version_id),
     }).array()
 
     for linked_oref in linked_orefs:
@@ -176,7 +177,7 @@ def delete_and_save_new_links(payload: dict) -> None:
             "type": "",
             "auto": True,
             "generated_by": "add_links_from_text",
-            "source_text_oid": msg.version_id,
+            "source_text_oid": ObjectId(msg.version_id),
             "inline_citation": True
         }
         found.append(linked_oref.normal())
