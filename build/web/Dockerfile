@@ -15,7 +15,6 @@ RUN npm run $TYPE
 
 COPY . /app/
 
-# Collect static files, ignoring demos.css which is not used in production
 RUN python manage.py collectstatic
 
 ENTRYPOINT ["/bin/bash", "-c"]
