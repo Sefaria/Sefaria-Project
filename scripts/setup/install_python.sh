@@ -144,7 +144,14 @@ install_python_dependencies() {
 
   # Install requirements
   print_info "Installing requirements (this may take several minutes)..."
-  pip install -r requirements.txt
+  if ! pip install -r requirements.txt; then
+    # Why retry with specific google-re2 version: Newer google-re2 versions (1.2+)
+    # require C++17 and abseil 20250814.1+, which can fail on some systems.
+    # Version 1.1.20240702 has pre-built wheels and is more reliable.
+    print_warning "Initial installation failed, retrying with known-good google-re2 version..."
+    pip install google-re2==1.1.20240702
+    pip install -r requirements.txt
+  fi
 
   print_success "Python dependencies installed successfully"
 }
