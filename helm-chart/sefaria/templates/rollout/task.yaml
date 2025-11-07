@@ -140,6 +140,7 @@ spec:
             command: ["python3", "/app/sefaria/celery_setup/healthcheck.py", "--mode", "readiness", "--timeout", "5"]
           periodSeconds: 5
           failureThreshold: 50
+          timeoutSeconds: 6
         volumeMounts:
         - mountPath: /app/sefaria/local_settings.py
           name: local-settings
