@@ -31,10 +31,27 @@ spec:
                 - |
                   set -e
                   echo "Finding latest PostgreSQL backup from production..."
-                  LATEST_DUMP=$(gsutil ls gs://sefaria-user-backup/postgres_*.dump | sort | tail -1)
-                  echo "Found latest backup: $LATEST_DUMP"
-                  echo "Downloading backup..."
-                  gsutil -q cp "$LATEST_DUMP" /storage/pg.dump
+                  
+                  # Try to download backup from recent days (backups are named postgres_DD.MM.YY.dump)
+                  for days_ago in 0 1 2 3 4 5 6 7; do
+                    backup_date=$(date --date="$days_ago days ago" +'%d.%m.%y')
+                    backup_file="gs://sefaria-user-backup/postgres_${backup_date}.dump"
+                    echo "Trying to download backup: $backup_file"
+                    
+                    if gsutil -q cp "$backup_file" /storage/pg.dump 2>/dev/null; then
+                      echo "Successfully downloaded backup from $days_ago days ago: $backup_file"
+                      break
+                    else
+                      echo "Backup not found for $backup_date, trying next date..."
+                    fi
+                    
+                    # If we've tried all dates, fail
+                    if [ $days_ago -eq 7 ]; then
+                      echo "ERROR: No PostgreSQL backup found in the last 7 days"
+                      exit 1
+                    fi
+                  done
+                  
                   echo "Backup downloaded successfully"
           containers:
             - name: sync-postgres-production-data
