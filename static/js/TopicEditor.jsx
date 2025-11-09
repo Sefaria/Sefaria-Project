@@ -1,11 +1,12 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, SmallBlueButton, ImageWithCaption} from "./Misc";
+import {InterfaceText, ImageWithCaption} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
 import {ImageCropper} from "./ImageCropper";
 import Cookies from "js-cookie";
 import React, {useState, useRef} from "react";
+import Button from "./common/Button";
 
 
 const uploadTopicImage = function(imageBlob, old_filename, topic_image_api) {
@@ -54,7 +55,7 @@ const CurrImageThumbnail = ({image_src, caption, deleteImage, removeButtonText})
             <br/>
             <ImageWithCaption photoLink={image_src} caption={caption || {en: "", he: ""}}/>
             <br/>
-            <SmallBlueButton tabIndex="1" text={removeButtonText} onClick={deleteImage} />
+            <Button onClick={deleteImage}>{removeButtonText}</Button>
         </div>
     );
 };
@@ -93,7 +94,7 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
         </label>
         <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
             <label htmlFor="addImageFileSelector">
-                <SmallBlueButton tabIndex="0" text="Upload Picture" />
+                <Button>Upload Picture</Button>
             </label>
         </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
         <CurrImageThumbnail image_src={old_filename} caption={caption} deleteImage={deleteImage} removeButtonText="Remove Picture" />
@@ -130,7 +131,7 @@ const TopicPictureCropper = ({slug, callback, old_filename, image_uri}) => {
         <div>
             <label><InterfaceText>Secondary Picture</InterfaceText></label>
             <div><InterfaceText>This version of the topic's image will be shown on Topics Landing.</InterfaceText></div>
-            <SmallBlueButton tabIndex="0" onClick={() => setImageToCrop(image_uri)} text="Edit Secondary Picture" />
+            <Button onClick={() => setImageToCrop(image_uri)}>Edit Secondary Picture</Button>
             <ImageCropper
                 loading={loading}
                 src={imageToCrop}
