@@ -44,6 +44,7 @@ class ContextMutation:
         return tuple(matched_terms) == self.input_terms
 
     def apply(self, raw_parts: List[RawRefPart], output_contexts: Sequence[TermContext]) -> List[RawRefPart]:
+        """Given the already-matched raw parts and the TermContexts to insert, return the mutated part list."""
         if len(output_contexts) != len(self.output_terms):
             raise ValueError("Mismatch between declared output_terms and provided TermContexts")
         if self.op == ContextMutationOp.SWAP:
@@ -77,6 +78,10 @@ class ContextMutationSet:
 
     def apply(self, matched_terms: Sequence[str], raw_parts: List[RawRefPart],
               term_factory: Callable[[str], TermContext]) -> List[RawRefPart]:
+        """
+        Convenience wrapper that looks up the matching ContextMutation for `matched_terms`
+        and applies it to the provided raw parts using the given term factory.
+        """
         mutation = self.get(matched_terms)
         if mutation is None:
             return raw_parts
@@ -104,6 +109,22 @@ class ContextMutationSet:
         return f"ContextMutationSet({self.debug_view()})"
 
     def apply_to(self, raw_ref: RawRef, term_matcher: 'TermMatcher') -> None:
+        """
+        Mutate `raw_ref.parts_to_match` based on the collected mutations.
+
+        Example (from tests):
+          raw parts: ["Dummy Title", "Yet Another Dummy Title", "#25", "#4"]
+          slug_candidates rows:
+             ['dummy-title', 'yet-another-dummy-title', '__EMPTY__', '__EMPTY__']
+             ['dummy-title2', ...]
+          For mutation input_terms ["dummy-title", "yet-another-dummy-title"], we scan each row of the Cartesian product
+          ("dot product") built from the candidate slugs per part. When a row contains every required slug (multiset subset),
+          we bind each slug to the first available index (skip disallowed indices for swaps), then apply ADD or SWAP:
+             - SWAP replaces the matched indices with the output contexts (e.g., "even-haezer", "shulchan-arukh")
+             - ADD inserts new contexts after the last matched index (avoiding duplicates)
+
+        After all applicable mutations have run, `raw_ref.parts_to_match` reflects the mutated parts sequence.
+        """
         if len(self) == 0:
             raw_ref.parts_to_match = raw_ref.raw_ref_parts
             return
