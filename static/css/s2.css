@@ -12161,7 +12161,10 @@ cursor: pointer;
 }
 
 .bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
-  flex-direction: row-reverse;
+  direction: rtl;
+}
+.bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment {
+  direction: ltr;
 }
 
 .boxedSheetItem + .spacer {
