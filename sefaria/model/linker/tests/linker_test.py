@@ -383,7 +383,7 @@ def test_context_mutations():
 
     swap_mutation = {
         "op": "swap",
-        "input_terms": ["dummy-title"],
+        "input_terms": ["dummy-title", "yet-another-dummy-title"],
         "output_terms": ["even-haezer", "shulchan-arukh"],
     }
     add_mutation = {
@@ -393,7 +393,7 @@ def test_context_mutations():
     }
 
     swap_raw_ref, swap_context_ref, lang, _ = create_raw_ref_data(
-        ["@Dummy Title", "#25", "#4"],
+        ["@Dummy Title", "@Yet Another Dummy Title", "#25", "#4"],
         context_tref=base_context_ref.normal(),
         lang="en",
     )
@@ -427,6 +427,30 @@ def test_context_mutations():
             "slug": "dummy-title",
             "titles": [
                 {"text": "Dummy Title", "lang": "en", "primary": True},
+            ],
+        },
+        {
+            "slug": "dummy-title2",
+            "titles": [
+                {"text": "Dummy Title", "lang": "en", "primary": True},
+            ],
+        },
+        {
+            "slug": "dummy-title3",
+            "titles": [
+                {"text": "Dummy Title", "lang": "en", "primary": True},
+            ],
+        },
+        {
+            "slug": "yet-another-dummy-title",
+            "titles": [
+                {"text": "Yet Another Dummy Title", "lang": "en", "primary": True},
+            ],
+        },
+        {
+            "slug": "yet-another-dummy-title2",
+            "titles": [
+                {"text": "Yet Another Dummy Title", "lang": "en", "primary": True},
             ],
         }
 
