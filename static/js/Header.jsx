@@ -419,6 +419,7 @@ const LoggedInButtons = ({ headerMode }) => {
       setIsClient(true);
     }
   }, []);
+  
   const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   return (
