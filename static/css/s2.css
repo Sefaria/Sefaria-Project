@@ -15144,6 +15144,16 @@ span.ref-link-color-3 {color: blue}
 }
 
 .mobileAccountLinks .dropdownDot {
+  width: 16px;
+  height: 16px;
+}
+
+.mobileNavMenu .mobileAccountLinks .mobileModuleSwitcher {
+  display: flex;
+  align-items: center;
+}
+
+.mobileAccountLinks .dropdownDot {
   margin-inline-end: 15px;
 }
 
