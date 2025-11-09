@@ -118,6 +118,21 @@ body, .en, .int-en, .englishWithinHebrew {
   font-family: var(--hebrew-font-conditional, var(--english-font));
 }
 
+.sr-only,
+.layout-button label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+
 .he {
   font-size: 122%;
 }
@@ -1986,10 +2001,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   filter: none;
   opacity: .6;
 }
-.navSidebar button.appButton.white img {
+.navSidebar .appButton.white img {
   opacity: 1;
 }
-.navSidebar button.appButton.ios img {
+.navSidebar .appButton.ios img {
   margin-top: -5px;
 }
 .navSidebar .button + .button {
@@ -3394,6 +3409,17 @@ a.cardTitle:hover {
 .sheetContentSidebar {
   margin: 30px 0;
   width: 33%;
+}
+.singlePanel .sheetMetaDataBox .sidebarLayout {
+  flex-direction: row;
+}
+.singlePanel .sheetContent .dropdownLinks-button img {
+  max-width: revert;
+}
+.singlePanel .sheetContentSidebar {
+  padding-inline: 10%;
+  width: revert;
+  margin: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
@@ -8931,15 +8957,15 @@ a .button:hover {
   width: 14px;
   margin-top: -3px;
 }
-button.appButton {
+.appButton {
   box-shadow: none;
   border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
-button.appButton img {
+.appButton img {
   margin-inline-end: 5px;
 }
-button.appButton.iconOnly {
+.appButton.iconOnly {
   width: 40px;
   height: 40px;
   box-sizing: border-box;
@@ -8949,7 +8975,7 @@ button.appButton.iconOnly {
   justify-content: center;
   align-items: center;
 }
-button.appButton.iconOnly img {
+.appButton.iconOnly img {
   width: 18px;
   height: 18px;
   margin: 0;
@@ -9245,6 +9271,9 @@ button.appButton.iconOnly img {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.singlePanel .sheetMetaDataBox {
+  margin-block-start: 75px;
+}
 .sheetMetaDataBox .profile-pic {
   width: 30px;
   height: 30px;
@@ -9279,6 +9308,9 @@ a.sheetAuthorName:hover {
   justify-content: space-between;
   align-items: center;
 }
+.singlePanel .sheetMetaDataBox .sidebarLayout .items {
+  align-items: flex-start;
+}
 .sheetMetaDataBox .guideButton {
   display: flex;
   align-items: center;
@@ -9301,6 +9333,10 @@ a.sheetAuthorName:hover {
   margin-inline-start: 15px;
   margin-inline-end: 15px;
 }
+.singlePanel .marginInlineIndent {
+  margin-inline-start: 7px;
+  margin-inline-end: 7px;
+}
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
 }
@@ -9314,7 +9350,6 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 25px;
   text-align: initial;
 }
 .sheetMetaDataBox .title {
@@ -9621,9 +9656,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background: white;
   padding: 3px;
 }
-
-.editorSaveStateIndicator.tooltip-toggle{
-}
 .interface-english .editorSaveStateIndicator.tooltip-toggle::before{
   margin-inline-start: 75px;
 }
@@ -9637,11 +9669,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   font-family: Roboto;
   color: #18345D;
 }
-.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
-  direction: rtl;
-}
-.interface-hebrew .editorSaveStateIndicator {
-  flex-direction: row-reverse;
+.interface-hebrew .sheetContentSidebar .editorSaveStateIndicator.tooltip-toggle::before {
+  left: auto;
 }
 .floatingEditorIcons{
   display: flex;
@@ -15114,6 +15143,24 @@ span.ref-link-color-3 {color: blue}
   flex-shrink: 0;
 }
 
+.mobileAccountLinks .dropdownDot {
+  width: 16px;
+  height: 16px;
+}
+
+.mobileNavMenu .mobileAccountLinks .mobileModuleSwitcher {
+  display: flex;
+  align-items: center;
+}
+
+.mobileAccountLinks .dropdownDot {
+  margin-inline-end: 15px;
+}
+
+.interface-hebrew .mobileAccountLinks .chevron {
+  transform: rotate(180deg);
+}
+
 .dropdownHeaderText {
   padding-inline-start: 10px;
 }
@@ -15137,6 +15184,10 @@ span.ref-link-color-3 {color: blue}
 }
 .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
   padding-top: 3px;
+}
+.singlePanel .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
+  padding-top: 0;
+  margin-top: -7px;
 }
 .header .headerDropdownMenu {
   display: block;
@@ -15222,6 +15273,12 @@ span.ref-link-color-3 {color: blue}
   overflow:hidden;
 }
 
+.interface-english .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  right: 5px;
+}
+.interface-hebrew .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  left: 5px;
+}
 .dropdownItem {
   padding-inline: 15px;
   flex-direction: column;

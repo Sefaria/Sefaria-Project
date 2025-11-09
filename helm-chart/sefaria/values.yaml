@@ -67,6 +67,15 @@ backup:
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
 
+# PostgreSQL configuration - can be overridden per environment
+postgres:
+  # host: defaults to DATABASES_HOST from secret if not specified
+  db: "sefaria_auth"
+  restore: false
+  sync: false
+  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM
+
+
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
   localsettings:
@@ -402,6 +411,10 @@ cronJobs:
   trends:
     enabled: false
   weeklyEmailNotifications:
+    enabled: false
+  syncPostgresProductionData:
+    enabled: false
+  syncMongoProductionData:
     enabled: false
 
 localSettings:
