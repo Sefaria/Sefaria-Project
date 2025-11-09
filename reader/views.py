@@ -1338,9 +1338,10 @@ def interface_language_redirect(request, language):
     # Set cookie on current domain (before redirect), using current domain's cookie domain
     # This ensures both the source and target domains get cookies set
     current_lang = current_domain_lang(request)
-    # current_lang is None in localhost (domain not pinned to language)
-    # In that case, cookie_domain=None sets cookie on exact current host
-    cookie_domain = get_cookie_domain(current_lang) if current_lang else None
+    # current_lang is None when domain is not pinned to a single language (e.g., localhost, cauldron)
+    # In that case, get_cookie_domain(None) finds the common suffix across all languages/modules
+    # If no common suffix exists, cookie_domain=None sets cookie on exact current host
+    cookie_domain = get_cookie_domain(current_lang)
     response.set_cookie("interfaceLang", language, domain=cookie_domain)
     if request.user.is_authenticated:
         p = UserProfile(id=request.user.id)
