@@ -16,20 +16,38 @@ spec:
       template:
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
+          volumes:
+            - name: shared-volume
+              emptyDir: {}
+          initContainers:
+            - name: postgres-backup-downloader
+              image: google/cloud-sdk
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
+              command: ["bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Finding latest PostgreSQL backup from production..."
+                  LATEST_DUMP=$(gsutil ls gs://sefaria-user-backup/postgres_*.dump | sort | tail -1)
+                  echo "Found latest backup: $LATEST_DUMP"
+                  echo "Downloading backup..."
+                  gsutil -q cp "$LATEST_DUMP" /storage/pg.dump
+                  echo "Backup downloaded successfully"
           containers:
             - name: sync-postgres-production-data
               image: postgres:{{ .Values.backup.postgres.version }}
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
               command: ["/bin/bash"]
               args:
                 - -c
                 - |
                   set -e
                   echo "Starting sync of production PostgreSQL data to {{ .Values.deployEnv }}..."
-
-                  # Find and download latest PostgreSQL backup from production
-                  LATEST_DUMP=$(gsutil ls gs://sefaria-user-backup/postgres_*.dump | sort | tail -1)
-                  echo "Found latest backup: $LATEST_DUMP"
-                  gsutil -q cp "$LATEST_DUMP" pg.dump
 
                   # Set PostgreSQL connection environment variables
                   export PGHOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
@@ -46,7 +64,7 @@ spec:
 
                   # Perform the restore with --clean to update existing tables
                   echo "Restoring PostgreSQL data (updating existing tables)..."
-                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" pg.dump
+                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
 
                   echo "Production PostgreSQL data sync completed successfully"
               envFrom:
