@@ -920,7 +920,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref && refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.ref}</a></div> : null }
+        {refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
