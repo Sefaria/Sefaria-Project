@@ -5,6 +5,26 @@ from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
 
+
+def _seed_non_unique_terms(term_defs):
+    created_terms = []
+    for term_def in term_defs:
+        slug = term_def["slug"]
+        existing = schema.NonUniqueTerm().load({"slug": slug})
+        if existing:
+            continue
+        term = schema.NonUniqueTerm(term_def)
+        term.save()
+        created_terms.append(term)
+    return created_terms
+
+
+def _cleanup_non_unique_terms(terms):
+    for term in terms:
+        term.delete()
+        schema.NonUniqueTerm._init_cache.pop(term.slug, None)
+
+
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
@@ -378,7 +398,49 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
             assert part.text == expected_part_str
 
 
-def test_context_mutations():
+@pytest.fixture
+def context_mutation_applier(peninei_base_context_ref):
+    attachments = []
+
+    def _apply(mutations, append=True):
+        node, original = attach_context_mutations(peninei_base_context_ref, mutations, append=append)
+        attachments.append((node, original))
+
+    yield _apply
+
+    for node, original in reversed(attachments):
+        restore_context_mutations(node, original)
+
+
+@pytest.fixture
+def seeded_terms():
+    term_defs = [
+        {"slug": "shulchan-arukh", "titles": [{"text": "Shulchan Arukh", "lang": "en", "primary": True}]},
+        {"slug": "even-haezer", "titles": [{"text": "Even HaEzer", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title2", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title3", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "yet-another-dummy-title", "titles": [{"text": "Yet Another Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "yet-another-dummy-title2", "titles": [{"text": "Yet Another Dummy Title", "lang": "en", "primary": True}]},
+    ]
+    created_terms = _seed_non_unique_terms(term_defs)
+    yield
+    _cleanup_non_unique_terms(created_terms)
+
+
+@pytest.fixture
+def mutation_runner():
+    def _run(ref_resolver, base_ref, raw_ref, context_ref, mutations, append=True):
+        node, original = attach_context_mutations(base_ref, mutations, append=append)
+        try:
+            return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+        finally:
+            restore_context_mutations(node, original)
+
+    return _run
+
+
+def test_context_mutations(seeded_terms, mutation_runner):
     base_context_ref = Ref("Peninei Halakhah, Family, Introduction")
 
     swap_mutation = {
@@ -405,62 +467,12 @@ def test_context_mutations():
     assert swap_context_ref == base_context_ref
     assert add_context_ref == base_context_ref
 
-    linker = library.get_linker(lang)
-    ref_resolver = linker._ref_resolver
+    ref_resolver = library.get_linker("en")._ref_resolver
     ref_resolver.reset_ibid_history()
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
 
-    temporary_terms = [
-        {
-            "slug": "shulchan-arukh",
-            "titles": [
-                {"text": "Shulchan Arukh", "lang": "en", "primary": True},
-            ],
-        },
-        {
-            "slug": "even-haezer",
-            "titles": [
-                {"text": "Even HaEzer", "lang": "en", "primary": True},
-            ],
-        },
-        {
-            "slug": "dummy-title",
-            "titles": [
-                {"text": "Dummy Title", "lang": "en", "primary": True},
-            ],
-        },
-        {
-            "slug": "dummy-title2",
-            "titles": [
-                {"text": "Dummy Title", "lang": "en", "primary": True},
-            ],
-        },
-        {
-            "slug": "dummy-title3",
-            "titles": [
-                {"text": "Dummy Title", "lang": "en", "primary": True},
-            ],
-        },
-        {
-            "slug": "yet-another-dummy-title",
-            "titles": [
-                {"text": "Yet Another Dummy Title", "lang": "en", "primary": True},
-            ],
-        },
-        {
-            "slug": "yet-another-dummy-title2",
-            "titles": [
-                {"text": "Yet Another Dummy Title", "lang": "en", "primary": True},
-            ],
-        }
-
-    ]
-
-    with temporary_non_unique_terms(temporary_terms, ref_resolver=ref_resolver):
-        with temporary_context_mutations(base_context_ref, [swap_mutation], append=True):
-            swap_matches = ref_resolver.resolve_raw_ref(swap_context_ref, swap_raw_ref)
-        with temporary_context_mutations(base_context_ref, [add_mutation], append=True):
-            add_matches = ref_resolver.resolve_raw_ref(add_context_ref, add_raw_ref)
+    swap_matches = mutation_runner(ref_resolver, base_context_ref, swap_raw_ref, swap_context_ref, [swap_mutation])
+    add_matches = mutation_runner(ref_resolver, base_context_ref, add_raw_ref, add_context_ref, [add_mutation])
 
     assert len(swap_matches) == 1
     swap_resolved = swap_matches[0]

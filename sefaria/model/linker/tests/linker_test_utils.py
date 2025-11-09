@@ -1,7 +1,6 @@
 import pytest
-from typing import Dict, Iterable, List
+from typing import List
 from functools import reduce
-from contextlib import contextmanager
 from copy import deepcopy
 from ne_span import NEDoc, RefPartType
 from sefaria.model.text import Ref, library
@@ -159,15 +158,7 @@ def print_spans(raw_ref: RawRef):
 _MISSING = object()
 
 
-@contextmanager
-def temporary_context_mutations(target, mutations, *, append: bool = False):
-    """
-    Temporarily attach ref_resolver context mutations to a SchemaNode.
-
-    :param target: SchemaNode (or Ref whose index_node should be patched).
-    :param mutations: Iterable of mutation dicts.
-    :param append: When True, extend any existing mutations instead of replacing.
-    """
+def attach_context_mutations(target, mutations, *, append: bool = False):
     def _resolve_node(obj):
         if isinstance(obj, schema.SchemaNode):
             return obj
@@ -180,105 +171,29 @@ def temporary_context_mutations(target, mutations, *, append: bool = False):
             if node is not None:
                 return node
             raise ValueError(f"Could not determine schema node for Ref {obj.normal()}")
-        raise TypeError("temporary_context_mutations expects a SchemaNode or Ref as target")
+        raise TypeError("attach_context_mutations expects a SchemaNode or Ref as target")
 
     node = _resolve_node(target)
     original = getattr(node, "ref_resolver_context_mutations", _MISSING)
 
     mutations_list = list(mutations)
     if not mutations_list and (not append or original is _MISSING):
-        # No-op request; nothing to patch.
-        yield node
-        return
+        return node, original
 
     if append and original is not _MISSING and original is not None:
         new_value = deepcopy(original) + deepcopy(mutations_list)
     else:
         new_value = deepcopy(mutations_list)
 
-    if new_value:
-        node.ref_resolver_context_mutations = new_value
-    else:
-        if original is _MISSING:
-            yield node
-            return
-        if original is None:
-            node.ref_resolver_context_mutations = None
-        else:
-            node.ref_resolver_context_mutations = deepcopy(original)
-        yield node
-        return
+    node.ref_resolver_context_mutations = new_value
+    return node, original
 
-    try:
-        yield node
-    finally:
-        if original is _MISSING:
+
+def restore_context_mutations(node, original):
+    if node is None:
+        return
+    if original is _MISSING:
+        if hasattr(node, "xx"):
             delattr(node, "ref_resolver_context_mutations")
-        else:
-            node.ref_resolver_context_mutations = original
-
-
-@contextmanager
-def temporary_non_unique_terms(term_defs: Iterable[Dict], *, ref_resolver=None, term_matcher=None):
-    """
-    Temporarily register NonUniqueTerm definitions for resolver use without hitting the database.
-
-    :param term_defs: Iterable of dictionaries containing at least 'slug' and 'titles'.
-    :param ref_resolver: Optional RefResolver instance used to obtain a TermMatcher.
-    :param term_matcher: Optional TermMatcher instance. Provide either this or ref_resolver.
-    """
-    if term_matcher is None:
-        if ref_resolver is None:
-            raise ValueError("temporary_non_unique_terms requires either ref_resolver or term_matcher")
-        term_matcher = ref_resolver.get_term_matcher()
-
-    term_defs = list(term_defs)
-    if len(term_defs) == 0:
-        yield []
-        return
-
-    cache_snapshots: Dict[str, object] = {}
-    created_terms: List[schema.NonUniqueTerm] = []
-    matcher_entries: List[tuple[str, int]] = []
-
-    try:
-        for term_def in term_defs:
-            slug = term_def.get("slug")
-            if not slug:
-                raise ValueError("temporary_non_unique_terms requires each term definition to include a slug")
-
-            existing = schema.NonUniqueTerm._init_cache.get(slug, _MISSING)
-            cache_snapshots[slug] = existing
-
-            if existing is _MISSING:
-                term = schema.NonUniqueTerm(term_def)
-                schema.NonUniqueTerm._init_cache[slug] = term
-            else:
-                term = existing
-            created_terms.append(term)
-
-            titles_for_lang = term.get_titles(term_matcher.lang) or []
-            for title in titles_for_lang:
-                entries = term_matcher._str2term_map.setdefault(title, [])
-                insert_idx = len(entries)
-                entries.append(term)
-                matcher_entries.append((title, insert_idx))
-
-        yield created_terms
-    finally:
-        for title, index in reversed(matcher_entries):
-            entries = term_matcher._str2term_map.get(title)
-            if not entries:
-                continue
-            if index < len(entries):
-                entries.pop(index)
-            if len(entries) == 0:
-                del term_matcher._str2term_map[title]
-
-        for term, term_def in zip(created_terms, term_defs):
-            slug = term_def.get("slug")
-            previous = cache_snapshots.get(slug, _MISSING)
-            if previous is _MISSING:
-                schema.NonUniqueTerm._init_cache.pop(slug, None)
-            else:
-                schema.NonUniqueTerm._init_cache[slug] = previous
+    else:
+        node.ref_resolver_context_mutations = original
