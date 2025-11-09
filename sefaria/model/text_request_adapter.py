@@ -147,27 +147,8 @@ class TextRequestAdapter:
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
-        shared_data_mutc = {}
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
-        def make_named_entities_dict():
-            # Cache named entities per version to avoid repeated DB queries
-            cache_key = f"{version_title}_{language}"
-            if cache_key not in shared_data:
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in shared_data['all_segment_refs']]},
-                                                  "charLevelData.versionTitle": version_title,
-                                                  "charLevelData.language": language})
-                # assumption is that refTopicLinks are all to unranged refs
-                ne_by_secs = defaultdict(list)
-                for ne in named_entities:
-                    try:
-                        ne_ref = Ref(ne.ref)
-                    except InputError:
-                        continue
-                    ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
-                shared_data[cache_key] = ne_by_secs
-            return shared_data[cache_key]
-
         def get_marked_up_text_chunk_queue():
             from queue import Queue
             q = Queue()
@@ -180,7 +161,7 @@ class TextRequestAdapter:
                 q.put(marked_up_chunk)
             return q
 
-        def link_wrapper(string, sections):
+        def mutc_wrapper(string, sections):
             chunk: MarkedUpTextChunk = chunks_queue.get()
             if chunk:
                 string = chunk.apply_spans_to_text(string)
@@ -194,9 +175,7 @@ class TextRequestAdapter:
 
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            text_modification_funcs = [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
-            if Link().load(query):
-                text_modification_funcs.append(link_wrapper)
+            text_modification_funcs.append(mutc_wrapper)
 
         elif self.return_format == 'text_only':
             text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
@@ -216,7 +195,6 @@ class TextRequestAdapter:
             if self.return_format == 'wrap_all_entities':
                 language = 'he' if version['direction'] == 'rtl' else 'en'
                 version_title = version['versionTitle']
-                ne_by_secs = make_named_entities_dict()
                 chunks_queue = get_marked_up_text_chunk_queue()
 
             ja = JaggedTextArray(version['text'])
