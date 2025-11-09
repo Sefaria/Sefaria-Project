@@ -57,7 +57,7 @@ class Sheet extends Component {
       const href = target.getAttribute('href');
       if (!href) { return; }
       const moduleTarget = target.getAttribute('data-target-module');
-      const fullUrl = Sefaria.util.fullURL(href, moduleTarget);
+      const fullUrl = moduleTarget ? Sefaria.util.fullURL(href, moduleTarget) : href;
       Sefaria.util.openInNewTab(fullUrl);
     }
   }
