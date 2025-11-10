@@ -564,7 +564,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <InterfaceText>Developers on Sefaria</InterfaceText>
         </a>
 
-        <a href="/products" className="mobileModuleSwitcher" data-target-module={Sefaria.LIBRARY_MODULE}>
+        <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
           <img className="chevron" src="/static/icons/chevron-right.svg"/>
           <InterfaceText>More from Sefaria</InterfaceText>
         </a>
