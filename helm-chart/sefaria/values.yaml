@@ -73,7 +73,6 @@ postgres:
   db: "sefaria_auth"
   restore: false
   sync: false
-  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM
 
 
 web:
