@@ -19,6 +19,8 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
+from django.templatetags.static import static as django_static
+from django.contrib.staticfiles import finders
 
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -39,6 +41,36 @@ register = template.Library()
 
 current_site = Site.objects.get_current()
 domain       = current_site.domain
+
+
+def get_static_file_hash(path):
+	"""
+	Returns an MD5 hash of a static file's contents
+	"""
+	try:
+		abs_path = finders.find(path)
+		if abs_path:
+			with open(abs_path, 'rb') as f:
+				return hashlib.md5(f.read()).hexdigest()[:8]
+	except (IOError, OSError):
+		logger.warning(f"Error reading static file for hashing: {path}")
+		return ""
+	logger.warning(f"Static file not found for hashing: {path}")
+	return ""
+
+
+@register.simple_tag
+def static(path):
+    """
+    A template tag that returns the URL to a static file with cache busting hash
+    Usage: {% static "css/style.css" %}
+    Returns: /static/css/style.css?v=1a2b3c4d
+    """
+    static_url = django_static(path)
+    file_hash = get_static_file_hash(path)
+    if file_hash:
+        return f"{static_url}?v={file_hash}"
+    return static_url
 
 
 ref_link_cache = {} # simple cache for ref links
