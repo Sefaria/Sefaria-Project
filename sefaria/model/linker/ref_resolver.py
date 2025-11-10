@@ -441,16 +441,12 @@ class RefResolver:
     def _collect_context_mutations(self, book_context_ref: Optional[text.Ref]) -> Optional[ContextMutationSet]:
         if book_context_ref is None:
             return None
-        node = getattr(book_context_ref, 'index_node', None)
-        if node is None:
-            node = getattr(book_context_ref.index, 'nodes', None)
-        if node is None:
-            return None
+        node = book_context_ref.index_node
         path_nodes = []
         curr_node = node
         while curr_node is not None:
             path_nodes.append(curr_node)
-            curr_node = getattr(curr_node, 'parent', None)
+            curr_node = curr_node.parent
         mutation_set = ContextMutationSet()
         for path_node in reversed(path_nodes):
             raw_mutations = getattr(path_node, 'ref_resolver_context_mutations', None)
@@ -464,7 +460,7 @@ class RefResolver:
     @staticmethod
     def _parse_context_mutation_data(raw_mutations: Iterable[dict], node: schema.SchemaNode) -> List[ContextMutation]:
         parsed: List[ContextMutation] = []
-        node_title = node.full_title() if hasattr(node, "full_title") else getattr(node, "key", str(node))
+        node_title = node.full_title()
         for raw_mutation in raw_mutations:
             if not isinstance(raw_mutation, dict):
                 logger.warning("ref_resolver.context_mutation.invalid_format", node=node_title, data=raw_mutation)
