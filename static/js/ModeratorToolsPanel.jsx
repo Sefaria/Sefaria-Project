@@ -176,18 +176,22 @@ ModeratorToolsPanel.propTypes = {
 class WorkflowyModeratorTool extends Component{
     constructor(props) {
     super(props);
-    this.handleWfSubmit = this.handleWfSubmit.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleFileChange = this.handleFileChange.bind(this);
     this.wfFileInput = React.createRef();
     this.state = {
       c_index: true,
-      files: [],
-      multipleFiles: false
+      c_version: false,
+      delims: '',
+      term_scheme: '',
+      uploading: false,
+      uploadMessage: null,
+      uploadResult: null,
+      error: false,
+      errorIsHTML: false,
+      files: []
     };
   }
 
-  handleInputChange(event) {
+  handleInputChange = (event) => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
@@ -197,15 +201,14 @@ class WorkflowyModeratorTool extends Component{
     });
   }
 
-  handleFileChange(event) {
+  handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     this.setState({
-      files: files,
-      multipleFiles: files.length > 1
+      files: files
     });
   }
 
-  handleWfSubmit(event) {
+  handleWfSubmit = (event) => {
     event.preventDefault();
 
     if (this.state.files.length === 0) {
@@ -213,24 +216,20 @@ class WorkflowyModeratorTool extends Component{
       return;
     }
 
-    this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 ? 's' : ''}...`});
+    this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 && 's'}...`});
 
     const data = new FormData();
 
-    // Add files - use appropriate field name based on number of files
-    if (this.state.files.length === 1) {
-      // Single file - use original field name for backward compatibility
-      data.append('wf_file', this.state.files[0]);
-    } else {
-      // Multiple files - use array field name
+    // Add files 
+    if (this.state.files.length >= 1) {
       this.state.files.forEach(file => {
         data.append('workflowys[]', file);
       });
     }
 
     // Add other form data
-    data.append('c_index', this.state.c_index ? 'true' : 'false');
-    data.append('c_version', this.state.c_version ? 'true' : 'false');
+    data.append('c_index', this.state.c_index ? true : false);
+    data.append('c_version', this.state.c_version ? true : false);
     data.append('delims', this.state.delims || '');
     data.append('term_scheme', this.state.term_scheme || '');
 
@@ -266,9 +265,9 @@ class WorkflowyModeratorTool extends Component{
 
                 // Build summary message
                 if (failures.length === 0) {
-                    uploadMessage = `Successfully imported ${successes.length} file${successes.length > 1 ? 's' : ''}`;
+                    uploadMessage = `Successfully imported ${successes.length} file${successes.length > 1 && 's'}`;
                 } else if (successes.length === 0) {
-                    uploadMessage = `All ${failures.length} file${failures.length > 1 ? 's' : ''} failed`;
+                    uploadMessage = `All ${failures.length} file${failures.length > 1 && 's'} failed`;
                 } else {
                     uploadMessage = `${successes.length} succeeded, ${failures.length} failed`;
                 }
@@ -292,7 +291,7 @@ class WorkflowyModeratorTool extends Component{
                 });
 
                 // Clear files after upload
-                this.setState({files: [], multipleFiles: false});
+                this.setState({files: []});
                 if (this.wfFileInput.current) {
                   this.wfFileInput.current.value = '';
                 }
@@ -326,7 +325,7 @@ class WorkflowyModeratorTool extends Component{
               Upload Workflowy file(s):
               <input
                 type="file"
-                name="wf_file"
+                name="workflowys"
                 ref={this.wfFileInput}
                 multiple
                 accept=".opml"

@@ -611,11 +611,3 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
             return return_value
         return decorated_function
     return argumented_decorator
-
-def parse_bool(val, default=False):
-    """Parses a boolean value from a string or boolean input."""
-    if isinstance(val, bool):
-        return val
-    if isinstance(val, str):
-        return val.lower() == 'true'
-    return default
