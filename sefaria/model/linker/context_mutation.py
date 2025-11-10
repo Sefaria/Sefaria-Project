@@ -108,7 +108,7 @@ class ContextMutationSet:
              ['dummy-title', 'yet-another-dummy-title', '__EMPTY__', '__EMPTY__']
              ['dummy-title2', ...]
           For mutation input_terms ["dummy-title", "yet-another-dummy-title"], we scan each row of the Cartesian product
-          ("dot product") built from the candidate slugs per part. When a row contains every required slug (multiset subset),
+          ("cross product") built from the candidate slugs per part. When a row contains every required slug (multiset subset),
           we bind each slug to the first available index (skip disallowed indices for swaps), then apply ADD or SWAP:
              - SWAP replaces the matched indices with the output contexts (e.g., "even-haezer", "shulchan-arukh")
              - ADD inserts new contexts after the last matched index (avoiding duplicates)
