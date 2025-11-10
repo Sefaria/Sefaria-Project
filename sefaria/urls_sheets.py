@@ -20,7 +20,7 @@ urlpatterns = [
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
 
-    url(r'^sheets/?$', sheets_views.sheets_home_page, name='sheets'),
+    url(r'^sheets/?$', reader_views.serve_static, {'page': 'sheets'}, name='sheets'),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
