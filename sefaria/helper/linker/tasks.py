@@ -1,6 +1,8 @@
 """
 Celery tasks for the LLM server
 """
+from sefaria.model.linker.category_resolver import ResolvedCategory
+from sefaria.model.linker.named_entity_resolver import ResolvedNamedEntity
 from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
@@ -8,9 +10,11 @@ from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerResolutionsDebug
 from sefaria.model import Ref
-from sefaria.model.linker.ref_resolver import ResolutionThoroughness
+from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
+from sefaria.model.linker.ref_part import TermContext, RefPartType
+from sefaria.model.linker.linker import LinkedDoc
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
@@ -95,6 +99,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
     book_ref = Ref(linking_args.ref)
     output = linker.link(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH)
 
+    _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
     if not spans:
@@ -141,6 +146,71 @@ def _extract_resolved_spans(resolved_refs):
             "ref": resolved_ref.ref.normal(),
         })
     return spans
+
+
+def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
+    spans = _extract_debug_spans(doc)
+    if not spans:
+        return
+    query = {
+        "ref": tref,
+        "versionTitle": version_title,
+        "language": lang,
+    }
+    existing = LinkerResolutionsDebug().load(query)
+    if existing:
+        existing.delete()
+    query["spans"] = spans
+    LinkerResolutionsDebug(query).save()
+
+
+def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
+    spans = []
+    for resolved in doc.all_resolved:
+        if isinstance(resolved, ResolvedNamedEntity):
+            for topic in resolved.topics:
+                spans.append(_get_span_from_resolved(resolved, topic))
+        elif isinstance(resolved, ResolvedCategory):
+            for category in resolved.categories:
+                spans.append(_get_span_from_resolved(resolved, category))
+        elif isinstance(resolved, ResolvedRef):
+            spans.append(_get_span_from_resolved(resolved))
+        elif isinstance(resolved, AmbiguousResolvedRef):
+            for resolved_ref in resolved.resolved_raw_refs:
+                spans.append(_get_span_from_resolved(resolved_ref))
+    return spans
+
+
+def _get_span_from_resolved(resolved, obj=None) -> dict:
+    span = {
+        "text": resolved.raw_entity.text,
+        "charRange": resolved.raw_entity.char_indices,
+        "failed": resolved.resolution_failed,
+        "ambiguous": resolved.is_ambiguous,
+    }
+    if isinstance(resolved, ResolvedNamedEntity):
+        span.update({"type": MUTCSpanType.NAMED_ENTITY.value, "topicSlug": obj.slug})
+    elif isinstance(resolved, ResolvedCategory):
+        span.update({"type": MUTCSpanType.CATEGORY.value, "categoryPath": obj.path})
+    elif isinstance(resolved, ResolvedRef):
+        span.update({
+            "type": MUTCSpanType.CITATION.value,
+            "ref": resolved.ref,
+            "inputRefParts": [p.text for p in resolved.raw_entity.raw_ref_parts],
+            "refPartsToMatch": [p.text for p in resolved.raw_entity.parts_to_match],
+            "resolvedRefParts": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved.resolved_parts],
+            "resolvedRefPartTypes": [p.type.name for p in resolved.resolved_parts],
+            "resolvedRefPartClasses": [p.__class__.__name__ for p in resolved.resolved_parts],
+            "contextRef": resolved.context_ref.normal() if resolved.context_ref else None,
+            "contextType": resolved.context_type.name if resolved.context_type else None,
+        })
+        if RefPartType.RANGE.name in span['resolvedRefPartTypes']:
+            range_part = next((p for p in resolved.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
+            span.update({
+                'inputRangeSections': [p.text for p in range_part.sections],
+                'inputRangeToSections': [p.text for p in range_part.toSections]
+            })
+    return span
 
 
 def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[list[dict]]:

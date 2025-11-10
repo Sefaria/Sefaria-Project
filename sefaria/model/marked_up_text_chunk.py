@@ -13,6 +13,7 @@ class MUTCSpanType(Enum):
     QUOTE = "quote"
     NAMED_ENTITY = "named-entity"
     CITATION = "citation"
+    CATEGORY = "category"
 
 
 class MarkedUpTextChunk(AbstractMongoRecord):
@@ -212,6 +213,70 @@ class MUTCSpanFactory:
             return CitationMUTCSpan(char_range, typ, text, Ref(tref))
         if typ == MUTCSpanType.NAMED_ENTITY:
             return NamedEntityMUTCSpan(char_range, typ, text, topic_slug)
+
+
+class LinkerResolutionsDebug(AbstractMongoRecord):
+    """
+    Track linker resolutions for debugging purposes.
+    """
+    collection = "linker_resolutions_debug"
+    criteria_field = "ref"
+    track_pkeys = True
+    pkeys = ["ref", "versionTitle", "language"]
+
+    required_attrs = [
+        "ref",
+        "versionTitle",
+        "language",
+        "spans"
+    ]
+
+    attr_schemas = {
+        "ref": {"type": "string", "required": True},
+        "versionTitle": {"type": "string", "required": True},
+        "language": {"type": "string", "allowed": ["en", "he"], "required": True},
+        "spans": {
+            "type": "list",
+            "empty": False,
+            "schema": {
+                "type": "dict",
+                "schema": {
+                    "charRange": {
+                        "type": "list",
+                        "schema": {"type": "integer"},
+                        "minlength": 2,
+                        "maxlength": 2,
+                        "required": True
+                    },
+                    "text": {"type": "string", "required": True},
+                    "type": {
+                        "type": "string",
+                        "allowed": [x.value for x in MUTCSpanType],
+                        "required": True
+                    },
+                    "ref": {"type": "string", "required": False},
+                    "topicSlug": {"type": "string", "required": False},
+                    "categoryPath": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "inputRefParts": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "refPartsToMatch": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "resolvedRefParts": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "resolvedRefPartTypes": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "resolvedRefPartClasses": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "inputRangeSections": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "inputRangeToSections": {"type": "list", "schema": {"type": "string"}, "required": False},
+                    "contextRef": {"type": "string", "required": False},
+                    "contextType": {"type": "string", "required": False},
+                    "failed": {"type": "boolean", "required": True},
+                    "ambiguous": {"type": "boolean", "required": True},
+                }
+            },
+            "required": True
+        }
+    }
+    
+    
+class LinkerResolutionsDebugSet(AbstractMongoSet):
+    collection = "linker_resolutions_debug"
 
 
 def process_index_title_change_in_marked_up_text_chunks(indx, **kwargs):
