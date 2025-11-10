@@ -119,16 +119,6 @@ class ContextMutationSet:
             raw_ref.parts_to_match = raw_ref.raw_ref_parts
             return
 
-        term_cache: Dict[str, schema.NonUniqueTerm] = {}
-
-        def term_factory(slug: str) -> TermContext:
-            if slug not in term_cache:
-                term = schema.NonUniqueTerm.init(slug)
-                if term is None:
-                    raise ValueError(f"Unknown term slug: {slug}")
-                term_cache[slug] = term
-            return TermContext(term_cache[slug])
-
         raw_parts = raw_ref.raw_ref_parts
         slug_candidates: List[List[str]] = []
         for part in raw_parts:
@@ -166,7 +156,12 @@ class ContextMutationSet:
                 continue
             matched_parts = [raw_parts[idx] for idx in matched_indices]
             try:
-                output_contexts = [term_factory(slug) for slug in mutation.output_terms]
+                output_contexts = []
+                for slug in mutation.output_terms:
+                    term = schema.NonUniqueTerm.init(slug)
+                    if term is None:
+                        raise ValueError(f"Unknown term slug: {slug}")
+                    output_contexts.append(TermContext(term))
                 mutated_parts = mutation.apply(matched_parts, output_contexts)
             except Exception as err:
                 logger.warning("ref_resolver.context_mutation.apply_failed", slug_sequence=input_terms, error=str(err))
