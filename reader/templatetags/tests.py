@@ -1,15 +1,22 @@
 import hashlib
 import os
+import shutil
 import tempfile
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, override_settings
 from django.template import Context, Template
 from reader.templatetags.sefaria_tags import get_static_file_hash
 
-class TestStaticFileTag(TestCase):
+class TestStaticFileTag(SimpleTestCase):
+    databases = set()  # Tell pytest-django no DB is needed.
     def setUp(self):
         # Create a temporary directory for test static files
         self.test_dir = tempfile.mkdtemp()
-        self.addCleanup(lambda: os.rmdir(self.test_dir))
+        self.addCleanup(lambda: shutil.rmtree(self.test_dir, ignore_errors=True))
+
+        # Point STATICFILES_DIRS to the temporary directory for all tests
+        static_override = override_settings(STATICFILES_DIRS=[self.test_dir])
+        static_override.enable()
+        self.addCleanup(static_override.disable)
         
         # Create a test static file with known content
         self.test_content = b"Test static content"
@@ -17,12 +24,10 @@ class TestStaticFileTag(TestCase):
         self.test_filepath = os.path.join(self.test_dir, self.test_filename)
         with open(self.test_filepath, 'wb') as f:
             f.write(self.test_content)
-        self.addCleanup(lambda: os.remove(self.test_filepath))
         
         # Calculate expected hash
         self.expected_hash = hashlib.md5(self.test_content).hexdigest()[:8]
 
-    @override_settings(STATICFILES_DIRS=[tempfile.gettempdir()])
     def test_get_static_file_hash(self):
         """Test that the hash is correctly generated for a static file"""
         hash_value = get_static_file_hash(self.test_filename)
@@ -33,7 +38,6 @@ class TestStaticFileTag(TestCase):
         hash_value = get_static_file_hash('nonexistent.css')
         self.assertEqual(hash_value, "")
 
-    @override_settings(STATICFILES_DIRS=[tempfile.gettempdir()])
     def test_static_template_tag(self):
         """Test the full template tag functionality"""
         # Test basic usage
@@ -43,7 +47,6 @@ class TestStaticFileTag(TestCase):
         self.assertTrue(rendered.startswith('/static/'))
         self.assertTrue(rendered.endswith(self.expected_hash))
 
-    @override_settings(STATICFILES_DIRS=[tempfile.gettempdir()])
     def test_static_template_tag_nonexistent_file(self):
         """Test template tag with non-existent file"""
         template = Template('{% load sefaria_tags %}{% static "nonexistent.css" %}')

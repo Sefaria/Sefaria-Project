@@ -21,6 +21,7 @@ from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 from django.templatetags.static import static as django_static
 from django.contrib.staticfiles import finders
+from django.utils.functional import SimpleLazyObject
 
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
@@ -39,8 +40,7 @@ logger = structlog.get_logger(__name__)
 
 register = template.Library()
 
-current_site = Site.objects.get_current()
-domain       = current_site.domain
+domain = SimpleLazyObject(lambda: Site.objects.get_current().domain)
 
 
 def get_static_file_hash(path):
@@ -559,18 +559,3 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
-
-
-@register.simple_tag
-def get_static_file_hash(path):
-	"""
-	Returns an MD5 hash of a file in the static directory
-	"""
-	file_path = os.path.join(settings.STATIC_ROOT, path)
-	if not os.path.exists(file_path):
-		# Log warning if file does not exist
-		logger.warning(f"Static file not found for hashing: {file_path}")
-		return ""
-		
-	with open(file_path, 'rb') as f:
-		return hashlib.md5(f.read()).hexdigest()[:8]
