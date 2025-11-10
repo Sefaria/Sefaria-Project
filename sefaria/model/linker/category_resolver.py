@@ -11,7 +11,7 @@ class ResolvedCategory:
 
     @property
     def is_ambiguous(self):
-        return len(self.categories) != 1
+        return len(self.categories) > 1
 
     @property
     def resolution_failed(self):

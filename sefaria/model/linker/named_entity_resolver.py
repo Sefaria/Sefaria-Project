@@ -24,7 +24,7 @@ class ResolvedNamedEntity:
 
     @property
     def is_ambiguous(self):
-        return len(self.topics) != 1
+        return len(self.topics) > 1
 
     @property
     def resolution_failed(self):
