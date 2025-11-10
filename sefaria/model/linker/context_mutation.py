@@ -120,16 +120,16 @@ class ContextMutationSet:
             return
 
         raw_parts = raw_ref.raw_ref_parts
+        effective_mutations = list(self.effective_mutations())
+        if len(effective_mutations) == 0:
+            raw_ref.parts_to_match = raw_parts
+            return
+
         slug_candidates: List[List[str]] = []
         for part in raw_parts:
             term_matches = term_matcher.match_term(part)
             candidates = [match.slug for match in term_matches]
             slug_candidates.append(candidates if candidates else ["__EMPTY__"])
-
-        effective_mutations = list(self.effective_mutations())
-        if len(effective_mutations) == 0:
-            raw_ref.parts_to_match = raw_parts
-            return
 
         swap_inserts: Dict[int, List[RawRefPart]] = {}
         swap_removed_indices: Set[int] = set()
