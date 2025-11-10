@@ -10,7 +10,7 @@ data:
   # Automatic domain configuration - single source of truth
   DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
   # Session cookie settings for cross-subdomain support within this cauldron
-  # SESSION_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
+  SESSION_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
   SESSION_COOKIE_SECURE: "true"
   SESSION_COOKIE_HTTPONLY: "true"
   SESSION_COOKIE_SAMESITE: "Lax"
