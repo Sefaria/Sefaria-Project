@@ -97,7 +97,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
-    output = linker.link(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH)
+    output = linker.link(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH, with_failures=True)
 
     _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
@@ -133,10 +133,11 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
     )
     return asdict(msg)
 
+
 def _extract_resolved_spans(resolved_refs):
     spans = []
     for resolved_ref in resolved_refs:
-        if resolved_ref.is_ambiguous:
+        if resolved_ref.is_ambiguous or resolved_ref.resolution_failed:
             continue
         entity = resolved_ref.raw_entity
         spans.append({
@@ -169,19 +170,19 @@ def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     for resolved in doc.all_resolved:
         if isinstance(resolved, ResolvedNamedEntity):
             for topic in resolved.topics:
-                spans.append(_get_span_from_resolved(resolved, topic))
+                spans.append(_get_debug_span_from_resolved(resolved, topic))
         elif isinstance(resolved, ResolvedCategory):
             for category in resolved.categories:
-                spans.append(_get_span_from_resolved(resolved, category))
+                spans.append(_get_debug_span_from_resolved(resolved, category))
         elif isinstance(resolved, ResolvedRef):
-            spans.append(_get_span_from_resolved(resolved))
+            spans.append(_get_debug_span_from_resolved(resolved))
         elif isinstance(resolved, AmbiguousResolvedRef):
             for resolved_ref in resolved.resolved_raw_refs:
-                spans.append(_get_span_from_resolved(resolved_ref))
+                spans.append(_get_debug_span_from_resolved(resolved_ref))
     return spans
 
 
-def _get_span_from_resolved(resolved, obj=None) -> dict:
+def _get_debug_span_from_resolved(resolved, obj=None) -> dict:
     span = {
         "text": resolved.raw_entity.text,
         "charRange": resolved.raw_entity.char_indices,
@@ -195,16 +196,21 @@ def _get_span_from_resolved(resolved, obj=None) -> dict:
     elif isinstance(resolved, ResolvedRef):
         span.update({
             "type": MUTCSpanType.CITATION.value,
-            "ref": resolved.ref,
+            "ref": resolved.ref.normal() if resolved.ref else None,
             "inputRefParts": [p.text for p in resolved.raw_entity.raw_ref_parts],
+            "inputRefPartTypes": [p.type.name for p in resolved.raw_entity.raw_ref_parts],
+            "inputRefPartClasses": [p.__class__.__name__ for p in resolved.raw_entity.raw_ref_parts],
             "refPartsToMatch": [p.text for p in resolved.raw_entity.parts_to_match],
-            "resolvedRefParts": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved.resolved_parts],
-            "resolvedRefPartTypes": [p.type.name for p in resolved.resolved_parts],
-            "resolvedRefPartClasses": [p.__class__.__name__ for p in resolved.resolved_parts],
             "contextRef": resolved.context_ref.normal() if resolved.context_ref else None,
             "contextType": resolved.context_type.name if resolved.context_type else None,
         })
-        if RefPartType.RANGE.name in span['resolvedRefPartTypes']:
+        if resolved.ref:
+            span.update({
+                "resolvedRefParts": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved.resolved_parts],
+                "resolvedRefPartTypes": [p.type.name for p in resolved.resolved_parts],
+                "resolvedRefPartClasses": [p.__class__.__name__ for p in resolved.resolved_parts],
+            })
+        if RefPartType.RANGE.name in span['inputRefPartTypes']:
             range_part = next((p for p in resolved.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
             span.update({
                 'inputRangeSections': [p.text for p in range_part.sections],
