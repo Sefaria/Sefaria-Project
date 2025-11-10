@@ -1108,9 +1108,6 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
     def is_segment_level_dibur_hamatchil(self) -> bool:
         return getattr(self, 'isSegmentLevelDiburHamatchil', False)
-    
-    def has_passage_children(self) -> bool:
-        return getattr(self, 'hasPassageChildren', False)
 
 
 class AltStructNode(TitledTreeNode):
@@ -1133,7 +1130,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "hasPassageChildren", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses", "isMapReferenceable"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses", "isMapReferenceable"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):

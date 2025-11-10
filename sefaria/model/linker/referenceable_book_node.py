@@ -1,6 +1,9 @@
 import dataclasses
 from typing import List, Union, Optional, Tuple, Dict
 import copy
+import re
+from functools import reduce
+from collections import defaultdict
 from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
@@ -461,7 +464,21 @@ class PassageNodeSet(ReferenceableBookNode):
         
     def get_children(self, *args, **kwargs) -> List['PassageNode']:
         return [PassageNode(passage) for passage in self._passages]
-        
+    
+    
+class PassageMatcher:
+    
+    def __init__(self):
+        passages = PassageSet({"match_templates": {"$exists": True}})
+        self._passages_by_segment_ref = defaultdict(list)
+        for passage in passages:
+            for tref in passage.ref_list:
+                self._passages_by_segment_ref[tref].append(passage)
+                
+    def get_passages(self, ref: text.Ref) -> List[Passage]:
+        reg = re.compile(ref.regex())
+        matched_keys = [key for key in self._passages_by_segment_ref if re.search(reg, key)]
+        return reduce(lambda x, y: x + self._passages_by_segment_ref[y], matched_keys, [])
 
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet, ReferenceableBookNode):
