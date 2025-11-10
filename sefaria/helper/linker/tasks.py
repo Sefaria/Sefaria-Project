@@ -169,30 +169,34 @@ def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     spans = []
     for resolved in doc.all_resolved:
         if isinstance(resolved, ResolvedNamedEntity):
+            if len(resolved.topics) == 0:
+                spans.append(_get_debug_span_from_resolved(resolved))
             for topic in resolved.topics:
                 spans.append(_get_debug_span_from_resolved(resolved, topic))
         elif isinstance(resolved, ResolvedCategory):
+            if len(resolved.categories) == 0:
+                spans.append(_get_debug_span_from_resolved(resolved))
             for category in resolved.categories:
                 spans.append(_get_debug_span_from_resolved(resolved, category))
         elif isinstance(resolved, ResolvedRef):
             spans.append(_get_debug_span_from_resolved(resolved))
         elif isinstance(resolved, AmbiguousResolvedRef):
             for resolved_ref in resolved.resolved_raw_refs:
-                spans.append(_get_debug_span_from_resolved(resolved_ref))
+                spans.append(_get_debug_span_from_resolved(resolved_ref, ambig=True))
     return spans
 
 
-def _get_debug_span_from_resolved(resolved, obj=None) -> dict:
+def _get_debug_span_from_resolved(resolved, obj=None, ambig=False) -> dict:
     span = {
         "text": resolved.raw_entity.text,
         "charRange": resolved.raw_entity.char_indices,
         "failed": resolved.resolution_failed,
-        "ambiguous": resolved.is_ambiguous,
+        "ambiguous": ambig or resolved.is_ambiguous,
     }
     if isinstance(resolved, ResolvedNamedEntity):
-        span.update({"type": MUTCSpanType.NAMED_ENTITY.value, "topicSlug": obj.slug})
+        span.update({"type": MUTCSpanType.NAMED_ENTITY.value, "topicSlug": obj.slug if obj else None})
     elif isinstance(resolved, ResolvedCategory):
-        span.update({"type": MUTCSpanType.CATEGORY.value, "categoryPath": obj.path})
+        span.update({"type": MUTCSpanType.CATEGORY.value, "categoryPath": obj.path if obj else None})
     elif isinstance(resolved, ResolvedRef):
         span.update({
             "type": MUTCSpanType.CITATION.value,
