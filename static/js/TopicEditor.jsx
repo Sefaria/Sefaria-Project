@@ -94,7 +94,9 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
         </label>
         <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
             <label htmlFor="addImageFileSelector">
-                <Button>Upload Picture</Button>
+                <Button onClick={() => document.getElementById('addImageFileSelector').click()}>
+                    Upload Picture
+                </Button>
             </label>
         </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
         <CurrImageThumbnail image_src={old_filename} caption={caption} deleteImage={deleteImage} removeButtonText="Remove Picture" />
