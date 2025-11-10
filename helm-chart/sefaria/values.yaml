@@ -419,7 +419,7 @@ cronJobs:
 localSettings:
   DEBUG: true
   DOMAIN_LANGUAGE: {}
-    # https://www.sefaria.org: english
+    # https://www.sefaria.org: english 
     # https://www.sefaria.org.il: hebrew
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
