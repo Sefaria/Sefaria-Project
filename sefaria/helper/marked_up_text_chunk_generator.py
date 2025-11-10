@@ -62,7 +62,7 @@ class MarkedUpTextChunkGenerator:
 
     ##  Private methods:
 
-    def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str, version_id: int) -> None:
+    def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str, version_id: str) -> None:
         self.kwargs['version_id'] = version_id
         linking_args = LinkingArgs(ref=segment_ref.normal(), text=text,
                                    lang=lang, vtitle=vtitle,
