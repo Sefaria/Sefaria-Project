@@ -9,19 +9,12 @@ import { test, expect, Page } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES } from '../globals';
 import { PageManager } from '../pages/pageManager';
-import { MODULE_URLS } from '../constants';
+import { MODULE_URLS, VALID_TOPICS } from '../constants';
 
-// List of valid topics for testing trending topics
-const VALID_TOPICS = [
-  'Abraham', 'Afterlife', 'Angels', 'Animals', 'Apocrypha', 'Aramaic',
-  'Astronomy', 'Bible', 'Blessings', 'Charity', 'Commandments', 'Community',
-  'Customs', 'Demons', 'Ethics', 'Fasting', 'Festivals', 'Food',
-  'Forgiveness', 'Gematria', 'God', 'Halakha', 'Healing', 'Heaven',
-  'Hell', 'Holiness', 'Holy Days', 'Hospitality', 'Houses', 'Humanity'
-];
-
+// Get random display name from VALID_TOPICS constant
 function getRandomTopic(): string {
-  return VALID_TOPICS[Math.floor(Math.random() * VALID_TOPICS.length)];
+  const displayNames = Object.values(VALID_TOPICS);
+  return displayNames[Math.floor(Math.random() * displayNames.length)];
 }
 
 async function createAndPublishSheetWithTopic(
@@ -74,19 +67,24 @@ async function createAndPublishSheetWithTopic(
   await summaryTextarea.clear();
   await summaryTextarea.fill(`Test sheet about ${topicName}`);
 
-  // Add topic via autocomplete
+  // Add topic by typing and clicking the autocomplete suggestion
   const topicInput = page.locator('.react-tags__search-input').first();
   await topicInput.click();
   await topicInput.fill(topicName);
-  await page.waitForTimeout(800);
 
-  const suggestion = page.locator('.react-tags__suggestions li').first();
-  await suggestion.click();
+  // Wait for autocomplete suggestion to appear and click it
+  const topicSuggestion = page.locator('.react-tags__suggestions li').filter({ hasText: new RegExp(topicName, 'i') }).first();
+  await expect(topicSuggestion).toBeVisible({ timeout: 5000 }).catch(() => {
+    throw new Error(`Autocomplete suggestion for "${topicName}" did not appear`);
+  });
+  await topicSuggestion.click();
   await page.waitForTimeout(500);
 
-  // Verify topic was added
+  // Verify topic was added as a tag
   const addedTag = page.locator('.react-tags__selected-tag').filter({ hasText: topicName });
-  await expect(addedTag).toBeVisible();
+  await expect(addedTag).toBeVisible({ timeout: 5000 }).catch(() => {
+    throw new Error(`Topic "${topicName}" was not added to the sheet. Ensure the topic is valid.`);
+  });
 
   // Publish sheet
   const publishModalButton = page.locator('button').filter({ hasText: /publish/i }).last();
@@ -136,10 +134,34 @@ test.describe('Voices Module - Trending Topics', () => {
     await createAndPublishSheetWithTopic(page, pm, topicName, `User 2 - ${topicName} Sheet`);
 
     // Trigger trending-tags calculation via Django admin API
+    // First, navigate to the admin reset URL (may redirect to backstage login if not authenticated)
     const adminResetUrl = `${sandbox_url}/admin/reset/api/sheets/trending-tags`;
     await page.goto(adminResetUrl);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+
+    // Check if we're on the backstage login page
+    const emailInput = page.locator('input[name="email"]');
+    if (await emailInput.count() > 0) {
+      // We need to log in with superuser credentials
+      const superUserEmail = process.env.PLAYWRIGHT_SUPERUSER_EMAIL || '';
+      const superUserPassword = process.env.PLAYWRIGHT_SUPERUSER_PASSWORD || '';
+
+      if (!superUserEmail || !superUserPassword) {
+        throw new Error('Superuser credentials not found in environment variables');
+      }
+
+      await emailInput.fill(superUserEmail);
+      const passwordInput = page.locator('input[name="password"]');
+      await passwordInput.fill(superUserPassword);
+
+      const submitButton = page.locator('input[type="submit"]');
+      await submitButton.click();
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+    } else {
+      // Already authenticated, just wait for the reset to complete
+      await page.waitForTimeout(2000);
+    }
 
     // Navigate to Voices > Topics and verify topic appears in Trending Topics sidebar
     await pm.onModuleHeader().logout();
@@ -148,9 +170,14 @@ test.describe('Voices Module - Trending Topics', () => {
     await hideAllModalsAndPopups(page);
 
     const trendingTopicsModule = pm.onModuleSidebar().getModuleByHeading('Trending Topics');
-    const topicInTrendingSidebar = trendingTopicsModule.locator(`text=${topicName}`);
-    await expect(topicInTrendingSidebar).toBeVisible();
+    const topicInTrendingSidebar = trendingTopicsModule.locator('a, li, div').filter({ hasText: new RegExp(topicName, 'i') }).first();
+    await expect(topicInTrendingSidebar).toBeVisible({ timeout: 10000 }).catch(() => {
+      throw new Error(`Topic "${topicName}" did not appear in Trending Topics sidebar after reset`);
+    });
 
     await pm.onModuleHeader().logout();
+
+    // Log the topic name for reference
+    console.log(`Random Topic choosen ${topicName}`)
   });
 });

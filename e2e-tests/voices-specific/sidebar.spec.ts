@@ -51,70 +51,38 @@ test.describe('Voices Module Sidebar Tests', () => {
   });
 
   test('MOD-S014: Voices - Create button auth behavior', async () => {
-    // Ensure logged-out state first
-    await pm.onModuleHeader().logout();
-
-    const module = pm.onModuleSidebar().getModuleByHeading('Create');
-    const createButton = module.locator('a').filter({ hasText: 'Create' }).first();
-    await expect(createButton).toBeVisible();
-
     // Logged-out: clicking Create should go to login
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => null),
-      createButton.click()
-    ]);
+    await pm.onModuleHeader().logout();
+    await pm.onModuleSidebar().clickAndVerifyModuleButton({
+      headingText: 'Create',
+      buttonText: 'Create'
+    });
     expect(page.url()).toMatch(/\/login/);
 
-    // Now login and try again
+    // Logged-in: clicking Create should navigate to sheet creation
     await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.VOICES, true);
-
-    // After login, go back to Voices page to ensure stable starting point
     await page.goto(MODULE_URLS.VOICES);
 
-    // Click Create when logged in
-    const createBtnModule = pm.onModuleSidebar().getModuleByHeading('Create');
-    const createButton2 = createBtnModule.locator('a').filter({ hasText: 'Create' }).first();
-    const target = await createButton2.getAttribute('target');
-    if (target === '_blank') {
-      const [newPage] = await Promise.all([
-        page.context().waitForEvent('page'),
-        createButton2.click()
-      ]);
-      await newPage.waitForLoadState('domcontentloaded');
-      expect(newPage.url()).toMatch(/\/sheets\//);
-      await newPage.close();
-    } else {
-      await Promise.all([
-        page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-        createButton2.click()
-      ]);
-      expect(page.url()).toMatch(/\/sheets\//);
+    const resultPage = await pm.onModuleSidebar().clickAndVerifyModuleButton({
+      headingText: 'Create',
+      buttonText: 'Create'
+    });
+    expect(resultPage?.url()).toMatch(/\/sheets\//);
+    if (resultPage && resultPage !== page) {
+      await resultPage.close();
     }
 
-    // Cleanup: logout
     await pm.onModuleHeader().logout();
   });
 
   test('MOD-S015: Voices - Learn More navigates to sheet', async () => {
-    const module = pm.onModuleSidebar().getModuleByHeading('What is Voices on Sefaria?');
-    const learn = module.locator('a').filter({ hasText: 'Learn More' }).first();
-    await expect(learn).toBeVisible();
-
-    const target = await learn.getAttribute('target');
-    if (target === '_blank') {
-      const [newPage] = await Promise.all([
-        page.context().waitForEvent('page'),
-        learn.click()
-      ]);
-      await newPage.waitForLoadState('domcontentloaded');
-      expect(newPage.url()).toMatch(/\/sheets\//);
-      await newPage.close();
-    } else {
-      await Promise.all([
-        page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-        learn.click()
-      ]);
-      expect(page.url()).toMatch(/\/sheets\//);
+    const resultPage = await pm.onModuleSidebar().clickAndVerifyModuleButton({
+      headingText: 'What is Voices on Sefaria?',
+      buttonText: 'Learn More'
+    });
+    expect(resultPage?.url()).toMatch(/\/sheets\//);
+    if (resultPage && resultPage !== page) {
+      await resultPage.close();
     }
   });
 

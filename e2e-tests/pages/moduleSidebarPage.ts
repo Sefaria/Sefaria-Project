@@ -102,6 +102,52 @@ export class ModuleSidebarPage extends HelperBase {
   }
 
   /**
+   * Click a button inside a module and verify navigation behavior (new tab or same tab)
+   * @param options - Configuration for button click and verification
+   * @returns The new page if opened in new tab, the current page otherwise, or null for special cases
+   */
+  async clickAndVerifyModuleButton(options: {
+    headingText: string;
+    buttonText: string;
+    href?: RegExp | string;
+    isRoleButton?: boolean;
+    expectNewTab?: boolean;
+  }): Promise<Page | null> {
+    const module = this.getModuleByHeading(options.headingText);
+    const selector = options.isRoleButton ? 'a[role="button"]' : 'a';
+    const button = module.locator(selector).filter({ hasText: options.buttonText }).first();
+    await expect(button).toBeVisible();
+
+    // Check if button opens in new tab
+    const target = await button.getAttribute('target');
+    const opensNewTab = target === '_blank' || (options.expectNewTab ?? false);
+
+    return this.handleClickNavigation(button, opensNewTab);
+  }
+
+  /**
+   * Private helper to handle click navigation for both new and same-tab scenarios
+   * @param locator - The element to click
+   * @param opensNewTab - Whether the element opens in a new tab
+   * @returns The new page if opened in new tab, the current page otherwise, or null
+   */
+  private async handleClickNavigation(locator: any, opensNewTab: boolean): Promise<Page | null> {
+    if (opensNewTab) {
+      const [newPage] = await Promise.all([
+        this.page.context().waitForEvent('page'),
+        locator.click(),
+      ]);
+      await newPage.waitForLoadState('domcontentloaded');
+      return newPage;
+    } else {
+      const navigationPromise = this.page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => null);
+      await locator.click();
+      await navigationPromise;
+      return this.page;
+    }
+  }
+
+  /**
    * Verify a single footer link's href and target behavior
    * @param spec - Footer link specification
    */
@@ -141,26 +187,13 @@ export class ModuleSidebarPage extends HelperBase {
     const link = spec.selector ? this.footer.locator(spec.selector) : this.getFooterLinkByText(spec.name);
     await expect(link).toBeVisible();
 
-    const href = await link.getAttribute('href');
-
-    if (spec.opensNewTab) {
-      const [newPage] = await Promise.all([
-        this.page.context().waitForEvent('page'),
-        link.click(),
-      ]);
-      await newPage.waitForLoadState('domcontentloaded');
-      return newPage;
-    } else {
-      // Same tab navigation; if mailto, don't navigate
-      if (spec.isMailto) {
-        // Just assert href and do not click to avoid launching mail client
-        return null;
-      }
-      const navigationPromise = this.page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => null);
-      await link.click();
-      await navigationPromise;
-      return this.page;
+    // For mailto links, just verify the href without clicking
+    if (spec.isMailto) {
+      return null;
     }
+
+    // For regular links, use the common click navigation handler
+    return this.handleClickNavigation(link, spec.opensNewTab ?? false);
   }
 
   /**
