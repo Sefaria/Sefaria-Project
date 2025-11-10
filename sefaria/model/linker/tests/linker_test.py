@@ -476,13 +476,13 @@ def test_context_mutations(seeded_terms, mutation_runner):
 
     assert len(swap_matches) == 1
     swap_resolved = swap_matches[0]
-    assert not getattr(swap_resolved, "is_ambiguous", False)
+    assert not swap_resolved.is_ambiguous
     assert swap_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
 
 
     assert len(add_matches) == 1
     add_resolved = add_matches[0]
-    assert not getattr(add_resolved, "is_ambiguous", False)
+    assert not add_resolved.is_ambiguous
     assert add_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
 
 

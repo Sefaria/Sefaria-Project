@@ -163,14 +163,7 @@ def attach_context_mutations(target, mutations, *, append: bool = False):
         if isinstance(obj, schema.SchemaNode):
             return obj
         if isinstance(obj, Ref):
-            node = getattr(obj, "index_node", None)
-            if node is not None:
-                return node
-            index = getattr(obj, "index", None)
-            node = getattr(index, "nodes", None) if index is not None else None
-            if node is not None:
-                return node
-            raise ValueError(f"Could not determine schema node for Ref {obj.normal()}")
+            return obj.index_node
         raise TypeError("attach_context_mutations expects a SchemaNode or Ref as target")
 
     node = _resolve_node(target)
@@ -190,10 +183,8 @@ def attach_context_mutations(target, mutations, *, append: bool = False):
 
 
 def restore_context_mutations(node, original):
-    if node is None:
-        return
     if original is _MISSING:
-        if hasattr(node, "xx"):
+        if hasattr(node, "ref_resolver_context_mutations"):
             delattr(node, "ref_resolver_context_mutations")
     else:
         node.ref_resolver_context_mutations = original
