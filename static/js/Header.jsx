@@ -114,6 +114,7 @@ const LoggedInDropdown = ({ module }) => {
             <InterfaceText text={{ 'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא' }} />
           </DropdownMenuItem>
         }
+
         <DropdownMenuItem preventClose={true} url={'/help'}>
           <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
         </DropdownMenuItem>
