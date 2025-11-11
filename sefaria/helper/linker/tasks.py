@@ -10,7 +10,7 @@ from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerResolutionsDebug
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput
 from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
 from sefaria.model.linker.ref_part import TermContext, RefPartType
@@ -158,11 +158,11 @@ def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: Linke
         "versionTitle": version_title,
         "language": lang,
     }
-    existing = LinkerResolutionsDebug().load(query)
+    existing = LinkerOutput().load(query)
     if existing:
         existing.delete()
     query["spans"] = spans
-    LinkerResolutionsDebug(query).save()
+    LinkerOutput(query).save()
 
 
 def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:

@@ -5,7 +5,7 @@ from sefaria.model.linker.linker import LinkedDoc
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
-from sefaria.model.marked_up_text_chunk import LinkerResolutionsDebug
+from sefaria.model.marked_up_text_chunk import LinkerOutput
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
@@ -511,7 +511,7 @@ def test_linker_resolutions_debug(resolver_data):
     
     matches = get_matches_from_resolver_data(resolver_data)
     doc = LinkedDoc("", matches, [], [])
-    cerberus_span_schema = {'spans': LinkerResolutionsDebug.attr_schemas['spans']}
+    cerberus_span_schema = {'spans': LinkerOutput.attr_schemas['spans']}
     v = Validator(cerberus_span_schema)
     spans = _extract_debug_spans(doc)
     if not v.validate({"spans": spans}):
