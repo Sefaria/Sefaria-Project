@@ -679,6 +679,18 @@ class ResolvedRefPruner:
 
     @staticmethod
     def do_explicit_sections_match_before_context_sections(match: ResolvedRef) -> bool:
+        """
+        similar to context_parts_before_or_between_explicit_parts() but this focuses on numbered parts
+        This test is still needed since context_parts_before_or_between_explicit_parts() will ignore citations with "Ibid" in them.
+        
+        Context sections should always appear after explicit sections.
+        E.g.
+            Context Ref: Exodus 1:7
+            Input: Ibid 12
+            Don't consider: Exodus 12:7. This makes no sense.
+        :param match: 
+        :return: 
+        """
         first_explicit_section = None
         for part in match.get_resolved_parts():
             if not first_explicit_section and part.type == RefPartType.NUMBERED and not part.is_context:
@@ -686,6 +698,34 @@ class ResolvedRefPruner:
             elif first_explicit_section and part.is_context:
                 return True
         return False
+    
+    @staticmethod
+    def _has_explicit_ibid_in_input_parts(match: ResolvedRef) -> bool:
+        return RefPartType.IBID in {part.type for part in match.raw_entity.parts_to_match}
+
+    @staticmethod
+    def context_parts_before_or_between_explicit_parts(match: ResolvedRef) -> bool:
+        """
+        similar to do_explicit_sections_match_before_context_sections() but focused on all part types.
+        Context parts should always be matched before explicit parts
+        OR they should be in between explicit parts
+        They should never be only after explicit parts UNLESS there's an explicit ibid in the original citation. This indicates the citation should be using context and then this rule doesn't apply
+        :param match: 
+        :return: 
+        """
+        if ResolvedRefPruner._has_explicit_ibid_in_input_parts(match):
+            # skip this rule
+            return True
+        explicit_part_after_context = None
+        check_explicit_part_after_context = False
+        for part in match.get_resolved_parts():
+            if part.is_context:
+                check_explicit_part_after_context = True
+            elif check_explicit_part_after_context:
+                explicit_part_after_context = part
+        if check_explicit_part_after_context and not explicit_part_after_context:
+            return False
+        return True
 
     @staticmethod
     def matched_all_explicit_sections(match: ResolvedRef) -> bool:
@@ -732,6 +772,8 @@ class ResolvedRefPruner:
     @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
         # make sure no explicit sections matched before context sections
+        if not ResolvedRefPruner.context_parts_before_or_between_explicit_parts(match):
+            return False
         if ResolvedRefPruner.do_explicit_sections_match_before_context_sections(match):
             return False
         if not ResolvedRefPruner.matched_all_explicit_sections(match):
