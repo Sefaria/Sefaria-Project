@@ -1375,8 +1375,8 @@ def modtools_upload_workflowy(request):
     c_index = request.POST.get("c_index", "").lower() == "true"
     c_version = request.POST.get("c_version", "").lower() == "true"
     
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", "")) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", "")) else None
+    delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
+    term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 
     uid = request.user.id
 

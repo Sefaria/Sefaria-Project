@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import qs from 'qs';
 import { useState } from 'react';
+import { InterfaceText, EnglishText, HebrewText } from "./Misc";
 
 class ModeratorToolsPanel extends Component {
   constructor(props) {
@@ -218,20 +219,7 @@ class WorkflowyModeratorTool extends Component{
 
     this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 && 's'}...`});
 
-    const data = new FormData();
-
-    // Add files 
-    if (this.state.files.length >= 1) {
-      this.state.files.forEach(file => {
-        data.append('workflowys[]', file);
-      });
-    }
-
-    // Add other form data
-    data.append('c_index', this.state.c_index ? true : false);
-    data.append('c_version', this.state.c_version ? true : false);
-    data.append('delims', this.state.delims || '');
-    data.append('term_scheme', this.state.term_scheme || '');
+    const data = new FormData(event.target);
 
     const request = new Request(
         '/modtools/upload_text',
@@ -325,7 +313,7 @@ class WorkflowyModeratorTool extends Component{
               Upload Workflowy file(s):
               <input
                 type="file"
-                name="workflowys"
+                name="workflowys[]"
                 ref={this.wfFileInput}
                 multiple
                 accept=".opml"
@@ -342,6 +330,7 @@ class WorkflowyModeratorTool extends Component{
               <input
                 name="c_index"
                 type="checkbox"
+                value="true"
                 checked={this.state.c_index}
                 onChange={this.handleInputChange} />
            </label>
@@ -350,7 +339,8 @@ class WorkflowyModeratorTool extends Component{
               <input
                 name="c_version"
                 type="checkbox"
-                checked={this.state.c_version || false}
+                value="true"
+                checked={this.state.c_version}
                 onChange={this.handleInputChange} />
            </label>
            <label>
@@ -377,14 +367,16 @@ class WorkflowyModeratorTool extends Component{
                type="submit"
                disabled={this.state.uploading || this.state.files.length === 0}
              >
-                <span className="int-en">
+              <InterfaceText>
+                <EnglishText className="int-en">
                   {this.state.uploading ? 'Uploading...' :
                    this.state.files.length > 1 ? `Upload ${this.state.files.length} Files` : 'Upload'}
-                </span>
-                <span className="int-he">
-                  {this.state.uploading ? 'מעלה...' : 
+                </EnglishText>
+                <HebrewText className="int-he">
+                  {this.state.uploading ? 'מעלה...' :
                    this.state.files.length > 1 ? `העלאת ${this.state.files.length} קבצים` : 'העלאה'}
-                </span>
+                </HebrewText>
+              </InterfaceText>
              </button>
          </form>
         <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
