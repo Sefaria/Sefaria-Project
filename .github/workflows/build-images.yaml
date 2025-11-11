@@ -95,12 +95,20 @@ jobs:
           else
             echo "project=${{ secrets.DEV_PROJECT }}" >> $GITHUB_OUTPUT
           fi
+      - name: Determine Image URI
+        id: image_uri
+        run: |
+          if [ "${{ inputs.branch_name }}" = "" ]; then
+            echo "image_uri=us-east1-docker.pkg.dev/${{ steps.registry.outputs.project }}/containers/sefaria-${{ matrix.app }}" >> $GITHUB_OUTPUT
+          else
+            echo "image_uri=us-east1-docker.pkg.dev/${{ steps.registry.outputs.project }}/containers/sefaria-${{ matrix.app }}-${{ inputs.branch_name }}" >> $GITHUB_OUTPUT
+          fi
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: |
-            us-east1-docker.pkg.dev/${{ steps.registry.outputs.project }}/containers/sefaria-${{ matrix.app }}-${{ inputs.branch_name }}
+            ${{ steps.image_uri.outputs.image_uri }}
           tags: |
             type=raw,value=${{ inputs.image_tag }}
             type=raw,value=${{ inputs.image_tag }}-${{ steps.date.outputs.date }}
@@ -124,14 +132,14 @@ jobs:
         if: matrix.app == 'web'
         run: |
           echo "digest=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
-          echo "image=us-east1-docker.pkg.dev/${{ steps.registry.outputs.project }}/containers/sefaria-web-${{ inputs.branch_name }}:${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+          echo "image=${{steps.image_uri.outputs.image_uri }}" >> $GITHUB_OUTPUT
       # Output digest for node
       - name: Output node digest
         id: output-node
         if: matrix.app == 'node'
         run: |
           echo "digest=${{ steps.build.outputs.digest }}" >> $GITHUB_OUTPUT
-          echo "image=us-east1-docker.pkg.dev/${{ steps.registry.outputs.project }}/containers/sefaria-node-${{ inputs.branch_name }}:${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+          echo "image=${{steps.image_uri.outputs.image_uri }}" >> $GITHUB_OUTPUT
 
   # Consolidate outputs from matrix job
   build-web:
