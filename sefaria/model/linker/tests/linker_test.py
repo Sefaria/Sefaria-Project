@@ -4,6 +4,7 @@ from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughnes
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
+from sefaria.system.exceptions import IndexSchemaError
 
 
 def _seed_non_unique_terms(term_defs):
@@ -399,6 +400,11 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
 
 
 @pytest.fixture
+def peninei_base_context_ref():
+    return Ref("Peninei Halakhah, Family, Introduction")
+
+
+@pytest.fixture
 def context_mutation_applier(peninei_base_context_ref):
     attachments = []
 
@@ -438,6 +444,20 @@ def mutation_runner():
             restore_context_mutations(node, original)
 
     return _run
+
+
+@pytest.fixture
+def context_mutation_node(peninei_base_context_ref):
+    base_mutation = [{
+        "op": "swap",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    node, original = attach_context_mutations(peninei_base_context_ref, base_mutation)
+    try:
+        yield node
+    finally:
+        restore_context_mutations(node, original)
 
 
 def test_context_mutations(seeded_terms, mutation_runner):
@@ -484,6 +504,33 @@ def test_context_mutations(seeded_terms, mutation_runner):
     add_resolved = add_matches[0]
     assert not add_resolved.is_ambiguous
     assert add_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
+
+def test_context_mutation_schema_validation(context_mutation_node):
+    node = context_mutation_node
+    node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "unsupported",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    with pytest.raises(IndexSchemaError):
+        node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "swap",
+        "input_terms": ["valid-input"],
+        "output_terms": [],
+    }]
+    node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "add",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    node.validate()
 
 
 

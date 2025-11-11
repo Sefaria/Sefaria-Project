@@ -452,37 +452,17 @@ class RefResolver:
             raw_mutations = getattr(path_node, 'ref_resolver_context_mutations', None)
             if not raw_mutations:
                 continue
-            parsed_mutations = self._parse_context_mutation_data(raw_mutations, path_node)
+            parsed_mutations = self._parse_context_mutation_data(raw_mutations)
             if parsed_mutations:
                 mutation_set.add_mutations(parsed_mutations)
         return mutation_set if len(mutation_set) > 0 else None
 
     @staticmethod
-    def _parse_context_mutation_data(raw_mutations: Iterable[dict], node: schema.SchemaNode) -> List[ContextMutation]:
+    def _parse_context_mutation_data(raw_mutations: Iterable[dict]) -> List[ContextMutation]:
         parsed: List[ContextMutation] = []
-        node_title = node.full_title()
         for raw_mutation in raw_mutations:
-            if not isinstance(raw_mutation, dict):
-                logger.warning("ref_resolver.context_mutation.invalid_format", node=node_title, data=raw_mutation)
-                continue
-            op_token = raw_mutation.get("op")
-            input_terms = raw_mutation.get("input_terms", [])
-            output_terms = raw_mutation.get("output_terms", [])
-            try:
-                op = ContextMutationOp(op_token)
-            except Exception:
-                logger.warning("ref_resolver.context_mutation.invalid_op", node=node_title, op=op_token)
-                continue
-            if not isinstance(input_terms, (list, tuple)) or not all(isinstance(term, str) for term in input_terms):
-                logger.warning("ref_resolver.context_mutation.invalid_input_terms", node=node_title, input_terms=input_terms)
-                continue
-            if not isinstance(output_terms, (list, tuple)) or not all(isinstance(term, str) for term in output_terms):
-                logger.warning("ref_resolver.context_mutation.invalid_output_terms", node=node_title, output_terms=output_terms)
-                continue
-            try:
-                parsed.append(ContextMutation(op, input_terms, output_terms))
-            except ValueError as err:
-                logger.warning("ref_resolver.context_mutation.invalid_mutation", node=node_title, error=str(err))
+            op = ContextMutationOp(raw_mutation["op"])
+            parsed.append(ContextMutation(op, raw_mutation["input_terms"], raw_mutation["output_terms"]))
         return parsed
 
     def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:

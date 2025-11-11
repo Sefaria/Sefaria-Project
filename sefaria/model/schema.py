@@ -1250,6 +1250,50 @@ class SchemaNode(TitledTreeNode):
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
+        self._validate_context_mutations()
+
+    def _validate_context_mutations(self):
+        mutations = getattr(self, "ref_resolver_context_mutations", None)
+        if mutations is None:
+            return
+
+        full_title = self.full_title()
+
+        if not isinstance(mutations, list):
+            raise IndexSchemaError(
+                f"ref_resolver_context_mutations on {full_title} must be a list"
+            )
+
+        allowed_ops = {"add", "swap"}
+
+        def err(idx, msg: str) -> None:
+            raise IndexSchemaError(f"Context mutation #{idx} on {full_title} {msg}")
+
+        for idx, m in enumerate(mutations):
+            if not isinstance(m, dict):
+                err(idx, "must be a dict with op/input_terms/output_terms")
+
+            op = m.get("op")
+            if op not in allowed_ops:
+                err(idx, f"has invalid op {op!r}. Valid options: {sorted(allowed_ops)}")
+
+            input_terms = m.get("input_terms", ())
+            output_terms = m.get("output_terms", ())
+
+            if not (isinstance(input_terms, (list, tuple)) and input_terms):
+                err(idx, "must declare input_terms as a non-empty list/tuple")
+
+            if not isinstance(output_terms, (list, tuple)):
+                err(idx, "must declare output_terms as a list/tuple")
+
+            if not all(isinstance(t, str) and t for t in input_terms):
+                err(idx, "has invalid input_terms (non-empty strings only)")
+
+            if not all(isinstance(t, str) and t for t in output_terms):
+                err(idx, "has invalid output_terms (non-empty strings only)")
+
+            if op == "add" and not output_terms:
+                err(idx, "must declare at least one output term when op is 'add'")
     def concrete_children(self):
         return [c for c in self.children if not c.is_virtual]
 
