@@ -1264,7 +1264,8 @@ class SchemaNode(TitledTreeNode):
                 f"ref_resolver_context_mutations on {full_title} must be a list"
             )
 
-        allowed_ops = {"add", "swap"}
+        from sefaria.model.linker.context_mutation import ContextMutation, ContextMutationOp
+        allowed_ops = {op.value for op in ContextMutationOp}
 
         def err(idx, msg: str) -> None:
             raise IndexSchemaError(f"Context mutation #{idx} on {full_title} {msg}")
@@ -1273,9 +1274,11 @@ class SchemaNode(TitledTreeNode):
             if not isinstance(m, dict):
                 err(idx, "must be a dict with op/input_terms/output_terms")
 
-            op = m.get("op")
-            if op not in allowed_ops:
-                err(idx, f"has invalid op {op!r}. Valid options: {sorted(allowed_ops)}")
+            op_token = m.get("op")
+            try:
+                op = ContextMutationOp(op_token)
+            except Exception:
+                err(idx, f"has invalid op {op_token!r}. Valid options: {sorted(allowed_ops)}")
 
             input_terms = m.get("input_terms", ())
             output_terms = m.get("output_terms", ())
@@ -1292,8 +1295,10 @@ class SchemaNode(TitledTreeNode):
             if not all(isinstance(t, str) and t for t in output_terms):
                 err(idx, "has invalid output_terms (non-empty strings only)")
 
-            if op == "add" and not output_terms:
-                err(idx, "must declare at least one output term when op is 'add'")
+            try:
+                ContextMutation(op, input_terms, output_terms)
+            except ValueError as exc:
+                err(idx, f"is invalid: {exc}")
     def concrete_children(self):
         return [c for c in self.children if not c.is_virtual]
 
