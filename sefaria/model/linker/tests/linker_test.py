@@ -5,7 +5,7 @@ from sefaria.model.linker.linker import LinkedDoc
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
-from sefaria.model.marked_up_text_chunk import LinkerOutput
+from sefaria.model.linker_output import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError
 
 
@@ -663,15 +663,15 @@ def test_map_new_indices(crrd_params):
     [crrd(['@שמות', '#א', '#ב'])],  # not ambiguous
     [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"])],  # ambiguous
 ])
-def test_linker_resolutions_debug(resolver_data):
+def test_linker_output_validate(resolver_data):
     from sefaria.helper.linker.tasks import _extract_debug_spans
-    from cerberus import Validator
     
     matches = get_matches_from_resolver_data(resolver_data)
     doc = LinkedDoc("", matches, [], [])
-    cerberus_span_schema = {'spans': LinkerOutput.attr_schemas['spans']}
-    v = Validator(cerberus_span_schema)
     spans = _extract_debug_spans(doc)
-    if not v.validate({"spans": spans}):
-        raise Exception(v.errors)
-        
+    assert LinkerOutput({
+        "ref": "Genesis 1:1",
+        "versionTitle": "mock",
+        "language": "en",
+        "spans": spans
+    })._validate()
