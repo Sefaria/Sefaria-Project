@@ -296,28 +296,36 @@ class NormalizerComposer(AbstractNormalizer):
     @staticmethod
     def merge_removal_inds(*all_removal_inds):
         combined_removal_inds = reduce(lambda a, b: a + b, all_removal_inds, [])
-        combined_removal_inds.sort(key=lambda x: x[0][0])
+        combined_removal_inds.sort(key=lambda x: (x[0][0], x[0][1]))
         merged_removal_inds = []
         for curr_inds, curr_repl in combined_removal_inds:
             if len(merged_removal_inds) == 0:
                 merged_removal_inds += [(curr_inds, curr_repl)]
                 continue
             last_inds, last_repl = merged_removal_inds[-1]
-            if curr_inds[0] >= last_inds[1]:
+            a, b = last_inds
+            c, d = curr_inds
+            if c >= b:
                 # If current interval doesn't overlap with the last interval in result, append it
-                merged_removal_inds += [(curr_inds, curr_repl)]
+                merged_removal_inds.append((curr_inds, curr_repl))
+                continue
+            # some sort of overlap
+            # curr_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
+            if c == a and b <= d:
+                # last is subset. use curr_repl
+                merged_removal_inds[-1] = ((a, d), curr_repl)
+            elif c >= a and d <= b:
+                # curr is subset. keep last as is.
+                continue
             else:
-                # some sort of overlap
-                curr_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
-                if curr_inds[0] == last_inds[0] and last_inds[1] <= curr_inds[1]:
-                    # last is subset. use curr_repl
-                    curr_merged_repl = curr_repl
-                elif curr_inds[0] >= last_inds[0] and curr_inds[1] <= last_inds[1]:
-                    # curr is subset. use last_repl
-                    curr_merged_repl = last_repl
+                # partial overlap: a < c < b < d (given sorting by start)
+                if curr_repl == last_repl:
+                    # same replacement -> union into one span
+                    merged_removal_inds[-1] = ((a, d), curr_repl)
                 else:
-                    raise Exception(f"partial overlap. not sure how to reconcile. curr_inds: {curr_inds}. last_inds: {last_inds}")
-                merged_removal_inds[-1] = (curr_merged_inds, curr_merged_repl)
+                    # different replacements -> keep last, trim curr to start at b
+                    trimmed = ((b, d), curr_repl)
+                    merged_removal_inds.append(trimmed)
 
         return merged_removal_inds
 
@@ -367,7 +375,7 @@ class NormalizerFactory:
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
         "maqaf": ReplaceNormalizer('־', ' '),
         "itag": ITagNormalizer(' '),
-        "fn-marker": RegexNormalizer('<sup class="footnote-marker">(?:.*?)</sup>', ' '),
+        "fn-marker": RegexNormalizer(r'\s*<sup class="footnote-marker">(.*?)</sup>\s*', ' '),
         "br-tag": ReplaceNormalizer('<br>', '<br/>'),
         "double-space": RegexNormalizer(r"\s+", " "),
     }

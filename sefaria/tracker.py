@@ -39,7 +39,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
         kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
-        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, chunk.full_version._id, **kwargs)
+        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, str(chunk.full_version._id), **kwargs)
 
     return chunk
 
@@ -87,7 +87,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
         kwargs['count_after'] = False
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), **kwargs)
 
     count_segments(version.get_index())
     return error_map
@@ -136,7 +136,7 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
     version.save()
 
     for change in changing_texts:
-        post_modify_text(user, change['action'], change['oref'], lang, version_title, change['old_text'], change['curr_text'], version._id, **kwargs)
+        post_modify_text(user, change['action'], change['oref'], lang, version_title, change['old_text'], change['curr_text'], str(version._id), **kwargs)
     count_segments(version.get_index())
 
 
