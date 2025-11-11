@@ -107,8 +107,10 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
             for _ in range(queue_len):
                 temp_resolved_raw_ref = resolved_raw_refs.pop(0)
                 if not is_first_pass:
+                    # not 100% sure why this is here. It helps with ranged refs of Daf / Amud.
                     temp_children = temp_resolved_raw_ref.node.get_children(temp_resolved_raw_ref.ref)
-                    temp_resolved_raw_ref.node = None if len(temp_children) == 0 else temp_children[0]
+                    # not sure what this does. currently seems like choosing first Numbered node works
+                    temp_resolved_raw_ref.node = next((x for x in temp_children if isinstance(x, NumberedReferenceableBookNode)), None)
                 is_first_pass = False
                 temp_resolved_ref_refiner = ResolvedRefRefinerForNumberedPart(section_part, temp_resolved_raw_ref.node, temp_resolved_raw_ref)
                 next_resolved_raw_refs = temp_resolved_ref_refiner.refine(lang, fromSections=fromSections)
