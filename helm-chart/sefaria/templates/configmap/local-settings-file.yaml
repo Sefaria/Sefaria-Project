@@ -130,7 +130,7 @@ data:
     
     # Session cookie settings for cross-subdomain support
     # Set this to your top-level domain to allow session cookies to work across all subdomains
-    # SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", ".sefaria.org")  
+    SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", ".sefaria.org")  
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "true").lower() == "true"
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
