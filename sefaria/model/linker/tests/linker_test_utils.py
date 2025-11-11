@@ -4,7 +4,6 @@ from functools import reduce
 from copy import deepcopy
 from ne_span import NEDoc, RefPartType
 from sefaria.model.text import Ref, library
-from sefaria.model import schema
 from sefaria.model.linker.ref_part import RawRef, RawRefPart
 from sefaria.settings import ENABLE_LINKER
 
@@ -158,15 +157,10 @@ def print_spans(raw_ref: RawRef):
 _MISSING = object()
 
 
-def attach_context_mutations(target, mutations, *, append: bool = False):
-    def _resolve_node(obj):
-        if isinstance(obj, schema.SchemaNode):
-            return obj
-        if isinstance(obj, Ref):
-            return obj.index_node
-        raise TypeError("attach_context_mutations expects a SchemaNode or Ref as target")
-
-    node = _resolve_node(target)
+def attach_context_mutations(target_ref: Ref, mutations, *, append: bool = False):
+    if not isinstance(target_ref, Ref):
+        raise TypeError("attach_context_mutations expects a Ref target")
+    node = target_ref.index_node
     original = getattr(node, "ref_resolver_context_mutations", _MISSING)
 
     mutations_list = list(mutations)
