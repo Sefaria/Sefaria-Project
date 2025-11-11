@@ -1839,7 +1839,7 @@ SignUpModal.propTypes = {
 function OnInView({ children, onVisible }) {
   const nodeRef = useRef(null); // DOM element and children
   const onVisibleRef = useRef(onVisible);
-  const wasFullyVisible = useRef(false); // Check whether the element and its tree are "in view"
+  const wasFullyVisible = useRef(false); // Tracks if element has been fully visible to prevent duplicate callbacks
 
   // Keep the ref in sync with the latest prop without remounting the observer
   useEffect(() => {
