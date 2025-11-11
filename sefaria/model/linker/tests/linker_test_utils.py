@@ -1,6 +1,7 @@
 import pytest
 from typing import List
 from functools import reduce
+from copy import deepcopy
 from ne_span import NEDoc, RefPartType
 from sefaria.model.text import Ref, library
 from sefaria.model.linker.ref_part import RawRef, RawRefPart
@@ -168,3 +169,34 @@ def get_matches_from_resolver_data(resolver_data) -> list[PossiblyAmbigResolvedR
     print_spans(raw_ref)
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
     return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+
+
+
+_MISSING = object()
+
+
+def attach_context_mutations(target_ref: Ref, mutations, *, append: bool = False):
+    if not isinstance(target_ref, Ref):
+        raise TypeError("attach_context_mutations expects a Ref target")
+    node = target_ref.index_node
+    original = getattr(node, "ref_resolver_context_mutations", _MISSING)
+
+    mutations_list = list(mutations)
+    if not mutations_list and (not append or original is _MISSING):
+        return node, original
+
+    if append and original is not _MISSING and original is not None:
+        new_value = deepcopy(original) + deepcopy(mutations_list)
+    else:
+        new_value = deepcopy(mutations_list)
+
+    node.ref_resolver_context_mutations = new_value
+    return node, original
+
+
+def restore_context_mutations(node, original):
+    if original is _MISSING:
+        if hasattr(node, "ref_resolver_context_mutations"):
+            delattr(node, "ref_resolver_context_mutations")
+    else:
+        node.ref_resolver_context_mutations = original

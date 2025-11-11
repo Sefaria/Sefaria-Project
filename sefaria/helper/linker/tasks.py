@@ -235,6 +235,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[list[dict]]:
         return spans
 
 
+
 @app.task(name="linker.delete_and_save_new_links")
 def delete_and_save_new_links(payload: dict) -> None:
     if not payload:

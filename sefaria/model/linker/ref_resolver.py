@@ -6,6 +6,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
+from sefaria.model.linker.context_mutation import ContextMutationOp, ContextMutation, ContextMutationSet
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
 from ne_span import NESpan
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
@@ -375,9 +376,11 @@ class RefResolver:
             if is_non_cts:
                 # TODO assumes context is only first resolved ref
                 book_context_ref = None if resolved_list[0].is_ambiguous else resolved_list[0].ref
-            context_swap_map = None if book_context_ref is None else getattr(book_context_ref.index.nodes,
-                                                                        'ref_resolver_context_swaps', None)
-            self._apply_context_swaps(raw_ref, context_swap_map)
+            context_mutations = self._collect_context_mutations(book_context_ref)
+            if context_mutations:
+                context_mutations.apply_to(raw_ref, self.get_term_matcher())
+            else:
+                raw_ref.parts_to_match = raw_ref.raw_ref_parts
             unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
@@ -435,28 +438,32 @@ class RefResolver:
             matches += [match]
         return matches
 
-    def _apply_context_swaps(self, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
-        """
-        Use `context_swap_map` to swap matching element of `ref_parts`
-        Allows us to redefine how a ref part is interpreted depending on the context
-        E.g. some rishonim refer to other rishonim based on nicknames
+    def _collect_context_mutations(self, book_context_ref: Optional[text.Ref]) -> Optional[ContextMutationSet]:
+        if book_context_ref is None:
+            return None
+        node = book_context_ref.index_node
+        path_nodes = []
+        curr_node = node
+        while curr_node is not None:
+            path_nodes.append(curr_node)
+            curr_node = curr_node.parent
+        mutation_set = ContextMutationSet()
+        for path_node in reversed(path_nodes):
+            raw_mutations = getattr(path_node, 'ref_resolver_context_mutations', None)
+            if not raw_mutations:
+                continue
+            parsed_mutations = self._parse_context_mutation_data(raw_mutations)
+            if parsed_mutations:
+                mutation_set.add_mutations(parsed_mutations)
+        return mutation_set if len(mutation_set) > 0 else None
 
-        Modifies `raw_ref` with updated ref_parts
-        """
-        swapped_ref_parts = []
-        term_matcher = self.get_term_matcher()
-        if context_swap_map is None: return
-        for part in raw_ref.raw_ref_parts:
-            # TODO assumes only one match in term_matches
-            term_matches = term_matcher.match_term(part)
-            found_match = False
-            for match in term_matches:
-                if match.slug not in context_swap_map: continue
-                swapped_ref_parts += [TermContext(schema.NonUniqueTerm.init(slug)) for slug in context_swap_map[match.slug]]
-                found_match = True
-                break
-            if not found_match: swapped_ref_parts += [part]
-        raw_ref.parts_to_match = swapped_ref_parts
+    @staticmethod
+    def _parse_context_mutation_data(raw_mutations: Iterable[dict]) -> List[ContextMutation]:
+        parsed: List[ContextMutation] = []
+        for raw_mutation in raw_mutations:
+            op = ContextMutationOp(raw_mutation["op"])
+            parsed.append(ContextMutation(op, raw_mutation["input_terms"], raw_mutation["output_terms"]))
+        return parsed
 
     def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
         """
