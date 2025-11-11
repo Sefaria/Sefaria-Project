@@ -7,6 +7,7 @@ from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
 from sefaria.model.linker_output import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError
+from sefaria.helper.linker.tasks import _extract_debug_spans
 
 
 def _seed_non_unique_terms(term_defs):
@@ -664,8 +665,6 @@ def test_map_new_indices(crrd_params):
     [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"])],  # ambiguous
 ])
 def test_linker_output_validate(resolver_data):
-    from sefaria.helper.linker.tasks import _extract_debug_spans
-    
     matches = get_matches_from_resolver_data(resolver_data)
     doc = LinkedDoc("", matches, [], [])
     spans = _extract_debug_spans(doc)
