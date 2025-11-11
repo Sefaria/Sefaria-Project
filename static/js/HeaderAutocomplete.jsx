@@ -365,7 +365,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           return[];
         }
         try {
-        let types = Sefaria.activeModule === Sefaria.VOICES_MODULE ? ['Topic', 'User', 'Collection'] : undefined;
+        let types = Sefaria.activeModule === Sefaria.VOICES_MODULE ? ['Topic', 'User', 'Collection'] : ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'];
         const topic_pool = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
         const d = await Sefaria.getName(inputValue, undefined, types, topic_pool);
 
