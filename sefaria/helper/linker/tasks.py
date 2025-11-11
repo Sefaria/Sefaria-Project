@@ -10,7 +10,8 @@ from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType
+from sefaria.model.linker_output import LinkerOutput
 from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
 from sefaria.model.linker.ref_part import TermContext, RefPartType
