@@ -414,7 +414,10 @@ class RefResolver:
     def get_unrefined_ref_part_matches(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
             'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, ref_parts=raw_ref.parts_to_match)
-        contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
+        contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(text.Ref(base_text_title), ContextType.CURRENT_BOOK) for
+                                                                     base_text_title in
+                                                                     book_context_ref.index.base_text_titles] + [
+                       (ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
         matches = context_free_matches
         if len(matches) == 0:
             context_full_matches = []
