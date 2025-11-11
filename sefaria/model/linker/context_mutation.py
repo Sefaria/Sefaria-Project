@@ -1,16 +1,15 @@
 from collections import defaultdict, Counter
 from itertools import product
-from typing import List, Sequence, Dict, Optional, Tuple, Iterable, Callable, Set, TYPE_CHECKING
+from typing import List, Sequence, Dict, Optional, Tuple, Iterable, Callable, Set
 from enum import Enum
 
 from sefaria.model import schema
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, TermContext
 import structlog
 
-if TYPE_CHECKING:
-    from sefaria.model.linker.ref_resolver import TermMatcher
-
 logger = structlog.get_logger(__name__)
+
+
 
 
 class ContextMutationOp(str, Enum):
@@ -98,7 +97,7 @@ class ContextMutationSet:
     def __repr__(self) -> str:
         return f"ContextMutationSet({self.debug_view()})"
 
-    def apply_to(self, raw_ref: RawRef, term_matcher: 'TermMatcher') -> None:
+    def apply_to(self, raw_ref: RawRef, term_matcher) -> None:
         """
         Mutate `raw_ref.parts_to_match` based on the collected mutations.
 
