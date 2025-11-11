@@ -36,6 +36,7 @@ from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
 
+from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -68,6 +69,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
+from remote_config import get as rc_get
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -329,8 +331,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    CURRENT_LINKER_VERSION = "2"
-    linker_version = linker_version or CURRENT_LINKER_VERSION
+    linker_version = linker_version or rc_get(CURRENT_LINKER_VERSION, "2")
 
     if linker_version == "3":
         # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
