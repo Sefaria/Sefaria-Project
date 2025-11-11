@@ -113,12 +113,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         "spans": spans,
     })
 
-    existing_spans = _replace_existing_chunk(chunk)
-    if existing_spans:
-        logger.info(f"num spans before merge: {len(chunk.spans) + len(existing_spans)}")
-        chunk.add_non_overlapping_spans(existing_spans)
-        logger.info(f"num spans after merge: {len(chunk.spans)}")
-    chunk.save()
+    _replace_existing_chunk(chunk)
 
     # Prepare the minimal info the next task needs
     linked_refs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
@@ -158,11 +153,11 @@ def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: Linke
         "versionTitle": version_title,
         "language": lang,
     }
-    existing = LinkerOutput().load(query)
-    if existing:
-        existing.delete()
-    query["spans"] = spans
-    LinkerOutput(query).save()
+    try:
+        LinkerOutput().update(query, {"spans": spans})
+    except InputError as e:
+        query["spans"] = spans
+        LinkerOutput(query).save()
 
 
 def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
@@ -223,16 +218,20 @@ def _get_debug_span_from_resolved(resolved, obj=None, ambig=False) -> dict:
     return span
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[list[dict]]:
+def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> None:
     existing = MarkedUpTextChunk().load({
         "ref": chunk.ref,
         "language": chunk.language,
         "versionTitle": chunk.versionTitle,
     })
     if existing:
-        spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
-        existing.delete()
-        return spans
+        existing_spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
+        # add_non_overlapping_spans prefers `self.spans` over the spans that are input
+        existing.spans = chunk.spans
+        existing.add_non_overlapping_spans(existing_spans)
+        existing.save()
+    else:
+        chunk.save()
 
 
 
