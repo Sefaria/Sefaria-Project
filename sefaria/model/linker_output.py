@@ -21,6 +21,10 @@ class LinkerOutput(AbstractMongoRecord):
         "language",
         "spans"
     ]
+    optional_list_str_schema_keys = ('categoryPath', 'inputRefParts', 'inputRefPartTypes', 
+                                     'inputRefPartClasses', 'refPartsToMatch', 'resolvedRefParts',
+                                     'resolvedRefPartTypes', 'resolvedRefPartClasses', 'inputRangeSections',
+                                     'inputRangeToSections')
 
     attr_schemas = {
         "ref": {"type": "string", "required": True},
@@ -47,20 +51,11 @@ class LinkerOutput(AbstractMongoRecord):
                     },
                     "ref": {"type": "string", "required": False, "nullable": True},
                     "topicSlug": {"type": "string", "required": False, "nullable": True},
-                    "categoryPath": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "inputRefParts": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "inputRefPartTypes": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "inputRefPartClasses": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "refPartsToMatch": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "resolvedRefParts": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "resolvedRefPartTypes": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "resolvedRefPartClasses": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "inputRangeSections": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
-                    "inputRangeToSections": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
                     "contextRef": {"type": "string", "required": False, "nullable": True},
                     "contextType": {"type": "string", "required": False, "nullable": True},
                     "failed": {"type": "boolean", "required": True},
                     "ambiguous": {"type": "boolean", "required": True},
+                    **{k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True} for k in optional_list_str_schema_keys}
                 }
             },
             "required": True
