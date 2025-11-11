@@ -1,9 +1,30 @@
-from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
+from sefaria.system.exceptions import IndexSchemaError
+
+
+def _seed_non_unique_terms(term_defs):
+    created_terms = []
+    for term_def in term_defs:
+        slug = term_def["slug"]
+        existing = schema.NonUniqueTerm().load({"slug": slug})
+        if existing:
+            continue
+        term = schema.NonUniqueTerm(term_def)
+        term.save()
+        created_terms.append(term)
+    return created_terms
+
+
+def _cleanup_non_unique_terms(terms):
+    for term in terms:
+        term.delete()
+        schema.NonUniqueTerm._init_cache.pop(term.slug, None)
+
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
@@ -30,6 +51,8 @@ def test_resolved_raw_ref_clone():
     rrr = ResolvedRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
+
+
 
 
 crrd = create_raw_ref_data
@@ -374,6 +397,141 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
         assert match.pretty_text == expected_pretty_text
         for part, expected_part_str in zip(match.raw_entity.raw_ref_parts, expected_part_strs):
             assert part.text == expected_part_str
+
+
+@pytest.fixture
+def peninei_base_context_ref():
+    return Ref("Peninei Halakhah, Family, Introduction")
+
+
+@pytest.fixture
+def context_mutation_applier(peninei_base_context_ref):
+    attachments = []
+
+    def _apply(mutations, append=True):
+        node, original = attach_context_mutations(peninei_base_context_ref, mutations, append=append)
+        attachments.append((node, original))
+
+    yield _apply
+
+    for node, original in reversed(attachments):
+        restore_context_mutations(node, original)
+
+
+@pytest.fixture
+def seeded_terms():
+    term_defs = [
+        {"slug": "shulchan-arukh", "titles": [{"text": "Shulchan Arukh", "lang": "en", "primary": True}]},
+        {"slug": "even-haezer", "titles": [{"text": "Even HaEzer", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title2", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title3", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "yet-another-dummy-title", "titles": [{"text": "Yet Another Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "yet-another-dummy-title2", "titles": [{"text": "Yet Another Dummy Title", "lang": "en", "primary": True}]},
+    ]
+    created_terms = _seed_non_unique_terms(term_defs)
+    yield
+    _cleanup_non_unique_terms(created_terms)
+
+
+@pytest.fixture
+def mutation_runner():
+    def _run(ref_resolver, base_ref, raw_ref, context_ref, mutations, append=True):
+        node, original = attach_context_mutations(base_ref, mutations, append=append)
+        try:
+            return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+        finally:
+            restore_context_mutations(node, original)
+
+    return _run
+
+
+@pytest.fixture
+def context_mutation_node(peninei_base_context_ref):
+    base_mutation = [{
+        "op": "swap",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    node, original = attach_context_mutations(peninei_base_context_ref, base_mutation)
+    try:
+        yield node
+    finally:
+        restore_context_mutations(node, original)
+
+
+def test_context_mutations(seeded_terms, mutation_runner):
+    base_context_ref = Ref("Peninei Halakhah, Family, Introduction")
+
+    swap_mutation = {
+        "op": "swap",
+        "input_terms": ["dummy-title", "yet-another-dummy-title"],
+        "output_terms": ["even-haezer", "shulchan-arukh"],
+    }
+    add_mutation = {
+        "op": "add",
+        "input_terms": ["shulchan-arukh"],
+        "output_terms": ["even-haezer"],
+    }
+
+    swap_raw_ref, swap_context_ref, lang, _ = create_raw_ref_data(
+        ["@Dummy Title", "@Yet Another Dummy Title", "#25", "#4"],
+        context_tref=base_context_ref.normal(),
+        lang="en",
+    )
+    add_raw_ref, add_context_ref, _, _ = create_raw_ref_data(
+        ["@Shulchan Arukh", "#25", "#4"],
+        context_tref=base_context_ref.normal(),
+        lang="en",
+    )
+    assert swap_context_ref == base_context_ref
+    assert add_context_ref == base_context_ref
+
+    ref_resolver = library.get_linker("en")._ref_resolver
+    ref_resolver.reset_ibid_history()
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+
+    swap_matches = mutation_runner(ref_resolver, base_context_ref, swap_raw_ref, swap_context_ref, [swap_mutation])
+    add_matches = mutation_runner(ref_resolver, base_context_ref, add_raw_ref, add_context_ref, [add_mutation])
+
+    assert len(swap_matches) == 1
+    swap_resolved = swap_matches[0]
+    assert not swap_resolved.is_ambiguous
+    assert swap_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
+
+    assert len(add_matches) == 1
+    add_resolved = add_matches[0]
+    assert not add_resolved.is_ambiguous
+    assert add_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
+
+def test_context_mutation_schema_validation(context_mutation_node):
+    node = context_mutation_node
+    node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "unsupported",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    with pytest.raises(IndexSchemaError):
+        node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "swap",
+        "input_terms": ["valid-input"],
+        "output_terms": [],
+    }]
+    node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "add",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    node.validate()
+
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
