@@ -903,3 +903,14 @@ def process_index_title_change_in_user_history(indx, **kwargs):
             o.save()
         except InputError:
             logger.warning("Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
+
+
+def process_sheet_deletion_in_user_history(sheet_id):
+    """
+    When a sheet is deleted, remove all UserHistory items that reference it.
+    """
+    logger.info(f"Deleting UserHistory items for sheet {sheet_id}")
+    
+    # Use bulk_delete for performance - deletes directly from MongoDB without loading records
+    objs = UserHistorySet({"sheet_id": sheet_id})
+    objs.delete(bulk_delete=True)

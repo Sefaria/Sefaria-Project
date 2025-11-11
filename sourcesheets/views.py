@@ -311,6 +311,7 @@ def delete_sheet_api(request, sheet_id):
     db.sheets.delete_one({"id": id})
     process_sheet_deletion_in_collections(id)
     process_sheet_deletion_in_notifications(id)
+    process_sheet_deletion_in_user_history(id)
 
     try:
         es_index_name = search.get_new_and_current_index_names("sheet")['current']

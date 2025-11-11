@@ -47,7 +47,7 @@ from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
-from sefaria.model.user_profile import UserProfile, user_link
+from sefaria.model.user_profile import UserProfile, user_link, process_sheet_deletion_in_user_history
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
@@ -1186,6 +1186,7 @@ def delete_sheet_by_id(request):
             db.sheets.delete_one({"id": id})
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
+            process_sheet_deletion_in_user_history(id)
 
             try:
                 es_index_name = search.get_new_and_current_index_names("sheet")['current']
