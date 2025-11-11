@@ -1363,8 +1363,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             raise InputError("Version direction must be either 'rtl' or 'ltr'")
         assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
         assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
-        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
-        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+        has_primary = any(v.isPrimary for v in index.versionSet())
+        if not has_primary:  # if all are False, return true
             raise InputError("There must be at least one version that is primary.")
         return True
 
