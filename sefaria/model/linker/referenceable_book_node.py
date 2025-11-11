@@ -463,6 +463,7 @@ class PassageNodeSet(ReferenceableBookNode):
     
 class PassageMatcher:
 
+    # make class into singleton that is thread-safe
     _instance = None
     _lock = Lock()
 
