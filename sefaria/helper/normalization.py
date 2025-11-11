@@ -169,15 +169,13 @@ class ITagNormalizer(AbstractNormalizer):
         from sefaria.model.text import AbstractTextRecord
 
         all_itags = []
-        soup = BeautifulSoup(f"<root>{s}</root>", 'lxml')
-        itag_list = soup.find_all(ITagNormalizer._find_itags)
+        soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
-            all_itags += [itag]
-            try:
-                if AbstractTextRecord._itag_is_footnote(itag):
-                    all_itags += [itag.next_sibling]  # it's a footnote
-            except AttributeError:
-                pass  # it's an inline commentator
+            all_itags.append(itag)
+            if AbstractTextRecord._itag_is_footnote(itag):
+                sibling = itag.next_sibling
+                if isinstance(sibling, Tag):
+                    all_itags.append(sibling)  # it's a footnote
         return all_itags, soup
 
     @staticmethod
