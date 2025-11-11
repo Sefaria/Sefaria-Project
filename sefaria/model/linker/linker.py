@@ -112,6 +112,21 @@ class Linker:
             offset = end
         inputs.append(input_str[offset:])
         return inputs, paragraph_break_spans
+    
+    def link_with_footnotes(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
+        """
+        Similar to `link()` but does two passes through text
+        1) text without footnotes
+        2) just the footnotes
+        Merges results and adjusts char locations so they are consistent with original input text
+        
+        :param input_str: 
+        :param book_context_ref: 
+        @param link_args: *args to be passed to link()
+        @param link_kwargs: **kwargs to be passed to link()
+        :return: 
+        """
+        pass
 
     def link_by_paragraph(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
