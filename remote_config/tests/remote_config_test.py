@@ -1,11 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.urls import reverse
 
 from remote_config import get as rc_get, get_all as rc_get_all, reload_cache
 from remote_config.models import RemoteConfigEntry, ValueType
 
 
 class RemoteConfigParsingTest(TestCase):
+    databases = "__all__"
+
     def setUp(self):
         reload_cache()
 
@@ -33,6 +36,8 @@ class RemoteConfigParsingTest(TestCase):
 
 
 class RemoteConfigCacheTest(TestCase):
+    databases = "__all__"
+
     def setUp(self):
         reload_cache()
 
@@ -62,3 +67,23 @@ class RemoteConfigCacheTest(TestCase):
         )
         self.assertEqual(rc_get("timeout"), 10)
         self.assertEqual(rc_get("missing_key", default="fallback"), "fallback")
+
+
+class RemoteConfigAPITest(TestCase):
+    databases = "__all__"
+
+    def setUp(self):
+        reload_cache()
+
+    def test_remote_config_endpoint_returns_all_values(self):
+        RemoteConfigEntry.objects.create(
+            key="features.reader.new_nav",
+            raw_value="true",
+            value_type=ValueType.BOOL,
+            is_active=True,
+        )
+
+        response = self.client.get(reverse("remote_config_api"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["features.reader.new_nav"])
