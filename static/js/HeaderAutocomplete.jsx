@@ -28,6 +28,11 @@ const type_title_map = {
   "User": "Users"
 };
 
+const MODULE_AUTOCOMPLETE_TYPES = {
+  [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
+  [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
+};
+
 function type_icon(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
@@ -365,7 +370,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           return[];
         }
         try {
-        let types = Sefaria.activeModule === Sefaria.VOICES_MODULE ? ['Topic', 'User', 'Collection'] : ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'];
+        const types = MODULE_AUTOCOMPLETE_TYPES[Sefaria.activeModule];
         const topic_pool = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
         const d = await Sefaria.getName(inputValue, undefined, types, topic_pool);
 
