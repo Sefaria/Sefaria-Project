@@ -3,6 +3,8 @@ from typing import List, Optional, Union, Iterable, Tuple
 import time
 from tqdm import tqdm
 from ne_span import NEDoc
+
+from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.text import Ref
 from sefaria.model.linker.ref_part import RawRef, RawNamedEntity
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef, ResolvedRef
@@ -21,7 +23,7 @@ class LinkedDoc:
     resolved_categories: list[ResolvedCategory]
 
     @property
-    def all_resolved(self) -> List[Union[PossiblyAmbigResolvedRef, ResolvedNamedEntity, ResolvedCategory]]:
+    def all_resolved(self) -> List[AbstractResolvedEntity]:
         return self.resolved_refs + self.resolved_named_entities + self.resolved_categories
 
 

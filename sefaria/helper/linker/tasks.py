@@ -164,59 +164,8 @@ def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: Linke
 def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     spans = []
     for resolved in doc.all_resolved:
-        if isinstance(resolved, ResolvedNamedEntity):
-            if len(resolved.topics) == 0:
-                spans.append(_get_debug_span_from_resolved(resolved))
-            for topic in resolved.topics:
-                spans.append(_get_debug_span_from_resolved(resolved, topic))
-        elif isinstance(resolved, ResolvedCategory):
-            if len(resolved.categories) == 0:
-                spans.append(_get_debug_span_from_resolved(resolved))
-            for category in resolved.categories:
-                spans.append(_get_debug_span_from_resolved(resolved, category))
-        elif isinstance(resolved, ResolvedRef):
-            spans.append(_get_debug_span_from_resolved(resolved))
-        elif isinstance(resolved, AmbiguousResolvedRef):
-            for resolved_ref in resolved.resolved_raw_refs:
-                spans.append(_get_debug_span_from_resolved(resolved_ref, ambig=True))
+        spans.extend(resolved.get_debug_spans())
     return spans
-
-
-def _get_debug_span_from_resolved(resolved, obj=None, ambig=False) -> dict:
-    span = {
-        "text": resolved.raw_entity.text,
-        "charRange": resolved.raw_entity.char_indices,
-        "failed": resolved.resolution_failed,
-        "ambiguous": ambig or resolved.is_ambiguous,
-    }
-    if isinstance(resolved, ResolvedNamedEntity):
-        span.update({"type": MUTCSpanType.NAMED_ENTITY.value, "topicSlug": obj.slug if obj else None})
-    elif isinstance(resolved, ResolvedCategory):
-        span.update({"type": MUTCSpanType.CATEGORY.value, "categoryPath": obj.path if obj else None})
-    elif isinstance(resolved, ResolvedRef):
-        span.update({
-            "type": MUTCSpanType.CITATION.value,
-            "ref": resolved.ref.normal() if resolved.ref else None,
-            "inputRefParts": [p.text for p in resolved.raw_entity.raw_ref_parts],
-            "inputRefPartTypes": [p.type.name for p in resolved.raw_entity.raw_ref_parts],
-            "inputRefPartClasses": [p.__class__.__name__ for p in resolved.raw_entity.raw_ref_parts],
-            "refPartsToMatch": [p.text for p in resolved.raw_entity.parts_to_match],
-            "contextRef": resolved.context_ref.normal() if resolved.context_ref else None,
-            "contextType": resolved.context_type.name if resolved.context_type else None,
-        })
-        if resolved.ref:
-            span.update({
-                "resolvedRefParts": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved.resolved_parts],
-                "resolvedRefPartTypes": [p.type.name for p in resolved.resolved_parts],
-                "resolvedRefPartClasses": [p.__class__.__name__ for p in resolved.resolved_parts],
-            })
-        if RefPartType.RANGE.name in span['inputRefPartTypes']:
-            range_part = next((p for p in resolved.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
-            span.update({
-                'inputRangeSections': [p.text for p in range_part.sections],
-                'inputRangeToSections': [p.text for p in range_part.toSections]
-            })
-    return span
 
 
 def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> None:
