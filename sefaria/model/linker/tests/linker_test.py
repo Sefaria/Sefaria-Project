@@ -493,7 +493,7 @@ def test_context_mutations(seeded_terms, mutation_runner):
     assert swap_context_ref == base_context_ref
     assert add_context_ref == base_context_ref
 
-    ref_resolver = library.get_linker("en")._ref_resolver
+    ref_resolver = library._build_ref_resolver('en')
     ref_resolver.reset_ibid_history()
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
 
