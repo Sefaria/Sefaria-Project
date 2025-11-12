@@ -660,14 +660,16 @@ def test_map_new_indices(crrd_params):
         assert norm_part.text == part.text
     
 
-@pytest.mark.parametrize(('resolver_data',), [
-    [crrd(['@שמות', '#א', '#ב'])],  # not ambiguous
-    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"])],  # ambiguous
+@pytest.mark.parametrize(('resolver_data', 'is_ambiguous'), [
+    [crrd(['@שמות', '#א', '#ב']), False],  # not ambiguous
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), True],  # ambiguous
 ])
-def test_linker_output_validate(resolver_data):
+def test_linker_output_validate(resolver_data, is_ambiguous):
     matches = get_matches_from_resolver_data(resolver_data)
     doc = LinkedDoc("", matches, [], [])
     spans = _extract_debug_spans(doc)
+    for span in spans:
+        assert span['ambiguous'] == is_ambiguous
     assert LinkerOutput({
         "ref": "Genesis 1:1",
         "versionTitle": "mock",
