@@ -1,3 +1,3 @@
-from .cache import get, get_all, reload_cache
+from .cache import remoteConfigCache
 
-__all__ = ["get", "get_all", "reload_cache"]
+__all__ = ["remoteConfigCache"]

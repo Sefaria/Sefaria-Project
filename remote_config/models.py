@@ -4,6 +4,7 @@ import json
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from .cache import remoteConfigCache
 
 
 class ValueType:
@@ -50,7 +51,12 @@ class RemoteConfigEntry(models.Model):
         if self.value_type == ValueType.INT:
             return int(self.raw_value)
         if self.value_type == ValueType.BOOL:
-            return self.raw_value.strip().lower() in ("1", "true", "yes", "on")
+            if self.raw_value == "1":
+                return True
+            elif self.raw_value == "0":
+                return False
+            else:
+                raise ValueError("Invalid boolean value")
         if self.value_type == ValueType.JSON:
             return json.loads(self.raw_value)
         return self.raw_value
@@ -68,12 +74,8 @@ class RemoteConfigEntry(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        from .cache import reload_cache
-
-        reload_cache()
+        remoteConfigCache.reload()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        from .cache import reload_cache
-
-        reload_cache()
+        remoteConfigCache.reload()

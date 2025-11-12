@@ -69,7 +69,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
-from remote_config import get as rc_get
+from remote_config import remoteConfigCache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -331,7 +331,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    linker_version = linker_version or rc_get(CURRENT_LINKER_VERSION, "2")
+    linker_version = linker_version or remoteConfigCache.get(CURRENT_LINKER_VERSION, "2")
 
     if linker_version == "3":
         # linker.v3 is bundled using webpack as opposed to previous versions which are django templates

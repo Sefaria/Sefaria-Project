@@ -20,19 +20,19 @@ Parsing is implemented in `remote_config.models.RemoteConfigEntry.parse_value`. 
 
 - The cache is process-local and lives in `remote_config.cache`.
 - `remote_config.apps.RemoteConfigConfig.ready()` eagerly loads the cache on startup. If that fails, the cache is rebuilt lazily on first access.
-- Saving or deleting a `RemoteConfigEntry` automatically calls `reload_cache()`, so new values propagate without a restart.
-- You can call `remote_config.reload_cache()` manually (e.g., in a management command) after bulk updates.
+- Saving or deleting a `RemoteConfigEntry` automatically calls `remoteConfigCache.reload()`, so new values propagate without a restart.
+- You can call `remote_config.remoteConfigCache.reload()` manually (e.g., in a management command) after bulk updates.
 
 ## Reading Config Values
 
 ```python
-from remote_config import get, get_all
+from remote_config import remoteConfigCache
 
-if get("features.reader.new_nav", default=False):
+if remoteConfigCache.get("features.reader.new_nav", default=False):
     enable_new_nav()
 
-timeout_seconds = get("search.timeout", default=5)
-all_settings = get_all()          # returns a shallow copy of the cached dict
+timeout_seconds = remoteConfigCache.get("search.timeout", default=5)
+all_settings = remoteConfigCache.get_all()  # returns a shallow copy of the cached dict
 ```
 
 Guidelines:
@@ -65,11 +65,11 @@ RemoteConfigEntry.objects.update_or_create(
 )
 ```
 
-Bulk scripts should call `remote_config.reload_cache()` after all mutations so that other processes pick up the changes immediately.
+Bulk scripts should call `remote_config.remoteConfigCache.reload()` after all mutations so that other processes pick up the changes immediately.
 
 ## Testing & Local Development
 
-- Tests that rely on specific config values should create the needed entries in the database and then call `reload_cache()` in `setUp()`. See `remote_config/tests/remote_config_test.py` for examples.
+- Tests that rely on specific config values should create the needed entries in the database and then call `remoteConfigCache.reload()` in `setUp()`. See `remote_config/tests/remote_config_test.py` for examples.
 - When running locally, you can seed defaults via fixtures or a migration that inserts `RemoteConfigEntry` rows.
 - Remember that the cache is process-local: if you change values in one Django shell, you must reload (or restart) other long-running processes (e.g., Celery workers) to see the update.
 

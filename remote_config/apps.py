@@ -15,9 +15,9 @@ class RemoteConfigConfig(AppConfig):
         intentionally ignored so that deployments do not break if the database
         is unavailable during initialization.
         """
-        from .cache import reload_cache
+        from .cache import remoteConfigCache
 
         try:
-            reload_cache()
+            remoteConfigCache.reload()
         except Exception:  # pragma: no cover - defensive logging
             logger.exception("Remote config cache priming failed; will retry lazily.")
