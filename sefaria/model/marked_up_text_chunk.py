@@ -2,8 +2,17 @@ from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 from sefaria.model.text import TextChunk, Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from html import escape
+from enum import Enum
+from abc import ABC, abstractmethod
+from bisect import bisect_right
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+class MUTCSpanType(Enum):
+    QUOTE = "quote"
+    NAMED_ENTITY = "named-entity"
+    CITATION = "citation"
 
 
 class MarkedUpTextChunk(AbstractMongoRecord):
@@ -43,17 +52,17 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                     "text": {"type": "string", "required": True},
                     "type": {
                         "type": "string",
-                        "allowed": ["quote", "citation"],
+                        "allowed": [x.value for x in MUTCSpanType],
                         "required": True
                     },
-                    "ref": {"type": "string", "required": True}
+                    "ref": {"type": "string", "required": False},
+                    "topicSlug": {"type": "string", "required": False},
                 }
             },
             "required": True
         }
     }
-
-
+    
     def _validate(self):
         super()._validate()
         oref = Ref(self.ref)
@@ -73,22 +82,55 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
 
         for span in self.spans:
+            if span['type'] == MUTCSpanType.CITATION.value and 'ref' not in span:
+                raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
+            if span['type'] == MUTCSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
+                raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
             text = tc.text
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
-                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span['ref']}"
+                raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span.get('ref', span.get('topicSlug'))}"
                                  f": expected '{span['text']}', found '{citation_text}'.")
 
         return True
 
-    def _normalize(self):
-        self.ref = Ref(self.ref).normal()
-        for span in self.spans:
-            span['ref'] = Ref(span['ref']).normal()
-
     def __str__(self):
         return "TextSpan: {}".format(self.ref)
+    
+    def add_non_overlapping_spans(self, new_spans: list[dict]) -> None:
+        """
+        Add spans from new_spans to self.spans, ignoring any span from new_spans that overlaps
+        with any span in self.spans.
+        Doesn't save.
 
+        Assumes self.spans has no internal overlaps.
+        """
+        # Make a sorted copy of A for searching; keep original A order for the result.
+        self_spans = sorted(self.spans, key=lambda s: s["charRange"][0])
+        self_starts = [s["charRange"][0] for s in self_spans]
+
+        def overlaps(a, b):
+            a_start, a_end = a["charRange"]
+            b_start, b_end = b["charRange"]
+            return (a_start < b_end) and (b_start < a_end)  # half-open
+
+        accepted_new_spans = []
+        for b in new_spans:
+            b_start, _ = b["charRange"]
+            # idx is first A with start > b_start
+            idx = bisect_right(self_starts, b_start)
+
+            # Only possible overlaps are with A[idx-1] and A[idx] (since A is disjoint and sorted)
+            o = False
+            if idx - 1 >= 0 and overlaps(self_spans[idx - 1], b):
+                o = True
+            elif idx < len(self_spans) and overlaps(self_spans[idx], b):
+                o = True
+
+            if not o:
+                accepted_new_spans.append(b)
+
+        self.spans.extend(accepted_new_spans)
 
     def apply_spans_to_text(self, text):
         """
@@ -106,8 +148,9 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         spans_sorted = sorted(spans, key=lambda sp: sp["charRange"][0], reverse=True)
 
         out = text
-        for sp in spans_sorted:
-            start, end = sp["charRange"]
+        for raw_sp in spans_sorted:
+            sp = MUTCSpanFactory.create(raw_sp["charRange"], MUTCSpanType(raw_sp["type"]), raw_sp["text"], raw_sp.get("topicSlug"), raw_sp.get("ref"))
+            start, end = sp.char_range
 
             # Clamp & sanity check
             start = max(0, start)
@@ -115,26 +158,60 @@ class MarkedUpTextChunk(AbstractMongoRecord):
             if start >= end:
                 continue
 
-            span_citation_text = sp["text"]
-            if span_citation_text != out[start:end]:
+            if sp.text != out[start:end]:
                 # citation text saved in MUTC doesn't match the text in the actual segment
                 # this can happen briefly after an edit but before the async task completes
                 continue
 
-            ref = sp["ref"]
-            href = Ref(ref).url()
-            anchor = (
-                f'<a class="refLink" href="{href}" data-ref="{escape(ref)}">'
-                f'{span_citation_text}</a>'
-            )
-
-            out = out[:start] + anchor + out[end:]
+            out = out[:start] + sp.wrap_span_in_a_tag() + out[end:]
 
         return out
 
 
 class MarkedUpTextChunkSet(AbstractMongoSet):
     recordClass = MarkedUpTextChunk
+
+
+class MUTCSpan(ABC):
+    
+    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str):
+        self.char_range = char_range
+        self.typ = typ
+        self.text = text
+        
+    @abstractmethod
+    def wrap_span_in_a_tag(self) -> str:
+        pass
+        
+
+class CitationMUTCSpan(MUTCSpan):
+
+    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str, ref: Ref):
+        super().__init__(char_range, typ, text)
+        self.ref = ref
+    
+    def wrap_span_in_a_tag(self) -> str:
+        href = self.ref.url()
+        return f'<a class="refLink" href="{href}" data-ref="{escape(self.ref.normal())}">{self.text}</a>'
+    
+    
+class NamedEntityMUTCSpan(MUTCSpan):
+    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str, topic_slug: str):
+        super().__init__(char_range, typ, text)
+        self.topic_slug = topic_slug
+        
+    def wrap_span_in_a_tag(self) -> str:
+        href = self.topic_slug
+        return f'<a href="/topics/{href}" class="namedEntityLink" data-slug="{self.topic_slug}">{self.text}</a>'
+    
+    
+class MUTCSpanFactory:
+    @staticmethod
+    def create(char_range: list[int], typ: MUTCSpanType, text: str, topic_slug: str = None, tref: str = None) -> 'MUTCSpan':
+        if typ == MUTCSpanType.CITATION:
+            return CitationMUTCSpan(char_range, typ, text, Ref(tref))
+        if typ == MUTCSpanType.NAMED_ENTITY:
+            return NamedEntityMUTCSpan(char_range, typ, text, topic_slug)
 
 
 def process_index_title_change_in_marked_up_text_chunks(indx, **kwargs):

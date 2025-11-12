@@ -1372,17 +1372,16 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
-        wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
         fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
-                                      wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
+                                      wrapLinks=wrapLinks, stripItags=stripItags,
                                       translationLanguagePreference=translationLanguagePreference,
                                       fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:

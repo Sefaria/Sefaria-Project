@@ -8,7 +8,7 @@ from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType
 from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
@@ -108,11 +108,15 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         "spans": spans,
     })
 
-    _replace_existing_chunk(chunk)
+    existing_spans = _replace_existing_chunk(chunk)
+    if existing_spans:
+        logger.info(f"num spans before merge: {len(chunk.spans) + len(existing_spans)}")
+        chunk.add_non_overlapping_spans(existing_spans)
+        logger.info(f"num spans after merge: {len(chunk.spans)}")
     chunk.save()
 
     # Prepare the minimal info the next task needs
-    linked_refs = sorted({s["ref"] for s in spans})  # unique + stable
+    linked_refs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
     msg = DeleteAndSaveLinksMsg(
         ref=linking_args.ref,
         linked_refs=linked_refs,
@@ -133,20 +137,23 @@ def _extract_resolved_spans(resolved_refs):
         spans.append({
             "charRange": entity.char_indices,
             "text": entity.text,
-            "type": "citation",
+            "type": MUTCSpanType.CITATION.value,
             "ref": resolved_ref.ref.normal(),
         })
     return spans
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk):
+def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[list[dict]]:
     existing = MarkedUpTextChunk().load({
         "ref": chunk.ref,
         "language": chunk.language,
         "versionTitle": chunk.versionTitle,
     })
     if existing:
+        spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
         existing.delete()
+        return spans
+
 
 
 @app.task(name="linker.delete_and_save_new_links")
