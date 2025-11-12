@@ -250,6 +250,8 @@ class AmbiguousResolvedRef(AbstractResolvedEntity):
         spans = []
         for raw_ref in self.resolved_raw_refs:
             spans += raw_ref.get_debug_spans()
+        for span in spans:
+            span['ambiguous'] = self.is_ambiguous
         return spans
 
     @property
