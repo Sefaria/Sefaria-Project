@@ -28,11 +28,6 @@ const type_title_map = {
   "User": "Users"
 };
 
-const MODULE_AUTOCOMPLETE_TYPES = {
-  [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
-  [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
-};
-
 function type_icon(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
@@ -364,6 +359,10 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
+    const MODULE_AUTOCOMPLETE_TYPES = {
+      [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
+      [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
+    };
 
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
