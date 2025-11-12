@@ -625,6 +625,7 @@ class RefResolver:
         @return:
         """
         named_parts = [part for part in ref_parts if part.type == RefPartType.NAMED and not part.is_context]
+        named_parts.sort(key=lambda part: part.char_indices[0])
         named_part_pairs = []
         for i, part in enumerate(named_parts[:-1]):
             next_part = named_parts[i+1]
