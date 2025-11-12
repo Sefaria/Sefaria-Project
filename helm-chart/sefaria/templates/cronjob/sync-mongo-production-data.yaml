@@ -16,9 +16,29 @@ spec:
       template:
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
+          volumes:
+            - name: shared-volume
+              emptyDir: {}
+          initContainers:
+            - name: mongo-backup-downloader
+              image: google/cloud-sdk
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
+              command: ["bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Downloading latest backup from production..."
+                  gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz /storage/dump.tar.gz
+                  echo "Backup downloaded successfully"
           containers:
             - name: sync-mongo-production-data
               image: mongo:4.4
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
               command: ["/bin/bash"]
               args:
                 - -c
@@ -26,11 +46,8 @@ spec:
                   set -e
                   echo "Starting sync of production data to {{ .Values.deployEnv }}..."
 
-                  # Download latest backup from production
-                  gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
-
                   # Extract backup
-                  tar xzvf dump.tar.gz -C .
+                  tar xzvf /storage/dump.tar.gz -C /storage
 
                   # Build MongoDB URI
                   URI="mongodb://"
@@ -60,7 +77,7 @@ spec:
                   echo "Using MongoDB URI: ${URI//:*@/:***@}"
 
                   # Perform the restore
-                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=dump/sefaria
+                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
 
                   echo "Production data sync completed successfully"
               envFrom:
