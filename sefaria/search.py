@@ -593,7 +593,7 @@ class TextIndexer(object):
 
     @classmethod
     def remove_footnotes(cls, content):
-        ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
+        ftnotes = AbstractTextRecord.find_all_footnotes(content)[1]
         if len(ftnotes) == 0:
             return content
         else:

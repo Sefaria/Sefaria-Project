@@ -7,6 +7,9 @@ import time
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
+
+from ..helper.normalization import NormalizerFactory
+
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -1026,6 +1029,7 @@ class AbstractTextRecord(object):
     text_attr = "chapter"
     ALLOWED_TAGS    = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
     ALLOWED_ATTRS   = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
+    FOOTNOTE_NORMALIZER = NormalizerFactory.get('footnote')
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1213,27 +1217,10 @@ class AbstractTextRecord(object):
         else:
             return False
         return t
-
+    
     @staticmethod
-    def find_all_itags(s, only_footnotes=False):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
-        if only_footnotes:
-            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
-        return soup, itag_list
-
-    @staticmethod
-    def _itag_is_footnote(tag):
-        return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
-
-    @staticmethod
-    def _find_itags(tag):
-        if isinstance(tag, Tag):
-            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
-        return False
+    def find_all_footnotes(s):
+        pass
 
     @staticmethod
     def strip_imgs(s, sections=None):
@@ -1243,17 +1230,15 @@ class AbstractTextRecord(object):
             img.decompose()
         return soup.root.encode_contents().decode()  # remove divs added
 
-    @staticmethod
-    def strip_itags(s, sections=None):
-        soup, itag_list = AbstractTextRecord.find_all_itags(s)
-        for itag in itag_list:
-            try:
-                if AbstractTextRecord._itag_is_footnote(itag):
-                    itag.next_sibling.decompose()  # it's a footnote
-            except AttributeError:
-                pass  # it's an inline commentator
-            itag.decompose()
-        return soup.root.encode_contents().decode()  # remove divs added
+    @classmethod
+    def strip_itags(cls, s, sections=None):
+        """
+        TODO this needs to work for all types of itags, not just footnotes
+        :param s: 
+        :param sections: 
+        :return: 
+        """
+        return cls.FOOTNOTE_NORMALIZER.normalize(s)
 
     def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
         """

@@ -110,7 +110,7 @@ class Linker:
         @param link_kwargs: **kwargs to be passed to link()
         :return: 
         """
-        normalizer = NormalizerFactory.get('itag')
+        normalizer = NormalizerFactory.get('footnote')
         normalized_input = normalizer.normalize(input_str)
         text_wo_footnotes_doc = self.link(normalized_input, book_context_ref, *link_args, **link_kwargs)
         _map_normal_output_to_original_input(normalizer, input_str, [x.raw_entity for x in text_wo_footnotes_doc.all_resolved])
