@@ -3871,7 +3871,7 @@ def delete_user_account_api(request):
     email_msg = "User {} has requested deletion of his account".format(user_email)
     reply_email = None
     try:
-        delete_user_account(uid, False)
+        delete_user_account(uid, False, "self")
         email_msg += "\n\n The request was completed automatically."
         reply_email = user_email
         response = jsonResponse({"status": "ok"})
