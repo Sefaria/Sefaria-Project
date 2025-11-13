@@ -12150,7 +12150,7 @@ cursor: pointer;
 .sheetContent .highlight,
 .sheetContent .highlight .en {
   background-image: unset;
-  background-color: var(--highlight-green-light)
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,
