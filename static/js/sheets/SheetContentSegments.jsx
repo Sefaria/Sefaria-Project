@@ -65,7 +65,7 @@ class SheetComment extends Component {
     const sectionClasses = classNames(
       "SheetComment",
       this.props.highlighted && "highlight",
-    )
+    );
     const containerClasses = classNames(
       "sheetItem",
       "segment",
