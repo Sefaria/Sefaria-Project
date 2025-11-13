@@ -331,7 +331,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    linker_version = linker_version or remoteConfigCache.get(CURRENT_LINKER_VERSION, "2")
+    linker_version = linker_version or remoteConfigCache.get(CURRENT_LINKER_VERSION, "3")
 
     if linker_version == "3":
         # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
