@@ -5,7 +5,7 @@ import React from "react";
 
 class SheetSource extends Component {
   render() {
-    const sectionClasses= classNames(
+    const sectionClasses = classNames(
       "SheetSource",
       this.props.source.options ? this.props.source.options.indented : null,
       this.props.highlighted && "highlight",
@@ -164,7 +164,7 @@ class SheetOutsideText extends Component {
 }
 class SheetOutsideBiText extends Component {
   render() {
-    const sectionClasses= classNames(
+    const sectionClasses = classNames(
       "SheetOutsideBiText",
       this.props.highlighted && "highlight",
       this.props.source.options ? this.props.source.options.indented : null,
