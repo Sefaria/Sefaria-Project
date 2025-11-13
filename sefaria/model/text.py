@@ -1216,23 +1216,46 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def find_all_itags(s, only_footnotes=False):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
-        if only_footnotes:
-            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
+        soup = BeautifulSoup(f"<root>{s}</root>", 'lxml')
+        candidate_names = ("sup",) if only_footnotes else ("sup", "i")
+        itag_list = []
+        append = itag_list.append
+        is_footnote = AbstractTextRecord._itag_is_footnote
+
+        for tag in soup.find_all(candidate_names):
+            if tag.name == "sup":
+                if is_footnote(tag) or AbstractTextRecord._is_tanakh_end_sup(tag):
+                    append(tag)
+            elif not only_footnotes:
+                attrs = tag.attrs
+                if attrs.get('data-commentator') or attrs.get('data-overlay'):
+                    append(tag)
         return soup, itag_list
 
     @staticmethod
     def _itag_is_footnote(tag):
-        return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
+        if tag.name != "sup":
+            return False
+        sibling = tag.next_sibling
+        if not isinstance(sibling, Tag) or sibling.name != "i":
+            return False
+        sibling_classes = sibling.get('class', '')
+        return bool(sibling_classes) and 'footnote' in sibling_classes
+
+    @staticmethod
+    def _is_tanakh_end_sup(tag):
+        if tag.name != "sup":
+            return False
+        classes = tag.get('class')
+        return bool(classes) and 'endFootnote' in classes
 
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
+            if tag.name == "sup":
+                return AbstractTextRecord._itag_is_footnote(tag) or AbstractTextRecord._is_tanakh_end_sup(tag)
+            if tag.name == "i":
+                return bool(tag.get('data-commentator')) or bool(tag.get('data-overlay'))
         return False
 
     @staticmethod
