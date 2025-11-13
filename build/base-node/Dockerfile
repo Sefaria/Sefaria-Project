@@ -1,4 +1,4 @@
-FROM node:13
+FROM node:22
 
 # These environment variables can be overwritten at run-time
 ENV DJANGO_HOST web
