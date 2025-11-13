@@ -680,4 +680,5 @@ TextSegment.propTypes = {
   navigatePanel: PropTypes.func,
 };
 
+export { TextSegment };
 export default TextRange;
