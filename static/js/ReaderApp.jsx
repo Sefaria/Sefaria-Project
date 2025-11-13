@@ -432,11 +432,70 @@ class ReaderApp extends Component {
   clonePanel(panel, prepareForSerialization) {
     return Sefaria.util.clone(panel, prepareForSerialization);
   }
+  getPageTitle(baseTitle, pageType = "") {
+    /**
+     * Generate consistent, module-aware, bilingual page titles.
+     * Mirrors the Python get_page_title() function in reader/views.py
+     *
+     * @param {string} baseTitle - Main content of title (should already be translated)
+     * @param {string} pageType - Page type: "home", "topic", "collection", "collections", or "" for default
+     * @returns {string} Formatted title with module suffix
+     */
+
+    // Get current module (library or voices)
+    const activeModule = Sefaria.activeModule || 'library';
+    const isVoices = (activeModule === 'voices');
+
+    // Page title suffix configuration - using Sefaria._() for translations
+    const suffixes = {
+      home: {
+        voices: Sefaria._("Voices on Sefaria"),
+        library: Sefaria._("Sefaria: a Living Library of Jewish Texts Online")
+      },
+      topic: {
+        voices: Sefaria._("Sheets from Voices on Sefaria"),
+        library: Sefaria._("Texts from the Sefaria Library")
+      },
+      collections: Sefaria._("Voices on Sefaria"),
+      collection: Sefaria._("Voices on Sefaria Collection"),
+      default: {
+        voices: Sefaria._("Voices on Sefaria"),
+        library: Sefaria._("Sefaria Library")
+      }
+    };
+
+    const module = isVoices ? 'voices' : 'library';
+
+    // Special case: Home pages return complete title (not base + suffix pattern)
+    if (pageType === "home") {
+      return suffixes.home[module];
+    }
+
+    // Special case: Sheet titles need default if empty
+    if (pageType === "sheet" && !baseTitle) {
+      baseTitle = Sefaria._("Untitled");
+    }
+
+    // Get appropriate suffix based on page type
+    let suffix;
+    if (pageType === 'collections' || pageType === 'collection') {
+      // Collections pages are always Voices
+      suffix = suffixes[pageType];
+    } else if (pageType === 'topic') {
+      // Topics have module-specific descriptive suffixes
+      suffix = suffixes.topic[module];
+    } else {
+      // Default suffix for all other pages (pageType === "" or anything else)
+      suffix = suffixes.default[module];
+    }
+
+    // Combine base title with suffix
+    return baseTitle ? `${baseTitle} | ${suffix}` : suffix;
+  }
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
-    var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
     const shortLang = Sefaria._getShortInterfaceLang();
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
@@ -460,17 +519,19 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
+            const navTitle = cats ? state.navigationCategories.map(Sefaria._).join(", ") : "";
+            hist.title = this.getPageTitle(navTitle, cats ? "" : "home");
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
           case "voices":
-            hist.title = Sefaria._("Voices on Sefaria");
+            hist.title = this.getPageTitle("", "home");
             hist.url = "";
             hist.mode = 'voices';
             break;
           case "sheetsWithRef":
-            hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
+            const sheetsWithTitle = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang];
+            hist.title = this.getPageTitle(sheetsWithTitle);
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
             hist.url   = "sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
                           state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
@@ -478,7 +539,7 @@ class ReaderApp extends Component {
             break;
           case "book toc":
             var bookTitle = state.bookRef;
-            hist.title = Sefaria._(bookTitle) + " | " + Sefaria._(siteName);
+            hist.title = this.getPageTitle(Sefaria._(bookTitle));
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;
@@ -490,8 +551,8 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
-            hist.title += Sefaria._(siteName + " Search");
+            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : Sefaria._("Search");
+            hist.title = this.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
@@ -501,35 +562,36 @@ class ReaderApp extends Component {
             if (state.navigationTopic) {
               hist.url = state.topicTestVersion ? `topics/${state.topicTestVersion}/${state.navigationTopic}` : `topics/${state.navigationTopic}`;
               hist.url = hist.url + (state.topicSort ? `&sort=${state.topicSort}` : '');
-              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
+              hist.title = this.getPageTitle(state.topicTitle[shortLang], "topic");
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
-              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
+              hist.title = this.getPageTitle(state.navigationTopicTitle[shortLang], "topic");
               hist.url   =  "topics/category/" + state.navigationTopicCategory;
               hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
-              hist.title = Sefaria._("Topics | " + siteName);
+              hist.title = this.getPageTitle(Sefaria._("Topics"));
               hist.mode  = "topics";
             }
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              hist.title = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              const allTopicsTitle = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter;
+              hist.title = this.getPageTitle(allTopicsTitle);
               hist.mode  = "topics";
             break;
           case "community":
-            hist.title = Sefaria._("From the Community: Today on Sefaria");
+            hist.title = this.getPageTitle(Sefaria._("From the Community: Today on Sefaria"));
             hist.url   = "community";
             hist.mode  = "community";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
+            hist.title = this.getPageTitle(state.profile.full_name);
             hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria._(siteName + " Notifications");
+            hist.title = this.getPageTitle(Sefaria._("Notifications"));
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -538,21 +600,21 @@ class ReaderApp extends Component {
             if (states[i].collectionTag) {
               hist.url += "&tag=" + state.collectionTag.replace("#","%23");
             }
-            hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
+            hist.title = this.getPageTitle(state.collectionName, "collection");
             hist.mode  = "collection";
             break;
           case "editCollection":
             if (state.collectionData && state.collectionData.slug) {
               hist.url   = "collections/" + state.collectionData.slug + "/settings";
-              hist.title = Sefaria._("Edit Collection") + " | " + Sefaria._(siteName + " Collections");
+              hist.title = this.getPageTitle(Sefaria._("Edit Collection"));
             } else {
               hist.url   = "collections/new";
-              hist.title = Sefaria._("Create Collection") + " | " + Sefaria._(siteName + " Collections");
+              hist.title = this.getPageTitle(Sefaria._("Create Collection"));
             }
             hist.mode  = "editCollection";
             break;
           case "collectionsPublic":
-            hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
+            hist.title = this.getPageTitle("", "collections");
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
@@ -562,17 +624,17 @@ class ReaderApp extends Component {
             hist.mode  = "translations";
             break;
           case "calendars":
-            hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
+            hist.title = this.getPageTitle(Sefaria._("Learning Schedules"));
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
           case "sheets":
             hist.url = "";
             hist.mode = "sheets";
-            hist.title = Sefaria._("Sheets on Sefaria");
+            hist.title = this.getPageTitle("", "home");
             break;
           case "updates":
-            hist.title = Sefaria._("New Additions to the " + siteName + " Library");
+            hist.title = this.getPageTitle(Sefaria._("New Additions to the Library"));
             hist.url = "updates";
             hist.mode = "updates";
             break;
@@ -582,22 +644,22 @@ class ReaderApp extends Component {
             hist.mode = "modtools";
             break;
           case "user_stats":
-            hist.title = Sefaria._("Torah Tracker");
+            hist.title = this.getPageTitle(Sefaria._("Torah Tracker"));
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
           case "saved":
-            hist.title = Sefaria._("My Saved Content");
+            hist.title = this.getPageTitle(Sefaria._("My Saved Content"));
             hist.url = "saved";
             hist.mode = "saved";
             break;
           case "history":
-            hist.title = Sefaria._("My Reading History");
+            hist.title = this.getPageTitle(Sefaria._("My Reading History"));
             hist.url = "history";
             hist.mode = "history";
             break;
           case "notes":
-            hist.title = Sefaria._("My Notes");
+            hist.title = this.getPageTitle(Sefaria._("My Notes"));
             hist.url = "texts/notes";
             hist.mode = "notes";
             break;
@@ -613,7 +675,7 @@ class ReaderApp extends Component {
         } else {
           var htitle = state.currentlyVisibleRef;
         }
-        hist.title        = Sefaria._r(htitle);
+        hist.title        = this.getPageTitle(Sefaria._r(htitle));
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
         hist.mode         = "Text";
@@ -648,7 +710,11 @@ class ReaderApp extends Component {
           if (state.selectedNamedEntity) { hist.selectedNamedEntity = state.selectedNamedEntity; }
           if (state.selectedNamedEntityText) { hist.selectedNamedEntityText = state.selectedNamedEntityText; }
         }
-        hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        const shouldShowSource = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
+        const connectionsTitle = shouldShowSource ?
+          Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(ref);
+        hist.title    = this.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
 
@@ -667,7 +733,11 @@ class ReaderApp extends Component {
         if (["Translation Open", "Version Open"].includes(state.connectionsMode) && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        hist.title    = Sefaria._r(htitle)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        const shouldShowSourceInTitle = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
+        const textAndConnectionsTitle = shouldShowSourceInTitle ?
+          Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(htitle);
+        hist.title    = this.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
@@ -677,7 +747,8 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Sheet") {
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-        hist.title = sheet ? sheet.title.stripHtml() : "";
+        const sheetTitle = sheet ? sheet.title.stripHtml() : "";
+        hist.title = this.getPageTitle(sheetTitle, "sheet");
         const sheetURLSlug = state.highlightedNode ? state.sheetID + "." + state.highlightedNode : state.sheetID;
         const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
