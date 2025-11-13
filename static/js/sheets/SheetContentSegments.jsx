@@ -128,7 +128,7 @@ class SheetOutsideText extends Component {
     const sectionClasses = classNames(
       "SheetOutsideText",
       this.props.highlighted && "highlight",
-    )
+    );
     const containerClasses = classNames("sheetItem",
         "segment",
         lang == "he" ? "heOnly" : "enOnly",
