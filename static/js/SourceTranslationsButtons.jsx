@@ -1,7 +1,8 @@
-import React, {useContext} from "react";
+import {useContext} from "react";
 import PropTypes from "prop-types";
 import {ReaderPanelContext} from "./context";
 import RadioButton from "./common/RadioButton";
+import Sefaria from "./sefaria/sefaria";
 
 function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts }) {
     const {panelMode, panelPosition} = useContext(ReaderPanelContext);
@@ -19,7 +20,7 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
     };
 
     return (
-      <div className="show-source-translation-buttons" aria-label="Source-translation toggle">
+      <div className="show-source-translation-buttons" role="radiogroup" aria-label={Sefaria._("Source-translation toggle")}>
           {createButton(true, false, 'Source')}
           {createButton(false, true, 'Translation')}
           {!isSidePanel && createButton(true, true, 'Source with Translation')}

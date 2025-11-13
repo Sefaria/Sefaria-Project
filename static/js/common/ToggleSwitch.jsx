@@ -1,9 +1,8 @@
-import React from "react";
 import PropTypes from "prop-types";
 
 function ToggleSwitch({name, disabled, onChange, isChecked}) {
     return (
-        <div className="toggle-switch-container">
+        <div className="toggle-switch-container" data-prevent-close="true">
           <div className="toggle-switch focus-visible">
             <input
                 type="checkbox"
