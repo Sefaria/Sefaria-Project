@@ -419,7 +419,7 @@ class RefResolver:
             contexts += [(book_context_ref, ContextType.CURRENT_BOOK)]
             contexts += [
                 (text.Ref(base_text_title), ContextType.CURRENT_BOOK)
-                for base_text_title in (book_context_ref.index.base_text_titles or [])
+                for base_text_title in (getattr(book_context_ref.index, 'base_text_titles', []))
             ]
         contexts += [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
         matches = context_free_matches
