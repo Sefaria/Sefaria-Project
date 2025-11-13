@@ -259,7 +259,7 @@ class SheetMedia extends Component {
     return (this.props.source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null);
   }
   render() {
-    const sectionClasses= classNames(
+    const sectionClasses = classNames(
       "SheetMedia",
       this.props.highlighted && "highlight",
     );
