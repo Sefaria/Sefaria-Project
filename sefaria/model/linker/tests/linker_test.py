@@ -214,6 +214,7 @@ def test_multiple_ambiguities():
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
     [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
     [crrd(["@Job"], lang='en', prev_trefs=['Job 1:1']), ("Job",)],  # don't use ibid context if there's a match that uses all input
+    [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
     [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
     [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
@@ -225,6 +226,10 @@ def test_multiple_ambiguities():
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
+    
+    # Passage nodes
+    [crrd(["@משנה", "@ביצה", "#יד:"]), ("Beitzah 14b:4", "Beitzah 14b:12", "Beitzah 14b:9")],
+    
 
     # YERUSHALMI EN
     [crrd(['@Bavli', '#2a'], "Jerusalem Talmud Shabbat 1:1", "en"), ("Shabbat 2a",)],
@@ -476,7 +481,7 @@ def test_context_mutations(seeded_terms, mutation_runner):
     assert swap_context_ref == base_context_ref
     assert add_context_ref == base_context_ref
 
-    ref_resolver = library.get_linker("en")._ref_resolver
+    ref_resolver = library._build_ref_resolver('en')
     ref_resolver.reset_ibid_history()
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
 
