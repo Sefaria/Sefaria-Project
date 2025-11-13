@@ -320,6 +320,12 @@ const Strings = {
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
     "Text display options": "אפשרויות תצוגת טקסט",
+    "Source-translation toggle": "מעבר בין מקור לתרגום",
+    "Show Text as a paragraph": "הצג טקסט כפיסקה",
+    "Show Text segmented": "הצג טקסט מפוצל",
+    "Show Source & Translation Stacked": "הצג מקור ותרגום זה מעל זה",
+    "Show RTL Text Right of LTR Text": "הצג טקסט מימין לשמאל מימין לטקסט משמאל לימין",
+    "Show RTL Text Left of LTR Text": "הצג טקסט מימין לשמאל משמאל לטקסט משמאל לימין",
 
     // Collections
     "Collections": "אסופות",
