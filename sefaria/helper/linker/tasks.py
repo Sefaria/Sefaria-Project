@@ -84,7 +84,7 @@ def find_refs_api_task(raw_find_refs_input: dict) -> dict:
 
 
 @app.task(name="linker.link_segment_with_worker")
-def link_segment_with_worker(linking_args_dict: dict) -> dict:
+def link_segment_with_worker(linking_args_dict: dict) -> None:
     """
     Returns a payload for the next task in the chain:
       {
@@ -127,7 +127,8 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         version_id=linking_args.kwargs.get('version_id'),
         tracker_kwargs=linking_args.kwargs,
     )
-    return asdict(msg)
+    
+    delete_and_save_new_links(asdict(msg))
 
 
 def _extract_resolved_spans(resolved_refs):
@@ -247,13 +248,9 @@ def delete_and_save_new_links(payload: dict) -> None:
 
 
 def enqueue_linking_chain(linking_args: LinkingArgs):
-    sig1 = signature(
+    sig = signature(
         "linker.link_segment_with_worker",
         args=(asdict(linking_args),),
         options={"queue": CELERY_QUEUES["tasks"]}
     )
-    sig2 = signature(
-        "linker.delete_and_save_new_links",
-        options={"queue": CELERY_QUEUES["tasks"]}
-    )
-    return (sig1 | sig2).apply_async()
+    return sig.apply_async()
