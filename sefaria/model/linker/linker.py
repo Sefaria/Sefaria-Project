@@ -9,6 +9,7 @@ from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughnes
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
 from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from sefaria.model.linker.category_resolver import CategoryResolver, ResolvedCategory
+from sefaria.helper.normalization import NormalizerFactory, AbstractNormalizer
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -68,7 +69,7 @@ class Linker:
 
         start = time.perf_counter()
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
-        self._ner.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
+        _bulk_map_normal_output_to_original_input(self._ner.normalizer, inputs, named_entity_list_list)
         logger.info("bulk_link: mapping completed", elapsed_time=time.perf_counter() - start)
 
         return docs
@@ -93,25 +94,8 @@ class Linker:
         if not with_failures:
             resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
         doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)
-        self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
+        _map_normal_output_to_original_input(self._ner.normalizer, input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
-
-    def __break_input_into_paragraphs(self, input_str: str) -> [list[str], list[tuple[int, int]]]:
-        """
-        Breaks the input string into paragraphs based on new line characters.
-        Returns a list of paragraphs and their corresponding spans.
-        @param input_str: The input string to be broken into paragraphs.
-        @return: A tuple containing a list of paragraphs and a list of spans.
-        """
-        import re
-        paragraph_break_spans = [m.span() for m in re.finditer(r'\s*\n+\s*', input_str)]
-        inputs = []
-        offset = 0
-        for start, end in paragraph_break_spans:
-            inputs.append(input_str[offset:start])
-            offset = end
-        inputs.append(input_str[offset:])
-        return inputs, paragraph_break_spans
     
     def link_with_footnotes(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
@@ -126,7 +110,11 @@ class Linker:
         @param link_kwargs: **kwargs to be passed to link()
         :return: 
         """
-        pass
+        normalizer = NormalizerFactory.get('itag')
+        normalized_input = normalizer.normalize(input_str)
+        text_wo_footnotes_doc = self.link(normalized_input, book_context_ref, *link_args, **link_kwargs)
+        _map_normal_output_to_original_input(normalizer, input_str, [x.raw_entity for x in text_wo_footnotes_doc.all_resolved])
+        return text_wo_footnotes_doc
 
     def link_by_paragraph(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
@@ -139,7 +127,7 @@ class Linker:
         @param link_kwargs: **kwargs to be passed to link()
         @return:
         """
-        inputs, paragraph_break_spans = self.__break_input_into_paragraphs(input_str)
+        inputs, paragraph_break_spans = _break_input_into_paragraphs(input_str)
         paragraph_break_spans += [(0, 0)]  # pad to be same length as inputs for zip()
         linked_docs = self.bulk_link(inputs, [book_context_ref]*len(inputs), *link_args, **link_kwargs)
         resolved_refs = []
@@ -188,25 +176,72 @@ class Linker:
         resolved_refs = self._ref_resolver.bulk_resolve(unresolved_raw_refs, book_context_ref, thoroughness, reset_ibids=reset_ibids)
         return resolved_refs, resolved_cats
 
-    @staticmethod
-    def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \
-            -> Tuple[List[RawRef], List[RawNamedEntity]]:
-        raw_refs = [ne for ne in raw_refs_and_named_entities if isinstance(ne, RawRef)]
-        named_entities = [ne for ne in raw_refs_and_named_entities if not isinstance(ne, RawRef)]
-        return raw_refs, named_entities
+"""
+HELPER FUNCTIONS
+"""
 
-    @staticmethod
-    def _get_bulk_link_iterable(inputs: List[str], all_named_entities: List[List[RawNamedEntity]],
-                                book_context_refs: Optional[List[Optional[Ref]]] = None, verbose=False
-                                ) -> Iterable[Tuple[Ref, List[RawNamedEntity]]]:
-        iterable = zip(inputs, book_context_refs, all_named_entities)
-        if verbose:
-            iterable = tqdm(iterable, total=len(book_context_refs))
-        return iterable
 
-    @staticmethod
-    def _remove_failures(*args):
-        out = []
-        for arg in args:
-            out.append(list(filter(lambda x: not x.resolution_failed, arg)))
-        return out
+def _map_normal_output_to_original_input(normalizer: AbstractNormalizer, input: str, named_entities: list[RawNamedEntity]) -> None:
+    """
+    Ref resolution ran on normalized input. Remap raw refs to original (non-normalized) input
+    """
+    unnorm_doc = NEDoc(input)
+    mapping, subst_end_indices = normalizer.get_mapping_after_normalization(input)
+    conv = normalizer.norm_to_unnorm_indices_with_mapping
+    norm_inds = [named_entity.char_indices for named_entity in named_entities]
+    unnorm_inds = conv(norm_inds, mapping, subst_end_indices)
+    unnorm_part_inds = []
+    for (named_entity, (norm_raw_ref_start, _)) in zip(named_entities, norm_inds):
+        raw_ref_parts = named_entity.raw_ref_parts if isinstance(named_entity, RawRef) else []
+        unnorm_part_inds += [conv([[norm_raw_ref_start + i for i in part.char_indices]
+                                   for part in raw_ref_parts], mapping, subst_end_indices)]
+    for named_entity, temp_unnorm_inds, temp_unnorm_part_inds in zip(named_entities, unnorm_inds, unnorm_part_inds):
+        named_entity.map_new_char_indices(unnorm_doc, temp_unnorm_inds)
+        if isinstance(named_entity, RawRef):
+            named_entity.map_new_part_char_indices(temp_unnorm_part_inds)
+
+
+def _bulk_map_normal_output_to_original_input(noramlizer: AbstractNormalizer, input: list[str], raw_ref_list_list: list[list[RawRef]]):
+    for temp_input, raw_ref_list in zip(input, raw_ref_list_list):
+        _map_normal_output_to_original_input(temp_input, raw_ref_list)
+
+
+def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \
+        -> Tuple[List[RawRef], List[RawNamedEntity]]:
+    raw_refs = [ne for ne in raw_refs_and_named_entities if isinstance(ne, RawRef)]
+    named_entities = [ne for ne in raw_refs_and_named_entities if not isinstance(ne, RawRef)]
+    return raw_refs, named_entities
+
+
+def _get_bulk_link_iterable(inputs: List[str], all_named_entities: List[List[RawNamedEntity]],
+                            book_context_refs: Optional[List[Optional[Ref]]] = None, verbose=False
+                            ) -> Iterable[Tuple[Ref, List[RawNamedEntity]]]:
+    iterable = zip(inputs, book_context_refs, all_named_entities)
+    if verbose:
+        iterable = tqdm(iterable, total=len(book_context_refs))
+    return iterable
+
+
+def _remove_failures(*args):
+    out = []
+    for arg in args:
+        out.append(list(filter(lambda x: not x.resolution_failed, arg)))
+    return out
+
+
+def _break_input_into_paragraphs(self, input_str: str) -> tuple[list[str], list[tuple[int, int]]]:
+    """
+    Breaks the input string into paragraphs based on new line characters.
+    Returns a list of paragraphs and their corresponding spans.
+    @param input_str: The input string to be broken into paragraphs.
+    @return: A tuple containing a list of paragraphs and a list of spans.
+    """
+    import re
+    paragraph_break_spans = [m.span() for m in re.finditer(r'\s*\n+\s*', input_str)]
+    inputs = []
+    offset = 0
+    for start, end in paragraph_break_spans:
+        inputs.append(input_str[offset:start])
+        offset = end
+    inputs.append(input_str[offset:])
+    return inputs, paragraph_break_spans
