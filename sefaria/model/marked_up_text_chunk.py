@@ -13,6 +13,7 @@ class MUTCSpanType(Enum):
     QUOTE = "quote"
     NAMED_ENTITY = "named-entity"
     CITATION = "citation"
+    CATEGORY = "category"
 
 
 class MarkedUpTextChunk(AbstractMongoRecord):

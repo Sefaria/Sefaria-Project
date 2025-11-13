@@ -1,21 +1,42 @@
 from collections import defaultdict
 from sefaria.model.category import Category
 from sefaria.model.linker.ref_part import RawRef
+from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
+from sefaria.model.marked_up_text_chunk import MUTCSpanType
 
 
-class ResolvedCategory:
+class ResolvedCategory(AbstractResolvedEntity):
 
     def __init__(self, raw_ref: RawRef, categories: list[Category]) -> None:
-        self.raw_entity = raw_ref
+        self._raw_entity = raw_ref
         self.categories = categories
 
     @property
     def is_ambiguous(self):
-        return len(self.categories) != 1
+        return len(self.categories) > 1
 
     @property
     def resolution_failed(self):
         return len(self.categories) == 0
+    
+    @property
+    def raw_entity(self):
+        return self._raw_entity
+    
+    def get_debug_spans(self) -> list[dict]:
+        span = self._get_base_debug_span()
+        span["type"] = MUTCSpanType.CATEGORY.value
+
+        if len(self.categories) == 0:
+            span["categoryPath"] = None
+            return [span]
+        spans = []
+
+        for cat in self.categories:
+            cat_span = span.copy()
+            cat_span["categoryPath"] = cat.path
+            spans.append(cat_span)
+        return spans
 
 
 class CategoryMatcher:

@@ -2,6 +2,9 @@ from collections import defaultdict
 from functools import reduce
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
 from enum import IntEnum, Enum
+
+from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
+from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
@@ -37,14 +40,13 @@ class ResolutionThoroughness(IntEnum):
     HIGH = 2
 
 
-class ResolvedRef(abst.Cloneable):
+class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
     """
     Partial or complete resolution of a RawRef
     """
-    is_ambiguous = False
 
-    def __init__(self, raw_entity: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
-        self.raw_entity = raw_entity
+    def __init__(self, _raw_entity: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+        self._raw_entity = _raw_entity
         self.resolved_parts = resolved_parts
         self.node: ReferenceableBookNode = node
         self.ref = ref
@@ -56,6 +58,40 @@ class ResolvedRef(abst.Cloneable):
 
     def complies_with_thoroughness_level(self):
         return self._thoroughness >= ResolutionThoroughness.HIGH or not self.ref.is_book_level()
+    
+    @property
+    def is_ambiguous(self) -> bool:
+        return False
+    
+    @property
+    def raw_entity(self) -> RawRef:
+        return self._raw_entity
+    
+    def get_debug_spans(self) -> list[dict]:
+        span = self._get_base_debug_span()
+        span.update({
+            "type": MUTCSpanType.CITATION.value,
+            "ref": self.ref.normal() if self.ref else None,
+            "inputRefParts": [p.text for p in self.raw_entity.raw_ref_parts],
+            "inputRefPartTypes": [p.type.name for p in self.raw_entity.raw_ref_parts],
+            "inputRefPartClasses": [p.__class__.__name__ for p in self.raw_entity.raw_ref_parts],
+            "refPartsToMatch": [p.text for p in self.raw_entity.parts_to_match],
+            "contextRef": self.context_ref.normal() if self.context_ref else None,
+            "contextType": self.context_type.name if self.context_type else None,
+        })
+        if self.ref:
+            span.update({
+                "resolvedRefParts": [p.term.slug if isinstance(p, TermContext) else p.text for p in self.resolved_parts],
+                "resolvedRefPartTypes": [p.type.name for p in self.resolved_parts],
+                "resolvedRefPartClasses": [p.__class__.__name__ for p in self.resolved_parts],
+            })
+        if RefPartType.RANGE.name in span['inputRefPartTypes']:
+            range_part = next((p for p in self.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
+            span.update({
+                'inputRangeSections': [p.text for p in range_part.sections],
+                'inputRangeToSections': [p.text for p in range_part.toSections]
+            })
+        return [span]
 
     @property
     def pretty_text(self) -> str:
@@ -191,17 +227,32 @@ class ResolvedRef(abst.Cloneable):
         return self.ref is None and self.node is None
 
 
-class AmbiguousResolvedRef:
+class AmbiguousResolvedRef(AbstractResolvedEntity):
     """
     Container for multiple ambiguous ResolvedRefs
     """
-    is_ambiguous = True
 
     def __init__(self, resolved_refs: List[ResolvedRef]):
         if len(resolved_refs) == 0:
             raise InputError("Length of `resolved_refs` must be at least 1")
         self.resolved_raw_refs = resolved_refs
-        self.raw_entity = resolved_refs[0].raw_entity  # assumption is all resolved_refs share same raw_ref. expose at top level
+        self._raw_entity = resolved_refs[0].raw_entity  # assumption is all resolved_refs share same raw_ref. expose at top level
+        
+    @property
+    def is_ambiguous(self) -> bool:
+        return True
+    
+    @property
+    def raw_entity(self) -> RawRef:
+        return self._raw_entity
+    
+    def get_debug_spans(self) -> list[dict]:
+        spans = []
+        for raw_ref in self.resolved_raw_refs:
+            spans += raw_ref.get_debug_spans()
+        for span in spans:
+            span['ambiguous'] = self.is_ambiguous
+        return spans
 
     @property
     def pretty_text(self):

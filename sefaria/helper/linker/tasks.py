@@ -1,6 +1,8 @@
 """
 Celery tasks for the LLM server
 """
+from sefaria.model.linker.category_resolver import ResolvedCategory
+from sefaria.model.linker.named_entity_resolver import ResolvedNamedEntity
 from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
@@ -9,8 +11,11 @@ from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType
+from sefaria.model.linker_output import LinkerOutput
 from sefaria.model import Ref
-from sefaria.model.linker.ref_resolver import ResolutionThoroughness
+from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
+from sefaria.model.linker.ref_part import TermContext, RefPartType
+from sefaria.model.linker.linker import LinkedDoc
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
@@ -93,8 +98,9 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
-    output = linker.link(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH)
+    output = linker.link(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH, with_failures=True)
 
+    _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
     if not spans:
@@ -108,12 +114,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
         "spans": spans,
     })
 
-    existing_spans = _replace_existing_chunk(chunk)
-    if existing_spans:
-        logger.info(f"num spans before merge: {len(chunk.spans) + len(existing_spans)}")
-        chunk.add_non_overlapping_spans(existing_spans)
-        logger.info(f"num spans after merge: {len(chunk.spans)}")
-    chunk.save()
+    _replace_existing_chunk(chunk)
 
     # Prepare the minimal info the next task needs
     linked_refs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
@@ -128,10 +129,11 @@ def link_segment_with_worker(linking_args_dict: dict) -> dict:
     )
     return asdict(msg)
 
+
 def _extract_resolved_spans(resolved_refs):
     spans = []
     for resolved_ref in resolved_refs:
-        if resolved_ref.is_ambiguous:
+        if resolved_ref.is_ambiguous or resolved_ref.resolution_failed:
             continue
         entity = resolved_ref.raw_entity
         spans.append({
@@ -143,16 +145,43 @@ def _extract_resolved_spans(resolved_refs):
     return spans
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[list[dict]]:
+def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
+    spans = _extract_debug_spans(doc)
+    if not spans:
+        return
+    query = {
+        "ref": tref,
+        "versionTitle": version_title,
+        "language": lang,
+    }
+    try:
+        LinkerOutput().update(query, {"spans": spans})
+    except InputError as e:
+        query["spans"] = spans
+        LinkerOutput(query).save()
+
+
+def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
+    spans = []
+    for resolved in doc.all_resolved:
+        spans.extend(resolved.get_debug_spans())
+    return spans
+
+
+def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> None:
     existing = MarkedUpTextChunk().load({
         "ref": chunk.ref,
         "language": chunk.language,
         "versionTitle": chunk.versionTitle,
     })
     if existing:
-        spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
-        existing.delete()
-        return spans
+        existing_spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
+        # add_non_overlapping_spans prefers `self.spans` over the spans that are input
+        existing.spans = chunk.spans
+        existing.add_non_overlapping_spans(existing_spans)
+        existing.save()
+    else:
+        chunk.save()
 
 
 

@@ -5701,8 +5701,7 @@ class Library(object):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
 
         named_entity_types_to_topics = {
-            # "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
-            # "GROUP": {'ontology_roots': ["group-of-people"]},
+            "PERSON": {"ontology_roots": ['people', 'group-of-people'], "single_slugs": ['god', 'the-tetragrammaton']},
         }
         return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
 
