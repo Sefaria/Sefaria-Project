@@ -164,16 +164,16 @@ class SheetOutsideText extends Component {
 }
 class SheetOutsideBiText extends Component {
   render() {
+    const sectionClasses= classNames(
+      "SheetOutsideBiText",
+      this.props.highlighted && "highlight",
+      this.props.source.options ? this.props.source.options.indented : null,
+    );
     const containerClasses = classNames(
       "sheetItem",
       "segment",
       (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() === "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
       (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() === "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
-    );
-    const sectionClasses= classNames(
-      "SheetOutsideBiText",
-      this.props.highlighted && "highlight",
-      this.props.source.options ? this.props.source.options.indented : null,
     );
     return (
       <section className={sectionClasses}>
