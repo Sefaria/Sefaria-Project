@@ -135,9 +135,6 @@ data:
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
     
-    # CSRF cookie settings for cross-subdomain support
-    # Set this to your top-level domain to allow CSRF tokens to work across subdomains
-    CSRF_COOKIE_DOMAIN = os.getenv("CSRF_COOKIE_DOMAIN", ".sefaria.org")  
     CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "true").lower() == "true"
     CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "false").lower() == "true"  # Must be False for CSRF tokens to work with JavaScript
     CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")

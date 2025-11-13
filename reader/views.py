@@ -4637,6 +4637,75 @@ def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
+def redirect_to_voices(request, target_path):
+    """
+    Redirect from library module to voices module
+    """
+    # Get the voices domain from settings
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
+    target_url = urllib.parse.urljoin(voices_domain, target_path)
+
+    # Preserve query parameters
+    if params := request.GET.urlencode():
+        target_url += f"?{params}"
+
+    return redirect(target_url, permanent=True)
+
+
+def settings_profile_redirect(request):
+    """
+    Redirect /settings/profile from library module to voices module
+    """
+    return redirect_to_voices(request, "/settings/profile/")
+
+
+def community_to_voices_redirect(request):
+    """
+    Redirect /community from library module to voices module root
+    """
+    return redirect_to_voices(request, "/")
+
+
+def collections_redirect(request, slug=None):
+    """
+    Redirect /collections and /collections/[slug] from library module to voices module
+    """
+    # Build the target URL
+    if slug:
+        target_path = f"/collections/{slug}"
+    else:
+        target_path = "/collections"
+
+    return redirect_to_voices(request, target_path)
+
+
+def profile_redirect_to_voices(request, username=None):
+    """
+    Redirect /profile and /profile/[username] from library module to voices module
+    """
+    # Build the target URL
+    if username:
+        target_path = f"/profile/{username}"
+    else:
+        target_path = "/profile"
+
+    return redirect_to_voices(request, target_path)
+
+
+def sheets_redirect_to_voices(request, sheet_id=None):
+    """
+    Redirect /sheets and /sheets/[sheet_id] from library module to voices module
+    """
+    # Build the target URL
+    if sheet_id:
+        target_path = f"/sheets/{sheet_id}"
+    else:
+        target_path = "/sheets"
+
+    return redirect_to_voices(request, target_path)
+
+
 def _get_sheet_tag_garden(tag):
     garden_key = "sheets.tagged.{}".format(tag)
     g = Garden().load({"key": garden_key})

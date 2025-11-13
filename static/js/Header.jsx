@@ -49,7 +49,10 @@ const LoggedOutDropdown = ({module}) => {
             <InterfaceText text={{ 'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא' }} />
           </DropdownMenuItem>
         }
-        <DropdownMenuItem url={'/help'}>
+        <DropdownMenuItem url={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} newTab={true}>
           <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
         </DropdownMenuItem>
       </div>
@@ -115,7 +118,10 @@ const LoggedInDropdown = ({ module }) => {
           </DropdownMenuItem>
         }
 
-        <DropdownMenuItem preventClose={true} url={'/help'}>
+        <DropdownMenuItem url={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} newTab={true}>
           <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -564,7 +570,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <InterfaceText>Developers on Sefaria</InterfaceText>
         </a>
 
-        <a href="/products" className="mobileModuleSwitcher" data-target-module={Sefaria.LIBRARY_MODULE}>
+        <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
           <img className="chevron" src="/static/icons/chevron-right.svg"/>
           <InterfaceText>More from Sefaria</InterfaceText>
         </a>

@@ -89,7 +89,7 @@ site_urlpatterns += [
     url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])),
-    url(r'^help/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])),
+    url(r'^help/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])), # Used in the app
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/event/sefarias-10-year-anniversary-gala/e486954')),
     url(r'^give/(?P<channel_source>[a-zA-Z0-9]+)/?$', lambda x, channel_source: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src={channel_source}')),
     url(r'^give/?$', lambda x: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src=mu')),
