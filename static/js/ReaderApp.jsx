@@ -2097,7 +2097,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
 
     }
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || returnNullIfEmpty(panel.navigationCategories) || panel.navigationTopic).flat();
+    
+    const refs = this.state.panels
+      .map(
+        (panel) =>
+          panel.currentlyVisibleRef ||
+          panel.bookRef ||
+          returnNullIfEmpty(panel.navigationCategories) ||
+          panel.navigationTopic ||
+          panel.navigationTopicCategory
+      )
+      .flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
