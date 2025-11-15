@@ -135,14 +135,39 @@ const LoggedInDropdown = ({ module }) => {
 
 const ModuleSwitcher = () => {
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
+  
+  const trackOpen = () => {
+    gtag("event", "modswitch_open", {
+      feature_name: "module_switcher",
+      action: "open"
+    });
+  };
+
+  const trackClose = () => {
+    gtag("event", "modswitch_close", {
+      feature_name: "module_switcher",
+      action: "close"
+    });
+  };
+
+  const trackItemClick = (data) => {
+    gtag("event", "modswitch_item_click", {
+      feature_name: "module_switcher",
+      text: data.text
+    });
+  };
+
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-      <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
-        <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
-      </button>
-    }>
+    <DropdownMenu positioningClass="headerDropdownMenu"
+                  buttonComponent={ <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
+                                      <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
+                                    </button>}
+                  onOpen={trackOpen}
+                  onClose={trackClose}
+                  onItemClick={trackItemClick}>
+                    
       <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
+        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsText="About Sefaria">
           <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
 
         </DropdownMenuItem>
@@ -167,7 +192,7 @@ const ModuleSwitcher = () => {
           dotColor={'--devportal-purple'}
           text={{ en: "Developers", he: Sefaria._("Developers") }} />
         <DropdownMenuSeparator />
-        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
+        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsText="More">
           <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
         </DropdownMenuItem>
       </div>
