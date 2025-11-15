@@ -105,7 +105,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     spans = _extract_resolved_spans(output.resolved_refs)
     if not spans:
         # Nothing to do next — stop the chain by returning None
-        return None
+        return
 
     chunk = MarkedUpTextChunk({
         "ref": linking_args.ref,
