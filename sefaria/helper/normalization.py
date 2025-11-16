@@ -341,6 +341,7 @@ class NormalizerFactory:
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
         "maqaf": ReplaceNormalizer('־', ' '),
         "footnote": FootnoteNormalizer(''),
+        "other-itag": RegexNormalizer(r'<i [^>]*(data-commentator|data-overlay)=[^>]*>\s*</i>', ''),  # other itag types besides for footnotes
         "fn-marker": RegexNormalizer('<sup class="(footnote-marker|endFootnote|itag)">(?:.*?)</sup>', ' '),
         "br-tag": ReplaceNormalizer('<br>', '<br/>'),
         "double-space": RegexNormalizer(r"\s+", " "),
