@@ -152,7 +152,7 @@ class AbstractNormalizer:
 class FootnoteNormalizer(AbstractNormalizer):
 
     FOOTNOTE_START_RE = re.compile(
-        r"""<sup[^>]*class="footnote-marker">.*?</sup>\s*<i[^>]*class="footnote"[^>]*>""",
+        r"""<sup[^>]*class="(?:[^"]+ )?footnote-marker(?: [^"]+)?">.*?</sup>\s*<i[^>]*class="(?:[^"]+ )?footnote(?: [^"]+)?"[^>]*>""",
     )
 
     def __init__(self, repl):
