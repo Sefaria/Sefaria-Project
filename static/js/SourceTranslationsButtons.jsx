@@ -1,4 +1,4 @@
-import {useContext} from "react";
+import React, {useContext} from "react";
 import PropTypes from "prop-types";
 import {ReaderPanelContext} from "./context";
 import RadioButton from "./common/RadioButton";
