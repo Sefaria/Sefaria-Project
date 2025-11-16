@@ -1218,9 +1218,13 @@ class AbstractTextRecord(object):
             return False
         return t
     
-    @staticmethod
-    def find_all_footnotes(s):
-        pass
+    @classmethod
+    def find_all_footnotes(cls, s: str) -> list[str]:
+        text_to_remove = cls.FOOTNOTE_NORMALIZER.find_text_to_remove(s)
+        footnotes = []
+        for (start, end), repl in text_to_remove:
+            footnotes.append(s[start:end])
+        return footnotes
 
     @staticmethod
     def strip_imgs(s, sections=None):
@@ -1233,7 +1237,6 @@ class AbstractTextRecord(object):
     @classmethod
     def strip_itags(cls, s, sections=None):
         """
-        TODO this needs to work for all types of itags, not just footnotes
         :param s: 
         :param sections: 
         :return: 
