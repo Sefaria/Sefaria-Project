@@ -1,0 +1,84 @@
+{{- if and .Values.restore.enabled .Values.cronJobs.syncMongoProductionData.enabled }}
+# Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-sync-mongo-production-data
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.restore.serviceAccount }}
+          containers:
+            - name: sync-mongo-production-data
+              image: mongo:4.4
+              command: ["/bin/bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Starting sync of production data to {{ .Values.deployEnv }}..."
+
+                  # Download latest backup from production
+                  gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
+
+                  # Extract backup
+                  tar xzvf dump.tar.gz -C .
+
+                  # Build MongoDB URI
+                  URI="mongodb://"
+                  if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+                    URI="${URI}${SEFARIA_DB_USER}"
+                    if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+                        URI="${URI}:${SEFARIA_DB_PASSWORD}"
+                    fi
+                    URI="${URI}@"
+                  fi
+                  URI="${URI}${MONGO_HOST}/?ssl=false"
+                  if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+                    URI="${URI}&authSource=admin"
+                  fi
+                  if [[ ! -z "$MONGO_REPLICASET_NAME" ]]; then
+                    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+                  fi
+
+                  # Determine target database name
+                  {{- if .Values.restore.dynamicName }}
+                  DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+                  {{- else }}
+                  DATABASE="${SEFARIA_DB}"
+                  {{- end }}
+
+                  echo "Restoring to database: $DATABASE"
+                  echo "Using MongoDB URI: ${URI//:*@/:***@}"
+
+                  # Perform the restore
+                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=dump/sefaria
+
+                  echo "Production data sync completed successfully"
+              envFrom:
+                - secretRef:
+                    name: {{ .Values.secrets.localSettings.ref }}
+                - secretRef:
+                    name: local-settings-secrets-{{ .Values.deployEnv }}
+                    optional: true
+                - configMapRef:
+                    name: local-settings-{{ .Values.deployEnv }}
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 500Mi
+                limits:
+                  cpu: 750m
+                  memory: "1Gi"
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

@@ -19,6 +19,9 @@ export default function RadioButton  ({isActive, onClick, value, name, label, id
 
     return (
         <div className='button'>
+            <label htmlFor={id}>
+                <InterfaceText>{label}</InterfaceText>
+            </label>
             <input
                 type='radio'
                 id={id}
@@ -29,9 +32,6 @@ export default function RadioButton  ({isActive, onClick, value, name, label, id
                 onKeyDown={handleKeyDown}
                 {...rest}
             />
-            <label htmlFor={id}>
-                <InterfaceText>{label}</InterfaceText>
-            </label>
         </div>
     );
 }
