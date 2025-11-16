@@ -7,9 +7,6 @@ import time
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
-
-from ..helper.normalization import NormalizerFactory
-
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -35,6 +32,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
+from sefaria.helper.normalization import NormalizerFactory
 
 """
                 ----------------------------------
