@@ -2,6 +2,7 @@ import pytest
 import django
 django.setup()
 from sefaria.helper.normalization import *
+from sefaria.search import TextIndexer
 
 
 @pytest.mark.parametrize(('input_text', 'output_text'), [
@@ -121,14 +122,17 @@ def test_html_normalizer_for_empty_prefix():
 
 
 def test_nested_itag():
-    text = """<sup class="footnote-marker">outer</sup><i class="footnote">bull<sup class="footnote-marker">nested</sup><i class="footnote">The</i>.</i>"""
-    normalizer = FootnoteNormalizer(' ')
+    text = """Some normal<sup class="footnote-marker">outer</sup><i class="footnote">bull<sup class="footnote-marker">nested</sup><i class="footnote">The</i>.</i> text."""
+    normalizer = FootnoteNormalizer('')
     norm_text = normalizer.normalize(text)
-    assert norm_text == " "
+    assert norm_text == "Some normal text."
     text_to_remove = normalizer.find_text_to_remove(text)
     assert len(text_to_remove) == 1
     (s, e), r = text_to_remove[0]
-    assert s == 0 and e == 137
+    assert s == 11 and e == 148
+    
+    content = TextIndexer.remove_footnotes(text)
+    assert content == "Some normal text. outer bull."
 
 
 @pytest.mark.xfail(reason="not clear we want to support char_indices_from_word_indices as it's unused")
