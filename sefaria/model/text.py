@@ -1029,7 +1029,6 @@ class AbstractTextRecord(object):
     text_attr = "chapter"
     ALLOWED_TAGS    = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
     ALLOWED_ATTRS   = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
-    FOOTNOTE_NORMALIZER = NormalizerFactory.get('footnote')
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1218,9 +1217,10 @@ class AbstractTextRecord(object):
             return False
         return t
     
-    @classmethod
-    def find_all_footnotes(cls, s: str) -> list[str]:
-        text_to_remove = cls.FOOTNOTE_NORMALIZER.find_text_to_remove(s)
+    @staticmethod
+    def find_all_footnotes(s: str) -> list[str]:
+        fn_normalizer = NormalizerFactory.get('footnote')
+        text_to_remove = fn_normalizer.find_text_to_remove(s)
         footnotes = []
         for (start, end), repl in text_to_remove:
             footnotes.append(s[start:end])
@@ -1234,14 +1234,12 @@ class AbstractTextRecord(object):
             img.decompose()
         return soup.root.encode_contents().decode()  # remove divs added
 
-    @classmethod
-    def strip_itags(cls, s, sections=None):
-        """
-        :param s: 
-        :param sections: 
-        :return: 
-        """
-        return cls.FOOTNOTE_NORMALIZER.normalize(s)
+    @staticmethod
+    def strip_itags(s, sections=None):
+        s = NormalizerFactory.get('footnote').normalize(s)
+        s = NormalizerFactory.get('other-itag').normalize(s)
+        s = NormalizerFactory.get('fn-marker').normalize(s)
+        return s
 
     def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
         """
