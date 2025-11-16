@@ -2992,9 +2992,9 @@ const AdminToolHeader = function({title, validate, close}) {
                 <div onClick={close} onKeyDown={(e) => Util.handleKeyboardClick(e, close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
                 </div>
-                <div onClick={validate} onKeyDown={(e) => Util.handleKeyboardClick(e, validate)} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
+                <Button onClick={validate}>
                   <InterfaceText>Save</InterfaceText>
-                </div>
+                </Button>
               </div>
             </div>
 }
@@ -3099,8 +3099,9 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide, authorImage, authorStatement, authorUrl}) => {
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+  
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
@@ -3114,6 +3115,22 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
                                                        className="summary"
                                                        editable={editable}
                                                        blurCallback={summaryCallback}/>}
+    {!Sefaria.multiPanel && (authorImage || authorUrl) && (
+      <div className="sheetAuthorInfo">
+        {authorImage && (
+          <ProfilePic
+            url={authorImage}
+            len={30}
+            name={authorStatement}
+          />
+        )}
+        {authorUrl && (
+          <a href={authorUrl} className="sheetAuthorName">
+            {Sefaria._(authorStatement)}
+          </a>
+        )}
+      </div>
+    )}
   </div>
 }
 

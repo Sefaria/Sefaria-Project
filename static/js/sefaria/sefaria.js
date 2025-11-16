@@ -518,20 +518,39 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
+  getDomainHostnames: function() {
+    // Returns a Set of all hostnames from domainModules.
+    const hostnames = new Set();
+    for (const langModules of Object.values(this.domainModules)) {
+      for (const moduleUrl of Object.values(langModules)) {
+        const url = new URL(moduleUrl);
+        hostnames.add(url.hostname);
+      }
+    }
+
+    return hostnames;
+  },
   getModuleURL: function(module=null) {
-    // returns a URL object with the href of the module's subdomain.  
+    // returns a URL object with the href of the module's subdomain.
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
+
     module = module || Sefaria.activeModule;
-    const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
+    const langCode = Sefaria._getShortInterfaceLang();
+
+    const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
+
     try {
       return new URL(href);
-    } catch {
+    } catch (e) {
+      console.error('Error creating URL:', e);
       return false;
     }
   },
   isSefariaURL: function(url) {
-    return Object.values(Sefaria.domainModules).some(href => url.href.startsWith(href));
+    // Check if URL's hostname matches any of our domain hostnames
+    const hostnames = this.getDomainHostnames();
+    return hostnames.has(url.hostname);
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
@@ -1048,7 +1067,6 @@ Sefaria = extend(Sefaria, {
     settings         = settings || {};
     const key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
-    //console.log("Saving", key);
     const refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
@@ -1085,7 +1103,6 @@ Sefaria = extend(Sefaria, {
 
       for (let i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
-        // console.log("calling spanning prefetch " + data.spanningRefs[i])
         Sefaria.getText(data.spanningRefs[i], spanningContextSettings)
       }
     }
@@ -1258,7 +1275,6 @@ Sefaria = extend(Sefaria, {
       const bPath = Sefaria._tocOrderLookup[b];
 
       if (!(Array.isArray(aPath) && Array.isArray(bPath))) {
-          console.log(`Failed to compare paths: ${a} and ${b}`);
           return 0;
       }
 
@@ -2667,9 +2683,17 @@ _media: {},
   },
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
-      const skip = Sefaria.userHistory.items.length;
-      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
-      fetch(url)
+    const params = new URLSearchParams({
+      secondary: 0,
+      annotate: 1,
+      limit,
+      skip: Sefaria.userHistory.items.length,
+      saved: 0,
+      sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
+    });
+    
+    const url = `/api/profile/user_history?${params.toString()}`;
+    fetch(url)
           .then(response => response.json())
           .then(data => {
               Sefaria.userHistory.loaded = true;
@@ -2709,7 +2733,6 @@ _media: {},
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
         Sefaria.userHistory.items = new_hist_array.concat(user_history);
 
-        //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
           // check if we've reached the cookie size limit
           const cookie_hist = JSON.parse(cookie("user_history"));
@@ -2831,7 +2854,7 @@ _media: {},
       }
       return this._cachedApiPromise({
           url:   `${this.apiHost}/api/calendars/topics/${day}`,
-          key:   day,
+          key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });
   },
@@ -2981,13 +3004,8 @@ _media: {},
         store: this._featuredTopic,
     });
   },
-  _seasonalTopic: {},
   getSeasonalTopic: function() {
-    return this._cachedApiPromise({
-        url: `${Sefaria.apiHost}/_api/topics/seasonal-topic?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
-        key: (new Date()).toLocaleDateString(),
-        store: this._seasonalTopic,
-    });
+    return this.getUpcomingDay('holiday');
   },
   trendingSheetsTopics: {},
   trendingLibraryTopics: {},
@@ -3320,9 +3338,9 @@ _media: {},
     extractIdFromSheetRef: function (ref) {
       return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     },
-    getSheetTitle: function(sheet) {
-      // Returns a sheet's title with fallback to "Untitled" 
-      return sheet?.title?.stripHtml() || Sefaria._("Untitled");
+    getSheetTitle: function(title) {
+      // Useful for displaying sheet titles in the UI without HTML tags and handling null or empty values by falling back to "Untitled"
+      return title?.stripHtml() || Sefaria._("Untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
@@ -3706,7 +3724,6 @@ Sefaria.setup = function(data, props = null, resetCache = false) {
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    //console.log(`sending user logged in status to GA, uid as bool: ${!!Sefaria._uid} | analytics id: ${Sefaria._analytics_uid}`);
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
@@ -3764,7 +3781,6 @@ Sefaria.resetCache = function() {
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};
-    this._seasonalTopic = {};
     this._index = {};
     this._indexDetails = {};
     this._bookSearchPathFilter  = {};

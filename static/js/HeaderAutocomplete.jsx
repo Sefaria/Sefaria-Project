@@ -359,14 +359,19 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
+    const MODULE_AUTOCOMPLETE_TYPES = {
+      [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
+      [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
+    };
 
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
           return[];
         }
         try {
-        let types = Sefaria.activeModule === Sefaria.VOICES_MODULE ? ['Topic', 'User', 'Collection'] : undefined;
-        const d = await Sefaria.getName(inputValue, undefined, types, Sefaria.activeModule);
+        const types = MODULE_AUTOCOMPLETE_TYPES[Sefaria.activeModule];
+        const topic_pool = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
+        const d = await Sefaria.getName(inputValue, undefined, types, topic_pool);
 
         let comps = d["completion_objects"].map(o => {
           const c = {...o};

@@ -8,14 +8,12 @@ metadata:
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   # Automatic domain configuration - single source of truth
-  DOMAIN_LANGUAGE: {{ include "config.domainLanguage" . | fromYaml | toJson | quote }}
   DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
   # Session cookie settings for cross-subdomain support within this cauldron
   SESSION_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
   SESSION_COOKIE_SECURE: "true"
   SESSION_COOKIE_HTTPONLY: "true"
   SESSION_COOKIE_SAMESITE: "Lax"
-  CSRF_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
   CSRF_COOKIE_SECURE: "true"
   CSRF_COOKIE_HTTPONLY: "false"
   CSRF_COOKIE_SAMESITE: "Lax"

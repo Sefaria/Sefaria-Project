@@ -50,7 +50,10 @@ const LoggedOutDropdown = ({module}) => {
             <InterfaceText text={{ 'en': 'New Additions', 'he': 'חידושים בארון הספרים של ספריא' }} />
           </DropdownMenuItem>
         }
-        <DropdownMenuItem url={'/help'}>
+        <DropdownMenuItem url={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} newTab={true}>
           <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
         </DropdownMenuItem>
       </div>
@@ -116,7 +119,10 @@ const LoggedInDropdown = ({ module }) => {
           </DropdownMenuItem>
         }
 
-        <DropdownMenuItem preventClose={true} url={'/help'}>
+        <DropdownMenuItem url={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} newTab={true}>
           <InterfaceText text={{ 'en': 'Help', 'he': 'עזרה' }} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -192,6 +198,19 @@ const Header = (props) => {
       window.removeEventListener('keydown', handleFirstTab);
     }
   }, []);
+  
+  const mobile = !props?.multiPanel;
+  
+  const shouldHide = () => {
+    // Determines whether or not this component should be displayed or not. 
+    // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
+    // functioning as the header.  This case occurs when viewing a library text in mode "Text"
+    // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".    
+    // shouldHide() returns true when the header should be hidden (a) on mobile (b) while viewing library texts (c) when the mobile nav menu is not open.
+    const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
+    const hidden = mobile && !props.mobileNavMenuOpen && isViewingTextContent;
+    return hidden;
+  }
 
   const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
@@ -202,7 +221,7 @@ const Header = (props) => {
 
   const librarySavedIcon = <div className='librarySavedIcon'>
                                 <a
-                                  href="/texts/saved"
+                                  href="/saved"
                                   data-target-module={Sefaria.LIBRARY_MODULE}
                                   onKeyDown={(e) => Util.handleKeyboardClick(e)}
                                 >
@@ -226,9 +245,8 @@ const Header = (props) => {
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
-  if (props.hidden && !props.mobileNavMenuOpen) {
-    return null;
-  }
+  
+  if (shouldHide()) return null;
 
   const headerContent = (
     <>
@@ -305,43 +323,50 @@ const Header = (props) => {
     </>
   );
 
-    const mobileHeaderContent = (
-      <>
-        <div>
-          <ModuleSwitcherTooltip targetRef={mobileMenuButtonRef}>
-            <div>
-              <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
-                <i className="fa fa-bars"></i>
-              </button>
-            </div>
-          </ModuleSwitcherTooltip>
-        </div>
+  // Language toggle logic - show on mobile for specific menu pages
+  const languageToggleMenus = ["navigation", "saved", "history", "notes"];
+  const hasLanguageToggle = mobile && Sefaria.interfaceLang !== "hebrew" && languageToggleMenus.includes(props?.firstPanel?.menuOpen);
+
+  const mobileHeaderContent = (
+    <>
+      <div>
+        <ModuleSwitcherTooltip targetRef={mobileMenuButtonRef}>
+          <div>
+            <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+              <i className="fa fa-bars"></i>
+            </button>
+          </div>
+        </ModuleSwitcherTooltip>
+      </div>
 
       <div className="mobileHeaderCenter">
         {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
       </div>
 
-      {props.hasLanguageToggle ?
-        <div className={props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+      {hasLanguageToggle ?
+        <div className={props.firstPanel?.settings?.language + " mobileHeaderLanguageToggle"}>
           <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
-    </>
+    </>  
   );
 
-  const headerClasses = classNames({ header: 1, mobile: !props.multiPanel });
+  // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
+  const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
+  const hasBoxShadow = !hasColorLine;
+  const headerClasses = classNames({ header: 1, mobile: mobile });
   const headerInnerClasses = classNames({
     headerInner: 1,
-    boxShadow: props.hasBoxShadow,
-    mobile: !props.multiPanel
+    boxShadow: hasBoxShadow,
+    mobile: mobile
   });
   return (
     <div className={headerClasses} role="banner" ref={headerRef}>
       <div className={headerInnerClasses}>
-        {props.multiPanel ? headerContent : mobileHeaderContent}
+        {!mobile ? headerContent : mobileHeaderContent}
       </div>
 
-      {props.multiPanel ? null :
+      {mobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
           onRefClick={props.onRefClick}
@@ -363,8 +388,19 @@ Header.propTypes = {
   showSearch: PropTypes.func.isRequired,
   openTopic: PropTypes.func.isRequired,
   openURL: PropTypes.func.isRequired,
-  hasBoxShadow: PropTypes.bool.isRequired,
+  firstPanel: PropTypes.shape({
+    menuOpen: PropTypes.string,
+    mode: PropTypes.string,
+    settings: PropTypes.shape({
+      language: PropTypes.string
+    })
+  }),
   module: PropTypes.string.isRequired,
+  mobileNavMenuOpen: PropTypes.bool,
+  onMobileMenuButtonClick: PropTypes.func,
+  toggleLanguage: PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly }) => {
@@ -392,7 +428,6 @@ const LoggedOutButtons = ({ mobile, loginOnly }) => {
   );
 }
 
-
 const LoggedInButtons = ({ headerMode }) => {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
@@ -400,11 +435,12 @@ const LoggedInButtons = ({ headerMode }) => {
       setIsClient(true);
     }
   }, []);
+  
   const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   return (
     <div className="loggedIn accountLinks">
-      <a href="/texts/saved" aria-label="See My Saved Texts">
+      <a href="/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
       </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
@@ -473,7 +509,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             {module === Sefaria.LIBRARY_MODULE &&
               <>
-                <a href="/texts/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
+                <a href="/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
                   <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
                   {<InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />}
                 </a>
@@ -526,27 +562,27 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         <hr />
 
         {module === Sefaria.LIBRARY_MODULE &&
-          <a href="/" data-target-module={Sefaria.VOICES_MODULE}>
-            <img src="/static/icons/sheets-mobile-icon.svg" alt={Sefaria._("Sheets")} />
-            <InterfaceText>Sheets</InterfaceText>
+          <a href="/" className="mobileModuleSwitcher" data-target-module={Sefaria.VOICES_MODULE}>
+            <span className="dropdownDot" style={{backgroundColor: `var(--sheets-green)`}}></span>
+            <InterfaceText>Voices on Sefaria</InterfaceText>
           </a>
         }
 
         {module === Sefaria.VOICES_MODULE &&
-          <a href="/texts" data-target-module={Sefaria.LIBRARY_MODULE}>
-            <img src="/static/icons/book.svg" alt={Sefaria._("Library")} />
-            <InterfaceText text={{ en: "Sefaria Library", he: "ספריית ספריא" }} />
+          <a href="/texts" className="mobileModuleSwitcher" data-target-module={Sefaria.LIBRARY_MODULE}>
+            <span className="dropdownDot" style={{backgroundColor: `var(--sefaria-blue)`}}></span>
+            <InterfaceText>Sefaria Library</InterfaceText>
           </a>
         }
 
-        <a href="https://developers.sefaria.org" target="_blank">
-          <img src="/static/icons/dev-portal-mobile-icon.svg" alt={Sefaria._("Developers")} />
-          <InterfaceText text={{ en: "Developers", he: "מפתחים" }} />
+        <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank">
+          <span className="dropdownDot" style={{backgroundColor: `var(--devportal-purple)`}}></span>
+          <InterfaceText>Developers on Sefaria</InterfaceText>
         </a>
 
         <a href="/products" data-target-module={Sefaria.LIBRARY_MODULE}>
-          <img src="/static/icons/products-icon.svg" alt={Sefaria._("Products")} />
-          <InterfaceText text={{ en: "All Products", he: "מוצרים" }} />
+          <img className="chevron" src="/static/icons/chevron-right.svg"/>
+          <InterfaceText>More from Sefaria</InterfaceText>
         </a>
 
         <hr />

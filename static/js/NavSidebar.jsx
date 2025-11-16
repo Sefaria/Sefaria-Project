@@ -159,7 +159,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
                 <div id="header">
                   <SidebarModuleTitle>Recently Viewed</SidebarModuleTitle>
                   {!mobile && recentlyViewedList}
-                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
+                  <a href="/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
                 </div>
                 {mobile && recentlyViewedList}
             </div>
@@ -284,8 +284,8 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`}, 
-                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/help`}, 
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`},
+                                    {'he': 'עזרה','en':'Help', 'url': Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US})},
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
                                     {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/newsletter`},
                                     {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},
@@ -796,9 +796,9 @@ const StayConnected = () => {
       <br />
       <NewsletterSignUpForm context="sidebar" />
       <div className="social-links">
-        <Button icon={"facebook"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
-        <Button icon={"instagram"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
-        <Button icon={"youtube"} variant="secondary" className="appButton iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
+        <Button icon={"facebook"} variant="secondary" className="appButton white button iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
+        <Button icon={"instagram"} variant="secondary" className="appButton white button iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
+        <Button icon={"youtube"} variant="secondary" className="appButton white button iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
       </div>
 
     </SidebarModule>

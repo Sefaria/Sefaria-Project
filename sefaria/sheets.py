@@ -354,7 +354,6 @@ def order_tags_for_user(tag_counts, uid):
 
 	return tag_counts
 
-@django_cache(timeout=6 * 60 * 60)
 def trending_topics(days=30, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.

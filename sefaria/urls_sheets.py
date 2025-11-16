@@ -20,15 +20,16 @@ urlpatterns = [
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
 
-    url(r'^sheets/?$', sheets_views.sheets_home_page, name='sheets'),
+    url(r'^getstarted/?$', reader_views.serve_static, {'page': 'sheets'}, name='sheets'),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 
     url(r'^my/profile', reader_views.my_profile),
+    url(r'^profile/?$', reader_views.my_profile),
     url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
-    url(r'^settings/profile?$', reader_views.edit_profile),
+    url(r'^settings/profile/?$', reader_views.edit_profile),
 
 ]
 

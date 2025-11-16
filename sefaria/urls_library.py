@@ -15,9 +15,7 @@ handler404 = 'reader.views.custom_page_not_found'
 urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
-    url(r'^texts/saved/?$', reader_views.saved_content),
     url(r'^texts/notes/?$', reader_views.notes),
-    url(r'^texts/history/?$', reader_views.user_history_content),
     url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^calendars/?$', reader_views.calendars),
@@ -44,6 +42,9 @@ urlpatterns = [
 
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/account/user$', reader_views.account_user_update),
+    url(r'^settings/profile/?$', reader_views.settings_profile_redirect),
+
+    url(r'^community/?$', reader_views.community_to_voices_redirect),
 
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
     url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),

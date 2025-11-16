@@ -20,7 +20,8 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
-  ProductsPage
+  ProductsPage,
+  SheetsLandingPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -586,25 +587,15 @@ class ReaderApp extends Component {
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
-          case "texts-saved":
+          case "saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "saved";
-            hist.mode = "textsSaved";
+            hist.mode = "saved";
             break;
-          case "sheets-saved":
-            hist.title = Sefaria._("My Saved Content");
-            hist.url = "saved";
-            hist.mode = "sheetsSaved";
-            break;
-          case "texts-history":
+          case "history":
             hist.title = Sefaria._("My Reading History");
             hist.url = "history";
-            hist.mode = "textsHistory";
-            break;
-          case "sheets-history":
-            hist.title = Sefaria._("My Reading History");
-            hist.url = "history";
-            hist.mode = "sheetsHistory";
+            hist.mode = "history";
             break;
           case "notes":
             hist.title = Sefaria._("My Notes");
@@ -1182,18 +1173,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/texts") {
       this.showLibrary();
 
-    } else if (path === "/texts/history") {
+    } else if (path === "/history") {
       this.showHistory();
 
-    } else if (path === "/history") {
-      this.showSheetsHistory();
-
-    } else if (path === "/texts/saved") {
-      this.showSaved();
-
     } else if (path === "/saved") {
-      this.showSheetsSaved();
-
+      this.showSaved();
+      
     } else if (path === "/texts/notes") {
       this.showNotes();
     }
@@ -1836,19 +1821,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setSinglePanelState({menuOpen: "community"});
   }
   showSaved() {
-    this.setSinglePanelState({menuOpen: "texts-saved"});
-  }
-  showSheetsSaved() {
-    this.setSinglePanelState({menuOpen: "sheets-saved"});
+    this.setSinglePanelState({menuOpen: "saved"});
   }
   showNotes() {
     this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
-    this.setSinglePanelState({menuOpen: "texts-history"});
-  }
-  showSheetsHistory() {
-    this.setSinglePanelState({menuOpen: "sheets-history"});
+    this.setSinglePanelState({menuOpen: "history"});
   }
   showTopics() {
     this.setSinglePanelState({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});
@@ -2198,27 +2177,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       widths = panelStates.map( panel => evenWidth );
     }
 
-    // Header should not show box-shadow over panels that have color line
-    const menuOpen = this.state.panels?.[0]?.menuOpen;
-    const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
-    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel || this.state.panels?.[0]?.mode === "Sheet";
-    // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
-    const hideHeader = !this.props.multiPanel && !this.state.headerMode && !menuOpen;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
         onRefClick={this.handleNavigationClick}
         showSearch={this.showSearch}
         openURL={this.openURL}
-        headerMode={this.props.headerMode}
+        headerMode={this.state.headerMode}
         openTopic={this.openTopic}
-        hidden={hideHeader}
+        firstPanel={this.state.panels?.[0]}
         mobileNavMenuOpen={this.state.mobileNavMenuOpen}
         onMobileMenuButtonClick={this.toggleMobileNavMenu}
-        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && ["navigation", "texts-saved", "sheets-saved", "texts-history", "sheets-history", "notes"].includes(this.state.panels?.[0]?.menuOpen)}
         toggleLanguage={this.toggleLanguageInFirstPanel}
-        firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
-        hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         module={Sefaria.activeModule}/>
@@ -2452,5 +2422,6 @@ export {
   JobsPage,
   TeamMembersPage,
   ProductsPage,
+  SheetsLandingPage,
   UpdatesPanel
 };
