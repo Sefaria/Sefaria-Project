@@ -169,16 +169,23 @@ class FootnoteNormalizer(AbstractNormalizer):
             i = i_open_end
             while depth > 0:
                 next_open = s.find('<i', i)
-                next_close = s.find('</i>', i)
-                if next_close == -1:
-                    # malformed HTML, bail out
+                next_close = s.find('</i', i)
+                
+                # determine where the </i> tag ends in case it's slightly malformed
+                next_close_end = -1
+                if s[next_close+3] == '>':
+                    next_close_end = next_close + 4
+                elif s[next_close+4] == '>':
+                    next_close_end = next_close + 5
+                if next_close == -1 or next_close_end == -1:
+                    # no </i> to match <i>, bail out
                     break
-                if next_open != -1 and next_open < next_close:
+                if next_open != -1 and next_open < next_close and s[next_open+2] in (' ', '>'):
                     depth += 1
                     i = next_open + 2
                 else:
                     depth -= 1
-                    i = next_close + 4
+                    i = next_close_end
             end_pos = i
             is_subset = False
             for (start, end), _ in matches:
