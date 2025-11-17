@@ -15351,23 +15351,32 @@ span.ref-link-color-3 {color: blue}
 /* Floating UI tooltip styles for Module Switcher */
 
 .floating-ui-tooltip {
-  background-color: var(--module-switcher-tooltip-background);
+  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
+  color: var(--tooltip-text, inherit);
   border-radius: 8px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 9999;
-  max-width: 280px;
+  max-width: 350px;
 }
 
 .floating-ui-tooltip-content {
-  padding: 24px;
+  padding: 16px 20px;
   position: relative;
   z-index: 2;
-  background-color: var(--module-switcher-tooltip-background);
+  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
+  color: var(--tooltip-text, inherit);
   border-radius: 8px;
 }
 
 .floating-ui-tooltip-content a {
   text-decoration: underline;
+  color: inherit;
+}
+
+.tooltip-header {
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 1.1em;
 }
 
 
@@ -15376,24 +15385,56 @@ span.ref-link-color-3 {color: blue}
   justify-content: space-between;
   align-items: center;
   margin-top: 8px;
+  margin-bottom: 16px;
 }
 
 .tooltip-button {
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  background-color: var(--darkest-grey);
-  color: white;
+  background-color: var(--tooltip-primary-bg, var(--darkest-grey));
+  color: var(--tooltip-primary-text, white);
   border: none;
+}
+
+/* Mobile touch target accessibility - 44px minimum height */
+@media (max-width: 600px) {
+  .tooltip-actions {
+    margin-top: 8px;
+    margin-bottom: 9px;
+  }
+  
+  .tooltip-actions > a,
+  .tooltip-actions > button,
+  .tooltip-button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 .floating-ui-arrow {
   position: absolute;
   width: 8px;
   height: 8px;
-  background-color: var(--module-switcher-tooltip-background);
+  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
   transform: rotate(45deg);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 1;
+}
+
+/* Module-themed variables (defaults handled above) */
+.floating-ui-tooltip[data-active-module="library"] {
+  --tooltip-bg: var(--sefaria-blue);
+  --tooltip-text: #FFFFFF;
+  --tooltip-primary-bg: #FFFFFF; /* inverse */
+  --tooltip-primary-text: var(--sefaria-blue);
+}
+.floating-ui-tooltip[data-active-module="voices"] {
+  --tooltip-bg: var(--sheets-green);
+  --tooltip-text: #FFFFFF;
+  --tooltip-primary-bg: #FFFFFF; /* inverse */
+  --tooltip-primary-text: var(--sheets-green);
 }
 
 /* Mobile Hebrew - arrow on right side pointing left */
