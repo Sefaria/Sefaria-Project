@@ -89,10 +89,8 @@ a, a:hover {
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
-  --module-switcher-tooltip-background: #FFFFFF;
   --select-blue: #0056b3;
 }
-
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -4902,6 +4900,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .search-container {
   position: relative; /* Ensure dropdown positions relative to this container */
 }
+
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
@@ -5671,6 +5670,7 @@ h1.topic-landing-header {
   justify-content: space-between;
   padding: 20px 0;
 }
+
 .readerNavMenu .sheet:hover{
   text-decoration: none;
 }
@@ -6488,6 +6488,12 @@ big {
   padding-inline-start: 30px;
   display: inline-block;
 }
+
+.segment .segmentText .poetry.indentAll {
+  padding-inline-start: 30px;
+  display: inline-block;
+}
+
 .segment .segmentText .poetry.indentAllDouble {
   padding-inline-start: 60px;
   display: inline-block;
@@ -7257,6 +7263,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .toolsButton.seeLess .toolsButtonText{
   margin-inline-start: 5px;
 }
+
 .connectionsPanel .topToolsButtons {
   margin-top: 30px;
 }
@@ -8049,6 +8056,7 @@ But not to use a display block directive that might break continuous mode for ot
 .interface-hebrew .topicList.topicsEn {
   direction: rtl;
 }
+
 .topicButton {
   display: flex;
   justify-content: flex-start;
@@ -12096,6 +12104,7 @@ cursor: pointer;
   margin-inline-start: initial;
   margin-inline-end: initial;
 }
+
 .readerPanel.english .sheetItem .SheetSource.segment,
 .readerPanel.hebrew .sheetItem .SheetSource.segment {
   padding-top: 15px;
@@ -13688,6 +13697,7 @@ body .homeFeedWrapper.userStats {
     width: 320px;
   }
 }
+
 .collectionsModalBox {
   position: fixed;
   width: 100%;
@@ -14486,6 +14496,7 @@ span.ref-link-color-3 {color: blue}
     line-height: 19px;
     margin-top: 10px;
 }
+
 .chat {
   bottom: 0;
   right: 0;
@@ -14535,6 +14546,8 @@ span.ref-link-color-3 {color: blue}
 .chatBoxName {
   margin-inline-start: 10px;
 }
+
+
 .chats-container {
   overflow-y: auto;
   display: flex;
@@ -15379,7 +15392,6 @@ span.ref-link-color-3 {color: blue}
   font-size: 1.1em;
 }
 
-
 .tooltip-actions {
   display: flex;
   justify-content: space-between;
@@ -15413,6 +15425,7 @@ span.ref-link-color-3 {color: blue}
     justify-content: center;
   }
 }
+
 .floating-ui-arrow {
   position: absolute;
   width: 8px;
@@ -15465,6 +15478,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* End of Floating UI tooltip styles for Module Switcher */
+
 .sheetsInPanel .dropdownItem {
   cursor: pointer;
 }
@@ -15479,6 +15493,7 @@ span.ref-link-color-3 {color: blue}
   margin-block: 5px;
   border: 0.5px solid var(--light-grey);
 }
+
 .interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
   min-width: 200px;
@@ -15527,6 +15542,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
 }
+
 .product {
   max-width: 600px;
 }
