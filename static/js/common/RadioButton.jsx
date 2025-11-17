@@ -31,7 +31,7 @@ export default function RadioButton  ({isActive, onClick, value, name, label, id
     }, [isActive]);
 
     return (
-        <div className='button' data-prevent-close="true">
+        <div className='button'>
             <label htmlFor={id}>
                 <InterfaceText>{label}</InterfaceText>
             </label>

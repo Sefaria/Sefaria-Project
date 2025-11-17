@@ -127,6 +127,7 @@ const ReaderDisplayOptionsMenu = () => {
             ref={menuRef}
             onKeyDown={handleKeyDown}
             tabIndex="-1"
+            data-prevent-close="true"
         >
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons
