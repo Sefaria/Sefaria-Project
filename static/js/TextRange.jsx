@@ -319,7 +319,7 @@ class TextRange extends Component {
       for (const pattern of [strip_vowels_re, strip_punctuation_re]) {
         if (pattern) {
           segment.he = segment.he.replace(pattern, "");
-          segment.en = segment.en?.replace(pattern, "");
+          // segment.en = segment.en?.replace(pattern, "");
         }
       }
 
