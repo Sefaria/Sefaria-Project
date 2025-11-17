@@ -498,7 +498,7 @@ def test_strip_itags():
         "title": "Hadran",
         "versionSource": "http://foobar.com",
         "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup class="footnote-marker">1</sup><i class="footnote yo">well, not that cool</i>',
+        "chapter": ['Cool text <sup class="footnote-marker">1</sup><i class="footnote yo">well, not that cool</i >',  # test </i> malformed with extra space
                     'Silly text <sup class="footnote-marker">1</sup><i class="footnote">See <i>cool text</i></i>',
                     'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more',
                     'Where the <i data-overlay="Other system" data-value=""></i> #$%^&*',
@@ -512,7 +512,7 @@ def test_strip_itags():
 
     test_modified_text = v._get_text_after_modifications([v.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
-        assert m == t
+        assert t == m
 
     # test without any modification functions
     test_modified_text = c._get_text_after_modifications([])
