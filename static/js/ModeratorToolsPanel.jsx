@@ -110,9 +110,9 @@ class ModeratorToolsPanel extends Component {
           <span className="int-en">Bulk Download Text</span>
           <span className="int-he">הורדת הטקסט</span>
         </div>
-        <input className="dlVersionSelect" type="text" placeholder="Index Title Pattern" onChange={this.onDlTitleChange} />
-        <input className="dlVersionSelect" type="text" placeholder="Version Title Pattern" onChange={this.onDlVersionChange}/>
-        <select className="dlVersionSelect dlVersionLanguageSelect" value={this.state.bulk_language || ""} onChange={this.onDlLanguageSelect}>
+        <input className="dlVersionSelect" type="text" placeholder="Index Title Pattern" aria-label={Sefaria._("Index Title Pattern")} onChange={this.onDlTitleChange} />
+        <input className="dlVersionSelect" type="text" placeholder="Version Title Pattern" aria-label={Sefaria._("Version Title Pattern")} onChange={this.onDlVersionChange}/>
+        <select className="dlVersionSelect dlVersionLanguageSelect" value={this.state.bulk_language || ""} onChange={this.onDlLanguageSelect} aria-label={Sefaria._("Download language selection")}>
           <option disabled>Language</option>
           <option key="all" value="" >Hebrew & English</option>
           <option key="he" value="he" >Hebrew</option>
@@ -543,8 +543,8 @@ const RemoveLinksFromCsv = () => {
                 <br/>
                 <input type="submit" value="Submit" disabled={!fileName} />
             </form>
-            {uploadMessage && <div>{uploadMessage}</div>}
-            {errorMessage && <div dangerouslySetInnerHTML={{__html: errorMessage}}/> }
+            {uploadMessage && <div aria-live="polite">{uploadMessage}</div>}
+            {errorMessage && <div role="alert" aria-live="assertive" dangerouslySetInnerHTML={{__html: errorMessage}}/> }
         </div>
     );
 };

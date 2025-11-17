@@ -59,7 +59,7 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded=0, pageSize
   // `itemsPreLoaded` counts the number of items already loaded, e.g. when some data was already available
   // in the JS cache.  If `itemsPreLoaded` > 0, no initial API is made
   // call will be made until scroll occurs, otherwise the size page is requeste immediately.
-  const [skip, setSkip] = useState(itemsPreLoaded);
+  const [skip, setSkip] = useState(0); // It is set to pageSize before the first load
   const [loading, setLoading] = useState(false);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
   const isFirstRender = useRef(true);
@@ -272,7 +272,6 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
         .then((val, err) => setValueQueue([identityElement, val]));
   }, [fetchPage]);
 }
-
 
 export {
   useScrollToLoad,

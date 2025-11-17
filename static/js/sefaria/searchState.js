@@ -120,6 +120,10 @@ class SearchState {
     return true;
   }
 
+  static moduleToSearchType(active_module) {
+    return active_module === 'library' ? 'text' : 'sheet';
+  }
+
   makeURL({ prefix, isStart }) {
     // prefix: string prepended to every parameter. meant to distinguish between different types
     //         of searchState URL parameters (e.g. sheet and text)

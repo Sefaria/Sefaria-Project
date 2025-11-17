@@ -8,8 +8,9 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 import {ReaderPanelContext} from "./context";
-import DropdownMenu from "./common/DropdownMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import Util from "./sefaria/util";
 
 
 class ConnectionsPanelHeader extends Component {
@@ -79,7 +80,12 @@ class ConnectionsPanelHeader extends Component {
         e.preventDefault();
         backButtonSettings.onClick();
       };        
-      title = <a href={backButtonSettings.url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
+      title = <a
+        href={backButtonSettings.url}
+        className="connectionsHeaderTitle sans-serif active"
+        onClick={onClick}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
+      >
       <InterfaceText>
           <EnglishText>
               <i className="fa fa-chevron-left"></i>
@@ -102,7 +108,12 @@ class ConnectionsPanelHeader extends Component {
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
-      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={this.onClick}>
+      title = <a
+        href={url}
+        className="connectionsHeaderTitle sans-serif active"
+        onClick={this.onClick}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, this.onClick)}
+      >
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>
@@ -121,7 +132,12 @@ class ConnectionsPanelHeader extends Component {
         e.preventDefault();
         this.props.setConnectionsMode("Resources");
       }.bind(this);
-      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
+      title = <a 
+        href={url} 
+        className="connectionsHeaderTitle sans-serif active" 
+        onClick={onClick}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClick)}
+      >
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>
