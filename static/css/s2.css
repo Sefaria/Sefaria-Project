@@ -15409,6 +15409,14 @@ span.ref-link-color-3 {color: blue}
   border: none;
 }
 
+.tooltip-button:hover,
+.tooltip-button:active,
+.tooltip-button:focus {
+  background: transparent;
+  color: #FFFFFF;
+  outline: 1px solid #FFFFFF;
+}
+
 /* Mobile touch target accessibility - 44px minimum height */
 @media (max-width: 600px) {
   .tooltip-actions {
