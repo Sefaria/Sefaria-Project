@@ -1655,5 +1655,9 @@ msgid "Sefaria Library"
 msgstr "ספריית ספריא"
 
 #: reader/views.py
+msgid "%(title)s | %(suffix)s"
+msgstr "%(title)s | %(suffix)s"
+
+#: reader/views.py
 msgid "Untitled"
 msgstr "ללא כותרת"

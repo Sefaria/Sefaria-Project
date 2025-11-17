@@ -102,6 +102,8 @@ def get_page_title(base_title, page_type="", request=None):
 
     This function takes a base title (which should already be translated via Django's _())
     and adds the appropriate module suffix based on active_module and interface language.
+    The title format itself (including separator) is translatable using Django's named-string
+    interpolation, allowing translators to customize the format for their language.
 
 
     Args:
@@ -124,8 +126,10 @@ def get_page_title(base_title, page_type="", request=None):
 
     Note:
         - Base titles should be translated BEFORE calling this function using _()
-        - This function only adds module-specific suffixes
-        - For base title translations, update locale/he/LC_MESSAGES/django.po
+        - This function adds module-specific suffixes and formats them
+        - The title format "%(title)s | %(suffix)s" is translatable, allowing translators
+          to customize the separator, spacing, and ordering for their language
+        - For translations, update locale/he/LC_MESSAGES/django.po
     """
     if not request:
         return base_title
@@ -171,8 +175,12 @@ def get_page_title(base_title, page_type="", request=None):
         # Standard suffix for all other pages
         suffix = suffixes['default'][module]
 
-    # Combine base title with suffix
-    return f"{base_title} | {suffix}" if base_title else suffix
+    # Combine base title with suffix using Django's named-string interpolation
+    # This allows translators to customize the format, separator, and ordering
+    if base_title:
+        return _("%(title)s | %(suffix)s") % {'title': base_title, 'suffix': suffix}
+    else:
+        return suffix
 
 
 # File extension to content type mapping for favicon serving
