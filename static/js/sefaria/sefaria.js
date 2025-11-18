@@ -3572,7 +3572,7 @@ _media: {},
        */
   
       // Get current module (library or voices)
-      const module = (Sefaria.activeModule === 'voices') ? 'voices' : 'library';
+      const module = (Sefaria.activeModule === VOICES_MODULE) ? VOICES_MODULE : LIBRARY_MODULE;
   
       // Page title suffix configuration
       const suffixes = {
