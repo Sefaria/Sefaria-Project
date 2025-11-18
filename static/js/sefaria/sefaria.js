@@ -3574,32 +3574,32 @@ _media: {},
       // Get current module (library or voices)
       const module = (Sefaria.activeModule === 'voices') ? 'voices' : 'library';
   
-      // Page title suffix configuration - using Sefaria._() for translations
+      // Page title suffix configuration
       const suffixes = {
         home: {
-          voices: Sefaria._("Voices on Sefaria"),
-          library: Sefaria._("Sefaria: a Living Library of Jewish Texts Online")
+          voices: "Voices on Sefaria",
+          library: "Sefaria: a Living Library of Jewish Texts Online"
         },
         topic: {
-          voices: Sefaria._("Sheets from Voices on Sefaria"),
-          library: Sefaria._("Texts from the Sefaria Library")
+          voices: "Sheets from Voices on Sefaria",
+          library: "Texts from the Sefaria Library"
         },
-        collections: Sefaria._("Voices on Sefaria"),
-        collection: Sefaria._("Voices on Sefaria Collection"),
+        collections: "Voices on Sefaria",
+        collection: "Voices on Sefaria Collection",
         default: {
-          voices: Sefaria._("Voices on Sefaria"),
-          library: Sefaria._("Sefaria Library")
+          voices: "Voices on Sefaria",
+          library: "Sefaria Library"
         }
       };
   
       // Special case: Home pages return complete title (not base + suffix pattern)
       if (pageType === "home") {
-        return suffixes.home[module];
+        return Sefaria._(suffixes.home[module]);
       }
   
       // Special case: Sheet titles need default if empty
       if (pageType === "sheet" && !baseTitle) {
-        baseTitle = Sefaria._("Untitled");
+        baseTitle = "Untitled";
       }
   
       // Get appropriate suffix based on page type
@@ -3616,7 +3616,7 @@ _media: {},
       }
   
       // Combine base title with suffix
-      return baseTitle ? `${baseTitle} | ${suffix}` : suffix;
+      return baseTitle ? Sefaria._("%(title)s | %(suffix)s", {title: baseTitle, suffix: suffix}) : Sefaria._(suffix);
     },
 });
 

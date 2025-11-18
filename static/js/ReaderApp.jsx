@@ -471,7 +471,7 @@ class ReaderApp extends Component {
             hist.mode = 'voices';
             break;
           case "sheetsWithRef":
-            const sheetsWithTitle = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang];
+            const sheetsWithTitle = "Sheets with " + state.sheetsWithRef[shortLang];
             hist.title = Sefaria.getPageTitle(sheetsWithTitle);
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
             hist.url   = "sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
@@ -480,7 +480,7 @@ class ReaderApp extends Component {
             break;
           case "book toc":
             var bookTitle = state.bookRef;
-            hist.title = Sefaria.getPageTitle(Sefaria._(bookTitle));
+            hist.title = Sefaria.getPageTitle(bookTitle);
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;
@@ -492,7 +492,7 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : Sefaria._("Search");
+            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "Search";
             hist.title = Sefaria.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
@@ -511,7 +511,7 @@ class ReaderApp extends Component {
               hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
-              hist.title = Sefaria.getPageTitle(Sefaria._("Topics"));
+              hist.title = Sefaria.getPageTitle("Topics");
               hist.mode  = "topics";
             }
             break;
@@ -522,7 +522,7 @@ class ReaderApp extends Component {
               hist.mode  = "topics";
             break;
           case "community":
-            hist.title = Sefaria.getPageTitle(Sefaria._("From the Community: Today on Sefaria"));
+            hist.title = Sefaria.getPageTitle("From the Community: Today on Sefaria");
             hist.url   = "community";
             hist.mode  = "community";
             break;
@@ -532,7 +532,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria.getPageTitle(Sefaria._("Notifications"));
+            hist.title = Sefaria.getPageTitle("Notifications");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -547,10 +547,10 @@ class ReaderApp extends Component {
           case "editCollection":
             if (state.collectionData && state.collectionData.slug) {
               hist.url   = "collections/" + state.collectionData.slug + "/settings";
-              hist.title = Sefaria.getPageTitle(Sefaria._("Edit Collection"));
+              hist.title = Sefaria.getPageTitle("Edit Collection");
             } else {
               hist.url   = "collections/new";
-              hist.title = Sefaria.getPageTitle(Sefaria._("Create Collection"));
+              hist.title = Sefaria.getPageTitle("Create Collection");
             }
             hist.mode  = "editCollection";
             break;
@@ -565,7 +565,7 @@ class ReaderApp extends Component {
             hist.mode  = "translations";
             break;
           case "calendars":
-            hist.title = Sefaria.getPageTitle(Sefaria._("Learning Schedules"));
+            hist.title = Sefaria.getPageTitle("Learning Schedules");
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
@@ -575,7 +575,7 @@ class ReaderApp extends Component {
             hist.title = Sefaria.getPageTitle("", "home");
             break;
           case "updates":
-            hist.title = Sefaria.getPageTitle(Sefaria._("New Additions to the Library"));
+            hist.title = Sefaria.getPageTitle("New Additions to the Library");
             hist.url = "updates";
             hist.mode = "updates";
             break;
@@ -585,22 +585,22 @@ class ReaderApp extends Component {
             hist.mode = "modtools";
             break;
           case "user_stats":
-            hist.title = Sefaria.getPageTitle(Sefaria._("Torah Tracker"));
+            hist.title = Sefaria.getPageTitle("Torah Tracker");
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
           case "saved":
-            hist.title = Sefaria.getPageTitle(Sefaria._("My Saved Content"));
+            hist.title = Sefaria.getPageTitle("My Saved Content");
             hist.url = "saved";
             hist.mode = "saved";
             break;
           case "history":
-            hist.title = Sefaria.getPageTitle(Sefaria._("My Reading History"));
+            hist.title = Sefaria.getPageTitle("My Reading History");
             hist.url = "history";
             hist.mode = "history";
             break;
           case "notes":
-            hist.title = Sefaria.getPageTitle(Sefaria._("My Notes"));
+            hist.title = Sefaria.getPageTitle("My Notes");
             hist.url = "texts/notes";
             hist.mode = "notes";
             break;
