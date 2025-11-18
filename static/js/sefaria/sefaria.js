@@ -3616,7 +3616,7 @@ _media: {},
       }
   
       // Combine base title with suffix
-      return baseTitle ? Sefaria._("%(title)s | %(suffix)s", {title: baseTitle, suffix: suffix}) : Sefaria._(suffix);
+      return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
     },
 });
 
