@@ -316,10 +316,13 @@ class TextRange extends Component {
           );
         }
       }
-      for (const pattern of [strip_vowels_re, strip_punctuation_re]) {
-        if (pattern) {
-          segment.he = segment.he.replace(pattern, "");
-        }
+      // Strip vowels/cantillation from both he/en (when enabled), but keep punctuation stripping Hebrew-only
+      if (strip_vowels_re) {
+        segment.he = segment.he.replace(strip_vowels_re, "");
+        segment.en = segment.en?.replace(strip_vowels_re, "");
+      }
+      if (strip_punctuation_re) {
+        segment.he = segment.he.replace(strip_punctuation_re, "");
       }
 
       return (
