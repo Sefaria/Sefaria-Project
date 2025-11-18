@@ -176,7 +176,7 @@ def get_page_title(base_title, module, page_type=""):
     if base_title:
         return _("%(title)s | %(suffix)s") % {'title': base_title, 'suffix': suffix}
     else:
-        return suffix
+        return _(suffix)
 
 
 # File extension to content type mapping for favicon serving
