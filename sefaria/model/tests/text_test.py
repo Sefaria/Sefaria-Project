@@ -563,6 +563,7 @@ def test_version_walk_thru_contents():
         version.walk_thru_contents(action)
 
 
+@pytest.mark.django_db
 @pytest.mark.usefixtures("mock_toc_callbacks")
 class TestModifyVersion:
     simpleIndexTitle = "Test ModifyVersion Simple " + test_uid

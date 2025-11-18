@@ -10,10 +10,9 @@ import sefaria.model.category as c
 from sefaria.helper.category import update_order_of_category_children
 import datetime
 
-@pytest.mark.usefixtures("mock_toc_callbacks") 
-class Test_Category_Editor(object):
-    @pytest.fixture(autouse=True, scope='module')
-    def create_new_terms(self):
+@pytest.fixture(scope='module')
+def create_new_terms(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
         terms = []
         for title in ["New Fake Category 1", "New Fake Category 2"]:
             t = Term()
@@ -25,8 +24,9 @@ class Test_Category_Editor(object):
         for t in terms:
             t.delete()
 
-    @pytest.fixture(autouse=True, scope='module')
-    def create_new_cats(self, create_new_terms):
+@pytest.fixture(scope='module')
+def create_new_cats(django_db_setup, django_db_blocker, create_new_terms):
+    with django_db_blocker.unblock():
         titles = {"New Fake Category 1": ["New Fake Category 1"],
                   "New Fake Category 2": ["New Fake Category 1", "New Fake Category 2"]}
         cats = []
@@ -41,8 +41,9 @@ class Test_Category_Editor(object):
             c.delete()
             library.rebuild_toc()
 
-    @pytest.fixture(autouse=True, scope='module')
-    def create_fake_indices(self, create_new_cats):
+@pytest.fixture(scope='module')
+def create_fake_indices(django_db_setup, django_db_blocker, create_new_cats):
+    with django_db_blocker.unblock():
         books = []
         paths_for_books = [create_new_cats[0].path, create_new_cats[0].path, create_new_cats[1].path]
         for i, title in enumerate(['Fake Book One', 'Fake Book Two', 'Fake Book Three']):
@@ -84,8 +85,9 @@ class Test_Category_Editor(object):
         for b in books:
             library.get_index(b.title).delete() # need to reload this due to caching
 
-    @pytest.fixture(scope='module', autouse=True)
-    def create_new_main_cat_shared_title(self):
+@pytest.fixture(scope='module')
+def create_new_main_cat_shared_title(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
         t = Term()
         t.name = "New Shared Title for Main Cat"
         t.add_primary_titles(t.name, t.name[::-1])
@@ -93,8 +95,9 @@ class Test_Category_Editor(object):
         yield t
         t.delete()
 
-    @pytest.fixture(scope='module', autouse=True)
-    def create_new_collection(self, create_new_cats):
+@pytest.fixture(scope='module')
+def create_new_collection(django_db_setup, django_db_blocker, create_new_cats):
+    with django_db_blocker.unblock():
         c = Collection({"name": "Fake Collection 123",
                     "sheets": 1,
                     "slug": "fake-collection",
@@ -105,6 +108,10 @@ class Test_Category_Editor(object):
         c.save()
         yield c
         c.delete()
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("mock_toc_callbacks", "create_new_terms", "create_new_cats", "create_fake_indices", "create_new_main_cat_shared_title", "create_new_collection")
+class Test_Category_Editor(object):
 
     @staticmethod
     def change_cat(term, orig_categories, new_categories):
