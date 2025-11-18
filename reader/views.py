@@ -110,7 +110,7 @@ class PageTypes:
 
 def get_page_title(base_title, module, page_type=""):
     """
-    Generate consistent, module-aware page titles with appropriate suffixes.
+    Generate consistent, module-aware and language-aware page titles with appropriate suffixes.
 
     Takes a base title and appends a module-specific suffix based on the active module
     and interface language. The title format uses translatable named-string interpolation,
