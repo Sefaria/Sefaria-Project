@@ -139,18 +139,18 @@ def get_page_title(base_title, page_type="", request=None):
     # Page title suffix configuration - using _() for translations
     suffixes = {
         'home': {
-            'voices': _("Voices on Sefaria"),
-            'library': _("Sefaria: a Living Library of Jewish Texts Online")
+            'voices': "Voices on Sefaria",
+            'library': "Sefaria: a Living Library of Jewish Texts Online"
         },
         'topic': {
-            'voices': _("Sheets from Voices on Sefaria"),
-            'library': _("Texts from the Sefaria Library")
+            'voices': "Sheets from Voices on Sefaria",
+            'library': "Texts from the Sefaria Library"
         },
-        'collections': _("Voices on Sefaria"),
-        'collection': _("Voices on Sefaria Collection"),
+        'collections': "Voices on Sefaria",
+        'collection': "Voices on Sefaria Collection",
         'default': {
-            'voices': _("Voices on Sefaria"),
-            'library': _("Sefaria Library")
+            'voices': "Voices on Sefaria",
+            'library': "Sefaria Library"
         }
     }
 
@@ -158,11 +158,11 @@ def get_page_title(base_title, page_type="", request=None):
 
     # Special case: Home pages return complete title (not base + suffix pattern)
     if page_type == "home":
-        return suffixes['home'][module]
+        return _(suffixes['home'][module])
 
     # Special case: Sheet titles need cleaning
     if page_type == "sheet":
-        base_title = strip_tags(base_title) if base_title else _("Untitled")
+        base_title = strip_tags(base_title) if base_title else "Untitled"
 
     # Get appropriate suffix based on page type
     if page_type in ['collections', 'collection']:
