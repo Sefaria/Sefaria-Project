@@ -144,8 +144,8 @@ def get_page_title(base_title, module, page_type=""):
             'voices': "Sheets from Voices on Sefaria",
             'library': "Texts from the Sefaria Library"
         },
-        PageTypes.COLLECTIONS: "Voices on Sefaria",
-        PageTypes.COLLECTION: "Voices on Sefaria Collection",
+        PageTypes.COLLECTIONS: {'voices': "Voices on Sefaria"},
+        PageTypes.COLLECTION: {'voices': "Voices on Sefaria Collection"},
         'default': {
             'voices': "Voices on Sefaria",
             'library': "Sefaria Library"
