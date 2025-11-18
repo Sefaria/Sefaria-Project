@@ -98,41 +98,31 @@ logger = structlog.get_logger(__name__)
 
 def get_page_title(base_title, module, page_type=""):
     """
-    Generate consistent, module-aware, bilingual page titles.
+    Generate consistent, module-aware page titles with appropriate suffixes.
 
-    This function takes a base title (which should already be translated via Django's _())
-    and adds the appropriate module suffix based on active_module and interface language.
-    The title format itself (including separator) is translatable using Django's named-string
-    interpolation, allowing translators to customize the format for their language.
-
+    Takes a base title and appends a module-specific suffix based on the active module
+    and interface language. The title format uses translatable named-string interpolation,
+    allowing localization of separators and ordering.
 
     Args:
-        base_title (str): Main content of title - SHOULD BE ALREADY TRANSLATED via _()
-                         Examples: _("Topics"), ref.normal(), sheet["title"], user.full_name
-        page_type (str): Specifies if it's a specific page type requiring a specific suffix (i.e. home, sheet, topic or collection)
-        request: Django request object (provides interfaceLang and active_module)
+        base_title (str): Main title content.
+        module (str): Active module identifier (e.g., 'voices', 'library')
+        page_type (str, optional): Page type for specialized suffixes. Options include:
+                                   'home', 'sheet', 'topic', 'collection', 'collections'
 
     Returns:
-        str: Formatted title with module suffix
+        str: Formatted title string in the pattern "%(title)s | %(suffix)s"
 
     Examples:
-        >>> # Generic page (already translated via _())
-        >>> get_page_title(_("Topics"), "generic", request)
-        "נושאים | ספריית ספריא"  # Hebrew Library
+        >>> get_page_title("Topics", "library", "")
+        "נושאים | ספריית ספריא"  # Hebrew interface
 
-        >>> # Sheet page
-        >>> get_page_title("My Torah Sources", "sheet", request)
-        "My Torah Sources | Voices on Sefaria"  # English Voices
+        >>> get_page_title("My Torah Sources", "voices", "sheet")
+        "My Torah Sources | Voices on Sefaria"  # English interface
 
-    Note:
-        - Base titles should be translated BEFORE calling this function using _()
-        - This function adds module-specific suffixes and formats them
-        - The title format "%(title)s | %(suffix)s" is translatable, allowing translators
-          to customize the separator, spacing, and ordering for their language
-        - For translations, update locale/he/LC_MESSAGES/django.po
     """
 
-    # Page title suffix configuration - using _() for translations
+    # Page title suffix configuration
     suffixes = {
         'home': {
             'voices': "Voices on Sefaria",
