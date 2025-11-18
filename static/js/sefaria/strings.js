@@ -1,3 +1,5 @@
+import Sefaria from "./sefaria";
+
 const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
@@ -21,9 +23,11 @@ const Strings = {
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
     "Log in": "התחברות",
+    "Login": "התחברות",
     "A": "א",
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
+    "Skip to main content": "דלגו לתוכן האתר",
 
     //HeaderAutocomplete
     "Books": "ספרים",
@@ -31,7 +35,7 @@ const Strings = {
     "Users": "משתמשים",
     "Categories": "קטגוריות",
 
-    // Texts Page
+    // Landing Pages
     "Learn More": "למדו עוד",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
@@ -56,6 +60,9 @@ const Strings = {
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
     "Sponsor A Day": "הקדישו יום לימוד",
+    "Community-Powered Jewish Learning": "חיבורים חדשים למקורות ולקהילה",
+    "Share. Discover. Join the Conversation.": "המקום ללמידה, שיתוף רעיונות, וכתיבת חומרים מקוריים.",
+    "Browse Topic Categories": "חיפוש מקורות לפי נושא",
 
     // Text Category Pages
     "All Portions": "פרשות השבוע",
@@ -69,12 +76,14 @@ const Strings = {
     "Hebrew Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים עברית",
     "Choose a Category": "בחר קטגוריה",
     "Main Menu": "תפריט ראשי",
+    "Menu": "תפריט",
     "Saving topic information.": "מעדכן נתוני נושא",
     "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
     "Add a short description.": "הוסף תיאור קצר",
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
+    "Explore User-Created Content by Topic": "מצאו דפים לפי נושא",
     "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
     "Trending Topics": "נושאים נפוצים",
@@ -108,8 +117,8 @@ const Strings = {
 
     // All Topics
     "All Topics": "כל הנושאים",
-    "Reset": "לאתחל",
-    "Search Topics": "חפש נושאים",
+    "Reset": "איפוס",
+    "Search Topics": "חיפוש נושאים",
 
     // Topic Images
     "Illustrative image" : "תמונה להמחשה",
@@ -120,11 +129,10 @@ const Strings = {
     "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
     "Learn more about": "למדו עוד על",
     "Learn more on": "למדו עוד על",
-    "Read the Portion": "לקריאת הפרשה",
+    "Read the Portion": "קראו את הפרשה",
     "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
     "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
     "Browse Topics": "לדפדוף במגוון נושאים",
-    "Trending Topics": "נושאים פופולריים",
     "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
     "Browse All Torah Portions": "לרשימת כל הפרשות",
     "First Name": "שם פרטי",
@@ -151,6 +159,7 @@ const Strings = {
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
+    "Search Collections": "חיפוש באסופות",
 
     "Close menu": "סגירת תפריט",
     "Add a source, image, or other media": "הוספת מקור, תמונה או מדיה אחרת",
@@ -239,7 +248,6 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "Reset": "איפוס",
     "Views": "צפיות",
     "Saves": "שמירות",
 
@@ -268,7 +276,6 @@ const Strings = {
     "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
-    "Views": "צפיות",
     "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
     "Versions": "מהדורות",
     "Version Open": "מהדורה פתוחה",
@@ -278,15 +285,15 @@ const Strings = {
     "Select Version": "בחירת מהדורה",
     "Select Translation": "בחירת תרגום",
     "View in Sidebar": "פתיחת תרגום",
-    'Select': 'בחירה',
-    'Currently Selected': 'נוכחי',
+    "Select": "בחירה",
+    "Currently Selected": "נוכחי",
     "Merged from": "נוצר ממיזוג",
     "Sources": "מקורות",
     "Notable Sources": "מקורות מרכזיים",
     "All Sources": "כל המקורות",
     "Source" : "מקור",
     "Translation": "תרגום",
-    "Source with Translation": "מקור עם תרגום",
+    "Source with Translation": "מקור ותרגום",
     "Source Language": "שפת המקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
@@ -304,7 +311,7 @@ const Strings = {
     "following": "נעקבים",
     "followers": "עוקבים",
     "Recent": "תאריך",
-    "Unlisted": "חסוי",
+    "Unlisted": "לא ברשימה",
     "History": "היסטוריה",
     "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
     "Public Domain": "בנחלת הכלל",
@@ -429,14 +436,12 @@ const Strings = {
     "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
     "Language": "שפה",
     "Layout": "עימוד",
-    "Translation": "תרגום",
-    'Source with Translation': 'מקור ותרגום',
     "Color": "צבע",
     "Font Size" : "גודל גופן",
     "Aliyot" : "עליות לתורה",
     "Taamim and Nikkud" : "טעמים וניקוד",
     "Punctuation" : "פיסוק",
-    'Cantillation': 'טעמים',
+    "Cantillation": "טעמים",
     "Show Punctuation": "הצגת סימני פיסוק",
     "Hide Punctuation": "הסתרת סימני פיסוק",
     "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
@@ -474,7 +479,7 @@ const Strings = {
     "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
-    "Logout": "ניתוק",
+    "Logout": "התנתקות",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
     "Settings Saved": "הגדרות נשמרו",
     "Turning this feature off will permanently delete your reading history." : "כיבוי אפשרות זו תמחק לצמיתות את היסטורית הקריאה שלך.",
@@ -487,7 +492,6 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
-    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -502,6 +506,41 @@ const Strings = {
     "All history ": "כל ההסטוריה ",
     "All History": "כל ההסטוריה",
 
+    // UI Elements
+    "text layout toggle": "החלפת עימוד טקסט",
+
+    // Form Elements
+    "Email address": "כתובת אימייל",
+    "Index Title": "כותרת אינדקס",
+    "Version Title": "כותרת גרסה",
+    "Index Title Pattern": "תבנית כותרת אינדקס",
+    "Version Title Pattern": "תבנית כותרת גרסה",
+    "Version Language": "שפת הגרסה",
+
+    // Actions & Buttons
+    "Add new category": "הוספת קטגוריה חדשה",
+    "Reset topic filter": "איפוס מסנן נושאים",
+    "Clear input": "ניקוי קלט",
+    "Download language selection": "בחירת שפת הורדה",
+
+    // Content & Status
+    "Loading status": "סטטוס טעינה",
+    "Audio playback position": "מיקום השמעה",
+    "New Category": "קטגוריה חדשה",
+    "Update type": "סוג עדכון",
+
+    // Notifications
+    "No notifications message title": "כותרת הודעת אין התראות",
+    "No notifications message body": "גוף הודעת אין התראות",
+
+    // Buttons & Actions
+    "See More": "ראה עוד",
+    "Save and Next": "שמירה והמשך",
+    "Skip this sheet": "דלג על דף מקורות זה",
+    "Collapse": "כווץ",
+    "Expand": "הרחב",
+
+    //Accessibility UI
 
      //About
     "What is Sefaria?": "מהי ספריא",
@@ -551,6 +590,7 @@ const Strings = {
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
+    "Submit": "שלח",
     "Thank you!": "תודה רבה!",
     "Export to Google Docs": "ייצוא לגוגל דוקס",
     "Delete Sheet": "מחיקת דף מקורות",
@@ -585,7 +625,6 @@ const Strings = {
 
     //Module Names
     "Download Text": "הורדת טקסט",
-    "About this Text" : "אודות ספר זה",
     "About This Text" : "אודות ספר זה",
     "Related Topics": "נושאים קשורים",
 
@@ -593,22 +632,82 @@ const Strings = {
     "Sort by": "מיון לפי",
 
     //Mobile Nav Header
-    "Get Help": "עזרה", //already has a similar string here but with different capitalization, maybe fix bug when not right before a launch?
+    "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
     "Saved & History": "היסטורית קריאה ושמורים",
+    "Sidebar navigation": "ניווט בסרגל הצד",
+    "Site search": "חיפוש באתר",
+    "Account menu": "תפריט חשבון",
+    "submenu": "תת-תפריט",
 
     //Misc
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
 
     //WebPage
-    'Citing': 'מצטט',
-    'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
-    'Sefaria Linker': 'במרשתת ההפניות',
+    "Citing": "מצטט",
+    "Sites that are listed here use the": "אתרים המפורטים כאן משתמשים",
+    "Sefaria Linker": "במרשתת ההפניות",
 
     //alt tags
-    'Notifications': 'עדכונים',
-    'Bookmarks': 'שמורים',
-    'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
+    'Sefaria library logo': 'לוגו ספריית ספריא',
+    'Sefaria voices logo': 'לוגו חיבורים בספריא',
+    "Bookmarks": "שמורים",
+    "Toggle Interface Language Menu" : "פתח תפריט שפת ממשק",
+    "book icon": "סמל ספר",
+    "visualization icon": "סמל תרשים גרפי",
+    "Menu icon": "סמל תפריט",
+    "icon": "סמל",
+    "Sefaria app on IOS": "אפליקציית ספריא לאייפון",
+    "Sefaria app on Android": "אפליקציית ספריא לאנדרואיד",
+    "Sefaria on Facebook": "ספריא בפייסבוק",
+    "Sefaria on Instagram": "ספריא באינסטגרם",
+    "Sefaria on YouTube": "ספריא ביוטיוב",
+    "Sefaria Logo": "לוגו ספריא",
+    "Sefaria Sheets Logo": "לוגו ספריא דפי מקורות",
+    "donation icon": "סמל תרומה",
+    "Notification icon": "סמל התראה",
+    "Play video": "נגן וידאו",
+    "make a sheet icon": "סמל יצירת דף מקורות",
+    "collection icon": "סמל אסופה",
+    "Module image": "תמונת מודול",
+    "User uploaded image": "תמונה שהועלתה על ידי משתמש",
+
+    "Website icon": "סמל אתר",
+    "Notes": "הערות",
+    "Close banner": "סגור באנר",
+    "Search topics": "חפש נושאים",
+    "Reset filter": "איפוס מסנן",
+    "Topic": "נושא",
+    "User Profile Picture": "תמונת פרופיל משתמש",
+    "Notification image": "תמונת התראה",
+    "Delete note": "מחק הערה",
+    "Hebrew Language Toggle Icon": "סמל החלפה לעברית",
+    "English Language Toggle Icon": "סמל החלפה לאנגלית",
+    "Edit topic": "ערוך נושא",
+
+    "Toggle Reader Menu Display Settings": "הגדרות תצוגת תפריט קורא",
+    "AI Info Icon": "סמל מידע AI",
+    "Not published": "לא פורסם",
+    "Note author profile picture": "תמונת פרופיל כותב ההערה",
+    "Open dropdown": "פתח תפריט נפתח",
+    "Collection Logo": "לוגו אסופה",
+    "Settings": "הגדרות",
+    "Library": "ספריה",
+    "Sefaria Library": "ספריית ספריא",
+    "Voices": "חיבורים",
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Developers": "מפתחים",
+    "Developers on Sefaria": "מפתחים בספריא",
+    "Products": "מוצרים",
+    "More from Sefaria": "עוד מספריא",
+    "User uploaded media": "מדיה שהועלתה על ידי משתמש",
+    "Edit collection": "ערוך אסופה",
+    "Subscribe to newsletter": "הרשמה לניוזלטר",
+    "Move up": "העבר למעלה",
+    "Move down": "העבר למטה",
+    "Click icon": "סמל לחיצה",
+    "Collection Header Image": "תמונת כותרת אסופה",
+    "image of maginfying glass": "תמונה של זכוכית מגדלת",
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -619,7 +718,7 @@ const Strings = {
       "Quotation": "ציטוט",
       "Midrash": "מדרש",
       "Ein Mishpat / Ner Mitsvah": "עין משפט / נר מצווה",
-      'Mesorat HaShas': 'מסורת הש"ס',
+      "Mesorat HaShas": "מסורת הש\"ס",
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
@@ -634,7 +733,6 @@ const Strings = {
       "Trying to connect…": "ניסיון התחברות...",
       "No internet connection detected": "לא זוהה חיבור לאינטרנט",
       "User Logged out": "בוצעה התנתקות מהמערכת",
-      "Log in": "התחברות",
       "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
       "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
       "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
@@ -681,8 +779,6 @@ const Strings = {
       "Resources": "כלי עזר",
     },
     "SearchFilters": {
-      "Texts": "מקורות",
-      "Topics": "נושאים",
       "Collections": "באסופות",
       "See More": "עוד",
     },
@@ -690,15 +786,12 @@ const Strings = {
       "Tanakh": "",
       "Talmud": ""
     },
-    "Library": "ספריה",
-    "Developers": "מפתחים",
     "Sheet Share": {
       "View": "לצפות",
       "Add": "להוסיף",
       "Edit": "לערוך",
     },
     "WebPageList": {
-      'Author': 'מחבר'
     },
     "Guide": {
     "Show guide": "הצג מדריך",

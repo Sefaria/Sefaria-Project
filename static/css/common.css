@@ -552,7 +552,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   top: 0;
   bottom: 0;
   right: 36px;
-  border: 1px solid #999999;
+  border: 1px solid var(--light-grey);
   border-radius: 26px;
   transition: all 0.3s ease-in 0s;
 }
@@ -705,7 +705,7 @@ a:active {
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   border: none;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
   background-color: white;
   -webkit-appearance: none;
@@ -720,7 +720,7 @@ a:active {
 }
 .static label .sub {
   font-size: 12px;
-  color: #999;
+  color: var(--medium-grey);
   letter-spacing: normal;
   white-space: nowrap;
 }

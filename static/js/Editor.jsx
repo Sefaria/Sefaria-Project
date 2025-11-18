@@ -310,7 +310,6 @@ export const serialize = (content) => {
         }, {preTags: "", postTags: ""});
 
         const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
-
         return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
 
     }
@@ -332,12 +331,12 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                if (content["text-align"] == "center") {
-                    return `<div style='text-align: center'>${paragraphHTML}</div>`
+                if (/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
+                    return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
+                } else {
+                    return `<p>${paragraphHTML}</p>` // use wrapping "p"s to enable deserializer to parse nodes properly, otherwise lists get lost. The reason p's are used instead of divs is to prevent extra spacing.
                 }
-                return `<div>${paragraphHTML}</div>`
             }
-
             case 'list-item': {
                 const liHtml = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
@@ -550,14 +549,21 @@ function replaceBrWithNewLine(html) {
   }
 
 function parseSheetItemHTML(rawhtml) {
-    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
     let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
 
-    preparseHtml = replaceDivWithBr(preparseHtml);
+    // If there are no ul/ol/li tags, replace divs with brs to preserve line breaks.
+    // If there are ul/ol/li tags, the serialization will need the divs to render the list properly and prevent data-loss.
+    if (!/<\/?(ul|ol|li)[^>]*>/i.test(preparseHtml)) {
+        preparseHtml = replaceDivWithBr(preparseHtml);
+    }
     preparseHtml = replaceBrWithNewLine(preparseHtml);
+
+
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove the final line break (exactly one)
+    preparseHtml = preparseHtml.replace(/(?:\r\n|\r|\n)$/, '');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -833,6 +839,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false};
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const refHref = element.ref ? `/${Sefaria.normRef(element.ref)}` : null;
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
       parentEditor.dragging = true
@@ -900,7 +907,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
+          {element.heRef && refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -913,7 +920,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
+        {refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -1009,7 +1016,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         if (input === "") {
             return results;
         }
-        const d = await Sefaria.getName(input, 5, 'ref');
+        const d = await Sefaria.getName(input, 5, ['ref']);
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
@@ -1250,7 +1257,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("User uploaded media")} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
@@ -2426,7 +2433,7 @@ const Leaf = ({attributes, children, leaf}) => {
         children = <u>{children}</u>
     }
     if (leaf.big) {
-        children = <big>{children}</big>
+        children = <span className="big-text">{children}</span> // big-text is a replacement for the obsolete <big> tag that was used
     }
     if (leaf.small) {
         children = <small>{children}</small>
@@ -2555,7 +2562,7 @@ const HighlightButton = () => {
     const [showPortal, setShowPortal] = useState(false);
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
-    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue
     const colorButtons = <>{colors.map(color =>
       <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
             e.preventDefault();
@@ -2671,7 +2678,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
         {<img src={stateToIcon[state]} alt={localize(state)} />}
-        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
 }
@@ -3289,7 +3296,8 @@ const SefariaEditor = (props) => {
                             editable={true}
                             titleCallback={(newTitle) => setTitle(newTitle)}
                             summaryCallback={(newSummary) => setSummary(newSummary)}
-                            sheetOptions={sheetOptions}/>
+                            sheetOptions={sheetOptions}
+                            showGuide={props.showGuide}/>
               </span>
           <span  ref={editorContentContainer}>
             {canUseDOM &&
@@ -3318,4 +3326,4 @@ const SefariaEditor = (props) => {
     )
 };
 
-export { EditorSaveStateIndicator, SefariaEditor };
+export { SefariaEditor, EditorSaveStateIndicator };

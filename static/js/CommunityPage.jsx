@@ -161,7 +161,7 @@ const FeaturedSheet = ({sheet, showDate, trackClicks, toggleSignUpModal}) => {
         <InterfaceText text={heading} />
       </div>
       : null}
-      <a href={`/sheets/${id}`} className="navBlockTitle" data-target-module={Sefaria.SHEETS_MODULE} onClick={trackClicks ? trackClick : null}>
+      <a href={`/sheets/${id}`} className="navBlockTitle" data-target-module={Sefaria.VOICES_MODULE} onClick={trackClicks ? trackClick : null}>
         <InterfaceText>{title}</InterfaceText>
       </a>
       {summary ?
@@ -266,7 +266,7 @@ const AboutParashah = ({content}) => {
           <InterfaceText context="AboutParashah">Torah Reading</InterfaceText>
         </div>
         <div className="calendarRef">
-          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
           <a href={`/${ref.url}`} className="serif">
             <InterfaceText text={ref} />
           </a> 
@@ -299,7 +299,7 @@ const AboutCalendar = ({content}) => {
         </div>
         {readings.map(ref => (
           <div className="calendarRef" key={ref.url}>
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
             <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 
@@ -330,7 +330,7 @@ const AboutDiscover = ({content}) => {
           <InterfaceText>Readings</InterfaceText>
         </div>
           <div className="calendarRef" key={ref.url}>
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
             <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 

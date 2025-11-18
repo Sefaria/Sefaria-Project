@@ -6,6 +6,7 @@ import structlog
 import sefaria.system.logging as sefaria_logging
 import os
 import json
+
 # These are things you need to change!
 
 ################
@@ -37,27 +38,22 @@ DATABASES = {
     }
 }"""
 
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
-}
 
-# Currently in order to get cauldrons to work, we need to use json.dumps to convert the dict to a string.
-DOMAIN_MODULES = json.dumps({
-    "library": "http://localhost:8000",
-    "sheets": "http://localhost:8000",
-})
-MODULE_ROUTES = json.dumps({
-    "library": "/",
-    "sheets": "/sheets/",
-})
-
-################ These are things you can change! ###########################################################################
+################ User-defined Settings ###########################################################################
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
+DOMAIN_MODULES = {
+    "en": {
+        "library": "http://localhost:8000",
+        "voices": "http://voices.localhost:8000",
+    },
+    "he": {
+        "library": "http://localhost:8000",
+        "voices": "http://voices.localhost:8000",
+    }
+}
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
+
 
 ADMINS = (
      ('Your Name', 'you@example.com'),
@@ -136,9 +132,8 @@ SITE_PACKAGE = "sites.sefaria"
 
 
 
-################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
+################ Default Settings (Don't change these unless you know what you are doing) ###############################
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -247,16 +242,7 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
-
-RAW_REF_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None
-}
-
-RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None
-}
+GPU_SERVER_URL = 'http://localhost:5000'
 
 # Simple JWT
 SIMPLE_JWT = {
@@ -350,3 +336,18 @@ if "pytest" in sys.modules:
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
+
+# Session cookie settings for cross-subdomain support
+# Set this to your top-level domain (e.g., '.example.com') to allow session cookies
+# to work across all subdomains. The leading dot is important!
+SESSION_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
+SESSION_COOKIE_SECURE = True  # Set to True if using HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Recommended for security
+SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
+CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this

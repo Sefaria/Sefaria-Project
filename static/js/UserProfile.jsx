@@ -200,7 +200,7 @@ class UserProfile extends Component {
         key={item.id}
         uid={item.id}
         slug={item.slug}
-        url={`/sheets/profile/${item.slug}`}
+        url={`/profile/${item.slug}`}
         name={item.full_name}
         image={item.profile_pic_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
@@ -283,7 +283,8 @@ class UserProfile extends Component {
                     <SheetsList profile={this.props.profile}
                                   handleSheetDelete={this.handleSheetDelete}
                                   handleCollectionsChange={this.handleCollectionsChange}
-                                  toggleSignUpModal={this.props.toggleSignUpModal}/>}
+                                  toggleSignUpModal={this.props.toggleSignUpModal}
+                                  refreshData={this.state.refreshSheetData}/>}
 
                   {this.props.profile &&
                     <CollectionsList profile={this.props.profile} />}
@@ -328,36 +329,24 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
-const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal}) => {
+const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal, refreshData}) => {
   const [sheets, setSheets] = useState(null);
 
   useEffect(() => {
-    const fetchSheets = async () => {
-      try {
-        const fetchedSheets = await new Promise((resolve, reject) => {
-          Sefaria.sheets.userSheets(
-            profile.id,
-            sheets => resolve(sheets),
-            undefined,
-            0,
-            0
-          );
-        });
-        setSheets(fetchedSheets);
-      } catch (error) {
-        console.error("Failed to fetch sheets:", error);
+    // Get cached data or fetch if needed (this is what FilterableList does)
+    Sefaria.sheets.userSheets(profile.id, sheets => {
+      if (sheets) {
+        setSheets(sheets);
       }
-    };
-
-    fetchSheets();
-  }, [profile.id]);
+    }, undefined, 0, 0);
+  }, [profile.id, refreshData]);
 
   if (!sheets) {
     return <div>Loading sheets...</div>;
   }
 
   return (
-    <div class="sheetsProfileList">
+    <div className="sheetsProfileList">
       {sheets.map(sheet => (
         <SheetListing
           key={sheet.id}
@@ -505,13 +494,13 @@ const EditorToggleHeader = ({usesneweditor}) => {
      setFeedbackHeaderState("enableOverlay")
    }
  }
- const learn_more_link = Sefaria._v({"en": "https://sheets.sefaria.org/sheets/621008", "he": "https://sheets.sefaria.org/sheets/621013"})
+ const learn_more_link = Sefaria._v({"en": "https://voices.sefaria.org/sheets/621008", "he": "https://voices.sefaria.org/sheets/621013"})
 
  return (
    <>
    <div className="editorToggleHeader sans-serif">{text}
      <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
-       <a href={learn_more_link} data-target-module={Sefaria.SHEETS_MODULE} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
+       <a href={learn_more_link} data-target-module={Sefaria.VOICES_MODULE} className="learnMore"><InterfaceText>Learn More</InterfaceText></a>
    </div>
    {feedbackHeaderState !== "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
    </>
@@ -520,7 +509,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 
 
 const UserBackground = ({profile: p, showBio, multiPanel}) => {
-    // used in ProfileSummary and in SheetContentSidebar, renders user education, organization, and location info
+    // used in ProfileSummary and in SheetSidebar, renders user education, organization, and location info
     // if 'showBio', render p.bio; this property corresponds to "About me" in the profile edit view
     const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
     let infoList = [];
@@ -588,7 +577,7 @@ const ProfileSummary = ({
                              </div>;
     const profileButtons = Sefaria._uid === p.id ? (
                                     <div className="profile-actions">
-                                        <a href="/settings/profile" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
+                                        <a href="/settings/profile" className="resourcesLink sans-serif" data-target-module={Sefaria.VOICES_MODULE}>
                                             <span className="int-en">Edit Profile</span>
                                             <span className="int-he">עריכת פרופיל</span>
                                         </a>
@@ -607,14 +596,14 @@ const ProfileSummary = ({
                                 </div>;
 
     const tempSheetButton = (
-          <a href="/sheets/new" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
+          <a href="/sheets/new" className="resourcesLink sans-serif" data-target-module={Sefaria.VOICES_MODULE}>
             <span className="int-en">Create Sheet</span>
             <span className="int-he">יצירת דף מקורות</span>
           </a>
       );
 
   const tempCollectionButton = (
-          <a href="/sheets/collections/new" className="resourcesLink sans-serif" data-target-module={Sefaria.SHEETS_MODULE}>
+          <a href="/collections/new" className="resourcesLink sans-serif" data-target-module={Sefaria.VOICES_MODULE}>
               <InterfaceText>Create Collection</InterfaceText>
           </a>
       );
