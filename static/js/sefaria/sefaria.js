@@ -3565,6 +3565,59 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  getPageTitle: (baseTitle, pageType = "") => {
+      /**
+       * Generate consistent, module-aware, bilingual page titles.
+       * Mirrors the Python get_page_title() function in reader/views.py
+       */
+  
+      // Get current module (library or voices)
+      const module = (Sefaria.activeModule === 'voices') ? 'voices' : 'library';
+  
+      // Page title suffix configuration - using Sefaria._() for translations
+      const suffixes = {
+        home: {
+          voices: Sefaria._("Voices on Sefaria"),
+          library: Sefaria._("Sefaria: a Living Library of Jewish Texts Online")
+        },
+        topic: {
+          voices: Sefaria._("Sheets from Voices on Sefaria"),
+          library: Sefaria._("Texts from the Sefaria Library")
+        },
+        collections: Sefaria._("Voices on Sefaria"),
+        collection: Sefaria._("Voices on Sefaria Collection"),
+        default: {
+          voices: Sefaria._("Voices on Sefaria"),
+          library: Sefaria._("Sefaria Library")
+        }
+      };
+  
+      // Special case: Home pages return complete title (not base + suffix pattern)
+      if (pageType === "home") {
+        return suffixes.home[module];
+      }
+  
+      // Special case: Sheet titles need default if empty
+      if (pageType === "sheet" && !baseTitle) {
+        baseTitle = Sefaria._("Untitled");
+      }
+  
+      // Get appropriate suffix based on page type
+      let suffix;
+      if (pageType === 'collections' || pageType === 'collection') {
+        // Collections pages are always Voices
+        suffix = suffixes[pageType];
+      } else if (pageType === 'topic') {
+        // Topics have module-specific descriptive suffixes
+        suffix = suffixes.topic[module];
+      } else {
+        // Default suffix for all other pages (pageType === "" or anything else)
+        suffix = suffixes.default[module];
+      }
+  
+      // Combine base title with suffix
+      return baseTitle ? `${baseTitle} | ${suffix}` : suffix;
+    },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
