@@ -77,7 +77,7 @@ class TextColumn extends Component {
     } else if ((this.props.settings.language !== prevProps.settings.language) ||
         !Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       // When the content the changes but we are anchored on a line, scroll to it
-      this.scrollToHighlighted();
+      this.scrollToHighlighted(false); // Don't change focus to not steal the focus from the menu where the text is changes from (e.g. ReaderDisplayOptionsMenu)
     } else if (layoutWidthChanged) {
       // When the width of the text column changes, keep highlighted text in place
       this.restoreScrollPositionByPercentage();
@@ -196,7 +196,7 @@ class TextColumn extends Component {
       this.setScrollTop(top);
     }
   }
-  scrollToHighlighted() {
+  scrollToHighlighted(shouldFocus=true) {
     // Scroll to the first highlighted segment
     if (!this._isMounted) { return; }
     const $container   = this.$container;
@@ -207,7 +207,7 @@ class TextColumn extends Component {
       let top = $highlighted.position().top + adjust - this.highlightThreshhold;
       top = top > this.scrollPlaceholderHeight ? top : this.scrollPlaceholderHeight;
       this.setScrollTop(top);
-      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id") && shouldFocus) {
         $highlighted.focus();
       }
     }
