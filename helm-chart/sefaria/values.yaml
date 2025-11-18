@@ -422,6 +422,8 @@ localSettings:
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
+  SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
