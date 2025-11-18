@@ -38,7 +38,7 @@ from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags
 from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import render_template, catchall, get_search_params, get_page_title
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -65,7 +65,7 @@ def annotate_user_links(sources):
 from django.utils.translation import ugettext as _
 from reader.views import menu_page
 def sheets_home_page(request):
-    title = get_page_title("", module=request.active_module, page_type="home")
+    title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
     desc  = _("Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos.")
     return menu_page(request, page="voices", title=title, desc=desc)
 
