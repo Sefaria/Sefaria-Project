@@ -65,7 +65,7 @@ def annotate_user_links(sources):
 from django.utils.translation import ugettext as _
 from reader.views import menu_page
 def sheets_home_page(request):
-    title = get_page_title("", "home", request)
+    title = get_page_title("", module=request.active_module, page_type="home")
     desc  = _("Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos.")
     return menu_page(request, page="voices", title=title, desc=desc)
 
@@ -989,7 +989,7 @@ def sheets_with_ref(request, tref):
     }
     he_tref = Ref(tref).he_normal()
     normal_ref = tref if request.interfaceLang == "english" else he_tref
-    title = get_page_title(f"Sheets with {normal_ref}", "generic", request)
+    title = get_page_title(f"Sheets with {normal_ref}", module=request.active_module)
     props["sheetsWithRef"] = {"en": tref, "he": he_tref}
     return menu_page(request, page="sheetsWithRef", title=title, props=props)
 
