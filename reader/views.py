@@ -114,10 +114,10 @@ def get_page_title(base_title, module, page_type=""):
         str: Formatted title string in the pattern "%(title)s | %(suffix)s"
 
     Examples:
-        >>> get_page_title("Topics", "library", "")
+        >>> get_page_title("Topics", module=request.active_module, page_type="")
         "נושאים | ספריית ספריא"  # Hebrew interface
 
-        >>> get_page_title("My Torah Sources", "voices", "sheet")
+        >>> get_page_title("My Torah Sources", module=request.active_module, page_type="sheet")
         "My Torah Sources | Voices on Sefaria"  # English interface
 
     """
@@ -705,7 +705,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     }
     if sheet == None:
         ref_text = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
-        title = get_page_title(ref_text, module=request.active_module, "text")
+        title = get_page_title(ref_text, module=request.active_module, page_type="text")
         breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
 
         if primary_ref.is_book_level():
@@ -739,7 +739,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         sheet["title"] = unescape(sheet["title"])
-        title = get_page_title(sheet["title"], module=request.active_module, "sheet")
+        title = get_page_title(sheet["title"], module=request.active_module, page_type="sheet")
         breadcrumb = sheet_crumbs(request, sheet)
         desc = unescape(sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder")))
         noindex = sheet.get("noindex", False) or sheet["status"] != "public"
@@ -822,7 +822,7 @@ def topics_category_page(request, topicCategory):
     }
 
     short_lang = get_short_lang(request.interfaceLang)
-    title = get_page_title(topic_obj.get_primary_title(short_lang), module=request.active_module, "topic")
+    title = get_page_title(topic_obj.get_primary_title(short_lang), module=request.active_module, page_type="topic")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
 
     return render_template(request, 'base.html', props, {
@@ -928,7 +928,7 @@ def public_collections(request):
     props.update({
         "collectionListing": CollectionSet.get_collection_listing(request.user.id)
     })
-    title = get_page_title("", request.active_module, "collections")
+    title = get_page_title("", request.active_module, page_type="collections")
     return menu_page(request, props, "collectionsPublic", title=title)
 
 
@@ -989,7 +989,7 @@ def collection_page(request, slug):
     del props["collectionData"]["lastModified"]
 
     return render_template(request, 'base.html', props, {
-        "title": get_page_title(collection.name, module=request.active_module, "collection"),
+        "title": get_page_title(collection.name, module=request.active_module, page_type="collection"),
         "desc": props["collectionData"].get("description", ""),
         "noindex": not getattr(collection, "listed", False)
     })
@@ -1097,7 +1097,7 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = get_page_title("", module=request.active_module, "home")
+    title = get_page_title("", module=request.active_module, page_type="home")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     props = get_user_history_props(request)
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
@@ -3202,7 +3202,7 @@ def topic_page(request, slug, test_version=None):
     short_lang = get_short_lang(request.interfaceLang)
     desc = title = ""
     short_title = topic_obj.get_primary_title(short_lang)
-    title = get_page_title(short_title, module=request.active_module, "topic")
+    title = get_page_title(short_title, module=request.active_module, page_type="topic")
     if request.active_module == LIBRARY_MODULE:
         desc = _("Jewish texts about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': short_title}
     elif request.active_module == VOICES_MODULE:
@@ -3736,7 +3736,7 @@ def user_profile(request, username):
         "initialProfile": requested_profile.to_api_dict(basic=not owner_of_profile),
         "initialTab": tab,
     }
-    title = get_page_title(requested_profile.full_name, module=request.active_module, "profile")
+    title = get_page_title(requested_profile.full_name, module=request.active_module, page_type="profile")
     desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
     return render_template(request,'base.html', props, {
         "title":          title,
