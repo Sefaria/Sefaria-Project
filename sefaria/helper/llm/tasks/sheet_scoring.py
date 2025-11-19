@@ -24,5 +24,3 @@ def generate_and_save_sheet_scoring(sheet_content: Dict[str, any]) -> object:
     save_signature = save_sheet_scoring.s().set(queue=CELERY_QUEUES['tasks'])
     chain = generate_signature | save_signature
     return chain()
-
-
