@@ -2,6 +2,7 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
+{% load sefaria_tags %}
 
 <!DOCTYPE html>
 <html lang="{{ request.LANGUAGE_CODE }}">
@@ -100,8 +101,8 @@
     <script src="https://www.gstatic.com/charts/loader.js"></script>
 
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
         
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
@@ -112,7 +113,7 @@
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
-    <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
+    <link rel="stylesheet" href="{% static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
     {% if renderStatic %}

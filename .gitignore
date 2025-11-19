@@ -150,6 +150,7 @@ e2e-tests/e2e-test-logs/
 # Miscellaneous #
 #################
 
+.env
 env/*
 dump/*
 .env
