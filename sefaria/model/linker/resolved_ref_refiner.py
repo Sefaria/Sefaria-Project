@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from itertools import product
 from typing import List
 from sefaria.model.schema import AddressInteger
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet
-from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet, PassageNodeSet
+from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType, RawRefPartPair
 from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
+from ne_span import RefPartType
 
 
 class ResolvedRefRefiner(ABC):
@@ -16,7 +17,9 @@ class ResolvedRefRefiner(ABC):
         self.resolved_ref = resolved_ref
 
     def _get_resolved_parts(self):
-        return self.resolved_ref.resolved_parts + [self.part_to_match]
+        part = self.part_to_match
+        matched_parts = part.part_pair if isinstance(part, RawRefPartPair) else [part]
+        return self.resolved_ref.resolved_parts + matched_parts
 
     def _clone_resolved_ref(self, **kwargs) -> 'ResolvedRef':
         return self.resolved_ref.clone(**kwargs)
@@ -104,8 +107,10 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
             for _ in range(queue_len):
                 temp_resolved_raw_ref = resolved_raw_refs.pop(0)
                 if not is_first_pass:
+                    # not 100% sure why this is here. It helps with ranged refs of Daf / Amud.
                     temp_children = temp_resolved_raw_ref.node.get_children(temp_resolved_raw_ref.ref)
-                    temp_resolved_raw_ref.node = None if len(temp_children) == 0 else temp_children[0]
+                    # not sure what this does. currently seems like choosing first Numbered node works
+                    temp_resolved_raw_ref.node = next((x for x in temp_children if isinstance(x, NumberedReferenceableBookNode)), None)
                 is_first_pass = False
                 temp_resolved_ref_refiner = ResolvedRefRefinerForNumberedPart(section_part, temp_resolved_raw_ref.node, temp_resolved_raw_ref)
                 next_resolved_raw_refs = temp_resolved_ref_refiner.refine(lang, fromSections=fromSections)
@@ -122,7 +127,7 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
         for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
             try:
                 ranged_resolved_raw_refs += [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=section.node, ref=section.ref.to(toSection.ref))]
-            except InputError:
+            except (InputError, AttributeError):
                 continue
         if len(section_resolved_raw_refs) == 0:
             ranged_resolved_raw_refs += incomplete_section_refs
@@ -167,6 +172,16 @@ class ResolvedRefRefinerForDiburHamatchilPart(ResolvedRefRefiner):
         if isinstance(node, DiburHamatchilNodeSet):
             return self.__get_refined_matches_for_dh_part(lang, self.part_to_match, node)
         return []
+    
+    
+class ResolvedRefRefinerForPassage(ResolvedRefRefiner):
+    
+    def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
+        resolved_refs = []
+        for passage_node in self.node.get_children():
+            if passage_node.get_match_template_trie(lang).has_continuations(self.part_to_match.key(), key_is_id=self.part_to_match.key_is_id):
+                resolved_refs.append(self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=passage_node.ref()))
+        return resolved_refs
 
 
 class ResolvedRefRefinerCatchAll(ResolvedRefRefiner):

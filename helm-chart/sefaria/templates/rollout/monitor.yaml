@@ -65,6 +65,10 @@ spec:
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}

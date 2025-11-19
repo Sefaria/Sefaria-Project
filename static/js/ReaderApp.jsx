@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import extend from 'extend';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import Header from './Header';
+import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
@@ -12,14 +12,12 @@ import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
-  RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
@@ -39,6 +37,7 @@ import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
+import { BannerImpressionProbe } from './BannerImpressionProbe';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -219,6 +218,20 @@ class ReaderApp extends Component {
       // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
       Sefaria.markUserAsNewVisitor();
     }
+
+    if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
+      sessionStorage.setItem("sa.reader_app_mounted", "true");
+      sa_event("reader_app_mounted");
+      gtag("event", "reader_app_mounted");
+      if (Sefaria._debug) console.log("sa: reader app has loaded!");
+    }
+    if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
+      if (!('IntersectionObserver' in window)) {
+        sa_event("intersection_observer_not_supported");
+        gtag("event", "intersection_observer_not_supported");
+      }
+      localStorage.setItem("sa.intersection_observer_api_checked", "true");
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -268,6 +281,7 @@ class ReaderApp extends Component {
     }
 
     this.setContainerMode();
+    // Pass this.replaceHistory flag to updateHistoryState - it will be reset there
     this.updateHistoryState(this.replaceHistory);
   }
 
@@ -784,7 +798,19 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  updateHistoryState(replace) {
+  updateHistoryState(shouldReplace) {
+    // IMPORTANT: reset replaceHistory flag first, before any early returns such as !this.shouldHistoryUpdate() or return;
+    // 
+    // The this.replaceHistory system works as follows:
+    // 1. Various ReaderPanel methods set this.replaceHistory = true when they want
+    //    the NEXT history update to use replaceState instead of pushState
+    //    (e.g., tab changes, collection name updates, connection focus changes)
+    // 2. componentDidUpdate calls updateHistoryState(this.replaceHistory)
+    // 3. We MUST reset this.replaceHistory = false immediately to prevent it from
+    //    "sticking" and affecting ALL future history updates
+    // 4. We use the shouldReplace parameter for this specific update
+    this.replaceHistory = false;
+    
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -795,7 +821,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
 
-    if (replace) {
+    if (shouldReplace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
       if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
@@ -808,7 +834,6 @@ class ReaderApp extends Component {
     }
 
     $("title").html(hist.title);
-    this.replaceHistory = false;
 
     this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
@@ -1271,8 +1296,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
   setPanelState(n, state, replaceHistory) {
+    // Set replaceHistory flag - this will be consumed and reset by updateHistoryState
     this.replaceHistory  = Boolean(replaceHistory);
-    //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
@@ -1713,8 +1738,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.refs = parent.refs.map(ref => Sefaria.ref(ref).sectionRef);
-        parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
@@ -2074,7 +2097,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
 
     }
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || returnNullIfEmpty(panel.navigationCategories) || panel.navigationTopic).flat();
+    
+    const refs = this.state.panels
+      .map(
+        (panel) =>
+          panel.currentlyVisibleRef ||
+          panel.bookRef ||
+          returnNullIfEmpty(panel.navigationCategories) ||
+          panel.navigationTopic ||
+          panel.navigationTopicCategory
+      )
+      .flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
@@ -2310,6 +2343,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
+            <BannerImpressionProbe />
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
@@ -2369,7 +2403,6 @@ export {
   unpackDataFromProps,
   loadServerData,
   EditCollectionPage,
-  RemoteLearningPage,
   SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -2377,7 +2410,6 @@ export {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
