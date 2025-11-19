@@ -20,7 +20,8 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
-  ProductsPage
+  ProductsPage,
+  SheetsLandingPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -2421,5 +2422,6 @@ export {
   JobsPage,
   TeamMembersPage,
   ProductsPage,
+  SheetsLandingPage,
   UpdatesPanel
 };

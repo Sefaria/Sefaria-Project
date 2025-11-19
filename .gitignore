@@ -151,3 +151,6 @@ dump/*
 /playwright/.cache/
 /playwright-profile/
 .env
+
+*storybook.log
+*storybook-static/

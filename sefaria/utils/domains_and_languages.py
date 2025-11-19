@@ -87,7 +87,6 @@ def needs_domain_switch(request, target_domain):
     target_hostname = urlparse(target_domain).hostname if target_domain else None
     return target_hostname is not None and current_hostname != target_hostname
 
-
 def get_cookie_domain(language):
     """
     Get the appropriate cookie domain for a given language.
@@ -125,9 +124,8 @@ def get_cookie_domain(language):
     if len(hostnames) < 2:
         return None
 
-    # Find common suffix and 
+    # Find common suffix and validate it's not too broad (e.g., ".sefaria.org" not ".org")
     common_suffix = _find_longest_common_domain_suffix(hostnames)
-    # Validate the suffix is not too broad (e.g., ".sefaria.org" not ".org")
     return common_suffix if common_suffix and common_suffix.count('.') >= 2 else None
 
 

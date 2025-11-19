@@ -193,7 +193,7 @@ def base_props(request):
             "following": profile.followees.uids,
             "blocking": profile.blockees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
-            "notificationCount": profile.unread_notification_count(),
+            "notificationCount": profile.unread_notification_count(scope=active_module),
             "notifications": profile.recent_notifications(scope=active_module).client_contents(),
             "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False, sheets_only=sheets_only)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
             "last_place": profile.get_history(last_place=True, secondary=False, sheets_only=sheets_only, serialized=True)
@@ -1338,9 +1338,10 @@ def interface_language_redirect(request, language):
     # Set cookie on current domain (before redirect), using current domain's cookie domain
     # This ensures both the source and target domains get cookies set
     current_lang = current_domain_lang(request)
-    # current_lang is None in localhost (domain not pinned to language)
-    # In that case, cookie_domain=None sets cookie on exact current host
-    cookie_domain = get_cookie_domain(current_lang) if current_lang else None
+    # current_lang is None when domain is not pinned to a single language (e.g., localhost, cauldron)
+    # In that case, get_cookie_domain(None) finds the common suffix across all languages/modules
+    # If no common suffix exists, cookie_domain=None sets cookie on exact current host
+    cookie_domain = get_cookie_domain(current_lang)
     response.set_cookie("interfaceLang", language, domain=cookie_domain)
     if request.user.is_authenticated:
         p = UserProfile(id=request.user.id)
@@ -4634,6 +4635,75 @@ def person_index_redirect(request):
 
 def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
+
+
+def redirect_to_voices(request, target_path):
+    """
+    Redirect from library module to voices module
+    """
+    # Get the voices domain from settings
+    lang_code = get_short_lang(request.interfaceLang)
+    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
+    target_url = urllib.parse.urljoin(voices_domain, target_path)
+
+    # Preserve query parameters
+    if params := request.GET.urlencode():
+        target_url += f"?{params}"
+
+    return redirect(target_url, permanent=True)
+
+
+def settings_profile_redirect(request):
+    """
+    Redirect /settings/profile from library module to voices module
+    """
+    return redirect_to_voices(request, "/settings/profile/")
+
+
+def community_to_voices_redirect(request):
+    """
+    Redirect /community from library module to voices module root
+    """
+    return redirect_to_voices(request, "/")
+
+
+def collections_redirect(request, slug=None):
+    """
+    Redirect /collections and /collections/[slug] from library module to voices module
+    """
+    # Build the target URL
+    if slug:
+        target_path = f"/collections/{slug}"
+    else:
+        target_path = "/collections"
+
+    return redirect_to_voices(request, target_path)
+
+
+def profile_redirect_to_voices(request, username=None):
+    """
+    Redirect /profile and /profile/[username] from library module to voices module
+    """
+    # Build the target URL
+    if username:
+        target_path = f"/profile/{username}"
+    else:
+        target_path = "/profile"
+
+    return redirect_to_voices(request, target_path)
+
+
+def sheets_redirect_to_voices(request, sheet_id=None):
+    """
+    Redirect /sheets and /sheets/[sheet_id] from library module to voices module
+    """
+    # Build the target URL
+    if sheet_id:
+        target_path = f"/sheets/{sheet_id}"
+    else:
+        target_path = "/sheets"
+
+    return redirect_to_voices(request, target_path)
 
 
 def _get_sheet_tag_garden(tag):

@@ -14,7 +14,6 @@ data:
   SESSION_COOKIE_SECURE: "true"
   SESSION_COOKIE_HTTPONLY: "true"
   SESSION_COOKIE_SAMESITE: "Lax"
-  CSRF_COOKIE_DOMAIN: ".{{ tpl (index .Values.domains.root 0).url . }}"
   CSRF_COOKIE_SECURE: "true"
   CSRF_COOKIE_HTTPONLY: "false"
   CSRF_COOKIE_SAMESITE: "Lax"

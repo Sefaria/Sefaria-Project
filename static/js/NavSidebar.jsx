@@ -284,8 +284,8 @@ const Resources = () => (
 );
 
 
-const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`}, 
-                                    {'he': 'עזרה','en':'Help', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/help`}, 
+const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/about`},
+                                    {'he': 'עזרה','en':'Help', 'url': Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US})},
                                     {'he': 'צרו קשר','en':'Contact Us', 'url': 'mailto:hello@sefaria.org'},
                                     {'he': 'ניוזלטר','en':'Newsletter', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/newsletter`},
                                     {'he': 'בלוג','en':'Blog', 'url': 'https://blog.sefaria.org/'},

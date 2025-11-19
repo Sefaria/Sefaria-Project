@@ -1,7 +1,7 @@
 ---
 # Need to pass $BUILD_ID to this key when applying the helm chart in CI.
 # or
-# Set the commit hash for a particular buiild to deploy built image for that
+# Set the commit hash for a particular build to deploy built image for that
 # commit ID. (NOTE: This would work only if the image is built for that commit
 # ID.)
 releaseImageTag:
@@ -66,6 +66,14 @@ backup:
     enabled: false
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
+
+# PostgreSQL configuration - can be overridden per environment
+postgres:
+  # host: defaults to DATABASES_HOST from secret if not specified
+  db: "sefaria_auth"
+  restore: false
+  sync: false
+
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
@@ -403,6 +411,8 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
+  syncPostgresProductionData:
+    enabled: false
   syncMongoProductionData:
     enabled: false
 
@@ -429,7 +439,6 @@ localSettings:
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"
-  CSRF_COOKIE_DOMAIN: ".sefaria.org"
   CSRF_COOKIE_SECURE: true
   CSRF_COOKIE_HTTPONLY: false
   CSRF_COOKIE_SAMESITE: "Lax"

@@ -54,7 +54,11 @@ class Sheet extends Component {
     const target = e.target.closest('a');
     if (target) {
       e.preventDefault();
-      Sefaria.util.openInNewTab(target.href);
+      const href = target.getAttribute('href');
+      if (!href) { return; }
+      const moduleTarget = target.getAttribute('data-target-module');
+      const fullUrl = Sefaria.util.fullURL(href, moduleTarget); // Ignores moduleTarget if it's null
+      Sefaria.util.openInNewTab(fullUrl);
     }
   }
   handleCollectionsChange() {

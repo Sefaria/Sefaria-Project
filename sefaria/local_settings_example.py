@@ -348,9 +348,6 @@ SESSION_COOKIE_SECURE = True  # Set to True if using HTTPS
 SESSION_COOKIE_HTTPONLY = True  # Recommended for security
 SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 
-# CSRF cookie settings for cross-subdomain support
-# Set this to your top-level domain to allow CSRF tokens to work across subdomains
-CSRF_COOKIE_DOMAIN = '.example.com'  # Change this to your actual domain
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
