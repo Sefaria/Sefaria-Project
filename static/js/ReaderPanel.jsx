@@ -1418,11 +1418,11 @@ class ReaderControls extends Component {
                 {title}
               </h1>
               :
-              <h1>
-                <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                <span className="sectionString">
-                  <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                </span>
+              <h1 style={{display: "flex"}}>
+                <ContentText
+                    text={{en: `${title}${sectionString}`, he: `${heTitle}${heSectionString}`}}
+                    defaultToInterfaceOnBilingual
+                />
               </h1>
               }
             </div>
