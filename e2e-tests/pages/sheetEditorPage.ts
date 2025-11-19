@@ -1,7 +1,7 @@
 import { BrowserContext, Cookie, ElementHandle, Locator, Page } from 'playwright-core';
 import { expect } from 'playwright/test';
-import {isClickable} from "../utils";
-import { SaveStates, SaveState } from '../constants';
+import { isClickable } from "../utils";
+import { SaveStates, SaveState, SHEET_EDITOR_SELECTORS, MODULE_URLS } from '../constants';
 import { LANGUAGES, testUser } from '../globals';
 import { HelperBase } from "./helperBase";
 import { LoginPage } from './loginPage';
@@ -125,9 +125,9 @@ export class SheetEditorPage extends HelperBase {
     italicSourceTextButton = () => this.page.locator('div:nth-child(3) > span:nth-child(2) > .fa.fa-italic');
     
     // Sheet Body---------------------------------------------
-    sourceSheetBody = () => this.page.locator('.sheetContent'); 
-    editableTextArea = () => this.page.locator('div.cursorHolder[contenteditable="true"]');
-    addedSource = () => this.page.locator('.SheetSource.segment');
+    sourceSheetBody = () => this.page.locator(SHEET_EDITOR_SELECTORS.BODY);
+    editableTextArea = () => this.page.locator(SHEET_EDITOR_SELECTORS.EDITABLE_AREA);
+    addedSource = () => this.page.locator(SHEET_EDITOR_SELECTORS.ADDED_SOURCE);
     sourceReferenceLink = () => this.page.locator('.SheetSource .ref a[href^="/"]').first();
     addedSpotify = () => this.page.locator('iframe[src*="open.spotify.com/embed/"]');
     addedYoutube = () => this.page.locator('.youTubeContainer');

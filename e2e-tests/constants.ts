@@ -62,13 +62,76 @@ export const MODULE_SELECTORS = {
   ICONS: {
     LANGUAGE: 'img[src="/static/icons/globe-wire.svg"]',
     MODULE_SWITCHER: 'img[src="/static/icons/module_switcher_icon.svg"]',
-    USER_MENU: 'img[src="/static/icons/logged_out.svg"]'
+    USER_MENU: 'img[src="/static/icons/logged_out.svg"]',
+    BOOKMARKS: 'img[src="/static/icons/bookmarks.svg"]',
+    NOTIFICATIONS: 'img[src="/static/icons/notification.svg"]'
   },
   DROPDOWN: '.dropdownLinks-menu',
   DROPDOWN_OPTION: 'a.dropdownItem',
-  LANGUAGE_SWITCHER_GLOBE: 'div.dropdownLanguageToggle',
+  DROPDOWN_SEPARATOR: '.dropdownMenuSeparator',
+  LANGUAGE_SWITCHER_GLOBE: '.dropdownLanguageToggle',
   MODULE_DROPDOWN_OPTIONS: '.dropdownLinks-menu a.dropdownItem',
-  BANNER: '[role="banner"]'
+  BANNER: '[role="banner"]',
+  HEADER: {
+    CONTAINER: '.header[role="banner"]',
+    INNER: '.headerInner',
+    DROPDOWN_BUTTON: '.header button.header-dropdown-button',
+    USER_MENU_BUTTON: '.header button.header-dropdown-button[aria-label*="Account"], .header button.header-dropdown-button[aria-label*="תפריט"]',
+    MODULE_SWITCHER_BUTTON: '.header button.header-dropdown-button[aria-label*="Library"]',
+    CREATE_BUTTON: '.header button:has-text("Create")',
+    CREATE_LINK: '.header a:has-text("Create")',
+    PROFILE_PIC: '.header .default-profile-img',
+    SAVED_TEXTS_LINK: '.librarySavedIcon a[href="/texts/saved"]'
+  }
+} as const;
+
+// Reader and text selectors
+export const READER_SELECTORS = {
+  SEGMENT: 'p.segmentText',
+  SEGMENT_DIV: '.segment',
+  SEGMENT_TEXT_EN: '.segment .en',
+  SEGMENT_TEXT_HE: '.segment .he',
+  TITLE: '.readerControlsTitle',
+  TITLE_BOX: '.titleBox',
+  SECTION_LINK: '.sectionLink',
+  CONNECTIONS_PANEL: '.readerPanelBox.sidebar',
+  CATEGORY_FILTER: '.categoryFilter',
+  CONNECTIONS_HEADER: 'a.connectionsHeaderTitle',
+  TOOLS_BUTTON: 'a.toolsButton',
+  PANEL_LOADING: '#panel-1 >> text=Loading...',
+  LOADING_HEADING: 'heading[name="Loading..."]'
+} as const;
+
+// Sheet editor selectors
+export const SHEET_EDITOR_SELECTORS = {
+  BODY: '.sourceSheetBody',
+  EDITABLE_AREA: '[contenteditable="true"]',
+  TITLE_INPUT: 'input[type="text"]',
+  PUBLISH_BUTTON: 'button:has-text("Publish")',
+  ADD_SOURCE_BUTTON: 'button:has-text("Add Source")',
+  ADDED_SOURCE: '.sheetItem',
+  SAVE_STATUS: '.saveStatus',
+  TAGS_INPUT: '.react-tags__search-input',
+  TAG_SUGGESTION: '.react-tags__suggestions li',
+  SEARCH_INPUT: 'textbox[name*="Search for"]'
+} as const;
+
+// Sidebar selectors
+export const SIDEBAR_SELECTORS = {
+  CONTAINER: '.navSidebar[role="complementary"]',
+  MODULE: '.navSidebarModule',
+  MODULE_TITLE: '.navSidebarModule h1',
+  LINK: '.navSidebarLink',
+  FOOTER: '.sidebarFooter'
+} as const;
+
+// Topic selectors
+export const TOPIC_SELECTORS = {
+  DESCRIPTION: '.topicDescription',
+  SOURCES_TAB: 'link:has-text("All Sources")',
+  NOTABLE_SOURCES_TAB: 'link:has-text("Notable Sources")',
+  ADMIN_TAB: 'link:has-text("Admin")',
+  FILTER_INPUT: 'input[placeholder="Search Topics"]'
 } as const;
 
 export const EXTERNAL_URLS = {

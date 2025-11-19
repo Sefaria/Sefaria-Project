@@ -149,3 +149,4 @@ e2e-test-logs
 /playwright-profile/
 .env
 e2e-tests/auth_*_user.json
+e2e-tests/Copy of redirecting_links-SC_story_37593 - redirecting links - RESULTS - redirecting_links-SC_story_37593 - redirecting links - RESULTS.csv

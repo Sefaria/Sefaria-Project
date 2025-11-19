@@ -94,6 +94,17 @@ export default defineConfig({
         permissions: ['geolocation'],
       },
     },
+    {
+      name: 'misc',
+      testDir: './e2e-tests/Misc',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        // Ensure we don't get redirected
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
 
     // OLD Modularization tests (keep temporarily for reference, can be removed later)
     {

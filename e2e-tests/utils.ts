@@ -3,6 +3,7 @@ import {BrowserContext}  from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
+import { MODULE_URLS, MODULE_SELECTORS } from './constants';
 import path from 'path';
 import fs from 'fs';
 
@@ -116,63 +117,59 @@ export const changeLanguage = async (page: Page, language: string) => {
 
 
 export const toggleLanguage = async (page: Page, language: string) => {
-  // Ensure overlays/modals are dismissed before trying UI-based language toggles
   await hideAllModalsAndPopups(page);
-    const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
-    const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
-    const langParam = language === LANGUAGES.HE ? 'he' : 'en';
-    // Helper function to verify language is correct
-  const verifyLanguage = async (): Promise<boolean> => {
-    await page.waitForLoadState('domcontentloaded');
-    try {
-      // 1) Check URL param lang
-      const currentUrl = page.url();
-      const parsed = new URL(currentUrl);
-      const param = parsed.searchParams.get('lang');
-      if (param === langParam) return true;
 
-      // 2) Check html[lang] attribute
-      const htmlLang = await page.locator('html').getAttribute('lang').catch(() => null);
-      if (htmlLang && htmlLang.startsWith(langParam)) return true;
+  const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+  const langParam = language === LANGUAGES.HE ? 'he' : 'en';
 
-      return false;
-    } catch (e) {
-      return false;
+  // Check if already in target language
+  const body = page.locator('body');
+  const currentClasses = await body.getAttribute('class') || '';
+  if (currentClasses.includes(expectedBodyClass)) {
+    return;
+  }
+
+  try {
+    // Use dropdown menu to toggle language
+    await openHeaderDropdown(page, 'user');
+    await page.waitForTimeout(300);
+
+    const languageToggle = page.locator('.dropdownLanguageToggle');
+    await languageToggle.waitFor({ state: 'visible', timeout: 5000 });
+    await languageToggle.click();
+
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // Verify language changed
+    const newBodyClass = await body.getAttribute('class') || '';
+    if (!newBodyClass.includes(expectedBodyClass)) {
+      throw new Error(`Language toggle failed. Expected ${expectedBodyClass}`);
     }
-  };
-    // Check if we're already in the correct language
-    if (await verifyLanguage()) {
-        return;
-    }
+  } catch (error) {
+    console.error('Dropdown language toggle failed, using cookie fallback:', error);
+    // Fallback: cookie + URL navigation
     const currentUrl = page.url();
-    // Strategy 1: Direct URL navigation with lang parameter (most reliable for staging)
+    const urlObj = new URL(currentUrl);
+    urlObj.searchParams.set('lang', langParam);
+
     try {
-        const urlObj = new URL(currentUrl);
-        urlObj.searchParams.set('lang', langParam);
-        // Try setting a cookie for interfaceLang as a more deterministic way to change language
-        try {
-          const cookie = {
-            name: 'interfaceLang',
-            value: langParam,
-            domain: urlObj.hostname,
-            path: '/',
-            httpOnly: false,
-            secure: urlObj.protocol === 'https:',
-            sameSite: 'Lax' as const,
-            expires: Math.floor(Date.now() / 1000) + 3600
-          };
-          await page.context().addCookies([cookie]);
-        } catch (e) {
-          // if cookie set fails, continue with URL navigation attempt
-        }
-        await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForLoadState('domcontentloaded');
-    if (await verifyLanguage()) return;
-    } catch (error) {
-        console.log('Strategy 1 (URL navigation) failed:', error);
-    }
-  // If Strategy 1 didn't work, throw — we prefer deterministic cookie+URL approach.
-  throw new Error(`Language change failed for ${language}. Current URL: ${page.url()}`);
+      const cookie = {
+        name: 'interfaceLang',
+        value: langParam,
+        domain: urlObj.hostname,
+        path: '/',
+        httpOnly: false,
+        secure: urlObj.protocol === 'https:',
+        sameSite: 'Lax' as const,
+        expires: Math.floor(Date.now() / 1000) + 3600
+      };
+      await page.context().addCookies([cookie]);
+    } catch (e) {}
+
+    await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded');
+  }
 };
 
 
@@ -346,4 +343,212 @@ export const simulateOfflineMode = async (page: Page) => {
 
 export const simulateOnlineMode = async (page: Page) => {
   await page.context().setOffline(false);
+};
+
+// ==============================================================================
+// MDL HELPER FUNCTIONS
+// ==============================================================================
+
+/**
+ * Open a dropdown menu in header
+ * @param page - Playwright page
+ * @param dropdownType - Type of dropdown: 'user' | 'module'
+ */
+export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'module') => {
+  await hideAllModalsAndPopups(page);
+
+  const buttonSelector = dropdownType === 'user'
+    ? '.header button.header-dropdown-button[aria-label*="Account"], .header button.header-dropdown-button[aria-label*="תפריט"]'
+    : '.header img[src="/static/icons/module_switcher_icon.svg"]';
+
+  const button = page.locator(buttonSelector).first();
+  await button.waitFor({ state: 'visible', timeout: 5000 });
+  await button.click();
+
+  // Wait for dropdown to appear
+  await page.locator(MODULE_SELECTORS.DROPDOWN).waitFor({ state: 'visible', timeout: 5000 });
+};
+
+/**
+ * Select an option from a dropdown menu
+ * @param page - Playwright page
+ * @param optionText - Text of the option to select (supports regex)
+ * @param openNewTab - Whether the option opens in a new tab
+ */
+export const selectDropdownOption = async (
+  page: Page,
+  optionText: string | RegExp,
+  openNewTab: boolean = false
+) => {
+  const option = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText }).first();
+  await option.waitFor({ state: 'visible', timeout: 5000 });
+
+  if (openNewTab) {
+    const [newPage] = await Promise.all([
+      page.context().waitForEvent('page'),
+      option.click()
+    ]);
+    await newPage.waitForLoadState('networkidle');
+    return newPage;
+  } else {
+    await option.click();
+    await page.waitForLoadState('networkidle');
+    return null;
+  }
+};
+
+/**
+ * Check if user is logged in
+ * @param page - Playwright page
+ * @returns true if logged in, false otherwise
+ */
+export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
+  try {
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
+    const isLoggedOut = await loggedOutIcon.isVisible({ timeout: 2000 });
+    return !isLoggedOut;
+  } catch {
+    const profilePic = page.locator('.header .default-profile-img');
+    return await profilePic.isVisible({ timeout: 2000 }).catch(() => false);
+  }
+};
+
+/**
+ * Log out via dropdown menu
+ * @param page - Playwright page
+ */
+export const logout = async (page: Page) => {
+  if (!(await isUserLoggedIn(page))) {
+    return;
+  }
+
+  await openHeaderDropdown(page, 'user');
+  const logoutOption = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)
+    .filter({ hasText: /log out|sign out|logout|ניתוק/i });
+
+  await logoutOption.waitFor({ state: 'visible', timeout: 5000 });
+  await logoutOption.click();
+  await page.waitForLoadState('networkidle');
+};
+
+/**
+ * Create a new sheet using the "Create" button in header
+ * @param page - Playwright page (should be on Voices module)
+ * @returns The sheet URL
+ */
+export const createNewSheet = async (page: Page): Promise<string> => {
+  await hideAllModalsAndPopups(page);
+
+  const createButton = page.getByRole('banner').getByRole('button', { name: /create/i });
+  const createLink = page.getByRole('banner').getByRole('link', { name: /create/i });
+
+  const initialUrl = page.url();
+
+  if (await createButton.isVisible({ timeout: 2000 })) {
+    await createButton.click();
+  } else if (await createLink.isVisible({ timeout: 2000 })) {
+    await createLink.click();
+  } else {
+    await page.goto(`${MODULE_URLS.VOICES}/sheets/new`);
+  }
+
+  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: 10000 });
+  await page.waitForLoadState('networkidle');
+  await hideAllModalsAndPopups(page);
+
+  const currentUrl = page.url();
+  if (!/\/sheets\/(new|\d+)/.test(currentUrl)) {
+    throw new Error(`Failed to create sheet. Current URL: ${currentUrl}`);
+  }
+
+  return currentUrl;
+};
+
+/**
+ * Switch between Library and Voices modules
+ * @param page - Playwright page
+ * @param targetModule - 'Library' or 'Voices'
+ * @returns New page if opened in new tab, null otherwise
+ */
+export const switchModule = async (
+  page: Page,
+  targetModule: 'Library' | 'Voices'
+): Promise<Page | null> => {
+  await openHeaderDropdown(page, 'module');
+
+  const currentUrl = page.url();
+  const isOnLibrary = currentUrl.includes(MODULE_URLS.LIBRARY);
+  const isOnVoices = currentUrl.includes(MODULE_URLS.VOICES);
+
+  const needsNewTab = (targetModule === 'Library' && isOnVoices) ||
+                      (targetModule === 'Voices' && isOnLibrary);
+
+  return await selectDropdownOption(page, targetModule, needsNewTab);
+};
+
+/**
+ * Wait for a text segment to be visible
+ * @param page - Playwright page
+ * @param selector - Selector for the segment
+ */
+export const waitForSegment = async (page: Page, selector: string) => {
+  const loadingHeading = page.getByRole('heading', { name: 'Loading...' });
+  await loadingHeading.waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
+
+  const segment = page.locator(selector);
+  await segment.waitFor({ state: 'visible', timeout: 10000 });
+  return segment;
+};
+
+/**
+ * Get module name from URL
+ * @param url - Page URL
+ * @returns 'library' | 'voices' | 'unknown'
+ */
+export const getModuleFromUrl = (url: string): 'library' | 'voices' | 'unknown' => {
+  if (url.includes(MODULE_URLS.LIBRARY) || url.includes('www.')) {
+    return 'library';
+  } else if (url.includes(MODULE_URLS.VOICES) || url.includes('voices.')) {
+    return 'voices';
+  }
+  return 'unknown';
+};
+
+// ==============================================================================
+// CROSS-MODULE REDIRECT HELPER FUNCTIONS
+// ==============================================================================
+
+/**
+ * Normalize URLs for comparison (handles trailing slashes and query params)
+ * @param url - The URL to normalize
+ * @param options - Options for normalization
+ * @returns Normalized URL string
+ */
+export const normalizeUrl = (url: string, options: { ignoreQueryParams?: boolean, ignoreTrailingSlash?: boolean } = {}) => {
+  const urlObj = new URL(url);
+  let normalized = `${urlObj.origin}${urlObj.pathname}`;
+
+  if (!options.ignoreTrailingSlash && !normalized.endsWith('/') && urlObj.pathname !== '/') {
+    // Keep trailing slashes as-is for exact matching
+  }
+
+  if (!options.ignoreQueryParams && urlObj.search) {
+    normalized += urlObj.search;
+  }
+
+  return normalized;
+};
+
+/**
+ * Check if URLs match (with optional query param ignoring)
+ * @param actual - The actual URL
+ * @param expected - The expected URL
+ * @param ignoreQueryParams - Whether to ignore query parameters in comparison
+ * @returns true if URLs match, false otherwise
+ */
+export const urlMatches = (actual: string, expected: string, ignoreQueryParams: boolean = false) => {
+  if (ignoreQueryParams) {
+    return normalizeUrl(actual, { ignoreQueryParams: true }) === normalizeUrl(expected, { ignoreQueryParams: true });
+  }
+  return normalizeUrl(actual) === normalizeUrl(expected);
 };
