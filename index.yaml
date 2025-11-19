@@ -168,6 +168,21 @@ entries:
     version: 0.68.0-tasks-affinity.1
   - apiVersion: v2
     appVersion: v6.37.4
+    created: "2025-11-19T11:03:13.32287228Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 46caf0ec90a7b243fd5751977825c613fe2c9a8baa0659b212f587373f5cf8a7
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.68.0-sc-38619.1.tgz
+    version: 0.68.0-sc-38619.1
+  - apiVersion: v2
+    appVersion: v6.37.4
     created: "2025-11-18T13:48:31.543214913Z"
     description: Chart to deploy complete Sefaria environment
     digest: d867a31f26dfa45c93a69c88b26c526e21618e29acdb52b085ab7ab4e22539cd
@@ -11355,4 +11370,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-11-19T10:58:28.621421268Z"
+generated: "2025-11-19T11:03:13.319734617Z"
