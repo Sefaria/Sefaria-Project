@@ -193,7 +193,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
         setIsOpen(false);
         onClose && onClose();
       }
-    }
+    };
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
