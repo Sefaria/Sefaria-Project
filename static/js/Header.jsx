@@ -129,13 +129,13 @@ const LoggedInDropdown = ({ module }) => {
 
 const ModuleSwitcher = () => {
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
-
+  const button = (<button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
+                    <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
+                </button>);
   return (
     <DropdownMenu positioningClass="headerDropdownMenu"
                   analyticsFeatureName="module_switcher"
-                  buttonComponent={ <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
-                                      <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
-                                    </button>}>
+                  buttonComponent={button}>
                     
       <div className='dropdownLinks-options moduleDropdown'>
         <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsText="About Sefaria">
