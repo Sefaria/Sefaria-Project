@@ -1,7 +1,7 @@
 ---
 # Need to pass $BUILD_ID to this key when applying the helm chart in CI.
 # or
-# Set the commit hash for a particular buiild to deploy built image for that
+# Set the commit hash for a particular build to deploy built image for that
 # commit ID. (NOTE: This would work only if the image is built for that commit
 # ID.)
 releaseImageTag:
@@ -18,6 +18,10 @@ previousServicesCount: "3"
 
 # runs post-promotion job with slack hook to alert when deployment is complete
 deploymentMessage: false
+
+# controls whether rollout pre-promotion analysis is enabled
+rollouts:
+  prePromotionAnalysis: true
 
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
@@ -62,6 +66,14 @@ backup:
     enabled: false
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
+
+# PostgreSQL configuration - can be overridden per environment
+postgres:
+  # host: defaults to DATABASES_HOST from secret if not specified
+  db: "sefaria_auth"
+  restore: false
+  sync: false
+
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
@@ -213,46 +225,44 @@ tasks:
       ref: sentinel-password
   queues:
     llm: default-llm
+  nodeAffinity: {}
 
 # Takes the url of an NER server instance
 # Will automatically enable internal settings to communicate with the NER server
 # Required for Rambi Cronjob
 gpuServer: ""
 
-ingress:
- # You can set path: serviceName: and port: for each host. By default they are
- # set to '/*', 'nginx', '80' respectively for each. Do note that changing this
- # means you'll have to change the nginx service as well.
-  hosts:
-    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-  annotations: {}
-  secrets:
-    # This TLS is referenced for Prod and Democracy deployments. Use the ref: or
-    # data: fields for either deployments.
-    originTls:
-      # If you're using a refenrece to an existing secret then the data: section
-      # should be commented out and vice-versa.
-      # Reference to an existing secret in the cluster
-      # "cauldron-wildcard-letsencrypt" is for cauldrons, wildcard cert managed
-      # via infrastructure
-      ref:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      #   cert:
-      #   key:
-    # This TLS is referenced only for Prod deployments.
-    originIlTls:
-      # If you're using a refenrece to an existing secret then the data: section
-      # should be commented out and vice-versa.
-      # Reference to an existing secret in the cluster
-      ref:
-      # for local testing purposes or CI pipeline use input a value
-      # data:
-      #   cert:
-      #   key:
+# Declare domains handled by this sefaria instance for both app and ingress config
+# Root domains implicitly handle the library module and do not feature redirects
+# Each root domain should have a language and code
+# Modules definitions include
+#   module name
+#   a subdomain per corresponding language root
+#   root domain paths that should redirect into the module
+# Cookie domain will be set to the first domain in the root list
+domains:
+  root:
+    - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+      cert: "{{ .Values.deployEnv }}-tls"
+      # multilanguage domains support limited redirect and subdomain handling
+      # only the first list entry will have redirects and subdomains set up
+      # for any given module
+      code:
+        - en
+        - he
+#   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
+#     cert: "{{ .Values.deployEnv }}-il-tls"
+#     code:
+#       - he
+  modules:
+    - name: voices
+      subdomains:
+        en: voices
+        he: voices
+      redirects:
+        - sheets
+        - collections
+        - profile
 
 nginx:
   containerImage:
@@ -402,6 +412,10 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
+  syncPostgresProductionData:
+    enabled: false
+  syncMongoProductionData:
+    enabled: false
 
 localSettings:
   DEBUG: true
@@ -422,6 +436,13 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
+  SESSION_COOKIE_DOMAIN: ".sefaria.org"
+  SESSION_COOKIE_SECURE: true
+  SESSION_COOKIE_HTTPONLY: true
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_SECURE: true
+  CSRF_COOKIE_HTTPONLY: false
+  CSRF_COOKIE_SAMESITE: "Lax"
 
 instrumentation:
   enabled: false

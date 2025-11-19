@@ -24,6 +24,7 @@ from django.contrib.staticfiles import finders
 from django.utils.functional import SimpleLazyObject
 
 from sefaria.sheets import get_sheet
+from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
 from sefaria.model.text import Version
 from sefaria.model.collection import Collection

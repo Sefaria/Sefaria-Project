@@ -24,6 +24,7 @@ django==1.11.*
 django_mobile==0.7.0
 djangorestframework @ https://github.com/encode/django-rest-framework/archive/3.11.1.tar.gz
 djangorestframework_simplejwt==3.3.0
+django-hosts==7.0.0
 dnspython~=2.5.0
 elasticsearch==8.8.2
 geojson==2.5.0

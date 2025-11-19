@@ -116,7 +116,7 @@ class Util {
     static naturalTime(timeStamp, {lang, short}={}) {
       // given epoch time stamp, return string of time delta between `timeStamp` and now
       const now = Util.epoch_time();
-      let language = lang ? lang : (Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en');
+      let language = lang ? lang : (Sefaria._getShortInterfaceLang());
       let spacer = " ";
       if(short){
           language = language == "en" ? "shortEn" : "shortHe";
@@ -293,7 +293,11 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-
+    static fullURL(relativePath, moduleTarget) {
+      return relativePath.startsWith("/")
+        ? Sefaria.getModuleURL(moduleTarget).origin + relativePath
+        : relativePath;
+    }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
       return (res !== null)
@@ -362,6 +366,492 @@ class Util {
             index++;
         return str1.substring(0, index);
     }
+
+    // ========== Keyboard & Accessibility Utilities ==========
+
+    /**
+     * Makes clickable elements keyboard accessible with Enter and Space keys.
+     * Use this for divs, spans, or other non-button elements that need to be clickable.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Function} [onClick] - Custom click handler. If not provided, triggers element.click()
+     * 
+     * @example
+     * // For elements that should trigger their own click behavior:
+     * <a href="/path" onKeyDown={(e) => Util.handleKeyboardClick(e)}>Link</a>
+     * 
+     * @example
+     * // For elements with custom click handlers:
+     * <div onKeyDown={(e) => Util.handleKeyboardClick(e, myHandler)}>Clickable div</div>
+     */
+    static handleKeyboardClick(e, onClick) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (onClick) {
+          onClick(e);
+        } else {
+          e.currentTarget.click();
+        }
+      }
+    }
+
+    /**
+     * Makes links keyboard accessible with Space key.
+     * For <a> elements: Enter is handled by default browser behavior, we only need Space.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Function} [onClick] - Optional click handler. If not provided, navigates to href.
+     * 
+     * @example
+     * // For simple navigation links:
+     * <a href="/path" onKeyDown={(e) => Util.handleLinkSpaceKey(e)}>Link</a>
+     * 
+     * @example
+     * // For links with custom click handlers:
+     * <a href="/path" onClick={myHandler} onKeyDown={(e) => Util.handleLinkSpaceKey(e, myHandler)}>Link</a>
+     */
+    static handleLinkSpaceKey(e, onClick) {
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (onClick) {
+          onClick(e);
+        } else {
+          // For links without onClick, trigger default navigation
+          e.target.click();
+        }
+      }
+    }
+
+    /**
+     * Handles Enter key for form submissions and searches.
+     * Commonly used for input fields to trigger search/submit on Enter.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Function} onEnter - Function to call when Enter is pressed
+     * 
+     * @example
+     * <input onKeyUp={(e) => Util.handleEnterKey(e, submitForm)} />
+     */
+    static handleEnterKey(e, onEnter) {
+      if (e.key === 'Enter') {
+        onEnter(e);
+      }
+    }
+
+    /**
+     * Keyboard handler for dropdown/listbox trigger buttons.
+     * Handles Enter, Space, and ArrowDown keys according to ARIA best practices.
+     * Focus management when opening is handled by component lifecycle methods.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {Function} options.onToggle - Called when Enter or Space is pressed
+     * @param {boolean} options.isOpen - Whether the dropdown is currently open
+     * 
+     * @example
+     * <button onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
+     *   onToggle: () => this.toggleMenu(),
+     *   isOpen: this.state.menuOpen
+     * })}>Menu</button>
+     */
+    static handleDropdownTriggerKeyDown(e, { onToggle, isOpen }) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onToggle && onToggle();
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!isOpen) {
+          onToggle && onToggle();
+        }
+      }
+    }
+
+    /**
+     * Keyboard handler for dropdown/listbox content.
+     * Handles arrow keys, Home, End, Enter, Space, and Escape according to ARIA best practices.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {number} options.currentIndex - Current focused item index
+     * @param {number} options.maxIndex - Maximum index (array.length - 1)
+     * @param {Function} options.onNavigate - Called with new index when navigation occurs
+     * @param {Function} options.onSelect - Called when Enter or Space is pressed
+     * @param {Function} options.onClose - Called when Escape is pressed
+     * @param {Function} [options.onScroll] - Optional callback to scroll focused item into view
+     * @param {HTMLElement} [options.triggerRef] - Optional reference to trigger button (for focus return on close)
+     * 
+     * @example
+     * <div role="listbox" onKeyDown={(e) => Util.handleListboxKeyDown(e, {
+     *   currentIndex: this.state.focusedIndex,
+     *   maxIndex: options.length - 1,
+     *   onNavigate: (newIndex) => this.setState({ focusedIndex: newIndex }),
+     *   onSelect: () => this.selectItem(this.state.focusedIndex),
+     *   onClose: () => this.setState({ isOpen: false }),
+     *   onScroll: () => this.activeOptionRef?.scrollIntoView({ block: 'nearest' }),
+     *   triggerRef: this.triggerRef
+     * })}>...</div>
+     */
+    static handleListboxKeyDown(e, { currentIndex, maxIndex, onNavigate, onSelect, onClose, onScroll, triggerRef }) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose && onClose();
+        if (triggerRef) {
+          triggerRef.focus();
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const newIndex = Math.min(currentIndex + 1, maxIndex);
+        onNavigate && onNavigate(newIndex);
+        onScroll && onScroll();
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const newIndex = Math.max(currentIndex - 1, 0);
+        onNavigate && onNavigate(newIndex);
+        onScroll && onScroll();
+        return;
+      }
+
+      if (e.key === 'Home') {
+        e.preventDefault();
+        onNavigate && onNavigate(0);
+        onScroll && onScroll();
+        return;
+      }
+
+      if (e.key === 'End') {
+        e.preventDefault();
+        onNavigate && onNavigate(maxIndex);
+        onScroll && onScroll();
+        return;
+      }
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onSelect && onSelect();
+        return;
+      }
+    }
+
+    /**
+     * Standard selector for focusable elements used throughout the application.
+     * Use this constant to ensure consistency in focus management.
+     */
+    static FOCUSABLE_SELECTOR = '[tabindex="0"], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [role="radio"]:not([disabled])';
+
+    /**
+     * Gets all focusable elements within a container.
+     * 
+     * @param {HTMLElement} container - The container element to search within
+     * @param {string} [selector] - Optional custom selector. Defaults to FOCUSABLE_SELECTOR
+     * @returns {NodeList} - Collection of focusable elements
+     * 
+     * @example
+     * const focusable = Util.getFocusableElements(menuRef.current);
+     */
+    static getFocusableElements(container, selector = null) {
+      if (!container) return [];
+      return container.querySelectorAll(selector || this.FOCUSABLE_SELECTOR);
+    }
+
+    /**
+     * Focuses the first focusable element within a container.
+     * Commonly used when opening menus or dialogs.
+     * 
+     * @param {HTMLElement} container - The container element to search within
+     * @param {string} [selector] - Optional custom selector. Defaults to FOCUSABLE_SELECTOR
+     * @returns {boolean} - True if an element was focused, false otherwise
+     * 
+     * @example
+     * useEffect(() => {
+     *   if (isOpen && menuRef.current) {
+     *     Util.focusFirstElement(menuRef.current);
+     *   }
+     * }, [isOpen]);
+     */
+    static focusFirstElement(container, selector = null) {
+      if (!container) return false;
+      const firstFocusable = container.querySelector(selector || this.FOCUSABLE_SELECTOR);
+      if (firstFocusable) {
+        firstFocusable.focus();
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Handles Tab key focus trapping and Escape key for dropdown menus.
+     * Traps focus within the container when Tab is pressed, and closes menu on Escape.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {HTMLElement} options.container - The container to trap focus within
+     * @param {Function} options.onClose - Called when Escape is pressed
+     * @param {HTMLElement} [options.returnFocusRef] - Element to return focus to on Escape
+     * @param {string} [options.selector] - Optional custom selector for focusable elements
+     * 
+     * @example
+     * const handleMenuKeyDown = (e) => {
+     *   Util.trapFocusWithTab(e, {
+     *     container: menuRef.current,
+     *     onClose: () => setIsOpen(false),
+     *     returnFocusRef: buttonRef.current
+     *   });
+     * };
+     */
+    static trapFocusWithTab(e, { container, onClose, returnFocusRef, selector = null }) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose && onClose();
+        if (returnFocusRef) {
+          returnFocusRef.focus();
+        }
+        return;
+      }
+
+      if (e.key === 'Tab' && container) {
+        const focusableElements = this.getFocusableElements(container, selector);
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+
+    /**
+     * Handles keyboard navigation for radio button groups according to ARIA best practices.
+     * Arrow keys navigate between radio buttons (with wrapping), Enter/Space activates.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {string} options.name - The name attribute of the radio group
+     * @param {Function} options.onSelect - Called when Enter or Space is pressed
+     * @param {Function} [options.onKeyDown] - Optional additional keydown handler
+     * 
+     * @example
+     * <input 
+     *   type="radio"
+     *   onKeyDown={(e) => Util.handleRadioKeyDown(e, {
+     *     name: 'myRadioGroup',
+     *     onSelect: () => onClick(),
+     *     onKeyDown: customHandler
+     *   })}
+     * />
+     */
+    static handleRadioKeyDown(e, { name, onSelect, onKeyDown }) {
+      // Handle arrow keys for radio group navigation
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.stopPropagation(); // Prevent event from bubbling up
+        e.preventDefault();
+
+        // Find all radio buttons in the same group
+        const radioGroup = document.querySelectorAll(`input[name="${name}"]`);
+        const currentIndex = Array.from(radioGroup).findIndex(radio => radio === e.target);
+
+        // Calculate next index with wrapping
+        let nextIndex;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          nextIndex = currentIndex === 0 ? radioGroup.length - 1 : currentIndex - 1;
+        } else {
+          nextIndex = currentIndex === radioGroup.length - 1 ? 0 : currentIndex + 1;
+        }
+
+        // Focus and select the next radio button
+        const nextRadio = radioGroup[nextIndex];
+        if (nextRadio) {
+          nextRadio.focus();
+          nextRadio.click(); // Trigger the selection
+        }
+        return;
+      }
+
+      // Handle Enter/Space for selection
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        onSelect && onSelect();
+        return;
+      }
+
+      // Call custom onKeyDown if provided
+      if (onKeyDown) {
+        onKeyDown(e);
+      }
+    }
+
+    /**
+     * Handles keyboard navigation for ARIA tablist according to best practices.
+     * ArrowLeft/ArrowRight navigate between tabs (with wrapping), Enter/Space activates.
+     * 
+     * @param {Event} e - Keyboard event
+     * @param {Object} options - Configuration object
+     * @param {number} options.currentIndex - Current tab index
+     * @param {number} options.tabCount - Total number of tabs
+     * @param {Function} options.onNavigate - Called with new tab index when arrow keys are pressed
+     * @param {Function} options.onActivate - Called when Enter or Space is pressed
+     * @param {string} [options.tabSelector] - Optional selector for tab elements (defaults to '[data-tab-index="{index}"]')
+     * 
+     * @example
+     * <div 
+     *   role="tab"
+     *   onKeyDown={(e) => Util.handleTabKeyDown(e, {
+     *     currentIndex: index,
+     *     tabCount: tabs.length,
+     *     onNavigate: (newIndex) => setActiveTab(newIndex),
+     *     onActivate: () => activateTab(index)
+     *   })}
+     * />
+     */
+    static handleTabKeyDown(e, { currentIndex, tabCount, onNavigate, onActivate, tabSelector }) {
+      // Handle Enter/Space for activation
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onActivate && onActivate();
+        return;
+      }
+
+      // Handle arrow keys for navigation
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        const direction = e.key === 'ArrowLeft' ? -1 : 1;
+        const newIndex = (currentIndex + direction + tabCount) % tabCount;
+        
+        onNavigate && onNavigate(newIndex);
+        
+        // Focus the newly active tab using requestAnimationFrame for better timing
+        // This ensures the DOM has been updated before attempting to focus
+        requestAnimationFrame(() => {
+          const selector = tabSelector || `[data-tab-index="${newIndex}"]`;
+          const newTabElement = document.querySelector(selector);
+          if (newTabElement) {
+            newTabElement.focus();
+          }
+        });
+        return;
+      }
+    }
+
+    // ========== End Keyboard & Accessibility Utilities ==========
+    
+    /**
+     * Finds the longest common suffix among an array of strings
+     * 
+     * This function is similar to commonSubstring but works from the end (suffix)
+     * instead of the beginning (prefix), and works with an array of strings instead
+     * of just two strings.
+     * 
+     * @param {string[]} strings - Array of strings to analyze
+     * @returns {string} - The longest common suffix
+     * 
+     * @example
+     * findLongestCommonSuffix(["hello world", "goodbye world"]) // returns " world"
+     * findLongestCommonSuffix(["abc", "def"]) // returns ""
+     * findLongestCommonSuffix(["www.sefaria.org", "sheets.sefaria.org"]) // returns ".sefaria.org"
+     */
+    static findLongestCommonSuffix(strings) {
+        if (strings.length === 0) return '';
+        if (strings.length === 1) return strings[0];
+        
+        // Start with the first string as the potential common suffix
+        let commonSuffix = strings[0];
+        
+        // Check each subsequent string to see if it ends with the current common suffix
+        for (let i = 1; i < strings.length; i++) {
+            const str = strings[i];
+            
+            // Keep removing characters from the beginning until we find a match
+            while (commonSuffix && !str.endsWith(commonSuffix)) {
+                commonSuffix = commonSuffix.slice(1);
+            }
+            
+            // If no common suffix found, return empty string
+            if (!commonSuffix) {
+                return '';
+            }
+        }
+        
+        return commonSuffix;
+    }
+    
+    /**
+     * Checks if a hostname is an IP address (IPv4).
+     * 
+     * @param {string} hostname - The hostname to check
+     * @returns {boolean} - True if the hostname is an IPv4 address
+     */
+    static isIPAddress(hostname) {
+        return /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+    }
+    
+    /**
+     * Determines the appropriate cookie domain for cross-subdomain cookie sharing.
+     * 
+     * This function analyzes Sefaria.domainModules to find the common parent domain
+     * that all configured modules share, then uses that as the cookie domain.
+     * 
+     * Why this approach is better:
+     * - Uses the actual configured domains rather than guessing from current hostname
+     * - Automatically adapts to any domain configuration without hardcoded logic
+     * - Leverages the existing domain module system that's already working
+     * 
+     * How it works:
+     * 1. Extract hostnames from all domain modules (e.g., "www.sefaria.org", "sheets.sefaria.org")
+     * 2. Use Sefaria.util.findLongestCommonSuffix() to find the longest common suffix that all hostnames share
+     * 3. Use that as the cookie domain (e.g., ".sefaria.org")
+     * 
+     * Examples:
+     * - Production: ["www.sefaria.org", "sheets.sefaria.org"] → ".sefaria.org"
+     * - Cauldron: ["modularization.cauldron.sefaria.org", "sheets.modularization.cauldron.sefaria.org"] → ".modularization.cauldron.sefaria.org"
+     * - Development: ["localhost:8000", "localhost:8000"] → null (no domain set)
+     * 
+     * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
+     */
+    static getCookieDomain() {
+        const hostnames = Array.from(Sefaria.getDomainHostnames());
+
+        // Skip domain setting for local development.
+        // IP addresses don't have subdomain support.
+        // Browsers don't allow setting cookies with domain ".localhost"
+        // For localhost development, we need to dismiss the cookie banner on each module if we are using sheets.localhost
+        if (!hostnames.length || hostnames.some(hostname => Util.isIPAddress(hostname) || hostname.includes('localhost'))) {
+            return null;
+        }
+        
+        // Find the longest common suffix
+        const commonSuffix = Util.findLongestCommonSuffix(hostnames);
+        
+        if (commonSuffix && commonSuffix.length > 0) {
+            // Special handling for domain suffixes that don't start with "."
+            // This happens when we have a mix of bare domains and subdomains:
+            // - ["sefaria.org", "sheets.sefaria.org"] → commonSuffix = "sefaria.org" (should be ".sefaria.org")
+            let domainSuffix = commonSuffix;
+            if (!domainSuffix.startsWith('.')) {
+                domainSuffix = '.' + domainSuffix;
+            }
+            
+            return domainSuffix;
+        }
+        
+        // No common suffix found - fallback to original simple logic (no domain set)
+        return null;
+    }
+    
     static setupPrototypes() {
 
         String.prototype.toProperCase = function() {
@@ -826,7 +1316,7 @@ class Util {
                 }.bind(this))
             .autocomplete({
                 source: function(request, response) {
-                  Sefaria.getName(request.term, undefined, 'ref')
+                  Sefaria.getName(request.term, undefined, ['ref'])
                          .then(d => d.completions)
                          .then(response);
                 },
@@ -922,7 +1412,7 @@ Util.RefValidator.prototype = {
   },
   _lookupAndRoute: function(inString) {
       if (this.current_lookup_ajax) {this.current_lookup_ajax.cancel();}
-      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, undefined, 'ref'));
+      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, undefined, ['ref']));
       this.current_lookup_ajax.promise.then(data => {
               // If this query has been outpaced by typing, just return.
               if (this.$input.val() != inString) { this.current_lookup_ajax = null; return; }

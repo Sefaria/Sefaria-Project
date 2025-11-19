@@ -19,6 +19,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
+from django_topics.models.topic import Topic as DjangoTopic
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
@@ -1363,8 +1364,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             raise InputError("Version direction must be either 'rtl' or 'ltr'")
         assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
         assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
-        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
-        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+        is_any_other_primary = any(v.isPrimary for v in index.versionSet() if v._id != getattr(self, '_id', None))
+        if not self.isPrimary and not is_any_other_primary:  # if all are False, return true
             raise InputError("There must be at least one version that is primary.")
         return True
 
@@ -5164,22 +5165,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = {
-                "slug": topic.slug,
-                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
-                "en": topic.get_primary_title("en"),
-                "he": topic.get_primary_title("he"),
-                "displayOrder": getattr(topic, "displayOrder", 10000)
-            }
-
-            with_descriptions = True # TODO revisit for data size / performance
-            if with_descriptions:
-                if getattr(topic, "categoryDescription", False):
-                    topic_json['categoryDescription'] = topic.categoryDescription
-                description = getattr(topic, "description", None)
-                if description is not None and getattr(topic, "description_published", False):
-                    topic_json['description'] = description
-
+            topic_json = topic.contents(minify=True, children=children, with_html=True)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)

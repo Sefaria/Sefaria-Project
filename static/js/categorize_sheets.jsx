@@ -190,7 +190,7 @@ class SheetCategorizer extends React.Component {
               onDelete={this.onTagDelete.bind(this)}
               onAddition={this.onTagAddition.bind(this)}
               placeholderText={Sefaria._("Add a topic...")}
-              delimiters={["Enter", "Tab", ","]}
+              delimiters={["Enter", ","]}
               onInput={this.updateSuggestedTags.bind(this)}
             />
           </div>
@@ -222,17 +222,19 @@ class SheetCategorizer extends React.Component {
                 ))
               }
             </fieldset>
-            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" onKeyUp={this.addCategory.bind(this)}></input><button onClick={this.addCategory.bind(this)}>Add</button>
+            <label htmlFor="newCategory" className="sr-only">New Category</label>
+            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" aria-label={Sefaria._("New Category")} onKeyUp={this.addCategory.bind(this)}></input>
+            <button onClick={this.addCategory.bind(this)} aria-label={Sefaria._("Add new category")}>Add</button>
           </div>
-          <button id="save-and-next" onClick={this.saveAndNext.bind(this)}>Save and Next</button>
+          <button id="save-and-next" onClick={this.saveAndNext.bind(this)} aria-label={Sefaria._("Save and Next")}>Save and Next</button>
           <div className="left-pane-bottom">
             <h3>Settings/Admin:</h3>
             <h4>Latest sheets without: {this.state.doesNotContain}</h4>
             <div>
-            <button onClick={this.toggleSheetSortingMechanism.bind(this)}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button>
+            <button onClick={this.toggleSheetSortingMechanism.bind(this)} aria-label={`Switch to finding sheets without: ${this.getOpposite(this.state.doesNotContain)}`}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button>
             </div>
             <div>
-            <button onClick={this.skipAndNext.bind(this)}>Skip this sheet</button>
+            <button onClick={this.skipAndNext.bind(this)} aria-label={Sefaria._("Skip this sheet")}>Skip this sheet</button>
             </div>
             Sheet will not be saved!
           </div>
