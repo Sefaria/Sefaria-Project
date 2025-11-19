@@ -141,7 +141,7 @@ e2e-tests/e2e-test-logs/
 /test-results/
 /playwright-report/
 /playwright/.cache/
-/test-results/
+/playwright-profile/
 
 # Storybook #
 *storybook.log
