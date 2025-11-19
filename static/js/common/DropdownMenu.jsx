@@ -167,21 +167,21 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
      * component and all its children, so when clicking on children their onClick won't be executed.
      */
 
-    const [dropdownState, setDropdownState] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
     const wrapperRef = useRef(null);
     const buttonRef = useRef(null);
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
-      setDropdownState(dropdownState => {
-        const isOpen = !dropdownState;
-        if (isOpen) {
+      setIsOpen(isOpen => {
+        const curState = !isOpen;
+        if (curState) {
           onOpen && onOpen();
         } else {
           onClose && onClose();
         }
-        return isOpen;
+        return curState;
       });
     };
     const handleContentsClick = (e) => {
@@ -190,13 +190,13 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
       const preventClose = e.target.closest('[data-prevent-close="true"]');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
-        setDropdownState(false);
+        setIsOpen(false);
         onClose && onClose();
       }
     }
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
-          setDropdownState(false);
+          setIsOpen(false);
           onClose && onClose();
       }
     };
@@ -205,7 +205,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             wrapperRef.current &&
             !wrapperRef.current.contains(event.target)
         ) {
-            setDropdownState(false);
+            setIsOpen(false);
             onClose && onClose();
         }
     };
@@ -220,15 +220,15 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
     }, []);
 
     useEffect(() => {
-        if (dropdownState && menuRef.current) {
+        if (isOpen && menuRef.current) {
             Util.focusFirstElement(menuRef.current);
         }
-    }, [dropdownState]);
+    }, [isOpen]);
 
     const handleMenuKeyDown = (e) => {
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
-            onClose: () => setDropdownState(false),
+            onClose: () => setIsOpen(false),
             returnFocusRef: buttonRef.current
         });
     };
@@ -240,8 +240,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
            <div
              className="dropdownLinks-button"
              data-anl-event={analyticsFeatureName ? "modswitch_toggle:click" : null}
-             data-anl-from={dropdownState ? "open" : "closed"}
-             data-anl-to={dropdownState ? "closed" : "open"}
+             data-anl-from={isOpen ? "open" : "closed"}
+             data-anl-to={isOpen ? "closed" : "open"}
            >
               {/* 
                 Using React.cloneElement to inject dropdown behavior into the button.
@@ -262,7 +262,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
               })}
           </div>
           <div 
-            className={`dropdownLinks-menu ${ dropdownState ? "open" : "closed"}`} 
+            className={`dropdownLinks-menu ${ isOpen ? "open" : "closed"}`} 
             onClick={handleContentsClick}
             ref={menuRef}
             onKeyDown={handleMenuKeyDown}
