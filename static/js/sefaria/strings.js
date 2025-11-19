@@ -409,6 +409,7 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
@@ -684,6 +685,16 @@ const Strings = {
     },
     "WebPageList": {
       'Author': 'מחבר'
+    },
+    "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
+    "Loading guide...": "טוען מדריך...",
     }
   },
 };
