@@ -278,8 +278,8 @@ class TextRange extends Component {
 
     // [\.\!\?\:\,\u05F4]+                                                                      # Match (and remove) one or more punctuation or gershayim
     //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
-    // |—\s;                                                                                    # OR match (and remove) an mdash followed by a space
-    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s/g;
+    // |[—–]\s;                                                                                 # OR match (and remove) an em/en dash followed by a space
+    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|[—–]\s/g;
 
     const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
@@ -316,11 +316,13 @@ class TextRange extends Component {
           );
         }
       }
-      for (const pattern of [strip_vowels_re, strip_punctuation_re]) {
-        if (pattern) {
-          segment.he = segment.he.replace(pattern, "");
-          segment.en = segment.en?.replace(pattern, "");
-        }
+      // Strip vowels/cantillation from both he/en (when enabled), but keep punctuation stripping Hebrew-only
+      if (strip_vowels_re) {
+        segment.he = segment.he.replace(strip_vowels_re, "");
+        segment.en = segment.en?.replace(strip_vowels_re, "");
+      }
+      if (strip_punctuation_re) {
+        segment.he = segment.he.replace(strip_punctuation_re, "");
       }
 
       return (
