@@ -77,7 +77,7 @@ class TextColumn extends Component {
     } else if ((this.props.settings.language !== prevProps.settings.language) ||
         !Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       // When the content the changes but we are anchored on a line, scroll to it
-      this.scrollToHighlighted(false); // Don't change focus to not steal the focus from the menu where the text is changes from (e.g. ReaderDisplayOptionsMenu)
+      this.scrollToHighlighted(false); // Don't change focus to not steal the focus from where the text was changed from (ReaderDisplayOptionsMenu, translations box, or about box)
     } else if (layoutWidthChanged) {
       // When the width of the text column changes, keep highlighted text in place
       this.restoreScrollPositionByPercentage();
