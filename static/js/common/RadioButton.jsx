@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import {InterfaceText} from "../Misc";
 import Util from "../sefaria/util";
