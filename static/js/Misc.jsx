@@ -2992,9 +2992,9 @@ const AdminToolHeader = function({title, validate, close}) {
                 <div onClick={close} onKeyDown={(e) => Util.handleKeyboardClick(e, close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
                 </div>
-                <div onClick={validate} onKeyDown={(e) => Util.handleKeyboardClick(e, validate)} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
+                <Button onClick={validate}>
                   <InterfaceText>Save</InterfaceText>
-                </div>
+                </Button>
               </div>
             </div>
 }
