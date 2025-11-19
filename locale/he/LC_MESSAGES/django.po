@@ -1628,3 +1628,36 @@ msgstr ""
 
 #~ msgid "Public Source Sheets | Sefaria"
 #~ msgstr "דפי מקורות פומביים | ספריא"
+
+# Page title suffixes for modularization
+#: reader/views.py
+msgid "Voices on Sefaria"
+msgstr "חיבורים בספריא"
+
+#: reader/views.py
+msgid "Sefaria: a Living Library of Jewish Texts Online"
+msgstr "ספריא: ספריה יהודית דינמית"
+
+#: reader/views.py
+msgid "Sheets from Voices on Sefaria"
+msgstr "דפים מתוך חיבורים בספריא"
+
+#: reader/views.py
+msgid "Texts from the Sefaria Library"
+msgstr "מקורות מתוך ספריית ספריא"
+
+#: reader/views.py
+msgid "Voices on Sefaria Collection"
+msgstr "אוסף מתוך חיבורים בספריא"
+
+#: reader/views.py
+msgid "Sefaria Library"
+msgstr "ספריית ספריא"
+
+#: reader/views.py
+msgid "%(title)s | %(suffix)s"
+msgstr "%(title)s | %(suffix)s"
+
+#: reader/views.py
+msgid "Untitled"
+msgstr "ללא כותרת"
