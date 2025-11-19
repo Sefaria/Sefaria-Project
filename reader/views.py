@@ -157,7 +157,7 @@ def get_page_title(base_title, module, page_type=""):
         base_title = strip_tags(base_title) if base_title else "Untitled"
 
     # Get appropriate suffix based on page type
-    if not page_type not in suffixes:
+    if page_type not in suffixes:
         page_type = "default"
     suffix = suffixes[page_type][module]
 
