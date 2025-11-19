@@ -1,7 +1,7 @@
 from typing import Generator, Optional, Union, Any
 import time
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, RawNamedEntity
-from sefaria.helper.normalization import NormalizerComposer
+from sefaria.helper.normalization import NormalizerComposer, AbstractNormalizer
 from sefaria.settings import GPU_SERVER_URL
 import requests
 from ne_span import NESpan, NEDoc, NamedEntityType, RefPartType
@@ -34,6 +34,10 @@ class LinkerEntityRecognizer:
         if self._lang == 'he':
             normalizer_steps += ['maqaf', 'cantillation']
         return NormalizerComposer(normalizer_steps)
+    
+    @property
+    def normalizer(self) -> AbstractNormalizer:
+        return self._normalizer
 
     def bulk_recognize(self, inputs: list[str]) -> list[list[RawNamedEntity]]:
         """
@@ -101,29 +105,6 @@ class LinkerEntityRecognizer:
     def _deserialize_raw_named_entity(doc: NEDoc, raw: dict) -> RawNamedEntity:
         span = NESpan(doc, raw['range'][0], raw['range'][1], raw['label'])
         return RawNamedEntity(span, NamedEntityType.span_label_to_enum(raw['label']))
-
-    def bulk_map_normal_output_to_original_input(self, input: list[str], raw_ref_list_list: list[list[RawRef]]):
-        for temp_input, raw_ref_list in zip(input, raw_ref_list_list):
-            self.map_normal_output_to_original_input(temp_input, raw_ref_list)
-
-    def map_normal_output_to_original_input(self, input: str, named_entities: list[RawNamedEntity]) -> None:
-        """
-        Ref resolution ran on normalized input. Remap raw refs to original (non-normalized) input
-        """
-        unnorm_doc = NEDoc(input)
-        mapping, subst_end_indices = self._normalizer.get_mapping_after_normalization(input)
-        conv = self._normalizer.norm_to_unnorm_indices_with_mapping
-        norm_inds = [named_entity.char_indices for named_entity in named_entities]
-        unnorm_inds = conv(norm_inds, mapping, subst_end_indices)
-        unnorm_part_inds = []
-        for (named_entity, (norm_raw_ref_start, _)) in zip(named_entities, norm_inds):
-            raw_ref_parts = named_entity.raw_ref_parts if isinstance(named_entity, RawRef) else []
-            unnorm_part_inds += [conv([[norm_raw_ref_start + i for i in part.char_indices]
-                                       for part in raw_ref_parts], mapping, subst_end_indices)]
-        for named_entity, temp_unnorm_inds, temp_unnorm_part_inds in zip(named_entities, unnorm_inds, unnorm_part_inds):
-            named_entity.map_new_char_indices(unnorm_doc, temp_unnorm_inds)
-            if isinstance(named_entity, RawRef):
-                named_entity.map_new_part_char_indices(temp_unnorm_part_inds)
 
     def _normalize_input(self, input: list[str]):
         """
