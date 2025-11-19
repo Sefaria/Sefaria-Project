@@ -3458,6 +3458,11 @@ _media: {},
           return inputStr;
       }
   },
+  /**
+   * Translates English strings to current interface language.
+   * Add translations to strings.js.
+   * For displaying interface text you should use <InterfaceText> which calls this function automatically.
+   */
   _: function(inputStr, context=null){
     if(Sefaria.interfaceLang != "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
