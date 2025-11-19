@@ -3584,37 +3584,29 @@ _media: {},
           voices: "Sheets from Voices on Sefaria",
           library: "Texts from the Sefaria Library"
         },
-        collections: "Voices on Sefaria",
-        collection: "Voices on Sefaria Collection",
+        collections: {
+          voices: "Voices on Sefaria"
+        },
+        collection: {
+          voices: "Voices on Sefaria Collection"
+        },
         default: {
           voices: "Voices on Sefaria",
           library: "Sefaria Library"
         }
       };
   
-      // Special case: Home pages return complete title (not base + suffix pattern)
-      if (pageType === "home") {
-        return Sefaria._(suffixes.home[module]);
-      }
-  
       // Special case: Sheet titles need default if empty
       if (pageType === "sheet" && !baseTitle) {
         baseTitle = "Untitled";
       }
-  
-      // Get appropriate suffix based on page type
-      let suffix;
-      if (pageType === 'collections' || pageType === 'collection') {
-        // Collections pages are always Voices
-        suffix = suffixes[pageType];
-      } else if (pageType === 'topic') {
-        // Topics have module-specific descriptive suffixes
-        suffix = suffixes.topic[module];
-      } else {
-        // Default suffix for all other pages (pageType === "" or anything else)
-        suffix = suffixes.default[module];
+
+      if (!pageType) {
+        pageType = "default";
       }
   
+      const suffix = suffixes[pageType][module];
+
       // Combine base title with suffix
       return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
     },
