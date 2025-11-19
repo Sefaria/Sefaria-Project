@@ -134,19 +134,23 @@ static/sheetrank.json
 
 /random_files
 
+# Testings #
+e2e-tests/playwright_auth_*.json
+e2e-tests/auth_*.json
+e2e-tests/e2e-test-logs/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/test-results/
+
+# Storybook #
+*storybook.log
+*storybook-static/
+
 # Miscellaneous #
 #################
 
 env/*
 dump/*
-/test-results/
-/playwright-report/
-/playwright/.cache/
-/test-results/
-/playwright-report/
-/playwright/.cache/
-/playwright-profile/
 .env
-
-*storybook.log
-*storybook-static/
+static_collected/*

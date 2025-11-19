@@ -37,6 +37,7 @@ from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
 
+from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -70,6 +71,7 @@ from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
+from remote_config import remoteConfigCache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -383,8 +385,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    CURRENT_LINKER_VERSION = "2"
-    linker_version = linker_version or CURRENT_LINKER_VERSION
+    linker_version = linker_version or remoteConfigCache.get(CURRENT_LINKER_VERSION, "3")
 
     if linker_version == "3":
         # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
@@ -1485,20 +1486,40 @@ def modtools_upload_workflowy(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
-    c_index = request.POST.get("c_index", False)
-    c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    # Handle both single and multiple file uploads
+    files = []
+    if 'workflowys[]' in request.FILES:
+        files = request.FILES.getlist("workflowys[]")
+    else:
+        return jsonResponse({"error": "No files provided. Use 'workflowys[]' for multiple files."})
+
+    # Handle checkbox parameters
+    c_index = request.POST.get("c_index", "").lower() == "true"
+    c_version = request.POST.get("c_version", "").lower() == "true"
+    
+    delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
+    term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 
     uid = request.user.id
-    try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
-        res = wfparser.parse()
-    except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
-    return jsonResponse({"status": "ok", "data": res})
+    # Process files - collect both successes and errors
+    successes = []
+    failures = []
+
+    for file in files:
+        try:
+            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                raise InputError(res['error'])
+            successes.append(file.name)
+        except Exception as e:
+            failures.append({"file": file.name, "error": str(e)})
+
+    return jsonResponse({
+        "successes": successes,
+        "failures": failures
+    })
 
 @staff_member_required
 def links_upload_api(request):

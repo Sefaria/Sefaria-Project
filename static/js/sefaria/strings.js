@@ -430,6 +430,7 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
