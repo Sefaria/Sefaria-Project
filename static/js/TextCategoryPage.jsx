@@ -4,7 +4,6 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import { ReaderPanelContext } from './context';
 import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -76,7 +75,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
       heCatTitle={heCatTitle} />
   ) : null;
 
-  const footer         = compare ? null : <Footer />;
   const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
   return (
     <div className={navMenuClasses}>
@@ -102,7 +100,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
           </div>
           {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}
         </div>
-        {footer}
       </div>
     </div>
   );
@@ -208,7 +205,9 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
             title       = {item.title}
             heTitle     = {item.heTitle}
             enDesc      = {item.enShortDesc}
-            heDesc      = {item.heShortDesc} />
+            heDesc      = {item.heShortDesc}
+            module="sheets"
+          />
         );
 
     // Skip hidden texts
@@ -266,7 +265,7 @@ TextCategoryContents.defaultProps = {
 };
 
 
-const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc}) => {
+const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDesc, module}) => {
   const keytype  = !!cats ? "cat" : "text";
   const classes = classNames({ navBlockTitle: 1 });
   return (
@@ -276,6 +275,7 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, enDesc, heDes
         onClick     = {onClick}
         data-cat    = {cats ? cats.slice(-1) : null} // This is only used for Selenium test, would like to get rid of it
         key         = {keytype + "." + nestLevel + "." + title}
+        data-target-module={module || Sefaria.activeModule}
       >
         <ContentText text={{en: title, he: heTitle}} />
       </a>

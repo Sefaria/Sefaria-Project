@@ -27,9 +27,18 @@ We're grateful to the following organizations for providing us with donated serv
 - [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Slack](https://slack.com)
 
+## Storybook
+
+We use [Storybook](https://storybook.js.org/) with the Vite builder to develop and review shared React components. To start Storybook locally:
+
+1. Ensure you are using Node.js 18 or newer (Storybook 8 requires the active LTS releases).
+2. Install dependencies with `npm install` if you have not done so recently.
+3. Run `npm run storybook` to launch the dev server at http://localhost:6006.
+
+Stories live in the `stories/` directory. Each story can import components from `static/js` and will automatically receive the global Sefaria stubs defined in `.storybook/preview.js`.
+
 
 ## License
 
 [GPL](http://www.gnu.org/copyleft/gpl.html)
-
 

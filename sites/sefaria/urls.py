@@ -37,7 +37,6 @@ static_pages = [
     "torah-tab",
     "dicta-thanks",
     "daf-yomi",
-    "sheets",
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
@@ -53,7 +52,8 @@ static_pages = [
     'mobile-about-menu',
     "updates",
     "pioneers",
-    "ai"
+    "ai",
+    "metrics"
 ]
 
 static_pages_by_lang = [
@@ -66,6 +66,8 @@ static_pages_by_lang = [
 site_urlpatterns = [
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
+    url(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),
+    url(r'^(?P<filename>site\.webmanifest|manifest\.json)/?$', reader_views.dynamic_manifest),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),
@@ -87,12 +89,12 @@ site_urlpatterns += [
     url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])),
-    url(r'^help/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])),
+    url(r'^help/?$', lambda x: HttpResponseRedirect(SITE_SETTINGS['HELP_CENTER_URLS']['EN_US'] if x.interfaceLang == 'english' else SITE_SETTINGS['HELP_CENTER_URLS']['HE'])), # Used in the app
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/event/sefarias-10-year-anniversary-gala/e486954')),
     url(r'^give/(?P<channel_source>[a-zA-Z0-9]+)/?$', lambda x, channel_source: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src={channel_source}')),
     url(r'^give/?$', lambda x: HttpResponseRedirect(f'https://donate.sefaria.org/give/550774/#!/donation/checkout?c_src=mu')),
     url(r'^giving/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/give/524771/#!/donation/checkout')),
-    url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
+    url(r'^jfn?$', lambda x: HttpResponseRedirect('https://voices.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
     url(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
