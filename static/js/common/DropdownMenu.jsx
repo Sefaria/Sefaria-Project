@@ -228,7 +228,10 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
     const handleMenuKeyDown = (e) => {
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
-            onClose: () => setIsOpen(false),
+            onClose: () => { 
+              setIsOpen(false)
+              onClose && onClose();
+            },
             returnFocusRef: buttonRef.current
         });
     };
