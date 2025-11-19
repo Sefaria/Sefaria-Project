@@ -7,6 +7,8 @@ import reader.views as reader_views
 import sefaria.views as sefaria_views
 from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
+import remote_config.views as remote_config_views
+from sefaria.heapdump import heapdump_view
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
@@ -83,6 +85,12 @@ urlpatterns = [
         sefaria_views.text_download_api),
     url(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
 
+]
+
+# Operational tooling
+urlpatterns += [
+    url(r'^admin/heapdump/$', heapdump_view, name="heapdump"),
+    url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api")
 ]
 
 urlpatterns += shared_patterns

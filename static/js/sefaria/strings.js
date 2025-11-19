@@ -320,6 +320,12 @@ const Strings = {
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
     "Text display options": "אפשרויות תצוגת טקסט",
+    "Source-translation toggle": "מעבר בין מקור לתרגום",
+    "Show Text as a paragraph": "הצגת טקסט כפיסקה",
+    "Show Text segmented": "הצגת טקסט מפוצל",
+    "Show Source & Translation Stacked": "הצגת מקור ותרגום זה מעל זה",
+    "Show RTL Text Right of LTR Text": "הצגת טקסט מימין לשמאל מימין לטקסט משמאל לימין",
+    "Show RTL Text Left of LTR Text": "הצגת טקסט מימין לשמאל משמאל לטקסט משמאל לימין",
 
     // Collections
     "Collections": "אסופות",
@@ -424,6 +430,7 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
