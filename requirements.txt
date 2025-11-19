@@ -86,6 +86,7 @@ django==2.2.28
     #   django-user-agents
     #   djangorestframework
     #   djangorestframework-simplejwt
+django-admin-sortable==2.3
 django-anymail==8.6
     # via -r ./requirements.txt
 django-debug-toolbar==2.2
