@@ -12,7 +12,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsText = null}) => {
 
   if (!newTab){
     newTab = false;
@@ -26,6 +26,8 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
+       data-anl-event={analyticsText ? "modswitch_item_click:click" : null}
+       data-anl-text={analyticsText}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
@@ -132,7 +134,9 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
-       target={newTab ? '_blank' : null}>
+       target={newTab ? '_blank' : null}
+       data-anl-event="modswitch_item_click:click"
+       data-anl-text={text.en}>
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
         <span className='dropdownHeaderText'>
@@ -153,7 +157,7 @@ DropdownModuleItem.propTypes = {
   }).isRequired
 };
 
-const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
+const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFeatureName, onOpen, onClose, onItemClick}) => {
     /**
      * `buttonComponent` is a React component for the opening/closing of a button.
      * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
@@ -172,19 +176,30 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
-      setIsOpen(isOpen => !isOpen);
+      setIsOpen(isOpen => {
+        const curState = !isOpen;
+        if (curState) {
+          onOpen && onOpen();
+        } else {
+          onClose && onClose();
+        }
+        return curState;
+      });
     };
     const handleContentsClick = (e) => {
       e.stopPropagation();
+
       const preventClose = e.target.closest('[data-prevent-close="true"]');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
         setIsOpen(false);
+        onClose && onClose();
       }
-    }
+    };
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
+          onClose && onClose();
       }
     };
     const handleClickOutside = (event) => {
@@ -193,6 +208,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             !wrapperRef.current.contains(event.target)
         ) {
             setIsOpen(false);
+            onClose && onClose();
         }
     };
 
@@ -214,15 +230,23 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     const handleMenuKeyDown = (e) => {
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
-            onClose: () => setIsOpen(false),
+            onClose: () => { 
+              setIsOpen(false)
+              onClose && onClose();
+            },
             returnFocusRef: buttonRef.current
         });
     };
 
     return (
-        <div className={positioningClass} ref={wrapperRef}>
+        <div className={positioningClass}
+             ref={wrapperRef}
+             data-anl-feature_name={analyticsFeatureName}>
            <div
              className="dropdownLinks-button"
+             data-anl-event={analyticsFeatureName ? "modswitch_toggle:click" : null}
+             data-anl-from={isOpen ? "open" : "closed"}
+             data-anl-to={isOpen ? "closed" : "open"}
            >
               {/* 
                 Using React.cloneElement to inject dropdown behavior into the button.
