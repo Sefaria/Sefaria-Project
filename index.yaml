@@ -992,6 +992,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.68.0-fixredirects-community.1.tgz
     version: 0.68.0-fixredirects-community.1
   - apiVersion: v2
+    appVersion: v6.37.4
+    created: "2025-11-19T11:08:45.471846198Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 76a83c1c508b12367add8260ae04df1c1581c9dd934efcba1bc72420e395b3a6
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.68.0-chorecreate-installation-script.1.tgz
+    version: 0.68.0-chorecreate-installation-script.1
+  - apiVersion: v2
     appVersion: v6.39.1
     created: "2025-11-04T15:50:56.279715828Z"
     description: Chart to deploy complete Sefaria environment
@@ -11370,4 +11385,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-11-19T11:03:13.319734617Z"
+generated: "2025-11-19T11:08:45.467997542Z"
