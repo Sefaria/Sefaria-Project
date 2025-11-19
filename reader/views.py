@@ -161,15 +161,9 @@ def get_page_title(base_title, module, page_type=""):
         base_title = strip_tags(base_title) if base_title else "Untitled"
 
     # Get appropriate suffix based on page type
-    if page_type in [PageTypes.COLLECTIONS, PageTypes.COLLECTION]:
-        # Collections pages are always Voices
-        suffix = suffixes[page_type]
-    elif page_type == PageTypes.TOPIC:
-        # Topics have module-specific descriptive suffixes
-        suffix = suffixes[PageTypes.TOPIC][module]
-    else:
-        # Standard suffix for all other pages
-        suffix = suffixes['default'][module]
+    if not page_type not in suffixes:
+        page_type = "default"
+    suffix = suffixes[page_type][module]
 
     # Combine base title with suffix using Django's named-string interpolation
     # This allows translators to customize the format, separator, and ordering
