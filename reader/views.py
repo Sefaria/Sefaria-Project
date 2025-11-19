@@ -152,10 +152,6 @@ def get_page_title(base_title, module, page_type=""):
         }
     }
 
-    # Special case: Home pages return complete title (not base + suffix pattern)
-    if page_type == PageTypes.HOME:
-        return _(suffixes[PageTypes.HOME][module])
-
     # Special case: Sheet titles need cleaning
     if page_type == PageTypes.SHEET:
         base_title = strip_tags(base_title) if base_title else "Untitled"
