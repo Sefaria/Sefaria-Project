@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Optional, Union, Iterable, Tuple
+from typing import Optional, Union, Iterable
 import time
 from tqdm import tqdm
 from ne_span import NEDoc
@@ -22,8 +22,34 @@ class LinkedDoc:
     resolved_categories: list[ResolvedCategory]
 
     @property
-    def all_resolved(self) -> List[Union[PossiblyAmbigResolvedRef, ResolvedNamedEntity, ResolvedCategory]]:
+    def all_resolved(self) -> list[Union[PossiblyAmbigResolvedRef, ResolvedNamedEntity, ResolvedCategory]]:
         return self.resolved_refs + self.resolved_named_entities + self.resolved_categories
+
+    def merge(self, other: 'LinkedDoc') -> 'LinkedDoc':
+        """
+        Merge another LinkedDoc into this one
+        @param other:
+        @return:
+        """
+        return LinkedDoc(
+            text=self.text,
+            resolved_refs=self.resolved_refs + other.resolved_refs,
+            resolved_named_entities=self.resolved_named_entities + other.resolved_named_entities,
+            resolved_categories=self.resolved_categories + other.resolved_categories
+        )
+
+    def align_to_new_doc(self, new_doc: NEDoc, offset: int) -> None:
+        """
+        Align all resolved entities to a new NEDoc with an offset
+        @param new_doc:
+        @param offset:
+        @return:
+        """
+        for resolved in self.all_resolved:
+            named_entity = resolved.raw_entity
+            named_entity.align_to_new_doc(new_doc, offset)
+            if isinstance(named_entity, RawRef):
+                named_entity.align_parts_to_new_doc(new_doc, offset)
 
 
 class Linker:
@@ -34,8 +60,8 @@ class Linker:
         self._ne_resolver = ne_resolver
         self._cat_resolver = cat_resolver
 
-    def bulk_link(self, inputs: List[str], book_context_refs: Optional[List[Optional[Ref]]] = None, with_failures=False,
-                  verbose=False, thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> List[LinkedDoc]:
+    def bulk_link(self, inputs: list[str], book_context_refs: Optional[list[Optional[Ref]]] = None, with_failures=False,
+                  verbose=False, thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> list[LinkedDoc]:
         """
         Bulk operation to link every string in `inputs` with citations and named entities
         `bulk_link()` is faster than running `link()` in a loop because it can pass all strings to the relevant models
@@ -54,16 +80,16 @@ class Linker:
 
         start = time.perf_counter()
         book_context_refs = book_context_refs or [None]*len(all_named_entities)
-        iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
+        iterable = _get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
         for input_str, book_context_ref, inner_named_entities in iterable:
-            raw_refs, named_entities = self._partition_raw_refs_and_named_entities(inner_named_entities)
+            raw_refs, named_entities = _partition_raw_refs_and_named_entities(inner_named_entities)
             resolved_refs, resolved_named_entities, resolved_cats = [], [], []
             if type_filter in {'all', 'citation'}:
                 resolved_refs, resolved_cats = self._bulk_resolve_refs_and_cats(raw_refs, book_context_ref, thoroughness, False)
             if type_filter in {'all', 'named entity'}:
                 resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities)
             if not with_failures:
-                resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
+                resolved_refs, resolved_named_entities, resolved_cats = _remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
         logger.info("bulk_link: resolution completed", elapsed_time=time.perf_counter() - start)
 
@@ -92,29 +118,46 @@ class Linker:
         if type_filter in {'all', 'named entity'}:
             resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities)
         if not with_failures:
-            resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
+            resolved_refs, resolved_named_entities, resolved_cats = _remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
         doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)
         _map_normal_output_to_original_input(self._ner.normalizer, input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
-    
+
     def link_with_footnotes(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
         Similar to `link()` but does two passes through text
         1) text without footnotes
         2) just the footnotes
         Merges results and adjusts char locations so they are consistent with original input text
-        
-        :param input_str: 
-        :param book_context_ref: 
+
+        :param input_str:
+        :param book_context_ref:
         @param link_args: *args to be passed to link()
         @param link_kwargs: **kwargs to be passed to link()
-        :return: 
+        :return:
         """
-        normalizer = NormalizerFactory.get('footnote')
-        normalized_input = normalizer.normalize(input_str)
-        text_wo_footnotes_doc = self.link(normalized_input, book_context_ref, *link_args, **link_kwargs)
-        _map_normal_output_to_original_input(normalizer, input_str, [x.raw_entity for x in text_wo_footnotes_doc.all_resolved])
-        return text_wo_footnotes_doc
+
+        # link text without footnotes
+        fn_normalizer = NormalizerFactory.get('footnote')
+        normalized_input = fn_normalizer.normalize(input_str)
+        linked_doc = self.link(normalized_input, book_context_ref, *link_args, **link_kwargs)
+        _map_normal_output_to_original_input(fn_normalizer, input_str, [x.raw_entity for x in linked_doc.all_resolved])
+
+        # link footnotes only
+        footnote_ranges = fn_normalizer.find_text_to_remove(input_str)
+        footnotes_text_list = []
+        footnotes_offsets = []
+        for (start, end), _ in reversed(footnote_ranges):
+            footnotes_text_list.append(input_str[start:end])
+            footnotes_offsets.append(start)
+        footnotes_doc_list = self.bulk_link(footnotes_text_list, [book_context_ref]*len(footnotes_text_list), *link_args, **link_kwargs)
+
+        # adjust char indices of footnote resolved entities to be in context of original input_str
+        for offset, fn_doc in zip(footnotes_offsets, footnotes_doc_list):
+            fn_doc.align_to_new_doc(NEDoc(input_str), offset)
+            linked_doc = linked_doc.merge(fn_doc)
+
+        return linked_doc
 
     def link_by_paragraph(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
@@ -139,13 +182,7 @@ class Linker:
             resolved_refs += linked_doc.resolved_refs
             resolved_named_entities += linked_doc.resolved_named_entities
             resolved_categories += linked_doc.resolved_categories
-
-            for resolved in linked_doc.all_resolved:
-                named_entity = resolved.raw_entity
-                named_entity.align_to_new_doc(full_ne_doc, offset)
-                if isinstance(named_entity, RawRef):
-                    # named_entity's current start has already been offset so it's the offset we need for each part
-                    named_entity.align_parts_to_new_doc(full_ne_doc, offset)
+            linked_doc.align_to_new_doc(full_ne_doc, offset)
             offset = curr_par_break[1]  # Update offset to the end of the current paragraph break
         return LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_categories)
 
@@ -159,7 +196,7 @@ class Linker:
         """
         self._ref_resolver.reset_ibid_history()
 
-    def _bulk_resolve_refs_and_cats(self, raw_refs, book_context_ref, thoroughness, reset_ibids=True) -> (list[ResolvedRef], list[ResolvedCategory]):
+    def _bulk_resolve_refs_and_cats(self, raw_refs, book_context_ref, thoroughness, reset_ibids=True) -> tuple[list[ResolvedRef], list[ResolvedCategory]]:
         """
         First match categories, then resolve refs for anything that didn't match a category
         This prevents situations where a category is parsed as a ref using ibid (e.g. Talmud with context Berakhot 2a)
@@ -172,9 +209,10 @@ class Linker:
         possibly_resolved_cats = self._cat_resolver.bulk_resolve(raw_refs)
         unresolved_raw_refs = [r.raw_entity for r in filter(lambda r: r.resolution_failed, possibly_resolved_cats)]
         resolved_cats = list(filter(lambda r: not r.resolution_failed, possibly_resolved_cats))
-        #try to resolve only unresolved categories (unresolved_raw_refs) as refs:
+        # try to resolve only unresolved categories (unresolved_raw_refs) as refs:
         resolved_refs = self._ref_resolver.bulk_resolve(unresolved_raw_refs, book_context_ref, thoroughness, reset_ibids=reset_ibids)
         return resolved_refs, resolved_cats
+
 
 """
 HELPER FUNCTIONS
@@ -201,21 +239,21 @@ def _map_normal_output_to_original_input(normalizer: AbstractNormalizer, input: 
             named_entity.map_new_part_char_indices(temp_unnorm_part_inds)
 
 
-def _bulk_map_normal_output_to_original_input(noramlizer: AbstractNormalizer, input: list[str], raw_ref_list_list: list[list[RawRef]]):
-    for temp_input, raw_ref_list in zip(input, raw_ref_list_list):
-        _map_normal_output_to_original_input(temp_input, raw_ref_list)
+def _bulk_map_normal_output_to_original_input(normalizer: AbstractNormalizer, input_list: list[str], raw_ref_list_list: list[list[RawRef]]):
+    for temp_input, raw_ref_list in zip(input_list, raw_ref_list_list):
+        _map_normal_output_to_original_input(normalizer, temp_input, raw_ref_list)
 
 
-def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \
-        -> Tuple[List[RawRef], List[RawNamedEntity]]:
+def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: list[RawNamedEntity]) \
+        -> tuple[list[RawRef], list[RawNamedEntity]]:
     raw_refs = [ne for ne in raw_refs_and_named_entities if isinstance(ne, RawRef)]
     named_entities = [ne for ne in raw_refs_and_named_entities if not isinstance(ne, RawRef)]
     return raw_refs, named_entities
 
 
-def _get_bulk_link_iterable(inputs: List[str], all_named_entities: List[List[RawNamedEntity]],
-                            book_context_refs: Optional[List[Optional[Ref]]] = None, verbose=False
-                            ) -> Iterable[Tuple[Ref, List[RawNamedEntity]]]:
+def _get_bulk_link_iterable(inputs: list[str], all_named_entities: list[list[RawNamedEntity]],
+                            book_context_refs: Optional[list[Optional[Ref]]] = None, verbose=False
+                            ) -> Iterable[tuple[str, Ref, list[RawNamedEntity]]]:
     iterable = zip(inputs, book_context_refs, all_named_entities)
     if verbose:
         iterable = tqdm(iterable, total=len(book_context_refs))
@@ -229,7 +267,7 @@ def _remove_failures(*args):
     return out
 
 
-def _break_input_into_paragraphs(self, input_str: str) -> tuple[list[str], list[tuple[int, int]]]:
+def _break_input_into_paragraphs(input_str: str) -> tuple[list[str], list[tuple[int, int]]]:
     """
     Breaks the input string into paragraphs based on new line characters.
     Returns a list of paragraphs and their corresponding spans.
