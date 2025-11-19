@@ -42,3 +42,41 @@ test('Open panel window', async ({ context }) => {
   await page.getByRole('link', { name: 'Show Connection Panel contents for Berakhot' }).isVisible();
   await page.getByRole('link', { name: 'Show Connection Panel contents for Shabbat' }).isVisible();
 });
+
+// test('Bookmark page', async ({ context }) => {
+//   const page = await goToPageWithUser(context, '/Genesis.1.1?lang=he&with=all&lang2=he');
+//   await page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃').click();
+//   // if we reach the page and it is already bookmarked, undo it
+//   await page.getByRole('button', { name: 'Remove "Genesis 1:1"' }).isVisible() && await page.getByRole('button', { name: 'Remove "Genesis 1:1"' }).click();
+//   await page.getByRole('button', { name: 'Save "Genesis 1:1"' }).click();
+//   await page.getByRole('link', { name: 'See My Saved Texts' }).click();
+//   await page.waitForSelector('text=Genesis 1:1', { state: 'visible' });
+//   await page.locator('.textPassageStory').first().hover();
+//   await page.getByRole('button', { name: 'Remove "Genesis 1:1"' }).click();
+//   // wait for removal request to complete
+//   await Promise.all([
+//     page.waitForResponse(resp => resp.url().includes('/api/profile/sync') && resp.status() === 200),
+//   ]);
+//   await page.reload();
+//   await page.waitForSelector('text=Loading...', { state: 'detached' });
+//   await page.waitForSelector('text=History', { state: 'visible' });
+//   await page.waitForSelector('text=Genesis 1:1', { state: 'detached' });
+// });
+
+test('Share link', async ({ context }) => {
+  // fill in test
+});
+
+
+test('Footer is sticky on home page', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/texts');
+  await page.mouse.wheel(0, 1000);
+  await page.getByText('Ways to Give').isVisible();
+});
+
+test('Footer is sticky on text category page', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/texts');
+  await page.getByRole('link', { name: 'Tanakh' }).click();
+  await page.mouse.wheel(0, 2000);
+  await page.getByText('Ways to Give').isVisible();
+});

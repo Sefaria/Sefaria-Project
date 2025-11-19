@@ -60,7 +60,7 @@
   font-size: 16px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -101,7 +101,7 @@
   color: #333;
 }
 .static a.button.transparent {
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .refLink {
   text-decoration: none;
@@ -139,10 +139,10 @@
 .static .quotation {
   text-align: center;
   font-weight: bold;
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .quotation a {
-  color: #666;
+  color: var(--dark-grey);
 }
 .static .quotation he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -292,14 +292,14 @@
 }
 #homePage .description .int-en,
 #homePage .description .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 #homePage .description .int-he {
   font-style: normal;
 }
 #homePage .dedication {
   margin: -12px 0 34px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
@@ -310,7 +310,7 @@
 }
 #homePage #homeBlog .blogTag {
   text-transform: uppercase;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 20px;
   letter-spacing: 1px;
   font-size: 15px;
@@ -323,7 +323,7 @@
   text-align: justify;
 }
 #homePage a {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 #homePage a.refLink {
@@ -345,7 +345,7 @@
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 20px;
   border-bottom: none;
   text-transform: uppercase;
@@ -378,10 +378,10 @@
   margin: 0px 0;
 }
 #homeProgress .stat .int-en {
-  color: #999;
+  color: var(--medium-grey);
 }
 #homeProgress .stat .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 #homeProgress #moreMetrics {
   display: block;
@@ -395,7 +395,7 @@
 }
 #homeConnect #mailingListTitle {
   margin-bottom: 40px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 #homeConnect #mailingListTitle .int-en {
@@ -455,17 +455,17 @@
 #profileTagline {
   margin-bottom: 24px;
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
 }
 #profileSnippets > div {
   display: inline-block;
-  color: #999;
+  color: var(--medium-grey);
   margin: 2px 7px;
   font-size: 14px;
   font-weight: lighter;
 }
 #profileSnippets a {
-  color: #999
+  color: var(--medium-grey)
 }
 #profilePage #buttons {
   margin: 24px 0 50px;
@@ -501,7 +501,7 @@
 }
 #activityList {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   padding: 0;
 }
 .interface-hebrew #activityList {
@@ -621,20 +621,20 @@ input#id_email{
   margin-top: 20px;
   display: block;
   text-align: center;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   font-style: normal;
   text-decoration: none;
 }
 .registrationContent a.registration-links:hover{
-  color: #666;
+  color: var(--dark-grey);
 }
 p.registration-links a{
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: none;
 }
 p.registration-links a:hover{
-  color: #666;
+  color: var(--dark-grey);
   text-decoration: none;
 }
 #visualizationsPage {
@@ -742,35 +742,10 @@ p.registration-links a:hover{
   margin: 0;
   width: 100%;
 }
-#aboutCover {
-  height: 440px;
-  margin-left: 250px;
-  padding: 180px 0;
-  background-color: #ADA99B;
-  box-sizing: border-box;
-  text-align: center;
-  overflow: hidden;
-  position: relative;
-}
-#aboutVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  min-width: 1200px;
-  z-index: 0;
-  width: 100%;
-}
 
 @media (max-width: 450px) {
   #aboutPage #aboutHeader {
     margin-bottom: 130px;
-  }
-  #aboutPage #aboutCover {
-    height: 270px;
-    padding: 180px 0;
-  }
-  #aboutPage #aboutVideo {
-    min-width: 900px;
   }
 }
 #donatePage pre{
@@ -810,7 +785,7 @@ p.registration-links a:hover{
 #teamPage h2{
   font-size: 16px;
   letter-spacing: 2px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: center;
   margin-bottom: 40px;
 }
@@ -885,7 +860,7 @@ p.registration-links a:hover{
   line-height: 2;
 }
 #editProfilePage {
-  color: #666;
+  color: var(--dark-grey);
 }
 #editProfilePage .inner {
   position: relative;
@@ -899,11 +874,6 @@ p.registration-links a:hover{
 #editProfilePage #sheetsBox,
 #editProfilePage #aboutBox {
   margin-bottom: 60px;
-  display: flex;
-  display: -webkit-flex;
-  justify-content: space-between;
-  -webkit-justify-content:space-between;
-  flex-flow: row wrap;
 }
 #editProfilePage #sheetsBox{
   flex-direction: column;
@@ -947,7 +917,6 @@ p.registration-links a:hover{
 }
 #editProfilePage .field {
   margin-bottom: 20px;
-  width: 48%;
   min-width: 300px;
 }
 #editProfilePage .field input {
@@ -1030,8 +999,49 @@ p.registration-links a:hover{
 #editProfilePage #pinnedSheets ul {
   min-height: 36px;
 }
+ /* Account Settings Page - Desktop styles */
 #accountSettingsPage .inner {
   position: relative;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  padding: 60px 20px 100px 100px;
+}
+#accountSettingsPage .headerWithButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 57px;
+}
+#accountSettingsPage .headerWithButtons h1 {
+  flex: 0 0 auto;
+  text-align: start;
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 100%;
+  color: var(--dark-grey);
+  margin: 0;
+}
+#accountSettingsPage .headerWithButtons .end {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+#accountSettingsPage .headerWithButtons .button.small {
+  flex: 0 0 auto;
+  height: 50px;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 100%;
+  border-radius: 6px;
+}
+#accountSettingsPage .headerWithButtons .button.small.transparent {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
 }
 #accountSettingsPage label {
   margin-bottom: 15px;
@@ -1042,15 +1052,14 @@ p.registration-links a:hover{
 }
 #accountSettingsPage input {
   width: 100%;
-  color: #999;
+  color: var(--medium-grey);
   box-sizing: border-box;
   padding: 15px 12px;
   border: none;
   margin-bottom: 10px;
 }
 #accountSettingsPage .form-section{
-  margin: 2px auto 20px auto;
-  margin-left: 1px;
+  margin: 2px auto 20px 1px;
 }
 #accountSettingsPage input[disabled="disabled"] {
   background-color: #FBFBFA;
@@ -1058,7 +1067,7 @@ p.registration-links a:hover{
 #accountSettingsPage input::placeholder{
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
   padding-bottom: 15px;
   font-style: normal;
 }
@@ -1075,7 +1084,7 @@ p.registration-links a:hover{
   color: #CB6158;
 }
 #accountSettingsPage #email-edit-ok{
-  color: #666;
+  color: var(--dark-grey);
 }
 #accountSettingsPage #reading-history-warning{
   display: none;
@@ -1083,6 +1092,47 @@ p.registration-links a:hover{
 #accountSettingsPage #reading-history-warning.active{
   margin: 10px;
   display: inline-block;
+}
+/* Account Settings Page - Mobile/Tablet styles */
+@media screen and (max-width: 700px) {
+  #accountSettingsPage .inner {
+    padding: 60px 22px 100px 22px;
+  }
+  #accountSettingsPage .headerWithButtons {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  #accountSettingsPage .headerWithButtons h1 {
+    margin-bottom: 0;
+  }
+  #accountSettingsPage .headerWithButtons .end {
+    text-align: end;
+    gap: 4px;
+  }
+  #accountSettingsPage .headerWithButtons .button.small {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 18px;
+    margin: 0;
+  }
+}
+
+/* Account Settings Page - Very narrow screens */
+@media screen and (max-width: 360px) {
+  #accountSettingsPage .headerWithButtons {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  #accountSettingsPage .headerWithButtons h1 {
+    width: 100%;
+  }
+  #accountSettingsPage .headerWithButtons .end {
+    text-align: start;
+    justify-content: flex-start;
+  }
 }
 #personPage h1 {
   margin-bottom: 40px;
@@ -1097,7 +1147,7 @@ p.registration-links a:hover{
   line-height: 1.1em;
 }
 #personPage #bio{
-  color: #666;
+  color: var(--dark-grey);
 }
 #personPage a,
 #peoplePage a,
@@ -1134,7 +1184,7 @@ p.registration-links a:hover{
   padding-top: 10px;
 }
 #peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
 }
 #talmudicPeoplePage .talmudic-generation {
@@ -1189,7 +1239,7 @@ p.registration-links a:hover{
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #activityPage #activityFeed {
-  color: #666;
+  color: var(--dark-grey);
 }
 #activityPage #activityFeed a {
   color: #333;
@@ -1321,7 +1371,7 @@ p.registration-links a:hover{
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: var(--medium-grey);
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   direction: ltr;
@@ -1351,7 +1401,7 @@ p.registration-links a:hover{
   padding: 0;
 }
 #digitizedBySefaria .sub {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 13px;
 }
 #digitizedBySefaria ul {
@@ -1530,7 +1580,7 @@ p.registration-links a:hover{
 }
 #edPage .dedication {
   margin: -12px 0 34px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 17px;
   font-style: italic;
   line-height: 1.2;
@@ -1540,7 +1590,7 @@ p.registration-links a:hover{
   position: relative;
 }
 #edPage a {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
 }
 #edPage a.refLink {
@@ -1556,7 +1606,7 @@ p.registration-links a:hover{
 }
 #edConnect #mailingListTitle {
   margin-bottom: 40px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
 }
 #edConnect #mailingListEmail {
@@ -1761,6 +1811,15 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #koschitzky.static {
   margin-top: 60px;
+}
+.static .categoryColorLineRainbow {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)
 }
 
 /******* mobile landing page ****/
@@ -2041,7 +2100,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-feature-settings: 'cpsp' on;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
   text-align: end;
@@ -2123,7 +2182,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
   line-height: 58px;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: initial;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
@@ -2170,7 +2229,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 289px;
   height: 46px;
   background: #FFFFFF;
-  border: 1px solid #666666;
+  border: 1px solid var(--dark-grey);
   box-sizing: border-box;
   border-radius: 6px;
 }
@@ -2179,7 +2238,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   line-height: 22px;
-  color: #999;
+  color: var(--medium-grey);
   font-style: normal;
 }
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox .inputWithNestedImageSubmit{
@@ -2217,7 +2276,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 26px;
   text-align: center;
   letter-spacing: 0.1em;
-  color: #666666;
+  color: var(--dark-grey);
   margin: 5% 10%;
   justify-content: space-around;
 }
@@ -2576,7 +2635,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-feature-settings: 'cpsp' on;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
   text-align: end;
@@ -2614,7 +2673,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
   line-height: 58px;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: initial;
 }
 
@@ -2936,7 +2995,7 @@ display: none;
   font-weight: 500;
   font-size: 30px;
   line-height: 35px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .staticPage.donate .staticPageH2 span {
   color: #000;
@@ -3128,7 +3187,7 @@ display: none;
 .staticPageAbout h2 {
   font-size: 22px;
   font-weight: 500;
-  color: #666;
+  color: var(--dark-grey);
   line-height: 26px;
   margin: 0 0 19px 0;
 }
@@ -3320,7 +3379,7 @@ form.globalUpdateForm + div.notificationsList {
 }
 #supportersPage p{
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   text-align: left;
   max-width: revert;
 }
@@ -3388,7 +3447,7 @@ form.globalUpdateForm + div.notificationsList {
   min-width: max-content;
   padding: 10px;
   margin: 0;
-  color: #666666;
+  color: var(--dark-grey);
 }
 #aboutSidebar a {
   text-decoration: none !important;

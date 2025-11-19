@@ -14,7 +14,7 @@ export const FeaturedTopic = () => {
 
     return (
         <div className="featuredTopic" data-anl-feature_name="Featured Topic">
-            <h1 className="featuredTopicHeader"><InterfaceText>Featured Topic</InterfaceText></h1>
+            <h2 className="featuredTopicHeader"><InterfaceText>Featured Topic</InterfaceText></h2>
             <div className="featuredTopicContent">
                 <div className="featuredTopicImgWrapper">
                     <a href={`/topics/${topic.slug}`}><ImageWithAltText photoLink={topic.secondary_image_uri} altText={topic?.image?.image_caption}/></a>

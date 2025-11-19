@@ -43,7 +43,7 @@ data:
     GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
 
-    DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
+    DOMAIN_MODULES = json.loads(os.getenv("DOMAIN_MODULES", "{}"))
     ADMINS = (
         ('Sefaria Developers', 'dev@sefaria.org'),
     )
@@ -66,10 +66,10 @@ data:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'sefaria_auth',
+            'NAME': '{{ .Values.postgres.db }}',
             'USER': os.getenv("DATABASES_USER"),
             'PASSWORD': os.getenv("DATABASES_PASSWORD"),
-            'HOST': os.getenv("DATABASES_HOST"),
+            'HOST': {{ if .Values.postgres.host }}'{{ .Values.postgres.host }}'{{ else }}os.getenv("DATABASES_HOST"){{ end }},
             'PORT': os.getenv("DATABASES_PORT"),
         }
     }
@@ -127,6 +127,17 @@ data:
 
     SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
     SESSION_CACHE_ALIAS = "default"
+    
+    # Session cookie settings for cross-subdomain support
+    # Set this to your top-level domain to allow session cookies to work across all subdomains
+    SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", ".sefaria.org")  
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "true").lower() == "true"
+    SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
+    SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+    
+    CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "true").lower() == "true"
+    CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "false").lower() == "true"  # Must be False for CSRF tokens to work with JavaScript
+    CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
 

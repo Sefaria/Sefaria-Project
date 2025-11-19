@@ -10,9 +10,7 @@ import * as sheetsUtils from './sefaria/sheetsUtils'
 
 import {
     SheetMetaDataBox,
-    SheetAuthorStatement,
     SheetTitle,
-    CollectionStatement,
     InterfaceText,
     Autocompleter,
     ToolTipped,
@@ -22,6 +20,7 @@ import {ProfilePic} from "./ProfilePic";
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
+import {SheetOptions} from "./sheets/SheetOptions";
 
 // Mapping from Sheet doc format source types to Slate block element types
 const sheet_item_els = {
@@ -649,11 +648,10 @@ function transformSheetJsonToSlate(sheet) {
           children: [{text: ""}]
         })
     }
-
     let initValue = [
         {
             type: 'Sheet',
-            status: sheet.status,
+            status: status,
             views: sheet.views,
             tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
@@ -669,7 +667,7 @@ function transformSheetJsonToSlate(sheet) {
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
-            title: sheet.title,
+            title: sheetTitle,
             displayedCollection: sheet.displayedCollection || "",
             collectionName: sheet.collectionName || "",
             collectionImage: sheet.collectionImage || "",
@@ -841,6 +839,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false};
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const refHref = element.ref ? `/${Sefaria.normRef(element.ref)}` : null;
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
       parentEditor.dragging = true
@@ -908,7 +907,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
+          {element.heRef && refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -921,7 +920,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
+        {refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -1017,7 +1016,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         if (input === "") {
             return results;
         }
-        const d = await Sefaria.getName(input, 5, 'ref');
+        const d = await Sefaria.getName(input, 5, ['ref']);
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
@@ -1076,7 +1075,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 getSuggestions={getSuggestions}
                 inputValue={inputValue}
                 changeInputValue={setInputValue}
-                inputPlaceholder="Search for a Text or Commentator."
+                inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
                 showSuggestionsOnSelect={true}
@@ -1177,10 +1176,10 @@ const AddInterface = ({ attributes, children, element }) => {
     }
 
     return (
-      <div role="button" title={active ? "Close menu" : "Add a source, image, or other media"} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
+      <div role="button" title={active ? Sefaria._("Close menu") : Sefaria._("Add a source, image, or other media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
           {itemToAdd == null ? <>
-              <div role="button" title={Sefaria._("Add a source")} aria-label="Add a source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+              <div role="button" title={Sefaria._("Add source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+              <div role="button" title={Sefaria._("Add image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
                   <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div>
               <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
@@ -1258,7 +1257,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("User uploaded media")} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
@@ -1308,7 +1307,7 @@ const Element = (props) => {
             );
         case 'SheetContent':
             return (
-                <div className="text editorContent" {...attributes}>
+                <div className="editorContent" {...attributes}>
                     {children}
                 </div>
             );
@@ -1339,7 +1338,7 @@ const Element = (props) => {
 
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" title={"paragraph"} contentEditable suppressContentEditableWarning
+                <div role="button" ontentEditable suppressContentEditableWarning
                      aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
                      onClick={(event) => handleClick(event, editor)}
                 >
@@ -2434,7 +2433,7 @@ const Leaf = ({attributes, children, leaf}) => {
         children = <u>{children}</u>
     }
     if (leaf.big) {
-        children = <big>{children}</big>
+        children = <span className="big-text">{children}</span> // big-text is a replacement for the obsolete <big> tag that was used
     }
     if (leaf.small) {
         children = <small>{children}</small>
@@ -2679,7 +2678,7 @@ const EditorSaveStateIndicator = ({ state }) => {
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
         {<img src={stateToIcon[state]} alt={localize(state)} />}
-        <span className="saveStateMessage">{localize(stateToMessage[state])}</span>
+        <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
 }
@@ -2824,6 +2823,7 @@ const SefariaEditor = (props) => {
     const editorContentContainer = useRef();
     const editorTitleContainer = useRef();
     const [sheet, setSheet] = useState(props.data);
+    const [status, setStatus] = useState(sheet?.status || "unlisted");
     const initValue = [{type: "sheet", children: [{text: ""}]}];
     const renderElement = useCallback(props => <Element {...props}/>, []);
     const [value, setValue] = useState(initValue);
@@ -2849,6 +2849,9 @@ const SefariaEditor = (props) => {
       setConnectionLostPolling, setUserUnauthenticated, setUnknownErrorDetected
 });
 
+    const [summary, setSummary] = useState(sheet.summary || "");
+    const [title, setTitle] = useState(sheet.title || "");
+
 
     useEffect(
         () => {
@@ -2858,7 +2861,7 @@ const SefariaEditor = (props) => {
 
             setHasUnsavedChanges(true);
             // Update debounced value after delay
-            const handler = setTimeout(() => {
+            const handler = setTimeout( () => {
                 saveDocument(currentDocument);
             }, 500);
 
@@ -2869,7 +2872,7 @@ const SefariaEditor = (props) => {
                 clearTimeout(handler);
             };
         },
-        [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
+        [currentDocument[0].children[0], title, summary] // Only re-call effect if value or delay changes
     );
 
 
@@ -2960,60 +2963,8 @@ const SefariaEditor = (props) => {
 
 
   useEffect(() => {
-    if(!props.hasSidebar) {
-      editor.highlightedNode = null;
-    }
-  }, [props.hasSidebar]);
-
-
-  useEffect(() => {
-      let scrollTimeOutId = null;
-      const onScrollListener = () => {
-          clearTimeout(scrollTimeOutId);
-          scrollTimeOutId = setTimeout(
-              () => {
-                  if(props.hasSidebar) {
-                      onEditorSidebarToggleClick()
-                  }
-              }, 200
-          );
-      };
-
-      let clickTimeOutId = null;
-      const onClickListener = (e) => {
-        clearTimeout(clickTimeOutId);
-        clickTimeOutId = setTimeout(
-          () => {
-            if(props.hasSidebar) {
-            let sheetElementTypes = Object.values(sheet_item_els);
-              for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
-                  if (sheetElementTypes.includes(node[0].type)) {
-                      if (node[0].node != editor.highlightedNode) {
-                        updateSidebar(node[0].node, node[0].ref)
-                        if (node[0].type != "SheetSource") {
-                          Transforms.select(editor, editor.blurSelection);
-                          ReactEditor.focus(editor);
-                        }
-                      }
-                      break;
-                  }
-              }
-            }
-          }, 20);
-      };
-
-
-
-     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener);
-     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener);
-
-
-      return () => {
-          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener);
-          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener);
-      }
-    }, [props.highlightedNode, props.hasSidebar]
-  );
+    editor.highlightedNode = null;
+  }, []);
 
   useEffect(() => {
       if(canUseDOM) {
@@ -3029,7 +2980,6 @@ const SefariaEditor = (props) => {
   }, [canUseDOM])
 
     function saveSheetContent(doc, lastModified) {
-        const sheetTitle = editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title") ? editorContainer.current.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
         const docContent = doc.children.find(el => el.type == "SheetContent")
         if (!docContent) {
             return false
@@ -3124,15 +3074,15 @@ const SefariaEditor = (props) => {
 
         });
         let sheet = {
-            status: doc.status,
+            status: status,
             id: doc.id,
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
-            summary: doc.summary,
+            summary: summary,
             options: { ...doc.options, divineNames: props.divineNameReplacement },
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
-            title: sheetTitle === "" ? "Untitled" : sheetTitle,
+            title: title,
             sources: sources.filter(x => !!x),
             nextNode: doc.nextNode,
         };
@@ -3141,43 +3091,50 @@ const SefariaEditor = (props) => {
 
     }
 
-
-    function saveDocument(doc) {
-        // transition into saving state only if previous state is a valid "saved" state
+    function getLastModified() {
+      return Sefaria.sheets._loadSheetByID[props.data.id]?.dateModified || props.data.dateModified;
+    }
+    async function saveDocument(doc) {
         savingState === "saved" && setSavingState(sheetsUtils.editorSaveStates.SAVING)
+        const lastModified = getLastModified();
+        // transition into saving state only if previous state is a valid "saved" state
         const json = saveSheetContent(doc[0], lastModified);
         if (!json) {
             return
         }
         // console.log('saving...');
-
-        function handlePostError(jqXHR, textStatus, errorThrown) {
-            if (jqXHR.status === 0) {
-                console.warn("No network connection or request blocked.");
-                setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
-            } else if (jqXHR.status === 401) {
-                setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
-            } else {
-                console.warn("Unknown error:", textStatus, errorThrown);
-                setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
-            }
-        }
-        if(Sefaria.testUnkownNewEditorSaveError) {
+        if(Sefaria.testUnknownNewEditorSaveError) {
             console.log("Simulating unknown error");
             return;
         }
-
-        $.post("/api/sheets/", {"json": json}, res => {
-            setlastModified(res.dateModified);
-            // console.log("saved at: "+ res.dateModified);
-            setHasUnsavedChanges(false);
-            setSavingState(sheetsUtils.editorSaveStates.SAVED);
-
-            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
-            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
-        }).fail(handlePostError);
+        postSheet(json);
+    }
+    
+    function handlePostError(jqXHR, textStatus, errorThrown) {
+        if (jqXHR.status === 0) {
+            console.warn("No network connection or request blocked.");
+            setSavingState(sheetsUtils.editorSaveStates.CONNECTION_LOST);
+        } else if (jqXHR.status === 401) {
+            setSavingState(sheetsUtils.editorSaveStates.USER_UNAUTHENTICATED);
+        } else {
+            console.warn("Unknown error:", textStatus, errorThrown);
+            setSavingState(sheetsUtils.editorSaveStates.UNKNOWN_ERROR);
+        }
     }
 
+    function postSheet(json) {
+        $.post("/api/sheets/", {"json": json}, res => {
+            // console.log("saved at: "+ res.dateModified);
+            setHasUnsavedChanges(false);
+            setStatus(res.status);
+            setTitle(res.title);
+            setSummary(res.summary);
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[res.id], ...res};
+            Sefaria.sheets._loadSheetByID[res.id] = updatedSheet;
+            setSavingState(sheetsUtils.editorSaveStates.SAVED);
+        }).fail(handlePostError);
+    }
+    
     function onChange(value) {
         if (currentDocument !== value) {
             setCurrentDocument(value);
@@ -3315,101 +3272,58 @@ const SefariaEditor = (props) => {
         }, true)
     }
 
-    const updateSidebar = (sheetNode, sheetRef) => {
-      let source = {
-          'node': sheetNode,
-      };
-      if (!!sheetRef) {
-          source["ref"] = sheetRef
-      }
-      editor.highlightedNode = sheetNode
-      props.sheetSourceClick(source)
-
-    };
-
-    const onEditorSidebarToggleClick = event => {
-        const segmentToHighlight = getHighlightedByScrollPos()
-        if (!segmentToHighlight) {
-            updateSidebar(sheet.id, null)
-        }
-        else {
-            const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
-            const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-            updateSidebar(sheetNode, sheetRef)
-        }
-    };
-
-
     const editor = useMemo(
         () => withTables(withSefariaSheet(withLinks(withHistory(withReact(createEditor()))))),
         []
     );
-
-
+    const sheetOptions = <SheetOptions toggleSignUpModal={props.toggleSignUpModal}
+                                       sheetID={sheet.id}
+                                       postSheet={postSheet}
+                                       historyObject={props.historyObject}
+                                       editable={true}
+                                       authorUrl={sheet.ownerProfileUrl}
+                                       status={status}
+                                       handleCollectionsChange={props.handleCollectionsChange}
+                                       />;
     return (
-        <>
-            <div className="floatingEditorIcons">
-      {isMultiPanel && <EditorSaveStateIndicator state={savingState}/>}
-        <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
-            </div>
-      <div className="sheetContent">
-        <div ref={editorContainer} onClick={props.handleClick}>
-        {
-          /* debugger */
-
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: '100%', backgroundColor: '#ddd', fontSize: 12, zIndex: 9999, whiteSpace: 'pre', overflow: "scroll"}}>
-          // {JSON.stringify(editor.children[0,0], null, 4)}
-          // </div>
-
-        }
-        <SheetMetaDataBox>
-            <span ref={editorTitleContainer}>
-            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
-            </span>
-            <SheetAuthorStatement
-                authorUrl={sheet.ownerProfileUrl}
-                authorStatement={sheet.ownerName}
-            >
-              <ProfilePic
-                url={sheet.ownerImageUrl}
-                len={30}
-                name={sheet.ownerName}
-                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-              />
-              <a href={sheet.ownerProfileUrl}>
-                <InterfaceText>{sheet.ownerName}</InterfaceText>
-              </a>
-            </SheetAuthorStatement>
-            <CollectionStatement
-                name={sheet.collectionName}
-                slug={sheet.displayedCollection}
-                image={sheet.collectionImage}
-            />
-        </SheetMetaDataBox>
-            <span  ref={editorContentContainer}>
-            {canUseDOM ?
-            <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-                <HoverMenu buttons="all"/>
-                <Editable
-                  renderLeaf={props => <Leaf {...props} />}
-                  renderElement={renderElement}
-                  spellCheck
-                  onKeyDown={onKeyDown}
-                  onCut={onCutorCopy}
-                  onDragOver={onDragCheck}
-                  onDragEnter={onDragCheck}
-                  onDragEnd={onDragEnd}
-                  onCopy={onCutorCopy}
-                  onBlur={onBlur}
-                  onDOMBeforeInput={beforeInput}
-                  autoFocus
-                />
-            </Slate> : null }
-            </span>
+          <div ref={editorContainer} onClick={props.handleClick} className="text">
+              <span ref={editorTitleContainer}> 
+              <SheetMetaDataBox authorStatement={sheet.ownerName}
+                            authorUrl={sheet.ownerProfileUrl}
+                            authorImage={sheet.ownerImageUrl}
+                            title={title}
+                            summary={summary}
+                            editable={true}
+                            titleCallback={(newTitle) => setTitle(newTitle)}
+                            summaryCallback={(newSummary) => setSummary(newSummary)}
+                            sheetOptions={sheetOptions}
+                            showGuide={props.showGuide}/>
+              </span>
+          <span  ref={editorContentContainer}>
+            {canUseDOM &&
+              <div style={props.style}>
+                <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+                  <HoverMenu buttons="all"/>
+                  <Editable
+                    renderLeaf={props => <Leaf {...props} />}
+                    renderElement={renderElement}
+                    spellCheck
+                    onKeyDown={onKeyDown}
+                    onCut={onCutorCopy}
+                    onDragOver={onDragCheck}
+                    onDragEnter={onDragCheck}
+                    onDragEnd={onDragEnd}
+                    onCopy={onCutorCopy}
+                    onBlur={onBlur}
+                    onDOMBeforeInput={beforeInput}
+                    autoFocus
+                  />
+               </Slate>
+              </div>
+            }
+          </span>
         </div>
-      </div>
-            </>
     )
 };
 
-export default SefariaEditor;
+export { SefariaEditor, EditorSaveStateIndicator };

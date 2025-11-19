@@ -5,7 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
-import Footer from './Footer';
 import {TopicEditor} from './TopicEditor';
 import {AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
@@ -29,6 +28,8 @@ import {
     LangSelectInterface,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import { TopicTOCCard } from "./common/TopicTOCCard";
+
 
 
 /*
@@ -56,16 +57,25 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
   });
 
 
-const fetchBulkSheet = inSheets =>
-    Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
+const fetchBulkSheet = inSheets => {
+  const refs = inSheets.map(x => {
+    if (isNaN(x.ref)) {
+      x.ref = parseInt(x.ref.replace('Sheet ', ''));  // bulk sheets API expects just numbers so we need to remove the "Sheet " string
+      return x.ref;
+    }
+    else {
+      return x.ref;
+    }
+  });
+  return Sefaria.getBulkSheets(refs).then(outSheets => {
     for (let tempSheet of inSheets) {
       if (outSheets[tempSheet.ref]) {
         outSheets[tempSheet.ref].order = tempSheet.order;
       }
     }
     return Object.values(outSheets);
-  }
-);
+  });
+}
 
 
 const refFilter = (currFilter, ref) => {
@@ -81,7 +91,7 @@ const refFilter = (currFilter, ref) => {
 const sheetFilter = (currFilter, sheet) => {
   const n = text => !!text ? text.toLowerCase() : '';
   currFilter = n(currFilter);
-  for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
+  for (let field of ['sheet_title', 'sheet_summary', 'publisher_name', 'publisher_position', 'publisher_organization']) {
     if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
   }
 };
@@ -170,7 +180,7 @@ const _extractAnalyticsDataFromRef = ref => {
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref, isAdmin, displayDescription, hideLanguageMissingSources) => (item, index) => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
-  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+  const langKey = Sefaria._getShortInterfaceLang();
   let dataSourceText = '';
 
   if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
@@ -212,10 +222,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 *** Components
 */
 
-
-
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
-  openSearch}) => {
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -227,39 +234,11 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         setSubtopics(Sefaria.topicTocPage(topic));
     }, [topic]);
 
-
     let topicBlocks = subtopics
-      .filter(t => t.shouldDisplay !== false)
+      .filter(Sefaria.shouldDisplayInActiveModule)
       .sort(Sefaria.sortTopicsCompareFn)
-      .map((t,i) => {
-        const { slug, children, description} = t;
-        const openTopic = e => {
-          e.preventDefault();
-          t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
-        };
-        let {en, he} = t;
-        en = en.replace(/^Parashat /, "");
-        he = he.replace(/^פרשת /, "");
-        return (
-            <div className="navBlock">
-              <a href={`/topics/${children ? 'category/' : ''}${slug}`}
-                 data-anl-event="navto_topic:click"
-                 data-anl-link_type={children ? "category" : "topic"}
-                 data-anl-text={en}
-                 className="navBlockTitle"
-                 onClick={openTopic}
-                 key={i}>
-                <InterfaceText text={{en, he}} />
-              </a>
-              {description ?
-              <div className="navBlockDescription clamped">
-                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['p', 'a']}/>
-              </div>
-              : null }
-            </div>
-        );
-      });
-
+      .map((topic, i) => <TopicTOCCard topic={topic} setTopic={setTopic} setNavTopic={setNavTopic} key={i}/>);
+      
     let sidebarModules = [
       {type: "AboutTopics"},
       {type: "Promo"},
@@ -284,13 +263,10 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
-                      <div className="readerNavCategories">
-                        <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
-                      </div>
+                    <div className="TOCCardsWrapper table">{topicBlocks}</div>
                   </div>
                   <NavSidebar sidebarModules={sidebarModules} />
                 </div>
-                <Footer />
             </div>
         </div>
     );
@@ -302,6 +278,26 @@ const TopicSponsorship = ({topic_slug}) => {
         "parashat-bereshit": {
             "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
             "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
+        },
+        "parashat-lech-lecha": {
+            "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
+            "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
+        },
+        "parashat-toldot" : {
+            "en": "Dedicated by Nancy (née Ackerman) and Alex Warshofsky in gratitude for Jewish learning as their daughter, Avigayil, is called to the Torah as a bat mitzvah, and in loving memory of Freydl Gitl who paved the way in her Jewish life.",
+            "he": "מוקדש על-ידי ננסי (שם נעורים: אקרמן) ואלכס ורשופסקי בתודה על לימודי היהדות, לציון עלייתה של בתם אביגיל לתורה לרגל בת המצווה שלה ולזכרה האהוב של פריידי גיטל שסללה את הדרך בחייה היהודיים."
+        },
+        "parashat-vayigash": {
+            "en": "Dedicated by Linda and Leib Koyfman in memory of Dr. Douglas Rosenman, z\"l, beloved father of Hilary Koyfman, and father-in-law of Mo Koyfman.",
+            "he": "נתרם על-ידי לינדה ולייב קויפמן לזכר ד\"ר דאגלס רוזנמן ז\"ל, אביה האהוב של הילארי קויפמן וחותנו של מו קויפמן"
+        },
+        "parashat-achrei-mot": {
+            "en": "Dedicated by Kevin Waldman in loving memory of his grandparents, Rose and Morris Waldman, who helped nurture his commitment to Jewish life.",
+            "he": "מוקדש על-ידי קווין ולדמן לזכרם האהוב של סביו, רוז ומוריס ולדמן, שעזרו לטפח את מחויבותו לחיים יהודיים."
+        },
+        "parashat-vaetchanan": {
+            "en": "Shabbat Nachamu learning is dedicated in memory of Jerome L. Stern, Yehuda Leib ben David Shmuel, z\"l.",
+            "he": "הלימוד לשבת נחמו מוקדש לזכרו של ג'רום ל. שטרן, יהודה לייב בן דוד שמואל ז\"ל."
         },
         "parashat-vzot-haberachah": {
             "en": "Parashat VeZot HaBerakhah is dedicated to the victims of the October 7th, 2023, terrorist attack in Israel.",
@@ -326,19 +322,19 @@ const isLinkReviewed= (lang, link) => link.descriptions?.[lang]?.review_state !=
 const doesLinkHaveAiContent = (lang, link) => link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link);
 
 const getLinksWithAiContent = (refTopicLinks = []) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     return refTopicLinks.filter(link => doesLinkHaveAiContent(lang, link));
 };
 
 const getLinksToGenerate = (refTopicLinks = []) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     return refTopicLinks.filter(link => {
         return link.descriptions?.[lang]?.ai_context?.length > 0  &&
             !link.descriptions?.[lang]?.prompt;
     });
 };
 const getLinksToPublish = (refTopicLinks = []) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     return refTopicLinks.filter(link => {
         return !isLinkPublished(lang, link) && isLinkReviewed(lang, link);
     });
@@ -359,7 +355,7 @@ const generatePrompts = async(topicSlug, linksToGenerate) => {
 };
 
 const publishPrompts = async (topicSlug, linksToPublish) => {
-    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    const lang = Sefaria._getShortInterfaceLang();
     linksToPublish.forEach(ref => {
         ref['toTopic'] = topicSlug;
         ref.descriptions[lang]["published"] = true;
@@ -397,7 +393,6 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
   const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
 
-
 return (
     <div>
         <div className="navTitle tight">
@@ -406,7 +401,7 @@ return (
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
-            {hasAiContentLinks &&
+            {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && 
                 <AiInfoTooltip/>
             }
         </div>
@@ -423,28 +418,28 @@ return (
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}}/>
+              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}} disallowedMarkdownElements={['p']}/>
             </div>
        : null}
        {tpTopImg}
-       {topicData && topicData.ref ?
+       {topicData && topicData.ref &&
            <div>
-               <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
-                   <img src="/static/icons/book-icon-black.svg" alt="Book Icon"/>
+               <a href={`/${topicData.ref.url}`} data-target-module={Sefaria.LIBRARY_MODULE} className="resourcesLink button blue">
+                   <img src="/static/icons/book-icon-black.svg" alt={Sefaria._("book icon")}/>
                    <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
                    <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
                </a>
                {Sefaria.interfaceLang === "english" &&
                <a className="resourcesLink button blue studyCompanion"
                   href="https://learn.sefaria.org/weekly-parashah/"
+                  target="_blank"
                   data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
                   data-anl-promotion_name="Parashah Email Signup - Parashah Page"
                >
-                  <img src="/static/icons/email-newsletter.svg" alt="Sign up for our weekly parashah study companion"/>
+                  <img src="/static/icons/email-newsletter.svg" alt={Sefaria._("Sign up for our weekly parashah study companion")}/>
                   <InterfaceText>Get the Free Study Companion</InterfaceText>
                </a>}
-           </div>
-           : null}
+           </div>}
     </div>
 );
 }
@@ -454,7 +449,7 @@ const AuthorIndexItem = ({
 }) => {
     return (
         <div className="authorIndex">
-            <a href={url} className="navBlockTitle">
+            <a href={url} data-target-module={Sefaria.LIBRARY_MODULE} className="navBlockTitle">
                 <InterfaceText text={title} defaultToInterfaceOnBilingual/>
             </a>
             <div className="navBlockDescription">
@@ -465,8 +460,9 @@ const AuthorIndexItem = ({
 };
 
 
-const useTabDisplayData = (translationLanguagePreference) => {
-  const getTabDisplayData = useCallback(() => [
+const useAllPossibleSourceTabs = (translationLanguagePreference) => {
+  // all possible tabs that display sources in a topic page
+  const getSourceTabData = useCallback(() => [
     {
       key: 'popular-writing-of',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
@@ -508,7 +504,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: sheetRenderWrapper,
     }
   ], [translationLanguagePreference]);
-  return getTabDisplayData();
+  return getSourceTabData();
 };
 
 const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
@@ -544,24 +540,20 @@ const getTopicPageAnalyticsData = (slug, langPref) => {
 };
 
 const TopicPage = ({
-  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, navHome,
+  tab, topic, topicTitle, setTopic, setNavTopic, multiPanel,
   toggleSignUpModal, setTab, openSearch, translationLanguagePreference, versionPref,
   topicTestVersion, onSetTopicSort, topicSort
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
-    const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
-    const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
-    const [langPref, setLangPref] = useState(Sefaria.interfaceLang);
-    const [showFilterHeader, setShowFilterHeader] = useState(false);
-    const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
     const [portal, setPortal] = useState(null);
-    const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
-    const topicImage = topicData.image;
-
+    const [langPref, setLangPref] = useState(Sefaria.interfaceLang);
     const scrollableElement = useRef();
+
+    const topicImage = topicData.image;
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
+    const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
 
     // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
@@ -570,103 +562,14 @@ const TopicPage = ({
         const d = await Sefaria.getTopic(topic, {with_html: true});
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
-        // Data remaining to fetch that was not already in the cache
-        for (let [tabKey, tabObj] of Object.entries(d.tabs)) {
-          const refsWithoutData = tabObj.loadedData ? tabObj.refs.slice(tabObj.loadedData.length) : tabObj.refs;
-          if (refsWithoutData.length)  {
-            setRefsToFetchByTab(prev => ({...prev, [tabKey]: refsWithoutData}));
-          } else {
-            setLoadedData(prev => ({...prev, [tabKey]: tabObj.loadedData}));
-          }
-        }
       })());
       promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {
         cancel();
         setTopicData(false);
-        setLoadedData({});
-        setRefsToFetchByTab({});
       }
     }, [topic]);
 
-    useEffect( ()=> {
-    // hack to redirect to temporary sheet content on topics page for those topics that only have sheet content.
-    if (!Sefaria.is_moderator && !topicData.isLoading && Object.keys(topicData.tabs).length == 0 && topicData.subclass != "author"){
-        const interfaceIsHe = Sefaria.interfaceLang === "hebrew";
-        const interfaceLang = interfaceIsHe ? 'he' : 'en';
-        const coInterfaceLang = interfaceIsHe ? 'en' : 'he';
-        const topicPathLang = topicTitle[interfaceLang] ? interfaceLang : coInterfaceLang
-        const topicPath = topicTitle[topicPathLang]
-        const redirectUrl = `${document.location.origin}/search?q=${topicPath}&tab=sheet&tvar=1&tsort=relevance&stopics_${topicPathLang}Filters=${topicPath}&svar=1&ssort=relevance`
-        window.location.replace(redirectUrl);
-      }
-    },[topicData])
-
-    // Set up tabs and register incremental load hooks
-    const displayTabs = [];
-    let onClickFilterIndex = 3;
-    let onClickLangToggleIndex = 2;
-    let authorWorksAdded = false;
-
-    for (let tabObj of tabDisplayData) {
-      const { key } = tabObj;
-      useIncrementalLoad(
-        tabObj.fetcher,
-        refsToFetchByTab[key] || false,
-        Sefaria._topicPageSize,
-        data => setLoadedData(prev => {
-          const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
-          if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
-          return {...prev, [key]: updatedData};
-        }),
-        topic
-      );
-
-
-      if (topicData?.indexes?.length && !authorWorksAdded) {
-        displayTabs.push({
-          title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
-          id: 'author-works-on-sefaria',
-        });
-        authorWorksAdded = true
-      }
-
-      if (topicData?.tabs?.[key]) {
-        displayTabs.push({
-          title: topicData.tabs[key].title,
-          id: key,
-        });
-      }
-    }
-    if (displayTabs.length && tab!="notable-sources" && tab!="author-works-on-sefaria") {
-      displayTabs.push({
-        title: {
-          en: "",
-          he: ""
-        },
-        id: 'filter',
-        icon: `/static/icons/filter.svg`,
-        justifyright: true
-      });
-      onClickFilterIndex = displayTabs.length - 1;
-    }
-
-    if (displayTabs.length && tab!="author-works-on-sefaria") {
-      displayTabs.push({
-        title: {
-          en: "A",
-          he: Sefaria._("A")
-        },
-        id: 'langToggle',
-        popover: true,
-        justifyright: tab==="notable-sources"
-      });
-      onClickLangToggleIndex = displayTabs.length - 1;
-    }
-
-
-
-    const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     let sidebar = null;
     if (topicData) {
         if (topicData.portal_slug) {
@@ -677,10 +580,10 @@ const TopicPage = ({
         } else {
            sidebar = (
                <div className="sideColumn" data-anl-panel_type="topics" data-anl-panel_number={0}>
-                    <TopicSideColumn
+                    {!topicData.isLoading && <TopicSideColumn
                         key={topic}
                         slug={topic}
-                        links={topicData.links}
+                        linksByType={topicData.links}
                         clearAndSetTopic={clearAndSetTopic}
                         setNavTopic={setNavTopic}
                         parashaData={parashaData}
@@ -690,33 +593,12 @@ const TopicPage = ({
                         topicTitle={topicTitle}
                         multiPanel={multiPanel}
                         topicImage={topicImage}
-                    />
+                    />}
                     {!topicData.isLoading && <Promotions/>}
                 </div>
             );
         }
     }
-
-    const handleLangSelectInterfaceChange = (selection) => {
-      if (selection === "source") {setLangPref("hebrew")}
-      else if (selection === "translation") {setLangPref("english")}
-      else setLangPref("bilingual");
-    }
-
-    const getCurrentLang = () => {
-      if (langPref === "hebrew") {return "source"}
-      else if (langPref === "english") {return "translation"}
-      else {return "sourcewtrans"}
-    }
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.target.click();
-      }
-    }
-
-    const currentLang = getCurrentLang()
 
     return (
         <div
@@ -727,63 +609,14 @@ const TopicPage = ({
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} topicImage={topicImage} />
-                    {(!topicData.isLoading && displayTabs.length) ?
-                       <TabView
-                          currTabName={tab}
-                          setTab={setTab}
-                          tabs={displayTabs}
-                          renderTab={t => (
-                            <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
-                              <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
-                              { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
-                              {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
-                            </div>
-                          )}
-                          containerClasses={"largeTabs"}
-                          onClickArray={{
-                            [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
-                            [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
-                          }}
-                        >
-
-                        {topicData?.indexes?.length ? (
-                          <div className="authorIndexList">
-                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
-                          </div>
-                          ) : null }
-
-                          {
-                            tabDisplayData.map(tabObj => {
-                              const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
-                              const displayTab = displayTabs.find(x => x.id === key);
-                              if (!displayTab) { return null; }
-                              return (
-                                <TopicPageTab
-                                  key={key}
-                                  scrollableElement={scrollableElement}
-                                  showFilterHeader={showFilterHeader}
-                                  data={loadedData[key]}
-                                  sortOptions={sortOptions}
-                                  filterFunc={filterFunc}
-                                  sortFunc={sortFunc}
-                                  onDisplayedDataChange={data => {
-                                    if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
-                                    topicData._refsDisplayedByTab[key] = data.length;
-                                  }}
-                                  initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
-                                  onSetTopicSort={onSetTopicSort}
-                                  topicSort={topicSort}
-                                />
-                              );
-                            })
-                          }
-                        </TabView>
-                    : (topicData.isLoading ? <LoadingMessage /> : null) }
+                    <TopicPageTabView topic={topic} topicData={topicData} tab={tab} setTab={setTab} versionPref={versionPref}
+                                      scrollableElement={scrollableElement} translationLanguagePreference={translationLanguagePreference}
+                                      onSetTopicSort={onSetTopicSort} topicSort={topicSort} langPref={langPref} setLangPref={setLangPref}
+                                      toggleSignUpModal={toggleSignUpModal} topicTestVersion={topicTestVersion}
+                    />
                 </div>
                 {sidebar}
             </div>
-            <Footer />
           </div>
         </div>
     );
@@ -801,6 +634,199 @@ TopicPage.propTypes = {
   topicTestVersion:    PropTypes.string
 };
 
+const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePreference, versionPref,
+                            scrollableElement, langPref, setLangPref, toggleSignUpModal, topicTestVersion,
+                            onSetTopicSort, topicSort}) => {
+    /*
+    This component is a wrapper for the `TabView` component.  The core logic of this component is in `setupTabsWithSources`.
+    `setupTabsWithSources`, based on the `tabs` property in `topicData`, sets up the tabs to display and incrementally 
+    loads the data for each tab as the user scrolls down. 
+    `setupAdditionalTabs` sets up additional tabs that are not related to sources, such as filter and language toggle.
+     */
+    const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
+    const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
+    const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
+    const allPossibleTabsWithSources = useAllPossibleSourceTabs(translationLanguagePreference);
+    const [showFilterHeader, setShowFilterHeader] = useState(false);
+
+    const getCurrentLang = (langPref) => {
+      if (langPref === "hebrew") {return "source"}
+      else if (langPref === "english") {return "translation"}
+      else {return "sourcewtrans"}
+    }
+    const currentLang = getCurrentLang(langPref);
+
+    const generateDisplayTabs = (tabMetaDataList) => {
+      let displayTabs = [];
+      tabMetaDataList.forEach(tabObj => {
+        // 2 elements of the tab metadata list are filter and language buttons.  These need to be passed to "TabView" as 'tabs',
+        // but really, they aren't going to be displayed to users as tabs.  The 'displayTabs' list is the actual components
+        // that are displayed as tabs to the user.
+        const { id, sortOptions, filterFunc, sortFunc, renderWrapper, hasSources } = tabObj;
+        if (hasSources) {
+          displayTabs.push(
+            <TopicPageTab
+              key={id}
+              scrollableElement={scrollableElement}
+              showFilterHeader={showFilterHeader}
+              data={loadedData[id]}
+              sortOptions={sortOptions}
+              filterFunc={filterFunc}
+              sortFunc={sortFunc}
+              onDisplayedDataChange={data => onDisplayDataChange(data, topicData, id)}
+              initialRenderSize={topicData._refsDisplayedByTab?.[id] || 0}
+              renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
+              onSetTopicSort={onSetTopicSort}
+              topicSort={topicSort}
+            />
+          );
+        } else if (id === 'author-works-on-sefaria') {
+          displayTabs.push(
+            <div key={id} className="authorIndexList">
+              {topicData.indexes.map(({url, title, description}) => 
+              <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
+            </div>
+          );
+        }
+      });
+      return displayTabs;
+    };
+
+    useEffect(() => {
+        for (let [tabKey, tabObj] of Object.entries(topicData.tabs)) {
+          const refsWithoutData = tabObj.loadedData ? tabObj.refs.slice(tabObj.loadedData.length) : tabObj.refs;
+          if (refsWithoutData.length)  {
+            setRefsToFetchByTab(prev => ({...prev, [tabKey]: refsWithoutData}));
+          } else {
+            setLoadedData(prev => ({...prev, [tabKey]: tabObj.loadedData}));
+          }
+        }
+      return () => {
+        setLoadedData({});
+        setRefsToFetchByTab({});
+      }
+    }, [!!topicData.isLoading]);
+
+    const setupTabsWithSources = () => {
+      // Set up tabs to display for the given 'topic' page based on all possible tabs with sources (see 'useAllPossibleSourceTabs' where each of the tabs with sources is defined).
+      // We register incremental load hooks per tab to load the data for each tab based on scroll position.
+      const onIncrementalLoad = (data, key) => setLoadedData(prev => {
+        const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
+        if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
+        return {...prev, [key]: updatedData};
+      });
+      let tabs = [];
+      for (let tabObj of allPossibleTabsWithSources) {
+        const {key, sortOptions, filterFunc, sortFunc, renderWrapper} = tabObj;
+        useIncrementalLoad(
+          tabObj.fetcher,
+          refsToFetchByTab[key] || false,
+          Sefaria._topicPageSize,
+          data => onIncrementalLoad(data, key),
+          topic
+        );
+        if (topicData?.tabs?.[key]) {
+          tabs.push({
+            title: topicData.tabs[key].title,
+            id: key,
+            sortOptions,
+            filterFunc,
+            sortFunc,
+            renderWrapper,
+            hasSources: true,
+          });
+
+        }
+      }
+      return tabs;
+    }
+
+    const setupAdditionalTabs = (tabs) => {
+      // Setup additional tabs that are not related to sources: such as filter, language toggle, and author works on Sefaria (this last one is only relevant if we're in the library module and the topic is an author)
+      // Finally, return 'onClickFilterIndex' and 'onClickLangToggleIndex' to be used by 'TabView' component so that it knows which tab in 'tabs'
+      // corresponds to the filter and lang toggle
+      let onClickFilterIndex = 3;  // filter tab defaults to the 4th tab
+      let onClickLangToggleIndex = 2; // lang toggle tab defaults to the 3rd tab
+      const indexes = topicData?.indexes;
+
+      // Only add author works tab if in library module and has indexes
+      if (indexes?.length && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
+        tabs.unshift({
+          title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
+          id: 'author-works-on-sefaria',
+        });
+      }
+      if (tabs.length && tab !== "notable-sources" && tab !== "author-works-on-sefaria") {
+        tabs.push({
+          title: {
+            en: "",
+            he: ""
+          },
+          id: 'filter',
+          icon: `/static/icons/filter.svg`,
+          justifyright: true
+        });
+        onClickFilterIndex = tabs.length - 1;
+      }
+
+      if (tabs.length && tab !== "author-works-on-sefaria" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
+        tabs.push({
+          title: {
+            en: "A",
+            he: Sefaria._("A")
+          },
+          id: 'langToggle',
+          popover: true,
+          justifyright: tab === "notable-sources"
+        });
+        onClickLangToggleIndex = tabs.length - 1;
+      }
+      return [onClickLangToggleIndex, onClickFilterIndex];
+    }
+
+    const handleLangSelectInterfaceChange = (selection, setLangPref) => {
+      if (selection === "source") {setLangPref("hebrew")}
+      else if (selection === "translation") {setLangPref("english")}
+      else setLangPref("bilingual");
+    }
+
+    const onDisplayDataChange = (data, topicData, key) => {
+      if (!topicData._refsDisplayedByTab) { topicData._refsDisplayedByTab = {}; }
+      topicData._refsDisplayedByTab[key] = data.length;
+    }
+
+    let tabMetaDataList = setupTabsWithSources();
+    let [onClickLangToggleIndex, onClickFilterIndex] = setupAdditionalTabs(tabMetaDataList);    
+    let displayTabs = generateDisplayTabs(tabMetaDataList);
+
+    const topicTabView = <TabView
+                                  currTabName={tab}
+                                  setTab={setTab}
+                                  tabs={tabMetaDataList}
+                                  renderTab={t => (
+                                    <div className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                                      <div data-anl-event={t.popover && "lang_toggle_click:click"}><InterfaceText text={t.title} /></div>
+                                      { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} data-anl-event="filter:click" data-anl-text={topicSort}/> : null }
+                                      {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result, setLangPref)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}
+                                    </div>
+                                  )}
+                                  containerClasses={"largeTabs"}
+                                  onClickArray={{
+                                    [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
+                                    [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
+                                  }}>
+                          {displayTabs}
+                        </TabView>;
+
+    if (topicData.isLoading) {
+      return <LoadingMessage />;
+    }
+    else if (tabMetaDataList.length === 0) {
+      return null;
+    }
+    
+    return topicTabView; 
+}
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
@@ -840,128 +866,145 @@ const TopicPageTab = ({
 }
 
 
-const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
-    <div data-anl-event="related_click:click" data-anl-batch={
-        JSON.stringify({
-            text: topicTitle.en,
-            feature_name: "related topic",
-        })
-    }>
-        <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
-              onClick={onClick.bind(null, topic, topicTitle)} key={topic}
-              title={topicTitle.en}
-        >
-            <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
-        </Link>
-    </div>
-);
+const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory, module}) => {
+  const href = `/topics/${isCategory ? 'category/' : ''}${topic}`;
+  return <div data-anl-event="related_click:click" data-anl-batch={
+    JSON.stringify({
+      text: topicTitle.en,
+      feature_name: "related topic",
+    })
+  }>
+    <Link className="relatedTopic" 
+          href={href}
+          onClick={onClick.bind(null, topic, topicTitle)} 
+          key={topic}
+          title={topicTitle.en}
+          module={module}>
+      <InterfaceText text={{en: topicTitle.en, he: topicTitle.he}}/>
+    </Link>
+  </div>
+}
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   isTransliteration: PropTypes.object,
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
-  const category = Sefaria.displayTopicTocCategory(slug);
-  const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
-  if (linkTypeArray.length === 0) {
-    linkTypeArray.push({
-      title: {
-        en: !category ? 'Explore Topics' : category.en,
-        he: !category ?  'נושאים כלליים' : category.he,
-      },
-      links: Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
-        topic: slug,
-        title: {en, he},
-        isCategory: !category,
-      })),
-    })
+const preprocessLinksByType = (linksByType, slug) => {
+  // Helper function for TopicSideColumn component.
+  // Each group of links in the sidebar corresponds to a link type.  `linksByType` is an object with the following structure:
+  // {
+  //   linkType1: {
+  //     title: {en: "Link Type 1", he: "סוג קישור 1"},
+  //     pluralTitle: {en: "Link Types 1", he: "סוגי קישורים 1"},
+  //     links: [link1, link2, ...],
+  //     shouldDisplay: boolean,
+  //   },
+  // This function preprocesses the links to be displayed in the sidebar so that the group of links is only displayed
+  // if the link type is supposed to be displayed in the active module and if there are any links to display.
+  // Moreover, it preprocesses the links themselves so that they are sorted and filtered according to the active module
+  // and the title is pluralized if there are multiple links.
+  // If there are no links to display, the sidebar should show the category's subtopics in the sidebar (the subtopics can be derived from the topic TOC).
+  // Finally, it sorts the link types by alphabetical order and shows the link type "Related" first.
+
+  const preprocessLinks = (links) => {
+    return links.filter(Sefaria.shouldDisplayInActiveModule).slice().sort((a, b) => {
+      const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
+      if (!!a.title[shortLang] !== !!b.title[shortLang]) {
+        return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
+      }
+      if (!a.order && !b.order) { return 0; }
+      if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+      return b.order?.tfidf - a.order?.tfidf;
+    });
   }
+
+  const getPluralizedTitle = (title, pluralTitle, links) => {
+    if (links.length > 1 && pluralTitle) {
+      return { en: pluralTitle.en, he: pluralTitle.he };
+    }
+    return title;
+  }
+
+  let arr = [];
+  arr = Object.values(linksByType)
+      .filter(type => !!type?.shouldDisplay && type.links.some(Sefaria.shouldDisplayInActiveModule))
+      .map(type => {
+        const links = preprocessLinks(type.links)
+        const pluralTitle = getPluralizedTitle(type.title, type.pluralTitle, links);
+        return {
+          title: type.title,
+          pluralTitle: pluralTitle,
+          links: links
+        }
+      });
+
+  if (arr.length === 0) {  
+    // if no links, show this category's subtopics in the sidebar (the subtopics can be derived from the topic TOC)
+    const category = Sefaria.displayTopicTocCategory(slug);
+    let defaultLinks = Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
+      topic: slug,
+      title: {en, he},
+      isCategory: !category,
+    }));
+    defaultLinks = preprocessLinks(defaultLinks);
+    const title = {
+      en: !category ? 'Explore Topics' : category.en,
+      he: !category ?  'נושאים כלליים' : category.he,
+    };
+    arr.push({
+      title: title,
+      links: preprocessLinks(defaultLinks),
+      pluralTitle: title
+    });
+  }
+
+  arr = arr.slice().sort((a, b) => { // show Related links first, then show by alphabetical order
+    const aInd = a.title.en.indexOf('Related');
+    const bInd = b.title.en.indexOf('Related');
+    if (aInd > -1 && bInd > -1) { return 0; }
+    if (aInd > -1) { return -1; }
+    if (bInd > -1) { return 1; }
+    return a.title.en.localeCompare(b.title.en);
+  });
+
+  return arr;
+}
+
+const TopicSideColumn = ({ slug, linksByType, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
   const hasReadings = parashaData && (!Array.isArray(parashaData) || parashaData.length > 0) && tref;
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>;
-  const linksComponent = (
-    links ?
-        linkTypeArray.sort((a, b) => {
-        const aInd = a.title.en.indexOf('Related');
-        const bInd = b.title.en.indexOf('Related');
-        if (aInd > -1 && bInd > -1) { return 0; }
-        if (aInd > -1) { return -1; }
-        if (bInd > -1) { return 1; }
-        //alphabetical by en just to keep order consistent
-        return a.title.en.localeCompare(b.title.en);
-      })
-      .map(({ title, pluralTitle, links }) => {
-        const linksToDisplay = links.filter(l => l.shouldDisplay !== false);
-        const hasPlural = linksToDisplay.length > 1 && pluralTitle;
-        const pluralizedTitle = {
-          en: hasPlural ? pluralTitle.en : title.en,
-          he: hasPlural ? pluralTitle.he : title.he,
-        };
-        const hasMore = linksToDisplay.length > 10;
-        return (
-          <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
-            {
-              linksToDisplay
-              .sort((a, b) => {
-                const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
-                if (!!a.title[shortLang] !== !!b.title[shortLang]) {
-                  return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
-                }
-                if (!a.order && !b.order) { return 0; }
-                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                return b.order.tfidf - a.order.tfidf;
-              })
-              .map(l =>
-                  (<TopicLink
-                      key={l.topic}
-                      topic={l.topic} topicTitle={l.title}
-                      onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
-                      isTransliteration={l.titleIsTransliteration}
-                      isCategory={l.isCategory}
-                  />)
-              )
-            }
-          </TopicSideSection>
-        );
-      })
-    : null
-  );
-
-
-  const LinkToSheetsSearchComponent = () => {
-    if (!topicTitle?.en || !topicTitle?.he) {
-      // If topicTitle is not set, we cannot generate the search URLs
-      console.warn("Topic title is not set, cannot generate search URLs for sheets.");
-      return null;
-    }
-    let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
-    let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
-      return (
-        <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
-          <InterfaceText>
-            <EnglishText>
-              <a href={searchUrlEn}>Related Sheets</a>
-            </EnglishText>
-            <HebrewText>
-              <a href={searchUrlHe}>דפי מקורות קשורים</a>
-            </HebrewText>
-          </InterfaceText>
-        </TopicSideSection>
-      );
-    };
-
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>; 
+  const linksByTypeArray = preprocessLinksByType(linksByType, slug);
+  const linksComponent = linksByTypeArray.map(({ title, pluralTitle, links }) => {
+    const hasMore = links.length > 10;
+    return (
+      <TopicSideSection key={title.en+title.he} title={pluralTitle} hasMore={hasMore}>
+        {
+          links.map(l => (
+            <TopicLink
+              key={l.topic}
+              topic={l.topic} topicTitle={l.title}
+              onClick={l.isCategory ? setNavTopic : clearAndSetTopic}
+              isTransliteration={l.titleIsTransliteration}
+              isCategory={l.isCategory}
+              module={Sefaria.activeModule}
+            />
+          ))
+        }
+      </TopicSideSection>
+    );
+  });
 
   return (
     <div className={"topicSideColumn"}>
       { topicMetaData }
       { readingsComponent }
       { linksComponent }
-      <LinkToSheetsSearchComponent/>
     </div>
-  )
+  );
 }
 TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
@@ -1023,8 +1066,8 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     <div className="parasha">
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+            <a href={'/' + tref.url} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
         {
@@ -1033,7 +1076,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
                let sectionStr = sectionNum <= 7 ? sectionNum : 'M';
                let heSectionStr = sectionNum <= 7 ? Sefaria.hebrew.encodeHebrewNumeral(sectionNum) : 'מ';
                return (
-                  <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
+                  <a className="sectionLink" data-target-module={Sefaria.LIBRARY_MODULE} href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
                     <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
                   </a>
                 );
@@ -1048,8 +1091,8 @@ const ReadingsComponent = ({ parashaData, tref }) => (
             {
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
-                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-                    <a href={'/' + h.url} className="contentText" key={h.url}>
+                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+                    <a href={'/' + h.url} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
                 </div>
