@@ -49,8 +49,17 @@ class SearchSheetResult extends Component {
         const dateString = this.formatDate(this.props.metadata.dateCreated);
         return (
             <div className='result sheetResult'>
+                <a href={href} onClick={this.handleSheetClick} data-target-module={Sefaria.VOICES_MODULE}>
+                    <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
+                        <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
+                    </div>
+                    <div className={snippetClasses}>
+                        <span dir={snippetMarkup.lang === 'he' ? "rtl" : "ltr"}
+                              dangerouslySetInnerHTML={snippetMarkup.markup}></span>
+                    </div>
+                </a>
                 <div className="sheetData sans-serif">
-                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick} data-target-module={Sefaria.SHEETS_MODULE}>
+                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick} data-target-module={Sefaria.VOICES_MODULE}>
                         <ProfilePic
                             url={s.owner_image}
                             name={s.owner_name}
@@ -67,15 +76,6 @@ class SearchSheetResult extends Component {
                             </span>
                     </a>
                 </div>
-                <a href={href} onClick={this.handleSheetClick} data-target-module={Sefaria.SHEETS_MODULE}>
-                    <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
-                        <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
-                    </div>
-                    <div className={snippetClasses}>
-                        <span dir={snippetMarkup.lang === 'he' ? "rtl" : "ltr"}
-                              dangerouslySetInnerHTML={snippetMarkup.markup}></span>
-                    </div>
-                </a>
             </div>
         );
     }

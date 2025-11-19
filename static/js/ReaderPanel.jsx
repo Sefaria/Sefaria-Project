@@ -8,7 +8,7 @@ import {ReaderPanelContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
-import {SearchResultList} from "./SearchResultList";
+import UserHistoryPanel from './UserHistoryPanel';
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
@@ -19,9 +19,9 @@ import TopicPageAll  from './TopicPageAll';
 import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
+import EditCollectionPage from "./EditCollectionPage";
 import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
-import {SheetsUserHistoryPanelWrapper, LibraryUserHistoryPanelWrapper}  from './UserHistoryPanel';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -797,6 +797,7 @@ class ReaderPanel extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}
           editorSaveState={this.props.editorSaveState}
           setEditorSaveState={this.props.setEditorSaveState}
+          showGuide={this.getGuideType() && this.showGuide.bind(this)}
         />;
     }
 
@@ -1006,7 +1007,7 @@ class ReaderPanel extends Component {
           menu = (
               <TopicsLandingPage openTopic={this.props.openTopic}/>
           );
-        } else if (Sefaria.activeModule === Sefaria.SHEETS_MODULE) {
+        } else if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
           menu = <TopicsPage
                       key={"TopicsPage"}
                       setNavTopic={this.setNavigationTopic}
@@ -1067,6 +1068,12 @@ class ReaderPanel extends Component {
       menu = <TranslationsPage
         translationsSlug={this.state.translationsSlug}
       />
+    } else if (this.state.menuOpen === "editCollection") {
+      menu = (
+        <EditCollectionPage
+          initialData={this.state.collectionData}
+        />
+      );
     }
     else if (this.state.menuOpen === "community") {
       menu = (
@@ -1084,37 +1091,31 @@ class ReaderPanel extends Component {
         <ModeratorToolsPanel
           interfaceLang={this.props.interfaceLang} />
       );
-
-    } else if (["texts-saved", "texts-history", "notes"].includes(this.state.menuOpen)) {
+      
+    } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
-          <LibraryUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
-              menuOpen={this.state.menuOpen}
-              openMenu={this.openMenu}
-              openNav={this.openMenu.bind(null, "navigation")}
-              openDisplaySettings={this.openDisplaySettings}
-              toggleLanguage={this.toggleLanguage}
-              compare={this.state.compare}
-              toggleSignUpModal={this.props.toggleSignUpModal}/>
-      );
-
-    } else if (["sheets-saved", "sheets-history"].includes(this.state.menuOpen)) {
-      menu = (
-          <SheetsUserHistoryPanelWrapper
-              multiPanel={this.props.multiPanel}
-              menuOpen={this.state.menuOpen}
-              openMenu={this.openMenu}
-              openNav={this.openMenu.bind(null, "navigation")}
-              openDisplaySettings={this.openDisplaySettings}
-              toggleLanguage={this.toggleLanguage}
-              compare={this.state.compare}
-              toggleSignUpModal={this.props.toggleSignUpModal}/>
-      );
-
-    } else if (this.state.menuOpen === "sheets") {
+        <UserHistoryPanel              
+            menuOpen={this.state.menuOpen}
+            openMenu={this.openMenu}
+            openNav={this.openMenu.bind(null, "navigation")}
+            openDisplaySettings={this.openDisplaySettings}
+            toggleLanguage={this.toggleLanguage}
+            compare={this.state.compare}
+            toggleSignUpModal={this.props.toggleSignUpModal} />
+      );      
+    } else if (this.state.menuOpen === "voices") {
       menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
-                              multiPanel={this.props.multiPanel}
-                              setTopic={this.setTopic}/>);
+              setTopic={this.setTopic}
+              multiPanel={this.props.multiPanel}
+              menuOpen={this.state.menuOpen}
+              openMenu={this.openMenu}
+              openNav={this.openMenu.bind(null, "navigation")}
+              openDisplaySettings={this.openDisplaySettings}
+              toggleLanguage={this.toggleLanguage}
+              compare={this.state.compare}
+              toggleSignUpModal={this.props.toggleSignUpModal}/>
+      );
+
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
@@ -1365,10 +1366,7 @@ class ReaderControls extends Component {
       if (this.props.sheetTitle === null) {
         title = heTitle = Sefaria._("Loading...");
       } else {
-        title = heTitle = this.props.sheetTitle;
-        if (title === "") {
-          title = heTitle = Sefaria._("Untitled")
-        }
+        title = heTitle = Sefaria.sheets.getSheetTitle(this.props.sheetTitle);
       }
 
     } else if (data) {
@@ -1407,7 +1405,7 @@ class ReaderControls extends Component {
       <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
           <div>
-            <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.SHEETS_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
+            <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
               <div className="readerControlsTitle">
                 { this.props.sheetID ?
                 <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}

@@ -12,24 +12,36 @@ metadata:
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
     nginx.ingress.kubernetes.io/jaeger-propagation-format: w3c
   {{- end }}
-  {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
-  {{- end }}
 spec:
   tls:
-    {{- range $i := .Values.ingress.hosts }}
-    - secretName: {{ $i.tlsRef | default ( printf "origin-%s-tls" $.Values.deployEnv ) }}
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
+    {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+    {{- $wwwDomain := printf "www.%s" $rootDomain }}
+    - secretName: {{ tpl .cert $ | default ( printf "origin-%s-$s-tls"  $.Values.deployEnv $code ) }}
       hosts:
-        - {{ tpl $i.host $ }}
-        - www.{{ tpl $i.host $ }}
-    {{- range $k, $v := $.Values.ingress.subdomains }}
-        - {{ $k }}.{{ tpl $i.host $ }}
-        - www.{{ $k }}.{{ tpl $i.host $ }}
+        - {{ $rootDomain }}
+        - {{ $wwwDomain }}
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+        - {{ $subdomain }}
+    {{- end }}
     {{- end }}
     {{- end }}
   rules:
-    {{- range $i := .Values.ingress.hosts }}
-    - host: {{ tpl $i.host $ }}
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
+    {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+    {{- $wwwDomain := printf "www.%s" $rootDomain }}
+    - host: {{ $rootDomain }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -38,7 +50,7 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    - host: www.{{ tpl $i.host $ }}
+    - host: {{ $wwwDomain }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -47,8 +59,11 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    {{- range $k, $v := $.Values.ingress.subdomains }}
-    - host: {{ $k }}.{{ tpl $i.host $ }}
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+    - host: {{ $subdomain }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -57,14 +72,6 @@ spec:
                 name: nginx-{{ $.Values.deployEnv }}
                 port:
                   number: 80
-    - host: www.{{ $k }}.{{ tpl $i.host $ }}
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            backend:
-              service:
-                name: nginx-{{ $.Values.deployEnv }}
-                port:
-                  number: 80
+    {{- end }}
     {{- end }}
     {{- end }}

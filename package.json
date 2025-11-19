@@ -39,7 +39,9 @@
     "wa": "npm run watch",
     "t": "npm run test",
     "to": "npm run test-one",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@playwright/test": "^1.42.1",
@@ -70,6 +72,7 @@
     "js-cookie": "^2.2.1",
     "patch-package": "^6.2.2",
     "prop-types": "^15.6.0",
+    "p-retry": "^7.0.0",
     "querystring": "^0.2.0",
     "react": "^16.8.6",
     "react-class": "^3.2.2",
@@ -115,7 +118,10 @@
     "style-loader": "^1.0.0",
     "webpack": "^5.60.0",
     "webpack-bundle-tracker": "^1.4.0",
-    "webpack-cli": "^4.9.1"
+    "webpack-cli": "^4.9.1",
+    "storybook": "10.0.2",
+    "@storybook/react-vite": "10.0.2",
+    "@storybook/addon-docs": "10.0.2"
   },
   "jest": {
     "setupFilesAfterEnv": [

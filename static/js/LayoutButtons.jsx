@@ -43,6 +43,7 @@ const LayoutButton = ({layoutOption, layoutState}) => {
                 value={layoutOption}
                 style={{"--url": `url(${path})`}}
                 id={`${layoutOption}${panelPosition}`}
+                label={layoutLabels[layoutOption]}
             />
         </div>
     );
@@ -56,7 +57,7 @@ const LayoutButtons = () => {
     const {language, textsData, panelMode} = useContext(ReaderPanelContext);
     const layoutState = calculateLayoutState(language, textsData, panelMode);
     return (
-        <div className="layout-button-line" role="radiogroup" aria-label="text layout toggle">
+        <div className="layout-button-line" role="radiogroup" aria-label={Sefaria._("text layout toggle")}>
             <InterfaceText>Layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map(option => <LayoutButton

@@ -27,7 +27,6 @@ class SearchPage extends Component {
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
-    const isQueryHebrew = Sefaria.hebrew.isHebrew(this.props.query);
     const showAiBadge =    this.props.type === 'sheet' &&
         (this.props.searchState?.sortType === 'relevance' || this.props.searchState?.sortType?.toLowerCase?.() === 'relevance');
     const aiBadgeTexts = {
@@ -48,18 +47,25 @@ class SearchPage extends Component {
         moreToLoad={this.props.moreToLoad}
         topics={this.props.topics}
     />;
-    const sortComponent = <div className="searchTopMatter">
-      {Sefaria.multiPanel && !this.props.compare ?
-          <SearchSortBox
-              type={this.props.type}
-              sortTypeArray={this.props.sortTypeArray}
-              updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-              sortType={this.props.searchState.sortType}/>
-          :
-          <SearchFilterButton
-              openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-              nFilters={this.props.searchState.appliedFilters.length}/>}
-    </div>
+
+    const resultCount = this.props.totalResults?.getValue() > 0 && (
+      <>
+        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
+        <InterfaceText>Results</InterfaceText>
+      </>
+    );
+
+    const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
+      <SearchSortBox
+          type={this.props.type}
+          sortTypeArray={this.props.sortTypeArray}
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          sortType={this.props.searchState.sortType}/>
+      :
+      <SearchFilterButton
+          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+          nFilters={this.props.searchState.appliedFilters.length}/>;
+
     if (this.props.searchInBook) {
       return searchResultList;
     }
@@ -78,32 +84,26 @@ class SearchPage extends Component {
 
                 <div className="searchTopLine">
                   <div className="searchTopLineInner">
-                    <h1 className={classNames({
-                      "hebrewQuery": isQueryHebrew,
-                      "englishQuery": !isQueryHebrew
-                    })}>
+                    <h1 className="serif">
                       <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
                       <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
                       {this.props.query}
                       <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
                     </h1>
-                    {showAiBadge ? (
-                    <AiInfoTooltip
+                    {showAiBadge && <AiInfoTooltip
                       enText={aiBadgeTexts.en}
                       heText={aiBadgeTexts.he}
-                    />
-                  ) : null}
+                    />}
                   </div>
-
-
-                  {this.props.totalResults?.getValue() > 0 ?
-                      <div className="searchResultCount sans-serif">
-                        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-                        <InterfaceText>Results</InterfaceText>
-                      </div>
-                      : null}
+                  <div className="searchTopMatter">
+                    <div className="searchResultCount">
+                      {resultCount}
+                    </div>
+                    <div>
+                      {sortFilterControls}
+                    </div>
+                  </div>
                 </div>
-                {sortComponent}
                 {searchResultList}
               </div>
 

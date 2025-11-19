@@ -1,5 +1,6 @@
-import React, {useContext} from "react";
+import {useContext, useRef, useEffect} from "react";
 import Sefaria from "./sefaria/sefaria";
+import Util from "./sefaria/util";
 import PropTypes from "prop-types";
 import SourceTranslationsButtons from "./SourceTranslationsButtons";
 import {ReaderPanelContext} from "./context";
@@ -9,6 +10,15 @@ import ToggleSwitchLine from "./common/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
     const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
+    const menuRef = useRef(null);
+
+    const onClose = () => {
+        // Close the menu by clicking outside or triggering close mechanism
+        const dropdownMenu = menuRef.current?.closest('.readerDropdownMenu');
+        if (dropdownMenu) {
+            document.body.click();
+        }
+    };
 
     const isPanelModeSheet = panelMode === 'Sheet';
     const isSidePanel = !isPanelModeSheet && panelMode !== 'Text';
@@ -87,8 +97,37 @@ const ReaderDisplayOptionsMenu = () => {
         setOption('punctuationTalmud', newValue);
     };
 
+    useEffect(() => {
+        if (menuRef.current) {
+            Util.focusFirstElement(menuRef.current, '[role="radiogroup"], button, [tabindex="0"]');
+        }
+    }, []);
+
+    const handleKeyDown = (e) => {
+        // Prevent arrow keys from closing the menu - let radio buttons handle them
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.stopPropagation();
+            // Don't prevent default - let the radio buttons handle arrow navigation
+            return;
+        }
+
+        // Handle Escape and Tab with focus trapping
+        Util.trapFocusWithTab(e, {
+            container: menuRef.current,
+            onClose: onClose,
+            selector: 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [role="radio"]:not([disabled])'
+        });
+    };
+
     return (
-        <div className="texts-properties-menu" role="dialog">
+        <div 
+            className="texts-properties-menu" 
+            role="dialog" 
+            aria-label={Sefaria._("Text display options")}
+            ref={menuRef}
+            onKeyDown={handleKeyDown}
+            tabIndex="-1"
+        >
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons
                     showPrimary={showPrimary}

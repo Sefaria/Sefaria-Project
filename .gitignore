@@ -59,9 +59,11 @@ node_modules
 /.vscode
 *.code-workspace
 
-# Cursor #
+# AI Tools #
 ##########
 .cursor/
+.claude/
+CLAUDE.md
 
 # pystest cache #
 #####################
@@ -145,3 +147,6 @@ dump/*
 /playwright/.cache/
 /playwright-profile/
 .env
+
+*storybook.log
+*storybook-static/

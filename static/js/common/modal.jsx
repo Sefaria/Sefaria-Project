@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 const Modal = ({ children, close }) => {
   const dialogRef = useRef(null);
@@ -19,11 +19,19 @@ const Modal = ({ children, close }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+    }
+  };
+
   return (
     <dialog
       ref={dialogRef}
       className="dialogModal"
       onClick={handleClickOutside}
+      onKeyDown={handleKeyDown}
     >
       <div className="modal-content">
         {children}

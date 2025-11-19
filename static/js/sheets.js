@@ -160,7 +160,7 @@ $(function() {
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.getName(ref, undefined, 'ref').then(function(q) {
+		Sefaria.getName(ref, undefined, ['ref']).then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
@@ -651,7 +651,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text(_("Untitled Source Sheet"));
+						$el.text(_("Untitled"));
 
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -1670,7 +1670,7 @@ $(function() {
 			var collectionSlug = $el.attr("data-slug");
 			var collectionHeader = $el.attr("data-image");
 			$("#collectionHeader").attr("src", collectionHeader)
-				.closest("a").attr("href", "/sheets/collections/" + collectionSlug);
+				.closest("a").attr("href", "/collections/" + collectionSlug);
 			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {
@@ -2799,7 +2799,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").html(_("Untitled Source Sheet"));
+		$("#title").html(_("Untitled"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3386,7 +3386,7 @@ function copyToSheet(source) {
 			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					(data.sheets[i].title === null ? Sefaria._("Untitled Source Sheet"): data.sheets[i].title.stripHtml()) +
+					(data.sheets[i].title === null ? Sefaria._("Untitled"): data.sheets[i].title.stripHtml()) +
 					"</li>";
 			}
 			$("#sheetList").html(sheets);

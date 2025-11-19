@@ -9,7 +9,7 @@ const SheetsTopicsTOC = ({handleClick}) => {
     }));
     return (
     <div className="sheetsTopicTOC">
-        <TOCCardsWrapper title="Browse by Topic">{categoryListings}</TOCCardsWrapper>
+        <TOCCardsWrapper title={Sefaria._("Browse Topic Categories")}>{categoryListings}</TOCCardsWrapper>
     </div>
   );
 }
@@ -37,11 +37,11 @@ const SheetsParashah = ({handleClick}) => {
 }
 
 const SheetsHoliday = ({handleClick}) => {
-  const [holiday, setHoliday] = useState({});
+  const [holiday, setHoliday] = useState(null);
   useEffect(() => {
-    Sefaria.getUpcomingDay('holiday').then(setHoliday);
+    Sefaria.getUpcomingDay('holiday').then(data => {setHoliday(data?.topic || null)});
   }, []);
-  if (Object.keys(holiday).length === 0) {
+  if (Object.keys(holiday || {}).length === 0) {
     return <div className="navBlock">Loading...</div>
   }
   return <TopicTOCCard topic={holiday} setTopic={handleClick} showDescription={true}/>;
@@ -49,8 +49,8 @@ const SheetsHoliday = ({handleClick}) => {
 
 const SheetsTopicsCalendar = ({handleClick}) => {
     return <div className="sheetsTopicsCalendar table">
-                <TOCCardsWrapper title="This Week's Torah Portion"><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
-                <TOCCardsWrapper title="Upcoming Holiday"><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
+                <TOCCardsWrapper title={Sefaria._("This Week’s Torah Portion")}><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
+                <TOCCardsWrapper title={Sefaria._("On the Jewish Calendar")}><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
           </div>
 }
 

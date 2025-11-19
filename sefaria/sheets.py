@@ -213,7 +213,7 @@ def sheet_to_dict(sheet):
     profile = public_user_data(sheet["owner"])
     sheet_dict = {
         "id": sheet["id"],
-        "title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+        "title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled",
         "summary": sheet.get("summary", None),
         "status": sheet["status"],
         "author": sheet["owner"],
@@ -232,7 +232,6 @@ def sheet_to_dict(sheet):
         "options": sheet["options"] if "options" in sheet else [],
     }
     return sheet_dict
-
 
 def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displayedCollection=False):
     sheet = db.sheets.find_one({"id": sheet_id})
@@ -356,8 +355,7 @@ def order_tags_for_user(tag_counts, uid):
 
     return tag_counts
 
-@django_cache(timeout=6 * 60 * 60)
-def trending_topics(days=7, ntags=14):
+def trending_topics(days=30, ntags=14):
     """
     Returns a list of trending topics plus sheet count and author count modified in the last `days`.
     """
@@ -375,7 +373,6 @@ def trending_topics(days=7, ntags=14):
             {"$group": {"_id": "$topics.slug", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
             {"$project": {"_id": 0, "slug": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
 
-    topics_list = list(topics)
     results = add_langs_to_topics([{
         "slug": topic['slug'],
         "count": topic['sheet_count'],
@@ -998,7 +995,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
                 "assignerName":	   sheet.get("assignerName", None),
                 "viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
                 "assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
-                "ownerProfileUrl": "/sheets/profile/" + ownerData["slug"],
+                "ownerProfileUrl": "/profile/" + ownerData["slug"],
                 "ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
                 "status":          sheet["status"],
                 "views":           sheet["views"],
@@ -1009,14 +1006,11 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
                 "is_featured":     sheet.get("is_featured", False),
                 "category":        "Sheets", # ditto
                 "type":            "sheet", # ditto
-                "dateCreated":	   sheet.get("dateCreated", None),
+                "dateCreated": sheet.get("dateCreated", None),
                 "combined_score": sheet.get("combined_score", 0),
-
             }
             results.append(sheet_data)
     return results
-
-
 
 def topic_list_diff(old, new):
     """
