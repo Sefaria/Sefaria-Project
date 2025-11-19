@@ -17,8 +17,7 @@ from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
 
-from sefaria.sheets import get_sheet
-from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
+from sefaria.model.user_profile import user_link as ulink, user_name as uname
 from sefaria.model.text import Version
 from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags as strip_tags_func
@@ -31,10 +30,6 @@ from sefaria.model.text import library, AbstractIndex
 
 
 register = template.Library()
-
-current_site = Site.objects.get_current()
-domain       = current_site.domain
-
 
 ref_link_cache = {} # simple cache for ref links
 @register.filter(is_safe=True)
@@ -269,6 +264,7 @@ def sheet_link(value):
 	"""
 	Returns a link to sheet with id value.
 	"""
+	from sefaria.sheets import get_sheet
 	value = int(value)
 	sheet = get_sheet(value)
 	if "error" in sheet:
@@ -305,6 +301,7 @@ def absolute_link(value):
 	Takes a string with a single <a> tag a replaces the href with absolute URL.
 	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
 	"""
+	domain = Site.objects.get_current().domain
 	# run twice to account for either single or double quotes
 	absolute = value.replace("href='/", "href='https://%s/" % domain)
 	absolute = absolute.replace('href="/', 'href="https://%s/' % domain)
@@ -316,6 +313,7 @@ def absolute_url(value):
 	"""
 	Takes a string with path starting with "/" and returls url with domain and protocol.
 	"""
+	domain = Site.objects.get_current().domain
 	# run twice to account for either single or double quotes
 	absolute = "https://%s%s" % (domain, value)
 	return mark_safe(absolute)

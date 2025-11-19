@@ -80,7 +80,7 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
             else:
                 #logger.debug(['_cach_key.......',_cache_key])
                 result = get_cache_elem(_cache_key, cache_type=cache_type)
-                if decorate_data_with_key:
+                if decorate_data_with_key and result is not None:
                     result = result["data"]
 
             if not result:

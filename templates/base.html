@@ -250,6 +250,9 @@
         contentLang:   "{{ request.contentLang }}",
         inReaderApp:   {% if html %}true{% else %}false{% endif %},
         static_url:    {{ STATIC_PREFIX }},
+        module_mapping: {
+
+        }
       };
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}
