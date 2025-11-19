@@ -210,10 +210,10 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
     const filePath = path.join(__dirname, settings.file);
     if (!fs.existsSync(filePath)) {
-      await page.goto(url);
+      await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
       await changeLanguage(page, language);
       await page.context().storageState({ path: filePath });
-      await page.goto(url);
+      await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
     } else {
       const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
@@ -221,7 +221,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
           throw new Error(`No cookies found in storage state for language ${language}`);
       }
       await page.context().addCookies(storageCookies);
-      await page.goto(url);
+      await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
     }
 
     //await hideAllModalsAndPopups(page);
@@ -238,13 +238,13 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     if (!fs.existsSync(authPath)) {
         // No auth file, perform login and save storage state
         page = await context.newPage();
-        await page.goto('/login', {waitUntil: 'domcontentloaded'});
+        await gotoOrThrow(page, '/login', {waitUntil: 'domcontentloaded'});
         const loginPage = new LoginPage(page, language);
         await changeLanguage(page, language);
         await loginPage.loginAs(user);
         // Save storage state for future reuse
         await page.context().storageState({ path: authPath });
-        await page.goto(url, {waitUntil: 'domcontentloaded'});
+        await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
         return page;
     }
     // If auth file exists, create a new context with storageState and open the page
@@ -261,9 +261,9 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     }
     await page.context().addCookies(storageCookies);
     // Navigate to the desired URL
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
     await changeLanguage(page, language);
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
     await hideAllModalsAndPopups(page);
     return page;
 }
@@ -343,6 +343,24 @@ export const simulateOfflineMode = async (page: Page) => {
 
 export const simulateOnlineMode = async (page: Page) => {
   await page.context().setOffline(false);
+};
+
+/**
+ * Wrapper for page.goto that throws on 404 responses.
+ * @param page - Playwright page
+ * @param url - URL to navigate to
+ * @param options - optional goto options
+ */
+export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<Page['goto']>[1]) => {
+  const response = await page.goto(url, options);
+  if (response && response.status() === 404) {
+    throw new Error(`Navigation to ${url} returned 404`);
+  }
+  else if (response && response.status() >= 400) {
+    throw new Error(`Navigation to ${url} returned status ${response.status()}`);
+  }
+  
+  return response;
 };
 
 // ==============================================================================

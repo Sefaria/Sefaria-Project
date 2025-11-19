@@ -1,23 +1,3 @@
-/**
- * CROSS-MODULE REDIRECTS - Library to Voices Redirect Tests
- *
- * Tests cross-module redirect behavior from Library to Voices modules
- * as part of the modularization effort (SC Story 37593).
- *
- * Test Scope:
- * - Settings/Profile redirects from Library to Voices
- * - Community page redirects from Library to Voices home
- * - Query parameter preservation during redirects
- * - Sheets routing behavior
- * - 301 permanent redirect status codes
- *
- * Cauldron: https://www.backend-redirect.cauldron.sefaria.org/
- * Test Plan: https://docs.google.com/spreadsheets/d/1YtW8sSlqSiQFennbHpYgiEV4F3XzQQSzmFv8kWwmNlM/edit?gid=295754673#gid=295754673
- *
- * MODULE: Cross-module (Library -> Voices)
- * PRIORITY: High
- */
-
 import { test, expect } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups, normalizeUrl, urlMatches } from "../utils";
 import { BROWSER_SETTINGS } from '../globals';
@@ -60,7 +40,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/`, false)).toBe(true);
   });
 
-  test('Collections Redirect - Base URL', async ({ context }) => {
+  test('Collections Redirect', async ({ context }) => {
     const page = context.pages()[0];
 
     // Navigate to collections on library module
@@ -71,7 +51,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/collections`, true)).toBe(true);
   });
 
-  test('Collections Redirect - With Path Parameter', async ({ context }) => {
+  test('Collections Redirect - Ignore Query Params', async ({ context }) => {
     const page = context.pages()[0];
 
     // Navigate to specific collection on library module
@@ -81,8 +61,8 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     const finalUrl = page.url();
     expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/collections/-midrash-calendar`, true)).toBe(true);
   });
-
-  test('Profile Redirect - Without User', async ({ context }) => {
+// Probably Redundant with the below test
+  test('Profile Redirect ', async ({ context }) => {
     const page = context.pages()[0];
 
     // Navigate to profile without user (logged in, so should redirect to user's profile)
@@ -100,22 +80,20 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     const page = context.pages()[0];
 
     // Navigate to specific user profile on library module
-    await page.goto(`${TEST_URLS.LIBRARY}/profile/tzirel-mdl`, { waitUntil: 'networkidle' });
+    await page.goto(`${TEST_URLS.LIBRARY}/profile/qa-tester`, { waitUntil: 'networkidle' });
 
     // Verify redirect occurred to voices profile
     const finalUrl = page.url();
-    expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/profile/tzirel-mdl`, true)).toBe(true);
+    expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/profile/qa-tester`, true)).toBe(true);
   });
 
-  test('Sheets Redirect - Base URL', async ({ context }) => {
+  test('Sheets Redirect - Get Started Page', async ({ context }) => {
     const page = context.pages()[0];
 
     // Navigate to sheets base URL on library module
     await page.goto(`${TEST_URLS.LIBRARY}/sheets`, { waitUntil: 'networkidle' });
 
-    // Verify redirect occurred to voices
-    // Note: CSV line 6 shows redirect to voices home (/) with comment "This one is still up in the air"
-    // Current implementation redirects to /getstarted
+    // Verify redirect occurred to voices getstarted page
     const finalUrl = page.url();
     expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/getstarted`, false)).toBe(true);
   });
@@ -132,7 +110,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
   });
 });
 
-test.describe('Cross-Module Redirects - Query Parameter Preservation', () => {
+test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Preservation', () => {
 
   test.beforeEach(async ({ context }) => {
     // Login before each test to ensure authenticated state
@@ -169,7 +147,7 @@ test.describe('Cross-Module Redirects - Query Parameter Preservation', () => {
   });
 });
 
-test.describe('Cross-Module Redirects - 301 Status Codes', () => {
+test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', () => {
 
   test.beforeEach(async ({ context }) => {
     // Login before each test to ensure authenticated state
@@ -213,36 +191,68 @@ test.describe('Cross-Module Redirects - 301 Status Codes', () => {
   });
 });
 
-/**
- * IMPLEMENTATION NOTES:
- *
- * Redirect Mappings (from CSV):
- * 1. /collections -> voices/collections (Pass)
- * 2. /collections/-midrash-calendar -> voices/collections/-midrash-calendar (Pass)
- * 3. /profile -> voices/profile (Fail - adds query params, see note below)
- * 4. /profile/tzirel-mdl -> voices/profile/tzirel-mdl (Pass)
- * 5. /settings/profile -> voices/settings/profile/ (Pass)
- * 6. /sheets -> voices/getstarted
- * 7. /sheets/510219 -> voices/sheets/510219 (Pass)
- * 11. /community -> voices/ (Pass)
- *
- * Test Case 3 Failure Note:
- * /profile redirect adds unexpected query params (?tab=sheets)
- * Expected: /profile
- * Got: /profile/tzirel-mdl?tab=sheets
- * This may be intentional behavior (redirect to logged-in user's profile)
- *
- * Key Features Tested:
- * - Cross-module routing from Library to Voices
- * - Query parameter preservation
- * - 301 permanent redirect status codes (SEO-friendly)
- * - Language-aware domain handling
- *
- * Test Organization:
- * - Group 1: Library to Voices redirects
- * - Group 2: Query parameter preservation
- * - Group 3: 301 status code verification
- *
- * Note: Tests for no-redirect loops when already on Voices have been moved to
- * voices-specific/cross-module-redirects.spec.ts
- */
+
+
+test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
+
+  test.beforeEach(async ({ context }) => {
+    // Login before each test to ensure authenticated state
+    await goToPageWithUser(context, `${TEST_URLS.VOICES}`, BROWSER_SETTINGS.enUser);
+  });
+
+  test('No Redirect When Already on Voices - Settings Profile', async ({ context }) => {
+    const page = context.pages()[0];
+
+    // Navigate to settings/profile already on voices module
+    await page.goto(`${TEST_URLS.VOICES}/settings/profile`, { waitUntil: 'networkidle' });
+
+    // Verify we stayed on voices (no redirect loop)
+    const finalUrl = page.url();
+    expect(finalUrl).toContain(TEST_URLS.VOICES);
+    expect(finalUrl).toContain('/settings/profile');
+  });
+
+  test('No Redirect When Already on Voices - Home', async ({ context }) => {
+    const page = context.pages()[0];
+
+    // Navigate to voices home
+    await page.goto(`${TEST_URLS.VOICES}`, { waitUntil: 'networkidle' });
+    await hideAllModalsAndPopups(page);
+
+    // Verify we stayed on voices home (no redirect)
+    const finalUrl = page.url();
+    expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/`, false)).toBe(true);
+  });
+
+  test('No Redirect When Already on Voices - Sheets', async ({ context }) => {
+    const page = context.pages()[0];
+
+    // Navigate to sheets on voices module
+    await page.goto(`${TEST_URLS.VOICES}/sheets`, { waitUntil: 'networkidle' });
+
+    // Verify we stayed on voices (no redirect)
+    const finalUrl = page.url();
+    expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/sheets`, false)).toBe(true);
+  });
+
+  test('No Redirect When Already on Voices - Specific Sheet', async ({ context }) => {
+    const page = context.pages()[0];
+
+    // Navigate to specific sheet on voices module
+    await page.goto(`${TEST_URLS.VOICES}/sheets/510219`, { waitUntil: 'networkidle' });
+
+    // Verify sheet loads without redirect
+    const finalUrl = page.url();
+    expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/sheets/510219`, true)).toBe(true);
+  });
+
+  test('Settings Account Returns 404 on Voices', async ({ context }) => {
+    const page = context.pages()[0];
+
+    // Navigate to settings/account (should 404 per CSV line 12)
+    const response = await page.goto(`${TEST_URLS.VOICES}/settings/account`, { waitUntil: 'networkidle' });
+
+    // Verify 404 status
+    expect(response?.status()).toBe(404);
+  });
+});

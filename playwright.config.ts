@@ -119,15 +119,99 @@ export default defineConfig({
       },
     },
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
+    // Firefox - Production Tests
+    {
+      name: 'firefox',
+      testDir: './e2e-tests/tests',
+      use: {
+        ...devices['Desktop Firefox'],
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
 
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    // WebKit - Production Tests
+    {
+      name: 'webkit',
+      testDir: './e2e-tests/tests',
+      use: {
+        ...devices['Desktop Safari'],
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // Firefox - Library-specific modularization tests
+    {
+      name: 'firefox-library',
+      testDir: './e2e-tests/library-specific',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // WebKit - Library-specific modularization tests
+    {
+      name: 'webkit-library',
+      testDir: './e2e-tests/library-specific',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // Firefox - Voices-specific modularization tests
+    {
+      name: 'firefox-voices',
+      testDir: './e2e-tests/voices-specific',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: process.env.SANDBOX_URL ? process.env.SANDBOX_URL.replace('modularization', 'voices.modularization') : 'https://voices.modularization.cauldron.sefaria.org',
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // WebKit - Voices-specific modularization tests
+    {
+      name: 'webkit-voices',
+      testDir: './e2e-tests/voices-specific',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: process.env.SANDBOX_URL ? process.env.SANDBOX_URL.replace('modularization', 'voices.modularization') : 'https://voices.modularization.cauldron.sefaria.org',
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // Firefox - Misc tests
+    {
+      name: 'firefox-misc',
+      testDir: './e2e-tests/Misc',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // WebKit - Misc tests
+    {
+      name: 'webkit-misc',
+      testDir: './e2e-tests/Misc',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
 
     /* Test against mobile viewports. */
     // {
