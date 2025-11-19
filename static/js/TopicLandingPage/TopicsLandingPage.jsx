@@ -1,7 +1,6 @@
 import React from 'react';
 import {TopicLandingSearch} from "./TopicLandingSearch";
 import {NavSidebar} from "../NavSidebar";
-import Footer from "../Footer";
 import {FeaturedTopic} from "./FeaturedTopic";
 import {TopicSalad} from "./TopicSalad";
 import {TopicLandingParasha} from "./TopicLandingParasha";
@@ -52,7 +51,6 @@ export const TopicsLandingPage = ({openTopic}) => {
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>
-                <Footer />
             </div>
         </div>
     )

@@ -1,4 +1,4 @@
-from sefaria import settings as sls
+from django.conf import settings as sls
 from sefaria.helper.crm.nationbuilder import NationbuilderConnectionManager
 from sefaria.helper.crm.salesforce import SalesforceConnectionManager
 from sefaria.helper.crm.dummy_crm import DummyConnectionManager

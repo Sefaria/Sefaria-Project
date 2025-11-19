@@ -73,7 +73,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         if (input === "") {  // this occurs when there was text in the inputbox and user just erased it
             return results;
         }
-        const d = await Sefaria.getName(input, 0, 'ref');
+        const d = await Sefaria.getName(input, 0, ['ref']);
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
@@ -114,7 +114,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
                             getSuggestions={getSuggestions}
                             inputValue={displayRef}
                             changeInputValue={handleChange}
-                            inputPlaceholder="Search for a Text or Commentator."
+                            inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
                             buttonTitle="Select Source"
                             autocompleteClassNames="addInterfaceInput"
                             showSuggestionsOnSelect={true}

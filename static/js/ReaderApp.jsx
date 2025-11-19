@@ -3,27 +3,25 @@ import classNames from 'classnames';
 import extend from 'extend';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import Header from './Header';
+import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
-import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
-  RemoteLearningPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
-  ProductsPage
+  ProductsPage,
+  SheetsLandingPage
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -33,10 +31,13 @@ import {
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
+import Button from './common/Button';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
+import { BannerImpressionProbe } from './BannerImpressionProbe';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -73,6 +74,7 @@ class ReaderApp extends Component {
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
+        collectionData:          props.initialCollectionData,
       };
     }
 
@@ -114,8 +116,12 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      editorSaveState: 'saved',
     };
   }
+  setEditorSaveState = (nextState) => {
+    this.setState({ editorSaveState: nextState });
+    };
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -146,6 +152,7 @@ class ReaderApp extends Component {
       collectionSlug:          state.collectionSlug          || null,
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
+      collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -195,6 +202,9 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    
+    // Handle right-clicks on links with data-target-module to ensure correct domain
+    document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -204,12 +214,27 @@ class ReaderApp extends Component {
       // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
       Sefaria.markUserAsNewVisitor();
     }
+
+    if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
+      sessionStorage.setItem("sa.reader_app_mounted", "true");
+      sa_event("reader_app_mounted");
+      gtag("event", "reader_app_mounted");
+      if (Sefaria._debug) console.log("sa: reader app has loaded!");
+    }
+    if (localStorage.getItem("sa.intersection_observer_api_checked") === null) {
+      if (!('IntersectionObserver' in window)) {
+        sa_event("intersection_observer_not_supported");
+        gtag("event", "intersection_observer_not_supported");
+      }
+      localStorage.setItem("sa.intersection_observer_api_checked", "true");
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -253,6 +278,7 @@ class ReaderApp extends Component {
     }
 
     this.setContainerMode();
+    // Pass this.replaceHistory flag to updateHistoryState - it will be reset there
     this.updateHistoryState(this.replaceHistory);
   }
 
@@ -440,10 +466,15 @@ class ReaderApp extends Component {
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
+          case "voices":
+            hist.title = Sefaria._("Voices on Sefaria");
+            hist.url = "";
+            hist.mode = 'voices';
+            break;
           case "sheetsWithRef":
             hist.title = Sefaria._("Sheets with ") + state.sheetsWithRef[shortLang] + Sefaria._(" on Sefaria");
             const encodedSheetsWithRef = state.sheetsWithRef.en ? encodeURIComponent(state.sheetsWithRef.en) : "";
-            hist.url   = "sheets/sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
+            hist.url   = "sheets-with-ref" + (state.sheetsWithRef.en ? (`/${encodedSheetsWithRef}` +
                           state.searchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode = "sheetsWithRef";
             break;
@@ -496,7 +527,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `sheets/profile/${state.profile.slug}`;
+            hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -511,6 +542,16 @@ class ReaderApp extends Component {
             }
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
+            break;
+          case "editCollection":
+            if (state.collectionData && state.collectionData.slug) {
+              hist.url   = "collections/" + state.collectionData.slug + "/settings";
+              hist.title = Sefaria._("Edit Collection") + " | " + Sefaria._(siteName + " Collections");
+            } else {
+              hist.url   = "collections/new";
+              hist.title = Sefaria._("Create Collection") + " | " + Sefaria._(siteName + " Collections");
+            }
+            hist.mode  = "editCollection";
             break;
           case "collectionsPublic":
             hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
@@ -528,7 +569,7 @@ class ReaderApp extends Component {
             hist.mode = "calendars";
             break;
           case "sheets":
-            hist.url = "sheets";
+            hist.url = "";
             hist.mode = "sheets";
             hist.title = Sefaria._("Sheets on Sefaria");
             break;
@@ -547,25 +588,15 @@ class ReaderApp extends Component {
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
-          case "texts-saved":
+          case "saved":
             hist.title = Sefaria._("My Saved Content");
-            hist.url = "texts/saved";
-            hist.mode = "textsSaved";
+            hist.url = "saved";
+            hist.mode = "saved";
             break;
-          case "sheets-saved":
-            hist.title = Sefaria._("My Saved Content");
-            hist.url = "sheets/saved";
-            hist.mode = "sheetsSaved";
-            break;
-          case "texts-history":
+          case "history":
             hist.title = Sefaria._("My Reading History");
-            hist.url = "texts/history";
-            hist.mode = "textsHistory";
-            break;
-          case "sheets-history":
-            hist.title = Sefaria._("My Reading History");
-            hist.url = "sheets/history";
-            hist.mode = "sheetsHistory";
+            hist.url = "history";
+            hist.mode = "history";
             break;
           case "notes":
             hist.title = Sefaria._("My Notes");
@@ -780,7 +811,19 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  updateHistoryState(replace) {
+  updateHistoryState(shouldReplace) {
+    // IMPORTANT: reset replaceHistory flag first, before any early returns such as !this.shouldHistoryUpdate() or return;
+    // 
+    // The this.replaceHistory system works as follows:
+    // 1. Various ReaderPanel methods set this.replaceHistory = true when they want
+    //    the NEXT history update to use replaceState instead of pushState
+    //    (e.g., tab changes, collection name updates, connection focus changes)
+    // 2. componentDidUpdate calls updateHistoryState(this.replaceHistory)
+    // 3. We MUST reset this.replaceHistory = false immediately to prevent it from
+    //    "sticking" and affecting ALL future history updates
+    // 4. We use the shouldReplace parameter for this specific update
+    this.replaceHistory = false;
+    
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -791,7 +834,7 @@ class ReaderApp extends Component {
       hist.url += window.location.hash;
     }
 
-    if (replace) {
+    if (shouldReplace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
       if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
@@ -804,7 +847,6 @@ class ReaderApp extends Component {
     }
 
     $("title").html(hist.title);
-    this.replaceHistory = false;
 
     this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
@@ -819,7 +861,6 @@ class ReaderApp extends Component {
     const initialRefs = this._refState();
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
-        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
@@ -1014,6 +1055,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       parent = parent.parentNode;
     }
   }
+  alertUnsavedChangesConfirmed() {
+    // If the user has unsaved changes, we want to prevent the default action of the click
+    // and show a confirmation dialog instead.
+    const ok = window.confirm(
+        "You have unsaved changes that may be lost. Continue?"
+    );
+    if (!ok) {
+        return false;
+    }
+    return true;
+  }
   handleInAppClickWithModifiers(e){
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens
     const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
@@ -1055,30 +1107,57 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget.target && linkTarget.target !== '_self') {
       return;
     }
-    const href = linkTarget.getAttribute('href');
+
+    let href = linkTarget.getAttribute('href');
     if (!href) {
       return;
     }
+    
+    const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.VOICES_MODULE or Sefaria.LIBRARY_MODULE or null
+
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true);
+      const handled = this.openURL(href, true, false, moduleTarget);
       if (handled) {
         e.preventDefault();
       }
       return
     }
     //All links within sheet content should open in a new panel
-    const isSheet = !!(linkTarget.closest(".sheetItem"))
-    const replacePanel = !(isSheet)
+    const isSheet = !!(linkTarget.closest(".sheetItem"));
+    const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(href, replace=true, overrideContentLang=false) {
+
+  handleModuleLinkRightClick(e) {
+    /*
+    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Especially for library links when in the sheets module (see Parsha Topic pages)
+    */
+    const link = e.target.closest('a[data-target-module]');
+    if (link) {
+      const href = link.getAttribute('href');
+      const targetModule = link.getAttribute('data-target-module');
+      
+      const fullUrl = Sefaria.util.fullURL(href, targetModule);
+      link.setAttribute('href', fullUrl);
+    }
+  }
+
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
+
+    href = Sefaria.util.fullURL(href, moduleTarget);
+    
     // Attempts to open `href` in app, return true if successful.
-    href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
     try {
       url = new URL(href);
@@ -1087,7 +1166,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     // Open non-Sefaria urls in new tab/window
     // TODO generalize to any domain of current deploy.
-    if (url.hostname.indexOf("www.sefaria.org") === -1) {
+    if (!Sefaria.isSefariaURL(url) || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
       return true;
     }
@@ -1100,28 +1179,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
-      this.showLibrary();
+      this.showRoot();
 
     } else if (path === "/texts") {
       this.showLibrary();
 
-    } else if (path === "/texts/history") {
+    } else if (path === "/history") {
       this.showHistory();
 
-    } else if (path === "/sheets/history") {
-      this.showSheetsHistory();
-
-    } else if (path === "/texts/saved") {
+    } else if (path === "/saved") {
       this.showSaved();
-
-    } else if (path === "/sheets/saved") {
-      this.showSheetsSaved();
-
+      
     } else if (path === "/texts/notes") {
       this.showNotes();
     }
     else if (path.match(/\/texts\/.+/)) {
-      this.showLibrary(path.slice(7).split("/"));
+      this.showLibrary(path.replace(/^\/texts\//, '').split("/"));
 
     } else if (path === "/collections") {
       this.showCollections();
@@ -1142,28 +1215,28 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
-      openPanel("Sheet " + path.slice(8));
+      openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
 
     } else if (path === "/topics") {
       this.showTopics();
 
     } else if (path.match(/^\/topics\/category\/[^\/]/)) {
-      this.openTopicCategory(path.slice(17));
-
+      this.openTopicCategory(path.replace(/^\/topics\/category\//, ''));
+      
     } else if (path.match(/^\/topics\/all\/[^\/]/)) {
-      this.openAllTopics(path.slice(12));
-
+      this.openAllTopics(path.replace(/^\/topics\/all\//, ''));
+      
     } else if (path.match(/^\/topics\/[^\/]+/)) {
-      this.openTopic(path.slice(8), params.get("tab"));
-
-    } else if (path.match(/^\/sheets\/profile\/.+/)) {
-      this.openProfile(path.replace("/sheets/profile/", ""), params.get("tab"));
+      this.openTopic(path.replace(/^\/topics\//, ''), params.get("tab"));
+      
+    } else if (path.match(/^\/profile\/.+/)) {
+      this.openProfile(path.replace(/^\/profile\//, ""), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openCollection(path.slice(13), params.get("tag"));
+      this.openCollection(path.replace(/^\/collections\//, ''), params.get("tag"));
 
     } else if (path.match(/^\/translations\/.+/)) {
-      let slug = path.slice(14);
+      let slug = path.replace(/^\/translations\//, '');
       this.openTranslationsPage(slug);
     } else if (Sefaria.isRef(path.slice(1).replace(/%3F/g, '?'))) {
       const ref = path.slice(1).replace(/%3F/g, '?');
@@ -1255,8 +1328,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
   setPanelState(n, state, replaceHistory) {
+    // Set replaceHistory flag - this will be consumed and reset by updateHistoryState
     this.replaceHistory  = Boolean(replaceHistory);
-    //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
@@ -1662,7 +1735,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
+
+  shouldAlertBeforeCloseEditor() {
+    const sheetId = this.state.panels[0]?.sheetID;
+    return !!(sheetId &&
+        this.state.panels[0].mode === "Sheet" &&
+        this.state.editorSaveState && this.state.editorSaveState !== "saved")
+        && shouldUseEditor(sheetId);
+
+  }
   closePanel(n) {
+    // currently we assume that the editor is always the first panel,
+    // TODO: enforce this assumption
+    if (n===0 && this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return false;
+      }
+    }
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length === 1 && n === 0) {
       this.state.panels = [];
@@ -1672,8 +1761,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.refs = parent.refs.map(ref => Sefaria.ref(ref).sectionRef);
-        parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
@@ -1687,7 +1774,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const state = {panels: this.state.panels};
     if (state.panels.length === 0) {
-      this.showLibrary();
+      this.showRoot();
     } else {
       this.setState(state);
     }
@@ -1717,6 +1804,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     this.setSinglePanelState(state);
   }
+  showVoices() {
+    let state = {menuOpen: 'voices', mode: 'Menu'};
+    state = this.makePanelState(state);
+    this.setSinglePanelState(state);
+  }
+  showRoot() {
+    if (Sefaria.activeModule === 'voices') {
+      this.showVoices();
+    } else {
+      this.showLibrary();
+    }
+  }
   showSearch(searchQuery) {
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
@@ -1733,19 +1832,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setSinglePanelState({menuOpen: "community"});
   }
   showSaved() {
-    this.setSinglePanelState({menuOpen: "texts-saved"});
-  }
-  showSheetsSaved() {
-    this.setSinglePanelState({menuOpen: "sheets-saved"});
+    this.setSinglePanelState({menuOpen: "saved"});
   }
   showNotes() {
     this.setSinglePanelState({menuOpen: "notes"});
   }
   showHistory() {
-    this.setSinglePanelState({menuOpen: "texts-history"});
-  }
-  showSheetsHistory() {
-    this.setSinglePanelState({menuOpen: "sheets-history"});
+    this.setSinglePanelState({menuOpen: "history"});
   }
   showTopics() {
     this.setSinglePanelState({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});
@@ -2039,7 +2132,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
 
     }
-    const refs = this.state.panels.map(panel => panel.currentlyVisibleRef || panel.bookRef || returnNullIfEmpty(panel.navigationCategories) || panel.navigationTopic).flat();
+    
+    const refs = this.state.panels
+      .map(
+        (panel) =>
+          panel.currentlyVisibleRef ||
+          panel.bookRef ||
+          returnNullIfEmpty(panel.navigationCategories) ||
+          panel.navigationTopic ||
+          panel.navigationTopicCategory
+      )
+      .flat();
     const books = refs.map(ref => Sefaria.parseRef(ref).book);
     const triggers = refs.map(ref => Sefaria.refCategories(ref))
           .concat(books)
@@ -2095,27 +2198,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       widths = panelStates.map( panel => evenWidth );
     }
 
-    // Header should not show box-shadow over panels that have color line
-    const menuOpen = this.state.panels?.[0]?.menuOpen;
-    const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
-    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel || this.state.panels?.[0]?.mode === "Sheet";
-    // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
-    const hideHeader = !this.props.multiPanel && !this.state.headerMode && !menuOpen;
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
         onRefClick={this.handleNavigationClick}
         showSearch={this.showSearch}
         openURL={this.openURL}
-        headerMode={this.props.headerMode}
+        headerMode={this.state.headerMode}
         openTopic={this.openTopic}
-        hidden={hideHeader}
+        firstPanel={this.state.panels?.[0]}
         mobileNavMenuOpen={this.state.mobileNavMenuOpen}
         onMobileMenuButtonClick={this.toggleMobileNavMenu}
-        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && this.state.panels?.[0]?.menuOpen === "navigation"}
         toggleLanguage={this.toggleLanguageInFirstPanel}
-        firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
-        hasBoxShadow={headerHasBoxShadow}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         module={Sefaria.activeModule}/>
@@ -2231,6 +2325,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
+                      editorSaveState={this.state.editorSaveState}
+                      setEditorSaveState={this.setEditorSaveState}
                     />
                   </div>);
     }
@@ -2265,15 +2361,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
+            <Button href="#main" className="skip-link">{Sefaria._("Skip to main content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {panels}
+              <main id="main" role="main">
+                {panels}
+              </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
+            <BannerImpressionProbe />
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
@@ -2288,6 +2388,7 @@ ReaderApp.propTypes = {
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
   initialCollection:           PropTypes.string,
+  initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
@@ -2327,23 +2428,21 @@ const sefariaSetup = Sefaria.setup;
 const { unpackDataFromProps, loadServerData } = Sefaria;
 export {
   ReaderApp,
-  Footer,
   sefariaSetup,
   unpackDataFromProps,
   loadServerData,
   EditCollectionPage,
-  RemoteLearningPage,
   ContestLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
-  RabbisPage,
   DonatePage,
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
   ProductsPage,
+  SheetsLandingPage,
   UpdatesPanel
 };

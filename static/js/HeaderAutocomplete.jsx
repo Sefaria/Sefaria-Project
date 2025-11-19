@@ -86,16 +86,16 @@ function sortByTypeOrder(array) {
 }
 
 const getURLForObject = function(type, key) {
-    if (type === "Collection") {
+    if (type === "Collection" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       return `/collections/${key}`;
-    } else if (type === "TocCategory") {
+    } else if (type === "TocCategory" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/texts/${key.join('/')}`;
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
       return `/topics/${key}`;
-    } else if (type === "ref") {
+    } else if (type === "ref" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
       return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User") {
-      return `/sheets/profile/${key}`;
+    } else if (type === "User" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+      return `/profile/${key}`;
     }
 };
 
@@ -252,12 +252,15 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
 
     return (
       <div id="searchBox"
-           className={searchBoxClasses}>
+           className={searchBoxClasses}
+           role="search"
+           aria-label={Sefaria._("Site search")}>
         <SearchButton onClick={handleSearchButtonClick} />
         <input
           className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
+          aria-label={Sefaria._("Search for Texts or Keywords Here")}
           onKeyDown={handleSearchKeyDown}
           onFocus={focusSearch}
           onBlur={blurSearch}
@@ -300,7 +303,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
     const _type_component_map = {
         search: {
-            onSuggestionClick: submitSearch,
+            onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
@@ -356,19 +359,25 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
+    const MODULE_AUTOCOMPLETE_TYPES = {
+      [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
+      [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
+    };
 
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
           return[];
         }
         try {
-        const d = await Sefaria.getName(inputValue);
+        const types = MODULE_AUTOCOMPLETE_TYPES[Sefaria.activeModule];
+        const topic_pool = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
+        const d = await Sefaria.getName(inputValue, undefined, types, topic_pool);
 
         let comps = d["completion_objects"].map(o => {
           const c = {...o};
           c["value"] = `${o['title']}${o["type"] === "ref" ? "" : `(${o["type"]})`}`;
           c["label"] = o["title"];
-          c["url"] = getURLForObject(c["type"], c["key"]);
+          c["url"] = getURLForObject(c["type"], c["key"]);  // if null, the object will be filtered out
 
           //"Topic" and "PersonTopic" considered same type:
           const currentType = c["type"];
@@ -377,7 +386,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
 
           return c;
-        });
+        }).filter(o => o.url !== null);  // filter out objects with null url
         comps = sortByTypeOrder(comps)
         if (comps.length > 0) {
           const q = inputValue;
@@ -394,38 +403,46 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const clearSearchBox = function (onChange) {
         onChange({ target: { value: '' } });
   }
-   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion) => {
-      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search')
-       {
-              showSearchWrapper(query);
-              clearSearchBox(onChange);
-              return;
-       }
+  const search = (onChange, query) => {
+      //   Execute the actions for searching the query string
+      Sefaria.track.event("Search", "Search Box Search", query);
+      showSearchWrapper(query);
+      clearSearchBox(onChange);
+  }
+  const redirectOrSearch = (onChange, query) => {
+      //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
-
           if (queryType === 'Ref') {
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
-          }
-          else if (queryType === 'Topic') {
+          } else if (queryType === 'Topic') {
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
+          } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+                const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
+                redirectToObject(onChange, item);
+          } else {
+              search(onChange, query);
           }
-          else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-              redirectToObject(queryType, queryId);
-          }
-          else {
-              Sefaria.track.event("Search", "Search Box Search", queryId);
-              showSearchWrapper(queryId);
+      })
+    }
+   const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion, enforceSearch) => {
+      if (highlightedIndex > -1 && highlightedSuggestion.type === 'search') {
+              showSearchWrapper(query);
               clearSearchBox(onChange);
-          }
+              return;
       }
-      )
+
+      if (enforceSearch) {
+          search(onChange, query);
+      } else {
+          redirectOrSearch(onChange, query);
+      }
     };
 
     const showSearchWrapper = (query) => {
@@ -479,7 +496,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
                 highlightedIndex={highlightedIndex}
                 getInputProps={getInputProps}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
-                redirectToObject={redirectToObject}
+                redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
               />
         )
     };

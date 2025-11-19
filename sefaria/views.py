@@ -6,9 +6,11 @@ import json
 import re
 import bleach
 from datetime import datetime, timedelta
+from dataclasses import asdict
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
+from celery.result import AsyncResult
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -33,7 +35,9 @@ from django.urls.exceptions import Resolver404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from functools import wraps
 
+from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -43,6 +47,7 @@ from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_sha
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
@@ -52,7 +57,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
-from sefaria.system.decorators import catch_error_as_http
+from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
@@ -66,6 +71,7 @@ from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
+from remote_config import remoteConfigCache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -101,6 +107,27 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
     form_class = SefariaPasswordResetForm
     email_template_name = 'registration/password_reset_email.txt'
     html_email_template_name = 'registration/password_reset_email.html'
+    
+    def form_valid(self, form):
+        """
+        Override form_valid to set the correct domain for the email context.
+        """
+        # Get the current domain from the request
+        current_domain = self.request.get_host()
+        
+        # Call form.save with domain override - this sends the email
+        form.save(
+            request=self.request,
+            domain_override=current_domain,
+            use_https=self.request.is_secure(),
+            email_template_name=self.email_template_name,
+            subject_template_name=self.subject_template_name,
+            html_email_template_name=self.html_email_template_name,
+            from_email=self.from_email,
+            extra_email_context=self.extra_email_context,
+        )
+        # Don't call super().form_valid(form) as it would send the email again
+        return HttpResponseRedirect(self.get_success_url())
 
 class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
@@ -358,8 +385,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    CURRENT_LINKER_VERSION = "2"
-    linker_version = linker_version or CURRENT_LINKER_VERSION
+    linker_version = linker_version or remoteConfigCache.get(CURRENT_LINKER_VERSION, "3")
 
     if linker_version == "3":
         # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
@@ -383,13 +409,76 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
-@api_view(["POST"])
+@cors_allow_all
+@api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response
-    try:
-        return jsonResponse(make_find_refs_response(request))
-    except APIInvalidInputException as e:
-        return e.to_json_response()
+    from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
+    from sefaria.helper.linker.tasks import find_refs_api_task
+    request_text, options, metadata = unpack_find_refs_request(request)
+    find_refs_input = FindRefsInput(request_text, options, metadata)
+    async_result = find_refs_api_task.apply_async(
+        args=(asdict(find_refs_input),),
+        queue=CeleryQueue.TASKS.value
+    )
+    logger.info(
+        "find_refs_api:enqueued",
+        task_id=async_result.id,
+        lang=find_refs_input.text.lang,
+        title_len=len(find_refs_input.text.title or ""),
+        body_len=len(find_refs_input.text.body or ""),
+    )
+    return jsonResponse({"task_id": async_result.id}, status=202)
+
+
+@cors_allow_all
+@api_view(["GET", "OPTIONS"])
+def async_task_status_api(request, task_id: str):
+    """
+    Poll the task. If complete, include the result.
+    Otherwise, return state (and any meta/progress).
+    """
+    result = AsyncResult(task_id)
+
+    state = result.state
+
+    payload = {
+        "task_id": task_id,
+        "state": state,
+        "ready": result.ready(),
+    }
+
+    # Include progress/meta if your task updates self.update_state(meta=...)
+    # Celery exposes that as `result.info` even while running
+    if result.info is not None and state not in ("SUCCESS", "FAILURE"):
+        payload["meta"] = result.info
+
+    if result.failed():
+        # result.result is the exception instance
+        payload["error"] = str(result.result)
+        logger.error("async_task_status_api:failed", task_id=task_id, state=state, error=payload["error"]) 
+        return jsonResponse(payload, status=500)
+
+    if result.successful():
+        payload["result"] = result.result
+        # summarize result shape if dict-like
+        try:
+            result_dict = result.result if isinstance(result.result, dict) else {}
+            title_results = len(result_dict.get("title", {}).get("results", []) if isinstance(result_dict.get("title"), dict) else [])
+            body_results = len(result_dict.get("body", {}).get("results", []) if isinstance(result_dict.get("body"), dict) else [])
+        except Exception:
+            title_results, body_results = None, None
+        logger.info(
+            "async_task_status_api:success",
+            task_id=task_id,
+            state=state,
+            title_results=title_results,
+            body_results=body_results,
+        )
+        return jsonResponse(payload, status=200)
+
+    # PENDING / STARTED / RETRY
+    logger.info("async_task_status_api:pending", task_id=task_id, state=state)
+    return jsonResponse(payload, status=202)
 
 
 @api_view(["GET"])
@@ -758,9 +847,10 @@ def reset_ref(request, tref):
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
-        vs = model.VersionState(index=oref.index)
+        index = model.library.get_index(tref)  # Get a fresh instance of the index
+        vs = model.VersionState(index=index)
         vs.refresh()
-        model.library.update_index_in_toc(oref.index)
+        model.library.update_index_in_toc(index)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
@@ -1396,20 +1486,40 @@ def modtools_upload_workflowy(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
-    c_index = request.POST.get("c_index", False)
-    c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    # Handle both single and multiple file uploads
+    files = []
+    if 'workflowys[]' in request.FILES:
+        files = request.FILES.getlist("workflowys[]")
+    else:
+        return jsonResponse({"error": "No files provided. Use 'workflowys[]' for multiple files."})
+
+    # Handle checkbox parameters
+    c_index = request.POST.get("c_index", "").lower() == "true"
+    c_version = request.POST.get("c_version", "").lower() == "true"
+    
+    delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
+    term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 
     uid = request.user.id
-    try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
-        res = wfparser.parse()
-    except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
-    return jsonResponse({"status": "ok", "data": res})
+    # Process files - collect both successes and errors
+    successes = []
+    failures = []
+
+    for file in files:
+        try:
+            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                raise InputError(res['error'])
+            successes.append(file.name)
+        except Exception as e:
+            failures.append({"file": file.name, "error": str(e)})
+
+    return jsonResponse({
+        "successes": successes,
+        "failures": failures
+    })
 
 @staff_member_required
 def links_upload_api(request):

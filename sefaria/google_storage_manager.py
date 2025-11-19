@@ -80,10 +80,7 @@ class GoogleStorageManager(object):
         """
         bucket = cls.get_bucket(bucket_name)
         blob = bucket.blob(filename)
-        in_memory_file = BytesIO()
-        blob.download_to_file(in_memory_file)
-        in_memory_file.seek(0)
-        return in_memory_file
+        return BytesIO(blob.download_as_bytes())
 
     @classmethod
     def get_url(cls, filename, bucket_name):
