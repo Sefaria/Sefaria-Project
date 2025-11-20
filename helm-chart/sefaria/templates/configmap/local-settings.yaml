@@ -16,6 +16,7 @@ data:
   MAINTENANCE_MESSAGE: {{ .Values.localSettings.MAINTENANCE_MESSAGE | quote }}
   GLOBAL_WARNING: "{{ .Values.localSettings.GLOBAL_WARNING }}"
   GLOBAL_WARNING_MESSAGE: {{ .Values.localSettings.GLOBAL_WARNING_MESSAGE | quote }}
+  REF_CACHE_LIMIT: "{{ .Values.localSettings.REF_CACHE_LIMIT }}"
   SITE_PACKAGE: {{ .Values.localSettings.SITE_PACKAGE | quote }}
   DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
