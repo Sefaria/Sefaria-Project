@@ -147,7 +147,7 @@ class Linker:
         footnote_ranges = fn_normalizer.find_text_to_remove(input_str)
         footnotes_text_list = []
         footnotes_offsets = []
-        for (start, end), _ in reversed(footnote_ranges):
+        for (start, end), _ in footnote_ranges:
             footnotes_text_list.append(input_str[start:end])
             footnotes_offsets.append(start)
         footnotes_doc_list = self.bulk_link(footnotes_text_list, [book_context_ref]*len(footnotes_text_list), *link_args, **link_kwargs)
