@@ -152,8 +152,8 @@ data:
     SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"
     SEARCH_URL = f'http{"s" if SEARCH_SSL_ENABLE else ""}://{auth_str}{os.getenv("SEARCH_HOST")}:{os.getenv("SEARCH_PORT")}/{os.getenv("SEARCH_PATH")}'
     SEARCH_INDEX_ON_SAVE = True
-    SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
-    SEARCH_INDEX_NAME_SHEET = 'sheet'
+    SEARCH_INDEX_NAME_TEXT = os.getenv("SEARCH_INDEX_NAME_TEXT", "text")  # name of the ElasticSearch index to use
+    SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
 
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
