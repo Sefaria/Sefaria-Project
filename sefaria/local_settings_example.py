@@ -121,6 +121,8 @@ CACHES = {
 
 SITE_PACKAGE = "sites.sefaria"
 
+REF_CACHE_LIMIT = 60000
+
 
 
 
