@@ -1,7 +1,6 @@
 import pytest
 
 from sefaria.model import Ref
-from sefaria.settings import REF_CACHE_LIMIT as DEFAULT_REF_CACHE_LIMIT
 
 
 @pytest.fixture
@@ -10,7 +9,7 @@ def ref_cache_guard():
     Ensure each test starts with a clean cache and restore the original limit afterwards.
     """
     ref_cls = Ref
-    original_limit = getattr(ref_cls, "_tref_oref_cache_limit", DEFAULT_REF_CACHE_LIMIT)
+    original_limit = getattr(ref_cls, "_tref_oref_cache_limit", 60000)
     if not hasattr(ref_cls, "_tref_oref_cache_limit"):
         ref_cls._tref_oref_cache_limit = original_limit
     Ref.clear_cache()

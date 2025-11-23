@@ -41,8 +41,6 @@ CACHES = {
 
 SITE_PACKAGE = "sites.sefaria"
 
-REF_CACHE_LIMIT = 60000
-
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', "0.0.0.0", '[::1]']
 OFFLINE = False

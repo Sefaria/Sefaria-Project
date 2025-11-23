@@ -31,7 +31,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, REF_CACHE_LIMIT
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
@@ -2615,7 +2615,7 @@ class RefCacheType(type):
         super(RefCacheType, cls).__init__(name, parents, dct)
         cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
-        cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, REF_CACHE_LIMIT)
+        cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, 60000)
 
     def _touch_cache_key(cls, key):
         try:

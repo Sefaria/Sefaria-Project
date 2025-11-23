@@ -42,7 +42,6 @@ data:
     MAINTENANCE_MESSAGE =  os.getenv("MAINTENANCE_MESSAGE")
     GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
-    REF_CACHE_LIMIT = int(os.getenv("REF_CACHE_LIMIT", "60000"))
 
     DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
     ADMINS = (

@@ -240,7 +240,6 @@ localSettings:
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
-  REF_CACHE_LIMIT: 60000
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
