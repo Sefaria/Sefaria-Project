@@ -7,6 +7,8 @@ import time
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
+
+from remote_config.keys import REF_CACHE_LIMIT_KEY
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -33,6 +35,7 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLE
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
+from remote_config import remoteConfigCache
 
 """
                 ----------------------------------
@@ -2612,7 +2615,7 @@ class RefCacheType(type):
         super(RefCacheType, cls).__init__(name, parents, dct)
         cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
-        cls._tref_oref_cache_limit = REF_CACHE_LIMIT
+        cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, REF_CACHE_LIMIT)
 
     def _touch_cache_key(cls, key):
         try:
