@@ -7,6 +7,8 @@ import time
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
+
+from remote_config.keys import REF_CACHE_LIMIT_KEY
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -15,7 +17,7 @@ import copy
 import bleach
 import json
 import itertools
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
@@ -33,6 +35,7 @@ from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLE
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
+from remote_config import remoteConfigCache
 
 """
                 ----------------------------------
@@ -2610,8 +2613,26 @@ class RefCacheType(type):
 
     def __init__(cls, name, parents, dct):
         super(RefCacheType, cls).__init__(name, parents, dct)
-        cls.__tref_oref_map = {}
+        cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
+        cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, 60000)
+
+    def _touch_cache_key(cls, key):
+        try:
+            cls.__tref_oref_map.move_to_end(key)
+        except KeyError:
+            pass
+
+    def _set_cache_key(cls, key, value):
+        cls.__tref_oref_map[key] = value
+        cls._enforce_cache_limit()
+
+    def _enforce_cache_limit(cls):
+        limit = getattr(cls, "_tref_oref_cache_limit", None)
+        if not limit:
+            return
+        while len(cls.__tref_oref_map) > limit:
+            cls.__tref_oref_map.popitem(last=False)
 
     def cache_size(cls):
         return len(cls.__tref_oref_map)
@@ -2627,7 +2648,7 @@ class RefCacheType(type):
         return cls.__tref_oref_map
 
     def clear_cache(cls):
-        cls.__tref_oref_map = {}
+        cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
 
     def remove_index_from_cache(cls, index_title):
@@ -2656,21 +2677,25 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                return cls.__tref_oref_map[tref]
+                result = cls.__tref_oref_map[tref]
+                cls._touch_cache_key(tref)
+                return result
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
                 title = result.index.title
                 if uid in cls.__tref_oref_map:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__tref_oref_map[tref] = cls.__tref_oref_map[uid]
+                    cached = cls.__tref_oref_map[uid]
+                    cls._touch_cache_key(uid)
+                    cls._set_cache_key(tref, cached)
                     try:
                         cls.__index_tref_map[title] += [tref]
                     except KeyError:
                         cls.__index_tref_map[title] = [tref]
-                    return cls.__tref_oref_map[uid]
-                cls.__tref_oref_map[uid] = result
-                cls.__tref_oref_map[tref] = result
+                    return cached
+                cls._set_cache_key(uid, result)
+                cls._set_cache_key(tref, result)
                 try:
                     cls.__index_tref_map[title] += [tref]
                 except KeyError:
@@ -2684,8 +2709,10 @@ class RefCacheType(type):
             title = result.index.title
             if uid in cls.__tref_oref_map:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__tref_oref_map[uid]
-            cls.__tref_oref_map[uid] = result
+                cached = cls.__tref_oref_map[uid]
+                cls._touch_cache_key(uid)
+                return cached
+            cls._set_cache_key(uid, result)
             try:
                 cls.__index_tref_map[title] += [uid]
             except KeyError:
