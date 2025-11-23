@@ -5832,18 +5832,6 @@ h1.topic-landing-header {
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.hebrew .readerControls .readerTextToc {
-  direction: rtl;
-}
-.english .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-english .bilingual .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-hebrew .bilingual .readerControls .readerTextToc {
-  direction: rtl;
-}
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
