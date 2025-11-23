@@ -144,17 +144,18 @@ class Linker:
 
         # link footnotes only
         footnote_ranges = fn_normalizer.find_text_to_remove(input_str)
-        footnotes_text_list = []
-        footnotes_offsets = []
-        for (start, end), _ in footnote_ranges:
-            footnotes_text_list.append(input_str[start:end])
-            footnotes_offsets.append(start)
-        footnotes_doc_list = self.bulk_link(footnotes_text_list, [book_context_ref]*len(footnotes_text_list), *link_args, **link_kwargs)
+        if len(footnote_ranges) > 0:
+            footnotes_text_list = []
+            footnotes_offsets = []
+            for (start, end), _ in footnote_ranges:
+                footnotes_text_list.append(input_str[start:end])
+                footnotes_offsets.append(start)
+            footnotes_doc_list = self.bulk_link(footnotes_text_list, [book_context_ref]*len(footnotes_text_list), *link_args, **link_kwargs)
 
-        # adjust char indices of footnote resolved entities to be in context of original input_str
-        for offset, fn_doc in zip(footnotes_offsets, footnotes_doc_list):
-            fn_doc.align_to_new_doc(NEDoc(input_str), offset)
-            linked_doc = linked_doc.merge(fn_doc)
+            # adjust char indices of footnote resolved entities to be in context of original input_str
+            for offset, fn_doc in zip(footnotes_offsets, footnotes_doc_list):
+                fn_doc.align_to_new_doc(NEDoc(input_str), offset)
+                linked_doc = linked_doc.merge(fn_doc)
 
         return linked_doc
 
