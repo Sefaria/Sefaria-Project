@@ -1,10 +1,14 @@
 import dataclasses
-from typing import List, Union, Optional, Tuple, Dict
+from typing import Tuple, Dict
 import copy
+import re
+from collections import defaultdict
 from typing import List, Union, Optional
+from threading import Lock
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
+from sefaria.model.passage import PassageSet, Passage
 from sefaria.system.exceptions import InputError
 from bisect import bisect_right
 
@@ -131,8 +135,11 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
             # assume leaves are contiguous. If this is wrong, will be disproven later in the function
             if len(leaves) == 0:
                 return "N/A"
-            approx_ref = leaves[0].ref().to(leaves[-1].ref())
-            return approx_ref.order_id()
+            try:
+                approx_ref = leaves[0].ref().to(leaves[-1].ref())
+                return approx_ref.order_id()
+            except:
+                return leaves[0].ref().order_id()
         return self.ref().order_id()
 
 
@@ -277,7 +284,7 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
         serial = truncate_serialized_node_to_depth(serial, next_referenceable_depth)
         return serial
 
-    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
+    def get_children(self, context_ref=None, **kwargs) -> list[ReferenceableBookNode]:
         try:
             serial = self._get_serialized_node()
         except ValueError:
@@ -287,6 +294,9 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
             children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
             if serial['depth'] == 1:
                 return children
+        passages = PASSAGE_MATCHER.get_passages(context_ref)
+        if passages:
+            children += [PassageNodeSet(passages)]
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
         return children + [NumberedReferenceableBookNode(new_ja)]
 
@@ -428,6 +438,60 @@ class DiburHamatchilNode(abst.AbstractMongoRecord, ReferenceableBookNode):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return DiburHamatchilMatch(1.0, dh, dh_index)
         return DiburHamatchilMatch(0.0, None, dh_index)
+    
+    
+class PassageNode(ReferenceableBookNode):
+    
+    def __init__(self, passage: Passage):
+        self._passage = passage
+        
+    def ref(self) -> text.Ref:
+        return self._passage.ref()
+        
+    def get_match_template_trie(self, *args, **kwargs):
+        return self._passage.get_match_template_trie(*args, **kwargs)
+    
+    
+class PassageNodeSet(ReferenceableBookNode):
+    
+    def __init__(self, passages: list[Passage]):
+        self._passages = passages
+        
+    def get_children(self, *args, **kwargs) -> List['PassageNode']:
+        return [PassageNode(passage) for passage in self._passages]
+    
+    
+class PassageMatcher:
+
+    # make class into singleton that is thread-safe
+    _instance = None
+    _lock = Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialize()
+        return cls._instance
+
+    def _initialize(self):
+        self._by_segment = defaultdict(list)
+        passages = PassageSet({"match_templates": {"$exists": True}})
+        for passage in passages:
+            for seg_tref in passage.ref_list:
+                self._by_segment[seg_tref].append(passage)
+                
+    def get_passages(self, ref: text.Ref) -> List[Passage]:
+        reg = re.compile(ref.regex())
+        matched_keys = [key for key in self._by_segment if re.search(reg, key)]
+        passages = []
+        for key in matched_keys:
+            passages.extend(self._by_segment[key])
+        return passages
+
+
+PASSAGE_MATCHER = PassageMatcher()
 
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet, ReferenceableBookNode):

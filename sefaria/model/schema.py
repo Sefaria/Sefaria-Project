@@ -1217,7 +1217,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", 'referenceable']
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", "ref_resolver_context_mutations", 'referenceable']
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1250,6 +1250,55 @@ class SchemaNode(TitledTreeNode):
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
+        self._validate_context_mutations()
+
+    def _validate_context_mutations(self):
+        mutations = getattr(self, "ref_resolver_context_mutations", None)
+        if mutations is None:
+            return
+
+        full_title = self.full_title()
+
+        if not isinstance(mutations, list):
+            raise IndexSchemaError(
+                f"ref_resolver_context_mutations on {full_title} must be a list"
+            )
+
+        from sefaria.model.linker.context_mutation import ContextMutation, ContextMutationOp
+        allowed_ops = {op.value for op in ContextMutationOp}
+
+        def err(idx, msg: str) -> None:
+            raise IndexSchemaError(f"Context mutation #{idx} on {full_title} {msg}")
+
+        for idx, m in enumerate(mutations):
+            if not isinstance(m, dict):
+                err(idx, "must be a dict with op/input_terms/output_terms")
+
+            op_token = m.get("op")
+            try:
+                op = ContextMutationOp(op_token)
+            except Exception:
+                err(idx, f"has invalid op {op_token!r}. Valid options: {sorted(allowed_ops)}")
+
+            input_terms = m.get("input_terms", ())
+            output_terms = m.get("output_terms", ())
+
+            if not (isinstance(input_terms, (list, tuple)) and input_terms):
+                err(idx, "must declare input_terms as a non-empty list/tuple")
+
+            if not isinstance(output_terms, (list, tuple)):
+                err(idx, "must declare output_terms as a list/tuple")
+
+            if not all(isinstance(t, str) and t for t in input_terms):
+                err(idx, "has invalid input_terms (non-empty strings only)")
+
+            if not all(isinstance(t, str) and t for t in output_terms):
+                err(idx, "has invalid output_terms (non-empty strings only)")
+
+            try:
+                ContextMutation(op, input_terms, output_terms)
+            except ValueError as exc:
+                err(idx, f"is invalid: {exc}")
     def concrete_children(self):
         return [c for c in self.children if not c.is_virtual]
 
@@ -1491,7 +1540,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'index_offsets_by_depth']
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "hasPassageChildren", "diburHamatchilRegexes", 'index_offsets_by_depth']
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__

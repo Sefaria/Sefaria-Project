@@ -4,6 +4,7 @@ import {InterfaceText} from "../Misc";
 import Util from "../sefaria/util";
 
 export default function RadioButton  ({isActive, onClick, value, name, label, id, onKeyDown, ...rest}) {
+
     const handleChange = (e) => {
         e.stopPropagation();
         onClick();
