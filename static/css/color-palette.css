@@ -1,0 +1,38 @@
+:root {
+  /* colors */
+  --inline-link-blue: #4871bf;
+  --sefaria-blue: #18345D;
+  --sheets-green: #5D956F; /* same as --midrash-green but serves a different purpose so separate */
+  --devportal-purple: #7C416F; /* same as --mussar-purple but serves a different purpose so separate */
+  --highlight-blue: #DDEEFF;
+  --highlight-blue-light: #F0F7FF;
+  --beit-midrash-grey: #333333;
+  --dark-grey: #666666;
+  --medium-grey: #6f6f6f;
+  --medium-grey-legacy: #999999;
+  --light-grey: #CCCCCC;
+  --lighter-grey: #EDEDEC;
+  --lightest-grey: #FBFBFA;
+  --commentary-blue: #4B71B7;
+  --essay-links-green: #3B5849;
+  --tanakh-teal: #004E5F;
+  --mishnah-blue: #5A99B7;
+  --talmud-gold: #CCB479;
+  --midrash-green: #5D956F;
+  --halakhah-red: #802F3E;
+  --kabbalah-purple: #594176;
+  --liturgy-rose: #AB4E66;
+  --philosophy-purple: #7F85A9;
+  --taanitic-green: #00827F;
+  --chasidut-green: #97B386;
+  --mussar-purple: #7C416F;
+  --responsa-red: #CB6158;
+  --apocrypha-pink: #C6A7B4;
+  --modern-works-blue: #B8D4D3;
+  --grammar-green: #B2B272;
+  --reference-orange: #D4896C;
+  --miscelaneous-green: #3B5849;
+  --selected-option: #000000;
+  --select-blue: #0B71E7;
+  --focus-blue: #1976d2;
+}

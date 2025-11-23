@@ -5,7 +5,6 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
-import Footer  from './Footer';
 import { Notifications } from './NotificationsPanel';
 import { NavSidebar }from './NavSidebar';
 import {
@@ -120,7 +119,6 @@ class UpdatesPanel extends Component {
               </div>
             </div>
           </div>
-          <Footer />
         </div>
       </div>
     );
@@ -189,15 +187,15 @@ class NewUpdateForm extends Component {
   render() {
     return (
       <form className="globalUpdateForm" onSubmit={this.handleSubmit}>
-        <div>
-          <input type="radio" name="type" value="index" onChange={this.handleTypeChange} checked={this.state.type=="index"}/>Index&nbsp;&nbsp;
-          <input type="radio" name="type" value="version" onChange={this.handleTypeChange} checked={this.state.type=="version"}/>Version&nbsp;&nbsp;
-          <input type="radio" name="type" value="general" onChange={this.handleTypeChange} checked={this.state.type=="general"}/>General&nbsp;&nbsp;
+        <div role="group" aria-label={Sefaria._("Update type")}>
+          <label><input type="radio" name="type" value="index" onChange={this.handleTypeChange} checked={this.state.type=="index"}/>Index</label>&nbsp;&nbsp;
+          <label><input type="radio" name="type" value="version" onChange={this.handleTypeChange} checked={this.state.type=="version"}/>Version</label>&nbsp;&nbsp;
+          <label><input type="radio" name="type" value="general" onChange={this.handleTypeChange} checked={this.state.type=="general"}/>General</label>&nbsp;&nbsp;
         </div>
         <div>
-          {(this.state.type != "general")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
-          {(this.state.type == "version")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
-          {(this.state.type == "version")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
+          {(this.state.type != "general")?<input type="text" placeholder="Index Title" aria-label={Sefaria._("Index Title")} onChange={this.handleIndexChange} />:""}
+          {(this.state.type == "version")?<input type="text" placeholder="Version Title" aria-label={Sefaria._("Version Title")} onChange={this.handleVersionChange}/>:""}
+          {(this.state.type == "version")?<select aria-label={Sefaria._("Version Language")} onChange={this.handleLanguageChange}>
             <option value="en">English</option>
             <option value="he">Hebrew</option>
           </select>:""}

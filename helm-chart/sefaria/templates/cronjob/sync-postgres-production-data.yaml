@@ -1,0 +1,70 @@
+{{- if and .Values.restore.enabled .Values.cronJobs.syncPostgresProductionData.enabled }}
+# Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-sync-postgres-production-data
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.restore.serviceAccount }}
+          containers:
+            - name: sync-postgres-production-data
+              image: postgres:{{ .Values.backup.postgres.version }}
+              command: ["/bin/bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Starting sync of production PostgreSQL data to {{ .Values.deployEnv }}..."
+
+                  # Find and download latest PostgreSQL backup from production
+                  LATEST_DUMP=$(gsutil ls -l gs://sefaria-user-backup/ | grep postgres | sort -k2r | head -1 | awk '{print $3}')
+                  echo "Found latest backup: $LATEST_DUMP"
+                  gsutil -q cp "$LATEST_DUMP" pg.dump
+
+                  # Set PostgreSQL connection environment variables
+                  export PGHOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
+                  export PGUSER="${DATABASES_USER}"
+                  export PGPASSWORD="${DATABASES_PASSWORD}"
+                  export PGDATABASE="{{ .Values.postgres.db }}"
+
+                  echo "Restoring to database: $PGDATABASE"
+                  echo "Using PostgreSQL host: $PGHOST"
+
+                  # Ensure database exists (create if not exists)
+                  echo "Ensuring database exists..."
+                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";" 2>/dev/null || echo "Database already exists"
+
+                  # Perform the restore with --clean to update existing tables
+                  echo "Restoring PostgreSQL data (updating existing tables)..."
+                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" pg.dump
+
+                  echo "Production PostgreSQL data sync completed successfully"
+              envFrom:
+                - secretRef:
+                    name: {{ .Values.secrets.localSettings.ref }}
+                - secretRef:
+                    name: local-settings-secrets-{{ .Values.deployEnv }}
+                    optional: true
+                - configMapRef:
+                    name: local-settings-{{ .Values.deployEnv }}
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 500Mi
+                limits:
+                  cpu: 750m
+                  memory: "1Gi"
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}
