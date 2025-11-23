@@ -2622,7 +2622,6 @@ class RefCacheType(type):
 
     def _set_cache_key(cls, key, value):
         cls.__tref_oref_map[key] = value
-        cls._touch_cache_key(key)
         cls._enforce_cache_limit()
 
     def _enforce_cache_limit(cls):
