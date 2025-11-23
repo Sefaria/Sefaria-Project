@@ -64,7 +64,7 @@ class LinkerOutput(AbstractMongoRecord):
 
 
 class LinkerOutputSet(AbstractMongoSet):
-    collection = "linker_output"
+    recordClass = LinkerOutput
 
 
 def process_index_title_change_in_linker_output(indx, **kwargs):
