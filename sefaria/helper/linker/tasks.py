@@ -57,6 +57,7 @@ class DeleteAndSaveLinksMsg:
             vtitle=d.get("vtitle"),
             lang=d.get("lang"),
             user_id=d.get("user_id"),
+            version_id=d.get("version_id"),
             tracker_kwargs=d.get("tracker_kwargs") or {},
         )
 

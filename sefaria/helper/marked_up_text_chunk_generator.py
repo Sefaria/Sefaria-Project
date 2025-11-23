@@ -1,4 +1,6 @@
 
+from typing import Optional
+
 import structlog
 from sefaria.model.text import Ref, TextChunk, Version
 from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
@@ -62,11 +64,13 @@ class MarkedUpTextChunkGenerator:
 
     ##  Private methods:
 
-    def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str, version_id: str) -> None:
-        self.kwargs['version_id'] = version_id
+    def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str, version_id: Optional[str] = None) -> None:
+        kwargs = dict(self.kwargs)
+        if version_id is not None:
+            kwargs['version_id'] = version_id
         linking_args = LinkingArgs(ref=segment_ref.normal(), text=text,
                                    lang=lang, vtitle=vtitle,
-                                   user_id=self.user_id, kwargs=self.kwargs)
+                                   user_id=self.user_id, kwargs=kwargs)
         enqueue_linking_chain(linking_args)
 
 
@@ -80,11 +84,16 @@ class MarkedUpTextChunkGenerator:
                 continue
             self.generate(segment_ref, lang, vtitle)
 
-    def _generate_single_segment_version(self, segment_ref: Ref, lang: str, vtitle: str, version_id: str) -> None:
+    def _generate_single_segment_version(self, segment_ref: Ref, lang: str, vtitle: str, version_id: Optional[str] = None) -> None:
         text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
         if not text_chunk.text:
             logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
             return
+
+        if version_id is None:
+            # For segment-level TextChunks, version_ids() reflects the single version we loaded above.
+            chunk_version_id = text_chunk.version_ids()[0]
+            version_id = str(chunk_version_id)
 
         try:
             self._create_and_save_marked_up_text_chunk(segment_ref, vtitle, lang, text_chunk.text, version_id)
