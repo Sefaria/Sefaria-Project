@@ -444,6 +444,7 @@ urlpatterns += [
     url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
+    url(r'^admin/memory/summary', sefaria_views.memory_summary),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
