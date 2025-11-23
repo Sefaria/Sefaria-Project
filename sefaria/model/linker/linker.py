@@ -41,6 +41,7 @@ class LinkedDoc:
     def align_to_new_doc(self, new_doc: NEDoc, offset: int) -> None:
         """
         Align all resolved entities to a new NEDoc with an offset
+        No need to align the ref parts since they are relative to the raw ref which hasn't changed
         @param new_doc:
         @param offset:
         @return:
@@ -48,8 +49,6 @@ class LinkedDoc:
         for resolved in self.all_resolved:
             named_entity = resolved.raw_entity
             named_entity.align_to_new_doc(new_doc, offset)
-            if isinstance(named_entity, RawRef):
-                named_entity.align_parts_to_new_doc(new_doc, offset)
 
 
 class Linker:
