@@ -551,7 +551,8 @@ Sefaria = extend(Sefaria, {
     return encodeURIComponent(versionParamsString);
   },
   makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
-    const url = new URL('/api/v3/texts/' + Sefaria.normRef(ref), Sefaria.apiHost);
+    const apiHost = Sefaria.apiHost || (typeof window !== 'undefined' ? window.location.origin : '');
+    const url = new URL(`${apiHost}/api/v3/texts/${Sefaria.normRef(ref)}`);
     
     const versions = requiredVersions.map(obj =>
       Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
@@ -563,6 +564,9 @@ Sefaria = extend(Sefaria, {
     
     if (return_format) {
       url.searchParams.set('return_format', return_format);
+    }
+    if (Sefaria._linker_debug) {
+      url.searchParams.set('linker_debug', '1');
     }
     
     return url.toString();
@@ -3506,7 +3510,8 @@ Sefaria.unpackBaseProps = function(props){
       "trendingTopics",
       "numLibraryTopics",
       "_siteSettings",
-      "_debug"
+      "_debug",
+      "_linker_debug",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
