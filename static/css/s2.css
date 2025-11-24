@@ -1004,15 +1004,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   line-height: 1;
   padding: 8px 15px;
 }
-.header .headerInner.mobile {
-  padding: 0 15px;
-}
-.header .headerInner.mobile {
-  display: flex;
-}
-.header .headerInner.mobile div {
-  flex: 1;
-}
 .mobileHeaderCenter {
   text-align: center;
 }

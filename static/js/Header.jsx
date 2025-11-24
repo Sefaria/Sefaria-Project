@@ -326,7 +326,7 @@ const Header = (props) => {
   // In "book toc" mode, we want to show a color line below the header.  In all other cases, we want to show a box shadow.
   const hasColorLine = props?.firstPanel?.menuOpen === "book toc";
   const hasBoxShadow = !hasColorLine;
-  const headerClasses = classNames({ header: 1, mobile: mobile });
+  const headerClasses = classNames({ header: 1, mobile: mobile }); // TODO remove mobile agter implementing everything with media
   const headerInnerClasses = classNames({
     headerInner: 1,
     boxShadow: hasBoxShadow,

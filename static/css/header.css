@@ -21,6 +21,11 @@
   padding: 0 30px;
   justify-content: space-between;
 }
+@media (max-width: 842px) {
+  .headerInner {
+    padding: 0 15px;
+  }
+}
 
 .headerOnly .headerInner,
 .headerInner.boxShadow {
