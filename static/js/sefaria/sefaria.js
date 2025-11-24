@@ -3586,6 +3586,21 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  getBreakpoint: () => {
+    // ReaderApp is re-rendered every resize, so static function will work.
+    const rootStyles = getComputedStyle(document.documentElement);
+    const tabletMin = parseInt(rootStyles.getPropertyValue('--bp-tablet-min'));
+    const desktopMin = parseInt(rootStyles.getPropertyValue('--bp-desktop-min'));
+    const width = window.innerWidth;
+
+    if (width < tabletMin) {
+      return 'mobile';
+    } else if (width >= tabletMin && width < desktopMin) {
+      return 'tablet';
+    } else {
+      return 'desktop';
+    }
+  },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
