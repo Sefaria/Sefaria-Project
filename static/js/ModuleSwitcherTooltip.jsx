@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import ShowOnceTooltip from './common/ShowOnceTooltip';
 import { InterfaceText } from './Misc';
 import Sefaria from './sefaria/sefaria';
-import Strings from './sefaria/strings';
 
 const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 
@@ -15,19 +14,19 @@ const STRINGS = {
 };
 
 const ModuleSwitcherTooltip = ({ targetRef, children }) => {
-  const [isTooltipVisible, setTooltipVisible] = useState(false);
+  const [isOpen, setOpen] = useState(false);
 
   // Show tooltip if not dismissed
   useEffect(() => {
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (dismissed !== 'true' && targetRef?.current) {
-      setTooltipVisible(true);
+      setOpen(true);
     }
   }, [targetRef]);
 
   // Handle clicks on module switcher icon to hide tooltip
   useEffect(() => {
-    if (!isTooltipVisible) return;
+    if (!isOpen) return;
 
     const handleModuleSwitcherClick = (event) => {
       // Check if click is on the module switcher or mobile menu button
@@ -36,7 +35,7 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
                                      clickedElement.closest('.menuButton');
       
       if (isModuleSwitcherClick) {
-        setTooltipVisible(false);
+        setOpen(false);
       }
     };
 
@@ -47,17 +46,18 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
       document.removeEventListener('mousedown', handleModuleSwitcherClick);
       document.removeEventListener('touchstart', handleModuleSwitcherClick);
     };
-  }, [isTooltipVisible]);
+  }, [isOpen]);
 
   return (
     <ShowOnceTooltip
       storageKey={STORAGE_KEY}
       targetRef={targetRef}
-      open={isTooltipVisible}
-      onOpenChange={setTooltipVisible}
+      open={isOpen}
+      onOpenChange={setOpen}
       header={<InterfaceText>{STRINGS.HEADER}</InterfaceText>}
       content={<InterfaceText>{STRINGS.CONTENT}</InterfaceText>}
       learnMore={{
+        // TODO: add the actual href
         href: 'https://www.sefaria.org/sheets/689609?lang=en',
         label: <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>,
         newTab: true,

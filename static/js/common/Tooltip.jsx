@@ -58,8 +58,7 @@ const Tooltip = ({
     if (open && refs.floating.current) {
       return autoUpdate(targetRef.current, refs.floating.current, update);
     }
-  }, [open, targetRef, refs, update]);
-
+  }, [open, targetRef, refs.setReference, refs.floating, update]);
   // Determine placement to help arrow class (fall back to base)
   const placement = middlewareData?.placement || basePlacement;
 

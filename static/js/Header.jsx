@@ -140,42 +140,42 @@ const ModuleSwitcher = () => {
   return (    
   <ModuleSwitcherTooltip targetRef={dropdownRef}>
     <div ref={dropdownRef}>
-    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-      <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
-        <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
-      </button>
-    }>
-      <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
-          <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
+      <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
+        <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
+          <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
+        </button>
+      }>
+        <div className='dropdownLinks-options moduleDropdown'>
+          <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
+            <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
 
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownModuleItem
-          url={"/"}
-          newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
-          targetModule={Sefaria.LIBRARY_MODULE}
-          dotColor={'--sefaria-blue'}
-          text={{ en: "Library", he: Sefaria._("Library") }} />
-        <DropdownMenuSeparator />
-        <DropdownModuleItem
-          url={"/"}
-          newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
-          targetModule={Sefaria.VOICES_MODULE}
-          dotColor={'--sheets-green'}
-          text={{ en: "Voices", he: Sefaria._("Voices") }} />
-        <DropdownMenuSeparator />
-        <DropdownModuleItem
-          url={'https://developers.sefaria.org'}
-          newTab={true}
-          dotColor={'--devportal-purple'}
-          text={{ en: "Developers", he: Sefaria._("Developers") }} />
-        <DropdownMenuSeparator />
-        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
-          <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
-        </DropdownMenuItem>
-      </div>
-    </DropdownMenu>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownModuleItem
+            url={"/"}
+            newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
+            targetModule={Sefaria.LIBRARY_MODULE}
+            dotColor={'--sefaria-blue'}
+            text={{ en: "Library", he: Sefaria._("Library") }} />
+          <DropdownMenuSeparator />
+          <DropdownModuleItem
+            url={"/"}
+            newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
+            targetModule={Sefaria.VOICES_MODULE}
+            dotColor={'--sheets-green'}
+            text={{ en: "Voices", he: Sefaria._("Voices") }} />
+          <DropdownMenuSeparator />
+          <DropdownModuleItem
+            url={'https://developers.sefaria.org'}
+            newTab={true}
+            dotColor={'--devportal-purple'}
+            text={{ en: "Developers", he: Sefaria._("Developers") }} />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
+            <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenu>
     </div>
   </ModuleSwitcherTooltip>
 );
