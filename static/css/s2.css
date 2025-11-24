@@ -535,6 +535,7 @@ input.noselect {
 .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+  vertical-align: middle;
   margin-top: 2px;
 }
 .header .searchBox {
@@ -736,27 +737,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
   border-radius: 6px;
-}
-.accountLinks .help {
-  margin-inline-start: 23px;
-  margin-top: 3px;
-}
-.loggedIn .help {
-  margin-inline-start: 17px;
-}
-.loggedIn .help img {
-  height: 24px;
-  margin-bottom: 3px;
-}
-.accountLinks.anon .help {
-  margin-top: 6px;
-}
-.headerLinksSection .help {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin-top: 4px;
 }
 .headerDropdownMenu .languageHeader {
   padding-inline: 15px;
@@ -10590,27 +10570,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 body:not(.user-is-tabbing) .dropdownItem:focus,
 body:not(.user-is-tabbing) .dropdownOption:focus,
 body:not(.user-is-tabbing) div[role="button"]:focus,
-body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
-body:not(.user-is-tabbing) .header-dropdown-button:focus {
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus {
   outline: none;
 }
 
 /* Add browser-like focus outline for dropdown buttons when tabbing */
 body.user-is-tabbing div[role="button"]:focus,
-body.user-is-tabbing .dropdownLinks-button img:focus,
-body.user-is-tabbing .header-dropdown-button:focus {
+body.user-is-tabbing .dropdownLinks-button img:focus {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
-}
-
-/* Reset button styling for header dropdown buttons to match original image appearance */
-.header-dropdown-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: inline-block;
 }
 
 .singlePanel .dropdown .dropdownList {
@@ -15222,8 +15190,6 @@ span.ref-link-color-3 {color: blue}
 .header .headerDropdownMenu {
   display: block;
   align-items: center;
-  margin-top: 2px;
-  margin-bottom: 4px;
   color: var(--dark-grey);
   position: relative;
 }
@@ -15254,18 +15220,12 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   line-height: 0;
 }
-.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
+/* Plain img tags in header (not using Button component with icon-only) */
+.header .headerDropdownMenu img,
+.sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
-}
-
-.interface-english .header .headerDropdownMenu img {
-  margin-inline-end: 2px;
-}
-
-.interface-hebrew .header .headerDropdownMenu img {
-  margin-inline-end: 6px;
 }
 
 /* .header .headerDropdownMenu .dropdownLinks-button::after {
@@ -15812,29 +15772,6 @@ span.ref-link-color-3 {color: blue}
   align-items: end;
 }
 
-.librarySavedIcon{
-  width: 20px;
-  height: 20px;
-  margin-inline-start: 6px;
-  margin-top: 2px;
-}
-
-.sheetsNotificationsHeaderIcon {
-  width: 20px;
-  height: 18px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.sheetsNotificationsHeaderIcon img{
-  width: 100%;
-  height: 100%;
-}
-
-.librarySavedIcon img{
-  width: 100%;
-  height: 100%;
-}
 .languageFlex {
   display: flex;
   flex-direction: column;

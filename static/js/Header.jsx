@@ -32,7 +32,6 @@ const LoggedOutDropdown = ({module}) => {
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
       <Button
         variant="icon-only"
-        className="header-dropdown-button"
         icon="profile_loggedout_mdl"
         alt={Sefaria._("Login")}
         ariaLabel={Sefaria._("Account menu")}
@@ -143,7 +142,6 @@ const ModuleSwitcher = () => {
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
       <Button
         variant="icon-only"
-        className="header-dropdown-button"
         icon="moduleswitcher_mdl"
         alt={Sefaria._("Library")}
         ariaLabel={Sefaria._("Library")}
@@ -223,19 +221,16 @@ const Header = (props) => {
     </a>
   );
 
-  const librarySavedIcon = <div className='librarySavedIcon'>
-                                <Button
+  const librarySavedIcon = <Button
                                   variant="icon-only"
                                   icon="bookmarkset_outline_mdl"
                                   alt={Sefaria._('Saved items')}
                                   ariaLabel={Sefaria._('Saved items')}
                                   href="/saved"
                                   targetModule={Sefaria.LIBRARY_MODULE}
-                                />
-                              </div>;
+                                />;
 
-  const voicesNotificationIcon = <div className='sheetsNotificationsHeaderIcon'>
-                              <Button
+  const voicesNotificationIcon = <Button
                                 variant="icon-only"
                                 icon={unread ? "notifications-1_mdl" : "notifications_mdl"}
                                 alt={Sefaria._("Notifications")}
@@ -243,8 +238,7 @@ const Header = (props) => {
                                 href="/notifications"
                                 targetModule={Sefaria.VOICES_MODULE}
                                 className={notificationsClasses}
-                              />
-                            </div>;
+                              />;
 
 
   const headerRef = useOnceFullyVisible(() => {
@@ -714,11 +708,14 @@ const HelpButton = () => {
     en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
   });
   return (
-    <div className="help">
-      <a href={url} data-target-module={Sefaria.VOICES_MODULE} target="_blank">
-        <img src="/static/icons/help_mdl.svg" alt={Sefaria._("Help")} />
-      </a>
-    </div>
+    <Button
+      variant="icon-only"
+      icon="help_mdl"
+      alt={Sefaria._("Help")}
+      ariaLabel={Sefaria._("Help")}
+      href={url}
+      targetModule={Sefaria.VOICES_MODULE}
+    />
   );
 };
 
