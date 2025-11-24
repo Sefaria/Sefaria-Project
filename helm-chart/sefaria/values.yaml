@@ -75,8 +75,8 @@ web:
   replicaCount: 1
   resources:
     web:
-      gunicornWorkerCount: 1
-      gunicornThreadCount: 1
+      gunicornWorkerCount: 5
+      gunicornThreadCount: 5
       resources:
         requests:
           memory: "1Gi"
