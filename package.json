@@ -41,7 +41,7 @@
     "to": "npm run test-one",
     "postinstall": "patch-package",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build
+    "build-storybook": "storybook build",
     "scss": "sass --watch static/css:static/css",
     "scss-compile": "sass static/css:static/css",
     "prepare": "husky install"

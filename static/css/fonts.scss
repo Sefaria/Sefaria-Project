@@ -47,7 +47,8 @@ $range: "U+0000-0040, U+005B-0060, U+007B-FB4F";
           "Taamey Frank", /*Hebrew, punctuation will be caught by adobe-garamond-pro*/
           "Crimson Text", /*this font is loaded in base.html only for some latin letters with diacritics*/
           "Georgia", /*this font ssems to be here for historical reasons, but actually it applies for Cyrillic*/
-          "Times New Roman", serif; /*fallbacks*/
+          "Times New Roman", serif, /*fallbacks*/
+          "Noto Sans Samaritan"; /*Samaritan - this font is loaded in base.html for only Samaritan characters*/
   --hebrew-serif-font-family:
           "Cardo", /*Greek*/
           "Noto Color Emoji", /*flag emojis*/
@@ -55,5 +56,4 @@ $range: "U+0000-0040, U+005B-0060, U+007B-FB4F";
           "adobe-garamond-pro", /*English*/
           "Crimson Text", /*this font is loaded in base.html for only some latin letters with diacritics*/
           "Times New Roman", serif; /*fallbacks*/
-          "Noto Sans Samaritan"; /*Samaritan - this font is loaded in base.html for only Samaritan characters. it's here after adobe-garamond-pro because it has influence on font metrics*/
 }
