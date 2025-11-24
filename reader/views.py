@@ -231,7 +231,8 @@ def base_props(request):
         "trendingTopics": trending_topics(days=7, ntags=5),
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG
+        "_debug": DEBUG,
+        "_linker_debug": request.GET.get("linker_debug", "0") == "1",
     })
     return user_data
 

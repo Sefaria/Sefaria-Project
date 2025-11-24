@@ -709,6 +709,9 @@ class ReaderApp extends Component {
     if("aliyot" in histories[0]) {
         url += "&aliyot=" + histories[0].aliyot;
     }
+    if (Sefaria._linker_debug) {
+        url += "&linker_debug=1";
+    }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
     let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
@@ -741,6 +744,9 @@ class ReaderApp extends Component {
           }
           if (connectionsHistory.selectedNamedEntityText) {
             hist.url += "&namedEntityText=" + encodeURIComponent(connectionsHistory.selectedNamedEntityText);
+          }
+          if (Sefaria._linker_debug) {
+            hist.url += "&linker_debug=1";
           }
           hist.url += "&with=" + connectionsHistory.sources;
 
