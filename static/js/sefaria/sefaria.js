@@ -23,7 +23,7 @@ let Sefaria = Sefaria || {
   last_place: [],
   VOICES_MODULE,
   LIBRARY_MODULE,
-  apiHost: "" // Defaults to localhost, override to talk another server
+  apiHost: Sefaria?.domainModules?.[Sefaria._getShortInterfaceLang()]['library'] || "" 
 };
 
 if (typeof window !== 'undefined') {
