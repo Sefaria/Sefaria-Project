@@ -113,6 +113,7 @@ a.icon-only {
     background: transparent;
     border: none;
     cursor: pointer;
+    vertical-align: middle;
 }
 
 button.icon-only .button-icon,
