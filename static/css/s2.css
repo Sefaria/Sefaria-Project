@@ -548,9 +548,6 @@ input.noselect {
   width: 250px;
   height: 30px;
 }
-.header .searchBox.searchFocused {
-  width: 280px;
-}
 .header .searchBox input {
   background-color: transparent; /*for firefox */
   padding: 0;
@@ -570,9 +567,6 @@ input.noselect {
   font-size:  18px;
   margin: 0;
   width: 100px;
-}
-.header .searchFocused .search {
-  width: 200px;
 }
 .header .search.hebrewSearch {
   font-size: 18px;
@@ -5926,6 +5920,7 @@ big {
   display: flex;
   flex-direction: row;
   text-align: left;
+  align-items: center;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
@@ -6028,6 +6023,9 @@ big {
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.interface-hebrew .rightButtons .readerOptions{
+  margin-inline-end: 11px;
 }
 .readerOptions .int-en {
   margin-right: 4px;
@@ -7009,6 +7007,7 @@ But not to use a display block directive that might break continuous mode for ot
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
 }
+
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   height: 20px;

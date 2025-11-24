@@ -778,6 +778,7 @@ Sefaria = extend(Sefaria, {
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
+    "tr": {"name": "Turkish", "nativeName": "Türkçe", "showTranslations": 1, "title": "Türkçe Yahudi Metinleri"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
     "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
   },
@@ -3458,6 +3459,11 @@ _media: {},
           return inputStr;
       }
   },
+  /**
+   * Translates English strings to current interface language.
+   * Add translations to strings.js.
+   * For displaying interface text you should use <InterfaceText> which calls this function automatically.
+   */
   _: function(inputStr, context=null){
     if(Sefaria.interfaceLang != "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
@@ -3580,6 +3586,51 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  getPageTitle: (baseTitle, pageType = "") => {
+      /**
+       * Generate consistent, module-aware, bilingual page titles.
+       * Mirrors the Python get_page_title() function in reader/views.py
+       */
+  
+      // Get current module (library or voices)
+      const module = (Sefaria.activeModule === VOICES_MODULE) ? VOICES_MODULE : LIBRARY_MODULE;
+  
+      // Page title suffix configuration
+      const suffixes = {
+        home: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria: a Living Library of Jewish Texts Online"
+        },
+        topic: {
+          voices: "Sheets from Voices on Sefaria",
+          library: "Texts from the Sefaria Library"
+        },
+        collections: {
+          voices: "Voices on Sefaria"
+        },
+        collection: {
+          voices: "Voices on Sefaria Collection"
+        },
+        default: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria Library"
+        }
+      };
+  
+      // Special case: Sheet titles need default if empty
+      if (pageType === "sheet" && !baseTitle) {
+        baseTitle = "Untitled";
+      }
+
+      if (!pageType) {
+        pageType = "default";
+      }
+  
+      const suffix = suffixes[pageType][module];
+
+      // Combine base title with suffix
+      return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
+    },
 });
 
 Sefaria.unpackDataFromProps = function(props) {

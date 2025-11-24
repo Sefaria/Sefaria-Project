@@ -159,6 +159,7 @@ INSTALLED_APPS = (
     'webpack_loader',
     'django_user_agents',
     'rest_framework',
+    'remote_config.apps.RemoteConfigConfig',
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

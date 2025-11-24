@@ -8,6 +8,15 @@ const Strings = {
     "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
+
+    // Module Names and Page Title Suffixes
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Sefaria Library": "ספריית ספריא",
+    "Sheets from Voices on Sefaria": "דפים מתוך חיבורים בספריא",
+    "Texts from the Sefaria Library": "מקורות מתוך ספריית ספריא",
+    "Voices on Sefaria Collection": "אוסף מתוך חיבורים בספריא",
+    "Untitled": "ללא כותרת",
+
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
@@ -320,6 +329,12 @@ const Strings = {
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
     "Text display options": "אפשרויות תצוגת טקסט",
+    "Source-translation toggle": "מעבר בין מקור לתרגום",
+    "Show Text as a paragraph": "הצגת טקסט כפיסקה",
+    "Show Text segmented": "הצגת טקסט מפוצל",
+    "Show Source & Translation Stacked": "הצגת מקור ותרגום זה מעל זה",
+    "Show RTL Text Right of LTR Text": "הצגת טקסט מימין לשמאל מימין לטקסט משמאל לימין",
+    "Show RTL Text Left of LTR Text": "הצגת טקסט מימין לשמאל משמאל לטקסט משמאל לימין",
 
     // Collections
     "Collections": "אסופות",
@@ -424,6 +439,7 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",

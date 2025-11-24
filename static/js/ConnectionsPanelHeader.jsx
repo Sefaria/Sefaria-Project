@@ -40,6 +40,27 @@ class ConnectionsPanelHeader extends Component {
       $container.css({marginRight: width, marginLeft: 0});
     }
   }
+
+  getLanguageSwitcher() {
+    if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+      // Language toggling only applies when both languages should be visible.
+      return null;
+    }
+    const excludedModes = ["Resources", "ConnectionsList"];
+    if (!excludedModes.includes(this.props.connectionsMode)) {
+      // Only modes were there's an actual source-text get the dropdown.
+      return <DropdownMenu buttonContent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+    }
+    if (this.props.interfaceLang !== "english") {
+      // if interface is Hebrew and we're not viewing actual source text in the sidebar, language switcher is turned off.
+      return null;
+    }
+    const currentLang = Sefaria.util.getUrlVars()["lang2"];
+    const nextLang = currentLang === "en" ? "he" : "en";
+    const nextLangUrl = Sefaria.util.replaceUrlParam("lang2", nextLang);
+    // Otherwise provide the English/Hebrew toggle button.
+    return <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={nextLangUrl} />;
+  }
   onClick(e) {
     e.preventDefault();
     const previousMode = this.getPreviousMode();
@@ -130,13 +151,9 @@ class ConnectionsPanelHeader extends Component {
                   </a>;
     }
     if (this.props.multiPanel) {
-      const toggleLang = Sefaria.util.getUrlVars()["lang2"] === "en" ? "he" : "en";
-      const langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
       const closeUrl = Sefaria.util.removeUrlParam("with");
-      const showOneLanguage = !Sefaria._siteSettings.TORAH_SPECIFIC || Sefaria.interfaceLang === "hebrew";
-      const toggleButton =  (showOneLanguage) ? null : (this.props.connectionsMode === 'TextList') ?
-          <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu> :
-            <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />;
+      const toggleButton = this.getLanguageSwitcher();
+
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
