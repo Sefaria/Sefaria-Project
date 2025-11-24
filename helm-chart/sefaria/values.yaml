@@ -213,6 +213,7 @@ tasks:
       ref: sentinel-password
   queues:
     llm: default-llm
+  nodeAffinity: {}
 
 # Takes the url of an NER server instance
 # Will automatically enable internal settings to communicate with the NER server
