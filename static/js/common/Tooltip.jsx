@@ -9,7 +9,6 @@ import {
   arrow as arrowMiddleware,
 } from '@floating-ui/react-dom';
 import Button from './Button';
-import { InterfaceText } from '../Misc';
 import Sefaria from '../sefaria/sefaria';
 
 // Configuration constants (kept consistent with existing ModuleSwitcherTooltip)
