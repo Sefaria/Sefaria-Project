@@ -75,8 +75,8 @@ web:
   replicaCount: 1
   resources:
     web:
-      uwsgiProcessCount: 1
-      uwsgiThreadCount: 1
+      uwsgiProcessCount: 5
+      uwsgiThreadCount: 5
       resources:
         requests:
           memory: "1Gi"
