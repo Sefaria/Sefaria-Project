@@ -120,7 +120,6 @@ a.icon-only .button-icon {
     max-width: 100%;
     max-height: 100%;
     display: block;
-    filter: var(--theme-button-icon-filter, none);
     margin-inline-end: 0; /* Override default button-icon margin for icon-only */
 }
 
