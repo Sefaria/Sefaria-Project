@@ -507,9 +507,6 @@ input.noselect {
   width: 250px;
   height: 30px;
 }
-.header .searchBox.searchFocused {
-  width: 280px;
-}
 .header .searchBox input {
   background-color: transparent; /*for firefox */
   padding: 0;
@@ -529,9 +526,6 @@ input.noselect {
   font-size:  18px;
   margin: 0;
   width: 100px;
-}
-.header .searchFocused .search {
-  width: 200px;
 }
 .header .search.hebrewSearch {
   font-size: 18px;

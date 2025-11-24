@@ -8,6 +8,15 @@ const Strings = {
     "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
+
+    // Module Names and Page Title Suffixes
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Sefaria Library": "ספריית ספריא",
+    "Sheets from Voices on Sefaria": "דפים מתוך חיבורים בספריא",
+    "Texts from the Sefaria Library": "מקורות מתוך ספריית ספריא",
+    "Voices on Sefaria Collection": "אוסף מתוך חיבורים בספריא",
+    "Untitled": "ללא כותרת",
+
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
