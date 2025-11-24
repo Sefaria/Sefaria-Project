@@ -30,9 +30,13 @@ import Button from './common/Button';
 const LoggedOutDropdown = ({module}) => {
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-      <button className="header-dropdown-button" aria-label={Sefaria._("Account menu")}>
-        <img src='/static/icons/logged_out.svg' alt={Sefaria._("Login")} />
-      </button>
+      <Button
+        variant="icon-only"
+        className="header-dropdown-button"
+        icon="profile_loggedout_mdl"
+        alt={Sefaria._("Login")}
+        ariaLabel={Sefaria._("Account menu")}
+      />
     }>
       <div className='dropdownLinks-options'>
         <NextRedirectAnchor url='/login'>
@@ -137,9 +141,13 @@ const ModuleSwitcher = () => {
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-      <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
-        <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
-      </button>
+      <Button
+        variant="icon-only"
+        className="header-dropdown-button"
+        icon="moduleswitcher_mdl"
+        alt={Sefaria._("Library")}
+        ariaLabel={Sefaria._("Library")}
+      />
     }>
       <div className='dropdownLinks-options moduleDropdown'>
         <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
@@ -216,24 +224,26 @@ const Header = (props) => {
   );
 
   const librarySavedIcon = <div className='librarySavedIcon'>
-                                <a
+                                <Button
+                                  variant="icon-only"
+                                  icon="bookmarkset_outline_mdl"
+                                  alt={Sefaria._('Saved items')}
+                                  ariaLabel={Sefaria._('Saved items')}
                                   href="/saved"
-                                  data-target-module={Sefaria.LIBRARY_MODULE}
-                                  onKeyDown={(e) => Util.handleKeyboardClick(e)}
-                                >
-                                  <img src='/static/icons/bookmarks.svg' alt={Sefaria._('Saved items')} />
-                                </a>
+                                  targetModule={Sefaria.LIBRARY_MODULE}
+                                />
                               </div>;
 
   const voicesNotificationIcon = <div className='sheetsNotificationsHeaderIcon'>
-                              <a
+                              <Button
+                                variant="icon-only"
+                                icon={unread ? "notifications-1_mdl" : "notifications_mdl"}
+                                alt={Sefaria._("Notifications")}
+                                ariaLabel={Sefaria._("Notifications")}
                                 href="/notifications"
-                                data-target-module={Sefaria.VOICES_MODULE}
-                                onKeyDown={(e) => Util.handleKeyboardClick(e)}
+                                targetModule={Sefaria.VOICES_MODULE}
                                 className={notificationsClasses}
-                              >
-                                <img src='/static/icons/notification.svg' alt={Sefaria._("Notifications")} />
-                              </a>
+                              />
                             </div>;
 
 
@@ -483,10 +493,15 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           <>
             {module === Sefaria.LIBRARY_MODULE &&
               <>
-                <a href="/saved" onClick={close} data-target-module={Sefaria.LIBRARY_MODULE}>
-                  <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-                  {<InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />}
-                </a>
+                <Button
+                  icon="bookmarkset_outline_mdl"
+                  alt={Sefaria._('Bookmarks')}
+                  href="/saved"
+                  onClick={close}
+                  targetModule={Sefaria.LIBRARY_MODULE}
+                >
+                  <InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />
+                </Button>
               </>}
             {module === Sefaria.VOICES_MODULE &&
               <>
@@ -496,14 +511,25 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                     <InterfaceText>Profile</InterfaceText>
                   </div>
                 </a>
-                <a href="/saved" onClick={close} data-target-module={Sefaria.VOICES_MODULE}>
-                  <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
-                  {<InterfaceText text={{ en: "Saved & History", he: "שמורים והיסטוריה" }} />}
-                </a>
-                <a href="/notifications" onClick={close} data-target-module={Sefaria.VOICES_MODULE} className={mobileNotificationsClasses}>
-                  <img src="/static/icons/notification.svg" alt={Sefaria._("Notifications")} />
+                <Button
+                  icon="bookmarkset_outline_mdl"
+                  alt={Sefaria._('Bookmarks')}
+                  href="/saved"
+                  onClick={close}
+                  targetModule={Sefaria.VOICES_MODULE}
+                >
+                  <InterfaceText text={{ en: "Saved & History", he: "שמורים והיסטוריה" }} />
+                </Button>
+                <Button
+                  icon={unread ? "notifications-1_mdl" : "notifications_mdl"}
+                  alt={Sefaria._("Notifications")}
+                  href="/notifications"
+                  onClick={close}
+                  targetModule={Sefaria.VOICES_MODULE}
+                  className={mobileNotificationsClasses}
+                >
                   <InterfaceText>Notifications</InterfaceText>
-                </a>
+                </Button>
               </>}
           </>}
 
@@ -524,7 +550,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
           en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
         })} target="_blank">
-          <img src="/static/icons/help.svg" alt={Sefaria._("Help")} />
+          <img src="/static/icons/help_mdl.svg" alt={Sefaria._("Help")} />
           <InterfaceText>Get Help</InterfaceText>
         </a>
 
@@ -675,7 +701,7 @@ const MobileInterfaceLanguageToggle = () => {
 
   return (
     <div className="mobileInterfaceLanguageToggle">
-      <img src="/static/icons/globe-wire.svg" alt={Sefaria._("Language")} />
+      <img src="/static/icons/globallanguageswitcher_mdl.svg" alt={Sefaria._("Language")} />
       {links}
     </div>
   );
@@ -690,7 +716,7 @@ const HelpButton = () => {
   return (
     <div className="help">
       <a href={url} data-target-module={Sefaria.VOICES_MODULE} target="_blank">
-        <img src="/static/img/help.svg" alt={Sefaria._("Help")} />
+        <img src="/static/icons/help_mdl.svg" alt={Sefaria._("Help")} />
       </a>
     </div>
   );
