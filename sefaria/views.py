@@ -848,16 +848,39 @@ def cache_stats(request):
     import resource
     from sefaria.utils.util import get_size
     from sefaria.model.user_profile import public_user_data_cache
+    from sefaria.model import library
+    from reader.templatetags.sefaria_tags import ref_link_cache, he_ref_link_cache
     # from sefaria.sheets import last_updated
+    
+    index_tref_map = model.Ref._RefCacheType__index_tref_map
+    
     resp = {
         'ref_cache_size': f'{model.Ref.cache_size():,}',
-        # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
+        'index_tref_map_size': f'{len(index_tref_map):,}',
         'public_user_data_size': f'{len(public_user_data_cache):,}',
-        'public_user_data_bytes': f'{get_size(public_user_data_cache):,}',
-        # 'sheets_last_updated_size': len(last_updated),
-        # 'sheets_last_updated_bytes': get_size(last_updated),
-        'memory usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}'
+        'ref_link_cache_size': f'{len(ref_link_cache):,}',
+        'he_ref_link_cache_size': f'{len(he_ref_link_cache):,}',
+        'memory_usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}',
+        "library_cache_stats": {
+            name: {
+                'size': f'{len(cache):,}',
+            }
+            for name, cache in model.library.__dict__.items()
+            if isinstance(cache, dict)
+        }
     }
+
+    if request.GET.get("bytes") == "1":
+        resp['ref_cache_bytes'] = model.Ref.cache_size_bytes()
+        resp['index_tref_map_bytes'] = f'{get_size(index_tref_map):,}'
+        resp['he_ref_link_cache_bytes'] = f'{get_size(he_ref_link_cache):,}'
+        resp['ref_link_cache_bytes'] = f'{get_size(ref_link_cache):,}'
+        resp['public_user_data_bytes'] = f'{get_size(public_user_data_cache):,}'
+
+        for name, cache in model.library.__dict__.items():
+            if (resp["library_cache_stats"].get(name)):
+                resp["library_cache_stats"][name]['bytes'] = f'{get_size(cache):,}'
+
     return jsonResponse(resp)
 
 
@@ -871,10 +894,23 @@ def cache_dump(request):
 
 @staff_member_required
 def memory_summary(request):
-    try:
-        from pympler import muppy, summary
-    except ImportError:
-        return jsonResponse({"error": "pympler is not installed in this environment"}, status=500)
+    """
+    API endpoint that returns a summary of memory usage by object type.
+    Accepts an optional 'limit' GET parameter to limit the number of object types returned.
+    Returns:
+        JSON response containing a list of object types with their count and size in bytes.
+    Example:
+        {
+            "memory_summary": [
+                {"type": "list", "count": 1500, "size": 240000},
+                {"type": "dict", "count": 800, "size": 160000},
+                ...
+            ]
+        }
+    Example:
+        /memory_summary?limit=10
+    """
+    from pympler import muppy, summary
 
     limit_param = request.GET.get("limit")
     try:
@@ -885,7 +921,7 @@ def memory_summary(request):
     all_objects = muppy.get_objects()
     summarized = summary.summarize(all_objects)
     if limit is not None:
-        summarized = summarized[: limit]
+        summarized = summarized[:limit]
 
     data = [
         {"type": type_name, "count": int(count), "size": int(size)}
