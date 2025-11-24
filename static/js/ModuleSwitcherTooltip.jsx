@@ -2,8 +2,17 @@ import React, { useEffect, useState } from 'react';
 import ShowOnceTooltip from './common/ShowOnceTooltip';
 import { InterfaceText } from './Misc';
 import Sefaria from './sefaria/sefaria';
+import Strings from './sefaria/strings';
 
 const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
+
+// Strings corresponding to keys in static/js/sefaria/strings.js
+const STRINGS = {
+  HEADER: "Looking for something?",
+  CONTENT: "We've updated the structure of our website! The Sefaria platform now has separate spaces for learning in the library, creating Torah content, and building digital Torah tools.",
+  LEARN_MORE: "Learn More",
+  CONFIRM: "Got it!",
+};
 
 const ModuleSwitcherTooltip = ({ targetRef, children }) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
@@ -18,9 +27,9 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
 
   // Handle clicks on module switcher icon to hide tooltip
   useEffect(() => {
+    if (!isTooltipVisible) return;
+
     const handleModuleSwitcherClick = (event) => {
-      if (!isTooltipVisible) return;
-      
       // Check if click is on the module switcher or mobile menu button
       const clickedElement = event.target;
       const isModuleSwitcherClick = clickedElement.closest('.headerDropdownMenu') || 
@@ -31,10 +40,8 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
       }
     };
 
-    if (isTooltipVisible) {
-      document.addEventListener('mousedown', handleModuleSwitcherClick);
-      document.addEventListener('touchstart', handleModuleSwitcherClick);
-    }
+    document.addEventListener('mousedown', handleModuleSwitcherClick);
+    document.addEventListener('touchstart', handleModuleSwitcherClick);
 
     return () => {
       document.removeEventListener('mousedown', handleModuleSwitcherClick);
@@ -48,22 +55,16 @@ const ModuleSwitcherTooltip = ({ targetRef, children }) => {
       targetRef={targetRef}
       open={isTooltipVisible}
       onOpenChange={setTooltipVisible}
-      // Optional header can be provided here if desired in future
-      header={{ text: { en: 'Looking for something?', he: 'מחפשים משהו?' } }}
-      content={{
-        markdown: {
-          en: `We’ve updated the structure of our website! The Sefaria platform now has separate spaces for learning in the library, creating Torah content, and building digital Torah tools.`,
-          he: `ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.`,
-        },
-      }}
+      header={<InterfaceText>{STRINGS.HEADER}</InterfaceText>}
+      content={<InterfaceText>{STRINGS.CONTENT}</InterfaceText>}
       learnMore={{
         href: 'https://www.sefaria.org/sheets/689609?lang=en',
-        label: { en: 'Learn more', he: 'למידע נוסף' },
+        label: <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>,
         newTab: true,
       }}
       confirm={{
-        label: { en: 'Got it!', he: 'הבנתי' },
-        onClick: () => {}, // actual dismissal handled by ShowOnceTooltip via onOpenChange
+        label: <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>,
+        onClick: () => {},
       }}
       activeModule={Sefaria.activeModule}
     >

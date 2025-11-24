@@ -773,3 +773,116 @@ a:active {
   background-size: 200% 100%; /* Expand the size so we can animate */
   animation: rainbowAnimation 1s linear infinite;
 }
+
+/* Floating UI tooltip styles for Module Switcher */
+
+.floating-ui-tooltip {
+  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
+  color: var(--tooltip-text, inherit);
+  border-radius: 8px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  max-width: 350px;
+}
+
+.floating-ui-tooltip-content {
+  padding: 16px 20px;
+  position: relative;
+  z-index: 2;
+  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
+  color: var(--tooltip-text, inherit);
+  border-radius: 8px;
+}
+
+.floating-ui-tooltip-content a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.tooltip-header {
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+.tooltip-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.tooltip-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: var(--tooltip-primary-bg, var(--darkest-grey));
+  color: var(--tooltip-primary-text, white);
+  border: none;
+}
+
+.tooltip-button:hover,
+.tooltip-button:active,
+.tooltip-button:focus {
+  background: transparent;
+  color: #FFFFFF;
+  outline: 1px solid #FFFFFF;
+}
+
+/* Mobile touch target accessibility - 44px minimum height */
+@media (max-width: 600px) {
+  .tooltip-actions {
+    margin-top: 8px;
+    margin-bottom: 9px;
+  }
+  
+  .tooltip-actions > a,
+  .tooltip-actions > button,
+  .tooltip-button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.floating-ui-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
+  transform: rotate(45deg);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 1;
+}
+
+/* Module-themed variables (defaults handled above) */
+.floating-ui-tooltip {
+  --tooltip-bg: var(--theme-primary);
+  --tooltip-text: white;
+  --tooltip-primary-bg: white;
+  --tooltip-primary-text: var(--theme-primary);
+  --tooltip-arrow-offset: -4px;
+}
+
+/* Arrow positioning */
+.floating-ui-arrow.mobile-hebrew-right,
+.floating-ui-arrow.desktop-left {
+  right: var(--tooltip-arrow-offset);
+}
+
+.floating-ui-arrow.mobile-english-left,
+.floating-ui-arrow.desktop-right {
+  left: var(--tooltip-arrow-offset);
+}
+
+.floating-ui-arrow.desktop-top {
+  bottom: var(--tooltip-arrow-offset);
+}
+
+.floating-ui-arrow.desktop-bottom {
+  top: var(--tooltip-arrow-offset);
+}
+
+/* End of Floating UI tooltip styles for Module Switcher */

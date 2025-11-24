@@ -6,7 +6,7 @@ import Tooltip from './Tooltip';
  * - If `open` prop is provided, acts as a controlled component.
  * - If `open` is not provided, manages its own visibility:
  *    - Reads `storageKey` on mount (if provided). If value !== 'true', it opens.
- *    - When dismissed (by confirm button or external close), sets storageKey to 'true'.
+ *    - When dismissed (by confirm button), sets storageKey to 'true'.
  * 
  * @param {string} storageKey - localStorage key for persistence (required)
  * @param {boolean} open - controlled open state (optional)
@@ -21,13 +21,13 @@ const ShowOnceTooltip = ({
   confirm,
   ...rest
 }) => {
-  const isControlled = controlledOpen !== undefined;
+  const isControlled = controlledOpen != null;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
 
   // Initialize based on storageKey when uncontrolled
   useEffect(() => {
-    if (!isControlled) {
-      const dismissed = storageKey ? localStorage.getItem(storageKey) : null;
+    if (!isControlled && storageKey) {
+      const dismissed = localStorage.getItem(storageKey);
       setUncontrolledOpen(dismissed !== 'true');
     }
   }, [isControlled, storageKey]);
@@ -38,26 +38,23 @@ const ShowOnceTooltip = ({
     } else {
       setUncontrolledOpen(nextOpen);
     }
-    if (storageKey && nextOpen === false) {
+    if (storageKey && !nextOpen) {
       localStorage.setItem(storageKey, 'true');
     }
   };
 
   // Wrap confirm to also dismiss
-  const wrappedConfirm = confirm
-    ? {
-        ...confirm,
-        onClick: () => {
-          setOpen(false);
-          confirm?.onClick && confirm.onClick();
-        },
-      }
-    : undefined;
+  const wrappedConfirm = confirm && {
+    ...confirm,
+    onClick: () => {
+      setOpen(false);
+      confirm.onClick?.();
+    },
+  };
 
   return (
     <Tooltip
       open={isControlled ? controlledOpen : uncontrolledOpen}
-      onOpenChange={setOpen}
       confirm={wrappedConfirm}
       {...rest}
     />
