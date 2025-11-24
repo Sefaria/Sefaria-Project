@@ -23,7 +23,7 @@
     "build-sefaria": "webpack --config ./node/webpack.sefaria.js",
     "build-timeline": "webpack --config ./node/webpack.timeline.js ",
     "build-categorizeSheets": "webpack --config ./node/webpack.categorizeSheets.js ",
-    "watch": "webpack --config ./node/webpack.config.js --progress -w --watch-options-stdin",
+    "watch": "concurrently \"npm run scss\" \"webpack --config ./node/webpack.config.js --progress -w --watch-options-stdin\"",
     "watch-server": "webpack --config ./node/webpack.server.js --progress -w --watch-options-stdin",
     "watch-client": "webpack --config ./node/webpack.client.js --progress -w --watch-options-stdin",
     "watch-client-server": "webpack --config ./node/webpack.client-server.js --progress -w --watch-options-stdin",
@@ -41,7 +41,10 @@
     "to": "npm run test-one",
     "postinstall": "patch-package",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build
+    "scss": "sass --watch static/css:static/css",
+    "scss-compile": "sass static/css:static/css",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@playwright/test": "^1.52.0",
@@ -113,10 +116,13 @@
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-remove-console": "^6.8.0",
     "babel-watch": "^2.0.0",
+    "concurrently": "^9.1.2",
     "css-loader": "^3.2.0",
+    "husky": "^8.0.0",
     "jest": "^24.9.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.52.0",
+    "sass": "^1.89.1",
     "source-map-support": "^0.4.15",
     "style-loader": "^1.0.0",
     "webpack": "^5.60.0",
