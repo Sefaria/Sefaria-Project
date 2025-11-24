@@ -72,7 +72,6 @@
     width: 148px;
   }
 }
-
 @media (min-width: 843px) and (max-width: 1086px) {
   .home {
     height: 25px;
@@ -84,11 +83,6 @@
     background-color: var(--theme-primary);
   }
 }
-
-.textLink {
-  margin-top: 2px;
-}
-
 .headerLinksSection {
   justify-content: flex-end;
   gap: 20px;
