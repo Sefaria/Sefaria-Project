@@ -16,8 +16,7 @@ import Util from '../sefaria/util';
  * @param href if provided, renders as <a> tag instead of button
  * @param activeModule if provided, sets data-active-module attribute for CSS theming
  * @param targetModule if provided, sets data-target-module attribute for JS navigation (only valid with href)
- * @param alt required when icon is provided for accessibility (alt text for the icon)
- * @param ariaLabel optional ARIA label for screen readers
+ * @param ariaLabel required for icon-only buttons (buttons with icon but no children) for accessibility
  * @returns {JSX.Element}
  * @constructor
  */
@@ -32,7 +31,6 @@ const Button = ({
   activeModule = null,
   targetModule = null,
   href,
-  alt,
   ariaLabel
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
@@ -52,7 +50,7 @@ const Button = ({
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
-        {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
+        {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />)}
         {children}
       </a>
     );
@@ -66,23 +64,25 @@ const Button = ({
       onClick={onClick}
       {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
     >
-      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
+      {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt="" aria-hidden="true" />)}
       {children}
     </button>
   );
 };
 
-// Custom PropTypes validator for alt text when icon is present
-// Making sure that alt text is provided when icon is provided for accessibility
-const altTextValidator = (props, propName, componentName) => {
-  const alt = props[propName];
+// Custom PropTypes validator for ariaLabel when button is icon-only
+// Making sure that ariaLabel is provided for icon-only buttons (icon without children) for accessibility
+const ariaLabelValidator = (props, propName, componentName) => {
+  const ariaLabel = props[propName];
   const icon = props.icon;
+  const children = props.children;
 
-  if (icon && (alt === undefined || alt === null || alt === '')) {
+  // Require ariaLabel only for icon-only buttons (icon present but no children)
+  if (icon && !children && (ariaLabel === undefined || ariaLabel === null || ariaLabel === '')) {
     return new Error(
       `Invalid prop \`${propName}\` supplied to \`${componentName}\`. ` +
-      `\`${propName}\` is required when \`icon\` prop is provided for accessibility. ` +
-      `Please provide descriptive alt text for the icon.`
+      `\`${propName}\` is required for icon-only buttons (buttons with icon but no children) for accessibility. ` +
+      `Please provide descriptive ariaLabel text for the button.`
     );
   }
 
@@ -100,8 +100,7 @@ Button.propTypes = {
   href: PropTypes.string,
   activeModule: PropTypes.string,
   targetModule: PropTypes.string,
-  alt: altTextValidator,
-  ariaLabel: PropTypes.string
+  ariaLabel: ariaLabelValidator
 };
 
 export default Button;

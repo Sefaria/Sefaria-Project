@@ -1292,7 +1292,6 @@ function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLan
       <Button
         variant="icon-only"
         icon="globallanguageswitcher_mdl"
-        alt={Sefaria._('Language switcher')}
         ariaLabel={Sefaria._('Toggle Interface Language Menu')}
       />
     }>

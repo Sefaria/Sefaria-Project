@@ -665,7 +665,7 @@ const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   return (
     <div className="toolButtonsList">
       <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)}>
-        <ToolsButton.SecondaryIcon icon="open-panel.svg" alt="Opens in new window" />
+        <ToolsButton.SecondaryIcon icon="open-panel.svg" />
       </ToolsButton>
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
@@ -1024,7 +1024,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
     classes[iconName] = 1;
     iconElem = (<i className={classNames(classes)} />)
   } else if (image) {
-    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt={en} />);
+    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" aria-hidden="true" />);
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
@@ -1056,13 +1056,12 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   );
 }
 
-ToolsButton.SecondaryIcon = ({ icon, alt }) => (
-  <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt={alt} />
+ToolsButton.SecondaryIcon = ({ icon }) => (
+  <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt="" aria-hidden="true" />
 );
 
 ToolsButton.SecondaryIcon.propTypes = {
-  icon: PropTypes.string.isRequired,
-  alt: PropTypes.string.isRequired
+  icon: PropTypes.string.isRequired
 };
 
 ToolsButton.propTypes = {

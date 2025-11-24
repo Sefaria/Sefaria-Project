@@ -33,7 +33,6 @@ const LoggedOutDropdown = ({module}) => {
       <Button
         variant="icon-only"
         icon="profile_loggedout_mdl"
-        alt={Sefaria._("Login")}
         ariaLabel={Sefaria._("Account menu")}
       />
     }>
@@ -143,7 +142,6 @@ const ModuleSwitcher = () => {
       <Button
         variant="icon-only"
         icon="moduleswitcher_mdl"
-        alt={Sefaria._("Library")}
         ariaLabel={Sefaria._("Library")}
       />
     }>
@@ -224,7 +222,6 @@ const Header = (props) => {
   const librarySavedIcon = <Button
                                   variant="icon-only"
                                   icon="bookmarkset_outline_mdl"
-                                  alt={Sefaria._('Saved items')}
                                   ariaLabel={Sefaria._('Saved items')}
                                   href="/saved"
                                   targetModule={Sefaria.LIBRARY_MODULE}
@@ -233,7 +230,6 @@ const Header = (props) => {
   const voicesNotificationIcon = <Button
                                 variant="icon-only"
                                 icon={unread ? "notifications-1_mdl" : "notifications_mdl"}
-                                alt={Sefaria._("Notifications")}
                                 ariaLabel={Sefaria._("Notifications")}
                                 href="/notifications"
                                 targetModule={Sefaria.VOICES_MODULE}
@@ -711,7 +707,6 @@ const HelpButton = () => {
     <Button
       variant="icon-only"
       icon="help_mdl"
-      alt={Sefaria._("Help")}
       ariaLabel={Sefaria._("Help")}
       href={url}
       targetModule={Sefaria.VOICES_MODULE}
