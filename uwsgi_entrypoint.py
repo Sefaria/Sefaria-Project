@@ -1,5 +1,5 @@
 """
-uWSGI entrypoint that mirrors the Gunicorn preload behavior:
+uWSGI entrypoint:
 - Build shared library caches once before worker threads start.
 - Expose the Django WSGI application.
 """
