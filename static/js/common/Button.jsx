@@ -6,7 +6,7 @@ import Util from '../sefaria/util';
 
 /**
  *
- * @param variant can be empty or "secondary"
+ * @param variant can be empty or "secondary" or "icon-only"
  * @param size can be empty or "large", "small" or "fullwidth"
  * @param icon only the name of the icon without the extension
  * @param children you can pass additional html or just <InterfaceText>
@@ -17,6 +17,7 @@ import Util from '../sefaria/util';
  * @param activeModule if provided, sets data-active-module attribute for CSS theming
  * @param targetModule if provided, sets data-target-module attribute for JS navigation (only valid with href)
  * @param alt required when icon is provided for accessibility (alt text for the icon)
+ * @param ariaLabel optional ARIA label for screen readers
  * @returns {JSX.Element}
  * @constructor
  */
@@ -31,7 +32,8 @@ const Button = ({
   activeModule = null,
   targetModule = null,
   href,
-  alt
+  alt,
+  ariaLabel
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
 
@@ -46,6 +48,7 @@ const Button = ({
         onKeyDown={disabled ? null : (e) => Util.handleLinkSpaceKey(e, onClick)}
         tabIndex={0}
         role="button"
+        {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
@@ -61,6 +64,7 @@ const Button = ({
       {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       className={buttonClasses}
       onClick={onClick}
+      {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
     >
       {icon && (<img src={`/static/icons/${icon}.svg`} className="button-icon" alt={alt} />)}
       {children}
@@ -96,7 +100,8 @@ Button.propTypes = {
   href: PropTypes.string,
   activeModule: PropTypes.string,
   targetModule: PropTypes.string,
-  alt: altTextValidator
+  alt: altTextValidator,
+  ariaLabel: PropTypes.string
 };
 
 export default Button;
