@@ -191,7 +191,7 @@ const Header = (props) => {
     }
   }, []);
   
-  const mobile = !props?.multiPanel;
+  const mobile = Sefaria.getBreakpoint() === 'mobile';
   
   const shouldHide = () => {
     // Determines whether or not this component should be displayed or not. 
@@ -335,7 +335,7 @@ const Header = (props) => {
   return (
     <div className={headerClasses} role="banner" ref={headerRef}>
       <div className={headerInnerClasses}>
-        {Sefaria.getBreakpoint() === 'mobile' ? mobileHeaderContent : headerContent}
+        {mobile ? mobileHeaderContent : headerContent}
       </div>
 
       {mobile &&
