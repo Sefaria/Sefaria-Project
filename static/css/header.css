@@ -1,0 +1,61 @@
+:root {
+  --bp-mobile-max: 842px;
+  --bp-tablet-min: 843px;
+  --bp-tablet-max: 1086px;
+  --bp-desktop-min: 1087px;
+}
+
+.headerInner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: white;
+  z-index: 1001;
+  box-sizing: border-box;
+  padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerOnly .headerInner, .headerInner.boxShadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 1087px) {
+  [data-active-module=library] .interface-english .home {
+    background: url("/static/img/library-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 154px;
+  }
+  [data-active-module=library] .interface-hebrew .home {
+    background: url("/static/img/library-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 141px;
+  }
+  [data-active-module=voices] .interface-english .home {
+    background: url("/static/img/voices-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 174px;
+  }
+  [data-active-module=voices] .interface-hebrew .home {
+    background: url("/static/img/voices-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 148px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .home {
+    height: 25px;
+    width: 19px;
+    -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
+    mask: url("/static/img/samech-logo.svg") no-repeat;
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    background-color: var(--theme-primary);
+  }
+}
+
+/*# sourceMappingURL=header.css.map */

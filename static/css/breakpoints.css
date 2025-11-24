@@ -1,0 +1,8 @@
+:root {
+  --bp-mobile-max: 842px;
+  --bp-tablet-min: 843px;
+  --bp-tablet-max: 1086px;
+  --bp-desktop-min: 1087px;
+}
+
+/*# sourceMappingURL=breakpoints.css.map */
