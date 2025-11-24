@@ -30,8 +30,8 @@ web:
   replicaCount: 7
   resources:
     web:
-      gunicornWorkerCount: 5
-      gunicornThreadCount: 5
+      uwsgiProcessCount: 5
+      uwsgiThreadCount: 5
       resources:
         requests:
           memory: "12Gi"
