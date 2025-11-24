@@ -102,13 +102,8 @@ a.sefaria-common-button img.button-icon {
 /** icon-only button variant **/
 button.icon-only,
 a.icon-only {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 18px;
     height: 18px;
-    min-width: 18px;
-    min-height: 18px;
     padding: 0;
     background: transparent;
     border: none;
@@ -120,31 +115,6 @@ button.icon-only .button-icon,
 a.icon-only .button-icon {
     max-width: 100%;
     max-height: 100%;
-    display: block;
-    margin-inline-end: 0; /* Override default button-icon margin for icon-only */
-}
-
-button.icon-only:disabled,
-a.icon-only[aria-disabled="true"] {
-    cursor: not-allowed;
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-body.user-is-tabbing button.icon-only:focus,
-body.user-is-tabbing a.icon-only:focus {
-    outline: 2px solid var(--focus-blue);
-    outline-offset: 2px;
-    border-radius: 2px;
-}
-
-button.icon-only:not(:disabled):hover,
-a.icon-only:not([aria-disabled="true"]):hover {
-    opacity: 0.8;
-}
-
-button.icon-only:not(:disabled):active,
-a.icon-only:not([aria-disabled="true"]):active {
-    opacity: 0.6;
+    margin-inline-end: 0;
 }
 
