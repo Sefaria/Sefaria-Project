@@ -53,7 +53,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     needs:
-      - build-derived
+      - build-images
       - workflow-check
     steps:
       - name: Checkout Code
