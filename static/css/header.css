@@ -70,6 +70,28 @@
     width: 148px;
   }
 }
+@media (max-width: 842px) {
+  [data-active-module=library] .interface-english .home {
+    background: url("/static/img/library-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 154px;
+  }
+  [data-active-module=library] .interface-hebrew .home {
+    background: url("/static/img/library-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 141px;
+  }
+  [data-active-module=voices] .interface-english .home {
+    background: url("/static/img/voices-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 174px;
+  }
+  [data-active-module=voices] .interface-hebrew .home {
+    background: url("/static/img/voices-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 148px;
+  }
+}
 @media (min-width: 843px) and (max-width: 1086px) {
   .home {
     height: 25px;

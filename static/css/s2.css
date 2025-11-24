@@ -958,11 +958,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     display: none;
   }
 }
-@media screen and (max-width: 700px) {
-  .multiPanel .header .home {
-    display: none;
-  }
-}
 @media screen and (max-width: 580px) {
   .header .interfaceLinks,
   .header .dropdownLinks,

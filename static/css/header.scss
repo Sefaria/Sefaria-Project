@@ -53,7 +53,7 @@ $widths: (
 $modules: library voices;
 $interfaces: english hebrew;
 
-@include breakpoint(desktop) {
+@mixin full-logo {
   @each $module in $modules {
     @each $interface in $interfaces {
       $key: "#{$module}-#{$interface}";
@@ -64,6 +64,14 @@ $interfaces: english hebrew;
       }
     }
   }
+}
+
+@include breakpoint(desktop) {
+  @include full-logo;
+}
+
+@include breakpoint(mobile) {
+  @include full-logo;
 }
 
 @include breakpoint(tablet) {
