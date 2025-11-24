@@ -792,6 +792,7 @@ a:active {
   background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
   color: var(--tooltip-text, inherit);
   border-radius: 8px;
+  font-size: 14px;
 }
 
 .floating-ui-tooltip-content a {
@@ -800,17 +801,18 @@ a:active {
 }
 
 .tooltip-header {
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 8px;
-  font-size: 1.1em;
+  font-size: 14px;
 }
 
 .tooltip-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
-  margin-bottom: 16px;
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-size: 14px;
 }
 
 .tooltip-button {
@@ -820,6 +822,7 @@ a:active {
   background-color: var(--tooltip-primary-bg, var(--darkest-grey));
   color: var(--tooltip-primary-text, white);
   border: none;
+  font-size: 14px;
 }
 
 .tooltip-button:hover,
@@ -827,14 +830,19 @@ a:active {
 .tooltip-button:focus {
   background: transparent;
   color: #FFFFFF;
-  outline: 1px solid #FFFFFF;
+  border: 1px solid #FFFFFF;
+  outline: none;
 }
 
 /* Mobile touch target accessibility - 44px minimum height */
 @media (max-width: 600px) {
+  .tooltip-header {
+    font-size: 16px;
+  }
+  
   .tooltip-actions {
-    margin-top: 8px;
-    margin-bottom: 9px;
+    margin-top: 16px;
+    margin-bottom: 16px;
   }
   
   .tooltip-actions > a,
@@ -844,6 +852,8 @@ a:active {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font-size: 16px;
+    padding: 8px 12px;
   }
 }
 
