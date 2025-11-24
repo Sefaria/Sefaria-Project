@@ -95,6 +95,12 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         return True
 
+    def _sanitize(self):
+        # No sanitization needed. The span text comes from the Version's text,
+        # which has already been sanitized. Other fields (ref, versionTitle, language)
+        # are metadata and should not be HTML-escaped.
+        pass
+    
     def __str__(self):
         return "TextSpan: {}".format(self.ref)
     

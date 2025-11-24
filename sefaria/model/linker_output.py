@@ -62,6 +62,12 @@ class LinkerOutput(AbstractMongoRecord):
         }
     }
 
+    def _sanitize(self):
+        # No sanitization needed. The span text comes from the Version's text,
+        # which has already been sanitized. Other fields (ref, versionTitle, language)
+        # are metadata and should not be HTML-escaped.
+        pass
+
 
 class LinkerOutputSet(AbstractMongoSet):
     recordClass = LinkerOutput
