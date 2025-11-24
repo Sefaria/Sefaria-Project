@@ -240,6 +240,23 @@ const Header = (props) => {
     if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
   }, "sa.header_viewed");
 
+
+  const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
+  const textLinks = <div className="textLinks">
+    {links.map((link) => (
+      <a
+        key={link}
+        href={`/${link.toLowerCase()}`}
+        data-target-module={Sefaria.activeModule}
+        className="textLink"
+        onKeyDown={Util.handleKeyboardClick}
+      >
+        <InterfaceText context="Header">{link}</InterfaceText>
+      </a>
+    ))}
+    <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+  </div>
+
   
   if (shouldHide()) return null;
 
@@ -247,45 +264,7 @@ const Header = (props) => {
     <>
       <nav className="headerNavSection" aria-label="Primary navigation">
         {Sefaria._siteSettings.TORAH_SPECIFIC && logo}
-        {props.module === Sefaria.LIBRARY_MODULE &&
-          <>
-            <a
-              href="/texts"
-              className="textLink"
-              onKeyDown={(e) => Util.handleKeyboardClick(e)}
-            >
-              <InterfaceText context="Header">Texts</InterfaceText>
-            </a>
-            <a
-              href="/topics"
-              className="textLink"
-              onKeyDown={(e) => Util.handleKeyboardClick(e)}
-            >
-              <InterfaceText context="Header">Topics</InterfaceText>
-            </a>
-          </>
-        }
-        {props.module === Sefaria.VOICES_MODULE &&
-          <>
-            <a
-              href="/topics"
-              data-target-module={Sefaria.VOICES_MODULE}
-              className="textLink"
-              onKeyDown={(e) => Util.handleKeyboardClick(e)}
-            >
-              <InterfaceText context="Header">Topics</InterfaceText>
-            </a>
-            <a
-              href="/collections"
-              data-target-module={Sefaria.VOICES_MODULE}
-              className="textLink"
-              onKeyDown={(e) => Util.handleKeyboardClick(e)}
-            >
-              <InterfaceText context="Header">Collections</InterfaceText>
-            </a>
-          </>
-        }
-        <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+        {textLinks}
       </nav>
 
       <div className="headerLinksSection">
@@ -297,24 +276,25 @@ const Header = (props) => {
         />
         
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
-        {props.module === Sefaria.VOICES_MODULE && <CreateButton />}
-        {Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
+        <div className={"header-icons"}>
+          {props.module === Sefaria.VOICES_MODULE && <CreateButton />}
+          {Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
-        {!Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <InterfaceLanguageMenu
-            currentLang={Sefaria.interfaceLang}
-            translationLanguagePreference={props.translationLanguagePreference}
-            setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
+          {!Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <InterfaceLanguageMenu
+              currentLang={Sefaria.interfaceLang}
+              translationLanguagePreference={props.translationLanguagePreference}
+              setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
 
-        {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : voicesNotificationIcon)}
+          {Sefaria._uid && (props.module === Sefaria.LIBRARY_MODULE ? librarySavedIcon : voicesNotificationIcon)}
 
-        <ModuleSwitcher />
+          <ModuleSwitcher />
 
-        {Sefaria._uid ?
-          <LoggedInDropdown module={props.module} />
-          : <LoggedOutDropdown module={props.module} />
-        }
-
+          {Sefaria._uid ?
+            <LoggedInDropdown module={props.module} />
+            : <LoggedOutDropdown module={props.module} />
+          }
+        </div>
       </div>
     </>
   );

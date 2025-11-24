@@ -1,5 +1,11 @@
 @import "breakpoints";
 
+.headerInner,
+.headerInner * {
+  display: flex;
+  align-items: center;
+}
+
 .headerInner {
   position: absolute;
   top: 0;
@@ -10,12 +16,31 @@
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
 }
-.headerOnly .headerInner, .headerInner.boxShadow {
+
+.headerOnly .headerInner, //TODO understand this
+.headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.textLinks {
+  @include breakpoint(desktop) {
+    gap: 30px;
+    margin-inline-start: 60px;
+  }
+  @include breakpoint(tablet) {
+    gap: 24px;
+    margin-inline-start: 20px;
+  }
+}
+
+ .headerNavSection a {
+  font-size: 16px;
+  color: var(--dark-grey);
+  font-weight: 500;
+  line-height: 26px;
+  vertical-align: middle;
 }
 
 $widths: (
@@ -52,3 +77,18 @@ $interfaces: english hebrew;
     background-color: var(--theme-primary);
   }
 }
+
+.headerLinksSection {
+	justify-content: flex-end;
+    gap: 20px;
+}
+
+.header-icons {
+  @include breakpoint(desktop) {
+    gap: 20px;
+  }
+  @include breakpoint(tablet) {
+    gap: 16px;
+  }
+}
+

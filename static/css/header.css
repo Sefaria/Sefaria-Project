@@ -5,6 +5,12 @@
   --bp-desktop-min: 1087px;
 }
 
+.headerInner,
+.headerInner * {
+  display: flex;
+  align-items: center;
+}
+
 .headerInner {
   position: absolute;
   top: 0;
@@ -15,13 +21,33 @@
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
-.headerOnly .headerInner, .headerInner.boxShadow {
+.headerOnly .headerInner,
+.headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 1087px) {
+  .textLinks {
+    gap: 30px;
+    margin-inline-start: 60px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .textLinks {
+    gap: 24px;
+    margin-inline-start: 20px;
+  }
+}
+
+.headerNavSection a {
+  font-size: 16px;
+  color: var(--dark-grey);
+  font-weight: 500;
+  line-height: 26px;
+  vertical-align: middle;
 }
 
 @media (min-width: 1087px) {
@@ -46,6 +72,7 @@
     width: 148px;
   }
 }
+
 @media (min-width: 843px) and (max-width: 1086px) {
   .home {
     height: 25px;
@@ -55,6 +82,26 @@
     -webkit-mask-size: cover;
     mask-size: cover;
     background-color: var(--theme-primary);
+  }
+}
+
+.textLink {
+  margin-top: 2px;
+}
+
+.headerLinksSection {
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+@media (min-width: 1087px) {
+  .header-icons {
+    gap: 20px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .header-icons {
+    gap: 16px;
   }
 }
 

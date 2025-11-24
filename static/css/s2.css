@@ -450,27 +450,6 @@ input.noselect {
 .interface-hebrew .header {
   direction: rtl;
 }
-.headerInner .headerNavSection {
-  display: flex;
-  justify-content: flex-start;
-}
-.headerInner .headerNavSection a, .header img.home {
-  font-size: 16px;
-  color: var(--dark-grey);
-  margin-inline-end: 30px;
-  font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-}
-.headerInner .headerLinksSection {
-	display: flex;
-	justify-content: flex-end;
-	min-width: 50%;
-	align-items: center;
-}
-.headerInner .headerLinksSection > * {
-  margin-inline-start: 3%;
-}
 .headerLinksSection .sefaria-common-button {
   width: 67px;
   height: 30px;
@@ -488,8 +467,6 @@ input.noselect {
 .header .header-links {
   margin-top: 1px;
 }
-.header .textLink,
-.header .home,
 .header .menuButton,
 .header .my-profile,
 .header .notifications,
@@ -513,7 +490,6 @@ input.noselect {
   vertical-align: middle;
   position: relative;
 }
-.header .textLink,
 .header .menuButton,
 .header .my-profile {
   font-size: 24px;
