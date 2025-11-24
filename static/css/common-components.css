@@ -104,11 +104,14 @@ button.icon-only,
 a.icon-only {
     width: 18px;
     height: 18px;
+    min-width: 18px;
+    min-height: 18px;
     padding: 0;
     background: transparent;
     border: none;
     cursor: pointer;
     vertical-align: middle;
+    flex-shrink: 0;
 }
 
 button.icon-only .button-icon,
