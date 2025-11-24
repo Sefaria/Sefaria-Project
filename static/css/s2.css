@@ -1402,7 +1402,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenuSearchButton img {
   height: 18px;
   width: 18px;
-  opacity: 0.4;
 }
 .sidebarSearch .readerNavMenuSearchButton img {
   margin-top: 12px;
@@ -10261,7 +10260,6 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   float: right;
 }
 .searchBox .keyboardInputInitiator {
-    opacity: 0.4;
     width: 22px;
     height: 20px;
     padding: 4px 7px 2px;
