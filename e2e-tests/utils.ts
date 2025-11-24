@@ -52,34 +52,73 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
  * rather than only calling hideAllModalsAndPopups()
 */
 
-const updateStorageState = async (storageState: any, key: string, value: any) => {
+interface Cookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  expires: number;
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'Strict' | 'Lax' | 'None';
+}
+
+interface StorageState {
+  cookies: Cookie[];
+  origins: any[];
+}
+
+/**
+ * Fixes cookie domains to use parent domain for cross-subdomain access
+ * Converts subdomain-specific cookies (e.g., www.example.com) to parent domain (.example.com)
+ * This allows cookies to work across all subdomains (www, voices, etc.)
+ */
+const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
+  return cookies.map((cookie: Cookie) => {
+    // Extract parent domain from subdomain-specific domain
+    // e.g., "www.modularization.cauldron.sefaria.org" -> ".modularization.cauldron.sefaria.org"
+    // e.g., "modularization.cauldron.sefaria.org" -> ".modularization.cauldron.sefaria.org"
+
+    let domain = cookie.domain;
+
+    // Remove leading dot if present
+    if (domain.startsWith('.')) {
+      domain = domain.substring(1);
+    }
+
+    // Split domain into parts
+    const parts = domain.split('.');
+
+    // If domain has subdomain (more than 2 parts, accounting for multi-level TLDs)
+    // e.g., www.modularization.cauldron.sefaria.org has 5 parts
+    // We want to remove the first subdomain (www, voices, etc.) and keep the rest
+    if (parts.length >= 3) {
+      // Remove first subdomain and create parent domain with leading dot
+      const parentDomain = '.' + parts.slice(1).join('.');
+      return { ...cookie, domain: parentDomain };
+    }
+
+    // If already a parent domain or no subdomain, add leading dot if not present
+    if (!cookie.domain.startsWith('.')) {
+      return { ...cookie, domain: '.' + cookie.domain };
+    }
+
+    return cookie;
+  });
+};
+
+const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
   // Modify the cookies as needed
-  interface Cookie {
-    name: string;
-    value: string;
-    domain: string;
-    path: string;
-    expires: number;
-    httpOnly: boolean;
-    secure: boolean;
-    sameSite: 'Strict' | 'Lax' | 'None';
-  }
+  storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
+    if (cookie.name === key) {
+      return { ...cookie, value: value };
+    }
+    return cookie;
+  });
 
-  interface StorageState {
-    cookies: Cookie[];
-    origins: any[];
-  }
+  // Fix cookie domains for cross-subdomain access
+  storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
 
-  const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
-    // Modify the cookies as needed
-    storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
-      if (cookie.name === key) {
-        return { ...cookie, value: value };
-      }
-      return cookie;
-    });
-    return storageState.cookies;
-  }
   return storageState.cookies;
 }
 
@@ -212,7 +251,15 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     if (!fs.existsSync(filePath)) {
       await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
       await changeLanguage(page, language);
-      await page.context().storageState({ path: filePath });
+
+      // Save storage state and fix cookie domains for cross-subdomain access
+      const storageState = await page.context().storageState();
+      storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+      fs.writeFileSync(filePath, JSON.stringify(storageState, null, 2));
+
+      // Also fix cookies in current context for immediate use
+      await page.context().addCookies(storageState.cookies);
+
       await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
     } else {
       const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -242,8 +289,15 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
         const loginPage = new LoginPage(page, language);
         await changeLanguage(page, language);
         await loginPage.loginAs(user);
-        // Save storage state for future reuse
-        await page.context().storageState({ path: authPath });
+
+        // Save storage state and fix cookie domains for cross-subdomain access
+        const storageState = await page.context().storageState();
+        storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+        fs.writeFileSync(authPath, JSON.stringify(storageState, null, 2));
+
+        // Also fix cookies in current context for immediate use
+        await page.context().addCookies(storageState.cookies);
+
         await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
         return page;
     }

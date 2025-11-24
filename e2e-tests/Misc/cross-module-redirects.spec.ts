@@ -246,9 +246,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
     expect(urlMatches(finalUrl, `${TEST_URLS.VOICES}/sheets/510219`, true)).toBe(true);
   });
 
-  test('Settings Account Returns 404 on Voices', async ({ context }) => {
-    const page = context.pages()[0];
-
+  test('Settings Account Returns 404 on Voices', async ({ page }) => {
     // Navigate to settings/account (should 404 per CSV line 12)
     const response = await page.goto(`${TEST_URLS.VOICES}/settings/account`, { waitUntil: 'networkidle' });
 
