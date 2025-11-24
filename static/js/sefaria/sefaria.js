@@ -3586,6 +3586,51 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  getPageTitle: (baseTitle, pageType = "") => {
+      /**
+       * Generate consistent, module-aware, bilingual page titles.
+       * Mirrors the Python get_page_title() function in reader/views.py
+       */
+  
+      // Get current module (library or voices)
+      const module = (Sefaria.activeModule === VOICES_MODULE) ? VOICES_MODULE : LIBRARY_MODULE;
+  
+      // Page title suffix configuration
+      const suffixes = {
+        home: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria: a Living Library of Jewish Texts Online"
+        },
+        topic: {
+          voices: "Sheets from Voices on Sefaria",
+          library: "Texts from the Sefaria Library"
+        },
+        collections: {
+          voices: "Voices on Sefaria"
+        },
+        collection: {
+          voices: "Voices on Sefaria Collection"
+        },
+        default: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria Library"
+        }
+      };
+  
+      // Special case: Sheet titles need default if empty
+      if (pageType === "sheet" && !baseTitle) {
+        baseTitle = "Untitled";
+      }
+
+      if (!pageType) {
+        pageType = "default";
+      }
+  
+      const suffix = suffixes[pageType][module];
+
+      // Combine base title with suffix
+      return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
+    },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
