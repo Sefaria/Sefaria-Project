@@ -31,9 +31,11 @@ const Button = ({
   activeModule = null,
   targetModule = null,
   href,
+  target = null,
   ariaLabel
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
+  const relValue = target === "_blank" ? "noopener noreferrer" : null;
 
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
@@ -46,6 +48,8 @@ const Button = ({
         onKeyDown={disabled ? null : (e) => Util.handleLinkSpaceKey(e, onClick)}
         tabIndex={0}
         role="button"
+        {...(!!target ? { target } : {})}
+        {...(!!relValue ? { rel: relValue } : {})}
         {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
@@ -100,6 +104,7 @@ Button.propTypes = {
   href: PropTypes.string,
   activeModule: PropTypes.string,
   targetModule: PropTypes.string,
+  target: PropTypes.string,
   ariaLabel: ariaLabelValidator
 };
 

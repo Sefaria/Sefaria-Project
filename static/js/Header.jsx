@@ -536,13 +536,16 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
 
         <hr />
 
-        <a href={Sefaria._v({
-          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
-          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
-        })} target="_blank">
-          <img src="/static/icons/help_mdl.svg" alt={Sefaria._("Help")} />
+        <Button
+          icon="help_mdl"
+          href={Sefaria._v({
+            he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
+            en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+          })}
+          target="_blank"
+        >
           <InterfaceText>Get Help</InterfaceText>
-        </a>
+        </Button>
 
         <a href="/mobile-about-menu">
           <img src="/static/icons/info.svg" alt={Sefaria._("About")} />
