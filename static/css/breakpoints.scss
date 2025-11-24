@@ -1,0 +1,28 @@
+$bp-mobile-max: 842px;
+$bp-tablet-min: $bp-mobile-max + 1px;
+$bp-tablet-max: 1086px;
+$bp-desktop-min: $bp-tablet-max + 1px;
+
+// This is needed for using the same vars in js
+:root {
+  --bp-mobile-max: #{$bp-mobile-max};
+  --bp-tablet-min: #{$bp-tablet-min};
+  --bp-tablet-max: #{$bp-tablet-max};
+  --bp-desktop-min: #{$bp-desktop-min};
+}
+
+@mixin breakpoint($size) {
+  @if $size == mobile {
+    @media (max-width: $bp-mobile-max) {
+      @content;
+    }
+  } @else if $size == tablet {
+    @media (min-width: $bp-tablet-min) and (max-width: $bp-tablet-max) {
+      @content;
+    }
+  } @else if $size == desktop {
+    @media (min-width: $bp-desktop-min) {
+      @content;
+    }
+  }
+}

@@ -1,0 +1,54 @@
+@import "breakpoints";
+
+.headerInner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: white;
+  z-index: 1001;
+  box-sizing: border-box;
+  padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.headerOnly .headerInner, .headerInner.boxShadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+$widths: (
+  library-english: 154px,
+  library-hebrew: 141px,
+  voices-english: 174px,
+  voices-hebrew: 148px
+);
+
+$modules: library voices;
+$interfaces: english hebrew;
+
+@include breakpoint(desktop) {
+  @each $module in $modules {
+    @each $interface in $interfaces {
+      $key: "#{$module}-#{$interface}";
+      [data-active-module="#{$module}"] .interface-#{$interface} .home {
+        background: url("/static/img/#{$module}-logo-#{$interface}.svg") no-repeat center / contain;
+        height: 25px;
+        width: map-get($widths, $key);
+      }
+    }
+  }
+}
+
+@include breakpoint(tablet) {
+  .home {
+    height: 25px;
+    width: 19px;
+    -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
+    mask: url("/static/img/samech-logo.svg") no-repeat;
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    background-color: var(--theme-primary);
+  }
+}

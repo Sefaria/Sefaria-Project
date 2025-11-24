@@ -208,11 +208,8 @@ const Header = (props) => {
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   const mobileNotificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
 
-  const path = `/static/img/${Sefaria.activeModule}-logo-${Sefaria.interfaceLang}.svg`;
   const logo = (
-    <a href='/'>
-      <img src={path} className="home" alt={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
-    </a>
+    <a href='/' className="home" aria-label={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
   );
 
   const librarySavedIcon = <div className='librarySavedIcon'>
