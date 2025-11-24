@@ -870,6 +870,31 @@ def cache_dump(request):
 
 
 @staff_member_required
+def memory_summary(request):
+    try:
+        from pympler import muppy, summary
+    except ImportError:
+        return jsonResponse({"error": "pympler is not installed in this environment"}, status=500)
+
+    limit_param = request.GET.get("limit")
+    try:
+        limit = int(limit_param) if limit_param is not None else None
+    except ValueError:
+        return jsonResponse({"error": "limit must be an integer"}, status=400)
+
+    all_objects = muppy.get_objects()
+    summarized = summary.summarize(all_objects)
+    if limit is not None:
+        summarized = summarized[: limit]
+
+    data = [
+        {"type": type_name, "count": int(count), "size": int(size)}
+        for type_name, count, size in summarized
+    ]
+    return jsonResponse({"memory_summary": data})
+
+
+@staff_member_required
 def export_all(request):
     start = datetime.now()
     try:
