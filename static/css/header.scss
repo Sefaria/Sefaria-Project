@@ -23,15 +23,6 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-.headerNavSection a,
-.headerNavSection a:hover {
-  font-size: 16px;
-  color: var(--dark-grey);
-  font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-}
-
 $logo-widths: (
   library-english: 154px,
   library-hebrew: 141px,
@@ -84,15 +75,40 @@ $interfaces: english hebrew;
     gap: 24px;
     margin-inline-start: 20px;
   }
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 26px;
+  vertical-align: middle;
+  padding-top: 6px;
 }
 
-.textLink {
-  padding-top: 6px;
+.textLink,
+.textLink:hover {
+  color: var(--dark-grey);
 }
 
 .headerLinksSection {
 	justify-content: flex-end;
     gap: 20px;
+}
+
+.header .searchBox {
+  overflow: hidden;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 250px;
+  height: 30px;
+}
+
+.header .search {
+  background-color: transparent;
+  flex: 1;
+  border: none;
+  font-size: 18px;
+}
+
+.header .searchBox .keyboardInputInitiator {
+    display: none;
 }
 
 .header-icons {
@@ -104,20 +120,7 @@ $interfaces: english hebrew;
   }
 }
 
-.header-icons .sefaria-common-button {
-  width: 67px;
-  height: 30px;
-  padding: 0;
-  line-height: 18px;
-  font-size: 14px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-icons *,
-.header .menuButton {
+.header-icons * {
   cursor: pointer;
 }
 
@@ -127,41 +130,5 @@ $interfaces: english hebrew;
   background: transparent;
   padding: 0;
   font-size: 24px;
-}
-
-.header .searchBox {
-  overflow: hidden;
-  background: var(--lighter-grey);
-  border-radius: 250px;
-  width: 250px;
-  height: 30px;
-}
-
-.header .searchBox input {
-  background-color: transparent;
-  flex: 1;
-}
-
-.header .search {
-  border: none;
-  font-size:  18px;
-}
-
-.header .search.hebrewSearch {
-  font-size: 18px;
-}
-
-.header .searchBox .keyboardInputInitiator {
-    display: none;
-}
-
-.header .headerDropdownMenu {
-  position: relative;
-}
-
-/* Plain img tags in header (not using Button component with icon-only) */
-.header .headerDropdownMenu img {
-  height: 18px;
-  width: 18px;
-  vertical-align: middle;
+  cursor: pointer;
 }

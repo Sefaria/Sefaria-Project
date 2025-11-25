@@ -14391,6 +14391,10 @@ span.ref-link-color-3 {color: blue}
   justify-content: flex-start;
 }
 
+.header .headerDropdownMenu {
+  position: relative;
+}
+
 .rightButtons .dropdownLinks-button {
   text-align: end;
 }
