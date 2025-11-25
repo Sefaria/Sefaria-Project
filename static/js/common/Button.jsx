@@ -79,8 +79,7 @@ const Button = ({
 // Making sure that ariaLabel is provided for icon-only buttons (icon without children) for accessibility
 const ariaLabelValidator = (props, propName, componentName) => {
   const ariaLabel = props[propName];
-  const icon = props.icon;
-  const children = props.children;
+  const {icon,  children} = props;
 
   // Require ariaLabel only for icon-only buttons (icon present but no children)
   if (icon && !children && !ariaLabel) {
