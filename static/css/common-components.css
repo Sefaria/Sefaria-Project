@@ -82,9 +82,9 @@ a.sefaria-common-button.fillwidth {
     height: 53px;
     width: 100%;
 }
-/** header button variant **/
-button.sefaria-common-button.header,
-a.sefaria-common-button.header {
+/** cta-button variant **/
+button.sefaria-common-button.cta-button,
+a.sefaria-common-button.cta-button {
     padding: 6px 12px;
     font-size: 14px;
     background-color: var(--sheets-green);
