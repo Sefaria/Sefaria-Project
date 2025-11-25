@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
 
     url(r'^getstarted/?$', reader_views.serve_static, {'page': 'sheets'}, name='sheets'),
+    url(r'^sheets/?$', reader_views.sheets_redirect_to_getstarted),
     url(r'^sheets/new/?$', sheets_views.new_sheet),
     url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
     url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
