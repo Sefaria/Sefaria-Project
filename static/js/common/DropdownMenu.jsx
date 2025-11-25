@@ -12,7 +12,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsText = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsEventText = null}) => {
 
   if (!newTab){
     newTab = false;
@@ -26,8 +26,8 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       data-anl-event={analyticsText ? "modswitch_item_click:click" : null}
-       data-anl-text={analyticsText}
+       data-anl-event={analyticsEventText ? "modswitch_item_click:click" : null}
+       data-anl-text={analyticsEventText}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
