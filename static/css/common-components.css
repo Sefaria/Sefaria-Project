@@ -82,7 +82,7 @@ a.sefaria-common-button.fillwidth {
     height: 53px;
     width: 100%;
 }
-/** cta-button variant **/
+/** cta-button variant for the signup and create button in the header **/
 button.sefaria-common-button.cta-button,
 a.sefaria-common-button.cta-button {
     padding: 6px 12px;
