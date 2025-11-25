@@ -6583,9 +6583,6 @@ big {
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
-.readerPanel.english .SheetSource .sheetItem.segment .en {
-  background-color: white;
-}
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
@@ -11302,12 +11299,14 @@ span.purim-emoji img{
   line-height: 1;
   cursor: pointer;
 }
+.addToSheetButton {
+  background-color: unset;
+  border: none;
+}
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
-  border: none;
-  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
@@ -11908,9 +11907,9 @@ background-color: white;
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en,
-section.SheetOutsideBiText .en {
-  background-color: #FBFBFA;
+.bilingual .SheetSource .en,
+.bilingual .SheetOutsideBiText .en {
+  background-color: var(--lightest-grey);
 }
 section.SheetSource,
 section.SheetOutsideBiText {
@@ -12115,7 +12114,7 @@ cursor: pointer;
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-.readerPanel.bilingual.heRight .SheetSource {
+.heRight .SheetSource {
   background-image:
   linear-gradient(
     to left,
@@ -12126,7 +12125,7 @@ cursor: pointer;
     #fff 100%
   );
 }
-.readerPanel.bilingual.heLeft .SheetSource {
+.heLeft .SheetSource {
   background-image:
   linear-gradient(
     to right,
@@ -12136,6 +12135,11 @@ cursor: pointer;
     #FBFBFA 100%,
     #fff 100%
   );
+}
+.sheetContent .highlight,
+.sheetContent .highlight .en {
+  background-image: unset;
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,
