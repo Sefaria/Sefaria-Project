@@ -15,15 +15,28 @@ on:
       image_tag:
         required: true
         type: string
-    secrets:
       image:
         required: true
-      gke_project_id:
-        required: true
-      gke_sa:
-        required: true
+        type: string
       build_args:
         required: false
+        type: string
+      prod:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      PROD_GKE_PROJECT:
+        required: true
+      DEV_GKE_PROJECT:
+        required: true
+      PROD_GKE_PROJECT_ID:
+        required: true
+      PROD_GKE_SA:
+        required: true
+    outputs:
+      tags:
+        value: ${{ jobs.build.outputs.tags }}
 
 jobs:
   build:
@@ -31,6 +44,8 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+    outputs:
+      tags: ${{ steps.meta.output.tags }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,12 +54,20 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
+      - id: project
+        run: |
+          if [ "${{ inputs.prod }}" = "true" ]; then
+            echo "PROJECT=${{ secrets.PROD_GKE_PROJECT }}" >> $GITHUB_ENV
+          else
+            echo "PROJECT=${{ secrets.DEV_GKE_PROJECT }}" >> $GITHUB_ENV
+          fi
+
       - id: auth
         uses: google-github-actions/auth@v2
         with:
           token_format: access_token
-          workload_identity_provider: ${{ format('projects/{0}/locations/global/workloadIdentityPools/github/providers/github', secrets.gke_project_id) }}
-          service_account: ${{ secrets.gke_sa }}
+          workload_identity_provider: ${{ format('projects/{0}/locations/global/workloadIdentityPools/github/providers/github', secrets.PROD_GKE_PROJECT_ID) }}
+          service_account: ${{ secrets.PROD_GKE_SA }}
 
       - uses: docker/login-action@v3
         with:
@@ -54,10 +77,10 @@ jobs:
 
       - name: Generate image metadata
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ secrets.image }}
+            us-east1-docker.pkg.dev/${{ env.PROJECT }}/containers/${{ inputs.image }}
           tags: |
             type=raw,value=${{ inputs.image_tag }}-${{ inputs.datetime }}
             type=raw,value=${{ inputs.image_tag }}
@@ -71,4 +94,5 @@ jobs:
           context: .
           file: ./build/${{ inputs.app }}/Dockerfile
           push: true
-          tags: ${{ steps.meta.output.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: ${{ env.BUILD_ARGS }}
