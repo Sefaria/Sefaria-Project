@@ -456,6 +456,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             {module === Sefaria.LIBRARY_MODULE &&
               <>
                 <Button
+                  variant="secondary"
                   icon="bookmarkset_outline_mdl"
                   alt={Sefaria._('Bookmarks')}
                   href="/saved"
@@ -509,6 +510,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         <hr />
 
         <Button
+          variant="secondary"
           icon="help_mdl"
           href={Sefaria._v({
             he: Sefaria._siteSettings.HELP_CENTER_URLS.HE,
