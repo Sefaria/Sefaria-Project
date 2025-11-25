@@ -490,7 +490,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                   onClick={close}
                   targetModule={Sefaria.LIBRARY_MODULE}
                 >
-                  <InterfaceText text={{ en: "Saved, History & Notes", he: "שמורים, היסטוריה והערות" }} />
+                  <InterfaceText>Saved, History & Notes</InterfaceText>
                 </Button>
               </>}
             {module === Sefaria.VOICES_MODULE &&

@@ -651,6 +651,7 @@ const Strings = {
     "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
     "Saved & History": "שמורים והיסטוריה",
+    "Saved, History & Notes": "שמורים, היסטוריה והערות",
     "Sidebar navigation": "ניווט בסרגל הצד",
     "Site search": "חיפוש באתר",
     "Account menu": "תפריט חשבון",
