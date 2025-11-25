@@ -63,7 +63,7 @@ const LoggedInDropdown = ({ module }) => {
     <DropdownMenu positioningClass="headerDropdownMenu"
       buttonComponent={<ProfilePic url={Sefaria.profile_pic_url}
         name={Sefaria.full_name}
-        len={25} />}>
+        len={24} />}>
       <div className='dropdownLinks-options'>
         {module === Sefaria.LIBRARY_MODULE &&
           <DropdownMenuItem preventClose={true}>
