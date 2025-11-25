@@ -698,7 +698,6 @@ Sefaria = extend(Sefaria, {
       store: this._bulkSheets
     });
   },
-  _guides: {},
   getGuide: function(guideKey = "editor") {
     return this._cachedApiPromise({
       url: `${Sefaria.apiHost}/api/guides/${guideKey}`,
@@ -740,7 +739,6 @@ Sefaria = extend(Sefaria, {
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
     "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
-    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română", "showTranslations": 1},
