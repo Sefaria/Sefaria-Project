@@ -272,8 +272,8 @@ const Header = (props) => {
         />
         
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
+        {props.module === Sefaria.VOICES_MODULE && <CreateButton />}
         <div className={"header-icons"}>
-          {props.module === Sefaria.VOICES_MODULE && <CreateButton />}
           {Sefaria._siteSettings.TORAH_SPECIFIC && <HelpButton />}
 
           {!Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?

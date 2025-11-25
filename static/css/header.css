@@ -151,10 +151,6 @@
   cursor: pointer;
 }
 
-.header .headerDropdownMenu {
-  position: relative;
-}
-
 .header .menuButton {
   color: var(--medium-grey);
   border: none;
