@@ -14,6 +14,7 @@ import Util from '../sefaria/util';
  * @param disabled whether the button is to be disabled or not
  * @param className additional class names in case they are needed (preferrably not)
  * @param href if provided, renders as <a> tag instead of button
+ * @param target if provided, sets the target attribute for links (e.g., "_blank")
  * @param activeModule if provided, sets data-active-module attribute for CSS theming
  * @param targetModule if provided, sets data-target-module attribute for JS navigation (only valid with href)
  * @param ariaLabel required for icon-only buttons (buttons with icon but no children) for accessibility
@@ -35,7 +36,7 @@ const Button = ({
   ariaLabel
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
-  const relValue = target === "_blank" ? "noopener noreferrer" : null;
+  const rel = target === "_blank" ? "noopener noreferrer" : null;
 
   // We want to use the correct <a> tag for links. This keeps things semantically correct for accessibility. It also keeps the right click menue suitable.
   // For accessibility we can't have nested buttons (current pattern is <Button><a>content<a><Button>).
@@ -49,7 +50,7 @@ const Button = ({
         tabIndex={0}
         role="button"
         {...(!!target ? { target } : {})}
-        {...(!!relValue ? { rel: relValue } : {})}
+        {...(!!rel ? { rel } : {})}
         {...(ariaLabel ? { aria-label, title: ariaLabel } : {})}
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
