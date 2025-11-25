@@ -51,7 +51,7 @@ const Button = ({
         role="button"
         {...(!!target ? { target } : {})}
         {...(!!rel ? { rel } : {})}
-        {...(ariaLabel ? { aria-label, title: ariaLabel } : {})}
+        {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
