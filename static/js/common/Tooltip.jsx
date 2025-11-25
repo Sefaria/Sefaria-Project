@@ -19,6 +19,42 @@ const PLACEMENT_CONFIG = {
 };
 const TOOLTIP_OFFSET = 10;
 
+// Internal component for tooltip content and actions
+const TooltipBody = ({ header, content, learnMore, confirm }) => {
+  const actions = (learnMore || confirm) && (
+    <div className="tooltip-actions">
+      {learnMore && (
+        <a
+          href={learnMore.href}
+          target={!learnMore.newTab ? '_self' : '_blank'}
+          rel={!learnMore.newTab ? undefined : 'noopener noreferrer'}
+        >
+          {learnMore.label}
+        </a>
+      )}
+      {confirm && (
+        <Button
+          variant=""
+          size="small"
+          onClick={confirm.onClick}
+          className="tooltip-button"
+          activeModule={Sefaria.activeModule}
+        >
+          {confirm.label}
+        </Button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="floating-ui-tooltip-content">
+      {header && <div className="tooltip-header">{header}</div>}
+      {content}
+      {actions}
+    </div>
+  );
+};
+
 const Tooltip = ({
   targetRef,
   children,
@@ -78,39 +114,6 @@ const Tooltip = ({
     ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
   };
 
-  const actions = (learnMore || confirm) && (
-    <div className="tooltip-actions">
-      {learnMore && (
-        <a
-          href={learnMore.href}
-          target={!learnMore.newTab ? '_self' : '_blank'}
-          rel={!learnMore.newTab ? undefined : 'noopener noreferrer'}
-        >
-          {learnMore.label}
-        </a>
-      )}
-      {confirm && (
-        <Button
-          variant=""
-          size="small"
-          onClick={confirm.onClick}
-          className="tooltip-button"
-          activeModule={Sefaria.activeModule}
-        >
-          {confirm.label}
-        </Button>
-      )}
-    </div>
-  );
-
-  const tooltipBody = (
-    <div className="floating-ui-tooltip-content">
-      {header && <div className="tooltip-header">{header}</div>}
-      {content}
-      {actions}
-    </div>
-  );
-
   const tooltipElement = open && targetRef?.current && (
     <div
       ref={refs.setFloating}
@@ -122,7 +125,12 @@ const Tooltip = ({
         left: x ?? 0,
       }}
     >
-      {tooltipBody}
+      <TooltipBody 
+          header={header}
+          content={content}
+          learnMore={learnMore}
+          confirm={confirm}
+        />
       <div
         ref={arrowRef}
         className={`floating-ui-arrow ${getArrowClassName()}`}
