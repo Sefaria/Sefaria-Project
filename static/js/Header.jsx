@@ -26,7 +26,7 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
-import ModuleSwitcherTooltip from './ModuleSwitcherTooltip';
+import ModuleSwitcherPopover from './ModuleSwitcherPopover';
 
 const LoggedOutDropdown = ({module}) => {
   return (
@@ -135,11 +135,9 @@ const LoggedInDropdown = ({ module }) => {
 }
 
 const ModuleSwitcher = () => {
-  const dropdownRef = useRef(null);
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
   return (    
-  <ModuleSwitcherTooltip targetRef={dropdownRef}>
-    <div ref={dropdownRef}>
+    <ModuleSwitcherPopover>
       <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
         <button className="header-dropdown-button" aria-label={Sefaria._("Library")}>
           <img src='/static/icons/module_switcher_icon.svg' alt={Sefaria._("Library")} />
@@ -148,7 +146,6 @@ const ModuleSwitcher = () => {
         <div className='dropdownLinks-options moduleDropdown'>
           <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
             <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
-
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownModuleItem
@@ -176,13 +173,11 @@ const ModuleSwitcher = () => {
           </DropdownMenuItem>
         </div>
       </DropdownMenu>
-    </div>
-  </ModuleSwitcherTooltip>
-);
+    </ModuleSwitcherPopover>
+  );
 }
 
 const Header = (props) => {
-  const mobileMenuButtonRef = useRef(null);
 
   useEffect(() => {
     const handleFirstTab = (e) => {
@@ -337,13 +332,11 @@ const Header = (props) => {
   const mobileHeaderContent = (
     <>
       <div>
-        <ModuleSwitcherTooltip targetRef={mobileMenuButtonRef}>
-          <div>
-            <button ref={mobileMenuButtonRef} onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
-              <i className="fa fa-bars"></i>
-            </button>
-          </div>
-        </ModuleSwitcherTooltip>
+        <ModuleSwitcherPopover>
+          <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+            <i className="fa fa-bars"></i>
+          </button>
+        </ModuleSwitcherPopover>
       </div>
 
       <div className="mobileHeaderCenter">
