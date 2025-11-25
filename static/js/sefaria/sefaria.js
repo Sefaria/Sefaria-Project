@@ -3622,7 +3622,7 @@ _media: {},
         baseTitle = "Untitled";
       }
 
-      if (!pageType) {
+      if (!pageType || pageType === "sheet") {
         pageType = "default";
       }
   
