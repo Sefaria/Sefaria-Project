@@ -50,7 +50,7 @@ const Button = ({
         role="button"
         {...(!!target ? { target } : {})}
         {...(!!relValue ? { rel: relValue } : {})}
-        {...(ariaLabel ? { 'aria-label': ariaLabel, title: ariaLabel } : {})}
+        {...(ariaLabel ? { aria-label, title: ariaLabel } : {})}
         {...(!!targetModule ? { 'data-target-module': targetModule } : {})}
         {...(!!activeModule ? { 'data-active-module': activeModule } : {})}
       >
