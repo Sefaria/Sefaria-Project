@@ -687,6 +687,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   content: "";
   padding: 0 15px;
 }
+.header .notifications,
+.header .mobile-notifications {
+  position: relative;
+}
 .header .mobile-notifications.mobile-unread::after,
 .header .notifications.unread::after {
   content:"";
