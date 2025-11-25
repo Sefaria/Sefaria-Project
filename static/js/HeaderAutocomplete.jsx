@@ -416,7 +416,12 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
-              onRefClick(queryId);
+              // Use library module for text refs
+              if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+                  openURL("/" + Sefaria.normRef(queryId), true, false, Sefaria.LIBRARY_MODULE);
+              } else {
+                  onRefClick(queryId);
+              }
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
