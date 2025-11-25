@@ -1,0 +1,74 @@
+name: "Build and Push Container Image"
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        required: true
+        type: string
+      git_ref:
+        required: true
+        type: string
+      datetime:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
+    secrets:
+      image:
+        required: true
+      gke_project_id:
+        required: true
+      gke_sa:
+        required: true
+      build_args:
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ format('projects/{0}/locations/global/workloadIdentityPools/github/providers/github', secrets.gke_project_id) }}
+          service_account: ${{ secrets.gke_sa }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ secrets.image }}
+          tags: |
+            type=raw,value=${{ inputs.image_tag }}-${{ inputs.datetime }}
+            type=raw,value=${{ inputs.image_tag }}
+            type=raw,value=latest
+          flavor: |
+            latest=false
+
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/${{ inputs.app }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.output.tags }}
