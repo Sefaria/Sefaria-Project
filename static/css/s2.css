@@ -1050,9 +1050,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   margin: 0 9px 0 7px;
   top: -2px;
 }
-.header .readerNavMenuSearchButton {
-    top: 2px;
-}
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
 }
@@ -14401,10 +14398,6 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-}
-
-.header .headerDropdownMenu {
-  position: relative;
 }
 
 .rightButtons .dropdownLinks-button {

@@ -128,6 +128,10 @@
   font-size: 18px;
 }
 
+.header .readerNavMenuSearchButton {
+  top: 2px;
+}
+
 .header .searchBox .keyboardInputInitiator {
   display: none;
 }
@@ -145,6 +149,10 @@
 
 .header-icons * {
   cursor: pointer;
+}
+
+.header .headerDropdownMenu {
+  position: relative;
 }
 
 .header .menuButton {

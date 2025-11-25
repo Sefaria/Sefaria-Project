@@ -107,6 +107,10 @@ $interfaces: english hebrew;
   font-size: 18px;
 }
 
+.header .readerNavMenuSearchButton {
+    top: 2px;
+}
+
 .header .searchBox .keyboardInputInitiator {
     display: none;
 }
@@ -122,6 +126,10 @@ $interfaces: english hebrew;
 
 .header-icons * {
   cursor: pointer;
+}
+
+.header .headerDropdownMenu {
+  position: relative;
 }
 
 .header .menuButton {
