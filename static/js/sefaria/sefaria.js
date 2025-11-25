@@ -548,7 +548,7 @@ Sefaria = extend(Sefaria, {
     } else if (language) {
         versionParamsString = language;
     }
-    return encodeURIComponent(versionParamsString);
+    return versionParamsString;
   },
   makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
     const apiHost = Sefaria.apiHost || (typeof window !== 'undefined' ? window.location.origin : '');
