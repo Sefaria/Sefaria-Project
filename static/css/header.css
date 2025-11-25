@@ -132,8 +132,54 @@
   justify-content: center;
 }
 
-.header-icons .default-profile-img {
+.header-icons *,
+.header .menuButton {
   cursor: pointer;
+}
+
+.header .menuButton {
+  color: var(--medium-grey);
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 24px;
+}
+
+.header .searchBox {
+  overflow: hidden;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 250px;
+  height: 30px;
+}
+
+.header .searchBox input {
+  background-color: transparent;
+  flex: 1;
+}
+
+.header .search {
+  border: none;
+  font-size: 18px;
+}
+
+.header .search.hebrewSearch {
+  font-size: 18px;
+}
+
+.header .searchBox .keyboardInputInitiator {
+  display: none;
+}
+
+.header .headerDropdownMenu {
+  position: relative;
+}
+
+/* Plain img tags in header (not using Button component with icon-only) */
+.header .headerDropdownMenu img {
+  height: 18px;
+  width: 18px;
+  vertical-align: middle;
 }
 
 /*# sourceMappingURL=header.css.map */
