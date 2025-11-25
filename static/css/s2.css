@@ -445,6 +445,10 @@ input.noselect {
   height: 100%;
   top: 0;
 }
+.header .notifications,
+.header .mobile-notifications {
+  position: relative;
+}
 .mobileNavMenu {
   position: fixed;
   height: calc(100vh - 60px); /* fallback for browsers that don't support dvh */
@@ -686,10 +690,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .globeLanguageToggle .englishLanguageLink::before {
   content: "";
   padding: 0 15px;
-}
-.header .notifications,
-.header .mobile-notifications {
-  position: relative;
 }
 .header .mobile-notifications.mobile-unread::after,
 .header .notifications.unread::after {
@@ -4533,11 +4533,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 20px;
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-
-.header .headerDropdownMenu,
-.search-container {
-  position: relative; /* Ensure dropdown positions relative to this container */
 }
 
 .autocomplete-dropdown{
@@ -14843,6 +14838,10 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
   padding-top: 0;
   margin-top: -7px;
+}
+.header .headerDropdownMenu,
+.search-container {
+  position: relative; /* Ensure dropdown positions relative to this container */
 }
 .headerDropdownMenu .toolsButtonContainer {
   margin: revert;
