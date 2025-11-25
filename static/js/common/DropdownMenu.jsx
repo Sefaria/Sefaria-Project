@@ -177,9 +177,9 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
       setIsOpen(isOpen => {
         const curState = !isOpen;
         if (curState) {
-          onOpen && onOpen();
+          onOpen?.();
         } else {
-          onClose && onClose();
+          onClose?.();
         }
         return curState;
       });
@@ -191,13 +191,13 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
       // Only toggle if no preventClose element was found
       if (!preventClose) {
         setIsOpen(false);
-        onClose && onClose();
+        onClose?.();
       }
     };
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
-          onClose && onClose();
+          onClose?.();
       }
     };
     const handleClickOutside = (event) => {
@@ -206,7 +206,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             !wrapperRef.current.contains(event.target)
         ) {
             setIsOpen(false);
-            onClose && onClose();
+            onClose?.();
         }
     };
 
@@ -230,7 +230,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             container: menuRef.current,
             onClose: () => { 
               setIsOpen(false)
-              onClose && onClose();
+              onClose?.();
             },
             returnFocusRef: buttonRef.current
         });
