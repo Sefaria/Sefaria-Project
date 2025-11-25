@@ -475,6 +475,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                   </div>
                 </a>
                 <Button
+                  variant="secondary"
                   icon="bookmarkset_outline_mdl"
                   alt={Sefaria._('Bookmarks')}
                   href="/saved"
@@ -484,6 +485,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                   <InterfaceText>Saved & History</InterfaceText>
                 </Button>
                 <Button
+                  variant="secondary"
                   icon={Sefaria.notificationCount ? "notifications-1_mdl" : "notifications_mdl"}
                   alt={Sefaria._("Notifications")}
                   href="/notifications"
