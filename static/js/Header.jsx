@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import ReactDOM from 'react-dom';
-import Component from 'react-class';
 import classNames from 'classnames';
-import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import {
-  SearchButton,
   GlobalWarningMessage,
   InterfaceLanguageMenu,
   InterfaceText,
@@ -488,7 +484,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                   <InterfaceText>Saved & History</InterfaceText>
                 </Button>
                 <Button
-                  icon={unread ? "notifications-1_mdl" : "notifications_mdl"}
+                  icon={Sefaria.notificationCount ? "notifications-1_mdl" : "notifications_mdl"}
                   alt={Sefaria._("Notifications")}
                   href="/notifications"
                   onClick={close}

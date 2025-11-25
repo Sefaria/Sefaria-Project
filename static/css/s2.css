@@ -445,35 +445,12 @@ input.noselect {
   height: 100%;
   top: 0;
 }
-.interface-hebrew .header {
-  direction: rtl;
-}
-.headerLinksSection .sefaria-common-button {
-  width: 67px;
-  height: 30px;
-  padding: 0;
-  line-height: 18px;
-  font-size: 14px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.header .header-nav {
-  margin-top: 1px;
-}
-.header .header-links {
-  margin-top: 1px;
-}
 .header .menuButton,
-.header .my-profile,
-.header .notifications,
 .header .readerNavMenuSearchButton {
   cursor: pointer;
 }
 .header .textLink,
 .header .menuButton,
-.header .my-profile,
 .header .readerNavMenuSearchButton {
   display: inline-block;
   color: var(--medium-grey);
@@ -481,15 +458,13 @@ input.noselect {
   background: transparent;
   padding: 0;
 }
-.header .my-profile,
 .header .notifications,
 .header .mobile-notifications {
   display: inline-block;
   vertical-align: middle;
   position: relative;
 }
-.header .menuButton,
-.header .my-profile {
+.header .menuButton {
   font-size: 24px;
   line-height: 24px;
   vertical-align: middle;
@@ -1278,23 +1253,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     color: var(--beit-midrash-grey);
 }
 
-.header .my-profile img {
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  display: block;
-}
-.header .readerNavMenuMenuButton {
-  margin: 0 8px 0 6px;
-  font-size: 17px;
-}
 .readerNavMenuSearchButton {
   position: relative;
   margin: 0 9px 0 7px;
   top: -2px;
-}
-.header .readerNavMenuSearchButton {
-  top: 2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;

@@ -120,4 +120,20 @@
   }
 }
 
+.header-icons .sefaria-common-button {
+  width: 67px;
+  height: 30px;
+  padding: 0;
+  line-height: 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icons .default-profile-img {
+  cursor: pointer;
+}
+
 /*# sourceMappingURL=header.css.map */
