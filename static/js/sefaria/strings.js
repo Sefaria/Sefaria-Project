@@ -650,7 +650,7 @@ const Strings = {
     //Mobile Nav Header
     "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
-    "Saved & History": "היסטורית קריאה ושמורים",
+    "Saved & History": "שמורים והיסטוריה",
     "Sidebar navigation": "ניווט בסרגל הצד",
     "Site search": "חיפוש באתר",
     "Account menu": "תפריט חשבון",
