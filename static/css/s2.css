@@ -320,8 +320,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
-body:not(.inApp).nochrome #s2 .headerLinksSection,
 body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
@@ -667,9 +665,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.interface-hebrew .header .home img {
-  width: 77px;
-}
 .header .accountLinks {
   display: flex;
   align-items: center;
@@ -936,17 +931,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   content: "";
   padding: 0 15px;
 }
-@media screen and (max-width: 910px) {
-  .header .headerInner {
-    padding: 0 15px;
-  }
-  .header .accountLinks .login {
-    padding: 5px 5px;
-  }
-  .header .accountLinks {
-    margin-inline-start: 5px;
-  }
-}
 @media screen and (max-width: 780px) {
   .header .donate {
     display: none;
@@ -1003,9 +987,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .mobileHeaderCenter img.home {
   margin-inline-end: 0;
-}
-.header .headerInner.mobile .mobileHeaderLanguageToggle {
-  text-align: end;
 }
 .mobileHeaderLanguageToggle.hebrew .en,
 .mobileHeaderLanguageToggle.english .he {

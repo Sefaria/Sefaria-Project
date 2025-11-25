@@ -4,18 +4,15 @@
 }
 
 .headerInner,
-.headerInner * {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *) {
   display: flex;
   align-items: center;
 }
 
 .headerInner {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 60px;
-  background: white;
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
@@ -27,22 +24,8 @@
   }
 }
 
-.headerOnly .headerInner,
 .headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-@media (min-width: 1087px) {
-  .textLinks {
-    gap: 30px;
-    margin-inline-start: 60px;
-  }
-}
-@media (min-width: 843px) and (max-width: 1086px) {
-  .textLinks {
-    gap: 24px;
-    margin-inline-start: 20px;
-  }
 }
 
 .headerNavSection a {
@@ -108,6 +91,19 @@
     background-color: var(--theme-primary);
   }
 }
+@media (min-width: 1087px) {
+  .textLinks {
+    gap: 30px;
+    margin-inline-start: 60px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .textLinks {
+    gap: 24px;
+    margin-inline-start: 20px;
+  }
+}
+
 .headerLinksSection {
   justify-content: flex-end;
   gap: 20px;

@@ -1,18 +1,15 @@
 @import "breakpoints";
 
 .headerInner,
-.headerInner * {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *) {
   display: flex;
   align-items: center;
 }
 
 .headerInner {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 60px;
-  background: white;
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
@@ -22,20 +19,8 @@
   }
 }
 
-.headerOnly .headerInner, //TODO understand this
 .headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.textLinks {
-  @include breakpoint(desktop) {
-    gap: 30px;
-    margin-inline-start: 60px;
-  }
-  @include breakpoint(tablet) {
-    gap: 24px;
-    margin-inline-start: 20px;
-  }
 }
 
  .headerNavSection a {
@@ -46,7 +31,7 @@
   vertical-align: middle;
 }
 
-$widths: (
+$logo-widths: (
   library-english: 154px,
   library-hebrew: 141px,
   voices-english: 174px,
@@ -63,7 +48,7 @@ $interfaces: english hebrew;
       [data-active-module="#{$module}"] .interface-#{$interface} .home {
         background: url("/static/img/#{$module}-logo-#{$interface}.svg") no-repeat center / contain;
         height: 25px;
-        width: map-get($widths, $key);
+        width: map-get($logo-widths, $key);
       }
     }
   }
@@ -86,6 +71,17 @@ $interfaces: english hebrew;
     -webkit-mask-size: cover;
     mask-size: cover;
     background-color: var(--theme-primary);
+  }
+}
+
+.textLinks {
+  @include breakpoint(desktop) {
+    gap: 30px;
+    margin-inline-start: 60px;
+  }
+  @include breakpoint(tablet) {
+    gap: 24px;
+    margin-inline-start: 20px;
   }
 }
 
