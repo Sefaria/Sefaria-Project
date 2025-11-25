@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import {
   useFloating,
   autoUpdate,
@@ -10,6 +9,14 @@ import {
 } from '@floating-ui/react-dom';
 import Button from './Button';
 import Sefaria from '../sefaria/sefaria';
+
+/**
+ * Tooltip component that positions relative to a target element using Floating UI.
+ * Renders in normal DOM flow alongside children.
+ * 
+ * Usage: Pass targetRef pointing to the element to position relative to.
+ * Children are rendered normally, tooltip content goes in header/content props.
+ */
 
 // Configuration constants (kept consistent with existing ModuleSwitcherTooltip)
 const PLACEMENT_CONFIG = {
@@ -56,13 +63,13 @@ const TooltipBody = ({ header, content, learnMore, confirm }) => {
 };
 
 const Tooltip = ({
-  targetRef,
-  children,
-  header,                // ReactNode component - typically <InterfaceText>
-  content,               // ReactNode component - typically <InterfaceText>
-  learnMore,             // { href: string, label: ReactNode (typically <InterfaceText>), newTab?: boolean }
-  confirm,               // { label: ReactNode (typically <InterfaceText>), onClick?: () => void }
-  open = false,          // controlled visibility
+  targetRef,             // Required: React ref to the element to position relative to
+  children,              // Optional: Content rendered in normal DOM flow (can contain target element)
+  header,                // Optional: Header content (typically <InterfaceText>)
+  content,               // Required: Main tooltip content (typically <InterfaceText>)
+  learnMore,             // Optional: { href: string, label: ReactNode, newTab?: boolean }
+  confirm,               // Optional: { label: ReactNode, onClick?: () => void }
+  open = false,          // Required: Controls tooltip visibility (boolean)
 }) => {
   const isMobile = !Sefaria.multiPanel;
   const TOOLTIP_SHIFT_PADDING = isMobile ? 10 : 45;
@@ -88,8 +95,12 @@ const Tooltip = ({
   useEffect(() => {
     if (!targetRef?.current) return;
     
+    // Tell Floating UI which element to position relative to
     refs.setReference(targetRef.current);
     
+    // Start auto-positioning when tooltip is open
+    // autoUpdate returns a cleanup function that React calls to stop positioning
+    // when tooltip closes, component unmounts, or dependencies change
     if (open && refs.floating.current) {
       return autoUpdate(targetRef.current, refs.floating.current, update);
     }
@@ -114,6 +125,7 @@ const Tooltip = ({
     ...(middlewareData.arrow?.y != null && { top: `${middlewareData.arrow.y}px` }),
   };
 
+  // Only create tooltip element when open and target exists
   const tooltipElement = open && targetRef?.current && (
     <div
       ref={refs.setFloating}
@@ -142,10 +154,7 @@ const Tooltip = ({
   return (
     <>
       {children}
-      {typeof document !== 'undefined' && ReactDOM.createPortal(
-        tooltipElement,
-        document.body
-      )}
+      {tooltipElement}
     </>
   );
 };
