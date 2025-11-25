@@ -18,6 +18,15 @@ on:
       push_to_prod_registry:
         type: boolean
         default: false
+    secrets:
+      PROD_GKE_PROJECT:
+        required: true
+      DEV_GKE_PROJECT:
+        required: true
+      PROD_GKE_PROJECT_ID:
+        required: true
+      PROD_GKE_SA:
+        required: true
 
     outputs:
       web_image:
@@ -33,12 +42,10 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
+      datetime: ${{ steps.datetime.outputs.dt }}
       web_image: ${{ steps.images.outputs.web_image }}
       node_image: ${{ steps.images.outputs.node_image }}
       asset_image: ${{ steps.images.outputs.asset_image }}
-      datetime: ${{ steps.datetime.outputs.dt }}
-      gke_project_id: ${{ steps.gke.outputs.gke_project_id }}
-      gke_sa: ${{ steps.gke.outputs.gke_sa }}
 
     steps:
       - id: datetime
@@ -46,41 +53,18 @@ jobs:
       - name: Compute image names
         id: images
         run: |
-          if [ "${{ inputs.push_to_prod_registry }}" = "true" ]; then
-            project=${{ secrets.PROD_PROJECT }}
-          else
-            project=${{ secrets.DEV_PROJECT }}
-          fi
-
-          web="us-east1-docker.pkg.dev/$project/containers/sefaria-web"
-          node="us-east1-docker.pkg.dev/$project/containers/sefaria-node"
-          asset="us-east1-docker.pkg.dev/$project/containers/sefaria-asset"
+          web="sefaria-web"
+          node="sefaria-node"
+          asset="sefaria-asset"
           if [ -n "${{ inputs.branch_name }}" ]; then
             web="$web-${{ inputs.branch_name }}"
             node="$node-${{ inputs.branch_name }}"
             asset="$asset-${{ inputs.branch_name }}"
           fi
 
-          echo "web_image: $web"
-          echo "node_image: $node"
-          echo "asset_image: $asset"
-
           echo "web_image=$web" >> $GITHUB_OUTPUT
           echo "node_image=$node" >> $GITHUB_OUTPUT
           echo "asset_image=$asset" >> $GITHUB_OUTPUT
-      - name: Compute GKE settings
-        id: gke
-        run: |
-          if [ "${{ inputs.push_to_prod_registry }}" = "true" ]; then
-            project_id="${{ secrets.PROD_GKE_PROJECT_ID }}"
-            gke_sa="${{ secrets.PROD_GKE_SA }}"
-          else
-            project_id="${{ secrets.DEV_GKE_PROJECT_ID }}"
-            gke_sa="${{ secrets.DEV_GKE_SA }}"
-          fi
-
-          echo "gke_project_id=$project_id" >> $GITHUB_OUTPUT
-          echo "gke_sa=$gke_sa" >> $GITHUB_OUTPUT
 
   build-web:
     needs: calculate
@@ -93,11 +77,14 @@ jobs:
       git_ref: ${{ inputs.git_ref }}
       datetime: ${{ needs.calculate.outputs.datetime }}
       image_tag: ${{ inputs.image_tag }}
-    secrets:
       image: ${{ needs.calculate.outputs.web_image }}
-      gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
-      gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+      prod: ${{ inputs.push_to_prod_registry }}
       build_args: ""
+    secrets:
+      PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
+      DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
+      PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
+      PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
 
   build-node:
     needs: calculate
@@ -110,11 +97,14 @@ jobs:
       git_ref: ${{ inputs.git_ref }}
       datetime: ${{ needs.calculate.outputs.datetime }}
       image_tag: ${{ inputs.image_tag }}
-    secrets:
       image: ${{ needs.calculate.outputs.node_image }}
-      gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
-      gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+      prod: ${{ inputs.push_to_prod_registry }}
       build_args: ""
+    secrets:
+      PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
+      DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
+      PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
+      PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
 
   build_asset:
     needs: [calculate, build-web]
@@ -127,9 +117,12 @@ jobs:
       git_ref: ${{ inputs.git_ref }}
       datetime: ${{ needs.calculate.outputs.datetime }}
       image_tag: ${{ inputs.image_tag }}
-    secrets:
       image: ${{ needs.calculate.outputs.node_image }}
-      gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
-      gke_sa: ${{ needs.calculate.outputs.gke_sa }}
-      build_args: |
-        SRC_IMG=${{ needs.calculate.outputs.web_image }}:${{ inputs.image_tag }}
+      prod: ${{ inputs.push_to_prod_registry }}
+      build_args: >-
+        SRC=${{ needs.build-web.outputs.tags }}
+    secrets:
+      PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
+      DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
+      PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
+      PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
