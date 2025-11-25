@@ -1435,10 +1435,10 @@ const AiInfoTooltip = () => {
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
             <div className="ai-info-first-message">
             <InterfaceText>
-                <EnglishText>Some of the text on this page has been AI generated.
+                <EnglishText>The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.
                   &nbsp;<AiLearnMoreLink lang="english" />
                 </EnglishText>
-                <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.&nbsp;
+                <HebrewText>השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.&nbsp;
                   <AiLearnMoreLink lang="hebrew" />
                 </HebrewText>
             </InterfaceText>

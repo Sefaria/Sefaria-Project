@@ -10449,6 +10449,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 29px;
   color: #000000;
 }
+
+.guideBox .guideTitle .experimentLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 11px;
+  text-transform: uppercase;
+  border: 1px solid var(--light-grey);
+  border-radius: 4px;
+  float: inline-end;
+  padding: 2px 6px;
+  background: var(--lightest-grey);
+  margin-left: 10px;
+}
+
+.guideBox .guideHeader .experimentLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 11px;
+  text-transform: uppercase;
+  border: 1px solid var(--light-grey);
+  border-radius: 4px;
+  float: inline-end;
+  padding: 2px 6px;
+  background: var(--lightest-grey);
+  margin-left: 10px;
+}
 .guideBox .guidePromptBox {
   direction: ltr;
   margin-bottom: 20px;

@@ -26,6 +26,8 @@ const QuestionBox = ({ prompt, onClick }) => {
     <div>
       <div className="guideTitle">
         Key Questions
+        <span className="experimentLabel">Experiment</span>
+        <AiInfoTooltip/>
       </div>
       {prompt.map((p, i) => {
         return (
@@ -55,6 +57,8 @@ const SummaryBox = ({ prompt, onClick }) => {
     <div>
       <div className="guideTitle">
         {prompt.question}
+        <span className="experimentLabel">Experiment</span>
+        <AiInfoTooltip/>
       </div>
       {prompt.commentaries.map((p, i) => {
         return (
@@ -184,7 +188,14 @@ class GuideBox extends Component {
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
         {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} questionPosition={this.state.questionPosition} onClick={this.onClickSummary} />}
-        {this.state.promptState === COMMENTARIES && <TextRange sref={this.state.commentaryRef} />}
+        {this.state.promptState === COMMENTARIES && (
+          <div>
+            <div className="guideTitle">
+              <span className="experimentLabel">Experiment</span>
+            </div>
+            <TextRange sref={this.state.commentaryRef} />
+          </div>
+        )}
       </section>
     )
   }
