@@ -215,6 +215,7 @@ def test_multiple_ambiguities():
     [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
     [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
     [crrd(["#סימן תצ״ג"], lang='he', context_tref='Mishnah Berurah 494:1'), ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493")],  # use base_titles to infer possible links from book_ref context
+    [crrd(['@והשולחן ערוך', '#סימן א', '#סעיף ב'], context_tref='Arukh HaShulchan, Orach Chaim 75:11'), ("Shulchan Arukh, Orach Chayim 1:2",)],  # pull context from lower node to use to resolve book title
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -223,10 +224,10 @@ def test_multiple_ambiguities():
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
-    
+
     # Passage nodes
     [crrd(["@משנה", "@ביצה", "#יד:"]), ("Beitzah 14b:4", "Beitzah 14b:12", "Beitzah 14b:9")],
-    
+
 
     # YERUSHALMI EN
     [crrd(['@Bavli', '#2a'], "Jerusalem Talmud Shabbat 1:1", "en"), ("Shabbat 2a",)],
