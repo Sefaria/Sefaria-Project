@@ -901,7 +901,7 @@ const AboutCollections = ({hideTitle}) => (
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
     </InterfaceText>
       {!hideTitle &&
-      <Button icon={"collection-black"} className="">
+      <Button icon={"collection-black"}>
         <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
           <InterfaceText>Create a Collection</InterfaceText>
         </a>
