@@ -82,7 +82,7 @@ const ariaLabelValidator = (props, propName, componentName) => {
   const children = props.children;
 
   // Require ariaLabel only for icon-only buttons (icon present but no children)
-  if (icon && !children && (ariaLabel === undefined || ariaLabel === null || ariaLabel === '')) {
+  if (icon && !children && !ariaLabel) {
     return new Error(
       `Invalid prop \`${propName}\` supplied to \`${componentName}\`. ` +
       `\`${propName}\` is required for icon-only buttons (buttons with icon but no children) for accessibility. ` +
