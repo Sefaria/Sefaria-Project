@@ -84,65 +84,52 @@ jobs:
 
   build-web:
     needs: calculate
-    runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.git_ref }}
-      - name: Build web image
-        uses: ./.github/actions/build-image
-        with:
-          app: web
-          image: ${{ needs.calculate.outputs.web_image }}
-          git_ref: ${{ inputs.git_ref }}
-          datetime: ${{ needs.calculate.outputs.datetime }}
-          image_tag: ${{ inputs.image_tag }}
-          gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
-          gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+    uses: ./.github/workflows/build-single-image.yaml
+    with:
+      app: web
+      git_ref: ${{ inputs.git_ref }}
+      datetime: ${{ needs.calculate.outputs.datetime }}
+      image_tag: ${{ inputs.image_tag }}
+    secrets:
+      image: ${{ needs.calculate.outputs.web_image }}
+      gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
+      gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+      build_args: ""
 
   build-node:
     needs: calculate
-    runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.git_ref }}
-      - name: Build node image
-        uses: ./.github/actions/build-image
-        with:
-          app: node
-          image: ${{ needs.calculate.outputs.node_image }}
-          git_ref: ${{ inputs.git_ref }}
-          datetime: ${{ needs.calculate.outputs.datetime }}
-          image_tag: ${{ inputs.image_tag }}
-          gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
-          gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+    uses: ./.github/workflows/build-single-image.yaml
+    with:
+      app: node
+      git_ref: ${{ inputs.git_ref }}
+      datetime: ${{ needs.calculate.outputs.datetime }}
+      image_tag: ${{ inputs.image_tag }}
+    secrets:
+      image: ${{ needs.calculate.outputs.node_image }}
+      gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
+      gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+      build_args: ""
 
   build_asset:
     needs: [calculate, build-web]
-    runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.git_ref }}
-      - name: Build node image
-        uses: ./.github/actions/build-image
-        with:
-          app: node
-          image: ${{ needs.calculate.outputs.node_image }}
-          git_ref: ${{ inputs.git_ref }}
-          datetime: ${{ needs.calculate.outputs.datetime }}
-          image_tag: ${{ inputs.image_tag }}
-          gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
-          gke_sa: ${{ needs.calculate.outputs.gke_sa }}
-          build-args: |
-            SRC_IMG=${{ needs.calculate.outputs.web_image }}:${{ inputs.image_tag }}
+    uses: ./.github/workflows/build-single-image.yaml
+    with:
+      app: node
+      git_ref: ${{ inputs.git_ref }}
+      datetime: ${{ needs.calculate.outputs.datetime }}
+      image_tag: ${{ inputs.image_tag }}
+    secrets:
+      image: ${{ needs.calculate.outputs.node_image }}
+      gke_project_id: ${{ needs.calculate.outputs.gke_project_id }}
+      gke_sa: ${{ needs.calculate.outputs.gke_sa }}
+      build_args: |
+        SRC_IMG=${{ needs.calculate.outputs.web_image }}:${{ inputs.image_tag }}
