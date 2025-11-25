@@ -480,6 +480,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header .mobileNavMenu .searchBox.searchFocused .search {
   width: 100%;
 }
+.mobileNavMenu .searchBox {
+    display: flex;
+    width: 100%;
+    align-items: center;
+}
 .header.mobile .ui-autocomplete {
   width: 100% !important;
 }
@@ -1040,6 +1045,9 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   position: relative;
   margin: 0 9px 0 7px;
   top: -2px;
+}
+.header .readerNavMenuSearchButton {
+    top: 2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
