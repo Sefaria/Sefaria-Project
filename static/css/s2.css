@@ -5832,18 +5832,6 @@ h1.topic-landing-header {
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.hebrew .readerControls .readerTextToc {
-  direction: rtl;
-}
-.english .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-english .bilingual .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-hebrew .bilingual .readerControls .readerTextToc {
-  direction: rtl;
-}
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -6138,7 +6126,6 @@ h1.topic-landing-header {
   direction: ltr;
 }
 .interface-english .readerPanel.rtl .textRange,
-.interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
@@ -6545,18 +6532,18 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel .segment .segmentNumber .he {
   text-align: center;
 }
-.readerPanel.english .segment .segmentNumber {
+.readerPanel.ltr .segment .segmentNumber {
   left: -48px;
 }
-.readerPanel.hebrew .segment .segmentNumber,
+.readerPanel.rtl .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
   right: -46px;
 }
-.readerPanel.hebrew .segment .linkCount,
+.readerPanel.rtl .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
   left: -48px;
 }
-.readerPanel.english .segment .linkCount {
+.readerPanel.ltr .segment .linkCount {
   right: -46px;
   left: auto;
 }
@@ -6570,21 +6557,21 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel.heRight.bilingual .segment .linkCount {
   visibility: hidden;
 }
-.singlePanel .readerPanel.english .segment .segmentNumber {
+.singlePanel .readerPanel.ltr .segment .segmentNumber {
   left: -30px;
 }
-.singlePanel .readerPanel.hebrew .segment .segmentNumber,
+.singlePanel .readerPanel.rtl .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
   right: -30px;
 }
-.singlePanel .readerPanel.english .segment .linkCount {
+.singlePanel .readerPanel.ltr .segment .linkCount {
   right: -30px;
 }
-.singlePanel .readerPanel.hebrew .segment .linkCount,
+.singlePanel .readerPanel.rtl .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
   left: -30px;
 }
-.singlePanel .readerPanel.english .sheetItem.segment .linkCount {
+.singlePanel .readerPanel.ltr .sheetItem.segment .linkCount {
   left: auto;
   right: -30px;
 }
