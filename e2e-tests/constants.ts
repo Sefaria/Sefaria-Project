@@ -78,14 +78,14 @@ export const MODULE_SELECTORS = {
     CONTAINER: '.header[role="banner"]',
     INNER: '.headerInner',
     DROPDOWN_BUTTON: '.header button.header-dropdown-button',
-    USER_MENU_BUTTON_LOGGED_OUT: '.header button.header-dropdown-button[aria-label="Account menu"]',
+    USER_MENU_BUTTON_LOGGED_OUT: '.header button[aria-label="Account menu"]',
     USER_MENU_BUTTON_LOGGED_IN: '.header .dropdownLinks-button:has(.profile-pic)',
-    MODULE_SWITCHER_BUTTON: '.header button.header-dropdown-button[aria-label="Library"]',
+    MODULE_SWITCHER_BUTTON: '.header button[aria-label="Library"]',
     MODULE_SWITCHER_ICON: '.header img[src="/static/icons/moduleswitcher_mdl.svg"]',
+    USER_MENU_ICON_LOGGED_OUT: '.header img[src="/static/icons/profile_loggedout_mdl.svg"]',
     CREATE_BUTTON: '.header button:has-text("Create")',
     CREATE_LINK: '.header a:has-text("Create")',
     PROFILE_PIC: '.header .profile-pic',
-    LOGGED_OUT_ICON: '.header img[src="/static/icons/logged_out.svg"]',
     SAVED_TEXTS_LINK: '.librarySavedIcon a[href="/texts/saved"]'
   }
 } as const;

@@ -24,9 +24,13 @@ test.describe('Cross-Module Login Scenarios', () => {
     const loginPage = pm.onLoginPage();
     await loginPage.loginAs(testUser);
 
-    // Wait for login to complete
+    // Wait for login to complete and profile pic to appear
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
+
+    // Explicitly wait for profile pic to ensure login completed
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
+    await profilePic.waitFor({ state: 'visible', timeout: 10000 });
 
     // Verify user is logged in
     expect(await isUserLoggedIn(page)).toBe(true);
@@ -45,16 +49,8 @@ test.describe('Cross-Module Login Scenarios', () => {
   });
 
   test('Scenario 2: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', async ({ context }) => {
-    // Start not logged in on Library
-    const page = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-
-    // Log in on Library
-    await openHeaderDropdown(page, 'user');
-    await selectDropdownOption(page, 'Log in');
-    await pm.onLoginPage().loginAs(testUser);
-    await page.waitForLoadState('networkidle');
+    // Start already logged in on Library (using auth state)
+    const page = await goToPageWithUser(context, MODULE_URLS.LIBRARY, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Library
@@ -87,16 +83,8 @@ test.describe('Cross-Module Login Scenarios', () => {
   });
 
   test('Scenario 3: Login on Voices, switch to Library via Module Switcher, verify logged in on Library', async ({ context }) => {
-    // Start not logged in on Voices
-    const page = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-
-    // Log in on Voices
-    await openHeaderDropdown(page, 'user');
-    await selectDropdownOption(page, 'Log in');
-    await pm.onLoginPage().loginAs(testUser);
-    await page.waitForLoadState('networkidle');
+    // Start already logged in on Voices (using auth state)
+    const page = await goToPageWithUser(context, MODULE_URLS.VOICES, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Voices
@@ -128,7 +116,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await libraryPage!.close();
   });
 
-  test('Scenarios 4-5: Multiple tabs on same module - attempt login on second tab shows error', async ({ context }) => {
+  test('Scenarios 4: Multiple Library tabs - attempt login on second tab shows error', async ({ context }) => {
     // Test Scenario 4: Multiple Library tabs
     // Open first Library tab (not logged in)
     const libraryTab1 = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
@@ -164,7 +152,8 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     await libraryTab1.close();
     await libraryTab2.close();
-
+  });
+  test('Scenario 5: Multiple Voices tabs - attempt login on second tab shows error', async ({ context }) => {
     // Test Scenario 5: Multiple Voices tabs
     // Open first Voices tab (not logged in)
     const voicesTab1 = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
@@ -202,7 +191,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await voicesTab2.close();
   });
 
-  test('Scenarios 6-7: Cross-module tabs - attempt login on second module shows error', async ({ context }) => {
+  test('Scenarios 6: Login on Library, try login on previously opened Voices tab', async ({ context }) => {
     // Test Scenario 6: Login on Library, try login on previously opened Voices tab
     // Open Library tab (not logged in)
     const libraryTab = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
@@ -238,7 +227,8 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     await libraryTab.close();
     await voicesTab.close();
-
+  });
+  test('Scenarios 7: Login on Voices, try login on previously opened Library tab', async ({ context }) => {
     // Test Scenario 7: Login on Voices, try login on previously opened Library tab
     // Open Library tab (not logged in)
     const libraryTab2 = await context.newPage();
@@ -277,16 +267,8 @@ test.describe('Cross-Module Login Scenarios', () => {
   });
 
   test('Scenario 8: Logged in Library user navigates to sheet link, opens in Voices while logged in', async ({ context }) => {
-    // Start not logged in on Library
-    const page = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-
-    // Log in on Library
-    await openHeaderDropdown(page, 'user');
-    await selectDropdownOption(page, 'Log in');
-    await pm.onLoginPage().loginAs(testUser);
-    await page.waitForLoadState('networkidle');
+    // Start already logged in on Library (using auth state)
+    const page = await goToPageWithUser(context, `${MODULE_URLS.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Library
@@ -315,16 +297,8 @@ test.describe('Cross-Module Login Scenarios', () => {
   });
 
   test('Scenario 9: Logged in Voices user navigates to text link, opens in Library while logged in', async ({ context }) => {
-    // Start not logged in on Voices
-    const page = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
-    const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-
-    // Log in on Voices
-    await openHeaderDropdown(page, 'user');
-    await selectDropdownOption(page, 'Log in');
-    await pm.onLoginPage().loginAs(testUser);
-    await page.waitForLoadState('networkidle');
+    // Start already logged in on Voices (using auth state)
+    const page = await goToPageWithUser(context, MODULE_URLS.VOICES, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Voices

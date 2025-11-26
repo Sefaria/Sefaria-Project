@@ -432,9 +432,9 @@ export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'mod
   let button;
   if (dropdownType === 'user') {
     // Click the user menu icon (works for both logged-in and logged-out states)
-    // For logged-out: clicks the logged_out.svg icon
+    // For logged-out: clicks the profile_loggedout_mdl.svg icon
     // For logged-in: clicks the profile pic
-    const loggedOutIcon = page.locator('img[src="/static/icons/logged_out.svg"]');
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
 
     // Check which one is visible
@@ -442,14 +442,14 @@ export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'mod
     button = isLoggedOut ? loggedOutIcon : profilePic;
   } else {
     // Module switcher - use the icon directly as it's always visible
-    button = page.locator(MODULE_SELECTORS.HEADER.MODULE_SWITCHER_ICON);
+    button = page.locator(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
   }
 
   await button.waitFor({ state: 'visible', timeout: 5000 });
   await button.click();
 
-  // Wait for dropdown to appear
-  await page.locator(MODULE_SELECTORS.DROPDOWN).waitFor({ state: 'visible', timeout: 5000 });
+  // Wait for dropdown to appear (use .open to avoid strict mode violation with multiple dropdowns)
+  await page.locator(`${MODULE_SELECTORS.DROPDOWN}.open`).waitFor({ state: 'visible', timeout: 5000 });
 };
 
 /**
@@ -488,7 +488,7 @@ export const selectDropdownOption = async (
 export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
   try {
     // Check if logged-out icon is visible
-    const loggedOutIcon = page.locator(MODULE_SELECTORS.HEADER.LOGGED_OUT_ICON);
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
     const isLoggedOut = await loggedOutIcon.isVisible({ timeout: 2000 });
     if (isLoggedOut) return false;
 
