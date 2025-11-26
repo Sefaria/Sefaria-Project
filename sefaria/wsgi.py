@@ -23,6 +23,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
+if os.getenv("DEBUG_BACKDOOR") == "1":
+    from gevent.backdoor import BackdoorServer
+    port = int(os.getenv("DEBUG_BACKDOOR_PORT", "3021"))
+    BackdoorServer(("0.0.0.0", port)).start()
+
 
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
