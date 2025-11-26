@@ -10432,6 +10432,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .guideBox .guideHeader i {
