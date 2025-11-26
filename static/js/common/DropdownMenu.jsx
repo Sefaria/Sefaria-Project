@@ -235,7 +235,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
                 while DropdownMenu handles the dropdown logic without the parent needing to know
                 the implementation details.
               */}
-              {React.cloneElement(buttonComponent, {
+              {buttonComponent && React.cloneElement(buttonComponent, {
                 onClick: handleButtonClick,
                 ref: buttonRef,
                 tabIndex: 0,
