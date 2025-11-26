@@ -184,7 +184,7 @@ class GuideBox extends Component {
           </div>
           <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
-            <AiInfoTooltip/>
+            {this.state.promptState !== COMMENTARIES &&<AiInfoTooltip/>}
           </div>
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
