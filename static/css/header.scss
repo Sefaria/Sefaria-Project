@@ -26,10 +26,14 @@
 }
 
 $logo-widths: (
-  library-english: 154px,
-  library-hebrew: 141px,
-  voices-english: 174px,
-  voices-hebrew: 148px
+  library: (
+    english: 154px,
+    hebrew: 141px
+  ),
+  voices: (
+    english: 174px,
+    hebrew: 148px
+  )
 );
 
 $modules: library voices;
@@ -38,11 +42,10 @@ $interfaces: english hebrew;
 @mixin full-logo {
   @each $module in $modules {
     @each $interface in $interfaces {
-      $key: "#{$module}-#{$interface}";
       [data-active-module="#{$module}"] .interface-#{$interface} .home {
         background: url("/static/img/#{$module}-logo-#{$interface}.svg") no-repeat center / contain;
         height: 25px;
-        width: map-get($logo-widths, $key);
+        width: map-get(map-get($logo-widths, $module), $interface);
       }
     }
   }
