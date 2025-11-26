@@ -182,7 +182,7 @@ class GuideBox extends Component {
             <span className="int-en">Guided Learning</span>
             <span className="int-he">מדריך למידה</span>
           </div>
-          <div>
+          <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
             <AiInfoTooltip/>
           </div>

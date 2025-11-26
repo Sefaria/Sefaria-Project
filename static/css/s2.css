@@ -10437,6 +10437,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   align-items: center;
 }
 
+.guideBox .guideHeader .guideHeaderTags {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
 .guideBox .guideHeader i {
   margin-right: 8px;
   font-size: 18px;
