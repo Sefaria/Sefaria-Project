@@ -8,12 +8,15 @@
   --highlight-blue-light: #F0F7FF;
   --highlight-green-light: #F1FCF5;
   --beit-midrash-grey: #333333;
+  --darkest-grey: #333333;
+  --darker-grey: #575757;
   --dark-grey: #666666;
   --medium-grey: #6f6f6f;
   --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
   --lighter-grey: #EDEDEC;
   --lightest-grey: #FBFBFA;
+  --black: #000000;
   --commentary-blue: #4B71B7;
   --essay-links-green: #3B5849;
   --tanakh-teal: #004E5F;
@@ -34,6 +37,6 @@
   --reference-orange: #D4896C;
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
-  --select-blue: #0B71E7;
+  --select-blue: #0056b3;
   --focus-blue: #1976d2;
 }
