@@ -3586,6 +3586,11 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  breakpoints: {
+    MOBILE: 'mobile',
+    TABLET: 'tablet',
+    DESKTOP: 'desktop',
+  },
   getBreakpoint: () => {
     // ReaderApp is re-rendered every resize, so static function will work.
     const rootStyles = getComputedStyle(document.documentElement);
@@ -3594,11 +3599,11 @@ _media: {},
     const width = window.innerWidth;
 
     if (width < tabletMin) {
-      return 'mobile';
+      return Sefaria.breakpoints.MOBILE;
     } else if (width >= tabletMin && width < desktopMin) {
-      return 'tablet';
+      return Sefaria.breakpoints.TABLET;
     } else {
-      return 'desktop';
+      return Sefaria.breakpoints.DESKTOP;
     }
   },
   getPageTitle: (baseTitle, pageType = "") => {

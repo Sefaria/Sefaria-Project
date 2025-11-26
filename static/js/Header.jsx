@@ -191,7 +191,7 @@ const Header = (props) => {
     }
   }, []);
   
-  const mobile = Sefaria.getBreakpoint() === 'mobile';
+  const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
   
   const shouldHide = () => {
     // Determines whether or not this component should be displayed or not. 
