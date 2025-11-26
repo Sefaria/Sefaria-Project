@@ -51,7 +51,6 @@ export const SaveStates: Record<string, SaveState> = {
 
 // Fetch sandbox domain from environment variable and construct module URLs
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
-
 export const MODULE_URLS = {
   LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
   VOICES:  `https://voices.${SANDBOX_DOMAIN}`
@@ -63,9 +62,9 @@ export const MODULE_SELECTORS = {
     VOICES: 'img[alt="Sefaria voices logo"]'
   },
   ICONS: {
-    LANGUAGE: 'img[src="/static/icons/globe-wire.svg"]',
-    MODULE_SWITCHER: 'img[src="/static/icons/module_switcher_icon.svg"]',
-    USER_MENU: 'img[src="/static/icons/logged_out.svg"]',
+    LANGUAGE: 'img[src="/static/icons/globallanguageswitcher_mdl.svg"]',
+    MODULE_SWITCHER: 'img[src="/static/icons/moduleswitcher_mdl.svg"]',
+    USER_MENU: 'img[src="/static/icons/profile_loggedout_mdl.svg"]',
     BOOKMARKS: 'img[src="/static/icons/bookmarks.svg"]',
     NOTIFICATIONS: 'img[src="/static/icons/notification.svg"]'
   },
@@ -79,11 +78,14 @@ export const MODULE_SELECTORS = {
     CONTAINER: '.header[role="banner"]',
     INNER: '.headerInner',
     DROPDOWN_BUTTON: '.header button.header-dropdown-button',
-    USER_MENU_BUTTON: '.header button.header-dropdown-button[aria-label*="Account"], .header button.header-dropdown-button[aria-label*="תפריט"]',
-    MODULE_SWITCHER_BUTTON: '.header button.header-dropdown-button[aria-label*="Library"]',
+    USER_MENU_BUTTON_LOGGED_OUT: '.header button.header-dropdown-button[aria-label="Account menu"]',
+    USER_MENU_BUTTON_LOGGED_IN: '.header .dropdownLinks-button:has(.profile-pic)',
+    MODULE_SWITCHER_BUTTON: '.header button.header-dropdown-button[aria-label="Library"]',
+    MODULE_SWITCHER_ICON: '.header img[src="/static/icons/moduleswitcher_mdl.svg"]',
     CREATE_BUTTON: '.header button:has-text("Create")',
     CREATE_LINK: '.header a:has-text("Create")',
-    PROFILE_PIC: '.header .default-profile-img',
+    PROFILE_PIC: '.header .profile-pic',
+    LOGGED_OUT_ICON: '.header img[src="/static/icons/logged_out.svg"]',
     SAVED_TEXTS_LINK: '.librarySavedIcon a[href="/texts/saved"]'
   }
 } as const;

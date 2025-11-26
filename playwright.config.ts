@@ -10,7 +10,6 @@ if (!process.env.CI) {
 
 // Extract domain from SANDBOX_URL
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
-
 const MODULE_URLS = {
   LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
   VOICES:  `https://voices.${SANDBOX_DOMAIN}`

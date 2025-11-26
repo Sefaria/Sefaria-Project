@@ -429,11 +429,22 @@ export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<
 export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'module') => {
   await hideAllModalsAndPopups(page);
 
-  const buttonSelector = dropdownType === 'user'
-    ? '.header button.header-dropdown-button[aria-label*="Account"], .header button.header-dropdown-button[aria-label*="תפריט"]'
-    : '.header img[src="/static/icons/module_switcher_icon.svg"]';
+  let button;
+  if (dropdownType === 'user') {
+    // Click the user menu icon (works for both logged-in and logged-out states)
+    // For logged-out: clicks the logged_out.svg icon
+    // For logged-in: clicks the profile pic
+    const loggedOutIcon = page.locator('img[src="/static/icons/logged_out.svg"]');
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
 
-  const button = page.locator(buttonSelector).first();
+    // Check which one is visible
+    const isLoggedOut = await loggedOutIcon.isVisible().catch(() => false);
+    button = isLoggedOut ? loggedOutIcon : profilePic;
+  } else {
+    // Module switcher - use the icon directly as it's always visible
+    button = page.locator(MODULE_SELECTORS.HEADER.MODULE_SWITCHER_ICON);
+  }
+
   await button.waitFor({ state: 'visible', timeout: 5000 });
   await button.click();
 
@@ -476,12 +487,16 @@ export const selectDropdownOption = async (
  */
 export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
   try {
-    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
+    // Check if logged-out icon is visible
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.HEADER.LOGGED_OUT_ICON);
     const isLoggedOut = await loggedOutIcon.isVisible({ timeout: 2000 });
-    return !isLoggedOut;
-  } catch {
-    const profilePic = page.locator('.header .default-profile-img');
+    if (isLoggedOut) return false;
+
+    // Check if profile pic is visible (logged in)
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
     return await profilePic.isVisible({ timeout: 2000 }).catch(() => false);
+  } catch {
+    return false;
   }
 };
 
