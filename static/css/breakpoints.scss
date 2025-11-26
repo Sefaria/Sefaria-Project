@@ -9,18 +9,20 @@ $bp-desktop-min: $bp-tablet-max + 1px;
   --bp-desktop-min: #{$bp-desktop-min};
 }
 
-@mixin breakpoint($size) {
-  @if $size == mobile {
-    @media (max-width: $bp-mobile-max) {
-      @content;
-    }
-  } @else if $size == tablet {
-    @media (min-width: $bp-tablet-min) and (max-width: $bp-tablet-max) {
-      @content;
-    }
-  } @else if $size == desktop {
-    @media (min-width: $bp-desktop-min) {
-      @content;
+@mixin breakpoint($sizes...) {
+  @each $size in $sizes {
+    @if $size == mobile {
+      @media (max-width: $bp-mobile-max) {
+        @content;
+      }
+    } @else if $size == tablet {
+      @media (min-width: $bp-tablet-min) and (max-width: $bp-tablet-max) {
+        @content;
+      }
+    } @else if $size == desktop {
+      @media (min-width: $bp-desktop-min) {
+        @content;
+      }
     }
   }
 }

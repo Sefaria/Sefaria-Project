@@ -51,11 +51,7 @@ $interfaces: english hebrew;
   }
 }
 
-@include breakpoint(desktop) {
-  @include full-logo;
-}
-
-@include breakpoint(mobile) {
+@include breakpoint(desktop, mobile) {
   @include full-logo;
 }
 
