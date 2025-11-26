@@ -59,7 +59,7 @@ export default defineConfig({
   projects: [
     // Main Testing for Production Site
     {
-      name: 'chromium',
+      name: 'chrome-all',
       testDir: './e2e-tests/tests', // Only run production tests by default
       use: {
         ...devices['Desktop Chrome'],
@@ -68,10 +68,31 @@ export default defineConfig({
         permissions: ['geolocation'],
       },
     },
+    // Firefox - Production Tests
+    {
+      name: 'firefox-all',
+      testDir: './e2e-tests/tests',
+      use: {
+        ...devices['Desktop Firefox'],
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
+    // Safari - Production Tests
+    {
+      name: 'safari-all',
+      testDir: './e2e-tests/tests',
+      use: {
+        ...devices['Desktop Safari'],
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
 
     // Library-specific modularization tests
     {
-      name: 'library',
+      name: 'chrome-library',
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Chrome'],
@@ -84,7 +105,7 @@ export default defineConfig({
 
     // Voices-specific modularization tests
     {
-      name: 'voices',
+      name: 'chrome-voices',
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Chrome'],
@@ -95,7 +116,7 @@ export default defineConfig({
       },
     },
     {
-      name: 'misc',
+      name: 'chrome-misc',
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Chrome'],
@@ -106,40 +127,20 @@ export default defineConfig({
       },
     },
 
-    // OLD Modularization tests (keep temporarily for reference, can be removed later)
-    {
-      name: 'mdl-old',
-      testDir: './e2e-tests/modularization-tests',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
-        // Ensure we don't get redirected
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
-      },
-    },
+    // // OLD Modularization tests (keep temporarily for reference, can be removed later)
+    // {
+    //   name: 'mdl-old',
+    //   testDir: './e2e-tests/modularization-tests',
+    //   use: {
+    //     ...devices['Desktop Chrome'],
+    //     baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+    //     // Ensure we don't get redirected
+    //     geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+    //     permissions: ['geolocation'],
+    //   },
+    // },
 
-    // Firefox - Production Tests
-    {
-      name: 'firefox',
-      testDir: './e2e-tests/tests',
-      use: {
-        ...devices['Desktop Firefox'],
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
-      },
-    },
-
-    // WebKit - Production Tests
-    {
-      name: 'webkit',
-      testDir: './e2e-tests/tests',
-      use: {
-        ...devices['Desktop Safari'],
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
-      },
-    },
+    
 
     // Firefox - Library-specific modularization tests
     {
@@ -153,9 +154,9 @@ export default defineConfig({
       },
     },
 
-    // WebKit - Library-specific modularization tests
+    // Safari - Library-specific modularization tests
     {
-      name: 'webkit-library',
+      name: 'safari-library',
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Safari'],
@@ -177,9 +178,9 @@ export default defineConfig({
       },
     },
 
-    // WebKit - Voices-specific modularization tests
+    // Safari - Voices-specific modularization tests
     {
-      name: 'webkit-voices',
+      name: 'safari-voices',
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Safari'],
@@ -203,7 +204,7 @@ export default defineConfig({
 
     // WebKit - Misc tests
     {
-      name: 'webkit-misc',
+      name: 'safari-misc',
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Safari'],
