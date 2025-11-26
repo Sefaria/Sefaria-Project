@@ -25,7 +25,7 @@ application = get_wsgi_application()
 
 if os.getenv("DEBUG_BACKDOOR") == "1" or os.getenv("DEBUG") == "true":
     from gevent.backdoor import BackdoorServer
-    port = int(os.getenv("DEBUG_BACKDOOR_PORT", "3021"))
+    port = int(os.getenv("DEBUG_BACKDOOR_PORT", "3001"))
     BackdoorServer(("0.0.0.0", port)).start()
 
 
