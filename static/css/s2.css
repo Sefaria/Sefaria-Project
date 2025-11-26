@@ -10184,9 +10184,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   float: right;
 }
 .searchBox .keyboardInputInitiator {
-    width: 22px;
-    height: 20px;
-    padding: 4px 7px 2px;
+    margin: 0 7px 0 0;
     position: initial;
     vertical-align: 0px;
 }
