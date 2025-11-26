@@ -560,6 +560,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu .mobileAccountLinks .accountLinks {
   display: block;
 }
+.header .mobileInterfaceLanguageToggle .int-en,
+.header .mobileInterfaceLanguageToggle .int-he {
+  display: inline;
+}
 .mobileInterfaceLanguageToggle a {
   display: inline;
   padding: 0;
