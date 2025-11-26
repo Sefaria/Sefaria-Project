@@ -4,7 +4,7 @@
 }
 
 .headerInner,
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *) {
   display: flex;
   align-items: center;
 }

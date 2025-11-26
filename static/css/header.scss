@@ -2,8 +2,16 @@
 
 @import "breakpoints";
 
+$dropping-elements: ( //Elements excluded from this file scope
+  ".dropdownLinks-menu",
+  ".autocomplete-dropdown",
+);
+$not-selector: "";
+@each $sel in $dropping-elements {
+  $not-selector: "#{$not-selector}:not(#{$sel}):not(#{$sel} *)";
+}
 .headerInner,
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *) {
+.headerInner *#{$not-selector} {
   display: flex;
   align-items: center;
 }
