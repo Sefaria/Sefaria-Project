@@ -189,13 +189,7 @@ class GuideBox extends Component {
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
         {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} questionPosition={this.state.questionPosition} onClick={this.onClickSummary} />}
-        {this.state.promptState === COMMENTARIES && (
-          <div>
-            <div className="guideTitle">
-            </div>
-            <TextRange sref={this.state.commentaryRef} />
-          </div>
-        )}
+        {this.state.promptState === COMMENTARIES && <TextRange sref={this.state.commentaryRef} />}
       </section>
     )
   }
