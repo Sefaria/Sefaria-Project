@@ -12,7 +12,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsEventText = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsEventName = null, analyticsEventText = null}) => {
 
   if (!newTab){
     newTab = false;
@@ -26,7 +26,7 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
-       data-anl-event={analyticsEventText ? "modswitch_item_click:click" : null}
+       data-anl-event={analyticsEventName}
        data-anl-text={analyticsEventText}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
@@ -133,7 +133,7 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
        href={fullURL}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
        target={newTab ? '_blank' : null}
-       data-anl-event="modswitch_item_click:click"
+       data-anl-event={"modswitch_item_click:click"}
        data-anl-text={text.en}>
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
@@ -155,7 +155,7 @@ DropdownModuleItem.propTypes = {
   }).isRequired
 };
 
-const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFeatureName, onOpen, onClose, onItemClick}) => {
+const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFeatureName = null, onOpen = null, onClose = null}) => {
     /**
      * `buttonComponent` is a React component for the opening/closing of a button.
      * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
@@ -243,8 +243,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
            <div
              className="dropdownLinks-button"
              data-anl-event={analyticsFeatureName ? "modswitch_toggle:click" : null}
-             data-anl-from={isOpen ? "open" : "closed"}
-             data-anl-to={isOpen ? "closed" : "open"}
+             data-anl-from={isOpen ? "closed" : "open"}
+             data-anl-to={isOpen ? "open" : "closed"}
            >
               {/* 
                 Using React.cloneElement to inject dropdown behavior into the button.
