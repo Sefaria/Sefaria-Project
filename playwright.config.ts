@@ -8,6 +8,14 @@ if (!process.env.CI) {
   };
 }
 
+// Extract domain from SANDBOX_URL
+const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
+
+const MODULE_URLS = {
+  LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
+  VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+} as const;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -78,7 +86,6 @@ export default defineConfig({
         permissions: ['geolocation'],
       },
     },
-
     // Safari - Production Tests
     {
       name: 'safari-all',
@@ -96,20 +103,19 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Chrome'],
-          baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+          baseURL: MODULE_URLS.LIBRARY,
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
       },
     },
-
     // Voices-specific modularization tests
     {
       name: 'chrome-voices',
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.SANDBOX_URL ? process.env.SANDBOX_URL.replace('modularization', 'voices.modularization') : 'https://voices.modularization.cauldron.sefaria.org',
+        baseURL: MODULE_URLS.VOICES,
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
@@ -120,27 +126,12 @@ export default defineConfig({
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        baseURL: MODULE_URLS.LIBRARY,
         // Ensure we don't get redirected
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
       },
-    },
-
-    // // OLD Modularization tests (keep temporarily for reference, can be removed later)
-    // {
-    //   name: 'mdl-old',
-    //   testDir: './e2e-tests/modularization-tests',
-    //   use: {
-    //     ...devices['Desktop Chrome'],
-    //     baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
-    //     // Ensure we don't get redirected
-    //     geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-    //     permissions: ['geolocation'],
-    //   },
-    // },
-
-    
+    },    
 
     // Firefox - Library-specific modularization tests
     {
@@ -148,59 +139,57 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        baseURL: MODULE_URLS.LIBRARY,
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
       },
-    },
-
-    // Safari - Library-specific modularization tests
-    {
-      name: 'safari-library',
-      testDir: './e2e-tests/library-specific',
-      use: {
-        ...devices['Desktop Safari'],
-        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
-      },
-    },
-
+    },    
     // Firefox - Voices-specific modularization tests
     {
       name: 'firefox-voices',
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: process.env.SANDBOX_URL ? process.env.SANDBOX_URL.replace('modularization', 'voices.modularization') : 'https://voices.modularization.cauldron.sefaria.org',
+        baseURL: MODULE_URLS.VOICES,
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
       },
     },
-
-    // Safari - Voices-specific modularization tests
-    {
-      name: 'safari-voices',
-      testDir: './e2e-tests/voices-specific',
-      use: {
-        ...devices['Desktop Safari'],
-        baseURL: process.env.SANDBOX_URL ? process.env.SANDBOX_URL.replace('modularization', 'voices.modularization') : 'https://voices.modularization.cauldron.sefaria.org',
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
-      },
-    },
-
     // Firefox - Misc tests
     {
       name: 'firefox-misc',
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        baseURL:MODULE_URLS.LIBRARY,
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
       },
     },
+    
+    // Safari - Library-specific modularization tests
+    {
+      name: 'safari-library',
+      testDir: './e2e-tests/library-specific',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.LIBRARY,
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+    // Safari - Voices-specific modularization tests
+    {
+      name: 'safari-voices',
+      testDir: './e2e-tests/voices-specific',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.VOICES,
+        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+        permissions: ['geolocation'],
+      },
+    },
+
 
     // WebKit - Misc tests
     {
@@ -208,7 +197,7 @@ export default defineConfig({
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Safari'],
-        baseURL: process.env.SANDBOX_URL || 'https://modularization.cauldron.sefaria.org',
+        baseURL: MODULE_URLS.LIBRARY,
         geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
         permissions: ['geolocation'],
       },

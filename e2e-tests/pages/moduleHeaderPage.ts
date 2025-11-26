@@ -166,7 +166,7 @@ export class ModuleHeaderPage extends HelperBase {
 
   async isLoggedIn(): Promise<boolean> {
     try {
-      const loggedOutIcon = this.page.locator('img[src="/static/icons/logged_out.svg"]');
+      const loggedOutIcon = this.page.locator('img[src="/static/icons/profile_loggedout_mdl.svg"]');
       const isLoggedOut = await loggedOutIcon.isVisible();
       return !isLoggedOut;
     } catch {

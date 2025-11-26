@@ -106,8 +106,6 @@ test.describe('Voices Module - Trending Topics', () => {
 
   test('Publish sheets with same topic from multiple users and verify in Trending Topics', async () => {
     const topicName = getRandomTopic();
-    const sandbox_url = process.env.SANDBOX_URL || 'https://voices.modularization.cauldron.sefaria.org';
-
     // User 1 logs in and publishes sheet
     await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.VOICES, false);
     await page.goto(MODULE_URLS.VOICES);
@@ -135,7 +133,7 @@ test.describe('Voices Module - Trending Topics', () => {
 
     // Trigger trending-tags calculation via Django admin API
     // First, navigate to the admin reset URL (may redirect to backstage login if not authenticated)
-    const adminResetUrl = `${sandbox_url}/admin/reset/api/sheets/trending-tags`;
+    const adminResetUrl = `${MODULE_URLS.LIBRARY}/admin/reset/api/sheets/trending-tags`;
     await page.goto(adminResetUrl);
     await page.waitForLoadState('networkidle');
 

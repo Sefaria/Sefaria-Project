@@ -49,9 +49,12 @@ export const SaveStates: Record<string, SaveState> = {
 // MODULE-SPECIFIC CONSTANTS (Library and Voices)
 // ==============================================================================
 
+// Fetch sandbox domain from environment variable and construct module URLs
+const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
+
 export const MODULE_URLS = {
-  LIBRARY: 'https://www.modularization.cauldron.sefaria.org',
-  VOICES: 'https://voices.modularization.cauldron.sefaria.org'
+  LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
+  VOICES:  `https://voices.${SANDBOX_DOMAIN}`
 } as const;
 
 export const MODULE_SELECTORS = {
