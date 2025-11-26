@@ -208,6 +208,7 @@ jobs:
       - name: Update workflow default chart
         run: > 
           curl -L 
+          --fail-with-body
           -X PATCH 
           -H "Accept: application/vnd.github+json" 
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
