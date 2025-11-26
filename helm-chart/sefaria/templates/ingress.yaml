@@ -16,6 +16,9 @@ spec:
   tls:
     {{- range .Values.domains.root }}
     {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
     {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
     {{- $wwwDomain := printf "www.%s" $rootDomain }}
     - secretName: {{ tpl .cert $ | default ( printf "origin-%s-$s-tls"  $.Values.deployEnv $code ) }}
@@ -33,6 +36,9 @@ spec:
   rules:
     {{- range .Values.domains.root }}
     {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
     {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
     {{- $wwwDomain := printf "www.%s" $rootDomain }}
     - host: {{ $rootDomain }}

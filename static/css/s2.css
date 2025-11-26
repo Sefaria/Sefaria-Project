@@ -53,44 +53,8 @@ a, a:hover {
   --sans-serif-h3-font-size: 22px;
   --sans-serif-body-font-size: 16px;
   --sans-serif-small-font-size: 14px;
-
-  /* colors */
-  --inline-link-blue: #4871bf;
-  --sefaria-blue: #18345D;
-  --highlight-blue: #DDEEFF;
-  --highlight-blue-light: #F0F7FF;
-  --beit-midrash-grey: #333333;
-  --darkest-grey: #333333;
-  --darker-grey: #575757;
-  --dark-grey: #666666;
-  --medium-grey: #6f6f6f;
-  --medium-grey-legacy: #999999;
-  --light-grey: #CCCCCC;
-  --lighter-grey: #EDEDEC;
-  --lightest-grey: #FBFBFA;
-  --black: #000000;
-  --commentary-blue: #4B71B7;
-  --essay-links-green: #3B5849;
-  --tanakh-teal: #004E5F;
-  --mishnah-blue: #5A99B7;
-  --talmud-gold: #CCB479;
-  --midrash-green: #5D956F;
-  --halakhah-red: #802F3E;
-  --kabbalah-purple: #594176;
-  --liturgy-rose: #AB4E66;
-  --philosophy-purple: #7F85A9;
-  --taanitic-green: #00827F;
-  --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
-  --responsa-red: #CB6158;
-  --apocrypha-pink: #C6A7B4;
-  --modern-works-blue: #B8D4D3;
-  --grammar-green: #B2B272;
-  --reference-orange: #D4896C;
-  --miscelaneous-green: #3B5849;
-  --selected-option: #000000;
-  --select-blue: #0056b3;
 }
+
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -117,6 +81,21 @@ body, .en, .int-en, .englishWithinHebrew {
   --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
   font-family: var(--hebrew-font-conditional, var(--english-font));
 }
+
+.sr-only,
+.layout-button label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 
 .he {
   font-size: 122%;
@@ -473,17 +452,6 @@ input.noselect {
 .headerInner .headerLinksSection > * {
   margin-inline-start: 3%;
 }
-.headerLinksSection .sefaria-common-button {
-  width: 67px;
-  height: 30px;
-  padding: 0;
-  line-height: 18px;
-  font-size: 14px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .header .header-nav {
   margin-top: 1px;
 }
@@ -509,15 +477,18 @@ input.noselect {
   padding: 0;
 }
 .header .my-profile,
-.header .notifications {
+.header .notifications,
+.header .mobile-notifications {
   display: inline-block;
   vertical-align: middle;
+  position: relative;
 }
 .header .textLink,
 .header .menuButton,
 .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+  vertical-align: middle;
   margin-top: 2px;
 }
 .header .searchBox {
@@ -530,9 +501,6 @@ input.noselect {
   border-radius: 250px;
   width: 250px;
   height: 30px;
-}
-.header .searchBox.searchFocused {
-  width: 280px;
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
@@ -553,9 +521,6 @@ input.noselect {
   font-size:  18px;
   margin: 0;
   width: 100px;
-}
-.header .searchFocused .search {
-  width: 200px;
 }
 .header .search.hebrewSearch {
   font-size: 18px;
@@ -606,6 +571,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: var(--dark-grey);
   font-size: 16px;
   padding: 15px;
+  position: relative;
 }
 .mobileNavMenu hr {
   border: none;
@@ -718,27 +684,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
   border-radius: 6px;
-}
-.accountLinks .help {
-  margin-inline-start: 23px;
-  margin-top: 3px;
-}
-.loggedIn .help {
-  margin-inline-start: 17px;
-}
-.loggedIn .help img {
-  height: 24px;
-  margin-bottom: 3px;
-}
-.accountLinks.anon .help {
-  margin-top: 6px;
-}
-.headerLinksSection .help {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin-top: 4px;
 }
 .headerDropdownMenu .languageHeader {
   padding-inline: 15px;
@@ -994,6 +939,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     display: none;
   }
 }
+.header .mobile-notifications.mobile-unread::after,
 .header .notifications.unread::after {
   content:"";
   background-color: #CB6158;
@@ -1004,6 +950,26 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   top: 3px;
   right: 1px;
   position: absolute;
+}
+
+/* Mobile navigation menu notification styles */
+.mobileNavMenu a.mobile-notifications.mobile-unread::after {
+  content:"";
+  background-color: #CB6158;
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  display: block;
+  top: 20px;
+  position: absolute;
+}
+
+.interface-english .mobileNavMenu a.mobile-notifications.mobile-unread::after {
+  left: 15px;
+}
+
+.interface-hebrew .mobileNavMenu a.mobile-notifications.mobile-unread::after {
+  right: 15px;
 }
 .header .login {
   color: var(--dark-grey);
@@ -1363,7 +1329,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenuSearchButton img {
   height: 18px;
   width: 18px;
-  opacity: 0.4;
 }
 .sidebarSearch .readerNavMenuSearchButton img {
   margin-top: 12px;
@@ -1986,10 +1951,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   filter: none;
   opacity: .6;
 }
-.navSidebar button.appButton.white img {
+.navSidebar .appButton.white img {
   opacity: 1;
 }
-.navSidebar button.appButton.ios img {
+.navSidebar .appButton.ios img {
   margin-top: -5px;
 }
 .navSidebar .button + .button {
@@ -3394,6 +3359,17 @@ a.cardTitle:hover {
 .sheetContentSidebar {
   margin: 30px 0;
   width: 33%;
+}
+.singlePanel .sheetMetaDataBox .sidebarLayout {
+  flex-direction: row;
+}
+.singlePanel .sheetContent .dropdownLinks-button img {
+  max-width: revert;
+}
+.singlePanel .sheetContentSidebar {
+  padding-inline: 10%;
+  width: revert;
+  margin: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
@@ -5876,6 +5852,7 @@ big {
   display: flex;
   flex-direction: row;
   text-align: left;
+  align-items: center;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
@@ -5978,6 +5955,9 @@ big {
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.interface-hebrew .rightButtons .readerOptions{
+  margin-inline-end: 11px;
 }
 .readerOptions .int-en {
   margin-right: 4px;
@@ -6556,9 +6536,6 @@ big {
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
-.readerPanel.english .SheetSource .sheetItem.segment .en {
-  background-color: white;
-}
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
@@ -6959,6 +6936,7 @@ But not to use a display block directive that might break continuous mode for ot
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
 }
+
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   height: 20px;
@@ -8931,15 +8909,15 @@ a .button:hover {
   width: 14px;
   margin-top: -3px;
 }
-button.appButton {
+.appButton {
   box-shadow: none;
   border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
-button.appButton img {
+.appButton img {
   margin-inline-end: 5px;
 }
-button.appButton.iconOnly {
+.appButton.iconOnly {
   width: 40px;
   height: 40px;
   box-sizing: border-box;
@@ -8949,7 +8927,7 @@ button.appButton.iconOnly {
   justify-content: center;
   align-items: center;
 }
-button.appButton.iconOnly img {
+.appButton.iconOnly img {
   width: 18px;
   height: 18px;
   margin: 0;
@@ -9245,6 +9223,9 @@ button.appButton.iconOnly img {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.singlePanel .sheetMetaDataBox {
+  margin-block-start: 75px;
+}
 .sheetMetaDataBox .profile-pic {
   width: 30px;
   height: 30px;
@@ -9279,6 +9260,9 @@ a.sheetAuthorName:hover {
   justify-content: space-between;
   align-items: center;
 }
+.singlePanel .sheetMetaDataBox .sidebarLayout .items {
+  align-items: flex-start;
+}
 .sheetMetaDataBox .guideButton {
   display: flex;
   align-items: center;
@@ -9301,6 +9285,10 @@ a.sheetAuthorName:hover {
   margin-inline-start: 15px;
   margin-inline-end: 15px;
 }
+.singlePanel .marginInlineIndent {
+  margin-inline-start: 7px;
+  margin-inline-end: 7px;
+}
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
 }
@@ -9314,7 +9302,6 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 25px;
   text-align: initial;
 }
 .sheetMetaDataBox .title {
@@ -9621,9 +9608,6 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background: white;
   padding: 3px;
 }
-
-.editorSaveStateIndicator.tooltip-toggle{
-}
 .interface-english .editorSaveStateIndicator.tooltip-toggle::before{
   margin-inline-start: 75px;
 }
@@ -9637,11 +9621,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   font-family: Roboto;
   color: #18345D;
 }
-.interface-hebrew .editorSaveStateIndicator .saveStateMessage{
-  direction: rtl;
-}
-.interface-hebrew .editorSaveStateIndicator {
-  flex-direction: row-reverse;
+.interface-hebrew .sheetContentSidebar .editorSaveStateIndicator.tooltip-toggle::before {
+  left: auto;
 }
 .floatingEditorIcons{
   display: flex;
@@ -10203,7 +10184,6 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   float: right;
 }
 .searchBox .keyboardInputInitiator {
-    opacity: 0.4;
     width: 22px;
     height: 20px;
     padding: 4px 7px 2px;
@@ -10534,27 +10514,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 body:not(.user-is-tabbing) .dropdownItem:focus,
 body:not(.user-is-tabbing) .dropdownOption:focus,
 body:not(.user-is-tabbing) div[role="button"]:focus,
-body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
-body:not(.user-is-tabbing) .header-dropdown-button:focus {
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus {
   outline: none;
 }
 
 /* Add browser-like focus outline for dropdown buttons when tabbing */
 body.user-is-tabbing div[role="button"]:focus,
-body.user-is-tabbing .dropdownLinks-button img:focus,
-body.user-is-tabbing .header-dropdown-button:focus {
+body.user-is-tabbing .dropdownLinks-button img:focus {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
-}
-
-/* Reset button styling for header dropdown buttons to match original image appearance */
-.header-dropdown-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: inline-block;
 }
 
 .singlePanel .dropdown .dropdownList {
@@ -11284,12 +11252,14 @@ span.purim-emoji img{
   line-height: 1;
   cursor: pointer;
 }
+.addToSheetButton {
+  background-color: unset;
+  border: none;
+}
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
-  border: none;
-  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
@@ -11890,9 +11860,9 @@ background-color: white;
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en,
-section.SheetOutsideBiText .en {
-  background-color: #FBFBFA;
+.bilingual .SheetSource .en,
+.bilingual .SheetOutsideBiText .en {
+  background-color: var(--lightest-grey);
 }
 section.SheetSource,
 section.SheetOutsideBiText {
@@ -12097,7 +12067,7 @@ cursor: pointer;
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-.readerPanel.bilingual.heRight .SheetSource {
+.heRight .SheetSource {
   background-image:
   linear-gradient(
     to left,
@@ -12108,7 +12078,7 @@ cursor: pointer;
     #fff 100%
   );
 }
-.readerPanel.bilingual.heLeft .SheetSource {
+.heLeft .SheetSource {
   background-image:
   linear-gradient(
     to right,
@@ -12118,6 +12088,11 @@ cursor: pointer;
     #FBFBFA 100%,
     #fff 100%
   );
+}
+.sheetContent .highlight,
+.sheetContent .highlight .en {
+  background-image: unset;
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,
@@ -12132,7 +12107,10 @@ cursor: pointer;
 }
 
 .bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
-  flex-direction: row-reverse;
+  direction: rtl;
+}
+.bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment {
+  direction: ltr;
 }
 
 .boxedSheetItem + .spacer {
@@ -15114,6 +15092,24 @@ span.ref-link-color-3 {color: blue}
   flex-shrink: 0;
 }
 
+.mobileAccountLinks .dropdownDot {
+  width: 16px;
+  height: 16px;
+}
+
+.mobileNavMenu .mobileAccountLinks .mobileModuleSwitcher {
+  display: flex;
+  align-items: center;
+}
+
+.mobileAccountLinks .dropdownDot {
+  margin-inline-end: 15px;
+}
+
+.interface-hebrew .mobileAccountLinks .chevron {
+  transform: rotate(180deg);
+}
+
 .dropdownHeaderText {
   padding-inline-start: 10px;
 }
@@ -15138,11 +15134,13 @@ span.ref-link-color-3 {color: blue}
 .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
   padding-top: 3px;
 }
+.singlePanel .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
+  padding-top: 0;
+  margin-top: -7px;
+}
 .header .headerDropdownMenu {
   display: block;
   align-items: center;
-  margin-top: 2px;
-  margin-bottom: 4px;
   color: var(--dark-grey);
   position: relative;
 }
@@ -15173,18 +15171,12 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   line-height: 0;
 }
-.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
+/* Plain img tags in header (not using Button component with icon-only) */
+.header .headerDropdownMenu img,
+.sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
-}
-
-.interface-english .header .headerDropdownMenu img {
-  margin-inline-end: 2px;
-}
-
-.interface-hebrew .header .headerDropdownMenu img {
-  margin-inline-end: 6px;
 }
 
 /* .header .headerDropdownMenu .dropdownLinks-button::after {
@@ -15222,6 +15214,12 @@ span.ref-link-color-3 {color: blue}
   overflow:hidden;
 }
 
+.interface-english .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  right: 5px;
+}
+.interface-hebrew .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  left: 5px;
+}
 .dropdownItem {
   padding-inline: 15px;
   flex-direction: column;
@@ -15725,29 +15723,6 @@ span.ref-link-color-3 {color: blue}
   align-items: end;
 }
 
-.librarySavedIcon{
-  width: 20px;
-  height: 20px;
-  margin-inline-start: 6px;
-  margin-top: 2px;
-}
-
-.sheetsNotificationsHeaderIcon {
-  width: 20px;
-  height: 18px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.sheetsNotificationsHeaderIcon img{
-  width: 100%;
-  height: 100%;
-}
-
-.librarySavedIcon img{
-  width: 100%;
-  height: 100%;
-}
 .languageFlex {
   display: flex;
   flex-direction: column;

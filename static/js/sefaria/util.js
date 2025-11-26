@@ -294,12 +294,9 @@ class Util {
                 window.location.pathname + window.location.search;
     }
     static fullURL(relativePath, moduleTarget) {
-      if (relativePath.startsWith("/")) { // if the path is relative, prepend the module URL
-        const moduleURL = Sefaria.getModuleURL(moduleTarget); // derive the host URL from the module target (e.g. 'https://voices.sefaria.org' or 'https://www.sefaria.org')
-        return moduleURL.origin + relativePath;
-      }
-      // If it's already a full URL or not a relative path, return as is
-      return relativePath;
+      return relativePath.startsWith("/")
+        ? Sefaria.getModuleURL(moduleTarget).origin + relativePath
+        : relativePath;
     }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
@@ -826,23 +823,9 @@ class Util {
      * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
      */
     static getCookieDomain() {
-        // Check if Sefaria.domainModules is available
-        if (!Sefaria.domainModules || typeof Sefaria.domainModules !== 'object') {
-            return null;
-        }
-        
-        // Extract hostnames from all domain modules
-        const hostnames = [];
-        for (const [_, moduleUrl] of Object.entries(Sefaria.domainModules)) {
-            try {
-                const url = new URL(moduleUrl);
-                hostnames.push(url.hostname);
-            } catch (e) {
-                // Invalid URL - skip this module
-            }
-        }
-        
-        // Skip domain setting for empty hostnames and local development.
+        const hostnames = Array.from(Sefaria.getDomainHostnames());
+
+        // Skip domain setting for local development.
         // IP addresses don't have subdomain support.
         // Browsers don't allow setting cookies with domain ".localhost"
         // For localhost development, we need to dismiss the cookie banner on each module if we are using sheets.localhost

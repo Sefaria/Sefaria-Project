@@ -2,7 +2,9 @@
 """
 Custom Sefaria Tags for Django Templates
 """
+import hashlib
 import json
+import os
 import re
 import dateutil.parser
 import urllib.request, urllib.parse, urllib.error
@@ -10,12 +12,16 @@ import math
 from urllib.parse import urlparse
 from datetime import datetime
 from django import template
+from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext as _
+from django.templatetags.static import static as django_static
+from django.contrib.staticfiles import finders
+from django.utils.functional import SimpleLazyObject
 
 from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
@@ -30,11 +36,42 @@ import sefaria.model.text
 import sefaria.model as m
 from sefaria.model.text import library, AbstractIndex
 
+import structlog
+logger = structlog.get_logger(__name__)
 
 register = template.Library()
 
-current_site = Site.objects.get_current()
-domain       = current_site.domain
+domain = SimpleLazyObject(lambda: Site.objects.get_current().domain)
+
+
+def get_static_file_hash(path):
+	"""
+	Returns an MD5 hash of a static file's contents
+	"""
+	try:
+		abs_path = finders.find(path)
+		if abs_path:
+			with open(abs_path, 'rb') as f:
+				return hashlib.md5(f.read()).hexdigest()[:8]
+	except (IOError, OSError):
+		logger.warning(f"Error reading static file for hashing: {path}")
+		return ""
+	logger.warning(f"Static file not found for hashing: {path}")
+	return ""
+
+
+@register.simple_tag
+def static(path):
+    """
+    A template tag that returns the URL to a static file with cache busting hash
+    Usage: {% static "css/style.css" %}
+    Returns: /static/css/style.css?v=1a2b3c4d
+    """
+    static_url = django_static(path)
+    file_hash = get_static_file_hash(path)
+    if file_hash:
+        return f"{static_url}?v={file_hash}"
+    return static_url
 
 
 ref_link_cache = {} # simple cache for ref links

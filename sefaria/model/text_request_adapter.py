@@ -143,21 +143,11 @@ class TextRequestAdapter:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def _format_text(self):
-        # Early return for default format to avoid any processing
-        if self.return_format == 'default':
-            return
-
         # Pre-compute shared data outside the version loop
         shared_data = {}
-        if self.return_format == 'wrap_all_entities':
-            # Check for links and load segment refs only once
-            shared_data['all_segment_refs'] = self.oref.all_segment_refs()
 
-            query = self.oref.ref_regex_query()
-            query.update({"inline_citation": True})
-            shared_data['has_links'] = bool(Link().load(query))
-
-        def make_named_entities_dict(version_title, language):
+        # In the next functions the vars `version_title` and `language` come from the outer scope
+        def make_named_entities_dict():
             # Cache named entities per version to avoid repeated DB queries
             cache_key = f"{version_title}_{language}"
             if cache_key not in shared_data:
@@ -175,65 +165,46 @@ class TextRequestAdapter:
                 shared_data[cache_key] = ne_by_secs
             return shared_data[cache_key]
 
-        # helper to build a segment-level link-wrapper once per version
-        def build_link_wrapper(lang, version_text):
-            # Compile regex once for entire version to cover all titles that appear anywhere
-            reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(version_text, lang=lang, citing_only=True)
-
-            # Return a function that wraps refs in an individual segment using the precompiled regex
-            return lambda string, _: library.get_wrapped_refs_string(string, lang=lang, citing_only=True,
-                                                                      reg=reg, title_nodes=title_nodes)
+        def wrap_links(string):
+            link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
+                string, lang=language, citing_only=True)
+            return library.get_wrapped_refs_string(string, lang=language, citing_only=True,
+                                                   reg=link_wrapping_reg, title_nodes=title_nodes)
 
         # Define text modification functions based on return format
         text_modification_funcs = []
+        if self.return_format == 'wrap_all_entities':
+            # Check for links and load segment refs only once
+            shared_data['all_segment_refs'] = self.oref.all_segment_refs()
 
+            query = self.oref.ref_regex_query()
+            query.update({"inline_citation": True})
+            text_modification_funcs = [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
+            if Link().load(query):
+                text_modification_funcs.append(lambda string, _: wrap_links(string))
 
-
-        if self.return_format == 'text_only':
-            # Combine all text_only operations into a single function to minimize passes
-            def combined_text_only(string, _):
-                string = text.AbstractTextRecord.strip_itags(string)
-                string = text.AbstractTextRecord.remove_html(string)
-                return ' '.join(string.split())
-            text_modification_funcs = [combined_text_only]
+        elif self.return_format == 'text_only':
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
+                                       lambda string, _: text.AbstractTextRecord.remove_html(string),
+                                       lambda string, _: ' '.join(string.split())]
 
         elif self.return_format == 'strip_only_footnotes':
-            # Combine strip operations into a single function
-            def combined_strip_footnotes(string, _):
-                string = text.AbstractTextRecord.strip_itags(string)
-                return ' '.join(string.split())
-            text_modification_funcs = [combined_strip_footnotes]
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
+                                       lambda string, _: ' '.join(string.split())]
+
+        else:
+            return
 
         # Process each version
+        composed_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string)
         for version in self.return_obj['versions']:
-            current_funcs = text_modification_funcs.copy()
-            
             if self.return_format == 'wrap_all_entities':
                 language = 'he' if version['direction'] == 'rtl' else 'en'
-                ne_by_secs = make_named_entities_dict(version['versionTitle'], language)
-                
-                # Create closure-safe functions by capturing values explicitly
-                def make_ne_wrapper(ne_dict):
-                    return lambda string, sections: library.get_wrapped_named_entities_string(ne_dict[(sections[-1],)], string)
-                
-                current_funcs.append(make_ne_wrapper(ne_by_secs))
-                
-                # Build link-wrapper once per version
-                flat_version_text = " ".join(JaggedTextArray(version['text']).flatten_to_array())
-                if shared_data['has_links']:
-                    current_funcs.append(build_link_wrapper(language, flat_version_text))
+                version_title = version['versionTitle']
+                ne_by_secs = make_named_entities_dict()
 
-            # Only process if there are functions to apply
-            if current_funcs:
-                ja = JaggedTextArray(version['text'])
-                
-                # Combine all functions into one to minimize passes over the text
-                if len(current_funcs) == 1:
-                    composite_func = current_funcs[0]
-                else:
-                    composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), current_funcs, string)
-                
-                version['text'] = ja.modify_by_function(composite_func)
+            ja = JaggedTextArray(version['text'])
+            version['text'] = ja.modify_by_function(composed_func)
 
     def get_versions_for_query(self) -> dict:
         self.oref = self.oref.default_child_ref()
