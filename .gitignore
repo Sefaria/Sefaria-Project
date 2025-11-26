@@ -134,19 +134,24 @@ static/sheetrank.json
 
 /random_files
 
-# Miscellaneous #
-#################
-
-env/*
-dump/*
+# Testings #
+e2e-tests/playwright_auth_*.json
+e2e-tests/auth_*.json
+e2e-tests/e2e-test-logs/
 /test-results/
-/playwright-report/
-/playwright/.cache/
-/test-results/
-e2e-test-logs
 /playwright-report/
 /playwright/.cache/
 /playwright-profile/
+
+# Storybook #
+*storybook.log
+*storybook-static/
+
+# Miscellaneous #
+#################
+
 .env
-e2e-tests/auth_*_user.json
-e2e-tests/Copy of redirecting_links-SC_story_37593 - redirecting links - RESULTS - redirecting_links-SC_story_37593 - redirecting links - RESULTS.csv
+env/*
+dump/*
+.env
+static_collected/*

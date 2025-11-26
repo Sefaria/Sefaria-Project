@@ -224,7 +224,9 @@ class AutoCompleter(object):
         # No results. Try letter swap
         if not redirected and self.other_lang_ac and not exact_continuations:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
-            return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
+            return self.other_lang_ac.complete(swapped_string, limit, redirected=True, types=types,
+                                               topic_pool=topic_pool, exact_continuations=exact_continuations,
+                                               order_by_matched_length=order_by_matched_length)
 
         return [], []
 

@@ -1,7 +1,7 @@
 ---
 # Need to pass $BUILD_ID to this key when applying the helm chart in CI.
 # or
-# Set the commit hash for a particular buiild to deploy built image for that
+# Set the commit hash for a particular build to deploy built image for that
 # commit ID. (NOTE: This would work only if the image is built for that commit
 # ID.)
 releaseImageTag:
@@ -66,6 +66,14 @@ backup:
     enabled: false
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
+
+# PostgreSQL configuration - can be overridden per environment
+postgres:
+  # host: defaults to DATABASES_HOST from secret if not specified
+  db: "sefaria_auth"
+  restore: false
+  sync: false
+
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
@@ -217,6 +225,7 @@ tasks:
       ref: sentinel-password
   queues:
     llm: default-llm
+  nodeAffinity: {}
 
 # Takes the url of an NER server instance
 # Will automatically enable internal settings to communicate with the NER server
@@ -235,21 +244,24 @@ domains:
   root:
     - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
       cert: "{{ .Values.deployEnv }}-tls"
-      language: english
-      code: en
+      # multilanguage domains support limited redirect and subdomain handling
+      # only the first list entry will have redirects and subdomains set up
+      # for any given module
+      code:
+        - en
+        - he
 #   - url: "{{ .Values.deployEnv }}.cauldron.sefaria.org.il"
 #     cert: "{{ .Values.deployEnv }}-il-tls"
-#     language: hebrew
-#     code: he
+#     code:
+#       - he
   modules:
     - name: voices
       subdomains:
         en: voices
-        he: chiburim
+        he: voices
       redirects:
         - sheets
-        - collection
-        - community
+        - collections
         - profile
 
 nginx:
@@ -400,18 +412,10 @@ cronJobs:
     enabled: false
   weeklyEmailNotifications:
     enabled: false
-
-# Domain configuration - can be overridden per environment
-domainConfig:
-  # Default: empty domain language mapping for cauldrons
-  domainLanguage: {}
-  # Default domain modules for cauldrons
-  domainModules:
-    library: "https://{{ .Values.deployEnv }}.cauldron.sefaria.org"
-    sheets: "https://sheets.{{ .Values.deployEnv }}.cauldron.sefaria.org"
-  # Default cookie domains
-  sessionCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
-  csrfCookieDomain: ".{{ .Values.deployEnv }}.cauldron.sefaria.org"
+  syncPostgresProductionData:
+    enabled: false
+  syncMongoProductionData:
+    enabled: false
 
 localSettings:
   DEBUG: true
@@ -419,6 +423,8 @@ localSettings:
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
+  SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
@@ -432,11 +438,9 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  SESSION_COOKIE_DOMAIN: ".sefaria.org"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"
-  CSRF_COOKIE_DOMAIN: ".sefaria.org"
   CSRF_COOKIE_SECURE: true
   CSRF_COOKIE_HTTPONLY: false
   CSRF_COOKIE_SAMESITE: "Lax"

@@ -518,20 +518,39 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
+  getDomainHostnames: function() {
+    // Returns a Set of all hostnames from domainModules.
+    const hostnames = new Set();
+    for (const langModules of Object.values(this.domainModules)) {
+      for (const moduleUrl of Object.values(langModules)) {
+        const url = new URL(moduleUrl);
+        hostnames.add(url.hostname);
+      }
+    }
+
+    return hostnames;
+  },
   getModuleURL: function(module=null) {
-    // returns a URL object with the href of the module's subdomain.  
+    // returns a URL object with the href of the module's subdomain.
     // If no module is provided, just use the active module, and if no domain modules mapping provided, use the apiHost set in templates/js/sefaria.js
     // example: module = "voices" -> returns URL object with href of "https://voices.sefaria.org"
+
     module = module || Sefaria.activeModule;
-    const href = Sefaria.domainModules?.[module] || Sefaria.apiHost;
+    const langCode = Sefaria._getShortInterfaceLang();
+
+    const href = Sefaria.domainModules?.[langCode]?.[module] || Sefaria.apiHost;
+
     try {
       return new URL(href);
-    } catch {
+    } catch (e) {
+      console.error('Error creating URL:', e);
       return false;
     }
   },
   isSefariaURL: function(url) {
-    return Object.values(Sefaria.domainModules).some(href => url.href.startsWith(href));
+    // Check if URL's hostname matches any of our domain hostnames
+    const hostnames = this.getDomainHostnames();
+    return hostnames.has(url.hostname);
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
     if (refs.length === 0) { return Promise.resolve({}); }
@@ -759,6 +778,7 @@ Sefaria = extend(Sefaria, {
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
+    "tr": {"name": "Turkish", "nativeName": "Türkçe", "showTranslations": 1, "title": "Türkçe Yahudi Metinleri"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
     "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
   },
@@ -1048,7 +1068,6 @@ Sefaria = extend(Sefaria, {
     settings         = settings || {};
     const key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
-    //console.log("Saving", key);
     const refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
@@ -1085,7 +1104,6 @@ Sefaria = extend(Sefaria, {
 
       for (let i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
-        // console.log("calling spanning prefetch " + data.spanningRefs[i])
         Sefaria.getText(data.spanningRefs[i], spanningContextSettings)
       }
     }
@@ -1258,7 +1276,6 @@ Sefaria = extend(Sefaria, {
       const bPath = Sefaria._tocOrderLookup[b];
 
       if (!(Array.isArray(aPath) && Array.isArray(bPath))) {
-          console.log(`Failed to compare paths: ${a} and ${b}`);
           return 0;
       }
 
@@ -2667,9 +2684,17 @@ _media: {},
   },
   userHistory: {loaded: false, items: []},
   loadUserHistory: function (limit, callback) {
-      const skip = Sefaria.userHistory.items.length;
-      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
-      fetch(url)
+    const params = new URLSearchParams({
+      secondary: 0,
+      annotate: 1,
+      limit,
+      skip: Sefaria.userHistory.items.length,
+      saved: 0,
+      sheets_only: +(Sefaria.activeModule === Sefaria.VOICES_MODULE),
+    });
+    
+    const url = `/api/profile/user_history?${params.toString()}`;
+    fetch(url)
           .then(response => response.json())
           .then(data => {
               Sefaria.userHistory.loaded = true;
@@ -2709,7 +2734,6 @@ _media: {},
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
         Sefaria.userHistory.items = new_hist_array.concat(user_history);
 
-        //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
           // check if we've reached the cookie size limit
           const cookie_hist = JSON.parse(cookie("user_history"));
@@ -3435,6 +3459,11 @@ _media: {},
           return inputStr;
       }
   },
+  /**
+   * Translates English strings to current interface language.
+   * Add translations to strings.js.
+   * For displaying interface text you should use <InterfaceText> which calls this function automatically.
+   */
   _: function(inputStr, context=null){
     if(Sefaria.interfaceLang != "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
@@ -3557,6 +3586,49 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  getPageTitle: (baseTitle, pageType = "") => {
+      /**
+       * Generate consistent, module-aware, bilingual page titles.
+       * Mirrors the Python get_page_title() function in reader/views.py
+       */
+  
+      // Get current module (library or voices)
+      const module = (Sefaria.activeModule === VOICES_MODULE) ? VOICES_MODULE : LIBRARY_MODULE;
+  
+      // Page title suffix configuration
+      const suffixes = {
+        home: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria: a Living Library of Jewish Texts Online"
+        },
+        topic: {
+          voices: "Sheets from Voices on Sefaria",
+          library: "Texts from the Sefaria Library"
+        },
+        collection: {
+          voices: "Voices on Sefaria Collection"
+        },
+        default: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria Library"
+        }
+      };
+  
+      // Special case: Sheet titles need default if empty
+      if (pageType === "sheet" && !baseTitle) {
+        baseTitle = "Untitled";
+      }
+
+      // If no page tye, or a page type with a default suffix
+      if (!pageType || pageType === "sheet" || pageType === "collections") {
+        pageType = "default";
+      }
+  
+      const suffix = suffixes[pageType][module];
+
+      // Combine base title with suffix
+      return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
+    },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
@@ -3701,7 +3773,6 @@ Sefaria.setup = function(data, props = null, resetCache = false) {
     Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    //console.log(`sending user logged in status to GA, uid as bool: ${!!Sefaria._uid} | analytics id: ${Sefaria._analytics_uid}`);
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
