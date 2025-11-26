@@ -2,12 +2,13 @@
 
 @import "breakpoints";
 
-$dropping-elements: ( //Elements excluded from this file scope
+$exclude-flex: ( //Elements excluded from the general rules of flex and align to center
   ".dropdownLinks-menu",
   ".autocomplete-dropdown",
+  ".languageToggle",
 );
 $not-selector: "";
-@each $sel in $dropping-elements {
+@each $sel in $exclude-flex {
   $not-selector: "#{$not-selector}:not(#{$sel}):not(#{$sel} *)";
 }
 .headerInner,
