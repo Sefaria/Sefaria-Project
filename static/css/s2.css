@@ -53,44 +53,8 @@ a, a:hover {
   --sans-serif-h3-font-size: 22px;
   --sans-serif-body-font-size: 16px;
   --sans-serif-small-font-size: 14px;
-
-  /* colors */
-  --inline-link-blue: #4871bf;
-  --sefaria-blue: #18345D;
-  --highlight-blue: #DDEEFF;
-  --highlight-blue-light: #F0F7FF;
-  --beit-midrash-grey: #333333;
-  --darkest-grey: #333333;
-  --darker-grey: #575757;
-  --dark-grey: #666666;
-  --medium-grey: #6f6f6f;
-  --medium-grey-legacy: #999999;
-  --light-grey: #CCCCCC;
-  --lighter-grey: #EDEDEC;
-  --lightest-grey: #FBFBFA;
-  --black: #000000;
-  --commentary-blue: #4B71B7;
-  --essay-links-green: #3B5849;
-  --tanakh-teal: #004E5F;
-  --mishnah-blue: #5A99B7;
-  --talmud-gold: #CCB479;
-  --midrash-green: #5D956F;
-  --halakhah-red: #802F3E;
-  --kabbalah-purple: #594176;
-  --liturgy-rose: #AB4E66;
-  --philosophy-purple: #7F85A9;
-  --taanitic-green: #00827F;
-  --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
-  --responsa-red: #CB6158;
-  --apocrypha-pink: #C6A7B4;
-  --modern-works-blue: #B8D4D3;
-  --grammar-green: #B2B272;
-  --reference-orange: #D4896C;
-  --miscelaneous-green: #3B5849;
-  --selected-option: #000000;
-  --select-blue: #0056b3;
 }
+
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -488,17 +452,6 @@ input.noselect {
 .headerInner .headerLinksSection > * {
   margin-inline-start: 3%;
 }
-.headerLinksSection .sefaria-common-button {
-  width: 67px;
-  height: 30px;
-  padding: 0;
-  line-height: 18px;
-  font-size: 14px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .header .header-nav {
   margin-top: 1px;
 }
@@ -535,6 +488,7 @@ input.noselect {
 .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+  vertical-align: middle;
   margin-top: 2px;
 }
 .header .searchBox {
@@ -730,27 +684,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
   border-radius: 6px;
-}
-.accountLinks .help {
-  margin-inline-start: 23px;
-  margin-top: 3px;
-}
-.loggedIn .help {
-  margin-inline-start: 17px;
-}
-.loggedIn .help img {
-  height: 24px;
-  margin-bottom: 3px;
-}
-.accountLinks.anon .help {
-  margin-top: 6px;
-}
-.headerLinksSection .help {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin-top: 4px;
 }
 .headerDropdownMenu .languageHeader {
   padding-inline: 15px;
@@ -1396,7 +1329,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenuSearchButton img {
   height: 18px;
   width: 18px;
-  opacity: 0.4;
 }
 .sidebarSearch .readerNavMenuSearchButton img {
   margin-top: 12px;
@@ -6604,9 +6536,6 @@ big {
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
-.readerPanel.english .SheetSource .sheetItem.segment .en {
-  background-color: white;
-}
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
@@ -10255,7 +10184,6 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   float: right;
 }
 .searchBox .keyboardInputInitiator {
-    opacity: 0.4;
     width: 22px;
     height: 20px;
     padding: 4px 7px 2px;
@@ -10586,27 +10514,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 body:not(.user-is-tabbing) .dropdownItem:focus,
 body:not(.user-is-tabbing) .dropdownOption:focus,
 body:not(.user-is-tabbing) div[role="button"]:focus,
-body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
-body:not(.user-is-tabbing) .header-dropdown-button:focus {
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus {
   outline: none;
 }
 
 /* Add browser-like focus outline for dropdown buttons when tabbing */
 body.user-is-tabbing div[role="button"]:focus,
-body.user-is-tabbing .dropdownLinks-button img:focus,
-body.user-is-tabbing .header-dropdown-button:focus {
+body.user-is-tabbing .dropdownLinks-button img:focus {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
-}
-
-/* Reset button styling for header dropdown buttons to match original image appearance */
-.header-dropdown-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: inline-block;
 }
 
 .singlePanel .dropdown .dropdownList {
@@ -11336,12 +11252,14 @@ span.purim-emoji img{
   line-height: 1;
   cursor: pointer;
 }
+.addToSheetButton {
+  background-color: unset;
+  border: none;
+}
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
-  border: none;
-  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
@@ -11942,9 +11860,9 @@ background-color: white;
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en,
-section.SheetOutsideBiText .en {
-  background-color: #FBFBFA;
+.bilingual .SheetSource .en,
+.bilingual .SheetOutsideBiText .en {
+  background-color: var(--lightest-grey);
 }
 section.SheetSource,
 section.SheetOutsideBiText {
@@ -12149,7 +12067,7 @@ cursor: pointer;
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-.readerPanel.bilingual.heRight .SheetSource {
+.heRight .SheetSource {
   background-image:
   linear-gradient(
     to left,
@@ -12160,7 +12078,7 @@ cursor: pointer;
     #fff 100%
   );
 }
-.readerPanel.bilingual.heLeft .SheetSource {
+.heLeft .SheetSource {
   background-image:
   linear-gradient(
     to right,
@@ -12170,6 +12088,11 @@ cursor: pointer;
     #FBFBFA 100%,
     #fff 100%
   );
+}
+.sheetContent .highlight,
+.sheetContent .highlight .en {
+  background-image: unset;
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,
@@ -15218,8 +15141,6 @@ span.ref-link-color-3 {color: blue}
 .header .headerDropdownMenu {
   display: block;
   align-items: center;
-  margin-top: 2px;
-  margin-bottom: 4px;
   color: var(--dark-grey);
   position: relative;
 }
@@ -15250,18 +15171,12 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   line-height: 0;
 }
-.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
+/* Plain img tags in header (not using Button component with icon-only) */
+.header .headerDropdownMenu img,
+.sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
-}
-
-.interface-english .header .headerDropdownMenu img {
-  margin-inline-end: 2px;
-}
-
-.interface-hebrew .header .headerDropdownMenu img {
-  margin-inline-end: 6px;
 }
 
 /* .header .headerDropdownMenu .dropdownLinks-button::after {
@@ -15808,29 +15723,6 @@ span.ref-link-color-3 {color: blue}
   align-items: end;
 }
 
-.librarySavedIcon{
-  width: 20px;
-  height: 20px;
-  margin-inline-start: 6px;
-  margin-top: 2px;
-}
-
-.sheetsNotificationsHeaderIcon {
-  width: 20px;
-  height: 18px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.sheetsNotificationsHeaderIcon img{
-  width: 100%;
-  height: 100%;
-}
-
-.librarySavedIcon img{
-  width: 100%;
-  height: 100%;
-}
 .languageFlex {
   display: flex;
   flex-direction: column;
