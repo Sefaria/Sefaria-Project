@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Popover, PopoverTrigger, PopoverContent, PopoverClose } from './common/Popover';
 import { InterfaceText } from './Misc';
+import Button from './common/Button';
+import Sefaria from './sefaria/sefaria';
 
 /**
  * Module Switcher onboarding popover that explains the new website structure.
@@ -90,13 +92,13 @@ const ModuleSwitcherPopover = ({ children }) => {
           {/* Action buttons */}
           <div className="tooltip-actions">
             {/* External link to learn more */}
-            <a
-              href="https://www.sefaria.org/sheets/689609?lang=en"
+            <Button
+              href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
               target="_blank"
-              rel="noopener noreferrer"
+              targetModule={Sefaria.VOICES_MODULE}
             >
               <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>
-            </a>
+            </Button>
             
             {/* Dismiss button that closes popover and saves to localStorage */}
             <PopoverClose className="tooltip-button">

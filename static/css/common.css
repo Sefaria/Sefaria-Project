@@ -774,39 +774,39 @@ a:active {
   animation: rainbowAnimation 1s linear infinite;
 }
 
-/* Floating UI tooltip styles for Module Switcher */
+/* Floating UI popover styles for Module Switcher */
 
-.floating-ui-tooltip {
-  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
-  color: var(--tooltip-text, inherit);
+.floating-ui-popover {
+  background-color: var(--popover-bg);
+  color: var(--popover-text);
   border-radius: 8px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 9999;
   max-width: 350px;
 }
 
-.floating-ui-tooltip-content {
+.floating-ui-popover-content {
   padding: 16px 20px;
   position: relative;
   z-index: 2;
-  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
-  color: var(--tooltip-text, inherit);
+  background-color: var(--popover-bg);
+  color: var(--popover-text);
   border-radius: 8px;
   font-size: 14px;
 }
 
-.floating-ui-tooltip-content a {
+.floating-ui-popover-content a {
   text-decoration: underline;
   color: inherit;
 }
 
-.tooltip-header {
+.popover-header {
   font-weight: 600;
   margin-bottom: 8px;
   font-size: 14px;
 }
 
-.tooltip-actions {
+.popover-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -815,19 +815,17 @@ a:active {
   font-size: 14px;
 }
 
-.tooltip-button {
+.popover-button {
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  background-color: var(--tooltip-primary-bg, var(--darkest-grey));
-  color: var(--tooltip-primary-text, white);
+  background-color: white;
+  color: var(--theme-primary);
   border: none;
   font-size: 14px;
 }
 
-.tooltip-button:hover,
-.tooltip-button:active,
-.tooltip-button:focus {
+.popover-button:is(:hover, :active, :focus) {
   background: transparent;
   color: #FFFFFF;
   border: 1px solid #FFFFFF;
@@ -836,18 +834,17 @@ a:active {
 
 /* Mobile touch target accessibility - 44px minimum height */
 @media (max-width: 600px) {
-  .tooltip-header {
+  .popover-header {
     font-size: 16px;
   }
   
-  .tooltip-actions {
-    margin-top: 16px;
-    margin-bottom: 16px;
+  .popover-actions {
+    margin-block: 16px;
   }
   
-  .tooltip-actions > a,
-  .tooltip-actions > button,
-  .tooltip-button {
+  .popover-actions > a,
+  .popover-actions > button,
+  .popover-button {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
@@ -861,38 +858,36 @@ a:active {
   position: absolute;
   width: 8px;
   height: 8px;
-  background-color: var(--tooltip-bg, var(--module-switcher-tooltip-background));
+  background-color: var(--popover-bg);
   transform: rotate(45deg);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 1;
 }
 
 /* Module-themed variables (defaults handled above) */
-.floating-ui-tooltip {
-  --tooltip-bg: var(--theme-primary);
-  --tooltip-text: white;
-  --tooltip-primary-bg: white;
-  --tooltip-primary-text: var(--theme-primary);
-  --tooltip-arrow-offset: -4px;
+.floating-ui-popover {
+  --popover-bg: var(--theme-primary);
+  --popover-text: white;
+  --popover-arrow-offset: -4px;
 }
 
 /* Arrow positioning */
 .floating-ui-arrow.mobile-hebrew-right,
 .floating-ui-arrow.desktop-left {
-  right: var(--tooltip-arrow-offset);
+  right: var(--popover-arrow-offset);
 }
 
 .floating-ui-arrow.mobile-english-left,
 .floating-ui-arrow.desktop-right {
-  left: var(--tooltip-arrow-offset);
+  left: var(--popover-arrow-offset);
 }
 
 .floating-ui-arrow.desktop-top {
-  bottom: var(--tooltip-arrow-offset);
+  bottom: var(--popover-arrow-offset);
 }
 
 .floating-ui-arrow.desktop-bottom {
-  top: var(--tooltip-arrow-offset);
+  top: var(--popover-arrow-offset);
 }
 
-/* End of Floating UI tooltip styles for Module Switcher */
+/* End of Floating UI popover styles for Module Switcher */
