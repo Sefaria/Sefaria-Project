@@ -719,7 +719,7 @@ const HelpButton = () => {
 
 const SignUpButton = () => {
   return (
-    <Button className="cta-button" href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
+    <Button className="auto-width-button" href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
       <InterfaceText>Sign Up</InterfaceText>
     </Button>
   )
@@ -728,7 +728,7 @@ const SignUpButton = () => {
 const CreateButton = () => {
 
   return (
-    <Button className="cta-button" href="/sheets/new" targetModule={Sefaria.VOICES_MODULE}>
+    <Button className="auto-width-button" href="/sheets/new" targetModule={Sefaria.VOICES_MODULE}>
       <InterfaceText text={{ 'en': 'Create', 'he': 'דף חדש' }} />
     </Button>
   );
