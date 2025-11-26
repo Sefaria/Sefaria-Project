@@ -3620,9 +3620,6 @@ _media: {},
           voices: "Sheets from Voices on Sefaria",
           library: "Texts from the Sefaria Library"
         },
-        collections: {
-          voices: "Voices on Sefaria"
-        },
         collection: {
           voices: "Voices on Sefaria Collection"
         },
@@ -3637,7 +3634,8 @@ _media: {},
         baseTitle = "Untitled";
       }
 
-      if (!pageType) {
+      // If no page tye, or a page type with a default suffix
+      if (!pageType || pageType === "sheet" || pageType === "collections") {
         pageType = "default";
       }
   

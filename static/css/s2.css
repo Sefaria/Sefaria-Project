@@ -53,44 +53,8 @@ a, a:hover {
   --sans-serif-h3-font-size: 22px;
   --sans-serif-body-font-size: 16px;
   --sans-serif-small-font-size: 14px;
-
-  /* colors */
-  --inline-link-blue: #4871bf;
-  --sefaria-blue: #18345D;
-  --highlight-blue: #DDEEFF;
-  --highlight-blue-light: #F0F7FF;
-  --beit-midrash-grey: #333333;
-  --darkest-grey: #333333;
-  --darker-grey: #575757;
-  --dark-grey: #666666;
-  --medium-grey: #6f6f6f;
-  --medium-grey-legacy: #999999;
-  --light-grey: #CCCCCC;
-  --lighter-grey: #EDEDEC;
-  --lightest-grey: #FBFBFA;
-  --black: #000000;
-  --commentary-blue: #4B71B7;
-  --essay-links-green: #3B5849;
-  --tanakh-teal: #004E5F;
-  --mishnah-blue: #5A99B7;
-  --talmud-gold: #CCB479;
-  --midrash-green: #5D956F;
-  --halakhah-red: #802F3E;
-  --kabbalah-purple: #594176;
-  --liturgy-rose: #AB4E66;
-  --philosophy-purple: #7F85A9;
-  --taanitic-green: #00827F;
-  --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
-  --responsa-red: #CB6158;
-  --apocrypha-pink: #C6A7B4;
-  --modern-works-blue: #B8D4D3;
-  --grammar-green: #B2B272;
-  --reference-orange: #D4896C;
-  --miscelaneous-green: #3B5849;
-  --selected-option: #000000;
-  --select-blue: #0056b3;
 }
+
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
@@ -6248,9 +6212,6 @@ big {
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
-.readerPanel.english .SheetSource .sheetItem.segment .en {
-  background-color: white;
-}
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
@@ -10964,12 +10925,14 @@ span.purim-emoji img{
   line-height: 1;
   cursor: pointer;
 }
+.addToSheetButton {
+  background-color: unset;
+  border: none;
+}
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
-  border: none;
-  background-color: white;
 }
 .SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
   margin-block-start: -10px;
@@ -11570,9 +11533,9 @@ background-color: white;
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en,
-section.SheetOutsideBiText .en {
-  background-color: #FBFBFA;
+.bilingual .SheetSource .en,
+.bilingual .SheetOutsideBiText .en {
+  background-color: var(--lightest-grey);
 }
 section.SheetSource,
 section.SheetOutsideBiText {
@@ -11777,7 +11740,7 @@ cursor: pointer;
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-.readerPanel.bilingual.heRight .SheetSource {
+.heRight .SheetSource {
   background-image:
   linear-gradient(
     to left,
@@ -11788,7 +11751,7 @@ cursor: pointer;
     #fff 100%
   );
 }
-.readerPanel.bilingual.heLeft .SheetSource {
+.heLeft .SheetSource {
   background-image:
   linear-gradient(
     to right,
@@ -11798,6 +11761,11 @@ cursor: pointer;
     #FBFBFA 100%,
     #fff 100%
   );
+}
+.sheetContent .highlight,
+.sheetContent .highlight .en {
+  background-image: unset;
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,

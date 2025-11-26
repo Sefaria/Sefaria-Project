@@ -5,14 +5,14 @@ import React from "react";
 
 class SheetSource extends Component {
   render() {
-    const sectionClasses= classNames(
+    const sectionClasses = classNames(
       "SheetSource",
       this.props.source.options ? this.props.source.options.indented : null,
+      this.props.highlighted && "highlight",
     );
     const containerClasses = classNames(
       "sheetItem",
       "segment",
-      this.props.highlighted && "highlight",
       (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.en || !this.props.source.text.en.stripHtml())) ? "heOnly" : null,
       (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() === "...") || (this.props.source.text && (!this.props.source.text.he || !this.props.source.text.he.stripHtml())) ? "enOnly" : null,
       this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
@@ -62,15 +62,18 @@ class SheetSource extends Component {
 class SheetComment extends Component {
   render() {
     const lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+    const sectionClasses = classNames(
+      "SheetComment",
+      this.props.highlighted && "highlight",
+    );
     const containerClasses = classNames(
       "sheetItem",
       "segment",
       lang === "he" ? "heOnly" : "enOnly",
-      this.props.highlight && "highlight",
       this.props.source.options ? this.props.source.options.indented : null
     );
     return (
-      <section className="SheetComment">
+      <section className={sectionClasses}>
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className={lang}>
               <div
@@ -97,7 +100,7 @@ class SheetHeader extends Component {
     const containerClasses = classNames("sheetItem",
         "segment",
         lang == "he" ? "heOnly" : "enOnly",
-        this.props.highlight && "highlight",
+        this.props.highlighted && "highlight",
         this.props.source.options ? this.props.source.options.indented : null
     );
     return (
@@ -122,10 +125,13 @@ class SheetOutsideText extends Component {
   }
   render() {
     const lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+    const sectionClasses = classNames(
+      "SheetOutsideText",
+      this.props.highlighted && "highlight",
+    );
     const containerClasses = classNames("sheetItem",
         "segment",
         lang == "he" ? "heOnly" : "enOnly",
-        this.props.highlight && "highlight",
         this.props.source.options ? this.props.source.options.indented : null
     );
     const paragraphsToBreaks = (html)=> {
@@ -139,7 +145,7 @@ class SheetOutsideText extends Component {
       Sefaria.util.cleanHTML(this.props.source.outsideText)
     );
     return (
-      <section className="SheetOutsideText">
+      <section className={sectionClasses}>
         <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
               <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: outsideHTML} }></div>
@@ -158,15 +164,16 @@ class SheetOutsideText extends Component {
 }
 class SheetOutsideBiText extends Component {
   render() {
+    const sectionClasses = classNames(
+      "SheetOutsideBiText",
+      this.props.highlighted && "highlight",
+      this.props.source.options ? this.props.source.options.indented : null,
+    );
     const containerClasses = classNames(
       "sheetItem",
       "segment",
       (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() === "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
       (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() === "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
-      this.props.highlight && "highlight",
-    );
-    const sectionClasses= classNames("SheetOutsideBiText",
-      this.props.source.options ? this.props.source.options.indented : null,
     );
     return (
       <section className={sectionClasses}>
@@ -252,14 +259,17 @@ class SheetMedia extends Component {
     return (this.props.source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null);
   }
   render() {
+    const sectionClasses = classNames(
+      "SheetMedia",
+      this.props.highlighted && "highlight",
+    );
     const containerClasses = classNames(
       "sheetItem",
       "segment",
-      this.props.highlight && "highlight",
       this.props.source.options ? this.props.source.options.indented : null
     );
     return (
-      <section className="SheetMedia">
+      <section className={sectionClasses}>
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={this.props.handleKeyPress} >
           <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
           <div className="clearFix"></div>

@@ -82,6 +82,13 @@ a.sefaria-common-button.fillwidth {
     height: 53px;
     width: 100%;
 }
+/** auto-width-button variant for the signup and create button in the header **/
+button.sefaria-common-button.auto-width-button,
+a.sefaria-common-button.auto-width-button {
+    padding: 6px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+}
 /** button children **/
 button.sefaria-common-button,
 button.sefaria-common-button *,
