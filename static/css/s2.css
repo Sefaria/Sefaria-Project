@@ -284,8 +284,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
-body:not(.inApp).nochrome #s2 .headerLinksSection,
 body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
@@ -411,119 +409,9 @@ input.noselect {
   height: 100%;
   top: 0;
 }
-.headerInner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background: white;
-  z-index: 1001;
-  box-sizing: border-box;
-  padding: 0 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.headerOnly .headerInner, .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.interface-hebrew .header {
-  direction: rtl;
-}
-.headerInner .headerNavSection {
-  display: flex;
-  justify-content: flex-start;
-}
-.headerInner .headerNavSection a, .header img.home {
-  font-size: 16px;
-  color: var(--dark-grey);
-  margin-inline-end: 30px;
-  font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-}
-.headerInner .headerLinksSection {
-	display: flex;
-	justify-content: flex-end;
-	min-width: 50%;
-	align-items: center;
-}
-.headerInner .headerLinksSection > * {
-  margin-inline-start: 3%;
-}
-.header .header-nav {
-  margin-top: 1px;
-}
-.header .header-links {
-  margin-top: 1px;
-}
-.header .textLink,
-.header .home,
-.header .menuButton,
-.header .my-profile,
-.header .notifications,
-.header .readerNavMenuSearchButton {
-  cursor: pointer;
-}
-.header .textLink,
-.header .menuButton,
-.header .my-profile,
-.header .readerNavMenuSearchButton {
-  display: inline-block;
-  color: var(--medium-grey);
-  border: none;
-  background: transparent;
-  padding: 0;
-}
-.header .my-profile,
 .header .notifications,
 .header .mobile-notifications {
-  display: inline-block;
-  vertical-align: middle;
   position: relative;
-}
-.header .textLink,
-.header .menuButton,
-.header .my-profile {
-  font-size: 24px;
-  line-height: 24px;
-  vertical-align: middle;
-  margin-top: 2px;
-}
-.header .searchBox {
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  text-align: inherit;
-  background: #EDEDEC;
-  border-radius: 250px;
-  width: 250px;
-  height: 30px;
-}
-.header .searchBox input {
-  background-color: transparent; /*for firefox */
-  padding: 0;
-  flex: 1;
-  height: 100%;
-  margin-bottom: 1px;
-  font-size: var(--serif-body-font-size);
-}
-.header .searchBox input::placeholder {
-  font-style: normal;
-}
-.header .search {
-  outline: none;
-  border: none;
-  box-shadow: none;
-  color: black;
-  font-size:  18px;
-  margin: 0;
-  width: 100px;
-}
-.header .search.hebrewSearch {
-  font-size: 18px;
 }
 .mobileNavMenu {
   position: fixed;
@@ -556,11 +444,14 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
 }
-.header .mobileNavMenu .searchBox,
-.header .mobileNavMenu .searchBox.searchFocused
 .header .mobileNavMenu .searchBox .search,
 .header .mobileNavMenu .searchBox.searchFocused .search {
   width: 100%;
+}
+.mobileNavMenu .searchBox {
+    display: flex;
+    width: 100%;
+    align-items: center;
 }
 .header.mobile .ui-autocomplete {
   width: 100% !important;
@@ -662,9 +553,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.interface-hebrew .header .home img {
-  width: 77px;
-}
 .header .accountLinks {
   display: flex;
   align-items: center;
@@ -699,97 +587,12 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   border-bottom: 1px solid #CCCCCC;
 }
 
-.header .interfaceLinks {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #000000;
-  cursor: pointer;
-  -webkit-margin-start: 20px;
-  -moz-margin-start: 20px;
-  margin-inline-start: 10px;
-}
-.header .interfaceLinks img {
-  height: 18px;
-  width: 18px;
-  vertical-align: middle;
-  margin-inline-end: 2px;
-}
-.header .interfaceLinks a.interfaceLinks-button{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.header .interfaceLinks a.interfaceLinks-button::after {
-  display: inline-block;
-  background: no-repeat url("/static/icons/chevron-down.svg");
-  height: 10px;
-  width: 12px;
-  vertical-align: middle;
-  content: "";
-  transform: scale(0.75);
-}
-.header .interfaceLinks .interfaceLinks-menu {
-  top: 35px;
-  position: absolute;
-  z-index: 1;
-  width: 150px;
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
-  display:none;
-  overflow:hidden;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu {
-  top: 10px;
-  display: block;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
-  padding: 10px 17px 10px 17px;
-  font-weight: 700;
-  color: #000000;
-  height: 23px;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu .profile-menu-middle {
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-menu {
-  right: 0px;
-  min-width: 150px;
-  width: max-content;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
-  left: 0px;
-  min-width: 150px;
-  width: max-content;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-style: normal;
-  font-weight: normal;
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--medium-grey);
-  padding: 12px;
-  border-bottom: 1px solid #CCCCCC;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
-  border-top: 1px solid #CCC;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-family: "Heebo", sans-serif;
-}
-
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
   padding: 4px;
   max-width: 220px;
 }
-.header .interfaceLinks .interfaceLinks-option,
 .globeLanguageToggle .englishLanguageLink,
 .globeLanguageToggle .hebrewLanguageLink {
   display: flex;
@@ -802,50 +605,15 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 5px;
   direction: ltr;
 }
-.header .interfaceLinks .interfaceLinks-option:hover {
-  background-color: var(--highlight-blue);
-}
-.header .languageFlex .interfaceLinks-option:hover {
-  background-color: var(--lighter-grey);
-  text-decoration: none;
-}
 .dropdownItem[data-prevent-close="true"]:hover {
   text-decoration: none;
 }
-.header .interfaceLinks .interfaceLinks-menu.open {
-  display: block;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi,
 .interface-hebrew .globeLanguageToggle .englishLanguageLink,
 .interface-hebrew .globeLanguageToggle .hebrewLanguageLink {
   direction: rtl;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
-  direction: ltr;
-}
-.header .interfaceLinks .interfaceLinks-row {
-  align-items: center;
-  display: flex;
-  text-decoration: none;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px;
-  text-align: right;
-  color: #000000;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 5px 17px 5px 17px;
-  font-size: 14px;
-  text-decoration-color: var(--dark-grey);
-  height: 23px;
-}
-.header .interfaceLinks .interfaceLinks-row:hover {
-  background-color: var(--lighter-grey);
-}
 div.interfaceLinks-row a:hover {
   text-decoration: none;
-}
-.header .interfaceLinks .interfaceLinks-row.languages {
-  display: flex;
 }
 div.interfaceLinks-row a.active {
   color: #000000;
@@ -859,25 +627,6 @@ div.interfaceLinks-row a.active::after {
 div.interfaceLinks-row a {
   color: var(--dark-grey);
   display: flex;
-}
-.header .interfaceLinks .interfaceLinks-row.bottom {
-  font-size: 14px;
-  text-decoration-color: #000000;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu .interfaceLinks-hr {
-  border-top:  1px solid #CCCCCC;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-.header .interfaceLinks .interfaceLinks-row.logout {
-  font-size: 14px;
-  color: var(--dark-grey);
-  padding-top: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.header .profile-menu-he {
-  color: var(--dark-grey);
 }
 .header .interfaceLinks-option::before,
 .globeLanguageToggle .hebrewLanguageLink::before,
@@ -909,35 +658,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .globeLanguageToggle .englishLanguageLink::before {
   content: "";
   padding: 0 15px;
-}
-@media screen and (max-width: 910px) {
-  .header .headerInner {
-    padding: 0 15px;
-  }
-  .header .accountLinks .login {
-    padding: 5px 5px;
-  }
-  .header .accountLinks {
-    margin-inline-start: 5px;
-  }
-}
-@media screen and (max-width: 780px) {
-  .header .donate {
-    display: none;
-  }
-}
-@media screen and (max-width: 700px) {
-  .multiPanel .header .home {
-    display: none;
-  }
-}
-@media screen and (max-width: 580px) {
-  .header .interfaceLinks,
-  .header .dropdownLinks,
-  .accountLinks .help,
-  .header .notifications {
-    display: none;
-  }
 }
 .header .mobile-notifications.mobile-unread::after,
 .header .notifications.unread::after {
@@ -976,24 +696,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
-}
-.header .headerInner.mobile {
-  padding: 0 15px;
-}
-.header .headerInner.mobile {
-  display: flex;
-}
-.header .headerInner.mobile div {
-  flex: 1;
-}
-.mobileHeaderCenter {
-  text-align: center;
-}
-.mobileHeaderCenter img.home {
-  margin-inline-end: 0;
-}
-.header .headerInner.mobile .mobileHeaderLanguageToggle {
-  text-align: end;
 }
 .mobileHeaderLanguageToggle.hebrew .en,
 .mobileHeaderLanguageToggle.english .he {
@@ -1305,23 +1007,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     color: var(--beit-midrash-grey);
 }
 
-.header .my-profile img {
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  display: block;
-}
-.header .readerNavMenuMenuButton {
-  margin: 0 8px 0 6px;
-  font-size: 17px;
-}
 .readerNavMenuSearchButton {
   position: relative;
   margin: 0 9px 0 7px;
   top: -2px;
-}
-.header .readerNavMenuSearchButton {
-  top: 2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
@@ -1332,15 +1021,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 }
 .sidebarSearch .readerNavMenuSearchButton img {
   margin-top: 12px;
-}
-.header .headerNavContent {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  top: 0;
-  padding-top: 60px;
-  z-index: 1000;
 }
 .ui-autocomplete {
   position: absolute;
@@ -4821,10 +4501,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 20px;
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-
-.search-container {
-  position: relative; /* Ensure dropdown positions relative to this container */
 }
 
 .autocomplete-dropdown{
@@ -10208,9 +9884,6 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .searchBox.TopicSearchBox input.selected {
   color: var(--commentary-blue);
 }
-.header .searchBox .keyboardInputInitiator {
-    display: none;
-}
 body #keyboardInputMaster {
     opacity: 1;
     background-color: #FBFBFA;
@@ -15138,11 +14811,9 @@ span.ref-link-color-3 {color: blue}
   padding-top: 0;
   margin-top: -7px;
 }
-.header .headerDropdownMenu {
-  display: block;
-  align-items: center;
-  color: var(--dark-grey);
-  position: relative;
+.header .headerDropdownMenu,
+.search-container {
+  position: relative; /* Ensure dropdown positions relative to this container */
 }
 .headerDropdownMenu .toolsButtonContainer {
   margin: revert;
@@ -15171,23 +14842,12 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   line-height: 0;
 }
-/* Plain img tags in header (not using Button component with icon-only) */
-.header .headerDropdownMenu img,
 .sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
 }
 
-/* .header .headerDropdownMenu .dropdownLinks-button::after {
-  display: inline-block;
-  background: no-repeat url("/static/icons/chevron-down.svg");
-  height: 10px;
-  width: 12px;
-  vertical-align: middle;
-  content: "";
-  transform: scale(0.75);
-} */
 .header .headerDropdownMenu .dropdownLinks-menu a {
   color: #000000;
 }
