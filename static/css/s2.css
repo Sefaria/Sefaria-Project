@@ -3584,7 +3584,7 @@ details .open-details::before {
   cursor: default;
 }
 .version-with-preview-title-line .selectButton:not(.currSelectButton) {
-  color: var(--select-blue);
+  color: var(--theme-select);
 }
 .version-with-preview-title-line .selectButton::before {
   content: "•";
@@ -11611,9 +11611,9 @@ cursor: pointer;
 
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
-  border-top: 2px solid var(--select-blue);
-  border-bottom: 2px solid var(--select-blue);
-  border-inline-end: 2px solid var(--select-blue);
+  border-top: 2px solid var(--theme-select);
+  border-bottom: 2px solid var(--theme-select);
+  border-inline-end: 2px solid var(--theme-select);
   margin-top: 0;
   margin-bottom: 28px;
   margin-inline-end: -2px;
