@@ -70,23 +70,6 @@ elastic-admin-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-
-{{- define "sefaria.secrets.originTls" }}
-{{- if .Values.ingress.secrets.originTls.ref -}}
-{{- .Values.ingress.secrets.originTls.ref }}
-{{- else -}}
-origin-tls-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
-{{- define "sefaria.secrets.originIlTls" }}
-{{- if .Values.ingress.secrets.originIlTls.ref -}}
-{{- .Values.ingress.secrets.originIlTls.ref }}
-{{- else -}}
-origin-il-tls-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
 {{- define "sefaria.tarballName" }}
 {{- if .Values.restore.tarball -}}
 {{- .Values.restore.tarball }}
@@ -184,4 +167,31 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- end }}
 {{- define "sefaria.tasks.queues" }}
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
+{{- end }}
+
+{{- define "config.domainModules" }}
+{{- $map := dict -}}
+{{- $deployEnv := .Values.deployEnv -}}
+{{- range .Values.domains.root }}
+  {{- $codes := .code -}}
+  {{- if not (kindIs "slice" $codes) -}}
+    {{- $codes = list $codes -}}
+  {{- end -}}
+  {{- $rootDomain := tpl .url $ | quote | trimAll "\"" -}}
+  {{- range $codes }}
+    {{- $code := . -}}
+    {{- $langMap := dict -}}
+    {{- $_ := set $langMap "library" (printf "https://www.%s" $rootDomain) }}
+    {{- range $.Values.domains.modules }}
+      {{- $name := .name -}}
+      {{- $subdomain := index .subdomains $code }}
+      {{- if $subdomain }}
+        {{- $fullDomain := printf "https://%s.%s" $subdomain $rootDomain }}
+        {{- $_ := set $langMap $name $fullDomain }}
+      {{- end }}
+    {{- end }}
+    {{- $_ := set $map $code $langMap }}
+  {{- end }}
+{{- end }}
+{{- toYaml $map }}
 {{- end }}
