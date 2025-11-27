@@ -133,16 +133,18 @@ const LoggedInDropdown = ({ module }) => {
 
 const ModuleSwitcher = () => {
   const logoPath = Sefaria.interfaceLang === "hebrew" ? "/static/img/logo-hebrew.png" : "/static/img/logo.svg";
+  const button = (<Button
+                    variant="icon-only"
+                    icon="moduleswitcher_mdl"
+                    ariaLabel={Sefaria._("Library")}
+                  />);
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
-      <Button
-        variant="icon-only"
-        icon="moduleswitcher_mdl"
-        ariaLabel={Sefaria._("Library")}
-      />
-    }>
+    <DropdownMenu positioningClass="headerDropdownMenu"
+                  analyticsFeatureName="module_switcher"
+                  buttonComponent={button}>
+                    
       <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem">
+        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
           <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
 
         </DropdownMenuItem>
@@ -167,7 +169,7 @@ const ModuleSwitcher = () => {
           dotColor={'--devportal-purple'}
           text={{ en: "Developers", he: Sefaria._("Developers") }} />
         <DropdownMenuSeparator />
-        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem">
+        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="More">
           <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
         </DropdownMenuItem>
       </div>
