@@ -159,14 +159,20 @@ DropdownModuleItem.propTypes = {
 
 const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFeatureName = null, onOpen = null, onClose = null}) => {
     /**
-     * `buttonComponent` is a React component for the opening/closing of a button.
-     * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
-     *  Currently, we have two possible classes: 'headerDropdownMenu' and 'readerDropdownMenu'.
-     *  The former is a more general case.  Historically, the former was used in the header
-     *  and the latter in the reader.  See s2.css for definition of these classes.
-     * the menu will be closed in click anywhere except in an element where data attribute data-prevent-close="true" is set.
-     * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
-     * component and all its children, so when clicking on children their onClick won't be executed.
+     * DropdownMenu - A reusable dropdown menu component with keyboard navigation and analytics support
+     *
+     * @param {React.ReactNode} children - The content to display inside the dropdown menu
+     * @param {React.ReactElement} buttonComponent - React component that triggers the dropdown (will be wrapped with click handler)
+     * @param {string} positioningClass - CSS class for dropdown positioning. Options: 'headerDropdownMenu', 'readerDropdownMenu' (see s2.css)
+     * @param {string} [analyticsFeatureName] - Optional feature name for analytics tracking (sets data-anl-feature_name)
+     * @param {Function} [onOpen] - Optional callback fired when dropdown opens
+     * @param {Function} [onClose] - Optional callback fired when dropdown closes
+     *
+     * Behavior:
+     * - Closes on: click outside, Escape key, Tab out, or clicking any item without data-prevent-close="true"
+     * - Analytics: When analyticsFeatureName is provided, adds data-anl-* attributes for tracking open/close and item clicks
+     * - Accessibility: Traps focus within dropdown when open, returns focus to button when closed
+     * - Uses useState for isOpen to properly trigger re-renders for analytics data attributes
      */
 
     const [isOpen, setIsOpen] = useState(false);
