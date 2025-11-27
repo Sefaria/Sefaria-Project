@@ -7752,7 +7752,7 @@ But not to use a display block directive that might break continuous mode for ot
   align-self: flex-start;
 }
 
-.toolsButtonContainer.highlighted .experimentLabel {
+.experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 11px;
@@ -10419,6 +10419,16 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guideBox .guideHeader .guideHeaderTags {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 .guideBox .guideHeader i {
@@ -10436,6 +10446,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 29px;
   color: #000000;
 }
+
 .guideBox .guidePromptBox {
   direction: ltr;
   margin-bottom: 20px;
