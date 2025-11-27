@@ -15,10 +15,10 @@ import Button from './Button';
  * 
  * This is a controlled component that requires:
  * - `open`: boolean to control visibility
- * - `onOpenChange`: callback when open state should change
+ * - `handleOpen`: callback when open state should change
  * 
  * Usage:
- * <Popover open={isOpen} onOpenChange={setIsOpen}>
+ * <Popover open={isOpen} handleOpen={setIsOpen}>
  *   <PopoverTrigger>
  *     <button>Click me</button>
  *   </PopoverTrigger>
@@ -43,15 +43,14 @@ export const usePopoverContext = () => {
 
 /**
  * Determines optimal popover placement based on device type and interface language.
- * - Desktop: Always bottom
+ * - Desktop/Tablet: Always bottom
  * - Mobile Hebrew: Right (to avoid RTL text collision)
  * - Mobile English: Left (natural LTR flow)
  */
 const getPlacement = () => {
-  const isMobile = !Sefaria.multiPanel;
-  const isHebrew = Sefaria.interfaceLang === 'hebrew';
+  const isMobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
   if (isMobile) {
-    return isHebrew ? 'right' : 'left';
+    return Sefaria.interfaceLang === 'hebrew' ? 'right' : 'left';
   }
   return 'bottom';
 };
@@ -60,15 +59,15 @@ const getPlacement = () => {
  * Main Popover component that sets up positioning and provides context.
  * This is the root component that manages all popover state and positioning logic.
  */
-export const Popover = ({ children, open = false, onOpenChange }) => {
+export const Popover = ({ children, open = false, handleOpen }) => {
   const arrowRef = useRef(null);
-  const isMobile = !Sefaria.multiPanel;
+  const isMobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
   const placement = getPlacement();
 
   // Floating UI hook handles all positioning logic
   const { x, y, refs, strategy, middlewareData } = useFloating({
     open,
-    onOpenChange,
+    handleOpen,
     placement,
     middleware: [
       offset(TOOLTIP_OFFSET),           // Add space between trigger and popover
@@ -82,7 +81,7 @@ export const Popover = ({ children, open = false, onOpenChange }) => {
   // Context value shared with all child components
   const value = {
     open,
-    setOpen: onOpenChange,
+    setOpen: handleOpen,
     refs,                              // Reference setters for trigger and floating elements
     floatingStyles: {                  // Computed styles for positioning
       position: strategy,              // 'absolute' or 'fixed'
@@ -121,18 +120,21 @@ export const PopoverTrigger = ({ children }) => {
  */
 export const PopoverContent = ({ children, className = '' }) => {
   const { open, refs, floatingStyles, arrowRef, arrowX, arrowY, placement } = usePopoverContext();
-  const isMobile = !Sefaria.multiPanel;
+  const isMobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
   const isHebrew = Sefaria.interfaceLang === 'hebrew';
 
   // Don't render anything when closed
   if (!open) return null;
 
   // Determine arrow CSS class based on final placement and device/language
-  let arrowClass = `desktop-${placement}`;
+  let arrowClass;
   if (isMobile && isHebrew && placement === 'right') {
     arrowClass = 'mobile-hebrew-right';
   } else if (isMobile && !isHebrew && placement === 'left') {
     arrowClass = 'mobile-english-left';
+  } else {
+    // Desktop or other placements use desktop- prefix
+    arrowClass = `desktop-${placement}`;
   }
 
   // Arrow positioning styles (computed by Floating UI)
@@ -144,7 +146,7 @@ export const PopoverContent = ({ children, className = '' }) => {
   return (
     <div
       ref={refs.setFloating}
-      className={`floating-ui-tooltip ${className}`}
+      className={`floating-ui-popover ${className}`}
       data-active-module={Sefaria.activeModule}
       style={floatingStyles}
     >

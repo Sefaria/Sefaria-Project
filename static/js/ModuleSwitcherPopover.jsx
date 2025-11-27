@@ -72,7 +72,7 @@ const ModuleSwitcherPopover = ({ children }) => {
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={handleOpenChange}>
+    <Popover open={isOpen} handleOpen={handleOpenChange}>
       {/* Trigger: The element that the popover points to (module switcher button) */}
       <PopoverTrigger>
         {children}
@@ -80,9 +80,9 @@ const ModuleSwitcherPopover = ({ children }) => {
       
       {/* Content: The actual popover with onboarding message */}
       <PopoverContent>
-        <div className="floating-ui-tooltip-content">
+        <div className="floating-ui-popover-content">
           {/* Header text */}
-          <div className="tooltip-header">
+          <div className="popover-header">
             <InterfaceText>{STRINGS.HEADER}</InterfaceText>
           </div>
           
@@ -90,7 +90,7 @@ const ModuleSwitcherPopover = ({ children }) => {
           <InterfaceText>{STRINGS.CONTENT}</InterfaceText>
           
           {/* Action buttons */}
-          <div className="tooltip-actions">
+          <div className="popover-actions">
             {/* External link to learn more */}
             <Button
               href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
@@ -101,7 +101,7 @@ const ModuleSwitcherPopover = ({ children }) => {
             </Button>
             
             {/* Dismiss button that closes popover and saves to localStorage */}
-            <PopoverClose className="tooltip-button">
+            <PopoverClose className="popover-button">
               <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>
             </PopoverClose>
           </div>

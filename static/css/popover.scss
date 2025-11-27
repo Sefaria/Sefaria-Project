@@ -1,0 +1,164 @@
+// Floating UI popover styles for Module Switcher
+
+@import "breakpoints";
+
+// Popover theme variables
+$popover-bg: var(--theme-primary);
+$popover-text: white;
+$popover-arrow-offset: -4px;
+
+.floating-ui-popover {
+  background-color: $popover-bg;
+  color: $popover-text;
+  cursor: default;
+  border-radius: 8px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  max-width: 350px;
+}
+
+.floating-ui-popover-content {
+  padding: 16px 20px 16px 20px;
+  position: relative;
+  z-index: 2;
+  background-color: $popover-bg;
+  color: $popover-text;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  a {
+    text-decoration: underline;
+    color: inherit;
+  }
+}
+
+.popover-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+
+  @include breakpoint(mobile) {
+    font-size: 16px;
+  }
+}
+
+.popover-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-size: 14px;
+  width: 100%;
+
+  // Desktop - both links have 30px height
+  > a,
+  > button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    flex: none;
+    flex-grow: 0;
+  }
+
+  // Learn More link styling (first child) - override Button component styles
+  > a.sefaria-common-button {
+    padding: 6px 0px;
+    order: 0;
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    color: inherit;
+    min-width: unset;
+    height: 30px;
+
+    &,
+    & * {
+      color: inherit;
+    }
+  }
+
+  // Got it button styling (second child)
+  > button {
+    order: 1;
+  }
+
+  // Mobile touch target accessibility - 44px minimum height
+  @include breakpoint(mobile) {
+    > a,
+    > button {
+      min-height: 44px;
+      height: auto;
+      font-size: 16px;
+      padding: 8px 12px;
+    }
+
+    > a.sefaria-common-button {
+      height: auto;
+    }
+  }
+}
+
+.popover-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: white;
+  color: var(--theme-primary);
+  border: none;
+  font-size: 14px;
+  height: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  &:is(:hover, :active, :focus) {
+    background: transparent;
+    color: white;
+    box-shadow: inset 0 0 0 1px white;
+    outline: none;
+  }
+
+  @include breakpoint(mobile) {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+}
+
+.floating-ui-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: $popover-bg;
+  transform: rotate(45deg);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 1;
+
+  // Arrow positioning based on placement
+  &.mobile-hebrew-right,
+  &.desktop-left {
+    right: $popover-arrow-offset;
+  }
+
+  &.mobile-english-left,
+  &.desktop-right {
+    left: $popover-arrow-offset;
+  }
+
+  &.desktop-top {
+    bottom: $popover-arrow-offset;
+  }
+
+  &.desktop-bottom {
+    top: $popover-arrow-offset;
+  }
+}
+
