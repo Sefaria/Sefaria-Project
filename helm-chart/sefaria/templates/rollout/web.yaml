@@ -76,11 +76,11 @@ spec:
       - name: web
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
-        args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 420 --threads {{ .Values.web.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+        args: [ "python manage.py migrate && uwsgi --ini /app/uwsgi.ini" ]
         env:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
-            value: "{{ .Values.web.resources.web.gunicornWorkerCount }}"
+            value: "{{ .Values.web.resources.web.uwsgiProcessCount }}"
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
           - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -198,9 +198,9 @@ spec:
           name: logging-secret
           subPath: logging-secret.json
           readOnly: true
-        - name: gunicorn-config
-          mountPath: /app/gunicorn.conf.py
-          subPath: gunicorn.conf.py
+        - name: uwsgi-config
+          mountPath: /app/uwsgi.ini
+          subPath: uwsgi.ini
           readOnly: true
         - name: elastic-cert
           mountPath: /etc/ssl/certs/elastic
@@ -233,6 +233,6 @@ spec:
           secret:
             secretName: {{ template "sefaria.secrets.schoolLookup" . }}
             optional: true
-        - name: gunicorn-config
+        - name: uwsgi-config
           configMap:
-            name: gunicorn-config-{{ .Values.deployEnv }}
+            name: uwsgi-config-{{ .Values.deployEnv }}

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uwsgi-config-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  uwsgi.ini: |-
+    [uwsgi]
+    ; Use a small entrypoint to initialize shared caches once per worker, then expose the WSGI app
+    module = uwsgi_entrypoint:application
+    chdir = /app
+
+    master = true
+    processes = {{ .Values.web.resources.web.uwsgiProcessCount }}
+    threads = {{ .Values.web.resources.web.uwsgiThreadCount }}
+    enable-threads = true
+    lazy-apps = false
+    thunder-lock = true
+
+    # Networking
+    http = :80
+    vacuum = true
+    die-on-term = true
+    need-app = true
+    harakiri = 420
+
+    # Logging
+    disable-logging = false
+    logformat = %(addr) - %(user) [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) "%(referer)" "%(uagent)"
