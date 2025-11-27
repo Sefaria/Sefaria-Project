@@ -3592,7 +3592,14 @@ _media: {},
     DESKTOP: 'desktop',
   },
   getBreakpoint: () => {
-    // ReaderApp is re-rendered every resize, so static function will work.
+    /**
+     * Returns the current responsive breakpoint.
+     *
+     * This is a plain JS utility (not a React hook) because the top-level ReaderApp component already listens to
+     * window resize events and triggers re-renders on breakpoint changes.
+     * That means this function can reliably read the up-to-date breakpoint without needing its own hook or state.
+     */
+
     const rootStyles = getComputedStyle(document.documentElement);
     const tabletMin = parseInt(rootStyles.getPropertyValue('--bp-tablet-min'));
     const desktopMin = parseInt(rootStyles.getPropertyValue('--bp-desktop-min'));
