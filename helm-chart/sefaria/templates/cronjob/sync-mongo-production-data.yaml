@@ -35,8 +35,9 @@ spec:
                   # List all private dump files and find the latest one by timestamp
                   echo "Listing available private dumps..."
                   # Use GCS timestamps for reliable sorting (column 2 is the timestamp)
+                  # [0-9] ensures we only match private_dump_<digit>... and exclude private_dump_small_...
                   latest_backup=$(gsutil ls -l gs://sefaria-mongo-backup/ | \
-                    grep 'private_dump_.*\.tar\.gz' | \
+                    grep 'private_dump_[0-9].*\.tar\.gz' | \
                     sort -k2 | \
                     tail -1 | \
                     awk '{print $3}')
