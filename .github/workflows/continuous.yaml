@@ -16,17 +16,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Prepare branch name for image tagging
-  prepare-build:
-    name: "Prepare Build Metadata"
+  build-generic:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    name: "Continuous Image Build"
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     runs-on: ubuntu-latest
-    outputs:
-      branch_name: ${{ steps.branch-name.outputs.current_branch }}
-      sha_short: ${{ steps.get-sha.outputs.sha_short }}
-      image_tag: ${{ steps.image-tag.outputs.tag }}
+    strategy:
+      matrix:
+        app: [ web, node ]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
@@ -38,32 +56,112 @@ jobs:
           | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
           | sed 's/[^a-z0-9\.\-]//g')
           >> $GITHUB_OUTPUT
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha
+          flavor: |
+            latest=true
+      - name: build and push
+        uses: docker/build-push-action@v6
+        with:
+#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
+          context: .
+          push: true
+          build-args: |
+            TYPE=build
+          file: ./build/${{ matrix.app }}/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  build-derived:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+    name: "Continuous Image Build Stage 2"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs:
+      - build-generic
+    strategy:
+      matrix:
+        app: [ asset ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+      - name: Get branch name
+        id: branch-raw
+        uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha
+          flavor: |
+            latest=true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Determine image tag
-        id: image-tag
-        run: |
-          echo "tag=sha-${{ steps.get-sha.outputs.sha_short }}" >> $GITHUB_OUTPUT
-
-  # Build images using reusable workflow
-  build-images:
-    name: "Build Docker Images"
-    needs: prepare-build
-    uses: ./.github/workflows/build-images.yaml
-    with:
-      git_ref: ${{ github.sha }}
-      image_tag: ${{ needs.prepare-build.outputs.image_tag }}
-      branch_name: ${{ needs.prepare-build.outputs.branch_name }}
-      environment: pr
-      push_to_prod_registry: false
-    secrets: inherit
-
+      - name: build and push
+        uses: docker/build-push-action@v6
+        with:
+#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache,mode=max
+          context: .
+          push: true
+          build-args: |
+            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-web-${{ steps.branch-name.outputs.current_branch }}:sha-${{ steps.get-sha.outputs.sha_short }}
+          file: ./build/${{ matrix.app }}/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 #######
 # Below Tests only run if PR is NOT draft
 #######
   jest-tests:
-    name: "Continuous Testing: Jest"
+    name: "Continuous Testing: Jest"   # This name is referenced when slacking status
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
@@ -80,7 +178,6 @@ jobs:
       - name: Handle Jest Test Results
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
-
   check-python-files:
     runs-on: ubuntu-latest
     outputs:
@@ -99,13 +196,12 @@ jobs:
                 - 'requirements.txt'
                 - 'setup.py'
                 - 'pyproject.toml'
-
   sandbox-deploy:
     name: "Continuous Testing: Sandbox Deploy"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
-    needs: [ build-images, check-python-files, prepare-build ]
+    needs: [ build-derived, check-python-files ]
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
@@ -128,8 +224,24 @@ jobs:
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
+      - name: Get branch name
+        id: branch-raw
+        uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
+          #      - name: setup helm
+          #        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
         uses: google-github-actions/get-gke-credentials@v0
         with:
@@ -139,32 +251,34 @@ jobs:
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
-          GIT_COMMIT: "${{ needs.prepare-build.outputs.sha_short }}"
-          BRANCH: "${{ needs.prepare-build.outputs.branch_name }}"
+          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
+          BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-
   sandbox-ready:
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
-    needs: [sandbox-deploy, prepare-build]
+    needs: sandbox-deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Wait for test sandbox to become available
+        # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
         run: ./build/ci/waitForSandbox.bash
         env:
           WAIT_DURATION: "3000"
-          GIT_COMMIT: "${{ needs.prepare-build.outputs.sha_short }}"
-
+          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
   pytest-job:
     name: "Continuous Testing: PyTest"
     concurrency:
       group: dev-mongo
       cancel-in-progress: false
-    needs: [ sandbox-ready, check-python-files, prepare-build ]
+    needs: [ sandbox-ready, check-python-files ]
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
@@ -193,21 +307,36 @@ jobs:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get branch name
+        id: branch-raw
+        uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Start Job
         run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
         env:
-          DEPLOY_ENV: sandbox-${{ needs.prepare-build.outputs.sha_short }}
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 60
         env:
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
       - name: Get Logs From Cluster and propogate test result
         run: "kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest; LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
       - name: Cleanup pyTest Pod
         run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
         if: always()
-
   ending-notification:
     name: "Continuous Testing: Notifications"
     runs-on: ubuntu-latest
@@ -228,13 +357,11 @@ jobs:
           SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
           GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   sandbox-cleanup:
     name: "Continuous Testing: Clean up"
     if: ${{ always() && (github.event.pull_request.draft == false) }}
     needs:
       - pytest-job
-      - prepare-build
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -260,19 +387,22 @@ jobs:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: check helm
         id: get-helm
         run: echo "count=$(helm list -n $NAMESPACE | grep $NAME | wc -l)" >> $GITHUB_OUTPUT
         env:
           NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
-          NAME: sandbox-${{ needs.prepare-build.outputs.sha_short }}
+          NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
       - name: Uninstall
-        run: helm delete sandbox-${{ needs.prepare-build.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
+        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
         if: steps.get-helm.outputs.count > 0
-
   continuous-branch-protection:
     needs:
-      - build-images
+      - build-generic
+      - build-derived
       - check-python-files
       - sandbox-deploy
       - sandbox-ready
@@ -280,13 +410,14 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Check required jobs
+      - name:
         run: |
           if [ "${{ github.event_name }}" == "merge_group" ]; then
             exit 0
           fi
-          if [ "${{ needs.build-images.result }}" != "success" ]; then
-            echo "Build images job failed"
+          if [ "${{ needs.build-generic.result }}" != "success" ] || \
+             [ "${{ needs.build-derived.result }}" != "success" ]; then
+            echo "One or more build jobs failed"
             exit 1
           fi
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
