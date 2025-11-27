@@ -6,6 +6,7 @@ $exclude-flex: ( //Elements excluded from the general rules of flex and align to
   ".dropdownLinks-menu",
   ".autocomplete-dropdown",
   ".languageToggle",
+  ".floating-ui-popover",
 );
 $not-selector: "";
 @each $sel in $exclude-flex {
@@ -134,7 +135,7 @@ $interfaces: english hebrew;
   }
 }
 
-.header-icons * {
+.headerInner *#{$not-selector} {
   cursor: pointer;
 }
 

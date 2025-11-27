@@ -48,6 +48,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@floating-ui/react-dom": "^2.1.6",
     "@playwright/test": "^1.52.0",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",

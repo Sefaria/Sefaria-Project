@@ -22,6 +22,7 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
+import ModuleSwitcherPopover from './ModuleSwitcherPopover';
 
 const LoggedOutDropdown = ({module}) => {
   return (
@@ -139,45 +140,46 @@ const ModuleSwitcher = () => {
                     ariaLabel={Sefaria._("Library")}
                   />);
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu"
-                  analyticsFeatureName="module_switcher"
-                  buttonComponent={button}>
-                    
-      <div className='dropdownLinks-options moduleDropdown'>
-        <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
-          <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
-
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownModuleItem
-          url={"/"}
-          newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
-          targetModule={Sefaria.LIBRARY_MODULE}
-          dotColor={'--sefaria-blue'}
-          text={{ en: "Library", he: Sefaria._("Library") }} />
-        <DropdownMenuSeparator />
-        <DropdownModuleItem
-          url={"/"}
-          newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
-          targetModule={Sefaria.VOICES_MODULE}
-          dotColor={'--sheets-green'}
-          text={{ en: "Voices", he: Sefaria._("Voices") }} />
-        <DropdownMenuSeparator />
-        <DropdownModuleItem
-          url={'https://developers.sefaria.org'}
-          newTab={true}
-          dotColor={'--devportal-purple'}
-          text={{ en: "Developers", he: Sefaria._("Developers") }} />
-        <DropdownMenuSeparator />
-        <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="More">
-          <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
-        </DropdownMenuItem>
-      </div>
-    </DropdownMenu>
+    <ModuleSwitcherPopover>
+      <DropdownMenu positioningClass="headerDropdownMenu"
+                    analyticsFeatureName="module_switcher"
+                    buttonComponent={button}>
+        <div className='dropdownLinks-options moduleDropdown'>
+          <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
+            <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownModuleItem
+            url={"/"}
+            newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
+            targetModule={Sefaria.LIBRARY_MODULE}
+            dotColor={'--sefaria-blue'}
+            text={{ en: "Library", he: Sefaria._("Library") }} />
+          <DropdownMenuSeparator />
+          <DropdownModuleItem
+            url={"/"}
+            newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
+            targetModule={Sefaria.VOICES_MODULE}
+            dotColor={'--sheets-green'}
+            text={{ en: "Voices", he: Sefaria._("Voices") }} />
+          <DropdownMenuSeparator />
+          <DropdownModuleItem
+            url={'https://developers.sefaria.org'}
+            newTab={true}
+            dotColor={'--devportal-purple'}
+            text={{ en: "Developers", he: Sefaria._("Developers") }} />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="More">
+            <InterfaceText text={{ en: 'More from Sefaria' + ' ›', he: Sefaria._('More from Sefaria') + ' ›' }} />
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenu>
+    </ModuleSwitcherPopover>
   );
 }
 
 const Header = (props) => {
+
   useEffect(() => {
     const handleFirstTab = (e) => {
       if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
@@ -304,9 +306,11 @@ const Header = (props) => {
   const mobileHeaderContent = (
     <>
       <div>
-        <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
-          <i className="fa fa-bars"></i>
-        </button>
+        <ModuleSwitcherPopover>
+          <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+            <i className="fa fa-bars"></i>
+          </button>
+        </ModuleSwitcherPopover>
       </div>
 
       <div className="mobileHeaderCenter">
