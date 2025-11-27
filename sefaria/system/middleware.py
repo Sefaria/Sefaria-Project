@@ -8,16 +8,20 @@ from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.contrib.auth import get_user_model
 
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
+from sefaria.system.database import db
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote
 import structlog
 logger = structlog.get_logger(__name__)
+
+User = get_user_model()
 
 
 class SharedCacheMiddleware(MiddlewareMixin):
@@ -218,4 +222,37 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class ApiKeyAuthenticationMiddleware:
+    """
+    Middleware that authenticates API requests using an API key.
+
+    If the request is not made by an already authenticated user,
+    this middleware checks for an API key in the `HTTP_AUTHORIZATION` and (old) `HTTP_X_APIKEY` header,
+    `POST` data, or `GET` parameters. If a valid API key is found and
+    associated with a user, the middleware sets `request.user` to that user
+    and adds an `is_api_authenticated` attribute to the request.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.is_api_authenticated = False
+        if not request.user.is_authenticated:
+            apikey = (request.META.get("HTTP_AUTHORIZATION") or
+                      request.META.get("HTTP_X_APIKEY") or
+                      request.GET.get("apikey") or
+                      request.POST.get("apikey"))
+            if apikey:
+                try:
+                    apikey = db.apikeys.find_one({"key": apikey})
+                    user = User.objects.get(id=apikey['uid'])
+                    request.user = user
+                    request.is_api_authenticated = True
+                except (User.DoesNotExist, KeyError):
+                    pass  # Invalid API key: no matching user or missing uid — treat as unauthenticated
+        response = self.get_response(request)
         return response

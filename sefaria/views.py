@@ -43,7 +43,8 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, notStaffOrApiResponse, \
+    authenticationRequiredResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
@@ -1305,17 +1306,12 @@ def versions_csv(request):
 @csrf_exempt
 def index_sheets_by_timestamp(request):
     import dateutil.parser
-    from django.contrib.auth.models import User
 
-    key = request.POST.get("apikey")
-    if not key:
-        return jsonResponse({"error": "You must be logged in or use an API key to index sheets by timestamp."})
-    apikey = db.apikeys.find_one({"key": key})
-    if not apikey:
-        return jsonResponse({"error": "Unrecognized API key."})
-    user = User.objects.get(id=apikey["uid"])
+    user = request.user
+    if not user.is_authenticated:
+        return authenticationRequiredResponse()
     if not user.is_staff:
-        return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+        return notStaffOrApiResponse()
 
     timestamp = request.POST.get('timestamp')
     try:

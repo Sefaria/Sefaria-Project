@@ -23,7 +23,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
-from django.http import Http404, QueryDict, HttpResponse
+from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -46,7 +46,7 @@ from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.following import general_follow_recommendations
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.client.util import jsonResponse, celeryResponse
+from sefaria.client.util import jsonResponse, celeryResponse, authenticationRequiredResponse, notStaffOrApiResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
@@ -234,22 +234,6 @@ def base_props(request):
         "_debug": DEBUG
     })
     return user_data
-
-
-def user_credentials(request):
-    if request.user.is_authenticated:
-        return {"user_type": "session", "user_id": request.user.id}
-    else:
-        req_key = request.POST.get("apikey", None)
-        header_key = request.META.get("HTTP_X_API_KEY", None) #request.META["HTTP_AUTHORIZATION"]?
-        key = req_key if req_key else header_key
-        if not key:
-            return {"user_type": "session", "user_id": None, "error": "You must be logged in or use an API key to add, edit or delete links."}
-        apikey = db.apikeys.find_one({"key": key})
-        if not apikey:
-            return {"user_type": "API", "user_id": None, "error": "Unrecognized API key."}
-        #user = User.objects.get(id=apikey["uid"])
-        return {"user_type": "API", "user_id": apikey["uid"]}
 
 
 def _reader_redirect_add_languages(request, tref):
@@ -1328,13 +1312,9 @@ def modify_bulk_text_api(request, title):
             return response
 
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(modify(apikey['uid']))
+            return authenticationRequiredResponse()
+        if request.is_api_authenticated:
+            return jsonResponse(modify(request.user.id))
         else:
             @staff_member_required
             @csrf_protect
@@ -1457,14 +1437,10 @@ def texts_api(request, tref):
         count_after = int(request.GET.get("count_after", 0))
 
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
+            return authenticationRequiredResponse()
+        if request.is_api_authenticated:
             t = json.loads(j)
-            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
+            tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
             return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
@@ -1550,13 +1526,9 @@ def complete_version_api(request):
         return jsonResponse({"error": f"No index named: {title}"})
 
     if not request.user.is_authenticated:
-        key = body_data.get('apikey')[0]
-        if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
-        apikey = db.apikeys.find_one({"key": key})
+        return authenticationRequiredResponse()
+    if request.is_api_authenticated:
         method = 'API'
-        if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."})
     else:
         method = None
         internal_do_post = csrf_protect(internal_do_post())
@@ -1701,9 +1673,6 @@ def index_node_api(request, title):
 @csrf_exempt
 @catch_error_as_json
 def index_api(request, title, raw=False):
-    CONTENT_TYPE = "CONTENT"
-    ADMIN_TYPE = "ADMIN"
-
     def handle_get_request(request, title, raw):
         with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
         index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
@@ -1718,25 +1687,14 @@ def index_api(request, title, raw=False):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
-        user_type, uid = determine_user_type_and_id(request)
-        if uid is None:
-            return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
-        elif user_type == CONTENT_TYPE:
-            return index_post(request, uid, j, "API", raw)
-        elif user_type == ADMIN_TYPE:
-            admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, j, None, raw)
-
-    def determine_user_type_and_id(request):
+        if request.is_api_authenticated:
+            return index_post(request, request.user.id, j, "API", raw)
         if request.user.is_staff:
-            return ADMIN_TYPE, request.user.id
-        else:
-            key = request.POST.get("apikey")
-            if key:
-                apikey = db.apikeys.find_one({"key": key})
-                if apikey:
-                    return CONTENT_TYPE, apikey["uid"]
-        return None, None
+            admin_post = csrf_protect(index_post)
+            return admin_post(request, request.user.id, j, None, raw)
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
+        return notStaffOrApiResponse()
 
     def index_post(request, uid, j, method, raw):
         func = tracker.update if 'update' in j else tracker.add
@@ -2008,19 +1966,12 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if not request.user.is_authenticated:
-        delete_query = QueryDict(request.body)
-        key = delete_query.get("apikey") #key = request.POST.get("apikey")
-        if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-        apikey = db.apikeys.find_one({"key": key})
-        if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."})
-        uid = apikey["uid"]
+        return authenticationRequiredResponse()
+    user = request.user
+    uid = request.user.id
+    if request.is_api_authenticated:
         method = "API"
-        user = User.objects.get(id=apikey["uid"])
     else:
-        user = request.user
-        uid = request.user.id
         method = None
         _internal_do_post = csrf_protect(_internal_do_post)
         _internal_do_delete = staff_member_required(csrf_protect(_internal_do_delete))
@@ -2094,13 +2045,12 @@ def notes_api(request, note_id_or_ref):
     A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref.
     """
     if request.method == "GET":
-        creds = user_credentials(request)
         if not note_id_or_ref:
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
         private = bool(int(request.GET.get("private", False)))
-        res = get_notes(oref, uid=creds["user_id"], public=(not private))
+        res = get_notes(oref, uid=request.user.id, public=(not private))
         return jsonResponse(res, cb)
 
     if request.method == "POST":
@@ -2119,23 +2069,17 @@ def notes_api(request, note_id_or_ref):
         if "_id" in note:
             note["_id"] = ObjectId(note["_id"])
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            note["owner"] = apikey["uid"]
+            return authenticationRequiredResponse()
+        uid = note["owner"] = request.user.id
+        if request.is_api_authenticated:
             response = format_object_for_client(
-                func(apikey["uid"], Note, note, method="API")
+                func(uid, Note, note, method="API")
             )
         else:
-            note["owner"] = request.user.id
             @csrf_protect
-            def protected_note_post(req):
+            def protected_note_post():
                 resp = format_object_for_client(
-                    func(req.user.id, Note, note)
+                    func(uid, Note, note)
                 )
                 return resp
             response = protected_note_post(request)
@@ -2180,7 +2124,7 @@ def all_notes_api(request):
         else:
             res = [note.contents(with_string_id=True) for note in NoteSet({"owner": request.user.id}, sort=[("_id", -1)]) ]
     else:
-        resr = {"error": "Not implemented."}
+        res = {"error": "Not implemented."}
     return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
@@ -2367,22 +2311,14 @@ def flag_text_api(request, title, lang, version):
     _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
 
     if not request.user.is_authenticated:
-        key = request.POST.get("apikey")
-        if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
-        apikey = db.apikeys.find_one({"key": key})
-        if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."})
-        user = User.objects.get(id=apikey["uid"])
-        if not user.is_staff:
-            return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
-
+        return authenticationRequiredResponse()
+    if not request.user.is_staff:
+        return notStaffOrApiResponse()
+    if request.is_api_authenticated:
         return update_version(request, title, lang, version)
-    elif request.user.is_staff:
+    else:
         protected_post = csrf_protect(update_version)
         return protected_post(request, title, lang, version)
-    else:
-        return jsonResponse({"error": "Unauthorized"})
 
 
 @catch_error_as_json
@@ -2449,23 +2385,15 @@ def category_api(request, path=None):
             return func(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add or delete categories."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
-            uid = apikey["uid"]
+            return authenticationRequiredResponse()
+        if not request.user.is_staff:
+            return notStaffOrApiResponse()
+        if request.is_api_authenticated:
             kwargs = {"method": "API"}
-        elif request.user.is_staff:
-            uid = request.user.id
+        else:  # a logged-in staff member
             kwargs = {}
             _internal_do_post = csrf_protect(_internal_do_post)
-        else:
-            return jsonResponse({"error": "Only Sefaria Moderators can add or delete categories."})
+        uid = request.user.id
 
         j = request.body
         if not j:
@@ -2613,23 +2541,15 @@ def terms_api(request, name):
                 return tracker.delete(uid, Term, t._id)
 
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete terms."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
-            uid = apikey["uid"]
+            return authenticationRequiredResponse()
+        if not request.user.is_staff:
+            return notStaffOrApiResponse()
+        if request.is_api_authenticated:
             kwargs = {"method": "API"}
-        elif request.user.is_staff:
-            uid = request.user.id
+        else:  # a logged-in staff member
             kwargs = {}
             _internal_do_post = csrf_protect(_internal_do_post)
-        else:
-            return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
+        uid = request.user.id
 
         return jsonResponse(_internal_do_post(request, uid))
 
@@ -2842,16 +2762,10 @@ def updates_api(request, gid=None):
 
     elif request.method == "POST":
         if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
-
+            return authenticationRequiredResponse()
+        if not request.user.is_staff:
+            return notStaffOrApiResponse()
+        elif request.is_api_authenticated:
             payload = json.loads(request.POST.get("json"))
             try:
                 GlobalNotification(payload).save()
@@ -2859,7 +2773,7 @@ def updates_api(request, gid=None):
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
 
-        elif request.user.is_staff:
+        else:  # a logged-in staff member
             @csrf_protect
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
@@ -2870,8 +2784,6 @@ def updates_api(request, gid=None):
                     return jsonResponse({"error": str(e)})
 
             return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
 
     elif request.method == "DELETE":
         if not gid:
@@ -3221,8 +3133,10 @@ def topics_api(request, topic, v2=False):
         response = get_topic(v2, topic, request.interfaceLang, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
+        if not request.user.is_authenticated:
+            return authenticationRequiredResponse()
         if not request.user.is_staff:
-            return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
+            return notStaffOrApiResponse()
         topic_data = json.loads(request.POST["json"])
         topic = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True

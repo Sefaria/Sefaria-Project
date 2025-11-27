@@ -29,10 +29,11 @@ else:
   del sheet["_id"]
 
   post_json = json.dumps(sheet)
-  values = {'json': post_json, 'apikey': SEFARIA_API_KEY}
-  post = urllib.parse.urlencode(values)  
+  post = urllib.parse.urlencode({'json': post_json})
 
-  req = urllib.request.Request(host + "/api/sheets", post)  
+  req = urllib.request.Request(host + "/api/sheets", post)
+  req.add_header("AUTHORIZATION", SEFARIA_API_KEY)
+  req.add_header("Content-Type", "application/x-www-form-urlencoded")
 
   try:
     response = urllib.request.urlopen(req)

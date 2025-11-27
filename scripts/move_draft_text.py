@@ -142,9 +142,10 @@ class ServerTextCopier(object):
         params = params or {}
         full_url = f"{self._dest_server}/{url}?{urllib.parse.urlencode(params)}"
         jpayload = json.dumps(payload)
-        values = {'json': jpayload, 'apikey': self._apikey}
-        data = urllib.parse.urlencode(values).encode('utf-8')
+        data = urllib.parse.urlencode({'json': jpayload}).encode('utf-8')
         req = urllib.request.Request(full_url, data)
+        req.add_header("AUTHORIZATION", self._apikey)
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
         try:
             response = urllib.request.urlopen(req)
             if 'prof' in full_url:
@@ -181,12 +182,3 @@ if __name__ == '__main__':
             args.versionlist = version_arr
     copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links, args.step)
     copier.do_copy()
-
-    try:
-        url = os.environ["SLACK_URL"]
-        message = json.dumps({'text': 'Upload Complete'})
-        request = urllib.request.Request(url, message.encode('utf-8'))
-        urllib.request.urlopen(request)
-
-    except KeyError:
-        pass
