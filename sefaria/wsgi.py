@@ -24,10 +24,14 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
 if os.getenv("DEBUG_BACKDOOR") == "1" or os.getenv("DEBUG") == "true":
-    from gevent.backdoor import BackdoorServer
-    port = int(os.getenv("DEBUG_BACKDOOR_PORT", "3001"))
-    BackdoorServer(("0.0.0.0", port)).start()
+    import threading
 
+    def start_backdoor():
+        from gevent.backdoor import BackdoorServer
+        port = int(os.getenv("DEBUG_BACKDOOR_PORT", "3001"))
+        BackdoorServer(("0.0.0.0", port)).start()
+
+    threading.Thread(target=start_backdoor, daemon=True).start()
 
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
