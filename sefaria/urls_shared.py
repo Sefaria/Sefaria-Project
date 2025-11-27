@@ -41,6 +41,8 @@ shared_patterns = [
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
+    url(r'^api/user-history/validate-refs/?$', reader_views.validate_user_history_refs_api),
+    url(r'^api/user-history/validation-status/(?P<job_id>[^/]+)/?$', reader_views.validation_status_api),
 
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),

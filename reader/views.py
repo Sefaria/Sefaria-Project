@@ -86,6 +86,7 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
+from sefaria.helper.user_history.tasks import validate_user_history_refs, get_validation_status
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -5051,3 +5052,50 @@ def dynamic_manifest(request, filename):
     response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
     
     return response
+
+
+@catch_error_as_json
+@csrf_exempt
+def validate_user_history_refs_api(request):
+    """
+    API to trigger UserHistory ref validation and cleanup.
+    Validates all refs and deletes records with invalid refs.
+    
+    POST /api/user-history/validate-refs
+    
+    Parameters:
+        chunk_size (optional): Records per chunk (default: 10000)
+        limit (optional): Max records to process (for testing)
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "POST required"})
+    
+    if not request.user.is_staff:
+        return jsonResponse({"error": "Admin access required"}, status=403)
+    
+    chunk_size = int(request.POST.get('chunk_size', 10000))
+    limit = request.POST.get('limit')
+    if limit:
+        limit = int(limit)
+    
+    result = validate_user_history_refs(
+        method='API',
+        chunk_size=chunk_size,
+        limit=limit
+    )
+    
+    return result
+
+
+@catch_error_as_json
+def validation_status_api(request, job_id):
+    """
+    Check the status of a validation job.
+    
+    GET /api/user-history/validation-status/<job_id>
+    """
+    if not request.user.is_staff:
+        return jsonResponse({"error": "Admin access required"}, status=403)
+    
+    status = get_validation_status(job_id)
+    return jsonResponse(status)
