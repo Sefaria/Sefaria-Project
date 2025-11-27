@@ -5,7 +5,6 @@
 // Popover theme variables
 $popover-bg: var(--theme-primary);
 $popover-text: white;
-$popover-arrow-offset: -4px;
 
 .floating-ui-popover {
   background-color: $popover-bg;
@@ -18,7 +17,7 @@ $popover-arrow-offset: -4px;
 }
 
 .floating-ui-popover-content {
-  padding: 16px 20px 16px 20px;
+  padding: 16px 20px;
   position: relative;
   z-index: 2;
   background-color: $popover-bg;
@@ -142,6 +141,7 @@ $popover-arrow-offset: -4px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 1;
 
+  $popover-arrow-offset: -4px;
   // Arrow positioning based on placement
   &.mobile-hebrew-right,
   &.desktop-left {
