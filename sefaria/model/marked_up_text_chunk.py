@@ -201,10 +201,10 @@ class MUTCSpan(ABC):
     
     def get_success_css_class(self) -> str:
         if self.failed:
-            return "mutcSpanFailed"
+            return "spanFailed"
         if self.ambiguous:
-            return "mutcSpanAmbiguous"
-        return "mutcSpanSuccess"
+            return "spanAmbiguous"
+        return "spanSucceeded"
 
     @abstractmethod
     def wrap_span_in_a_tag(self) -> str:
@@ -218,11 +218,12 @@ class CitationMUTCSpan(MUTCSpan):
         self.ref = ref
     
     def wrap_span_in_a_tag(self) -> str:
-        if not self.ref:
-            return self.text
-        href = self.ref.url()
-        return (f'<a class="refLink {self.get_success_css_class()}"'
-                f' href="{href}" data-ref="{escape(self.ref.normal())}"'
+        href, tref = "", ""
+        if self.ref:
+            href = self.ref.url()
+            tref = self.ref.normal()
+        return (f'<a class="mutc refLink {self.get_success_css_class()}"'
+                f' href="{href}" data-ref="{escape(tref)}"'
                 f' data-index={self.index}>{self.text}</a>')
     
     
@@ -232,10 +233,8 @@ class NamedEntityMUTCSpan(MUTCSpan):
         self.topic_slug = topic_slug
         
     def wrap_span_in_a_tag(self) -> str:
-        href = self.topic_slug
-        if not self.topic_slug:
-            return self.text
-        return (f'<a class="namedEntityLink {self.get_success_css_class()}"'
+        href = self.topic_slug or ""
+        return (f'<a class="mutc namedEntityLink {self.get_success_css_class()}"'
                 f' href="/topics/{href}" data-slug="{self.topic_slug}"'
                 f' data-index={self.index}>{self.text}</a>')
     
@@ -247,7 +246,7 @@ class CategoryMUTCSpan(MUTCSpan):
         
     def wrap_span_in_a_tag(self) -> str:
         href = "/".join(self.category_path)
-        return (f'<a class="categoryLink {self.get_success_css_class()}"'
+        return (f'<a class="mutc categoryLink {self.get_success_css_class()}"'
                 f' href="/texts/{href}" data-category-path="{href}"'
                 f' data-index={self.index}>{self.text}</a>')
     
