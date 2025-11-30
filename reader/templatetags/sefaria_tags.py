@@ -23,7 +23,6 @@ from django.templatetags.static import static as django_static
 from django.contrib.staticfiles import finders
 from django.utils.functional import SimpleLazyObject
 
-from sefaria.sheets import get_sheet
 from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
 from sefaria.model.text import Version
@@ -72,6 +71,7 @@ def static(path):
     if file_hash:
         return f"{static_url}?v={file_hash}"
     return static_url
+
 
 
 ref_link_cache = {} # simple cache for ref links
@@ -307,6 +307,7 @@ def sheet_link(value):
 	"""
 	Returns a link to sheet with id value.
 	"""
+	from sefaria.sheets import get_sheet
 	value = int(value)
 	sheet = get_sheet(value)
 	if "error" in sheet:
@@ -343,6 +344,7 @@ def absolute_link(value):
 	Takes a string with a single <a> tag a replaces the href with absolute URL.
 	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
 	"""
+	domain = Site.objects.get_current().domain
 	# run twice to account for either single or double quotes
 	absolute = value.replace("href='/", "href='https://%s/" % domain)
 	absolute = absolute.replace('href="/', 'href="https://%s/' % domain)
@@ -354,6 +356,7 @@ def absolute_url(value):
 	"""
 	Takes a string with path starting with "/" and returls url with domain and protocol.
 	"""
+	domain = Site.objects.get_current().domain
 	# run twice to account for either single or double quotes
 	absolute = "https://%s%s" % (domain, value)
 	return mark_safe(absolute)

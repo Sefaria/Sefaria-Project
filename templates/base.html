@@ -247,7 +247,12 @@
 
       var DJANGO_VARS = {
         props:         {{ propsJSON|default:"null" }},
+        contentLang:   "{{ request.contentLang }}",
         inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
+        static_url:    {{ STATIC_PREFIX }},
+        module_mapping: {
+
+        }
       };
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}
