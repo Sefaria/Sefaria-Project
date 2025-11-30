@@ -146,6 +146,24 @@ class TextRequestAdapter:
         if not inode.is_virtual:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
+    def _add_linker_output(self):
+        if not self.linker_debug:
+            return
+
+        linker_output_list = []
+        for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+            for version in self.return_obj['versions']:
+                language = 'he' if version['direction'] == 'rtl' else 'en'
+                version_title = version['versionTitle']
+                linker_output = LinkerOutput().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
+                if linker_output:
+                    linker_output_list.append(linker_output.contents())
+        self.return_obj["linker_output"] = linker_output_list
+
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
@@ -210,5 +228,6 @@ class TextRequestAdapter:
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()
         self._add_node_data_to_return_obj()
+        self._add_linker_output()
         self._format_text()
         return self.return_obj
