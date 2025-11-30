@@ -193,13 +193,17 @@ class MUTCSpan(ABC):
         self.index = index
         self.failed = raw_span.get('failed', False)
         self.ambiguous = raw_span.get('ambiguous', False)
+        # these fields only appear for LinkerOutput and not MUTC and therefore indicate we are debugging
+        self._debug = 'failed' in raw_span or 'ambiguous' in raw_span
     
-    def get_success_css_class(self) -> str:
+    def get_debug_css_classes(self) -> str:
+        if not self._debug:
+            return ""
         if self.failed:
-            return "spanFailed"
+            return "mutc spanFailed"
         if self.ambiguous:
-            return "spanAmbiguous"
-        return "spanSucceeded"
+            return "mutc spanAmbiguous"
+        return "mutc spanSucceeded"
 
     @abstractmethod
     def wrap_span_in_a_tag(self) -> str:
@@ -218,7 +222,7 @@ class CitationMUTCSpan(MUTCSpan):
         if self.ref:
             href = self.ref.url()
             tref = self.ref.normal()
-        return (f'<a class="mutc refLink {self.get_success_css_class()}"'
+        return (f'<a class="refLink {self.get_debug_css_classes()}"'
                 f' href="{href}" data-ref="{escape(tref)}"'
                 f' data-index={self.index}>{self.text}</a>')
     
@@ -230,7 +234,7 @@ class NamedEntityMUTCSpan(MUTCSpan):
         
     def wrap_span_in_a_tag(self) -> str:
         href = self.topic_slug or ""
-        return (f'<a class="mutc namedEntityLink {self.get_success_css_class()}"'
+        return (f'<a class="namedEntityLink {self.get_debug_css_classes()}"'
                 f' href="/topics/{href}" data-slug="{self.topic_slug}"'
                 f' data-index={self.index}>{self.text}</a>')
     
@@ -242,7 +246,7 @@ class CategoryMUTCSpan(MUTCSpan):
         
     def wrap_span_in_a_tag(self) -> str:
         href = "/".join(self.category_path)
-        return (f'<a class="mutc categoryLink {self.get_success_css_class()}"'
+        return (f'<a class="categoryLink {self.get_debug_css_classes()}"'
                 f' href="/texts/{href}" data-category-path="{href}"'
                 f' data-index={self.index}>{self.text}</a>')
     
