@@ -56,7 +56,8 @@ $popover-text: white;
 
   // Desktop - both links have 30px height
   > a,
-  > button {
+  > button,
+  > .popover-button-wrapper {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -67,7 +68,8 @@ $popover-text: white;
   }
 
   // Learn More link styling (first child) - override Button component styles
-  > a.sefaria-common-button {
+  > a.sefaria-common-button,
+  > .popover-button-wrapper > a.sefaria-common-button {
     padding: 6px 0px;
     order: 0;
     background: transparent;
@@ -84,22 +86,58 @@ $popover-text: white;
   }
 
   // Got it button styling (second child)
-  > button {
+  > button,
+  > .popover-button-wrapper > button {
     order: 1;
   }
 
-  // Mobile touch target accessibility - 44px minimum height
+  // Mobile touch target accessibility - 44px container around each button
   @include breakpoint(mobile) {
+    align-items: flex-start;
+    
+    // Container wrapper for 44px touch target
+    > .popover-button-wrapper {
+      height: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    // All buttons inside containers get 16px font size
+    > .popover-button-wrapper > a,
+    > .popover-button-wrapper > button {
+      font-size: 16px; // English System Body / Hebrew System Body (16px)
+      height: auto;
+      min-height: auto;
+    }
+
+    // Primary button (Got it) gets 8px 12px padding
+    > .popover-button-wrapper > button.popover-button,
+    > .popover-button-wrapper > button:not(.sefaria-common-button) {
+      padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
+    }
+
+    // Learn More link keeps its underline style but gets 16px font
+    > .popover-button-wrapper > a.sefaria-common-button {
+      padding: 6px 0px; // Keep original padding for underline link
+    }
+
+    // Direct children (fallback for buttons not wrapped)
     > a,
     > button {
       min-height: 44px;
       height: auto;
       font-size: 16px;
+    }
+
+    > button:not(.sefaria-common-button) {
       padding: 8px 12px;
     }
 
     > a.sefaria-common-button {
       height: auto;
+      padding: 6px 0px;
     }
   }
 }
@@ -126,9 +164,10 @@ $popover-text: white;
   }
 
   @include breakpoint(mobile) {
-    min-height: 44px;
-    font-size: 16px;
-    padding: 8px 12px;
+    font-size: 16px; // English System Body / Hebrew System Body (16px)
+    padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
+    height: auto;
+    min-height: auto; // Height controlled by container
   }
 }
 

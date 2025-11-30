@@ -91,19 +91,23 @@ const ModuleSwitcherPopover = ({ children }) => {
           
           {/* Action buttons */}
           <div className="popover-actions">
-            {/* External link to learn more */}
-            <Button
-              href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
-              target="_blank"
-              targetModule={Sefaria.VOICES_MODULE}
-            >
-              <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>
-            </Button>
+            {/* External link to learn more - wrapped in container for mobile touch target */}
+            <div className="popover-button-wrapper">
+              <Button
+                href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
+                target="_blank"
+                targetModule={Sefaria.VOICES_MODULE}
+              >
+                <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>
+              </Button>
+            </div>
             
-            {/* Dismiss button that closes popover and saves to localStorage */}
-            <PopoverClose className="popover-button">
-              <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>
-            </PopoverClose>
+            {/* Dismiss button that closes popover and saves to localStorage - wrapped in container for mobile touch target */}
+            <div className="popover-button-wrapper">
+              <PopoverClose className="popover-button">
+                <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>
+              </PopoverClose>
+            </div>
           </div>
         </div>
       </PopoverContent>

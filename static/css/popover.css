@@ -52,7 +52,8 @@
   width: 100%;
 }
 .popover-actions > a,
-.popover-actions > button {
+.popover-actions > button,
+.popover-actions > .popover-button-wrapper {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -61,7 +62,8 @@
   flex: none;
   flex-grow: 0;
 }
-.popover-actions > a.sefaria-common-button {
+.popover-actions > a.sefaria-common-button,
+.popover-actions > .popover-button-wrapper > a.sefaria-common-button {
   padding: 6px 0px;
   order: 0;
   background: transparent;
@@ -71,22 +73,51 @@
   min-width: unset;
   height: 30px;
 }
-.popover-actions > a.sefaria-common-button, .popover-actions > a.sefaria-common-button * {
+.popover-actions > a.sefaria-common-button, .popover-actions > a.sefaria-common-button *,
+.popover-actions > .popover-button-wrapper > a.sefaria-common-button,
+.popover-actions > .popover-button-wrapper > a.sefaria-common-button * {
   color: inherit;
 }
-.popover-actions > button {
+.popover-actions > button,
+.popover-actions > .popover-button-wrapper > button {
   order: 1;
 }
 @media (max-width: 842px) {
+  .popover-actions {
+    align-items: flex-start;
+  }
+  .popover-actions > .popover-button-wrapper {
+    height: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .popover-actions > .popover-button-wrapper > a,
+  .popover-actions > .popover-button-wrapper > button {
+    font-size: 16px;
+    height: auto;
+    min-height: auto;
+  }
+  .popover-actions > .popover-button-wrapper > button.popover-button,
+  .popover-actions > .popover-button-wrapper > button:not(.sefaria-common-button) {
+    padding: 8px 12px;
+  }
+  .popover-actions > .popover-button-wrapper > a.sefaria-common-button {
+    padding: 6px 0px;
+  }
   .popover-actions > a,
   .popover-actions > button {
     min-height: 44px;
     height: auto;
     font-size: 16px;
+  }
+  .popover-actions > button:not(.sefaria-common-button) {
     padding: 8px 12px;
   }
   .popover-actions > a.sefaria-common-button {
     height: auto;
+    padding: 6px 0px;
   }
 }
 
@@ -112,9 +143,10 @@
 }
 @media (max-width: 842px) {
   .popover-button {
-    min-height: 44px;
     font-size: 16px;
     padding: 8px 12px;
+    height: auto;
+    min-height: auto;
   }
 }
 
