@@ -89,7 +89,6 @@ const LoggedInDropdown = ({ module }) => {
           </>
         }
 
-
         {module === Sefaria.VOICES_MODULE &&
           <>
             <DropdownMenuItem url={`/profile/${Sefaria.slug}`} targetModule={Sefaria.VOICES_MODULE}>
