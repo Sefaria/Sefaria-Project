@@ -113,10 +113,7 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         """
         spans_sorted = sorted(self.spans, key=lambda sp: sp["charRange"][0], reverse=reverse)
         for ispan, raw_sp in enumerate(spans_sorted):
-            yield MUTCSpanFactory.create(raw_sp["charRange"], MUTCSpanType(raw_sp["type"]),
-                                         raw_sp["text"], ispan, raw_sp.get("topicSlug"), 
-                                         raw_sp.get("ref"), raw_sp.get("categoryPath"), raw_sp.get("failed", False),
-                                         raw_sp.get("ambiguous", False))
+            yield MUTCSpanFactory.create(raw_sp, ispan)
 
     def add_non_overlapping_spans(self, new_spans: list[dict]) -> None:
         """
@@ -190,13 +187,12 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 
 class MUTCSpan(ABC):
-    
-    def __init__(self, char_range: list[int], text: str, index: int, failed=False, ambiguous=False):
-        self.char_range = char_range
-        self.text = text
+    def __init__(self, raw_span: dict, index: int):
+        self.char_range = raw_span['charRange']
+        self.text = raw_span['text']
         self.index = index
-        self.failed = failed
-        self.ambiguous = ambiguous
+        self.failed = raw_span.get('failed', False)
+        self.ambiguous = raw_span.get('ambiguous', False)
     
     def get_success_css_class(self) -> str:
         if self.failed:
@@ -212,9 +208,10 @@ class MUTCSpan(ABC):
 
 class CitationMUTCSpan(MUTCSpan):
 
-    def __init__(self, char_range: list[int], text: str, index: int, ref: Ref, failed=False, ambiguous=False):
-        super().__init__(char_range, text, index, failed, ambiguous)
-        self.ref = ref
+    def __init__(self, raw_span: dict, index: int):
+        super().__init__(raw_span, index)
+        tref = raw_span.get('ref')
+        self.ref = Ref(tref) if tref else None
     
     def wrap_span_in_a_tag(self) -> str:
         href, tref = "", ""
@@ -227,9 +224,9 @@ class CitationMUTCSpan(MUTCSpan):
     
     
 class NamedEntityMUTCSpan(MUTCSpan):
-    def __init__(self, char_range: list[int], text: str, index: int, topic_slug: str, failed=False, ambiguous=False):
-        super().__init__(char_range, text, index, failed, ambiguous)
-        self.topic_slug = topic_slug
+    def __init__(self, raw_span: dict, index: int):
+        super().__init__(raw_span, index)
+        self.topic_slug = raw_span.get('topicSlug')
         
     def wrap_span_in_a_tag(self) -> str:
         href = self.topic_slug or ""
@@ -239,9 +236,9 @@ class NamedEntityMUTCSpan(MUTCSpan):
     
 
 class CategoryMUTCSpan(MUTCSpan):
-    def __init__(self, char_range: list[int], text: str, index: int, category_path: list[str], failed=False, ambiguous=False):
-        super().__init__(char_range, text, index, failed, ambiguous)
-        self.category_path = category_path
+    def __init__(self, raw_span: dict, index: int):
+        super().__init__(raw_span, index)
+        self.category_path = raw_span.get('categoryPath')
         
     def wrap_span_in_a_tag(self) -> str:
         href = "/".join(self.category_path)
@@ -251,15 +248,16 @@ class CategoryMUTCSpan(MUTCSpan):
     
     
 class MUTCSpanFactory:
+
     @staticmethod
-    def create(char_range: list[int], typ: MUTCSpanType, text: str, index: int, topic_slug: str = None, tref: str = None, category_path: list[str] = None, failed=False, ambiguous=False) -> 'MUTCSpan':
+    def create(raw_span: dict, index: int) -> 'MUTCSpan':
+        typ = MUTCSpanType(raw_span['type'])
         if typ == MUTCSpanType.CITATION:
-            oref = Ref(tref) if tref else None
-            return CitationMUTCSpan(char_range, text, index, oref, failed, ambiguous)
+            return CitationMUTCSpan(raw_span, index)
         if typ == MUTCSpanType.NAMED_ENTITY:
-            return NamedEntityMUTCSpan(char_range, text, index, topic_slug, failed, ambiguous)
+            return NamedEntityMUTCSpan(raw_span, index)
         if typ == MUTCSpanType.CATEGORY:
-            return CategoryMUTCSpan(char_range, text, index, category_path, failed, ambiguous)
+            return CategoryMUTCSpan(raw_span, index)
         raise ValueError(f"MUTCSpanFactory.create(): Unsupported MUTCSpanType: {typ}")
 
 
