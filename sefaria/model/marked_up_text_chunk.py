@@ -191,9 +191,8 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 class MUTCSpan(ABC):
     
-    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str, index: int, failed=False, ambiguous=False):
+    def __init__(self, char_range: list[int], text: str, index: int, failed=False, ambiguous=False):
         self.char_range = char_range
-        self.typ = typ
         self.text = text
         self.index = index
         self.failed = failed
@@ -213,8 +212,8 @@ class MUTCSpan(ABC):
 
 class CitationMUTCSpan(MUTCSpan):
 
-    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str, index: int, ref: Ref, failed=False, ambiguous=False):
-        super().__init__(char_range, typ, text, index, failed, ambiguous)
+    def __init__(self, char_range: list[int], text: str, index: int, ref: Ref, failed=False, ambiguous=False):
+        super().__init__(char_range, text, index, failed, ambiguous)
         self.ref = ref
     
     def wrap_span_in_a_tag(self) -> str:
@@ -228,8 +227,8 @@ class CitationMUTCSpan(MUTCSpan):
     
     
 class NamedEntityMUTCSpan(MUTCSpan):
-    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str, index: int, topic_slug: str, failed=False, ambiguous=False):
-        super().__init__(char_range, typ, text, index, failed, ambiguous)
+    def __init__(self, char_range: list[int], text: str, index: int, topic_slug: str, failed=False, ambiguous=False):
+        super().__init__(char_range, text, index, failed, ambiguous)
         self.topic_slug = topic_slug
         
     def wrap_span_in_a_tag(self) -> str:
@@ -240,8 +239,8 @@ class NamedEntityMUTCSpan(MUTCSpan):
     
 
 class CategoryMUTCSpan(MUTCSpan):
-    def __init__(self, char_range: list[int], typ: MUTCSpanType, text: str, index: int, category_path: list[str], failed=False, ambiguous=False):
-        super().__init__(char_range, typ, text, index, failed, ambiguous)
+    def __init__(self, char_range: list[int], text: str, index: int, category_path: list[str], failed=False, ambiguous=False):
+        super().__init__(char_range, text, index, failed, ambiguous)
         self.category_path = category_path
         
     def wrap_span_in_a_tag(self) -> str:
@@ -256,11 +255,11 @@ class MUTCSpanFactory:
     def create(char_range: list[int], typ: MUTCSpanType, text: str, index: int, topic_slug: str = None, tref: str = None, category_path: list[str] = None, failed=False, ambiguous=False) -> 'MUTCSpan':
         if typ == MUTCSpanType.CITATION:
             oref = Ref(tref) if tref else None
-            return CitationMUTCSpan(char_range, typ, text, index, oref, failed, ambiguous)
+            return CitationMUTCSpan(char_range, text, index, oref, failed, ambiguous)
         if typ == MUTCSpanType.NAMED_ENTITY:
-            return NamedEntityMUTCSpan(char_range, typ, text, index, topic_slug, failed, ambiguous)
+            return NamedEntityMUTCSpan(char_range, text, index, topic_slug, failed, ambiguous)
         if typ == MUTCSpanType.CATEGORY:
-            return CategoryMUTCSpan(char_range, typ, text, index, category_path, failed, ambiguous)
+            return CategoryMUTCSpan(char_range, text, index, category_path, failed, ambiguous)
         raise ValueError(f"MUTCSpanFactory.create(): Unsupported MUTCSpanType: {typ}")
 
 
