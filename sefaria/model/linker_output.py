@@ -1,12 +1,12 @@
-from sefaria.model.abstract import AbstractMongoSet, AbstractMongoRecord
-from sefaria.model.marked_up_text_chunk import MUTCSpanType
+from sefaria.model.abstract import AbstractMongoSet
+from sefaria.model.marked_up_text_chunk import MUTCSpanType, MarkedUpTextChunk
 from sefaria.model.text import Ref
 from sefaria.system.exceptions import InputError
 import structlog
 logger = structlog.get_logger(__name__)
 
 
-class LinkerOutput(AbstractMongoRecord):
+class LinkerOutput(MarkedUpTextChunk):
     """
     Track linker resolutions for debugging purposes.
     """

@@ -5,6 +5,7 @@ from typing import List
 import django
 import re
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
+from sefaria.model.linker_output import LinkerOutput
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -22,11 +23,12 @@ class TextRequestAdapter:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default'):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default', linker_debug=False):
         self.versions_params = versions_params
         self.oref = oref
         self.fill_in_missing_segments = fill_in_missing_segments
         self.return_format = return_format
+        self.linker_debug = linker_debug
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -147,13 +149,14 @@ class TextRequestAdapter:
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
+        MUTCClass = LinkerOutput if self.linker_debug else MarkedUpTextChunk
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
         def get_marked_up_text_chunk_queue():
             from queue import Queue
             q = Queue()
             for i, segment_ref in enumerate(self.oref.all_segment_refs()):
-                marked_up_chunk = MarkedUpTextChunk().load({
+                marked_up_chunk = MUTCClass().load({
                     "ref": segment_ref.normal(),
                     "versionTitle": version_title,
                     "language": language,
@@ -162,7 +165,7 @@ class TextRequestAdapter:
             return q
 
         def mutc_wrapper(string, sections):
-            chunk: MarkedUpTextChunk = chunks_queue.get()
+            chunk: MUTCClass = chunks_queue.get()
             if chunk:
                 string = chunk.apply_spans_to_text(string)
             return string
