@@ -69,7 +69,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Profile Redirect - With User', async ({ page }) => {
     // Navigate to specific user profile on library module
-    const respone = await page.goto(`${MODULE_URLS.LIBRARY}/profile/qa-tester`, { waitUntil: 'networkidle' });
+    const respone = await page.goto(`${MODULE_URLS.LIBRARY}/profile/qa-automation`, { waitUntil: 'networkidle' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(respone?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.LIBRARY}/profile/qa-tester`);
 
@@ -77,7 +77,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     
     // Verify redirect occurred to voices profile
     const finalUrl = page.url();
-    assertUrlMatches(finalUrl, `${MODULE_URLS.VOICES}/profile/qa-tester`, true);
+    assertUrlMatches(finalUrl, `${MODULE_URLS.VOICES}/profile/qa-automation`, true);
   });
 
   test('Sheets Redirect - Get Started Page', async ({ page }) => {
