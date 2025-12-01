@@ -49,7 +49,7 @@ class ConnectionsPanelHeader extends Component {
     const excludedModes = ["Resources", "ConnectionsList"];
     if (!excludedModes.includes(this.props.connectionsMode)) {
       // Only modes were there's an actual source-text get the dropdown.
-      return <DropdownMenu buttonContent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+      return <DropdownMenu buttonComponent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>;
     }
     if (this.props.interfaceLang !== "english") {
       // if interface is Hebrew and we're not viewing actual source text in the sidebar, language switcher is turned off.

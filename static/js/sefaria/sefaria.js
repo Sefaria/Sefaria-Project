@@ -519,13 +519,11 @@ Sefaria = extend(Sefaria, {
     return result;
   },
   getDomainHostnames: function() {
-    // Returns a Set of all hostnames from domainModules.
+    // Returns a Set of all hostnames of current language from domainModules.
     const hostnames = new Set();
-    for (const langModules of Object.values(this.domainModules)) {
-      for (const moduleUrl of Object.values(langModules)) {
-        const url = new URL(moduleUrl);
-        hostnames.add(url.hostname);
-      }
+    for (const moduleUrl of Object.values(Sefaria.domainModules[Sefaria._getShortInterfaceLang()])) {
+      const url = new URL(moduleUrl);
+      hostnames.add(url.hostname);
     }
 
     return hostnames;
