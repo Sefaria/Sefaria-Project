@@ -8,6 +8,7 @@ $exclude-flex: ( //Elements excluded from the general rules of flex and align to
   ".languageToggle",
   ".floating-ui-popover",
   ".keyboardInputInitiator",
+  ".readerNavMenuSearchButton",
 );
 $not-selector: "";
 @each $sel in $exclude-flex {
