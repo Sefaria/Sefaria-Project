@@ -1192,7 +1192,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt={Sefaria._("Search")} />
+      <img src="/static/icons/search_mdl.svg" alt={Sefaria._("Search")} />
     </span>);
   }
 }
@@ -1288,7 +1288,13 @@ function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLan
   };
 
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
+    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
+      <Button
+        variant="icon-only"
+        icon="globallanguageswitcher_mdl"
+        ariaLabel={Sefaria._('Toggle Interface Language Menu')}
+      />
+    }>
       <div className="dropdownLinks-options globeLanguageToggle">
         <DropdownLanguageToggle/>
       </div>

@@ -650,7 +650,8 @@ const Strings = {
     //Mobile Nav Header
     "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
-    "Saved & History": "היסטורית קריאה ושמורים",
+    "Saved & History": "שמורים והיסטוריה",
+    "Saved, History & Notes": "שמורים, היסטוריה והערות",
     "Sidebar navigation": "ניווט בסרגל הצד",
     "Site search": "חיפוש באתר",
     "Account menu": "תפריט חשבון",
@@ -724,6 +725,11 @@ const Strings = {
     "Click icon": "סמל לחיצה",
     "Collection Header Image": "תמונת כותרת אסופה",
     "image of maginfying glass": "תמונה של זכוכית מגדלת",
+
+    // Module Switcher Tooltip
+    "Looking for something?": "מחפשים משהו?",
+    "We've updated the structure of our website! The Sefaria platform now has separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.",
+    "Got it!": "הבנתי",
   },
 
   _i18nInterfaceStringsWithContext: {

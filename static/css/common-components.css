@@ -82,6 +82,13 @@ a.sefaria-common-button.fillwidth {
     height: 53px;
     width: 100%;
 }
+/** auto-width-button variant for the signup and create button in the header **/
+button.sefaria-common-button.auto-width-button,
+a.sefaria-common-button.auto-width-button {
+    padding: 6px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+}
 /** button children **/
 button.sefaria-common-button,
 button.sefaria-common-button *,
@@ -97,5 +104,27 @@ a.sefaria-common-button img.button-icon {
     margin-inline-end: 5px;
     height: 18px;
     vertical-align: -15%;
+}
+
+/** icon-only button variant **/
+button.icon-only,
+a.icon-only {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+button.icon-only .button-icon,
+a.icon-only .button-icon {
+    max-width: 100%;
+    max-height: 100%;
+    margin-inline-end: 0;
 }
 

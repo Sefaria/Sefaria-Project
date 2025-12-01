@@ -45,7 +45,6 @@ restore:
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
-
 # config to backup environment DB
 backup:
   mongo:
@@ -438,7 +437,6 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  SESSION_COOKIE_DOMAIN: ".sefaria.org"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

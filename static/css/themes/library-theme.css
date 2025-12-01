@@ -2,6 +2,7 @@
   /* Define default theme variables */
   --theme-primary: var(--sefaria-blue);
   --theme-background: var(--lightest-grey); /** just an example **/
+  --theme-select: var(--select-blue);
   --theme-text: black;  /** just an example **/
 
   /* font stacks */

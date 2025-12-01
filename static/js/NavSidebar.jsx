@@ -796,9 +796,27 @@ const StayConnected = () => {
       <br />
       <NewsletterSignUpForm context="sidebar" />
       <div className="social-links">
-        <Button icon={"facebook"} variant="secondary" className="appButton white button iconOnly" alt={Sefaria._("Sefaria on Facebook")} href={fbURL} />
-        <Button icon={"instagram"} variant="secondary" className="appButton white button iconOnly" alt={Sefaria._("Sefaria on Instagram")} href="https://www.instagram.com/sefariaproject" />
-        <Button icon={"youtube"} variant="secondary" className="appButton white button iconOnly" alt={Sefaria._("Sefaria on YouTube")} href="https://www.youtube.com/user/SefariaProject" />
+        <Button
+          icon={"facebook"}
+          variant="secondary"
+          className="appButton white button iconOnly"
+          ariaLabel={Sefaria._("Sefaria on Facebook")}
+          href={fbURL}
+        />
+        <Button
+          icon={"instagram"}
+          variant="secondary"
+          className="appButton white button iconOnly"
+          ariaLabel={Sefaria._("Sefaria on Instagram")}
+          href="https://www.instagram.com/sefariaproject"
+        />
+        <Button
+          icon={"youtube"}
+          variant="secondary"
+          className="appButton white button iconOnly"
+          ariaLabel={Sefaria._("Sefaria on YouTube")}
+          href="https://www.youtube.com/user/SefariaProject"
+        />
       </div>
 
     </SidebarModule>
@@ -819,7 +837,7 @@ const VoicesNewsletterSignUpButton = () => {
 }
 const CreateSheetsButton = () => {
   return (
-    <Button icon={"new-sheet-black"} alt={Sefaria._("Create a New Sheet")} href="/sheets/new" targetModule={Sefaria.VOICES_MODULE}>
+    <Button icon={"new-sheet-black"} href="/sheets/new" targetModule={Sefaria.VOICES_MODULE}>
       <InterfaceText text={{'en': 'Create', 'he': 'דף חדש'}} />
     </Button>
   ) 
@@ -883,7 +901,7 @@ const AboutCollections = ({hideTitle}) => (
         <HebrewText>אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.</HebrewText>
     </InterfaceText>
       {!hideTitle &&
-      <Button icon={"collection-black"} alt={Sefaria._("Create a Collection")} className="">
+      <Button icon={"collection-black"}>
         <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
           <InterfaceText>Create a Collection</InterfaceText>
         </a>
