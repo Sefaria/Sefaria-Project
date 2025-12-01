@@ -301,19 +301,16 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
         await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
         return page;
     }
-    // If auth file exists, create a new context with storageState and open the page
-    const browser = context.browser();
-    if (!browser) {
-        throw new Error('Browser instance is null. Cannot create a new context.');
-    }
-    page = await browser.newPage();
-    // Load the storage state from the auth file
+    // If auth file exists, add cookies to the provided context and create page from it
     const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
     const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
     if (storageCookies == null) {
         throw new Error(`No cookies found in storage state for language ${language}`);
     }
-    await page.context().addCookies(storageCookies);
+    // Add cookies to the provided context so all pages created from it will have auth
+    await context.addCookies(storageCookies);
+    
+    page = await context.newPage();
     // Navigate to the desired URL
     await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
     await changeLanguage(page, language);
@@ -638,4 +635,31 @@ export const urlMatches = (actual: string, expected: string, ignoreQueryParams: 
     return normalizeUrl(actual, { ignoreQueryParams: true }) === normalizeUrl(expected, { ignoreQueryParams: true });
   }
   return normalizeUrl(actual) === normalizeUrl(expected);
+};
+
+/**
+ * Assert that URLs match, throwing a detailed error if they don't
+ * @param actual - The actual URL
+ * @param expectedBase - The expected base URL
+ * @param ignoreQueryParams - Whether to ignore query parameters in comparison
+ * @throws Error with expected vs actual URL details if URLs don't match
+ */
+export const assertUrlMatches = (actual: string, expectedBase: string, ignoreQueryParams: boolean = false) => {
+  if (!urlMatches(actual, expectedBase, ignoreQueryParams)) {
+    throw new Error(`URL mismatch — expected base: "${expectedBase}" (ignoreQuery=${ignoreQueryParams})\nActual: "${actual}"`);
+  }
+};
+
+/**
+ * Assert that a response status is NOT one of the error codes
+ * @param status - The response status code
+ * @param errorCodes - Array of error codes to check against
+ * @param url - Optional URL that was being navigated to
+ * @throws Error if status is one of the error codes
+ */
+export const assertStatusNotError = (status: number, errorCodes: number[] = [404, 500, 502, 503, 504], url?: string) => {
+  if (errorCodes.includes(status)) {
+    const urlPart = url ? ` from URL: ${url}` : '';
+    throw new Error(`Response returned error status: ${status} (expected one of: ${errorCodes.join(', ')})${urlPart}`);
+  }
 };
