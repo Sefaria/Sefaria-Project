@@ -20,7 +20,7 @@ const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 // Text content (keys correspond to sefaria/strings.js)
 const STRINGS = {
   HEADER: "Looking for something?",
-  CONTENT: "We've updated the structure of our website! The Sefaria platform now has separate spaces for learning in the library, creating Torah content, and building digital Torah tools.",
+  CONTENT: "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah.",
   LEARN_MORE: "Learn More",
   CONFIRM: "Got it!",
 };
@@ -46,6 +46,7 @@ const ModuleSwitcherPopover = ({ children }) => {
       const isModuleSwitcherClick = 
         event.target.closest('.headerDropdownMenu') || 
         event.target.closest('.menuButton');
+      console.log('event.target', event.target, 'isModuleSwitcherClick', isModuleSwitcherClick);
       
       if (isModuleSwitcherClick) {
         setOpen(false);
@@ -91,23 +92,20 @@ const ModuleSwitcherPopover = ({ children }) => {
           
           {/* Action buttons */}
           <div className="popover-actions">
-            {/* External link to learn more - wrapped in container for mobile touch target */}
-            <div className="popover-button-wrapper">
-              <Button
-                href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
-                target="_blank"
-                targetModule={Sefaria.VOICES_MODULE}
-              >
-                <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>
-              </Button>
-            </div>
+            {/* External link to learn more */}
+            <Button
+              className="learn-more accessible-touch-target"
+              href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
+              target="_blank"
+              targetModule={Sefaria.VOICES_MODULE}
+            >
+              <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>
+            </Button>
             
-            {/* Dismiss button that closes popover and saves to localStorage - wrapped in container for mobile touch target */}
-            <div className="popover-button-wrapper">
-              <PopoverClose className="popover-button">
-                <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>
-              </PopoverClose>
-            </div>
+            {/* Dismiss button that closes popover and saves to localStorage */}
+            <PopoverClose className="accessible-touch-target">
+              <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>
+            </PopoverClose>
           </div>
         </div>
       </PopoverContent>

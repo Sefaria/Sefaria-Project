@@ -14,6 +14,11 @@ $popover-text: white;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   z-index: 9999;
   max-width: 350px;
+
+  @include breakpoint(mobile) {
+    width: 264px;
+    max-width: 264px;
+  }
 }
 
 .floating-ui-popover-content {
@@ -23,12 +28,15 @@ $popover-text: white;
   background-color: $popover-bg;
   color: $popover-text;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 14px;  
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
 
+  @include breakpoint(mobile) {
+    font-size: 16px; 
+  }
   a {
     text-decoration: underline;
     color: inherit;
@@ -54,10 +62,9 @@ $popover-text: white;
   font-size: 14px;
   width: 100%;
 
-  // Desktop - both links have 30px height
+  // Desktop - both buttons have 30px height
   > a,
-  > button,
-  > .popover-button-wrapper {
+  > button {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -67,9 +74,8 @@ $popover-text: white;
     flex-grow: 0;
   }
 
-  // Learn More link styling (first child) - override Button component styles
-  > a.sefaria-common-button,
-  > .popover-button-wrapper > a.sefaria-common-button {
+  // Learn More link styling - override Button component styles
+  > a.learn-more {
     padding: 6px 0px;
     order: 0;
     background: transparent;
@@ -78,6 +84,11 @@ $popover-text: white;
     color: inherit;
     min-width: unset;
     height: 30px;
+    font-size: 14px; // Desktop default
+
+    @include breakpoint(mobile) {
+      font-size: 16px; // Mobile: 16px
+    }
 
     &,
     & * {
@@ -85,59 +96,54 @@ $popover-text: white;
     }
   }
 
-  // Got it button styling (second child)
-  > button,
-  > .popover-button-wrapper > button {
-    order: 1;
-  }
 
-  // Mobile touch target accessibility - 44px container around each button
+  // Mobile responsive styles
   @include breakpoint(mobile) {
-    align-items: flex-start;
-    
-    // Container wrapper for 44px touch target
-    > .popover-button-wrapper {
-      height: 44px;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    // All buttons inside containers get 16px font size
-    > .popover-button-wrapper > a,
-    > .popover-button-wrapper > button {
-      font-size: 16px; // English System Body / Hebrew System Body (16px)
-      height: auto;
-      min-height: auto;
-    }
-
-    // Primary button (Got it) gets 8px 12px padding
-    > .popover-button-wrapper > button.popover-button,
-    > .popover-button-wrapper > button:not(.sefaria-common-button) {
-      padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
-    }
+    align-items: center;
 
     // Learn More link keeps its underline style but gets 16px font
-    > .popover-button-wrapper > a.sefaria-common-button {
+    > a.learn-more {
       padding: 6px 0px; // Keep original padding for underline link
     }
 
-    // Direct children (fallback for buttons not wrapped)
-    > a,
-    > button {
-      min-height: 44px;
-      height: auto;
-      font-size: 16px;
+    // Primary button (Got it) gets 8px 12px padding
+    > button.popover-button {
+      padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
     }
 
-    > button:not(.sefaria-common-button) {
-      padding: 8px 12px;
-    }
+    // Accessible touch targets - 44x44px clickable area
+    > a.learn-more.accessible-touch-target,
+    > button.popover-button.accessible-touch-target {
+      position: relative;
 
-    > a.sefaria-common-button {
-      height: auto;
-      padding: 6px 0px;
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 44px;
+        height: 44px;
+      }
+    }
+  }
+}
+
+// Accessible touch target class for mobile - creates 44x44px clickable area
+// Works on both <button> and <a> tags - the ::before is part of the element's clickable area
+.accessible-touch-target {
+  @include breakpoint(mobile) {
+    position: relative;
+
+    // Create invisible 44x44px touch area centered on the element
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
     }
   }
 }

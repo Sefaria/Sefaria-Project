@@ -12,6 +12,12 @@
   z-index: 9999;
   max-width: 350px;
 }
+@media (max-width: 842px) {
+  .floating-ui-popover {
+    width: 264px;
+    max-width: 264px;
+  }
+}
 
 .floating-ui-popover-content {
   padding: 16px 20px;
@@ -25,6 +31,11 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+}
+@media (max-width: 842px) {
+  .floating-ui-popover-content {
+    font-size: 16px;
+  }
 }
 .floating-ui-popover-content a {
   text-decoration: underline;
@@ -52,8 +63,7 @@
   width: 100%;
 }
 .popover-actions > a,
-.popover-actions > button,
-.popover-actions > .popover-button-wrapper {
+.popover-actions > button {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -62,8 +72,7 @@
   flex: none;
   flex-grow: 0;
 }
-.popover-actions > a.sefaria-common-button,
-.popover-actions > .popover-button-wrapper > a.sefaria-common-button {
+.popover-actions > a.learn-more {
   padding: 6px 0px;
   order: 0;
   background: transparent;
@@ -72,52 +81,54 @@
   color: inherit;
   min-width: unset;
   height: 30px;
+  font-size: 14px;
 }
-.popover-actions > a.sefaria-common-button, .popover-actions > a.sefaria-common-button *,
-.popover-actions > .popover-button-wrapper > a.sefaria-common-button,
-.popover-actions > .popover-button-wrapper > a.sefaria-common-button * {
+@media (max-width: 842px) {
+  .popover-actions > a.learn-more {
+    font-size: 16px;
+  }
+}
+.popover-actions > a.learn-more, .popover-actions > a.learn-more * {
   color: inherit;
-}
-.popover-actions > button,
-.popover-actions > .popover-button-wrapper > button {
-  order: 1;
 }
 @media (max-width: 842px) {
   .popover-actions {
-    align-items: flex-start;
-  }
-  .popover-actions > .popover-button-wrapper {
-    height: 44px;
-    min-height: 44px;
-    display: flex;
     align-items: center;
-    justify-content: center;
   }
-  .popover-actions > .popover-button-wrapper > a,
-  .popover-actions > .popover-button-wrapper > button {
-    font-size: 16px;
-    height: auto;
-    min-height: auto;
-  }
-  .popover-actions > .popover-button-wrapper > button.popover-button,
-  .popover-actions > .popover-button-wrapper > button:not(.sefaria-common-button) {
-    padding: 8px 12px;
-  }
-  .popover-actions > .popover-button-wrapper > a.sefaria-common-button {
+  .popover-actions > a.learn-more {
     padding: 6px 0px;
   }
-  .popover-actions > a,
-  .popover-actions > button {
-    min-height: 44px;
-    height: auto;
-    font-size: 16px;
-  }
-  .popover-actions > button:not(.sefaria-common-button) {
+  .popover-actions > button.popover-button {
     padding: 8px 12px;
   }
-  .popover-actions > a.sefaria-common-button {
-    height: auto;
-    padding: 6px 0px;
+  .popover-actions > a.learn-more.accessible-touch-target,
+  .popover-actions > button.popover-button.accessible-touch-target {
+    position: relative;
+  }
+  .popover-actions > a.learn-more.accessible-touch-target::before,
+  .popover-actions > button.popover-button.accessible-touch-target::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 842px) {
+  .accessible-touch-target {
+    position: relative;
+  }
+  .accessible-touch-target::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
   }
 }
 
