@@ -212,7 +212,10 @@ test.describe('Cross-Module Login Scenarios', () => {
     const pm1 = new PageManager(libraryTab, LANGUAGES.EN);
     await pm1.onLoginPage().loginAs(testUser);
     await libraryTab.waitForLoadState('networkidle');
+    
     await hideAllModalsAndPopups(libraryTab);
+    // Wait for profile pic to appear (indicates login success)
+    await libraryTab.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });
 
     // Verify Library tab is logged in
     expect(await isUserLoggedIn(libraryTab)).toBe(true);
@@ -220,6 +223,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     // Try to navigate to login on Voices tab
     await voicesTab.goto(`${MODULE_URLS.VOICES}/login?next=%2F`);
     await voicesTab.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(voicesTab);
 
     // Verify error message appears
     const errorText1 = voicesTab.locator('text=/You are already logged in as/i');
@@ -249,6 +253,9 @@ test.describe('Cross-Module Login Scenarios', () => {
     const pm2 = new PageManager(voicesTab2, LANGUAGES.EN);
     await pm2.onLoginPage().loginAs(testUser);
     await voicesTab2.waitForLoadState('networkidle');
+    
+    // Wait for profile pic to appear (indicates login success)
+    await voicesTab2.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });
     await hideAllModalsAndPopups(voicesTab2);
 
     // Verify Voices tab is logged in
@@ -257,6 +264,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     // Try to navigate to login on Library tab
     await libraryTab2.goto(`${MODULE_URLS.LIBRARY}/login?next=%2Ftexts`);
     await libraryTab2.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(libraryTab2);
 
     // Verify error message appears
     const errorText2 = libraryTab2.locator('text=/You are already logged in as/i');
