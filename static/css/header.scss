@@ -7,6 +7,7 @@ $exclude-flex: ( //Elements excluded from the general rules of flex and align to
   ".autocomplete-dropdown",
   ".languageToggle",
   ".floating-ui-popover",
+  ".keyboardInputInitiator",
 );
 $not-selector: "";
 @each $sel in $exclude-flex {
