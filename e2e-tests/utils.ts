@@ -133,7 +133,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
     '#interruptingMessageClose', '.ub-emb-close', '.genericBanner .close, .genericBanner button.close',
     '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
     '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close',
-    '.readerControlsOuter .close, .readerControlsOuter button.close'
+    '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover'
   ];
   for (const s of selectors) {
     try {

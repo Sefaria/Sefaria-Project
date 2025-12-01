@@ -58,8 +58,8 @@ export const MODULE_URLS = {
 
 export const MODULE_SELECTORS = {
   LOGO: {
-    LIBRARY: 'img[alt="Sefaria library logo"]',
-    VOICES: 'img[alt="Sefaria voices logo"]'
+    LIBRARY: 'a.home[aria-label="Sefaria library logo"]',
+    VOICES: 'a.home[aria-label="Sefaria voices logo"]'
   },
   ICONS: {
     LANGUAGE: 'img[src="/static/icons/globallanguageswitcher_mdl.svg"]',

@@ -53,7 +53,18 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.SANDBOX_URL,
-    
+
+    /* Make browser appear to be in the US */
+    locale: 'en-US',
+    timezoneId: 'America/New_York',
+    geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
+    permissions: ['geolocation'],
+
+    /* Set US-specific HTTP headers */
+    extraHTTPHeaders: {
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
     /* Record video on failure */
@@ -70,9 +81,6 @@ export default defineConfig({
       testDir: './e2e-tests/tests', // Only run production tests by default
       use: {
         ...devices['Desktop Chrome'],
-        // Ensure we don't get redirected
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
     // Firefox - Production Tests
@@ -81,8 +89,6 @@ export default defineConfig({
       testDir: './e2e-tests/tests',
       use: {
         ...devices['Desktop Firefox'],
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
     // Safari - Production Tests
@@ -91,8 +97,6 @@ export default defineConfig({
       testDir: './e2e-tests/tests',
       use: {
         ...devices['Desktop Safari'],
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
 
@@ -102,10 +106,7 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Chrome'],
-          baseURL: MODULE_URLS.LIBRARY,
-        // Ensure we don't get redirected
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
+        baseURL: MODULE_URLS.LIBRARY,
       },
     },
     // Voices-specific modularization tests
@@ -115,9 +116,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.VOICES,
-        // Ensure we don't get redirected
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
     {
@@ -126,9 +124,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.LIBRARY,
-        // Ensure we don't get redirected
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },    
 
@@ -139,10 +134,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.LIBRARY,
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
-    },    
+    },
     // Firefox - Voices-specific modularization tests
     {
       name: 'firefox-voices',
@@ -150,8 +143,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.VOICES,
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
     // Firefox - Misc tests
@@ -160,12 +151,10 @@ export default defineConfig({
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL:MODULE_URLS.LIBRARY,
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
+        baseURL: MODULE_URLS.LIBRARY,
       },
     },
-    
+
     // Safari - Library-specific modularization tests
     {
       name: 'safari-library',
@@ -173,8 +162,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.LIBRARY,
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
     // Safari - Voices-specific modularization tests
@@ -184,8 +171,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.VOICES,
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
 
@@ -197,8 +182,6 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.LIBRARY,
-        geolocation: { latitude: 40.7128, longitude: -74.0060 }, // NYC
-        permissions: ['geolocation'],
       },
     },
 
