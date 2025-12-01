@@ -10857,6 +10857,12 @@ span.purim-emoji img{
   overflow: hidden;
   position: relative;
 }
+#aboutCover .contentInner {
+  position: relative;
+  height: 0;
+  padding: 0;
+  text-align: start;
+}
 #aboutVideo {
   position: absolute;
   top: -90px;
@@ -10874,6 +10880,10 @@ span.purim-emoji img{
     min-width: 900px;
   }
 }
+.interface-hebrew #aboutCover,
+.interface-hebrew .overlayTextOnSheetsHero {
+  direction: rtl;
+}
 .overlayTextOnSheetsHero {
   color: white;
   --english-font: var(--english-sans-serif-font-family);
@@ -10882,30 +10892,32 @@ span.purim-emoji img{
   margin-inline-start: 10%;
 }
 .overlayTextOnSheetsHero #title {
-  position: absolute;
   font-size: 50px;
   font-weight: 500;
-  top: 145px;
   line-height: 62.65px;
 }
 .overlayTextOnSheetsHero #message {
-  position: absolute;
   font-size: 24px;
   line-height: 18px;
-  top: 227px;
 }
-@media screen and (max-width: 800px) {
-  .overlayTextOnSheetsHero {
-    margin-inline-start: 15%;
-  }
+@media screen and (min-width: 801px) and (max-width: 950px) {
   .overlayTextOnSheetsHero #title {
-    font-size: 24px;
+    font-size: 40;
     top: 115px;
     line-height: revert;
   }
   .overlayTextOnSheetsHero #message {
-    font-size: 16px;
+    font-size: 22px;
     top: 175px;
+  }
+}
+@media screen and (max-width: 800px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 24px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 16px;
   }
   #aboutCover {
     height: 150px;

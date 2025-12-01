@@ -10,13 +10,15 @@ const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
      */
     return <div id="aboutCover">
             <video id="aboutVideo" poster={posterImg} preload="auto" autoPlay={true} loop muted>
-                {videoOptions.map(video => {
-                    return <source src={video}/>
+                {videoOptions.map((video, index) => {
+                    return <source key={index} src={video}/>
                 })}
             </video>
-            <div className="overlayTextOnSheetsHero">
-                <div id="title">{title}</div>
-                <div id="message">{message}</div>
+            <div className="contentInner">
+                <div className="overlayTextOnSheetsHero">
+                    <div id="title">{title}</div>
+                    <div id="message">{message}</div>
+                </div>
             </div>
         </div>;
 }
