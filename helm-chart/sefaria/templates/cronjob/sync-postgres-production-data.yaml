@@ -84,9 +84,9 @@ spec:
                   echo "Ensuring database exists..."
                   psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";" 2>/dev/null || echo "Database already exists"
 
-                  # Perform the restore with --clean to update existing tables
-                  echo "Restoring PostgreSQL data (updating existing tables)..."
-                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
+                  # Perform the restore without --clean to preserve existing data
+                  echo "Restoring PostgreSQL data (merging with existing data)..."
+                  pg_restore --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
 
                   echo "Production PostgreSQL data sync completed successfully"
               envFrom:
