@@ -962,6 +962,13 @@ def topics_redirect(request):
     return redirect("/topics", permanent=True)
 
 
+def sheets_redirect_to_getstarted(request):
+    """
+    Redirect /sheets/ to /getstarted/
+    """
+    return redirect("/getstarted/", permanent=True)
+
+
 @sanitize_get_params
 def collection_page(request, slug):
     """

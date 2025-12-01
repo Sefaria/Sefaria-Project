@@ -6,6 +6,10 @@ import Util from '../sefaria/util';
 
 /**
  *
+ * Button component - keep this clean and minimal.
+ * Stick to the defined variants where possible and avoid adding new ones.
+ * Use className only for edge cases requiring specific styling (e.g. A button implementation with a color not according to the theme) - prefer existing variants.
+ * 
  * @param variant can be empty or "secondary" or "icon-only"
  * @param size can be empty or "large", "small" or "fullwidth"
  * @param icon only the name of the icon without the extension
