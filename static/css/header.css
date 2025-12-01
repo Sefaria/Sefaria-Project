@@ -126,6 +126,7 @@
   flex: 1;
   border: none;
   font-size: 18px;
+  margin-bottom: 1px;
 }
 
 .header .readerNavMenuSearchButton {
