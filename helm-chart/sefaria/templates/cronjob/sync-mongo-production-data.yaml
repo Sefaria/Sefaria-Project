@@ -95,7 +95,7 @@ spec:
                   echo "Using MongoDB URI: ${URI//:*@/:***@}"
 
                   # Perform the restore
-                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
+                  mongorestore --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
 
                   echo "Production data sync completed successfully"
               envFrom:
