@@ -62,6 +62,12 @@ def gauth_required(scope, ajax=False):
                     return redirect('gauth_index')
            
             logger.info("Creating credentials object from stored token...")
+            # Note: scopes should be a list of strings, not wrapped in another list
+            stored_scopes = credentials_dict['scopes']
+            if isinstance(stored_scopes, str):
+                stored_scopes = [stored_scopes]
+            logger.info(f"Scopes being passed to Credentials: {stored_scopes} (type: {type(stored_scopes)})")
+            
             credentials = google.oauth2.credentials.Credentials(
                 credentials_dict['token'],
                 refresh_token=credentials_dict['refresh_token'],
@@ -69,7 +75,7 @@ def gauth_required(scope, ajax=False):
                 token_uri=credentials_dict['token_uri'],
                 client_id=credentials_dict['client_id'],
                 client_secret=credentials_dict['client_secret'],
-                scopes=[credentials_dict['scopes']],
+                scopes=stored_scopes,  # Fixed: don't wrap in extra list
             )
 
             expiry = datetime.datetime.strptime(credentials_dict['expiry'], '%Y-%m-%d %H:%M:%S')
