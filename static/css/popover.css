@@ -105,16 +105,6 @@
   .popover-actions > button.popover-button.accessible-touch-target {
     position: relative;
   }
-  .popover-actions > a.learn-more.accessible-touch-target::before,
-  .popover-actions > button.popover-button.accessible-touch-target::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 44px;
-    height: 44px;
-  }
 }
 
 @media (max-width: 842px) {

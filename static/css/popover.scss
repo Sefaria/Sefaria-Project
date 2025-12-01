@@ -111,20 +111,11 @@ $popover-text: white;
       padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
     }
 
-    // Accessible touch targets - 44x44px clickable area
-    > a.learn-more.accessible-touch-target,
+    // Ensure position: relative applies with high specificity
+    // (the ::before is defined in .accessible-touch-target class below)
+    > a.learn-more.accessible-touch-target, 
     > button.popover-button.accessible-touch-target {
       position: relative;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 44px;
-        height: 44px;
-      }
     }
   }
 }
