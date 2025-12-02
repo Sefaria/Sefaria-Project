@@ -84,10 +84,25 @@ def index(request):
     else:
         logger.error(f"Secrets file does NOT exist at: {secrets_filepath}")
 
+    # Get scopes from session - ensure it's always a list, not an empty string
+    gauth_scope = request.session.get('gauth_scope')
+    if gauth_scope is None:
+        logger.error("gauth_scope missing from session - redirecting to gauth_index")
+        return redirect('gauth_index')
+    
+    # Ensure scopes is a list (handle case where it might be stored as a string)
+    if isinstance(gauth_scope, str):
+        gauth_scope = [gauth_scope] if gauth_scope else []
+    elif not isinstance(gauth_scope, list):
+        logger.error(f"gauth_scope has unexpected type: {type(gauth_scope)} - redirecting to gauth_index")
+        return redirect('gauth_index')
+    
+    logger.info(f"Using scopes for Flow: {gauth_scope} (type: {type(gauth_scope)})")
+    
     # get authorization url
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
-        scopes=request.session.get('gauth_scope', '')
+        scopes=gauth_scope
     )
 
     # Build redirect URL
@@ -157,18 +172,19 @@ def auth_return(request):
         logger.error("This means the session was lost during the Google redirect!")
     
     # Check if critical session data is present
-    gauth_scope = request.session.get('gauth_scope', 'NOT SET')
+    gauth_scope_raw = request.session.get('gauth_scope')
     next_view = request.session.get('next_view', 'NOT SET')
-    logger.info(f"Session gauth_scope: {gauth_scope}")
+    logger.info(f"Session gauth_scope: {gauth_scope_raw if gauth_scope_raw is not None else 'NOT SET'}")
     logger.info(f"Session next_view: {next_view}")
     
-    if gauth_scope == 'NOT SET' or next_view == 'NOT SET':
+    if gauth_scope_raw is None or next_view == 'NOT SET':
         logger.error("CRITICAL: Session data lost! gauth_scope or next_view is missing.")
         logger.error("This likely means cookies aren't persisting across the Google redirect.")
         logger.error(f"Possible causes:")
         logger.error(f"  1. SESSION_COOKIE_DOMAIN doesn't match the domain Google redirects to")
         logger.error(f"  2. Cookies are being blocked")
         logger.error(f"  3. Domain mismatch between Step 1 and Step 2")
+        return redirect('gauth_index')
     
     logger.info(f"GET params: {dict(request.GET)}")
     
@@ -179,10 +195,20 @@ def auth_return(request):
         logger.error("No state parameter - redirecting to gauth_index")
         return redirect('gauth_index')
 
+    # Ensure scopes is a list (handle case where it might be stored as a string)
+    gauth_scope = gauth_scope_raw
+    if isinstance(gauth_scope, str):
+        gauth_scope = [gauth_scope] if gauth_scope else []
+    elif not isinstance(gauth_scope, list):
+        logger.error(f"gauth_scope has unexpected type: {type(gauth_scope)} - redirecting to gauth_index")
+        return redirect('gauth_index')
+    
+    logger.info(f"Using scopes for Flow: {gauth_scope} (type: {type(gauth_scope)})")
+
     try:
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
-            scopes=request.session.get('gauth_scope', ''),
+            scopes=gauth_scope,
             state=state
         )
         logger.info("Flow created successfully from client secrets")
