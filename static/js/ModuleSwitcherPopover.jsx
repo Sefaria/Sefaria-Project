@@ -46,7 +46,6 @@ const ModuleSwitcherPopover = ({ children }) => {
       const isModuleSwitcherClick = 
         event.target.closest('.headerDropdownMenu') || 
         event.target.closest('.menuButton');
-      console.log('event.target', event.target, 'isModuleSwitcherClick', isModuleSwitcherClick);
       
       if (isModuleSwitcherClick) {
         setOpen(false);
