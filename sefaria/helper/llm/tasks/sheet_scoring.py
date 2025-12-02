@@ -20,7 +20,7 @@ def generate_and_save_sheet_scoring(sheet_content: Dict[str, any]) -> object:
     sheet_scoring_input = make_sheet_scoring_input(sheet_content)
     generate_signature = signature('llm.score_sheet',
                                    args=(asdict(sheet_scoring_input),),
-                                   queue='llm')
+                                   queue=CELERY_QUEUES['llm'])
     save_signature = save_sheet_scoring.s().set(queue=CELERY_QUEUES['tasks'])
     chain = generate_signature | save_signature
     return chain()
