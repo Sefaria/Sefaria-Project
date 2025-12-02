@@ -28,6 +28,11 @@ const type_title_map = {
   "User": "Users"
 };
 
+    const MODULE_AUTOCOMPLETE_TYPES = {
+      [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
+      [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
+    };
+
 function type_icon(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
@@ -111,7 +116,8 @@ const getQueryObj = (query) => {
         return getQueryObj(repairedQuery);
       }
 
-      if (d["is_ref"]) {
+      const allowedTypes = MODULE_AUTOCOMPLETE_TYPES[Sefaria.activeModule];
+      if (d["is_ref"] && allowedTypes.includes('ref')) {
         return {'type': 'Ref', 'id': d["ref"], 'is_book': d['is_book']};
       } else if (!!d["topic_slug"]) {
         return {'type': 'Topic', 'id': d["topic_slug"], 'is_book': d['is_book']};
@@ -359,11 +365,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
-    const MODULE_AUTOCOMPLETE_TYPES = {
-      [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
-      [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
-    };
-
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
           return[];
@@ -416,12 +417,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
-              // Use library module for text refs
-              if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
-                  openURL("/" + Sefaria.normRef(queryId), true, false, Sefaria.LIBRARY_MODULE);
-              } else {
-                  onRefClick(queryId);
-              }
+              onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
