@@ -133,7 +133,7 @@
 .readerSearch::placeholder,
 .searchFiltersInput::placeholder,
 .topicFilterInput::placeholder {
-  color: red;
+  color: var(--dark-grey);
 }
 
 .header .readerNavMenuSearchButton {
