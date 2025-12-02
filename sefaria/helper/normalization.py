@@ -33,7 +33,8 @@ UNIDECODE_TABLE = {
     "\u05f4": '"',
     "\u0323": "",  # chirik-like dot
     "”": '"',
-    "“": '"'
+    "“": '"',
+    "\u00ad": "",  # soft hyphen
 }
 
 
