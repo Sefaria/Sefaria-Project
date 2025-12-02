@@ -52,8 +52,11 @@ def gauth_required(scope, ajax=False):
             if credentials_dict is None or not set(scope).issubset(set(credentials_dict['scopes'])):
                 request.session['next_view'] = request.path
                 request.session['gauth_scope'] = scope
+                request.session.save()  # Ensure session is saved
                 logger.info(f"Setting session next_view to: {request.path}")
                 logger.info(f"Setting session gauth_scope to: {scope}")
+                logger.info(f"Session ID after setting: {request.session.session_key}")
+                logger.info(f"Session data: {dict(request.session.items())}")
                 if ajax:
                     logger.info("Returning 401 Unauthorized (ajax mode)")
                     return HttpResponse('Unauthorized', status=401)

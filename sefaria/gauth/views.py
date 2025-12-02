@@ -33,6 +33,30 @@ def index(request):
     logger.info(f"Request host: {request.get_host()}")
     logger.info(f"Request scheme: {request.scheme}")
     logger.info(f"Full request URL: {request.build_absolute_uri()}")
+    
+    # Session and cookie diagnostics
+    logger.info("=== SESSION/COOKIE DIAGNOSTICS (Step 1) ===")
+    logger.info(f"Session ID: {request.session.session_key}")
+    logger.info(f"Session exists: {request.session.exists(request.session.session_key) if request.session.session_key else False}")
+    logger.info(f"Session modified: {request.session.modified}")
+    logger.info(f"All session keys: {list(request.session.keys())}")
+    logger.info(f"All session data: {dict(request.session.items())}")
+    
+    # Cookie settings
+    from django.conf import settings
+    logger.info(f"SESSION_COOKIE_DOMAIN: {getattr(settings, 'SESSION_COOKIE_DOMAIN', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_SECURE: {getattr(settings, 'SESSION_COOKIE_SECURE', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_HTTPONLY: {getattr(settings, 'SESSION_COOKIE_HTTPONLY', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_SAMESITE: {getattr(settings, 'SESSION_COOKIE_SAMESITE', 'NOT SET')}")
+    
+    # Request cookies
+    logger.info(f"Cookies in request: {list(request.COOKIES.keys())}")
+    session_cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
+    if session_cookie_name in request.COOKIES:
+        logger.info(f"Session cookie ({session_cookie_name}) present: {request.COOKIES[session_cookie_name][:20]}...")
+    else:
+        logger.warning(f"Session cookie ({session_cookie_name}) NOT present in request!")
+    
     logger.info(f"Session gauth_scope: {request.session.get('gauth_scope', 'NOT SET')}")
     logger.info(f"Session next_view: {request.session.get('next_view', 'NOT SET')}")
     logger.info(f"GET next param: {request.GET.get('next', 'NOT SET')}")
@@ -66,7 +90,7 @@ def index(request):
         scopes=request.session.get('gauth_scope', '')
     )
 
-    # Build redirect URL - THIS IS THE KEY PART
+    # Build redirect URL
     reverse_url = reverse('gauth_callback')
     logger.info(f"reverse('gauth_callback') returned: {reverse_url}")
     
@@ -90,6 +114,11 @@ def index(request):
         logger.info(f"Set session next_view to: {request.GET['next']}")
     except KeyError:
         logger.info("No 'next' param in GET, keeping existing session next_view")
+    
+    # Ensure session is saved before redirect
+    request.session.save()
+    logger.info(f"Session saved. Session ID after save: {request.session.session_key}")
+    logger.info(f"Session data after save: {dict(request.session.items())}")
 
     logger.info("=== GAUTH INDEX (Step 1) END - Redirecting to Google ===")
     return redirect(authorization_url)
@@ -103,8 +132,44 @@ def auth_return(request):
     logger.info(f"Request host: {request.get_host()}")
     logger.info(f"Request scheme: {request.scheme}")
     logger.info(f"Full request URL: {request.build_absolute_uri()}")
-    logger.info(f"Session gauth_scope: {request.session.get('gauth_scope', 'NOT SET')}")
-    logger.info(f"Session next_view: {request.session.get('next_view', 'NOT SET')}")
+    
+    # Session and cookie diagnostics - CRITICAL: Check if session persisted
+    logger.info("=== SESSION/COOKIE DIAGNOSTICS (Step 2) ===")
+    logger.info(f"Session ID: {request.session.session_key}")
+    logger.info(f"Session exists: {request.session.exists(request.session.session_key) if request.session.session_key else False}")
+    logger.info(f"Session modified: {request.session.modified}")
+    logger.info(f"All session keys: {list(request.session.keys())}")
+    logger.info(f"All session data: {dict(request.session.items())}")
+    
+    # Cookie settings (should match Step 1)
+    from django.conf import settings
+    logger.info(f"SESSION_COOKIE_DOMAIN: {getattr(settings, 'SESSION_COOKIE_DOMAIN', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_SECURE: {getattr(settings, 'SESSION_COOKIE_SECURE', 'NOT SET')}")
+    
+    # Request cookies
+    logger.info(f"Cookies in request: {list(request.COOKIES.keys())}")
+    session_cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
+    if session_cookie_name in request.COOKIES:
+        logger.info(f"Session cookie ({session_cookie_name}) present: {request.COOKIES[session_cookie_name][:20]}...")
+        logger.info(f"Session cookie matches session ID: {request.COOKIES[session_cookie_name] == request.session.session_key}")
+    else:
+        logger.error(f"Session cookie ({session_cookie_name}) NOT present in request!")
+        logger.error("This means the session was lost during the Google redirect!")
+    
+    # Check if critical session data is present
+    gauth_scope = request.session.get('gauth_scope', 'NOT SET')
+    next_view = request.session.get('next_view', 'NOT SET')
+    logger.info(f"Session gauth_scope: {gauth_scope}")
+    logger.info(f"Session next_view: {next_view}")
+    
+    if gauth_scope == 'NOT SET' or next_view == 'NOT SET':
+        logger.error("CRITICAL: Session data lost! gauth_scope or next_view is missing.")
+        logger.error("This likely means cookies aren't persisting across the Google redirect.")
+        logger.error(f"Possible causes:")
+        logger.error(f"  1. SESSION_COOKIE_DOMAIN doesn't match the domain Google redirects to")
+        logger.error(f"  2. Cookies are being blocked")
+        logger.error(f"  3. Domain mismatch between Step 1 and Step 2")
+    
     logger.info(f"GET params: {dict(request.GET)}")
     
     state = request.GET.get('state', None)
