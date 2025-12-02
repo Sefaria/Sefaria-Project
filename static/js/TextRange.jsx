@@ -328,8 +328,6 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
-            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en?.versionTitle)[1] : 'en'}
-            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             primaryDirection={data.primaryDirection}
@@ -497,7 +495,48 @@ class TextSegment extends Component {
     // 'x' is a jquery element
     return x?.attr('data-ref') && x?.prop('tagName') === 'A';
   }
+  _makeLinkerDebugAlert(ref, lang, charRange, spans) {
+      let output = "";
+      const sampleSpan = spans[0];  // useful for info that is the same across spans
+      const successStatus = spans.length === 1 ? (spans[0].failed ? "FAILED" : "SUCCESS") : "AMBIGUOUS";
+      output += sampleSpan.type.toUpperCase() + " -- " + successStatus + "\n\n";
+      for (let span of spans) {
+          output += this._getLinkerDebugStrFromSpan(span) + "-----\n";
+      }
+      output += "See console for full debug info";
+      alert(output);
+      console.log(`Linker Debug Info for ${ref} [${lang}] chars ${charRange}:`, spans.length === 1 ? spans[0] : spans);
+  }
+  _getLinkerDebugStrFromSpan(span) {
+      let output = "";
+      if (span.type === 'citation') {
+          output += "Ref: " + span.ref + "\n";
+          output += "Input Ref Parts: " + span.inputRefParts.join(' | ') + "\n";
+          output += "Input Ref Part Types: " + span.inputRefPartTypes.join(' | ') + "\n";
+          if (span.contextType) { 
+              output += "Context Ref: " + span.contextRef + "\n"; 
+              output += "Context Type: " + span.contextType + "\n";
+          }
+      } else if (span.type === 'named-entity') {
+          output += "Topic Slug: " + span.topicSlug + "\n";
+      } else if (span.type === 'category') {
+          output += "Category Path: " + span.categoryPath.join(' | ') + "\n";
+      }
+      return output;
+  }
   handleClick(event) {
+    const mutcTarget = event.target.closest("a.mutc");
+    if (mutcTarget) {
+        const charRange = mutcTarget.getAttribute('data-range');
+        const contentSpan = mutcTarget.closest('.contentSpan');
+        const lang = contentSpan?.classList.contains('he') ? 'he' : 'en';
+        const key = `${this.props.sref}|${lang}|${charRange}`;
+        const spans = Sefaria._linkerOutputMap[key];
+        this._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");

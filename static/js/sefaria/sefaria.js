@@ -580,11 +580,26 @@ Sefaria = extend(Sefaria, {
     // requiredVersions is an array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
+    Sefaria._buildLinkerOutputMap(apiObject?.linker_output);
     return apiObject;
   },
   _makeV3VersionsUrlCacheKey: function(ref, versions) {
     versions.map(version => version.isPrimary ? { languageFamilyName: 'primary' } : version);
     return Sefaria.makeUrlForAPIV3Text(ref, versions, true, 'wrap_all_entities')
+  },
+  _linkerOutputMap: {},
+  _buildLinkerOutputMap: function(linker_output = []) {
+      const getKey = (ref, language, charRange) => `${ref}|${language}|${charRange.join('-')}`;
+      for (let linkerOutput of linker_output) {
+          const {ref, language} = linkerOutput;
+          // reset arrays to keep track of ambiguous spans
+          for (let span of linkerOutput.spans) {
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)] = [];
+          }
+          for (let span of linkerOutput.spans) {
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push(span);
+          }
+      }
   },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
