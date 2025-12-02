@@ -112,8 +112,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         :param reverse: If True, returns spans in reverse order (by start index). Default is to return in normal order.
         """
         spans_sorted = sorted(self.spans, key=lambda sp: sp["charRange"][0], reverse=reverse)
-        for ispan, raw_sp in enumerate(spans_sorted):
-            yield MUTCSpanFactory.create(raw_sp, ispan)
+        for raw_sp in spans_sorted:
+            yield MUTCSpanFactory.create(raw_sp)
 
     def add_non_overlapping_spans(self, new_spans: list[dict]) -> None:
         """
@@ -187,14 +187,17 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 
 class MUTCSpan(ABC):
-    def __init__(self, raw_span: dict, index: int):
+    def __init__(self, raw_span: dict):
         self.char_range = raw_span['charRange']
         self.text = raw_span['text']
-        self.index = index
         self.failed = raw_span.get('failed', False)
         self.ambiguous = raw_span.get('ambiguous', False)
         # these fields only appear for LinkerOutput and not MUTC and therefore indicate we are debugging
         self._debug = 'failed' in raw_span or 'ambiguous' in raw_span
+        
+    @property
+    def char_range_str(self) -> str:
+        return f"{self.char_range[0]}-{self.char_range[1]}"
     
     def get_debug_css_classes(self) -> str:
         if not self._debug:
@@ -212,8 +215,8 @@ class MUTCSpan(ABC):
 
 class CitationMUTCSpan(MUTCSpan):
 
-    def __init__(self, raw_span: dict, index: int):
-        super().__init__(raw_span, index)
+    def __init__(self, raw_span: dict):
+        super().__init__(raw_span)
         tref = raw_span.get('ref')
         self.ref = Ref(tref) if tref else None
     
@@ -224,44 +227,44 @@ class CitationMUTCSpan(MUTCSpan):
             tref = self.ref.normal()
         return (f'<a class="refLink {self.get_debug_css_classes()}"'
                 f' href="{href}" data-ref="{escape(tref)}"'
-                f' data-index={self.index}>{self.text}</a>')
+                f' data-range={self.char_range_str}>{self.text}</a>')
     
     
 class NamedEntityMUTCSpan(MUTCSpan):
-    def __init__(self, raw_span: dict, index: int):
-        super().__init__(raw_span, index)
+    def __init__(self, raw_span: dict):
+        super().__init__(raw_span)
         self.topic_slug = raw_span.get('topicSlug')
         
     def wrap_span_in_a_tag(self) -> str:
         href = self.topic_slug or ""
         return (f'<a class="namedEntityLink {self.get_debug_css_classes()}"'
                 f' href="/topics/{href}" data-slug="{self.topic_slug}"'
-                f' data-index={self.index}>{self.text}</a>')
+                f' data-range={self.char_range_str}>{self.text}</a>')
     
 
 class CategoryMUTCSpan(MUTCSpan):
-    def __init__(self, raw_span: dict, index: int):
-        super().__init__(raw_span, index)
+    def __init__(self, raw_span: dict):
+        super().__init__(raw_span)
         self.category_path = raw_span.get('categoryPath')
         
     def wrap_span_in_a_tag(self) -> str:
         href = "/".join(self.category_path)
         return (f'<a class="categoryLink {self.get_debug_css_classes()}"'
                 f' href="/texts/{href}" data-category-path="{href}"'
-                f' data-index={self.index}>{self.text}</a>')
+                f' data-range={self.char_range_str}>{self.text}</a>')
     
     
 class MUTCSpanFactory:
 
     @staticmethod
-    def create(raw_span: dict, index: int) -> 'MUTCSpan':
+    def create(raw_span: dict) -> 'MUTCSpan':
         typ = MUTCSpanType(raw_span['type'])
         if typ == MUTCSpanType.CITATION:
-            return CitationMUTCSpan(raw_span, index)
+            return CitationMUTCSpan(raw_span)
         if typ == MUTCSpanType.NAMED_ENTITY:
-            return NamedEntityMUTCSpan(raw_span, index)
+            return NamedEntityMUTCSpan(raw_span)
         if typ == MUTCSpanType.CATEGORY:
-            return CategoryMUTCSpan(raw_span, index)
+            return CategoryMUTCSpan(raw_span)
         raise ValueError(f"MUTCSpanFactory.create(): Unsupported MUTCSpanType: {typ}")
 
 
