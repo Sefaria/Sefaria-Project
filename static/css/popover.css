@@ -15,22 +15,18 @@
 @media (max-width: 842px) {
   .floating-ui-popover {
     width: 264px;
-    max-width: 264px;
   }
 }
-
 .floating-ui-popover-content {
   padding: 16px 20px;
-  position: relative;
-  z-index: 2;
   background-color: var(--theme-primary);
   color: white;
   border-radius: 8px;
-  font-size: 14px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  font-size: 14px;
 }
 @media (max-width: 842px) {
   .floating-ui-popover-content {
@@ -59,8 +55,13 @@
   align-items: center;
   margin-top: 16px;
   margin-bottom: 0;
-  font-size: 14px;
   width: 100%;
+  font-size: 14px;
+}
+@media (max-width: 842px) {
+  .popover-actions {
+    font-size: 16px;
+  }
 }
 .popover-actions > a,
 .popover-actions > button {
@@ -69,18 +70,10 @@
   justify-content: center;
   align-items: center;
   height: 30px;
-  flex: none;
-  flex-grow: 0;
 }
 .popover-actions > a.learn-more {
   padding: 6px 0px;
-  order: 0;
-  background: transparent;
-  border: none;
   text-decoration: underline;
-  color: inherit;
-  min-width: unset;
-  height: 30px;
   font-size: 14px;
 }
 @media (max-width: 842px) {
@@ -88,16 +81,7 @@
     font-size: 16px;
   }
 }
-.popover-actions > a.learn-more, .popover-actions > a.learn-more * {
-  color: inherit;
-}
 @media (max-width: 842px) {
-  .popover-actions {
-    align-items: center;
-  }
-  .popover-actions > a.learn-more {
-    padding: 6px 0px;
-  }
   .popover-actions > button.popover-button {
     padding: 8px 12px;
   }
@@ -123,18 +107,23 @@
 }
 
 .popover-button {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   background-color: white;
   color: var(--theme-primary);
   border: none;
-  font-size: 14px;
   height: 30px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
+  font-size: 14px;
+}
+@media (max-width: 842px) {
+  .popover-button {
+    font-size: 16px;
+  }
 }
 .popover-button:is(:hover, :active, :focus) {
   background: transparent;
@@ -144,10 +133,8 @@
 }
 @media (max-width: 842px) {
   .popover-button {
-    font-size: 16px;
     padding: 8px 12px;
     height: auto;
-    min-height: auto;
   }
 }
 
@@ -158,7 +145,6 @@
   background-color: var(--theme-primary);
   transform: rotate(45deg);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  z-index: 1;
 }
 .floating-ui-arrow.mobile-hebrew-right, .floating-ui-arrow.desktop-left {
   right: -4px;

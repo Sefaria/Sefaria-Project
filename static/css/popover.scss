@@ -5,52 +5,64 @@
 // Popover theme variables
 $popover-bg: var(--theme-primary);
 $popover-text: white;
+$popover-radius: 8px;
+$popover-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+$popover-arrow-offset: -4px;
+
+// Mixin for consistent desktop (14px) / mobile (16px) font sizing
+@mixin responsive-font {
+  font-size: 14px;
+  @include breakpoint(mobile) {
+    font-size: 16px;
+  }
+}
+
+// Mixin for flexbox centering (row direction)
+@mixin flex-center-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+// Button height variable
+$button-height-desktop: 30px;
 
 .floating-ui-popover {
   background-color: $popover-bg;
   color: $popover-text;
   cursor: default;
-  border-radius: 8px;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: $popover-radius;
+  box-shadow: $popover-shadow;
   z-index: 9999;
   max-width: 350px;
 
   @include breakpoint(mobile) {
     width: 264px;
-    max-width: 264px;
+    // max-width: 264px;
   }
-}
-
-.floating-ui-popover-content {
-  padding: 16px 20px;
-  position: relative;
-  z-index: 2;
-  background-color: $popover-bg;
-  color: $popover-text;
-  border-radius: 8px;
-  font-size: 14px;  
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-
-  @include breakpoint(mobile) {
-    font-size: 16px; 
-  }
-  a {
-    text-decoration: underline;
-    color: inherit;
+  &-content {
+    padding: 16px 20px;
+    background-color: $popover-bg;
+    color: $popover-text;
+    border-radius: $popover-radius;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    @include responsive-font;
+  
+    a {
+      text-decoration: underline;
+      color: inherit;
+    }
   }
 }
 
 .popover-header {
   font-weight: 600;
   margin-bottom: 8px;
-  font-size: 14px;
-
-  @include breakpoint(mobile) {
-    font-size: 16px;
-  }
+  @include responsive-font;
 }
 
 .popover-actions {
@@ -59,56 +71,29 @@ $popover-text: white;
   align-items: center;
   margin-top: 16px;
   margin-bottom: 0;
-  font-size: 14px;
   width: 100%;
+  @include responsive-font;
 
   // Desktop - both buttons have 30px height
   > a,
   > button {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    height: 30px;
-    flex: none;
-    flex-grow: 0;
+    @include flex-center-row;
+    height: $button-height-desktop;
   }
 
   // Learn More link styling - override Button component styles
   > a.learn-more {
     padding: 6px 0px;
-    order: 0;
-    background: transparent;
-    border: none;
     text-decoration: underline;
-    color: inherit;
-    min-width: unset;
-    height: 30px;
-    font-size: 14px; // Desktop default
-
-    @include breakpoint(mobile) {
-      font-size: 16px; // Mobile: 16px
-    }
-
-    &,
-    & * {
-      color: inherit;
-    }
+    @include responsive-font;
   }
 
 
   // Mobile responsive styles
   @include breakpoint(mobile) {
-    align-items: center;
-
-    // Learn More link keeps its underline style but gets 16px font
-    > a.learn-more {
-      padding: 6px 0px; // Keep original padding for underline link
-    }
-
     // Primary button (Got it) gets 8px 12px padding
     > button.popover-button {
-      padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
+      padding: 8px 12px;
     }
 
     // Ensure position: relative applies with high specificity
@@ -140,18 +125,15 @@ $popover-text: white;
 }
 
 .popover-button {
+  @include flex-center-row;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   background-color: white;
   color: var(--theme-primary);
   border: none;
-  font-size: 14px;
-  height: 30px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
+  height: $button-height-desktop;
+  @include responsive-font;
 
   &:is(:hover, :active, :focus) {
     background: transparent;
@@ -161,10 +143,8 @@ $popover-text: white;
   }
 
   @include breakpoint(mobile) {
-    font-size: 16px; // English System Body / Hebrew System Body (16px)
-    padding: 8px 12px; // 8px top, 12px right, 8px bottom, 12px left
+    padding: 8px 12px;
     height: auto;
-    min-height: auto; // Height controlled by container
   }
 }
 
@@ -174,10 +154,8 @@ $popover-text: white;
   height: 8px;
   background-color: $popover-bg;
   transform: rotate(45deg);
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  z-index: 1;
+  box-shadow: $popover-shadow;
 
-  $popover-arrow-offset: -4px;
   // Arrow positioning based on placement
   &.mobile-hebrew-right,
   &.desktop-left {
