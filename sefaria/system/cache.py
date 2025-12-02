@@ -247,31 +247,15 @@ def invalidate_cache_by_pattern(pattern: str, cache_type: Optional[str] = None) 
 
             else:
                 # Fallback for other cache backends (FileBasedCache, etc.)
-                logger.info(f"Using fallback invalidation for {cache_backend}")
-
-                if hasattr(cache_instance, "clear"):
-                    # For FileBasedCache and other backends that support clear()
-                    # This could clear ALL entries for all environments without Redis
-                    logger.warning(f"No pattern deletion available for {cache_backend}, clearing entire cache")
-                    cache_instance.clear()
-                    return {
-                        "success": True,
-                        "method": "full_clear",
-                        "backend": cache_backend,
-                        "count": "unknown",
-                        "message": f"Entire cache cleared for {cache_backend} (no pattern support)"
-                    }
-
-                else:
-                    # No supported invalidation method available
-                    logger.info(f"No supported invalidation method for {cache_backend}")
-                    return {
-                        "success": False,
-                        "method": "none",
-                        "backend": cache_backend,
-                        "count": 0,
-                        "message": f"Cache invalidation not supported for {cache_backend}"
-                    }
+                # Pattern deletion not supported - caller can manually call clear() if needed
+                logger.info(f"Pattern deletion not supported for {cache_backend}")
+                return {
+                    "success": False,
+                    "method": "not_supported",
+                    "backend": cache_backend,
+                    "count": 0,
+                    "message": f"Pattern deletion not supported for {cache_backend}. Use cache.clear() manually if full invalidation is needed."
+                }
 
         except Exception as cache_error:
             logger.error(f"Error during cache invalidation: {str(cache_error)}")
