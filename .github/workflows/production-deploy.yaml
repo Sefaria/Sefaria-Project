@@ -37,9 +37,9 @@ jobs:
             fi
           fi
   build-images:
-    name: "Build Images for ${{ needs.determine-version.outputs.environment }}"
+    name: "Build Images for Prod"
     needs: [workflow-check]
-    uses: ./.github/workflows/build-images.yml
+    uses: ./.github/workflows/build-images.yaml
     with:
       git_ref: ${{ needs.workflow-check.outputs.ref }}
       image_tag: ${{ needs.workflow-check.outputs.ref }}

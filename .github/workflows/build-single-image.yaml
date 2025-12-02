@@ -45,7 +45,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     outputs:
-      tags: ${{ steps.meta.output.tags }}
+      tags: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -95,4 +95,4 @@ jobs:
           file: ./build/${{ inputs.app }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          build-args: ${{ env.BUILD_ARGS }}
+          build-args: ${{ inputs.build_args }}

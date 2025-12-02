@@ -113,14 +113,14 @@ jobs:
       id-token: 'write'
     uses: ./.github/workflows/build-single-image.yaml
     with:
-      app: node
+      app: asset
       git_ref: ${{ inputs.git_ref }}
       datetime: ${{ needs.calculate.outputs.datetime }}
       image_tag: ${{ inputs.image_tag }}
-      image: ${{ needs.calculate.outputs.node_image }}
+      image: ${{ needs.calculate.outputs.asset_image }}
       prod: ${{ inputs.push_to_prod_registry }}
       build_args: >-
-        SRC=${{ needs.build-web.outputs.tags }}
+        SRC_IMG=${{ needs.build-web.outputs.tags }}
     secrets:
       PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
       DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
