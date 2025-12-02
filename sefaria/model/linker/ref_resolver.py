@@ -120,9 +120,15 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         import re
 
         curr_start, curr_end = curr_span.range
-        if re.search(r'\([^)]+$', curr_span.text) is not None:
+        
+        # Check for opening delimiters without closing ones
+        has_open_paren = re.search(r'\([^)]+$', curr_span.text) is not None
+        has_open_bracket = re.search(r'\[[^]]+$', curr_span.text) is not None
+        
+        if has_open_paren or has_open_bracket:
             for temp_end in range(curr_end, curr_end+5):
-                if curr_span.doc.text[temp_end] == ")":
+                char = curr_span.doc.text[temp_end]
+                if (has_open_paren and char == ")") or (has_open_bracket and char == "]"):
                     curr_end = temp_end + 1
                     break
 
