@@ -128,8 +128,8 @@
   font-size: 18px;
 }
 
-.header .search::placeholder {
-  color: var(--dark-grey);
+.search::placeholder {
+  color: red;
 }
 
 .header .readerNavMenuSearchButton {
