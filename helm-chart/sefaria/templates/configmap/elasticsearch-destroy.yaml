@@ -1,0 +1,57 @@
+{{- if .Values.restore.cleanup }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: destroy-elasticsearch-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "5"
+data:
+  destroy-elasticsearch.sh: |-
+    #!/bin/sh
+    set -e
+    set -x
+
+    ES_HOST="${SEARCH_HOST:-elasticsearch-es-http.elasticsearch.svc}"
+    ES_PORT="${SEARCH_PORT:-9200}"
+    ES_URL="http://${ES_HOST}:${ES_PORT}"
+
+    # Get index names from environment (set by job)
+    TEXT_INDEX="${SEARCH_INDEX_NAME_TEXT}"
+    SHEET_INDEX="${SEARCH_INDEX_NAME_SHEET}"
+
+    echo "Elasticsearch URL: $ES_URL"
+    echo "Text index name: $TEXT_INDEX"
+    echo "Sheet index name: $SHEET_INDEX"
+
+    # Safety check and delete text indexes
+    if [ "$TEXT_INDEX" = "text" ]; then
+      echo "Skipping text index deletion - using default 'text' index"
+    else
+      echo "Deleting custom text indexes: ${TEXT_INDEX}-a, ${TEXT_INDEX}-b, and alias ${TEXT_INDEX}"
+      # Delete both A/B indexes and the alias (ignore errors if they don't exist)
+      curl -X DELETE "${ES_URL}/${TEXT_INDEX}-a" || echo "Index ${TEXT_INDEX}-a not found or already deleted"
+      curl -X DELETE "${ES_URL}/${TEXT_INDEX}-b" || echo "Index ${TEXT_INDEX}-b not found or already deleted"
+      curl -X DELETE "${ES_URL}/${TEXT_INDEX}" || echo "Index/alias ${TEXT_INDEX} not found or already deleted"
+      echo "Text indexes deleted successfully"
+    fi
+
+    # Safety check and delete sheet indexes
+    if [ "$SHEET_INDEX" = "sheet" ]; then
+      echo "Skipping sheet index deletion - using default 'sheet' index"
+    else
+      echo "Deleting custom sheet indexes: ${SHEET_INDEX}-a, ${SHEET_INDEX}-b, and alias ${SHEET_INDEX}"
+      # Delete both A/B indexes and the alias (ignore errors if they don't exist)
+      curl -X DELETE "${ES_URL}/${SHEET_INDEX}-a" || echo "Index ${SHEET_INDEX}-a not found or already deleted"
+      curl -X DELETE "${ES_URL}/${SHEET_INDEX}-b" || echo "Index ${SHEET_INDEX}-b not found or already deleted"
+      curl -X DELETE "${ES_URL}/${SHEET_INDEX}" || echo "Index/alias ${SHEET_INDEX} not found or already deleted"
+      echo "Sheet indexes deleted successfully"
+    fi
+
+    echo "Elasticsearch cleanup complete"
+{{- end }}
+

@@ -1,0 +1,42 @@
+# NB: This assumes an already-functioning elasticsearch instance.
+---
+{{- if .Values.restore.cleanup }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: destroy-elasticsearch-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "10"
+spec:
+  template:
+    spec:
+      containers:
+      - name: destroy-elasticsearch-{{ .Values.deployEnv }}
+        image: curlimages/curl:latest
+        env:
+        - name: SEARCH_HOST
+          value: "elasticsearch-es-http.elasticsearch.svc"
+        - name: SEARCH_PORT
+          value: "9200"
+        - name: SEARCH_INDEX_NAME_TEXT
+          value: {{ .Values.localSettings.SEARCH_INDEX_NAME_TEXT | quote }}
+        - name: SEARCH_INDEX_NAME_SHEET
+          value: {{ .Values.localSettings.SEARCH_INDEX_NAME_SHEET | quote }}
+        command: ["/bin/sh", "/script/destroy-elasticsearch.sh"]
+        volumeMounts:
+        - name: script
+          mountPath: /script
+      restartPolicy: Never
+      volumes:
+      - name: script
+        configMap:
+          name: destroy-elasticsearch-{{ .Values.deployEnv }}
+          defaultMode: 0755
+  ttlSecondsAfterFinished: 432000
+{{- end }}
+
