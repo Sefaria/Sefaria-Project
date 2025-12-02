@@ -12,11 +12,6 @@
   z-index: 9999;
   max-width: 350px;
 }
-@media (max-width: 842px) {
-  .floating-ui-popover {
-    width: 264px;
-  }
-}
 .floating-ui-popover-content {
   padding: 16px 20px;
   background-color: var(--theme-primary);
@@ -81,30 +76,6 @@
     font-size: 16px;
   }
 }
-@media (max-width: 842px) {
-  .popover-actions > button.popover-button {
-    padding: 8px 12px;
-  }
-  .popover-actions > a.learn-more.accessible-touch-target,
-  .popover-actions > button.popover-button.accessible-touch-target {
-    position: relative;
-  }
-}
-
-@media (max-width: 842px) {
-  .accessible-touch-target {
-    position: relative;
-  }
-  .accessible-touch-target::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 44px;
-    height: 44px;
-  }
-}
 
 .popover-button {
   display: flex;
@@ -131,12 +102,6 @@
   box-shadow: inset 0 0 0 1px white;
   outline: none;
 }
-@media (max-width: 842px) {
-  .popover-button {
-    padding: 8px 12px;
-    height: auto;
-  }
-}
 
 .floating-ui-arrow {
   position: absolute;
@@ -157,6 +122,35 @@
 }
 .floating-ui-arrow.desktop-bottom {
   top: -4px;
+}
+
+@media (max-width: 842px) {
+  .floating-ui-popover {
+    width: 264px;
+  }
+  .popover-actions > button.popover-button {
+    padding: 8px 12px;
+  }
+  .popover-actions > a.learn-more.accessible-touch-target,
+  .popover-actions > button.popover-button.accessible-touch-target {
+    position: relative;
+  }
+  .popover-button {
+    padding: 8px 12px;
+    height: auto;
+  }
+  .accessible-touch-target {
+    position: relative;
+  }
+  .accessible-touch-target::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+  }
 }
 
 /*# sourceMappingURL=popover.css.map */

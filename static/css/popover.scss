@@ -37,10 +37,6 @@ $button-height-desktop: 30px;
   z-index: 9999;
   max-width: 350px;
 
-  @include breakpoint(mobile) {
-    width: 264px;
-    // max-width: 264px;
-  }
   &-content {
     padding: 16px 20px;
     background-color: $popover-bg;
@@ -87,42 +83,11 @@ $button-height-desktop: 30px;
     text-decoration: underline;
     @include responsive-font;
   }
-
-
-  // Mobile responsive styles
-  @include breakpoint(mobile) {
-    // Primary button (Got it) gets 8px 12px padding
-    > button.popover-button {
-      padding: 8px 12px;
-    }
-
-    // Ensure position: relative applies with high specificity
-    // (the ::before is defined in .accessible-touch-target class below)
-    > a.learn-more.accessible-touch-target, 
-    > button.popover-button.accessible-touch-target {
-      position: relative;
-    }
-  }
 }
 
 // Accessible touch target class for mobile - creates 44x44px clickable area
 // Works on both <button> and <a> tags - the ::before is part of the element's clickable area
-.accessible-touch-target {
-  @include breakpoint(mobile) {
-    position: relative;
-
-    // Create invisible 44x44px touch area centered on the element
-    &::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 44px;
-      height: 44px;
-    }
-  }
-}
+// Styles defined in central breakpoint block below
 
 .popover-button {
   @include flex-center-row;
@@ -140,11 +105,6 @@ $button-height-desktop: 30px;
     color: white;
     box-shadow: inset 0 0 0 1px white;
     outline: none;
-  }
-
-  @include breakpoint(mobile) {
-    padding: 8px 12px;
-    height: auto;
   }
 }
 
@@ -173,6 +133,48 @@ $button-height-desktop: 30px;
 
   &.desktop-bottom {
     top: $popover-arrow-offset;
+  }
+}
+
+// Mobile responsive styles - all mobile breakpoints consolidated here
+@include breakpoint(mobile) {
+  .floating-ui-popover {
+    width: 264px;
+    // max-width: 264px;
+  }
+
+  .popover-actions {
+    // Primary button (Got it) gets 8px 12px padding
+    > button.popover-button {
+      padding: 8px 12px;
+    }
+
+    // Ensure position: relative applies with high specificity
+    // (the ::before is defined in .accessible-touch-target class below)
+    > a.learn-more.accessible-touch-target, 
+    > button.popover-button.accessible-touch-target {
+      position: relative;
+    }
+  }
+
+  .popover-button {
+    padding: 8px 12px;
+    height: auto;
+  }
+
+  .accessible-touch-target {
+    position: relative;
+
+    // Create invisible 44x44px touch area centered on the element
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+    }
   }
 }
 
