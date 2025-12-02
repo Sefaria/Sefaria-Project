@@ -84,45 +84,95 @@ def index(request):
     else:
         logger.error(f"Secrets file does NOT exist at: {secrets_filepath}")
 
-    # Get scopes from session - ensure it's always a list, not an empty string
-    gauth_scope = request.session.get('gauth_scope')
-    if gauth_scope is None:
-        logger.error("gauth_scope missing from session - redirecting to gauth_index")
-        return redirect('gauth_index')
+    # DIAGNOSTIC: Check gauth_scope in session - this is critical for understanding the malformed URL error
+    gauth_scope_raw = request.session.get('gauth_scope', '')
+    logger.info("=== GAUTH_SCOPE DIAGNOSTICS (Step 1) ===")
+    logger.info(f"gauth_scope exists in session: {'gauth_scope' in request.session}")
+    logger.info(f"gauth_scope raw value: {gauth_scope_raw}")
+    logger.info(f"gauth_scope type: {type(gauth_scope_raw)}")
+    logger.info(f"gauth_scope is None: {gauth_scope_raw is None}")
+    logger.info(f"gauth_scope is empty string: {gauth_scope_raw == ''}")
+    logger.info(f"gauth_scope is list: {isinstance(gauth_scope_raw, list)}")
+    logger.info(f"gauth_scope is str: {isinstance(gauth_scope_raw, str)}")
     
-    # Ensure scopes is a list (handle case where it might be stored as a string)
-    if isinstance(gauth_scope, str):
-        gauth_scope = [gauth_scope] if gauth_scope else []
-    elif not isinstance(gauth_scope, list):
-        logger.error(f"gauth_scope has unexpected type: {type(gauth_scope)} - redirecting to gauth_index")
-        return redirect('gauth_index')
+    # Check how request arrived
+    referer = request.META.get('HTTP_REFERER', 'NOT SET')
+    logger.info(f"Request referer: {referer}")
+    logger.info(f"Request path: {request.path}")
+    logger.info(f"GET params: {dict(request.GET)}")
+    logger.info(f"Has 'next' param: {'next' in request.GET}")
     
-    logger.info(f"Using scopes for Flow: {gauth_scope} (type: {type(gauth_scope)})")
+    # Check if this might be from AJAX flow (direct navigation without decorator)
+    if 'next' in request.GET and 'gauth_scope' not in request.session:
+        logger.warning("POTENTIAL ISSUE: Request has 'next' param but no gauth_scope in session")
+        logger.warning("This suggests direct navigation to /gauth without going through decorator")
+        logger.warning("This can happen when JavaScript redirects after 401 response")
+    
+    # Check session state
+    logger.info(f"All session keys: {list(request.session.keys())}")
+    logger.info(f"Session modified: {request.session.modified}")
+    logger.info(f"Session exists: {request.session.exists(request.session.session_key) if request.session.session_key else False}")
+    
+    # Check if empty string default was used (this causes the malformed URL error)
+    if gauth_scope_raw == '':
+        logger.error("CRITICAL: gauth_scope is empty string (default value used)")
+        logger.error("This means gauth_scope was NOT set in session before reaching this view")
+        logger.error("Possible causes:")
+        logger.error("  1. Direct navigation to /gauth without going through @gauth_required decorator")
+        logger.error("  2. JavaScript redirect after 401 response (bypasses decorator session setup)")
+        logger.error("  3. Session cookie not persisting (SESSION_COOKIE_DOMAIN mismatch, cookies blocked, etc.)")
+        logger.error("  4. Session expired between decorator setting and view reading")
+        logger.error("  5. Different session being used (session ID mismatch)")
+        logger.error("Flow.from_client_secrets_file() expects list or None, not empty string!")
+        logger.error("Passing empty string will cause malformed redirect_uri: /gauth/callback'%5D\"")
     
     # get authorization url
+    logger.info(f"About to create Flow with scopes={gauth_scope_raw} (type: {type(gauth_scope_raw)})")
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
-        scopes=gauth_scope
+        scopes=gauth_scope_raw
     )
 
-    # Build redirect URL
+    # Build redirect URL - track this carefully as malformed URLs can occur here
+    logger.info("=== BUILDING REDIRECT URL (Step 1) ===")
     reverse_url = reverse('gauth_callback')
     logger.info(f"reverse('gauth_callback') returned: {reverse_url}")
+    logger.info(f"reverse_url type: {type(reverse_url)}")
+    logger.info(f"reverse_url repr: {repr(reverse_url)}")
     
     absolute_uri = request.build_absolute_uri(reverse_url)
     logger.info(f"build_absolute_uri result: {absolute_uri}")
+    logger.info(f"absolute_uri type: {type(absolute_uri)}")
+    logger.info(f"absolute_uri repr: {repr(absolute_uri)}")
     
     redirect_url = absolute_uri.replace("http:", "https:")
     logger.info(f"Final redirect_url (after https replace): {redirect_url}")
+    logger.info(f"redirect_url type: {type(redirect_url)}")
+    logger.info(f"redirect_url repr: {repr(redirect_url)}")
+    
+    # Check for malformed characters that could cause the error
+    if "'" in redirect_url or ']' in redirect_url or '%5D' in redirect_url:
+        logger.error(f"MALFORMED REDIRECT URL DETECTED: {redirect_url}")
+        logger.error("This contains characters that should not be in a URL!")
     
     flow.redirect_uri = redirect_url
+    logger.info(f"flow.redirect_uri set to: {flow.redirect_uri}")
+    logger.info(f"flow.redirect_uri type: {type(flow.redirect_uri)}")
 
+    logger.info("About to call flow.authorization_url()...")
     authorization_url, state = flow.authorization_url(
         access_type='offline',
         include_granted_scope='true',
     )
-    logger.info(f"Authorization URL: {authorization_url}")
+    logger.info(f"Authorization URL returned: {authorization_url}")
+    logger.info(f"Authorization URL type: {type(authorization_url)}")
+    logger.info(f"Authorization URL repr: {repr(authorization_url)}")
     logger.info(f"OAuth state: {state}")
+    
+    # Check if authorization URL is malformed
+    if "'" in authorization_url or '%5D' in authorization_url:
+        logger.error(f"MALFORMED AUTHORIZATION URL DETECTED: {authorization_url}")
+        logger.error("This URL contains characters that will cause 404 errors!")
 
     try:
         request.session['next_view'] = request.GET['next']
@@ -171,20 +221,41 @@ def auth_return(request):
         logger.error(f"Session cookie ({session_cookie_name}) NOT present in request!")
         logger.error("This means the session was lost during the Google redirect!")
     
-    # Check if critical session data is present
-    gauth_scope_raw = request.session.get('gauth_scope')
+    # DIAGNOSTIC: Check if critical session data is present
+    gauth_scope_raw = request.session.get('gauth_scope', '')
     next_view = request.session.get('next_view', 'NOT SET')
-    logger.info(f"Session gauth_scope: {gauth_scope_raw if gauth_scope_raw is not None else 'NOT SET'}")
+    
+    logger.info("=== GAUTH_SCOPE DIAGNOSTICS (Step 2) ===")
+    logger.info(f"All session keys: {list(request.session.keys())}")
+    logger.info(f"gauth_scope exists in session: {'gauth_scope' in request.session}")
+    logger.info(f"gauth_scope raw value: {gauth_scope_raw}")
+    logger.info(f"gauth_scope type: {type(gauth_scope_raw)}")
+    logger.info(f"gauth_scope is None: {gauth_scope_raw is None}")
+    logger.info(f"gauth_scope is empty string: {gauth_scope_raw == ''}")
+    logger.info(f"gauth_scope is list: {isinstance(gauth_scope_raw, list)}")
+    logger.info(f"gauth_scope is str: {isinstance(gauth_scope_raw, str)}")
     logger.info(f"Session next_view: {next_view}")
     
-    if gauth_scope_raw is None or next_view == 'NOT SET':
+    # Check if empty string default was used
+    if gauth_scope_raw == '':
+        logger.error("CRITICAL: gauth_scope is empty string (default value used)")
+        logger.error("This means gauth_scope was NOT set in session")
+        logger.error("Possible causes:")
+        logger.error("  1. Session cookie not persisting across Google redirect")
+        logger.error("  2. SESSION_COOKIE_DOMAIN mismatch between Step 1 and Step 2")
+        logger.error("  3. Cookies being blocked by browser")
+        logger.error("  4. Session expired between Step 1 and Step 2")
+        logger.error("  5. Different session being used (session ID mismatch)")
+        logger.error("Flow.from_client_secrets_file() expects list or None, not empty string!")
+        logger.error("Passing empty string will cause malformed redirect_uri: /gauth/callback'%5D\"")
+    
+    if gauth_scope_raw == '' or next_view == 'NOT SET':
         logger.error("CRITICAL: Session data lost! gauth_scope or next_view is missing.")
         logger.error("This likely means cookies aren't persisting across the Google redirect.")
         logger.error(f"Possible causes:")
         logger.error(f"  1. SESSION_COOKIE_DOMAIN doesn't match the domain Google redirects to")
         logger.error(f"  2. Cookies are being blocked")
         logger.error(f"  3. Domain mismatch between Step 1 and Step 2")
-        return redirect('gauth_index')
     
     logger.info(f"GET params: {dict(request.GET)}")
     
@@ -195,20 +266,13 @@ def auth_return(request):
         logger.error("No state parameter - redirecting to gauth_index")
         return redirect('gauth_index')
 
-    # Ensure scopes is a list (handle case where it might be stored as a string)
-    gauth_scope = gauth_scope_raw
-    if isinstance(gauth_scope, str):
-        gauth_scope = [gauth_scope] if gauth_scope else []
-    elif not isinstance(gauth_scope, list):
-        logger.error(f"gauth_scope has unexpected type: {type(gauth_scope)} - redirecting to gauth_index")
-        return redirect('gauth_index')
+    # Check what we're about to pass to Flow
+    logger.info(f"About to create Flow with scopes={gauth_scope_raw} (type: {type(gauth_scope_raw)}), state={state}")
     
-    logger.info(f"Using scopes for Flow: {gauth_scope} (type: {type(gauth_scope)})")
-
     try:
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
-            scopes=gauth_scope,
+            scopes=gauth_scope_raw,
             state=state
         )
         logger.info("Flow created successfully from client secrets")
@@ -217,19 +281,40 @@ def auth_return(request):
         raise
 
     # Build redirect URL - must match what was sent in Step 1
+    logger.info("=== BUILDING REDIRECT URL (Step 2) ===")
     reverse_url = reverse('gauth_callback')
     logger.info(f"reverse('gauth_callback') returned: {reverse_url}")
+    logger.info(f"reverse_url type: {type(reverse_url)}")
+    logger.info(f"reverse_url repr: {repr(reverse_url)}")
     
     absolute_uri = request.build_absolute_uri(reverse_url)
     logger.info(f"build_absolute_uri result: {absolute_uri}")
+    logger.info(f"absolute_uri type: {type(absolute_uri)}")
+    logger.info(f"absolute_uri repr: {repr(absolute_uri)}")
     
     redirect_url = absolute_uri.replace("http:", "https:")
     logger.info(f"Final redirect_url for flow: {redirect_url}")
+    logger.info(f"redirect_url type: {type(redirect_url)}")
+    logger.info(f"redirect_url repr: {repr(redirect_url)}")
+    
+    # Check for malformed characters
+    if "'" in redirect_url or ']' in redirect_url or '%5D' in redirect_url:
+        logger.error(f"MALFORMED REDIRECT URL DETECTED: {redirect_url}")
+        logger.error("This contains characters that should not be in a URL!")
     
     flow.redirect_uri = redirect_url
+    logger.info(f"flow.redirect_uri set to: {flow.redirect_uri}")
 
     authorization_response = request.build_absolute_uri().replace("http:", "https:")
     logger.info(f"Authorization response URL: {authorization_response}")
+    logger.info(f"Authorization response URL type: {type(authorization_response)}")
+    logger.info(f"Authorization response URL repr: {repr(authorization_response)}")
+    
+    # Check if authorization response URL is malformed (this is what Google redirects back to)
+    if "'" in authorization_response or '%5D' in authorization_response:
+        logger.error(f"MALFORMED AUTHORIZATION RESPONSE URL DETECTED: {authorization_response}")
+        logger.error("This is the URL Google will redirect back to - it's malformed!")
+        logger.error("This will cause a 404 error when Django tries to route it!")
     
     try:
         flow.fetch_token(authorization_response=authorization_response)

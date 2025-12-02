@@ -50,18 +50,39 @@ def gauth_required(scope, ajax=False):
                 logger.info("No gauth_token in profile - need to authenticate")
 
             if credentials_dict is None or not set(scope).issubset(set(credentials_dict['scopes'])):
+                logger.info("=== SETTING GAUTH_SCOPE IN SESSION (Decorator) ===")
+                logger.info(f"Scope being set: {scope}")
+                logger.info(f"Scope type: {type(scope)}")
+                logger.info(f"Scope is list: {isinstance(scope, list)}")
+                logger.info(f"Session ID before setting: {request.session.session_key}")
+                logger.info(f"Session exists before: {request.session.exists(request.session.session_key) if request.session.session_key else False}")
+                
                 request.session['next_view'] = request.path
                 request.session['gauth_scope'] = scope
+                
+                logger.info(f"Session keys after setting gauth_scope: {list(request.session.keys())}")
+                logger.info(f"Session gauth_scope value after setting: {request.session.get('gauth_scope')}")
+                logger.info(f"Session gauth_scope type after setting: {type(request.session.get('gauth_scope'))}")
+                
                 request.session.save()  # Ensure session is saved
-                logger.info(f"Setting session next_view to: {request.path}")
-                logger.info(f"Setting session gauth_scope to: {scope}")
-                logger.info(f"Session ID after setting: {request.session.session_key}")
-                logger.info(f"Session data: {dict(request.session.items())}")
+                logger.info(f"Session saved. Session ID after save: {request.session.session_key}")
+                logger.info(f"Session exists after save: {request.session.exists(request.session.session_key) if request.session.session_key else False}")
+                logger.info(f"All session data after save: {dict(request.session.items())}")
+                
+                # Verify the value persisted
+                verify_scope = request.session.get('gauth_scope')
+                logger.info(f"VERIFICATION: Retrieved gauth_scope immediately after save: {verify_scope}")
+                logger.info(f"VERIFICATION: Retrieved gauth_scope type: {type(verify_scope)}")
+                logger.info(f"VERIFICATION: Retrieved gauth_scope matches original: {verify_scope == scope}")
+                
                 if ajax:
                     logger.info("Returning 401 Unauthorized (ajax mode)")
+                    logger.warning("NOTE: JavaScript will redirect to /gauth, which may use a different session!")
+                    logger.warning("This could cause gauth_scope to be missing in the next request")
                     return HttpResponse('Unauthorized', status=401)
                 else:
                     logger.info("Redirecting to gauth_index (non-ajax mode)")
+                    logger.info(f"Redirect URL will be: /gauth")
                     return redirect('gauth_index')
            
             logger.info("Creating credentials object from stored token...")
