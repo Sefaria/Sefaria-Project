@@ -51,56 +51,54 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-
 function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded=0, pageSize=20}) {
   // Loads data from `url` and calls `setter` on the resulting data when `scrollableRef` scrolls
-  // close to its bottom. 
+  // close to its bottom.
   // API endpoint must return an array of results and support params `skip` and `limit`.
   // `itemsPreLoaded` counts the number of items already loaded, e.g. when some data was already available
-  // in the JS cache.  If `itemsPreLoaded` > 0, no initial API is made
-  // call will be made until scroll occurs, otherwise the size page is requeste immediately.
-  const [skip, setSkip] = useState(0); // It is set to pageSize before the first load
+  // in the JS cache. If `itemsPreLoaded` > 0, no initial API is made
+  // call will be made until scroll occurs, otherwise the size page is requested immediately.
+  
   const [loading, setLoading] = useState(false);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const isFirstRender = useRef(true);
+  const loadingRef = useRef(false);
 
-  // Set a scroll handler that will update the value of `skip`.
-  useEffect(() => {
-    const $scrollable = $(scrollableRef.current);
-    const margin = 600;
-    const handleScroll = () => {
-      if (loadedToEnd || loading) { return; }
-      if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-        setSkip(skip + pageSize);
-      }
-    };
-    $scrollable.on("scroll", handleScroll);
-    return (() => {$scrollable.off("scroll", handleScroll);})
-  }, [scrollableRef.current, loadedToEnd, skip, loading]);
-
-  // Load and set data whenever `skip` changes.
-  useEffect(() => {
-    if (isFirstRender.current && itemsPreLoaded > 10) {
-      return;
-    }
+  const loadMore = useCallback(() => {
+    if (loadedToEnd || loadingRef.current) return;
+    
+    loadingRef.current = true;
     setLoading(true);
+    const skip = itemsPreLoaded;  // Always use current count - no separate tracking needed
     const nextUrl = url + (url.indexOf("?") === -1 ? "?" : "&") + "skip=" + skip + "&limit=" + pageSize;
+    
     $.getJSON(nextUrl, (data) => {
       setter(data);
       if (data.length < pageSize) {
         setLoadedToEnd(true);
       }
+      loadingRef.current = false;
       setLoading(false);
     });
-  }, [skip]);
+  }, [url, setter, itemsPreLoaded, pageSize, loadedToEnd]);
 
+  // Load on mount only if nothing preloaded
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-    }
-  }, [])
-}
+    if (itemsPreLoaded === 0) loadMore();
+  }, []);
 
+  // Scroll handler
+  useEffect(() => {
+    const $scrollable = $(scrollableRef.current);
+    const margin = 600;
+    const handleScroll = () => {
+      if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+        loadMore();
+      }
+    };
+    $scrollable.on("scroll", handleScroll);
+    return () => { $scrollable.off("scroll", handleScroll); };
+  }, [loadMore]);
+}
 
 function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
   // Fetches and sets data from `url` when user scrolls to the
