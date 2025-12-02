@@ -246,8 +246,8 @@ def test_strapi_cache_invalidate_get_method_not_allowed_with_auth(client):
     from django.conf import settings
 
     # Mock webhook credentials
-    with patch.object(settings, "WEBHOOK_USERNAME", "test_user"), patch.object(
-        settings, "WEBHOOK_PASSWORD", "test_pass"
+    with patch.object(settings, "WEBHOOK_USERNAME", "test_user", create=True), patch.object(
+        settings, "WEBHOOK_PASSWORD", "test_pass", create=True
     ):
 
         # Create Basic Auth header
@@ -275,8 +275,8 @@ def test_strapi_cache_invalidate_invalid_auth(client):
     from django.conf import settings
 
     # Mock webhook credentials
-    with patch.object(settings, "WEBHOOK_USERNAME", "correct_user"), patch.object(
-        settings, "WEBHOOK_PASSWORD", "correct_pass"
+    with patch.object(settings, "WEBHOOK_USERNAME", "correct_user", create=True), patch.object(
+        settings, "WEBHOOK_PASSWORD", "correct_pass", create=True
     ):
 
         # Create invalid Basic Auth header
@@ -297,8 +297,8 @@ def test_strapi_cache_invalidate_with_valid_webhook_auth(client):
     from django.conf import settings
 
     # Mock webhook credentials
-    with patch.object(settings, "WEBHOOK_USERNAME", "test_user"), patch.object(
-        settings, "WEBHOOK_PASSWORD", "test_pass"
+    with patch.object(settings, "WEBHOOK_USERNAME", "test_user", create=True), patch.object(
+        settings, "WEBHOOK_PASSWORD", "test_pass", create=True
     ):
 
         with patch("sefaria.system.cache.get_cache_factory") as mock_cache_factory:
