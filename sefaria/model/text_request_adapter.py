@@ -147,7 +147,7 @@ class TextRequestAdapter:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def _add_linker_output(self):
-        if self.debug_mode == "linker":
+        if self.debug_mode != "linker":
             return
 
         linker_output_list = []
