@@ -709,8 +709,8 @@ class ReaderApp extends Component {
     if("aliyot" in histories[0]) {
         url += "&aliyot=" + histories[0].aliyot;
     }
-    if (Sefaria._linker_debug) {
-        url += "&linker_debug=1";
+    if (Sefaria._debug_mode === "linker") {
+        url += "&debug_mode=linker";
     }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
     let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
@@ -745,8 +745,8 @@ class ReaderApp extends Component {
           if (connectionsHistory.selectedNamedEntityText) {
             hist.url += "&namedEntityText=" + encodeURIComponent(connectionsHistory.selectedNamedEntityText);
           }
-          if (Sefaria._linker_debug) {
-            hist.url += "&linker_debug=1";
+          if (Sefaria._debug_mode) {
+            hist.url += "&debug_mode=linker";
           }
           hist.url += "&with=" + connectionsHistory.sources;
 

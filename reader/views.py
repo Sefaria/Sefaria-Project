@@ -232,7 +232,7 @@ def base_props(request):
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
-        "_linker_debug": request.GET.get("linker_debug", "0") == "1",
+        "_debug_mode": request.GET.get("debug_mode", None),
     })
     return user_data
 

@@ -23,12 +23,12 @@ class TextRequestAdapter:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default', linker_debug=False):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default', debug_mode=None):
         self.versions_params = versions_params
         self.oref = oref
         self.fill_in_missing_segments = fill_in_missing_segments
         self.return_format = return_format
-        self.linker_debug = linker_debug
+        self.debug_mode = debug_mode
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -147,7 +147,7 @@ class TextRequestAdapter:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def _add_linker_output(self):
-        if not self.linker_debug:
+        if self.debug_mode == "linker":
             return
 
         linker_output_list = []
@@ -167,7 +167,7 @@ class TextRequestAdapter:
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
-        MUTCClass = LinkerOutput if self.linker_debug else MarkedUpTextChunk
+        MUTCClass = LinkerOutput if self.debug_mode == "linker" else MarkedUpTextChunk
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
         def get_marked_up_text_chunk_queue():

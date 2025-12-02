@@ -565,8 +565,8 @@ Sefaria = extend(Sefaria, {
     if (return_format) {
       url.searchParams.set('return_format', return_format);
     }
-    if (Sefaria._linker_debug) {
-      url.searchParams.set('linker_debug', '1');
+    if (Sefaria._debug_mode === "linker") {
+      url.searchParams.set('debug_mode', 'linker');
     }
     
     return url.toString();
@@ -3524,7 +3524,7 @@ Sefaria.unpackBaseProps = function(props){
       "numLibraryTopics",
       "_siteSettings",
       "_debug",
-      "_linker_debug",
+      "_debug_mode",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
