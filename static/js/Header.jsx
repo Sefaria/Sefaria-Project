@@ -207,7 +207,7 @@ const Header = (props) => {
     return hidden;
   }
 
-  const unread = !!(props.notificationCount);
+  const hasUnreadNotifications = !!(props.notificationCount);
 
   const logo = (
     <a href='/' className="home" aria-label={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
@@ -223,7 +223,7 @@ const Header = (props) => {
 
   const voicesNotificationIcon = <Button
                                 variant="icon-only"
-                                icon={unread ? "notifications-1_mdl" : "notifications_mdl"}
+                                icon={hasUnreadNotifications ? "notifications-1_mdl" : "notifications_mdl"}
                                 ariaLabel={Sefaria._("Notifications")}
                                 href="/notifications"
                                 targetModule={Sefaria.VOICES_MODULE}
@@ -344,7 +344,7 @@ const Header = (props) => {
           openURL={props.openURL}
           close={props.onMobileMenuButtonClick}
           module={props.module}
-          hasUnreadNotifications={unread}
+          hasUnreadNotifications={hasUnreadNotifications}
           />
       }
       <GlobalWarningMessage />
