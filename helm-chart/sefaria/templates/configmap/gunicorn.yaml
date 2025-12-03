@@ -27,6 +27,10 @@ data:
     loglevel = "warning"
     preload_app = True
     
+    # Gunicorn worker restart policy (infreq restarts, protect from leaks)
+    max_requests = 50000
+    max_requests_jitter = 10000
+
     {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
         server.log.info("Worker spawned (pid: %s)", worker.pid)
