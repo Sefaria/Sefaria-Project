@@ -53,10 +53,10 @@ function useDebounce(value, delay) {
 
 /**
  * Hook for paginated data loading triggered by scroll position.
- * 
+ *
  * Fetches data from `url` when the user scrolls near the bottom of `scrollableRef`.
  * Uses `skip` and `limit` query params for pagination.
- * 
+ *
  * @param {Object} options
  * @param {React.RefObject} options.scrollableRef - Ref to the scrollable container element
  * @param {string} options.url - API endpoint (must support `skip` and `limit` query params)
@@ -65,44 +65,23 @@ function useDebounce(value, delay) {
  * @param {number} [options.pageSize=20] - Number of items to fetch per request
  */
 function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
-  const [loading, setLoading] = useState(false);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const loadingRef = useRef(false);  // Synchronous flag to prevent concurrent fetches
+  const loadingRef = useRef(false);
 
-  // Scroll listener for infinite loading
-  useEffect(() => {
-    const $scrollable = $(scrollableRef.current);
-    const scrollMargin = 600;  // Pixels from bottom to trigger load
-    
-    const handleScroll = () => {
-      const scrollPosition = $scrollable.scrollTop() + $scrollable.innerHeight();
-      const scrollThreshold = $scrollable[0].scrollHeight - scrollMargin;
-      
-      if (scrollPosition >= scrollThreshold) {
-        loadMore();
-      }
-    };
-    
-    $scrollable.on('scroll', handleScroll);
-    return () => $scrollable.off('scroll', handleScroll);
-  }, [loadMore]);
-  
   const loadMore = useCallback(() => {
     if (loadedToEnd || loadingRef.current) return;
-    
+
     loadingRef.current = true;
-    setLoading(true);
-    
+
     const separator = url.includes('?') ? '&' : '?';
     const nextUrl = `${url}${separator}skip=${itemsPreLoaded}&limit=${pageSize}`;
-    
+
     $.getJSON(nextUrl, (data) => {
       setter(data);
       if (data.length < pageSize) {
         setLoadedToEnd(true);
       }
       loadingRef.current = false;
-      setLoading(false);
     });
   }, [url, setter, itemsPreLoaded, pageSize, loadedToEnd]);
 
@@ -113,6 +92,23 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
     }
   }, []);
 
+  // Scroll listener for infinite loading
+  useEffect(() => {
+    const $scrollable = $(scrollableRef.current);
+    const scrollMargin = 600;  // Pixels from bottom to trigger load
+
+    const handleScroll = () => {
+      const scrollPosition = $scrollable.scrollTop() + $scrollable.innerHeight();
+      const scrollThreshold = $scrollable[0].scrollHeight - scrollMargin;
+
+      if (scrollPosition >= scrollThreshold) {
+        loadMore();
+      }
+    };
+
+    $scrollable.on('scroll', handleScroll);
+    return () => $scrollable.off('scroll', handleScroll);
+  }, [loadMore]);
 }
 
 function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
