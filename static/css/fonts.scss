@@ -81,6 +81,6 @@ body, .en, .int-en, .englishWithinHebrew {
   --is-hebrew: ; // true
 }
 * {
-  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font); // defined only if is-hebrew
   font-family: var(--hebrew-font-conditional, var(--english-font));
 }
