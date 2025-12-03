@@ -147,8 +147,8 @@ export class ModuleHeaderPage extends HelperBase {
   async loginWithCredentials(moduleUrl: string, isSuperUser: boolean = false) {
     const credentials = isSuperUser ? testAdminUser : testUser;
     const loginUrl = moduleUrl.includes('voices')
-      ? `${MODULE_URLS.VOICES}/login`
-      : `${MODULE_URLS.LIBRARY}/login`;
+      ? `${MODULE_URLS.EN.VOICES}/login`
+      : `${MODULE_URLS.EN.LIBRARY}/login`;
 
     await this.page.goto(loginUrl);
     await this.page.waitForLoadState('networkidle');
@@ -199,7 +199,7 @@ export class ModuleHeaderPage extends HelperBase {
 
   async testWithAuthStates(
     testCallback: (isLoggedIn: boolean) => Promise<void>,
-    moduleUrl: string = MODULE_URLS.LIBRARY
+    moduleUrl: string = MODULE_URLS.EN.LIBRARY
   ) {
     if (await this.isLoggedIn()) {
       await this.logout();

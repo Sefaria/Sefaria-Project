@@ -17,7 +17,7 @@ test.describe('Voices Module Sidebar Tests', () => {
   let pm: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
+    page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
@@ -60,8 +60,8 @@ test.describe('Voices Module Sidebar Tests', () => {
     expect(page.url()).toMatch(/\/login/);
 
     // Logged-in: clicking Create should navigate to sheet creation
-    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.VOICES, true);
-    await page.goto(MODULE_URLS.VOICES);
+    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.EN.VOICES, true);
+    await page.goto(MODULE_URLS.EN.VOICES);
 
     const resultPage = await pm.onModuleSidebar().clickAndVerifyModuleButton({
       headingText: 'Create',

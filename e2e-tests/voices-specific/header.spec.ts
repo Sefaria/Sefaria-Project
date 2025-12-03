@@ -21,7 +21,7 @@ test.describe('Voices Module Header Tests - English', () => {
   let pm: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
+    page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
@@ -58,8 +58,8 @@ test.describe('Voices Module Header Tests - English', () => {
   });
 
   test('MOD-H014: Create New Sheet button functionality when logged in', async () => {
-    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.VOICES, true);
-    await page.goto(MODULE_URLS.VOICES);
+    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.EN.VOICES, true);
+    await page.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(page);
 
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);

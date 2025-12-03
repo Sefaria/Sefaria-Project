@@ -16,7 +16,7 @@ test.describe('Library Module Sidebar Tests', () => {
   let pm: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
+    page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
   });
 

@@ -51,9 +51,17 @@ export const SaveStates: Record<string, SaveState> = {
 
 // Fetch sandbox domain from environment variable and construct module URLs
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
+const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
+
 export const MODULE_URLS = {
-  LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-  VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+  EN : {
+    LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
+    VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+  },
+  HE : {
+    LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
+    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`
+  }
 } as const;
 
 export const MODULE_SELECTORS = {
@@ -278,8 +286,8 @@ export const VALID_TOPICS = {
 
 export const MODULE_SWITCHER = {
   options: [
-    { name: 'Library', url: MODULE_URLS.LIBRARY },
-    { name: 'Voices', url: MODULE_URLS.VOICES },
+    { name: 'Library', url: MODULE_URLS.EN.LIBRARY },
+    { name: 'Voices', url: MODULE_URLS.EN.VOICES },
     { name: 'Developers', url: EXTERNAL_URLS.DEVELOPERS },
     { name: 'More from Sefaria ›', url: /\/products$/ }
   ]
@@ -325,7 +333,7 @@ export interface SiteConfig {
 
 export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: SiteConfig } = {
   LIBRARY: {
-    url: MODULE_URLS.LIBRARY,
+    url: MODULE_URLS.EN.LIBRARY,
     name: 'Library',
     logo: MODULE_SELECTORS.LOGO.LIBRARY,
     mainLinks: [
@@ -347,7 +355,7 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
     ]
   },
   VOICES: {
-    url: MODULE_URLS.VOICES,
+    url: MODULE_URLS.EN.VOICES,
     name: 'Sheets',
     logo: MODULE_SELECTORS.LOGO.VOICES,
     mainLinks: [
@@ -376,5 +384,6 @@ export type TabOrderItem = { readonly selector: string; readonly description: st
 export type SearchDropdownSection = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_SECTIONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_SECTIONS[number];
 export type SearchDropdownIcon = typeof SEARCH_DROPDOWN.LIBRARY_ALL_EXPECTED_ICONS[number] | typeof SEARCH_DROPDOWN.VOICES_ALL_EXPECTED_ICONS[number];
 export type IconConfig = { readonly selector: string; readonly alt: string };
-  
-  
+
+
+

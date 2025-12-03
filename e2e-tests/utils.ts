@@ -533,7 +533,7 @@ export const createNewSheet = async (page: Page): Promise<string> => {
   } else if (await createLink.isVisible({ timeout: 2000 })) {
     await createLink.click();
   } else {
-    await page.goto(`${MODULE_URLS.VOICES}/sheets/new`);
+    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/new`);
   }
 
   await page.waitForURL(url => url.toString() !== initialUrl, { timeout: 10000 });
@@ -561,8 +561,8 @@ export const switchModule = async (
   await openHeaderDropdown(page, 'module');
 
   const currentUrl = page.url();
-  const isOnLibrary = currentUrl.includes(MODULE_URLS.LIBRARY);
-  const isOnVoices = currentUrl.includes(MODULE_URLS.VOICES);
+  const isOnLibrary = currentUrl.includes(MODULE_URLS.EN.LIBRARY);
+  const isOnVoices = currentUrl.includes(MODULE_URLS.EN.VOICES);
 
   const needsNewTab = (targetModule === 'Library' && isOnVoices) ||
                       (targetModule === 'Voices' && isOnLibrary);
@@ -590,9 +590,9 @@ export const waitForSegment = async (page: Page, selector: string) => {
  * @returns 'library' | 'voices' | 'unknown'
  */
 export const getModuleFromUrl = (url: string): 'library' | 'voices' | 'unknown' => {
-  if (url.includes(MODULE_URLS.LIBRARY) || url.includes('www.')) {
+  if (url.includes(MODULE_URLS.EN.LIBRARY) || url.includes('www.')) {
     return 'library';
-  } else if (url.includes(MODULE_URLS.VOICES) || url.includes('voices.')) {
+  } else if (url.includes(MODULE_URLS.EN.VOICES) || url.includes('voices.')) {
     return 'voices';
   }
   return 'unknown';

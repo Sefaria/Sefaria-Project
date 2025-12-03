@@ -22,7 +22,7 @@ test.describe('Library Module Header Tests - English', () => {
   let pm: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
+    page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
@@ -143,13 +143,13 @@ test.describe('Library Module Header Tests - English', () => {
 
   test('MOD-H012: User authentication flow across Library and Voices', async () => {
     // Login with superuser
-    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.LIBRARY, true);
+    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.EN.LIBRARY, true);
 
     // Verify logged-in state on Library
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
 
     // Navigate to Voices - auth should persist
-    await page.goto(MODULE_URLS.VOICES);
+    await page.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(page);
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
 
@@ -186,6 +186,6 @@ test.describe('Library Module Header Tests - English', () => {
 
       // Close dropdown
       await page.keyboard.press('Escape');
-    }, MODULE_URLS.LIBRARY);
+    }, MODULE_URLS.EN.LIBRARY);
   });
 });

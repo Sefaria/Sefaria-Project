@@ -10,9 +10,16 @@ if (!process.env.CI) {
 
 // Extract domain from SANDBOX_URL
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
+const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 const MODULE_URLS = {
-  LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-  VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+  EN : {
+    LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
+    VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+  },
+  HE: {
+    LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
+    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`
+  }
 } as const;
 
 /**
@@ -106,7 +113,7 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: MODULE_URLS.LIBRARY,
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
     // Voices-specific modularization tests
@@ -115,7 +122,7 @@ export default defineConfig({
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: MODULE_URLS.VOICES,
+        baseURL: MODULE_URLS.EN.VOICES,
       },
     },
     {
@@ -123,7 +130,7 @@ export default defineConfig({
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: MODULE_URLS.LIBRARY,
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },    
 
@@ -133,7 +140,7 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: MODULE_URLS.LIBRARY,
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
     // Firefox - Voices-specific modularization tests
@@ -142,7 +149,7 @@ export default defineConfig({
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: MODULE_URLS.VOICES,
+        baseURL: MODULE_URLS.EN.VOICES,
       },
     },
     // Firefox - Misc tests
@@ -151,7 +158,7 @@ export default defineConfig({
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: MODULE_URLS.LIBRARY,
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
 
@@ -161,7 +168,7 @@ export default defineConfig({
       testDir: './e2e-tests/library-specific',
       use: {
         ...devices['Desktop Safari'],
-        baseURL: MODULE_URLS.LIBRARY,
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
     // Safari - Voices-specific modularization tests
@@ -170,7 +177,7 @@ export default defineConfig({
       testDir: './e2e-tests/voices-specific',
       use: {
         ...devices['Desktop Safari'],
-        baseURL: MODULE_URLS.VOICES,
+        baseURL: MODULE_URLS.EN.VOICES,
       },
     },
 
@@ -181,7 +188,7 @@ export default defineConfig({
       testDir: './e2e-tests/Misc',
       use: {
         ...devices['Desktop Safari'],
-        baseURL: MODULE_URLS.LIBRARY,
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
 

@@ -8,7 +8,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
   test('Scenario 1: Login on Library, verify logged in state and remain on Library', async ({ context }) => {
     // Start as not logged in
-    let page = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
+    let page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     await hideAllModalsAndPopups(page);
@@ -36,7 +36,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     expect(await isUserLoggedIn(page)).toBe(true);
 
     // Verify still on Library
-    expect(page.url()).toContain(MODULE_URLS.LIBRARY);
+    expect(page.url()).toContain(MODULE_URLS.EN.LIBRARY);
 
     // Verify header shows logged in state
     const profileImg = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
@@ -50,7 +50,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
   test('Scenario 2: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', async ({ context }) => {
     // Start already logged in on Library (using auth state)
-    const page = await goToPageWithUser(context, MODULE_URLS.LIBRARY, BROWSER_SETTINGS.enUser);
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Library
@@ -65,7 +65,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await hideAllModalsAndPopups(voicesPage!);
 
     // Verify user is on Voices
-    expect(voicesPage!.url()).toContain(MODULE_URLS.VOICES);
+    expect(voicesPage!.url()).toContain(MODULE_URLS.EN.VOICES);
 
     // Verify logged in on Voices
     expect(await isUserLoggedIn(voicesPage!)).toBe(true);
@@ -84,7 +84,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
   test('Scenario 3: Login on Voices, switch to Library via Module Switcher, verify logged in on Library', async ({ context }) => {
     // Start already logged in on Voices (using auth state)
-    const page = await goToPageWithUser(context, MODULE_URLS.VOICES, BROWSER_SETTINGS.enUser);
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Voices
@@ -99,7 +99,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await hideAllModalsAndPopups(libraryPage!);
 
     // Verify user is on Library
-    expect(libraryPage!.url()).toContain(MODULE_URLS.LIBRARY);
+    expect(libraryPage!.url()).toContain(MODULE_URLS.EN.LIBRARY);
 
     // Verify logged in on Library
     expect(await isUserLoggedIn(libraryPage!)).toBe(true);
@@ -119,12 +119,12 @@ test.describe('Cross-Module Login Scenarios', () => {
   test('Scenarios 4: Multiple Library tabs - attempt login on second tab shows error', async ({ context }) => {
     // Test Scenario 4: Multiple Library tabs
     // Open first Library tab (not logged in)
-    const libraryTab1 = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
+    const libraryTab1 = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(libraryTab1);
 
     // Open second Library tab (not logged in)
     const libraryTab2 = await context.newPage();
-    await libraryTab2.goto(MODULE_URLS.LIBRARY);
+    await libraryTab2.goto(MODULE_URLS.EN.LIBRARY);
     await hideAllModalsAndPopups(libraryTab2);
 
     // Verify both tabs not logged in
@@ -143,7 +143,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     expect(await isUserLoggedIn(libraryTab1)).toBe(true);
 
     // Try to navigate to login on second tab
-    await libraryTab2.goto(`${MODULE_URLS.LIBRARY}/login?next=%2Ftexts`);
+    await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
     await libraryTab2.waitForLoadState('networkidle');
 
     // Verify error message appears
@@ -156,12 +156,12 @@ test.describe('Cross-Module Login Scenarios', () => {
   test('Scenario 5: Multiple Voices tabs - attempt login on second tab shows error', async ({ context }) => {
     // Test Scenario 5: Multiple Voices tabs
     // Open first Voices tab (not logged in)
-    const voicesTab1 = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
+    const voicesTab1 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     await hideAllModalsAndPopups(voicesTab1);
 
     // Open second Voices tab (not logged in)
     const voicesTab2 = await context.newPage();
-    await voicesTab2.goto(MODULE_URLS.VOICES);
+    await voicesTab2.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(voicesTab2);
 
     // Verify both tabs not logged in
@@ -180,7 +180,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     expect(await isUserLoggedIn(voicesTab1)).toBe(true);
 
     // Try to navigate to login on second tab
-    await voicesTab2.goto(`${MODULE_URLS.VOICES}/login?next=%2F`);
+    await voicesTab2.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
     await voicesTab2.waitForLoadState('networkidle');
 
     // Verify error message appears
@@ -194,12 +194,12 @@ test.describe('Cross-Module Login Scenarios', () => {
   test('Scenarios 6: Login on Library, try login on previously opened Voices tab', async ({ context }) => {
     // Test Scenario 6: Login on Library, try login on previously opened Voices tab
     // Open Library tab (not logged in)
-    const libraryTab = await goToPageWithLang(context, MODULE_URLS.LIBRARY, LANGUAGES.EN);
+    const libraryTab = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(libraryTab);
 
     // Open Voices tab (not logged in)
     const voicesTab = await context.newPage();
-    await voicesTab.goto(MODULE_URLS.VOICES);
+    await voicesTab.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(voicesTab);
 
     // Verify both tabs not logged in
@@ -221,7 +221,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     expect(await isUserLoggedIn(libraryTab)).toBe(true);
 
     // Try to navigate to login on Voices tab
-    await voicesTab.goto(`${MODULE_URLS.VOICES}/login?next=%2F`);
+    await voicesTab.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
     await voicesTab.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(voicesTab);
 
@@ -236,11 +236,11 @@ test.describe('Cross-Module Login Scenarios', () => {
     // Test Scenario 7: Login on Voices, try login on previously opened Library tab
     // Open Library tab (not logged in)
     const libraryTab2 = await context.newPage();
-    await libraryTab2.goto(MODULE_URLS.LIBRARY);
+    await libraryTab2.goto(MODULE_URLS.EN.LIBRARY);
     await hideAllModalsAndPopups(libraryTab2);
 
     // Open Voices tab (not logged in)
-    const voicesTab2 = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
+    const voicesTab2 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     await hideAllModalsAndPopups(voicesTab2);
 
     // Verify both tabs not logged in
@@ -262,7 +262,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     expect(await isUserLoggedIn(voicesTab2)).toBe(true);
 
     // Try to navigate to login on Library tab
-    await libraryTab2.goto(`${MODULE_URLS.LIBRARY}/login?next=%2Ftexts`);
+    await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
     await libraryTab2.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(libraryTab2);
 
@@ -276,7 +276,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
   test('Scenario 8: Logged in Library user navigates to sheet link, opens in Voices while logged in', async ({ context }) => {
     // Start already logged in on Library (using auth state)
-    const page = await goToPageWithUser(context, `${MODULE_URLS.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
+    const page = await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Library
@@ -284,12 +284,12 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Navigate to a sheet link (simulating external navigation like from Google)
     // Using a known public sheet
-    await page.goto(`${MODULE_URLS.VOICES}/sheets/510219`);
+    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/510219`);
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
 
     // Verify navigation to Voices module with sheet
-    expect(page.url()).toContain(MODULE_URLS.VOICES);
+    expect(page.url()).toContain(MODULE_URLS.EN.VOICES);
     expect(page.url()).toContain('/sheets/');
 
     // Verify user is still logged in on Voices
@@ -306,7 +306,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
   test('Scenario 9: Logged in Voices user navigates to text link, opens in Library while logged in', async ({ context }) => {
     // Start already logged in on Voices (using auth state)
-    const page = await goToPageWithUser(context, MODULE_URLS.VOICES, BROWSER_SETTINGS.enUser);
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
     // Verify logged in on Voices
@@ -314,12 +314,12 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Navigate to a text link (simulating external navigation like from Google)
     // Using a known text
-    await page.goto(`${MODULE_URLS.LIBRARY}/Genesis.1`);
+    await page.goto(`${MODULE_URLS.EN.LIBRARY}/Genesis.1`);
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
 
     // Verify navigation to Library module with text
-    expect(page.url()).toContain(MODULE_URLS.LIBRARY);
+    expect(page.url()).toContain(MODULE_URLS.EN.LIBRARY);
     expect(page.url()).toContain('Genesis');
 
     // Verify user is still logged in on Library
