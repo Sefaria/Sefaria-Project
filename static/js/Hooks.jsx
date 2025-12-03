@@ -69,6 +69,24 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
   const [loadedToEnd, setLoadedToEnd] = useState(false);
   const loadingRef = useRef(false);  // Synchronous flag to prevent concurrent fetches
 
+  // Scroll listener for infinite loading
+  useEffect(() => {
+    const $scrollable = $(scrollableRef.current);
+    const scrollMargin = 600;  // Pixels from bottom to trigger load
+    
+    const handleScroll = () => {
+      const scrollPosition = $scrollable.scrollTop() + $scrollable.innerHeight();
+      const scrollThreshold = $scrollable[0].scrollHeight - scrollMargin;
+      
+      if (scrollPosition >= scrollThreshold) {
+        loadMore();
+      }
+    };
+    
+    $scrollable.on('scroll', handleScroll);
+    return () => $scrollable.off('scroll', handleScroll);
+  }, [loadMore]);
+  
   const loadMore = useCallback(() => {
     if (loadedToEnd || loadingRef.current) return;
     
@@ -95,23 +113,6 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
     }
   }, []);
 
-  // Scroll listener for infinite loading
-  useEffect(() => {
-    const $scrollable = $(scrollableRef.current);
-    const scrollMargin = 600;  // Pixels from bottom to trigger load
-    
-    const handleScroll = () => {
-      const scrollPosition = $scrollable.scrollTop() + $scrollable.innerHeight();
-      const scrollThreshold = $scrollable[0].scrollHeight - scrollMargin;
-      
-      if (scrollPosition >= scrollThreshold) {
-        loadMore();
-      }
-    };
-    
-    $scrollable.on('scroll', handleScroll);
-    return () => $scrollable.off('scroll', handleScroll);
-  }, [loadMore]);
 }
 
 function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
