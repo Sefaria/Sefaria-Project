@@ -23,7 +23,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
   const [postingText, setPostingText] = useState(initPostingState);
 
   const handleClose = () => {
-    if (postingText !== postingText.posting) {
+    if (postingText !== postingState.posting) {
       // don't allow user to close modal while posting is taking place
       close();
     }
