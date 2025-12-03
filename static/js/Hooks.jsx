@@ -67,23 +67,25 @@ function useDebounce(value, delay) {
 function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
   const [loadedToEnd, setLoadedToEnd] = useState(false);
   const loadingRef = useRef(false);
+  const fetchedCountRef = useRef(itemsPreLoaded);
 
   const loadMore = useCallback(() => {
     if (loadedToEnd || loadingRef.current) return;
 
     loadingRef.current = true;
-
+    const skip = fetchedCountRef.current;
     const separator = url.includes('?') ? '&' : '?';
-    const nextUrl = `${url}${separator}skip=${itemsPreLoaded}&limit=${pageSize}`;
+    const nextUrl = `${url}${separator}skip=${skip}&limit=${pageSize}`;
 
     $.getJSON(nextUrl, (data) => {
       setter(data);
+      fetchedCountRef.current += data.length;
       if (data.length < pageSize) {
         setLoadedToEnd(true);
       }
       loadingRef.current = false;
     });
-  }, [url, setter, itemsPreLoaded, pageSize, loadedToEnd]);
+  }, [url, setter, pageSize, loadedToEnd]);
 
   // Initial fetch if there is no cached data
   useEffect(() => {
