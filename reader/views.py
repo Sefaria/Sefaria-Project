@@ -3011,7 +3011,7 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
-    scope = str(request.GET.get("scope", LIBRARY_MODULE))
+    scope = str(request.GET.get("scope", VOICES_MODULE))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
@@ -3033,10 +3033,13 @@ def notifications_read_api(request):
     """
     if request.method == "POST":
         notifications = request.POST.get("notifications")
+        print("notifications", request.POST.get("scope", VOICES_MODULE))
+        scope = request.POST.get("scope", VOICES_MODULE)
+        
         if not notifications:
             return jsonResponse({"error": "'notifications' post parameter missing."})
         if notifications == "all":
-            notificationSet = NotificationSet().unread_for_user(request.user.id)
+            notificationSet = NotificationSet().unread_for_user(request.user.id, scope=scope)
             for notification in notificationSet:
                 notification.mark_read().save()
         else:
@@ -3048,9 +3051,11 @@ def notifications_read_api(request):
                     continue
                 notification.mark_read().save()
 
+        unread_count = UserProfile(user_obj=request.user).unread_notification_count(scope=scope)
+
         return jsonResponse({
                                 "status": "ok",
-                                "unreadCount": UserProfile(user_obj=request.user).unread_notification_count()
+                                "unreadCount": unread_count
                             })
 
     else:

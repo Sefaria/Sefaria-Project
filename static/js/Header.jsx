@@ -207,7 +207,7 @@ const Header = (props) => {
     return hidden;
   }
 
-  const unread = !!Sefaria.notificationCount;
+  const unread = !!props.notificationCount;
   const notificationsClasses = classNames({ notifications: 1, unread: unread });
   const mobileNotificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
 
@@ -491,7 +491,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                 </Button>
                 <Button
                   variant="secondary"
-                  icon={Sefaria.notificationCount ? "notifications-1_mdl" : "notifications_mdl"}
+                  icon={props.notificationCount ? "notifications-1_mdl" : "notifications_mdl"}
                   alt={Sefaria._("Notifications")}
                   href="/notifications"
                   onClick={close}

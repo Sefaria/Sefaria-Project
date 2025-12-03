@@ -1,6 +1,5 @@
-import React, { useRef }  from 'react';
+import React from 'react';
 import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
@@ -84,7 +83,7 @@ class NotificationsPanel extends Component {
     const notifications = Sefaria.notifications.map(n => 
       <Notifications type={n.type} props={n} key={n._id} />
     );
-    
+    console.log(Sefaria.notifications, Sefaria.notificationCount);
     const sidebarModules = [{type: "StayConnected"}];
     return (
       <div className="readerNavMenu sans-serif">
