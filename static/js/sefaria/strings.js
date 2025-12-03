@@ -728,7 +728,7 @@ const Strings = {
 
     // Module Switcher Tooltip
     "Looking for something?": "מחפשים משהו?",
-    "We've updated the structure of our website! The Sefaria platform now has separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.",
+    "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah." : "ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.",
     "Got it!": "הבנתי",
   },
 
