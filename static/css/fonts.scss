@@ -59,3 +59,28 @@ $range: "U+0000-0040, U+005B-0060, U+007B-FB4F";
   --english-serif-secondary-font-family: 'Miriam Libre', var(--english-serif-font-family);
   --hebrew-serif-secondary-font-family: 'Miriam Libre', var(--hebrew-serif-font-family);
 }
+
+body, .sans-serif {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.serif {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+}
+.sans-serif-in-hebrew {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+body, .en, .int-en, .englishWithinHebrew {
+  --is-hebrew: initial; // false
+}
+.he, .int-he {
+  unicode-bidi: plaintext;
+  --is-hebrew: ; // true
+}
+* {
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  font-family: var(--hebrew-font-conditional, var(--english-font));
+}
