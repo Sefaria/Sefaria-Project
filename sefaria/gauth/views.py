@@ -85,15 +85,52 @@ def index(request):
         logger.error(f"Secrets file does NOT exist at: {secrets_filepath}")
 
     # DIAGNOSTIC: Check gauth_scope in session - this is critical for understanding the malformed URL error
-    gauth_scope_raw = request.session.get('gauth_scope', '')
     logger.info("=== GAUTH_SCOPE DIAGNOSTICS (Step 1) ===")
+    logger.info("=== SESSION SERIALIZATION DIAGNOSTICS ===")
+    logger.info(f"Session backend: {request.session.__class__.__name__}")
+    logger.info(f"Session engine: {getattr(settings, 'SESSION_ENGINE', 'NOT SET')}")
+    logger.info(f"Session serializer: {getattr(settings, 'SESSION_SERIALIZER', 'NOT SET')}")
+    
+    # Check session cookie settings that affect persistence
+    logger.info("=== SESSION COOKIE SETTINGS ===")
+    logger.info(f"SESSION_COOKIE_DOMAIN: {getattr(settings, 'SESSION_COOKIE_DOMAIN', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_SECURE: {getattr(settings, 'SESSION_COOKIE_SECURE', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_HTTPONLY: {getattr(settings, 'SESSION_COOKIE_HTTPONLY', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_SAMESITE: {getattr(settings, 'SESSION_COOKIE_SAMESITE', 'NOT SET')}")
+    logger.info(f"SESSION_COOKIE_PATH: {getattr(settings, 'SESSION_COOKIE_PATH', 'NOT SET')}")
+    
+    # Check request environment
+    logger.info("=== REQUEST ENVIRONMENT ===")
+    logger.info(f"Request host: {request.get_host()}")
+    logger.info(f"Request scheme: {request.scheme}")
+    logger.info(f"Request META HTTP_HOST: {request.META.get('HTTP_HOST', 'NOT SET')}")
+    logger.info(f"Request META SERVER_NAME: {request.META.get('SERVER_NAME', 'NOT SET')}")
+    logger.info(f"Request META SERVER_PORT: {request.META.get('SERVER_PORT', 'NOT SET')}")
+    
+    gauth_scope_raw = request.session.get('gauth_scope', '')
+    logger.info("=== GAUTH_SCOPE VALUE DIAGNOSTICS ===")
     logger.info(f"gauth_scope exists in session: {'gauth_scope' in request.session}")
     logger.info(f"gauth_scope raw value: {gauth_scope_raw}")
+    logger.info(f"gauth_scope repr: {repr(gauth_scope_raw)}")
     logger.info(f"gauth_scope type: {type(gauth_scope_raw)}")
     logger.info(f"gauth_scope is None: {gauth_scope_raw is None}")
     logger.info(f"gauth_scope is empty string: {gauth_scope_raw == ''}")
     logger.info(f"gauth_scope is list: {isinstance(gauth_scope_raw, list)}")
     logger.info(f"gauth_scope is str: {isinstance(gauth_scope_raw, str)}")
+    
+    # Check if gauth_scope looks like it was corrupted during serialization
+    if isinstance(gauth_scope_raw, str):
+        logger.warning("gauth_scope is a string - this might indicate serialization issue")
+        logger.warning(f"String value: {gauth_scope_raw}")
+        # Check if it looks like a stringified list
+        if gauth_scope_raw.startswith('[') and gauth_scope_raw.endswith(']'):
+            logger.error("CRITICAL: gauth_scope appears to be a stringified list!")
+            logger.error("This could cause malformed URLs when passed to Flow.from_client_secrets_file()")
+            logger.error("This suggests Django session serialization is converting list to string")
+    elif isinstance(gauth_scope_raw, list):
+        logger.info(f"gauth_scope is a list with {len(gauth_scope_raw)} items")
+        for i, item in enumerate(gauth_scope_raw):
+            logger.info(f"  Item {i}: {item} (type: {type(item)})")
     
     # Check how request arrived
     referer = request.META.get('HTTP_REFERER', 'NOT SET')
@@ -222,19 +259,52 @@ def auth_return(request):
         logger.error("This means the session was lost during the Google redirect!")
     
     # DIAGNOSTIC: Check if critical session data is present
+    logger.info("=== GAUTH_SCOPE DIAGNOSTICS (Step 2) ===")
+    logger.info("=== SESSION SERIALIZATION DIAGNOSTICS (Step 2) ===")
+    logger.info(f"Session backend: {request.session.__class__.__name__}")
+    logger.info(f"Session ID: {request.session.session_key}")
+    logger.info(f"Session exists: {request.session.exists(request.session.session_key) if request.session.session_key else False}")
+    
+    # Check if session persisted across Google redirect
+    logger.info("=== SESSION PERSISTENCE CHECK ===")
+    logger.info(f"All session keys: {list(request.session.keys())}")
+    logger.info(f"Session modified: {request.session.modified}")
+    
+    # Check cookies in request
+    logger.info("=== COOKIE DIAGNOSTICS ===")
+    session_cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
+    logger.info(f"Session cookie name: {session_cookie_name}")
+    logger.info(f"Session cookie in request: {session_cookie_name in request.COOKIES}")
+    if session_cookie_name in request.COOKIES:
+        cookie_value = request.COOKIES[session_cookie_name]
+        logger.info(f"Session cookie value (first 20 chars): {cookie_value[:20]}...")
+        logger.info(f"Session cookie matches session ID: {cookie_value == request.session.session_key}")
+    else:
+        logger.error("CRITICAL: Session cookie NOT present in request!")
+        logger.error("This means session was lost during Google redirect")
+    
     gauth_scope_raw = request.session.get('gauth_scope', '')
     next_view = request.session.get('next_view', 'NOT SET')
     
-    logger.info("=== GAUTH_SCOPE DIAGNOSTICS (Step 2) ===")
-    logger.info(f"All session keys: {list(request.session.keys())}")
+    logger.info("=== GAUTH_SCOPE VALUE DIAGNOSTICS (Step 2) ===")
     logger.info(f"gauth_scope exists in session: {'gauth_scope' in request.session}")
     logger.info(f"gauth_scope raw value: {gauth_scope_raw}")
+    logger.info(f"gauth_scope repr: {repr(gauth_scope_raw)}")
     logger.info(f"gauth_scope type: {type(gauth_scope_raw)}")
     logger.info(f"gauth_scope is None: {gauth_scope_raw is None}")
     logger.info(f"gauth_scope is empty string: {gauth_scope_raw == ''}")
     logger.info(f"gauth_scope is list: {isinstance(gauth_scope_raw, list)}")
     logger.info(f"gauth_scope is str: {isinstance(gauth_scope_raw, str)}")
     logger.info(f"Session next_view: {next_view}")
+    
+    # Check if gauth_scope looks corrupted
+    if isinstance(gauth_scope_raw, str):
+        logger.warning("gauth_scope is a string - this might indicate serialization issue")
+        logger.warning(f"String value: {gauth_scope_raw}")
+        if gauth_scope_raw.startswith('[') and gauth_scope_raw.endswith(']'):
+            logger.error("CRITICAL: gauth_scope appears to be a stringified list!")
+            logger.error("This could cause malformed URLs when passed to Flow.from_client_secrets_file()")
+            logger.error("This suggests Django session serialization converted list to string during storage/retrieval")
     
     # Check if empty string default was used
     if gauth_scope_raw == '':

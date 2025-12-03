@@ -86,11 +86,26 @@ def gauth_required(scope, ajax=False):
                     return redirect('gauth_index')
            
             logger.info("Creating credentials object from stored token...")
-            # Note: scopes should be a list of strings, not wrapped in another list
-            stored_scopes = credentials_dict['scopes']
-            if isinstance(stored_scopes, str):
-                stored_scopes = [stored_scopes]
-            logger.info(f"Scopes being passed to Credentials: {stored_scopes} (type: {type(stored_scopes)})")
+            # DIAGNOSTIC: Log scopes before using them
+            stored_scopes_raw = credentials_dict['scopes']
+            logger.info("=== CREDENTIALS SCOPES DIAGNOSTICS ===")
+            logger.info(f"stored_scopes_raw value: {stored_scopes_raw}")
+            logger.info(f"stored_scopes_raw type: {type(stored_scopes_raw)}")
+            logger.info(f"stored_scopes_raw is list: {isinstance(stored_scopes_raw, list)}")
+            logger.info(f"stored_scopes_raw is str: {isinstance(stored_scopes_raw, str)}")
+            if isinstance(stored_scopes_raw, list):
+                logger.info(f"stored_scopes_raw length: {len(stored_scopes_raw)}")
+                logger.info(f"stored_scopes_raw items: {stored_scopes_raw}")
+                # Check if it's already nested
+                if stored_scopes_raw and isinstance(stored_scopes_raw[0], list):
+                    logger.warning("WARNING: stored_scopes_raw is already a nested list!")
+                    logger.warning("This suggests scopes were stored incorrectly")
+            
+            # Revert to original behavior: wrap in list (as it was before ce797cc5e)
+            scopes_for_credentials = [stored_scopes_raw]
+            logger.info(f"Scopes being passed to Credentials (wrapped): {scopes_for_credentials}")
+            logger.info(f"Scopes type: {type(scopes_for_credentials)}")
+            logger.info(f"First element type: {type(scopes_for_credentials[0]) if scopes_for_credentials else 'N/A'}")
             
             credentials = google.oauth2.credentials.Credentials(
                 credentials_dict['token'],
@@ -99,8 +114,12 @@ def gauth_required(scope, ajax=False):
                 token_uri=credentials_dict['token_uri'],
                 client_id=credentials_dict['client_id'],
                 client_secret=credentials_dict['client_secret'],
-                scopes=stored_scopes,  # Fixed: don't wrap in extra list
+                scopes=scopes_for_credentials,
             )
+            
+            # DIAGNOSTIC: Verify what Credentials actually stored
+            logger.info(f"Credentials.scopes after creation: {credentials.scopes}")
+            logger.info(f"Credentials.scopes type: {type(credentials.scopes)}")
 
             expiry = datetime.datetime.strptime(credentials_dict['expiry'], '%Y-%m-%d %H:%M:%S')
             credentials.expiry = expiry
