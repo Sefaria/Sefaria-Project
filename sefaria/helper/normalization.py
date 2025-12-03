@@ -358,7 +358,7 @@ class NormalizerFactory:
         "maqaf": ReplaceNormalizer('־', ' '),
         "footnote": FootnoteNormalizer(''),
         "other-itag": RegexNormalizer(r'<i [^>]*(data-commentator|data-overlay)=[^>]*>\s*</i>', ''),  # other itag types besides for footnotes
-        "fn-marker": RegexNormalizer('<sup class="(footnote-marker|endFootnote|itag)">(?:.*?)</sup>', ' '),
+        "fn-marker": RegexNormalizer(r'\s*<sup class="(footnote-marker|endFootnote|itag)">(?:.*?)</sup>\s*', ' '),
         "br-tag": ReplaceNormalizer('<br>', '<br/>'),
         "double-space": RegexNormalizer(r"\s+", " "),
     }
