@@ -7,6 +7,8 @@ $exclude-flex: ( //Elements excluded from the general rules of flex and align to
   ".autocomplete-dropdown",
   ".languageToggle",
   ".floating-ui-popover",
+  ".keyboardInputInitiator",
+  ".readerNavMenuSearchButton",
 );
 $not-selector: "";
 @each $sel in $exclude-flex {
@@ -116,6 +118,7 @@ $interfaces: english hebrew;
   flex: 1;
   border: none;
   font-size: 18px;
+  margin-bottom: 1px;
 }
 
 .search::placeholder,

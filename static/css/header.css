@@ -4,7 +4,7 @@
 }
 
 .headerInner,
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
   display: flex;
   align-items: center;
 }
@@ -126,6 +126,7 @@
   flex: 1;
   border: none;
   font-size: 18px;
+  margin-bottom: 1px;
 }
 
 .search::placeholder,
@@ -155,7 +156,7 @@
   }
 }
 
-.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *) {
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
   cursor: pointer;
 }
 
