@@ -4747,6 +4747,14 @@ h1.topic-landing-header {
   margin-top: 2px;
 }
 
+.search::placeholder,
+.topic-landing-search-input::placeholder,
+.readerSearch::placeholder,
+.searchFiltersInput::placeholder,
+.topicFilterInput::placeholder {
+  color: var(--dark-grey);
+}
+
 .topic-landing-search-suggestion{
   display: flex;
   list-style-type: none;

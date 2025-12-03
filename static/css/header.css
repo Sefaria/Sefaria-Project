@@ -129,14 +129,6 @@
   margin-bottom: 1px;
 }
 
-.search::placeholder,
-.topic-landing-search-input::placeholder,
-.readerSearch::placeholder,
-.searchFiltersInput::placeholder,
-.topicFilterInput::placeholder {
-  color: var(--dark-grey);
-}
-
 .header .readerNavMenuSearchButton {
   top: 2px;
 }
