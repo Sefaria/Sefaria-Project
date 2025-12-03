@@ -51,25 +51,32 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded=0, pageSize=20}) {
-  // Loads data from `url` and calls `setter` on the resulting data when `scrollableRef` scrolls
-  // close to its bottom.
-  // API endpoint must return an array of results and support params `skip` and `limit`.
-  // `itemsPreLoaded` counts the number of items already loaded, e.g. when some data was already available
-  // in the JS cache. If `itemsPreLoaded` > 0, no initial API is made
-  // call will be made until scroll occurs, otherwise the size page is requested immediately.
-  
+/**
+ * Hook for paginated data loading triggered by scroll position.
+ * 
+ * Fetches data from `url` when the user scrolls near the bottom of `scrollableRef`.
+ * Uses `skip` and `limit` query params for pagination.
+ * 
+ * @param {Object} options
+ * @param {React.RefObject} options.scrollableRef - Ref to the scrollable container element
+ * @param {string} options.url - API endpoint (must support `skip` and `limit` query params)
+ * @param {function} options.setter - Callback to handle fetched data (receives array of items)
+ * @param {number} [options.itemsPreLoaded=0] - Number of items already in cache; skips initial fetch if > 0
+ * @param {number} [options.pageSize=20] - Number of items to fetch per request
+ */
+function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
   const [loading, setLoading] = useState(false);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const loadingRef = useRef(false);
+  const loadingRef = useRef(false);  // Synchronous flag to prevent concurrent fetches
 
   const loadMore = useCallback(() => {
     if (loadedToEnd || loadingRef.current) return;
     
     loadingRef.current = true;
     setLoading(true);
-    const skip = itemsPreLoaded;  // Always use current count - no separate tracking needed
-    const nextUrl = url + (url.indexOf("?") === -1 ? "?" : "&") + "skip=" + skip + "&limit=" + pageSize;
+    
+    const separator = url.includes('?') ? '&' : '?';
+    const nextUrl = `${url}${separator}skip=${itemsPreLoaded}&limit=${pageSize}`;
     
     $.getJSON(nextUrl, (data) => {
       setter(data);
@@ -81,22 +88,29 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded=0, pageSize
     });
   }, [url, setter, itemsPreLoaded, pageSize, loadedToEnd]);
 
-  // Load on mount only if nothing preloaded
+  // Initial fetch if there is no cached data
   useEffect(() => {
-    if (itemsPreLoaded === 0) loadMore();
+    if (itemsPreLoaded === 0) {
+      loadMore();
+    }
   }, []);
 
-  // Scroll handler
+  // Scroll listener for infinite loading
   useEffect(() => {
     const $scrollable = $(scrollableRef.current);
-    const margin = 600;
+    const scrollMargin = 600;  // Pixels from bottom to trigger load
+    
     const handleScroll = () => {
-      if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      const scrollPosition = $scrollable.scrollTop() + $scrollable.innerHeight();
+      const scrollThreshold = $scrollable[0].scrollHeight - scrollMargin;
+      
+      if (scrollPosition >= scrollThreshold) {
         loadMore();
       }
     };
-    $scrollable.on("scroll", handleScroll);
-    return () => { $scrollable.off("scroll", handleScroll); };
+    
+    $scrollable.on('scroll', handleScroll);
+    return () => $scrollable.off('scroll', handleScroll);
   }, [loadMore]);
 }
 
