@@ -659,38 +659,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   content: "";
   padding: 0 15px;
 }
-.header .mobile-notifications.mobile-unread::after,
-.header .notifications.unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  display: block;
-  top: 3px;
-  right: 1px;
-  position: absolute;
-}
-
-/* Mobile navigation menu notification styles */
-.mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 7px;
-  height: 7px;
-  border-radius: 4px;
-  display: block;
-  top: 20px;
-  position: absolute;
-}
-
-.interface-english .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  left: 15px;
-}
-
-.interface-hebrew .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  right: 15px;
-}
 .header .login {
   color: var(--dark-grey);
   display: inline-block;

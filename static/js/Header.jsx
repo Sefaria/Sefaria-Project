@@ -207,9 +207,7 @@ const Header = (props) => {
     return hidden;
   }
 
-  const unread = !!props.notificationCount;
-  const notificationsClasses = classNames({ notifications: 1, unread: unread });
-  const mobileNotificationsClasses = classNames({ "mobile-notifications": 1, "mobile-unread": unread });
+  const unread = !!(props.notificationCount);
 
   const logo = (
     <a href='/' className="home" aria-label={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
@@ -229,7 +227,6 @@ const Header = (props) => {
                                 ariaLabel={Sefaria._("Notifications")}
                                 href="/notifications"
                                 targetModule={Sefaria.VOICES_MODULE}
-                                className={notificationsClasses}
                               />;
 
 
@@ -347,7 +344,7 @@ const Header = (props) => {
           openURL={props.openURL}
           close={props.onMobileMenuButtonClick}
           module={props.module}
-          mobileNotificationsClasses={mobileNotificationsClasses}
+          hasUnreadNotifications={unread}
           />
       }
       <GlobalWarningMessage />
@@ -375,6 +372,7 @@ Header.propTypes = {
   toggleLanguage: PropTypes.func,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func,
+  notificationCount: PropTypes.number,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly }) => {
@@ -402,7 +400,7 @@ const LoggedOutButtons = ({ mobile, loginOnly }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, mobileNotificationsClasses }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
@@ -491,12 +489,11 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                 </Button>
                 <Button
                   variant="secondary"
-                  icon={props.notificationCount ? "notifications-1_mdl" : "notifications_mdl"}
+                  icon={hasUnreadNotifications ? "notifications-1_mdl" : "notifications_mdl"}
                   alt={Sefaria._("Notifications")}
                   href="/notifications"
                   onClick={close}
                   targetModule={Sefaria.VOICES_MODULE}
-                  className={mobileNotificationsClasses}
                 >
                   <InterfaceText>Notifications</InterfaceText>
                 </Button>
