@@ -26,13 +26,6 @@ data:
 
     loglevel = "warning"
     preload_app = True
-    
-    {{- if .Values.instrumentation.enabled }}
-    def post_fork(server, worker):
-        server.log.info("Worker spawned (pid: %s)", worker.pid)
-        from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
-    
-    {{- end }}
 
     def on_starting(server):
         from reader.startup import init_library_cache
@@ -133,6 +126,34 @@ data:
         },
     }
 
+    ###########################################################################
+    # GEVENT BACKDOOR HOOK (SAFE IMPLEMENTATION)
+    #
+    # Runs *inside* each gunicorn gevent worker, after monkey-patching,
+    # avoiding the ReferenceError crash.
+    ###########################################################################
+
+    def post_fork(server, worker):
+        # Existing OTEL hook logic (if any)
+        {{- if .Values.instrumentation.enabled }}
+        server.log.info("Worker spawned (pid: %s)", worker.pid)
+        from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
+        {{- end }}
+
+        # --- Start Gevent Backdoor (only in debug mode) ---
+        dbg = os.getenv("DEBUG_BACKDOOR")
+        dbg2 = os.getenv("DEBUG")
+
+        if dbg == "1" or dbg2 == "true":
+            from gevent.backdoor import BackdoorServer
+            port = int(os.getenv("DEBUG_BACKDOOR_PORT", "3001"))
+            server.log.info("Starting gevent backdoor on port %s in worker %s", port, worker.pid)
+            backdoor = BackdoorServer(("0.0.0.0", port))
+            backdoor.start()
+
+    ###########################################################################
+    # END GEVENT BACKDOOR HOOK
+    ###########################################################################
     # #-------
     # # Logging variables
     # l_envName = os.getenv("ENV_NAME", "ENV_NAME not defined")
