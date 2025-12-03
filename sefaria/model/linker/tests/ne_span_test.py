@@ -71,7 +71,7 @@ class TestNESpan:
         "text,start,end,slice_args,expected_text,expected_range",
         [
             ("Abraham went to Egypt.", 0, 7, (0, 3), "Abr", (0, 3)),
-            ("Abraham went to Egypt.", 8, 12, (0, 2), "we", (8, 10)),
+            ("Abraham went to Egypt.", 8, 12, (0, 2), "we", (0, 2)),
         ]
     )
     def test_subspan(self, text, start, end, slice_args, expected_text, expected_range):
@@ -81,14 +81,14 @@ class TestNESpan:
         assert isinstance(sub, NESpan)
         assert sub.text == expected_text
         assert sub.range == expected_range
-        assert sub.doc is doc
+        assert sub.doc.text == span.text
 
     def test_subspan_by_word_indices(self):
         doc = NEDoc("Abraham went to Egypt.")
         span = NESpan(doc, 0, len(doc.text), "EVENT")
         sub = span.subspan_by_word_indices(slice(2, 4))
         assert sub.text == "to Egypt"
-        assert sub.doc is doc
+        assert sub.doc.text == span.text
 
     def test_word_length(self):
         doc = NEDoc("Abraham went to Egypt.")
