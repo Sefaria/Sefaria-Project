@@ -10833,6 +10833,9 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
+.sheetContent .SheetOutsideText.highlight .sheetItem.segment .sourceContentText {
+  margin-bottom: 12px;
+}
 .sheetContent h1,
 #sheet .outside h1,
 .sourceContentText h1 {
@@ -10946,9 +10949,12 @@ span.purim-emoji img{
   padding-block-start: 10px;
   padding-block-end: 10px;
 }
-.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton {
   margin-block-start: -10px;
   margin-block-end: 30px;
+}
+.SheetOutsideText .addToSheetButton {
+  margin-block-end: 12px;
 }
 .sheetContent .addToSheetText {
   --english-font: var(--english-sans-serif-font-family);
