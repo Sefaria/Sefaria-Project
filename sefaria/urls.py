@@ -10,6 +10,7 @@ from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, Sefa
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
 import reader.views as reader_views
+import remote_config.views as remote_config_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
@@ -170,6 +171,7 @@ urlpatterns += [
     url(r'^api/link-summary/(?P<ref>.+)$', reader_views.link_summary_api),
     url(r'^api/notes/all$', reader_views.all_notes_api),
     url(r'^api/notes/(?P<note_id_or_ref>.*)$', reader_views.notes_api),
+    url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
     url(r'^api/related/(?P<tref>.*)$', reader_views.related_api),
     url(r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', reader_views.link_count_api),
     url(r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', reader_views.word_count_api),
@@ -442,6 +444,7 @@ urlpatterns += [
     url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
+    url(r'^admin/memory/summary', sefaria_views.memory_summary),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
