@@ -56,4 +56,6 @@ $range: "U+0000-0040, U+005B-0060, U+007B-FB4F";
           "adobe-garamond-pro", /*English*/
           "Crimson Text", /*this font is loaded in base.html for only some latin letters with diacritics*/
           "Times New Roman", serif; /*fallbacks*/
+  --english-serif-secondary-font-family: 'Miriam Libre', var(--english-serif-font-family);
+  --hebrew-serif-secondary-font-family: 'Miriam Libre', var(--hebrew-serif-font-family);
 }
