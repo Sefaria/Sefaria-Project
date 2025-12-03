@@ -122,6 +122,10 @@ spec:
               secretKeyRef:
                 name: {{ template "sefaria.secrets.slackWebhook" . }}
                 key: slack-webhook
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           {{- if .Values.tasks.enabled }}
           - secretRef:

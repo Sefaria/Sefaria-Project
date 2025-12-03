@@ -125,7 +125,7 @@ data:
     # This is the field that is actually used
     GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
 
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
     SESSION_CACHE_ALIAS = "default"
 
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -227,10 +227,7 @@ data:
     SLACK_URL = os.getenv("SLACK_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
-
-    RAW_REF_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
-
-    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
+    GPU_SERVER_URL = f'http://{os.getenv("GPU_SERVER_HOST")}:8000'
 
     LOGGING = {
         'version': 1,
@@ -269,11 +266,6 @@ data:
     CLIENT_SENTRY_DSN = os.getenv("CLIENT_SENTRY_DSN", None)
     SENTRY_CODE_VERSION = os.getenv("SENTRY_CODE_VERSION", "unknown")
     SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "unknown")
-
-    if SENTRY_DSN:
-        from sefaria.settings_utils import init_sentry
-        
-        init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
 
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {

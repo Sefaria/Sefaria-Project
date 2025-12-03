@@ -36,6 +36,7 @@ import {
   MenuButton,
   DisplaySettingsButton,
   SaveButton,
+  GuideButton,
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
@@ -44,6 +45,8 @@ import {ContentText} from "./ContentText";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import DropdownMenu from "./common/DropdownMenu";
+import GuideOverlay from './GuideOverlay';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 
 class ReaderPanel extends Component {
@@ -56,6 +59,7 @@ class ReaderPanel extends Component {
       width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
       backButtonSettings: null,
       data: null,
+      forceGuideOverlay: false,
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -477,6 +481,60 @@ class ReaderPanel extends Component {
       menuOpen: "search",
       searchQuery: query
     });
+  }
+  showGuide() {
+    // Force the guide overlay to show
+    this.setState({forceGuideOverlay: true});
+  }
+  closeGuideOverlay() {
+    // Reset the force guide overlay state when guide is closed
+    this.setState({forceGuideOverlay: false});
+  }
+  getGuideType() {
+    /**
+     * CENTRAL GUIDE MAPPING - This is the one place to update when adding new guides
+     * 
+     * This function determines which guide (if any) should be shown based on current state.
+     * When adding a new guide:
+     * 1. Add a new entry to the GUIDE_MAPPINGS array below
+     * 2. Ensure the guideType matches what you'll use in the guide data/API
+     * 3. Define the condition function that determines when this guide should show
+     * 
+     * @returns {string|null} The guide type to show, or null if no guide should be shown
+     */
+    
+    // Global conditions that apply to ALL guides
+    // Don't show on mobile or in resource panels
+    if (!this.props.multiPanel || this.props.panelPosition !== 0) {
+      return null;
+    }
+    
+    // Define all available guides and their conditions
+    // ORDER MATTERS: First matching condition will be used
+    const GUIDE_MAPPINGS = [
+      {
+        guideType: "editor",
+        condition: (state, props) => {
+          if (state.mode !== "Sheet") return false;
+          return shouldUseEditor(state.sheetID);
+        }
+      },
+      // Add new guides here following the same pattern:
+      // {
+      //   guideType: "reader", 
+      //   condition: (state, props) => /* your condition */
+      // },
+    ];
+
+    // Check each guide mapping and return the first match
+    for (const mapping of GUIDE_MAPPINGS) {
+      if (mapping.condition(this.state, this.props)) {
+        return mapping.guideType;
+      }
+    }
+    
+    // No guide should be shown
+    return null;
   }
   setDisplaySettingsOpen(bool) {
     this.conditionalSetState({displaySettingsOpen: bool});
@@ -1141,6 +1199,7 @@ class ReaderPanel extends Component {
               setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
               data={this.state.data}
               backButtonSettings={this.state.backButtonSettings}
+              showGuide={this.getGuideType() && this.showGuide.bind(this)} // Sending null (false) if the guide shouldn't show so we don't show the guide button
             />}
 
           {(items.length > 0 && !menu) ?
@@ -1149,6 +1208,17 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
+          {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
+          {(() => {
+            const guideType = this.getGuideType();
+            return guideType && (
+              <GuideOverlay 
+                onClose={this.closeGuideOverlay.bind(this)} 
+                guideType={guideType}
+                forceShow={this.state.forceGuideOverlay}
+              />
+            );
+          })()}
 
         </div>
       </ReaderPanelContext.Provider>
@@ -1339,35 +1409,33 @@ class ReaderControls extends Component {
       :
       <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
-          <div>
-            <a href={url} aria-label={"Show Connection Panel contents for " + title} >
-              <div className="readerControlsTitle">
-                { this.props.sheetID ?
-                <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-                { this.props.sheetID ?
-                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
-                  {title}
-                </h1>
-                :
-                <h1>
-                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                  <span className="sectionString">
-                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                  </span>
-                </h1>
-                }
-              </div>
-              <div className="readerTextVersion">
-                {categoryAttribution ? <CategoryAttribution categories={data.categories} linked={false} /> : null }
-                {
-                  this.shouldShowVersion() && displayVersionTitle ?
-                  <span className="readerTextVersion">
-                    <span className="en">{displayVersionTitle}</span>
-                  </span> : null
-                }
-              </div>
-            </a>
-          </div>
+          <a href={url} aria-label={"Show Connection Panel contents for " + title} >
+            <div className="readerControlsTitle">
+              { this.props.sheetID ?
+              <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+              { this.props.sheetID ?
+              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                {title}
+              </h1>
+              :
+              <h1 style={{display: "flex"}}>
+                <ContentText
+                    text={{en: `${title}${sectionString}`, he: `${heTitle}${heSectionString}`}}
+                    defaultToInterfaceOnBilingual
+                />
+              </h1>
+              }
+            </div>
+            <div className="readerTextVersion">
+              {categoryAttribution ? <CategoryAttribution categories={data.categories} linked={false} /> : null }
+              {
+                this.shouldShowVersion() && displayVersionTitle ?
+                <span className="readerTextVersion">
+                  <span className="en">{displayVersionTitle}</span>
+                </span> : null
+              }
+            </div>
+          </a>
         </div>
       </div>;
 
@@ -1383,6 +1451,12 @@ class ReaderControls extends Component {
     let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
     let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          {this.props.showGuide && 
+            <GuideButton
+              onShowGuide={this.props.showGuide}
+              tooltip={true}
+            />
+          }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
@@ -1448,6 +1522,7 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
   backButtonSettings:      PropTypes.object,
+  showTips:                PropTypes.func,
 };
 
 

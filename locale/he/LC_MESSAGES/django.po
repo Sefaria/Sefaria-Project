@@ -1212,14 +1212,6 @@ msgstr "מדיניות פרטיות"
 msgid "Ramban on Torah - Thank you to our Sponsors"
 msgstr ""
 
-#: templates/static/remote-learning.html:4
-msgid "Remote Learning | Sefaria"
-msgstr "למידה מרחוק בספריא"
-
-#: templates/static/remote-learning.html:6
-msgid "Resources for teaching and learning virtually."
-msgstr "משאבים ללימוד ולמידה מרחוק באופן מקוון"
-
 #: templates/static/sefaria-community-translation.html:4
 msgid "About Sefaria Community Translations"
 msgstr "אודות התרגומים הקהילתיים של ספריא"

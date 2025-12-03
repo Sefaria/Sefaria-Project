@@ -1,12 +1,16 @@
 import dataclasses
 from typing import List, Optional, Union, Iterable, Tuple
+import time
 from tqdm import tqdm
+from ne_span import NEDoc
 from sefaria.model.text import Ref
-from sefaria.model.linker.ref_part import RawRef, RawNamedEntity, span_inds
+from sefaria.model.linker.ref_part import RawRef, RawNamedEntity
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef, ResolvedRef
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
-from sefaria.model.linker.named_entity_recognizer import NamedEntityRecognizer
+from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from sefaria.model.linker.category_resolver import CategoryResolver, ResolvedCategory
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 @dataclasses.dataclass
@@ -23,7 +27,7 @@ class LinkedDoc:
 
 class Linker:
 
-    def __init__(self, ner: NamedEntityRecognizer, ref_resolver: RefResolver, ne_resolver: NamedEntityResolver, cat_resolver: CategoryResolver):
+    def __init__(self, ner: LinkerEntityRecognizer, ref_resolver: RefResolver, ne_resolver: NamedEntityResolver, cat_resolver: CategoryResolver):
         self._ner = ner
         self._ref_resolver = ref_resolver
         self._ne_resolver = ne_resolver
@@ -46,6 +50,8 @@ class Linker:
         self._ref_resolver.reset_ibid_history()
         all_named_entities = self._ner.bulk_recognize(inputs)
         docs = []
+
+        start = time.perf_counter()
         book_context_refs = book_context_refs or [None]*len(all_named_entities)
         iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
         for input_str, book_context_ref, inner_named_entities in iterable:
@@ -58,9 +64,13 @@ class Linker:
             if not with_failures:
                 resolved_refs, resolved_named_entities, resolved_cats = self._remove_failures(resolved_refs, resolved_named_entities, resolved_cats)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_cats)]
+        logger.info("bulk_link: resolution completed", elapsed_time=time.perf_counter() - start)
 
+        start = time.perf_counter()
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
         self._ner.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
+        logger.info("bulk_link: mapping completed", elapsed_time=time.perf_counter() - start)
+
         return docs
 
     def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
@@ -86,6 +96,23 @@ class Linker:
         self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
 
+    def __break_input_into_paragraphs(self, input_str: str) -> [list[str], list[tuple[int, int]]]:
+        """
+        Breaks the input string into paragraphs based on new line characters.
+        Returns a list of paragraphs and their corresponding spans.
+        @param input_str: The input string to be broken into paragraphs.
+        @return: A tuple containing a list of paragraphs and a list of spans.
+        """
+        import re
+        paragraph_break_spans = [m.span() for m in re.finditer(r'\s*\n+\s*', input_str)]
+        inputs = []
+        offset = 0
+        for start, end in paragraph_break_spans:
+            inputs.append(input_str[offset:start])
+            offset = end
+        inputs.append(input_str[offset:])
+        return inputs, paragraph_break_spans
+
     def link_by_paragraph(self, input_str: str, book_context_ref: Optional[Ref] = None, *link_args, **link_kwargs) -> LinkedDoc:
         """
         Similar to `link()` except model is run on each paragraph individually (via a bulk operation)
@@ -97,32 +124,29 @@ class Linker:
         @param link_kwargs: **kwargs to be passed to link()
         @return:
         """
-        import re
-
-        inputs = re.split(r'\s*\n+\s*', input_str)
+        inputs, paragraph_break_spans = self.__break_input_into_paragraphs(input_str)
+        paragraph_break_spans += [(0, 0)]  # pad to be same length as inputs for zip()
         linked_docs = self.bulk_link(inputs, [book_context_ref]*len(inputs), *link_args, **link_kwargs)
         resolved_refs = []
         resolved_named_entities = []
         resolved_categories = []
-        full_spacy_doc = self._ner.named_entity_model.make_doc(input_str)
+        full_ne_doc = NEDoc(input_str)
         offset = 0
-        for curr_input, linked_doc in zip(inputs, linked_docs):
+        for curr_input, linked_doc, curr_par_break in zip(inputs, linked_docs, paragraph_break_spans):
             resolved_refs += linked_doc.resolved_refs
             resolved_named_entities += linked_doc.resolved_named_entities
             resolved_categories += linked_doc.resolved_categories
 
             for resolved in linked_doc.all_resolved:
                 named_entity = resolved.raw_entity
-                named_entity.align_to_new_doc(full_spacy_doc, offset)
+                named_entity.align_to_new_doc(full_ne_doc, offset)
                 if isinstance(named_entity, RawRef):
                     # named_entity's current start has already been offset so it's the offset we need for each part
-                    raw_ref_offset, _ = span_inds(named_entity.span)
-                    named_entity.align_parts_to_new_doc(full_spacy_doc, raw_ref_offset)
-            curr_token_count = len(self._ner.named_entity_model.make_doc(curr_input))
-            offset += curr_token_count+1  # +1 for newline token
+                    named_entity.align_parts_to_new_doc(full_ne_doc, offset)
+            offset = curr_par_break[1]  # Update offset to the end of the current paragraph break
         return LinkedDoc(input_str, resolved_refs, resolved_named_entities, resolved_categories)
 
-    def get_ner(self) -> NamedEntityRecognizer:
+    def get_ner(self) -> LinkerEntityRecognizer:
         return self._ner
 
     def reset_ibid_history(self) -> None:

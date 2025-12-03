@@ -311,7 +311,6 @@ export const serialize = (content) => {
         }, {preTags: "", postTags: ""});
 
         const withBreaks = content.text.replace(/(?:\r\n|\r|\n)/g, '<br>'); // preserve br tags, as part of white-screen fix, they are now our serialized representation of new lines. The Sheet Reader relies on them as well.
-
         return (`${tagStringObj.preTags}${withBreaks}${tagStringObj.postTags}`)
 
     }
@@ -333,12 +332,12 @@ export const serialize = (content) => {
                 const paragraphHTML = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
                 }, "");
-                if (content["text-align"] == "center") {
-                    return `<div style='text-align: center'>${paragraphHTML}</div>`
+                if (/<\/?(ul|ol|li)[^>]*>/i.test(paragraphHTML)) {
+                    return `<div>${paragraphHTML}</div>`  // use wrapping "divs" to enable deserializer to parse lists properly
+                } else {
+                    return `<p>${paragraphHTML}</p>` // use wrapping "p"s to enable deserializer to parse nodes properly, otherwise lists get lost. The reason p's are used instead of divs is to prevent extra spacing.
                 }
-                return `<div>${paragraphHTML}</div>`
             }
-
             case 'list-item': {
                 const liHtml = content.children.reduce((acc, text) => {
                     return (acc + serialize(text))
@@ -541,17 +540,31 @@ function flattenLists(htmlString) {
 
   return doc.body.innerHTML;
 }
+function replaceDivWithBr(html){
+     return html
+    .replace(/<div[^>]*>/g, '')     // remove opening <div> tags (with or without attributes)
+    .replace(/<\/div>/g, '<br>');   // replace closing </div> tags with <br>
+}
 function replaceBrWithNewLine(html) {
   return html.replace(/<br\s*\/?>\s*/gi, '\n');
   }
 
 function parseSheetItemHTML(rawhtml) {
-    console.log(rawhtml);
     // replace non-breaking spaces with regular spaces and replace line breaks with spaces
-    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ')
+    let preparseHtml = rawhtml.replace(/\u00A0/g, ' ');
+
+    // If there are no ul/ol/li tags, replace divs with brs to preserve line breaks.
+    // If there are ul/ol/li tags, the serialization will need the divs to render the list properly and prevent data-loss.
+    if (!/<\/?(ul|ol|li)[^>]*>/i.test(preparseHtml)) {
+        preparseHtml = replaceDivWithBr(preparseHtml);
+    }
     preparseHtml = replaceBrWithNewLine(preparseHtml);
+
+
     // Nested lists are not supported in new editor, so flatten nested lists created with old editor into one depth lists:
     preparseHtml = flattenLists(preparseHtml);
+    // remove the final line break (exactly one)
+    preparseHtml = preparseHtml.replace(/(?:\r\n|\r|\n)$/, '');
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -2550,7 +2563,7 @@ const HighlightButton = () => {
     const [showPortal, setShowPortal] = useState(false);
     const isActive = isFormatActive(editor, "background-color");
     const classes = {fa: 1, active: isActive, "fa-pencil": 1};
-    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue 
+    const colors = ["#E6DABC", "#EAC4B6", "#D5A7B3", "#AECAB7", "#ADCCDB"]; // 50% gold, orange, rose, green, blue
     const colorButtons = <>{colors.map(color =>
       <button key={`highlight-${color.replace("#", "")}`} className="highlightButton" onMouseDown={e => {
             e.preventDefault();
