@@ -65,12 +65,12 @@ function useDebounce(value, delay) {
  * @param {number} [options.pageSize=20] - Number of items to fetch per request
  */
 function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
-  const [loadedToEnd, setLoadedToEnd] = useState(false);
+  const loadedToEndRef = useRef(false);
   const loadingRef = useRef(false);
   const fetchedCountRef = useRef(itemsPreLoaded);
 
   const loadMore = useCallback(() => {
-    if (loadedToEnd || loadingRef.current) return;
+    if (loadedToEndRef.current || loadingRef.current) return;
 
     loadingRef.current = true;
     const skip = fetchedCountRef.current;
@@ -81,11 +81,11 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
       setter(data);
       fetchedCountRef.current += data.length;
       if (data.length < pageSize) {
-        setLoadedToEnd(true);
+        loadedToEndRef.current = true;
       }
       loadingRef.current = false;
     });
-  }, [url, setter, pageSize, loadedToEnd]);
+  }, [url, setter, pageSize]);
 
   // Initial fetch if there is no cached data
   useEffect(() => {
