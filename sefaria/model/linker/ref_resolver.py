@@ -230,16 +230,10 @@ class TermMatcher:
                 self._str2term_map[title] += [term]
 
     def match_term(self, ref_part: RawRefPart) -> List[schema.NonUniqueTerm]:
-        from sefaria.utils.hebrew import get_prefixless_inds
+        from sefaria.utils.hebrew import get_matches_with_prefixes
 
-        matches = []
-        if ref_part.type != RefPartType.NAMED: return matches
-        starti_inds = [0]
-        if self.lang == 'he':
-            starti_inds += get_prefixless_inds(ref_part.text)
-        for starti in starti_inds:
-            matches += self._str2term_map.get(ref_part.text[starti:], [])
-        return matches
+        if ref_part.type != RefPartType.NAMED: return []
+        return get_matches_with_prefixes(ref_part.text, lang=self.lang, matches_map=self._str2term_map)
 
     def match_terms(self, ref_parts: List[RawRefPart]) -> List[schema.NonUniqueTerm]:
         matches = []

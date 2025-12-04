@@ -11,7 +11,7 @@ import dataclasses
 import re
 import regex
 import math
-from typing import List
+from typing import List, Callable
 import itertools
 from sefaria.system.decorators import memoized
 import structlog
@@ -651,3 +651,26 @@ def get_prefixless_inds(st: str) -> List[int]:
 		if not st.startswith(prefix): continue
 		starti_list += [len(prefix)]
 	return starti_list
+
+
+def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, get_matches_func: Callable = None) -> list:
+    """
+    Get matches for text including possible prefix-stripped versions
+    :param text: Text to match. Possible prefixes will be stripped
+    :param lang: If "he" or None, will consider Hebrew prefixes
+    :param matches_map: dict from where to pull matches directly instead of calling get_matches_func. This is meant as an optimization when such a dict already exists.
+    :param get_matches_func: generic function which takes a string and returns matches. If matches_map is provided, this will not be used.
+    :return: list of all possible matches when considering all possible prefixes to strip
+    """
+    starti_inds = [0]
+    if lang is None or lang == 'he':
+        starti_inds += get_prefixless_inds(text)
+    matches = []
+    for starti in starti_inds:
+        if matches_map:
+            matches += matches_map.get(text[starti:], [])
+        else:
+            matches += get_matches_func(text[starti:])
+    return matches
+
+  
