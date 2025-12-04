@@ -1053,84 +1053,38 @@ def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
     """
-    import structlog
-    logger = structlog.get_logger(__name__)
-    
-    logger.info("=== EXPORT_TO_DRIVE START ===")
-    logger.info(f"Request host: {request.get_host()}")
-    logger.info(f"Request path: {request.path}")
-    logger.info(f"Request full URL: {request.build_absolute_uri()}")
-    logger.info(f"Sheet ID: {sheet_id}")
-    logger.info(f"User: {request.user} (id: {request.user.id})")
-    logger.info(f"Credential received: {credential is not None}")
-    logger.info(f"Credential valid: {credential.valid if credential else 'N/A'}")
-    logger.info(f"Credential expired: {credential.expired if credential else 'N/A'}")
-    
     # Using credentials in google-api-python-client.
-    try:
-        logger.info("Building Drive v3 service...")
-        service = build('drive', 'v3', credentials=credential, cache_discovery=False)
-        logger.info("Drive service built successfully")
-        
-        logger.info("Building OAuth2 v2 service for user info...")
-        user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
-        logger.info("OAuth2 service built successfully")
-    except Exception as e:
-        logger.error(f"Error building Google services: {e}")
-        return jsonResponse({'error': {'message': str(e)}})
-    
-    logger.info(f"Fetching sheet {sheet_id}...")
+    service = build('drive', 'v3', credentials=credential, cache_discovery=False)
+    user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
-        logger.error(f"Error getting sheet: {sheet['error']}")
         return jsonResponse({'error': {'message': sheet["error"]}})
-    logger.info(f"Sheet fetched successfully: {sheet.get('title', 'NO TITLE')}")
 
     options = {'language': request.GET.get("language", "bilingual"),
                'layout': request.GET.get("layout", "heRight")}
     sheet['options'] = sheet['options'] | options
-    logger.info(f"Sheet options: {options}")
 
     file_metadata = {
         'name': strip_tags(sheet['title'].strip()),
         'mimeType': 'application/vnd.google-apps.document'
     }
-    logger.info(f"File metadata: {file_metadata}")
-    
-    logger.info("Converting sheet to HTML...")
     html_string = bytes(sheet_to_html_string(sheet), "utf8")
-    logger.info(f"HTML string length: {len(html_string)} bytes")
 
     media = MediaIoBaseUpload(
         BytesIO(html_string),
         mimetype='text/html',
         resumable=True)
 
-    try:
-        logger.info("Creating file in Google Drive...")
-        new_file = service.files().create(body=file_metadata,
-                                            media_body=media,
-                                            fields='webViewLink').execute()
-        logger.info(f"File created successfully! webViewLink: {new_file.get('webViewLink', 'NOT RETURNED')}")
-    except Exception as e:
-        logger.error(f"Error creating file in Drive: {e}")
-        return jsonResponse({'error': {'message': str(e)}})
+    new_file = service.files().create(body=file_metadata,
+                                        media_body=media,
+                                        fields='webViewLink').execute()
         
-    try:
-        logger.info("Fetching user info from Google...")
-        user_info = user_info_service.userinfo().get().execute()
-        logger.info(f"User info fetched - email: {user_info.get('email', 'NOT RETURNED')}")
-    except Exception as e:
-        logger.error(f"Error fetching user info: {e}")
-        # Don't fail the whole operation for this
-        user_info = {'email': ''}
+    user_info = user_info_service.userinfo().get().execute()
 
     profile = UserProfile(id=request.user.id)
     profile.update({"gauth_email": user_info['email']})
     profile.save()
-    logger.info("User profile updated with gauth_email")
 
-    logger.info("=== EXPORT_TO_DRIVE END - Success ===")
     return jsonResponse(new_file)
 
 @catch_error_as_json

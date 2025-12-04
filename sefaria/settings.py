@@ -60,10 +60,6 @@ def get_static_url():
         return '/static/'
 STATIC_URL = get_static_url()
 
-# Optional domain override for Google OAuth callback URL
-# When set, OAuth redirects will use this domain instead of the request's host
-# Useful for subdomains that share a session cookie domain
-GAUTH_CALLBACK_DOMAIN = os.getenv('GAUTH_CALLBACK_DOMAIN', None)
 
 # List of finder classes that know how to find static files in
 # various locations.
