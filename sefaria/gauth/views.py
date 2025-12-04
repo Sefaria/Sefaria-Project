@@ -1,6 +1,7 @@
 import os
 import datetime
 import json
+from urllib.parse import urlparse, urlunparse
 
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -17,6 +18,39 @@ from sefaria import settings
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+def build_gauth_callback_url(request):
+    """
+    Build the OAuth callback URL, optionally overriding the domain.
+    
+    If GAUTH_CALLBACK_DOMAIN is set in settings, use that domain instead of the request's host.
+    This is useful when the OAuth redirect URI registered with Google uses a different
+    subdomain than where the user is browsing (e.g., using gauth.cauldron.sefaria.org
+    instead of voices.gauth.cauldron.sefaria.org).
+    """
+    reverse_url = reverse('gauth_callback')
+    absolute_uri = request.build_absolute_uri(reverse_url)
+    
+    # Check if we should override the domain
+    override_domain = getattr(settings, 'GAUTH_CALLBACK_DOMAIN', None)
+    if override_domain:
+        parsed = urlparse(absolute_uri)
+        # Replace the netloc (host:port) with the override domain
+        new_uri = urlunparse((
+            'https',  # Always use HTTPS for OAuth callbacks
+            override_domain,
+            parsed.path,
+            parsed.params,
+            parsed.query,
+            parsed.fragment
+        ))
+        logger.info(f"GAUTH_CALLBACK_DOMAIN override: {override_domain}")
+        logger.info(f"Original URI: {absolute_uri} -> Overridden URI: {new_uri}")
+        return new_uri
+    
+    # Default behavior: just ensure HTTPS
+    return absolute_uri.replace("http:", "https:")
 
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
@@ -170,22 +204,10 @@ def index(request):
         scopes=gauth_scope_raw
     )
 
-    # Build redirect URL - track this carefully as malformed URLs can occur here
+    # Build redirect URL - use helper that supports domain override
     logger.info("=== BUILDING REDIRECT URL (Step 1) ===")
-    reverse_url = reverse('gauth_callback')
-    logger.info(f"reverse('gauth_callback') returned: {reverse_url}")
-    logger.info(f"reverse_url type: {type(reverse_url)}")
-    logger.info(f"reverse_url repr: {repr(reverse_url)}")
-    
-    absolute_uri = request.build_absolute_uri(reverse_url)
-    logger.info(f"build_absolute_uri result: {absolute_uri}")
-    logger.info(f"absolute_uri type: {type(absolute_uri)}")
-    logger.info(f"absolute_uri repr: {repr(absolute_uri)}")
-    
-    redirect_url = absolute_uri.replace("http:", "https:")
-    logger.info(f"Final redirect_url (after https replace): {redirect_url}")
-    logger.info(f"redirect_url type: {type(redirect_url)}")
-    logger.info(f"redirect_url repr: {repr(redirect_url)}")
+    redirect_url = build_gauth_callback_url(request)
+    logger.info(f"Final redirect_url: {redirect_url}")
     
     # Check for malformed characters that could cause the error
     if "'" in redirect_url or ']' in redirect_url or '%5D' in redirect_url:
@@ -194,7 +216,6 @@ def index(request):
     
     flow.redirect_uri = redirect_url
     logger.info(f"flow.redirect_uri set to: {flow.redirect_uri}")
-    logger.info(f"flow.redirect_uri type: {type(flow.redirect_uri)}")
 
     logger.info("About to call flow.authorization_url()...")
     authorization_url, state = flow.authorization_url(
@@ -352,20 +373,8 @@ def auth_return(request):
 
     # Build redirect URL - must match what was sent in Step 1
     logger.info("=== BUILDING REDIRECT URL (Step 2) ===")
-    reverse_url = reverse('gauth_callback')
-    logger.info(f"reverse('gauth_callback') returned: {reverse_url}")
-    logger.info(f"reverse_url type: {type(reverse_url)}")
-    logger.info(f"reverse_url repr: {repr(reverse_url)}")
-    
-    absolute_uri = request.build_absolute_uri(reverse_url)
-    logger.info(f"build_absolute_uri result: {absolute_uri}")
-    logger.info(f"absolute_uri type: {type(absolute_uri)}")
-    logger.info(f"absolute_uri repr: {repr(absolute_uri)}")
-    
-    redirect_url = absolute_uri.replace("http:", "https:")
+    redirect_url = build_gauth_callback_url(request)
     logger.info(f"Final redirect_url for flow: {redirect_url}")
-    logger.info(f"redirect_url type: {type(redirect_url)}")
-    logger.info(f"redirect_url repr: {repr(redirect_url)}")
     
     # Check for malformed characters
     if "'" in redirect_url or ']' in redirect_url or '%5D' in redirect_url:

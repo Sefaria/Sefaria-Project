@@ -19,6 +19,9 @@ data:
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
   FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
+  {{- if .Values.localSettings.GAUTH_CALLBACK_DOMAIN }}
+  GAUTH_CALLBACK_DOMAIN: {{ .Values.localSettings.GAUTH_CALLBACK_DOMAIN | quote }}
+  {{- end }}
   OFFLINE: "{{ .Values.localSettings.OFFLINE }}"
   DOWN_FOR_MAINTENANCE: "{{ .Values.localSettings.DOWN_FOR_MAINTENANCE }}"
   MAINTENANCE_MESSAGE: {{ .Values.localSettings.MAINTENANCE_MESSAGE | quote }}
