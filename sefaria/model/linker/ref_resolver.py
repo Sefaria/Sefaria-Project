@@ -109,7 +109,7 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
     def _get_pretty_dh_span(self, curr_span: NESpan) -> NESpan:
         curr_start, curr_end = curr_span.range
         for dh_span in self._matched_dh_map.values():
-            temp_start, temp_end = dh_span.range
+            temp_start, temp_end = dh_span.get_range_relative_to_doc()
             curr_start = temp_start if temp_start < curr_start else curr_start
             curr_end = temp_end if temp_end > curr_end else curr_end
 
