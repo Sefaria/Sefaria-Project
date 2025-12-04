@@ -74,8 +74,11 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
 
     loadingRef.current = true;
     const skip = fetchedCountRef.current;
-    const separator = url.includes('?') ? '&' : '?';
-    const nextUrl = `${url}${separator}skip=${skip}&limit=${pageSize}`;
+
+    const urlObj = new URL(url, window.location.origin);
+    urlObj.searchParams.set('skip', skip);
+    urlObj.searchParams.set('limit', pageSize);
+    const nextUrl = urlObj.pathname + urlObj.search;
 
     $.getJSON(nextUrl, (data) => {
       setter(data);
