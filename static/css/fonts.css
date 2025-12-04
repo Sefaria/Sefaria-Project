@@ -73,8 +73,8 @@
           "adobe-garamond-pro", /*English*/
           "Crimson Text", /*this font is loaded in base.html for only some latin letters with diacritics*/
           "Times New Roman", serif; /*fallbacks*/
-  --english-serif-secondary-font-family: 'Miriam Libre', var(--english-serif-font-family);
-  --hebrew-serif-secondary-font-family: 'Miriam Libre', var(--hebrew-serif-font-family);
+  --english-secondary-font-family: 'Miriam Libre', var(--english-sans-serif-font-family);
+  --hebrew-secondary-font-family: 'Miriam Libre', var(--hebrew-sans-serif-font-family);
 }
 
 body, .sans-serif {
@@ -93,8 +93,8 @@ body, .sans-serif {
 }
 
 .info-text {
-  --english-font: var(--english-serif-secondary-font-family);
-  --hebrew-font: var(--hebrew-serif-secondary-font-family);
+  --english-font: var(--english-secondary-font-family);
+  --hebrew-font: var(--hebrew-secondary-font-family);
 }
 
 body, .en, .int-en, .englishWithinHebrew {
