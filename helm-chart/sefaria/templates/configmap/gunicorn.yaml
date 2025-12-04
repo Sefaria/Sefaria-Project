@@ -28,8 +28,9 @@ data:
     preload_app = True
     
     # Gunicorn worker restart policy (infreq restarts, protect from leaks)
-    max_requests = 50000
-    max_requests_jitter = 10000
+    if os.getenv("MAX_REQUESTS") and os.getenv("MAX_REQUESTS_JITTER"):
+        max_requests = int(os.getenv("MAX_REQUESTS"))
+        max_requests_jitter = int(os.getenv("MAX_REQUESTS_JITTER"))
 
     {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
