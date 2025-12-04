@@ -4,8 +4,7 @@ from functools import reduce
 from typing import List
 import django
 import re
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
-from sefaria.model.linker_output import LinkerOutput
+from sefaria.model.marked_up_text_chunk import get_mutc_class, LinkerOutput
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -167,7 +166,7 @@ class TextRequestAdapter:
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
-        MUTCClass = LinkerOutput if self.debug_mode == "linker" else MarkedUpTextChunk
+        MUTCClass = get_mutc_class(self.debug_mode == "linker")
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
         def get_marked_up_text_chunk_queue():

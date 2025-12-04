@@ -5,7 +5,7 @@ from sefaria.model.linker.linker import LinkedDoc
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
-from sefaria.model.linker_output import LinkerOutput
+from sefaria.model.marked_up_text_chunk import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError
 from sefaria.helper.linker.tasks import _extract_debug_spans
 
