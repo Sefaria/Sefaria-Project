@@ -166,7 +166,7 @@ export const PopoverContent = ({ children, className = '' }) => {
  * Uses the project's Button component with consistent styling.
  * Automatically calls the popover's setOpen(false) in addition to any custom onClick handler.
  */
-export const PopoverClose = ({ children, onClick, ...props }) => {
+export const PopoverClose = ({ children, onClick, className = '', ...props }) => {
   const { setOpen } = usePopoverContext();
 
   return (
@@ -174,6 +174,7 @@ export const PopoverClose = ({ children, onClick, ...props }) => {
       variant=""
       size="small"
       activeModule={Sefaria.activeModule}
+      className={`popover-button ${className}`}
       onClick={(e) => {
         onClick?.(e);        // Call custom handler first
         setOpen?.(false);    // Then close the popover
