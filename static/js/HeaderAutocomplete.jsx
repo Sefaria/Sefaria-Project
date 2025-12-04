@@ -28,6 +28,11 @@ const type_title_map = {
   "User": "Users"
 };
 
+const MODULE_ALLOWED_SEARCH_TYPES = {
+  [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Term'],
+  [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
+};
+
 function type_icon(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
@@ -111,7 +116,8 @@ const getQueryObj = (query) => {
         return getQueryObj(repairedQuery);
       }
 
-      if (d["is_ref"]) {
+      const allowedTypes = MODULE_ALLOWED_SEARCH_TYPES[Sefaria.activeModule];
+      if (d["is_ref"] && allowedTypes.includes('ref')) {
         return {'type': 'Ref', 'id': d["ref"], 'is_book': d['is_book']};
       } else if (!!d["topic_slug"]) {
         return {'type': 'Topic', 'id': d["topic_slug"], 'is_book': d['is_book']};
@@ -359,17 +365,12 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
-    const MODULE_AUTOCOMPLETE_TYPES = {
-      [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
-      [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
-    };
-
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
           return[];
         }
         try {
-        const types = MODULE_AUTOCOMPLETE_TYPES[Sefaria.activeModule];
+        const types = MODULE_ALLOWED_SEARCH_TYPES[Sefaria.activeModule];
         const topic_pool = Sefaria.getTopicPoolNameForModule(Sefaria.activeModule);
         const d = await Sefaria.getName(inputValue, undefined, types, topic_pool);
 
