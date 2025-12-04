@@ -24,7 +24,7 @@ def build_gauth_callback_url(request):
     """
     Build the OAuth callback URL, optionally overriding the domain.
     
-    If GAUTH_CALLBACK_DOMAIN is set in settings, use that domain instead of the request's host.
+    If GAUTH_CALLBACK_DOMAIN is set in environment or settings, use that domain instead of the request's host.
     This is useful when the OAuth redirect URI registered with Google uses a different
     subdomain than where the user is browsing (e.g., using gauth.cauldron.sefaria.org
     instead of voices.gauth.cauldron.sefaria.org).
@@ -32,8 +32,8 @@ def build_gauth_callback_url(request):
     reverse_url = reverse('gauth_callback')
     absolute_uri = request.build_absolute_uri(reverse_url)
     
-    # Check if we should override the domain
-    override_domain = getattr(settings, 'GAUTH_CALLBACK_DOMAIN', None)
+    # Check if we should override the domain - try environment first, then settings
+    override_domain = os.environ.get('GAUTH_CALLBACK_DOMAIN') or getattr(settings, 'GAUTH_CALLBACK_DOMAIN', None)
     if override_domain:
         parsed = urlparse(absolute_uri)
         # Replace the netloc (host:port) with the override domain
