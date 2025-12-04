@@ -3033,7 +3033,6 @@ def notifications_read_api(request):
     """
     if request.method == "POST":
         notifications = request.POST.get("notifications")
-        print("notifications", request.POST.get("scope", VOICES_MODULE))
         scope = request.POST.get("scope", VOICES_MODULE)
         
         if not notifications:
