@@ -601,6 +601,35 @@ Sefaria = extend(Sefaria, {
           }
       }
   },
+  _makeLinkerDebugAlert(ref, lang, charRange, spans) {
+      let output = "";
+      const sampleSpan = spans[0];  // useful for info that is the same across spans
+      const successStatus = spans.length === 1 ? (spans[0].failed ? "FAILED" : "SUCCESS") : "AMBIGUOUS";
+      output += sampleSpan.type.toUpperCase() + " -- " + successStatus + "\n\n";
+      for (let span of spans) {
+          output += Sefaria._getLinkerDebugStrFromSpan(span) + "-----\n";
+      }
+      output += "See console for full debug info";
+      alert(output);
+      console.log(`Linker Debug Info for ${ref} [${lang}] chars ${charRange}:`, spans.length === 1 ? spans[0] : spans);
+  },
+  _getLinkerDebugStrFromSpan(span) {
+      let output = "";
+      if (span.type === 'citation') {
+          output += "Ref: " + span.ref + "\n";
+          output += "Input Ref Parts: " + span.inputRefParts.join(' | ') + "\n";
+          output += "Input Ref Part Types: " + span.inputRefPartTypes.join(' | ') + "\n";
+          if (span.contextType) {
+              output += "Context Ref: " + span.contextRef + "\n";
+              output += "Context Type: " + span.contextType + "\n";
+          }
+      } else if (span.type === 'named-entity') {
+          output += "Topic Slug: " + span.topicSlug + "\n";
+      } else if (span.type === 'category') {
+          output += "Category Path: " + span.categoryPath.join(' | ') + "\n";
+      }
+      return output;
+  },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
