@@ -250,9 +250,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
              data-anl-feature_name={analyticsFeatureName}>
            <div
              className="dropdownLinks-button"
-             data-anl-event={analyticsFeatureName ? "modswitch_toggle:click" : null}
-             data-anl-from={isOpen ? "closed" : "open"}
-             data-anl-to={isOpen ? "open" : "closed"}
+             data-anl-event={analyticsFeatureName ? (isOpen ? "modswitch_close:click" : "modswitch_open:click") : null}
            >
               {/* 
                 Using React.cloneElement to inject dropdown behavior into the button.
