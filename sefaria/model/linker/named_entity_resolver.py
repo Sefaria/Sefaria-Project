@@ -4,7 +4,7 @@ from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawNamedEntity
 from sefaria.model.topic import Topic
-from sefaria.utils.hebrew import strip_cantillation
+from sefaria.utils.hebrew import strip_cantillation, get_prefixless_inds
 from sefaria.system.exceptions import InputError
 
 
@@ -128,7 +128,10 @@ class TopicMatcher:
         return topics
 
     def match(self, named_entity: RawNamedEntity) -> list[Topic]:
-        slugs = self._title_slug_map_by_type.get(named_entity.type.name, {}).get(named_entity.text, [])
+        slugs = []
+        starti_inds = [0] + get_prefixless_inds(named_entity.text)
+        for starti in starti_inds:
+            slugs += self._title_slug_map_by_type.get(named_entity.type.name, {}).get(named_entity.text[starti:], [])
         return [self._slug_topic_map[slug] for slug in slugs]
 
 
