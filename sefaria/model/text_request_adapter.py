@@ -153,7 +153,7 @@ class TextRequestAdapter:
         linker_output_list = []
         for i, segment_ref in enumerate(self.oref.all_segment_refs()):
             for version in self.return_obj['versions']:
-                language = 'he' if version['direction'] == 'rtl' else 'en'
+                language = version['language']
                 version_title = version['versionTitle']
                 linker_output = LinkerOutput().load({
                     "ref": segment_ref.normal(),
