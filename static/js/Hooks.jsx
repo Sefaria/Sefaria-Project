@@ -96,20 +96,22 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
 
   // Scroll listener for infinite loading
   useEffect(() => {
-    const $scrollable = $(scrollableRef.current);
+    const scrollable = scrollableRef.current;
+    if (!scrollable) return;
+
     const scrollMargin = 600;  // Pixels from bottom to trigger load
 
     const handleScroll = () => {
-      const scrollPosition = $scrollable.scrollTop() + $scrollable.innerHeight();
-      const scrollThreshold = $scrollable[0].scrollHeight - scrollMargin;
+      const scrollPosition = scrollable.scrollTop + scrollable.clientHeight;
+      const scrollThreshold = scrollable.scrollHeight - scrollMargin;
 
       if (scrollPosition >= scrollThreshold) {
         loadMore();
       }
     };
 
-    $scrollable.on('scroll', handleScroll);
-    return () => $scrollable.off('scroll', handleScroll);
+    scrollable.addEventListener('scroll', handleScroll);
+    return () => scrollable.removeEventListener('scroll', handleScroll);
   }, [loadMore]);
 }
 
