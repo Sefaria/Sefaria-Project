@@ -29,7 +29,7 @@ const type_title_map = {
 };
 
 const MODULE_ALLOWED_SEARCH_TYPES = {
-  [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Collection', 'Term'],
+  [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Term'],
   [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
 };
 
