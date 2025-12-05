@@ -622,3 +622,17 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
             return return_value
         return decorated_function
     return argumented_decorator
+    
+def get_redirect_to_help_center(request, tref):
+    """
+    Redirect to the help center for a given sheet tref.
+    """
+    from sefaria.model.text import Ref
+    from sefaria.site.site_settings import SITE_SETTINGS
+    oref = Ref(tref)
+    if not oref.is_sheet():
+        return None
+    sheet_id = oref.sections[0]
+    help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
+    lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
+    return help_center_redirects.get(lang_code, {}).get(str(sheet_id))

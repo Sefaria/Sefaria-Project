@@ -19,6 +19,7 @@ import re
 import uuid
 from dataclasses import asdict
 
+from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -386,8 +387,12 @@ def catchall(request, tref, sheet=None):
             return reader_redirect(uref)
 
         return text_panels(request, ref=tref)
+    else:
+        help_center_redirect = get_redirect_to_help_center(request, tref)
+        if help_center_redirect:
+            return redirect(help_center_redirect)
 
-    return text_panels(request, ref=tref, sheet=sheet)
+        return text_panels(request, ref=tref, sheet=sheet)
 
 
 @ensure_csrf_cookie
@@ -612,6 +617,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
+    
 
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
