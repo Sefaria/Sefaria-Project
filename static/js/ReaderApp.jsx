@@ -39,6 +39,7 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
+import { Dedupe } from '@sentry/react';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -2106,6 +2107,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse).map(x => x.toLowerCase());
+    console.log("skylee log");
+    console.log(deDupedTriggers)
     const context = {
       isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,

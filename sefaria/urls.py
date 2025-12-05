@@ -15,6 +15,7 @@ import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
+import api.newsletter_views as newsletter_views
 import guides.views as guides_views
 
 from sefaria.site.urls import site_urlpatterns
@@ -153,6 +154,11 @@ urlpatterns += [
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
     url(r'^api/versions/?$', reader_views.complete_version_api),
     url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
+    url(r'^api/newsletter/lists/?$', newsletter_views.get_newsletter_lists),
+    url(r'^api/newsletter/subscribe/?$', newsletter_views.subscribe_newsletter),
+    url(r'^api/newsletter/subscriptions/?$', newsletter_views.get_user_subscriptions),
+    url(r'^api/newsletter/preferences/?$', newsletter_views.update_user_preferences),
+    url(r'^api/newsletter/learning-level/?$', newsletter_views.update_learning_level),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),

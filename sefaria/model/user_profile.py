@@ -396,6 +396,9 @@ class UserProfile(object):
         # Fundraising
         self.is_sustainer = False
 
+        # Newsletter preferences
+        self.learning_level = None  # numeric 1-5 for user learning level in Sefaria, None if not set
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile: # overwrite if fake profile in db
@@ -671,6 +674,7 @@ class UserProfile(object):
             "nationbuilder_id":      self.nationbuilder_id,
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
+            "learning_level":        self.learning_level,
         }
 
     def to_api_dict(self, basic=False):
@@ -703,6 +707,7 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "is_sustainer":          self.is_sustainer,
+            "learning_level":        self.learning_level,
         }
         dictionary.update(other_info)
         return dictionary
