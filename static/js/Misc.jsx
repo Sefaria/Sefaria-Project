@@ -1192,7 +1192,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 class SearchButton extends Component {
   render() {
     return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/iconmonstr-magnifier-2.svg" alt={Sefaria._("Search")} />
+      <img src="/static/icons/search_mdl.svg" alt={Sefaria._("Search")} />
     </span>);
   }
 }
@@ -1288,7 +1288,13 @@ function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLan
   };
 
   return (
-    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={<img src="/static/icons/globe-wire.svg" alt={Sefaria._('Toggle Interface Language Menu')}/>}>
+    <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
+      <Button
+        variant="icon-only"
+        icon="globallanguageswitcher_mdl"
+        ariaLabel={Sefaria._('Toggle Interface Language Menu')}
+      />
+    }>
       <div className="dropdownLinks-options globeLanguageToggle">
         <DropdownLanguageToggle/>
       </div>
@@ -1998,47 +2004,54 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-
-function OnInView({ children, onVisible }) {
   /**
    *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
    *  `children` single element or nested group of elements wrapped in a div
    *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
    *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
-  const elementRef = useRef();
+function OnInView({ children, onVisible }) {
+  const nodeRef = useRef(null); // DOM element and children
+  const onVisibleRef = useRef(onVisible);
+  const wasFullyVisible = useRef(false); // Tracks if element has been fully visible to prevent duplicate callbacks
 
+  // Keep the ref in sync with the latest prop without remounting the observer
+  useEffect(() => {
+    onVisibleRef.current = onVisible;
+  }, [onVisible]);
+
+  // Set up the observer once – runs only on mount / unmount
   useEffect(() => {
     const observer = new IntersectionObserver(
       // Callback function will be invoked whenever the visibility of the observed element changes
-      (entries) => {
-        const entry = entries[0];
+      ([entry]) => {
+        const fullyInView = entry.intersectionRatio === 1;
+
         // Check if the observed element is intersecting with the viewport (it's visible)
-        // Invoke provided prop callback for analytics purposes
-        if (entry.isIntersecting) {
-          onVisible();
+        if (fullyInView && !wasFullyVisible.current) {
+          // Rising edge: element just became 100% visible
+          wasFullyVisible.current = true;
+          // Invoke provided prop callback for analytics purposes
+          onVisibleRef.current();
+        } else if (!fullyInView && wasFullyVisible.current) {
+          // Falling edge: element is no longer fully visible
+          wasFullyVisible.current = false;
         }
       },
       // The entire element must be entirely visible
       { threshold: 1 }
     );
 
+    const node = nodeRef.current;
     // Start observing the element, but wait until the element exists
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
+    if (node) observer.observe(node);
 
     // Cleanup when the component unmounts
-    return () => {
-      // Stop observing the element when it's no longer on the screen and can't be visible
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
-      }
-    };
-  }, [onVisible]);
+    return () => observer.disconnect();
+  }, []);
 
-  // Attach elementRef to a div wrapper and pass the children to be rendered within it
-  return <div ref={elementRef}>{children}</div>;
+  // Attach nodeRef to a div wrapper and pass the children to be rendered within it
+  return <div ref={nodeRef}>{children}</div>;
 }
 
 const transformValues = (obj, callback) => {
@@ -2992,9 +3005,9 @@ const AdminToolHeader = function({title, validate, close}) {
                 <div onClick={close} onKeyDown={(e) => Util.handleKeyboardClick(e, close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
                   <InterfaceText>Cancel</InterfaceText>
                 </div>
-                <div onClick={validate} onKeyDown={(e) => Util.handleKeyboardClick(e, validate)} className="button small control-elem" id="saveAccountSettings" tabIndex="0" role="button">
+                <Button onClick={validate}>
                   <InterfaceText>Save</InterfaceText>
-                </div>
+                </Button>
               </div>
             </div>
 }
@@ -3099,8 +3112,9 @@ const TitleVariants = function({titles, update, options}) {
                   />
          </div>
 }
-const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide}) => {
+const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback, summaryCallback, showGuide, authorImage, authorStatement, authorUrl}) => {
   const languageToggle = <DropdownMenu positioningClass="readerDropdownMenu marginInlineIndent" buttonComponent={<DisplaySettingsButton/>}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+  
   return <div className="sheetMetaDataBox">
     <div className={`sidebarLayout`}>
       <SheetMetaDataBoxSegment text={title} className="title" editable={editable} blurCallback={titleCallback}/>
@@ -3114,6 +3128,22 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
                                                        className="summary"
                                                        editable={editable}
                                                        blurCallback={summaryCallback}/>}
+    {!Sefaria.multiPanel && (authorImage || authorUrl) && (
+      <div className="sheetAuthorInfo">
+        {authorImage && (
+          <ProfilePic
+            url={authorImage}
+            len={30}
+            name={authorStatement}
+          />
+        )}
+        {authorUrl && (
+          <a href={authorUrl} className="sheetAuthorName">
+            {Sefaria._(authorStatement)}
+          </a>
+        )}
+      </div>
+    )}
   </div>
 }
 

@@ -1,0 +1,119 @@
+{{- if and .Values.restore.enabled .Values.cronJobs.syncMongoProductionData.enabled }}
+# Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-sync-mongo-production-data
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.restore.serviceAccount }}
+          volumes:
+            - name: shared-volume
+              emptyDir: {}
+          initContainers:
+            - name: mongo-backup-downloader
+              image: google/cloud-sdk
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
+              command: ["bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Finding latest MongoDB private dump from production..."
+                  
+                  # List all private dump files and find the latest one by timestamp
+                  echo "Listing available private dumps..."
+                  # Use GCS timestamps for reliable sorting (column 2 is the timestamp)
+                  # [0-9] ensures we only match private_dump_<digit>... and exclude private_dump_small_...
+                  latest_backup=$(gsutil ls -l gs://sefaria-mongo-backup/ | \
+                    grep 'private_dump_[0-9].*\.tar\.gz' | \
+                    sort -k2 | \
+                    tail -1 | \
+                    awk '{print $3}')
+                  
+                  if [ -z "$latest_backup" ]; then
+                    echo "ERROR: No private dump files found in bucket"
+                    exit 1
+                  fi
+                  
+                  echo "Found latest private dump: $latest_backup"
+                  echo "Downloading backup..."
+                  gsutil cp "$latest_backup" /storage/dump.tar.gz
+                  echo "Private dump downloaded successfully"
+          containers:
+            - name: sync-mongo-production-data
+              image: mongo:4.4
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
+              command: ["/bin/bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Starting sync of production data to {{ .Values.deployEnv }}..."
+
+                  # Extract backup
+                  tar xzvf /storage/dump.tar.gz -C /storage
+
+                  # Build MongoDB URI
+                  URI="mongodb://"
+                  if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+                    URI="${URI}${SEFARIA_DB_USER}"
+                    if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+                        URI="${URI}:${SEFARIA_DB_PASSWORD}"
+                    fi
+                    URI="${URI}@"
+                  fi
+                  URI="${URI}${MONGO_HOST}/?ssl=false"
+                  if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+                    URI="${URI}&authSource=admin"
+                  fi
+                  if [[ ! -z "$MONGO_REPLICASET_NAME" ]]; then
+                    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+                  fi
+
+                  # Determine target database name
+                  {{- if .Values.restore.dynamicName }}
+                  DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+                  {{- else }}
+                  DATABASE="${SEFARIA_DB}"
+                  {{- end }}
+
+                  echo "Restoring to database: $DATABASE"
+                  echo "Using MongoDB URI: ${URI//:*@/:***@}"
+
+                  # Perform the restore
+                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
+
+                  echo "Production data sync completed successfully"
+              envFrom:
+                - secretRef:
+                    name: {{ .Values.secrets.localSettings.ref }}
+                - secretRef:
+                    name: local-settings-secrets-{{ .Values.deployEnv }}
+                    optional: true
+                - configMapRef:
+                    name: local-settings-{{ .Values.deployEnv }}
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 500Mi
+                limits:
+                  cpu: 750m
+                  memory: "1Gi"
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

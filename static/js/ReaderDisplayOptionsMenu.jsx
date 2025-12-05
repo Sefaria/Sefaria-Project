@@ -99,7 +99,7 @@ const ReaderDisplayOptionsMenu = () => {
 
     useEffect(() => {
         if (menuRef.current) {
-            Util.focusFirstElement(menuRef.current, '[role="radiogroup"], button, [tabindex="0"]');
+            Util.focusFirstElement(menuRef.current, 'input[type="radio"]:checked, button:not([disabled]), [role="switch"]:not([disabled])');
         }
     }, []);
 
@@ -127,6 +127,7 @@ const ReaderDisplayOptionsMenu = () => {
             ref={menuRef}
             onKeyDown={handleKeyDown}
             tabIndex="-1"
+            data-prevent-close="true"
         >
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons

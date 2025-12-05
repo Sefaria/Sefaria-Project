@@ -12,7 +12,7 @@ const DropdownMenuSeparator = () => {
 
 }
 
-const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null}) => {
+const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose = false, targetModule = null, analyticsEventName = null, analyticsEventText = null}) => {
 
   if (!newTab){
     newTab = false;
@@ -26,6 +26,8 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
        href={fullURL}
        target={newTab ? '_blank' : null}
        data-prevent-close={preventClose}
+       data-anl-event={analyticsEventName}
+       data-anl-text={analyticsEventText}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
     >
       {children}
@@ -37,8 +39,9 @@ const DropdownMenuItem = ({url, children, newTab, customCSS = null, preventClose
 const NextRedirectAnchor = ({url, children, className}) => {
   const onClick = (e) => {
     e.preventDefault();
-    window.location.href = `${url}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
-  }
+    const currentPath = Sefaria.util.currentPath();
+    window.location.href = `${url}?next=${encodeURIComponent(currentPath)}`;
+  };
   return (
     <a className={className || 'interfaceLinks-option int-bi dropdownItem'}
        href='#'
@@ -126,11 +129,14 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
  */
 const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
   const fullURL = targetModule ? Sefaria.util.fullURL(url, targetModule) : url;
+
   return (
     <a className="interfaceLinks-option int-bi dropdownItem dropdownModuleItem"
        href={fullURL}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
-       target={newTab ? '_blank' : null}>
+       target={newTab ? '_blank' : null}
+       data-anl-event={"modswitch_item_click:click"}
+       data-anl-text={text.en}>
       <div className="dropdownHeader">
         <span className="dropdownDot" style={{backgroundColor: `var(${dotColor})`}}></span>
         <span className='dropdownHeaderText'>
@@ -151,16 +157,22 @@ DropdownModuleItem.propTypes = {
   }).isRequired
 };
 
-const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
+const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFeatureName = null, onOpen = null, onClose = null}) => {
     /**
-     * `buttonComponent` is a React component for the opening/closing of a button.
-     * `positioningClass` is a string for the positioning of the dropdown menu.  It defines a CSS class.
-     *  Currently, we have two possible classes: 'headerDropdownMenu' and 'readerDropdownMenu'.
-     *  The former is a more general case.  Historically, the former was used in the header
-     *  and the latter in the reader.  See s2.css for definition of these classes.
-     * the menu will be closed in click anywhere except in an element where data attribute data-prevent-close="true" is set.
-     * this class is using useRef for open/close rather than useState, for changing state triggers re-rendering of the
-     * component and all its children, so when clicking on children their onClick won't be executed.
+     * DropdownMenu - A reusable dropdown menu component with keyboard navigation and analytics support
+     *
+     * @param {React.ReactNode} children - The content to display inside the dropdown menu
+     * @param {React.ReactElement} buttonComponent - React component that triggers the dropdown (will be wrapped with click handler)
+     * @param {string} positioningClass - CSS class for dropdown positioning. Options: 'headerDropdownMenu', 'readerDropdownMenu' (see s2.css)
+     * @param {string} [analyticsFeatureName] - Optional feature name for analytics tracking (sets data-anl-feature_name)
+     * @param {Function} [onOpen] - Optional callback fired when dropdown opens
+     * @param {Function} [onClose] - Optional callback fired when dropdown closes
+     *
+     * Behavior:
+     * - Closes on: click outside, Escape key, Tab out, or clicking any item without data-prevent-close="true"
+     * - Analytics: When analyticsFeatureName is provided, adds data-anl-* attributes for tracking open/close and item clicks
+     * - Accessibility: Traps focus within dropdown when open, returns focus to button when closed
+     * - Uses useState for isOpen to properly trigger re-renders for analytics data attributes
      */
 
     const [isOpen, setIsOpen] = useState(false);
@@ -170,19 +182,30 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
-      setIsOpen(isOpen => !isOpen);
+      setIsOpen(isOpen => {
+        const curState = !isOpen;
+        if (curState) {
+          onOpen?.();
+        } else {
+          onClose?.();
+        }
+        return curState;
+      });
     };
     const handleContentsClick = (e) => {
       e.stopPropagation();
+
       const preventClose = e.target.closest('[data-prevent-close="true"]');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
         setIsOpen(false);
+        onClose?.();
       }
-    }
+    };
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
+          onClose?.();
       }
     };
     const handleClickOutside = (event) => {
@@ -191,6 +214,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
             !wrapperRef.current.contains(event.target)
         ) {
             setIsOpen(false);
+            onClose?.();
         }
     };
 
@@ -212,15 +236,23 @@ const DropdownMenu = ({children, buttonComponent, positioningClass}) => {
     const handleMenuKeyDown = (e) => {
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
-            onClose: () => setIsOpen(false),
+            onClose: () => { 
+              setIsOpen(false)
+              onClose?.();
+            },
             returnFocusRef: buttonRef.current
         });
     };
 
     return (
-        <div className={positioningClass} ref={wrapperRef}>
+        <div className={positioningClass}
+             ref={wrapperRef}
+             data-anl-feature_name={analyticsFeatureName}>
            <div
              className="dropdownLinks-button"
+             data-anl-event={analyticsFeatureName ? "modswitch_toggle:click" : null}
+             data-anl-from={isOpen ? "closed" : "open"}
+             data-anl-to={isOpen ? "open" : "closed"}
            >
               {/* 
                 Using React.cloneElement to inject dropdown behavior into the button.

@@ -839,6 +839,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false};
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+  const refHref = element.ref ? `/${Sefaria.normRef(element.ref)}` : null;
   const dragStart = (e) => {
       const slateRange = ReactEditor.findEventRange(parentEditor, e)
       parentEditor.dragging = true
@@ -906,7 +907,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div  contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-          {element.heRef ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.heRef}</a></div> : null }
+          {element.heRef && refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.heRef}</a></div> : null }
           <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
@@ -919,7 +920,7 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        {element.ref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={`/${element.ref}`}>{element.ref}</a></div> : null }
+        {refHref ? <div className="ref" contentEditable={false}><a style={{ userSelect: 'none', pointerEvents: 'auto' }} href={refHref} data-target-module={Sefaria.LIBRARY_MODULE}>{element.ref}</a></div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
             {canUseDOM ? <HoverMenu buttons="basic"/> : null }
