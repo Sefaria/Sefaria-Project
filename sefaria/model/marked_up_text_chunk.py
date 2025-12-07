@@ -337,6 +337,7 @@ def process_index_title_change_in_marked_up_text_chunks(indx, **kwargs):
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in Ref(indx.title).regex(as_list=True)]
     queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    queries.extend([{'spans.ref': {'$regex': pattern}} for pattern in patterns])
     objs = MarkedUpTextChunkSet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
@@ -370,6 +371,7 @@ def process_index_title_change_in_linker_output(indx, **kwargs):
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in Ref(indx.title).regex(as_list=True)]
     queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    queries.extend([{'spans.ref': {'$regex': pattern}} for pattern in patterns])
     objs = LinkerOutputSet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
