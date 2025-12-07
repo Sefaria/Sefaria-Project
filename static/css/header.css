@@ -164,10 +164,4 @@
   cursor: pointer;
 }
 
-@media (max-width: 842px) {
-  .navTitle .languageToggle {
-    display: none;
-  }
-}
-
 /*# sourceMappingURL=header.css.map */
