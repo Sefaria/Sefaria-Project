@@ -35,7 +35,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
-from remote_config.keys import ENABLE_WEBPAGES
+from remote_config.keys import ENABLE_SITE_MAINTENANCE_MODE, SITE_MAINTENANCE_MESSAGE
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
@@ -89,6 +89,7 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
+from remote_config import remoteConfigCache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -96,6 +97,14 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
+def _maintanance_mode_check(request):
+    # Maintenance Mode Check, do to the sensativity of this check - we check that the value is exactly 613
+    if remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == 613:
+        # Check if current user is admin/staff and skip maintenance mode if so
+        if not request.user.is_authenticated or not request.user.is_staff:
+            template_name = "static/maintenance.html"
+            template_context = {"message": remoteConfigCache.get(SITE_MAINTENANCE_MESSAGE)}
+            return template_name, template_context
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
@@ -118,6 +127,8 @@ def render_template(request, template_name='base.html', app_props=None, template
     props.update(app_props)
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
+    if remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE):
+        template_name, template_context = _maintanance_mode_check(request)
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
