@@ -28,8 +28,7 @@ subscribe(ref_data.process_index_title_change_in_ref_data,              text.Ind
 subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
 subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
-subscribe(marked_up_text_chunk.process_index_title_change_in_marked_up_text_chunks,    text.Index, "attributeChange", "title")
-subscribe(marked_up_text_chunk.process_index_title_change_in_linker_output,    text.Index, "attributeChange", "title")
+subscribe(marked_up_text_chunk.process_index_title_change,              text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -46,8 +45,7 @@ subscribe(text.process_index_delete_in_toc,                             text.Ind
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
 subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "delete")
-subscribe(marked_up_text_chunk.process_index_delete_in_marked_up_text_chunks,    text.Index, "delete")
-subscribe(marked_up_text_chunk.process_index_delete_in_linker_output,          text.Index, "delete")
+subscribe(marked_up_text_chunk.process_index_delete,                    text.Index, "delete")
 
 # Process in ES
 # todo: handle index name change in ES

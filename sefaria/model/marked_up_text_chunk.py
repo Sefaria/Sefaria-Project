@@ -330,24 +330,6 @@ class MUTCSpanFactory:
         raise ValueError(f"MUTCSpanFactory.create(): Unsupported MUTCSpanType: {typ}")
 
 
-def process_index_title_change_in_marked_up_text_chunks(indx, **kwargs):
-    print("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
-
-    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from .text import re as reg_reg
-    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
-                for pattern in Ref(indx.title).regex(as_list=True)]
-    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
-    queries.extend([{'spans.ref': {'$regex': pattern}} for pattern in patterns])
-    objs = MarkedUpTextChunkSet({"$or": queries})
-    for o in objs:
-        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
-        try:
-            o.save()
-        except InputError:
-            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
-
-
 def get_mutc_class(debug=False) -> type[MarkedUpTextChunk]:
     """
     Returns the appropriate MarkedUpTextChunk class based on debug flag.
@@ -358,14 +340,8 @@ def get_mutc_class(debug=False) -> type[MarkedUpTextChunk]:
     return LinkerOutput if debug else MarkedUpTextChunk
 
 
-def process_index_delete_in_marked_up_text_chunks(indx, **kwargs):
-    from sefaria.model.text import prepare_index_regex_for_dependency_process
-    pattern = prepare_index_regex_for_dependency_process(indx)
-    MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
-
-
-def process_index_title_change_in_linker_output(indx, **kwargs):
-    print("Cascading Linker Output from {} to {}".format(kwargs['old'], kwargs['new']))
+def process_index_title_change(indx, **kwargs):
+    print("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg
@@ -373,21 +349,23 @@ def process_index_title_change_in_linker_output(indx, **kwargs):
                 for pattern in Ref(indx.title).regex(as_list=True)]
     queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
     queries.extend([{'spans.ref': {'$regex': pattern}} for pattern in patterns])
-    objs = LinkerOutputSet({"$or": queries})
-    for o in objs:
-        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
-        try:
-            o.save()
-        except InputError:
-            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+    for Klass in [MarkedUpTextChunkSet, LinkerOutputSet]:
+        objs = Klass({"$or": queries})
+        for o in objs:
+            o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+            try:
+                o.save()
+            except InputError:
+                logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
 
 
-def process_index_delete_in_linker_output(indx, **kwargs):
+def process_index_delete(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
+    MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
-    
-    
+
+
 def process_category_path_change(category, **kwargs):
     print("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs['old'], kwargs['new']))
     db.marked_up_text_chunks.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.slug": kwargs['old']}])
