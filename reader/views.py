@@ -35,7 +35,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
-from remote_config.keys import ENABLE_SITE_MAINTENANCE_MODE, SITE_MAINTENANCE_MESSAGE
+from remote_config.keys import ENABLE_SITE_MAINTENANCE_MODE, SITE_MAINTENANCE_MESSAGE, ENABLE_WEBPAGES
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
@@ -97,14 +97,8 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
-def _maintanance_mode_check(request):
-    # Maintenance Mode Check, due to the sensativity of this check - we check that the value is exactly 613
-    if remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == 613:
-        # Check if current user is admin/staff and skip maintenance mode if so
-        if not request.user.is_authenticated or not request.user.is_staff:
-            template_name = "static/maintenance.html"
-            template_context = {"message": remoteConfigCache.get(SITE_MAINTENANCE_MESSAGE)}
-            return template_name, template_context
+# Maintenance Mode Check, due to the sensativity of this check - we check that the value is exactly VALIDATION_NUMBER
+MAINTENANCE_MODE_VALIDATION_NUMBER = 613
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
@@ -127,8 +121,12 @@ def render_template(request, template_name='base.html', app_props=None, template
     props.update(app_props)
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
-    if remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE):
-        template_name, template_context = _maintanance_mode_check(request)
+    if (remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) and 
+        remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == MAINTENANCE_MODE_VALIDATION_NUMBER and 
+        request.user.is_staff == False):
+        template_name = "static/maintenance.html"
+        template_context = {"message": remoteConfigCache.get(SITE_MAINTENANCE_MESSAGE)}
+        status = 503
     if app_props: # We are rendering the ReaderApp in Node, otherwise its just a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
