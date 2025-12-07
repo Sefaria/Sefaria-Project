@@ -368,5 +368,12 @@ def process_index_delete(indx, **kwargs):
 
 def process_category_path_change(category, **kwargs):
     print("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs['old'], kwargs['new']))
-    db.marked_up_text_chunks.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.slug": kwargs['old']}])
-    db.linker_output.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.slug": kwargs['old']}])
+    db.marked_up_text_chunks.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.categoryPath": kwargs['old']}])
+    db.linker_output.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.categoryPath": kwargs['old']}])
+
+
+def process_topic_slug_change(topic, **kwargs):
+    print("Cascading Marked Up Text Chunk topic slug from {} to {}".format(kwargs['old'], kwargs['new']))
+    db.marked_up_text_chunks.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
+    db.linker_output.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
+    
