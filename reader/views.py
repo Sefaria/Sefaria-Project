@@ -129,7 +129,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     template_context["propsJSON"] = propsJSON
     if remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE):
         template_name, template_context = _maintanance_mode_check(request)
-    if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
+    if app_props: # We are rendering the ReaderApp in Node, otherwise its just a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
