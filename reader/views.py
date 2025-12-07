@@ -89,7 +89,6 @@ from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
 from sefaria.helper.texts.tasks import save_version, save_changes, save_link
-from remote_config import remoteConfigCache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
