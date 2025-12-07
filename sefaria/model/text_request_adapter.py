@@ -4,7 +4,7 @@ from functools import reduce
 from typing import List
 import django
 import re
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
+from sefaria.model.marked_up_text_chunk import get_mutc_class, LinkerOutput
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -22,11 +22,12 @@ class TextRequestAdapter:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default'):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default', debug_mode=None):
         self.versions_params = versions_params
         self.oref = oref
         self.fill_in_missing_segments = fill_in_missing_segments
         self.return_format = return_format
+        self.debug_mode = debug_mode
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -144,16 +145,35 @@ class TextRequestAdapter:
         if not inode.is_virtual:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
+    def _add_linker_output(self):
+        if self.debug_mode != "linker":
+            return
+
+        linker_output_list = []
+        for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+            for version in self.return_obj['versions']:
+                language = version['language']
+                version_title = version['versionTitle']
+                linker_output = LinkerOutput().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
+                if linker_output:
+                    linker_output_list.append(linker_output.contents())
+        self.return_obj["linker_output"] = linker_output_list
+
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
+        MUTCClass = get_mutc_class(self.debug_mode == "linker")
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
         def get_marked_up_text_chunk_queue():
             from queue import Queue
             q = Queue()
             for i, segment_ref in enumerate(self.oref.all_segment_refs()):
-                marked_up_chunk = MarkedUpTextChunk().load({
+                marked_up_chunk = MUTCClass().load({
                     "ref": segment_ref.normal(),
                     "versionTitle": version_title,
                     "language": language,
@@ -162,7 +182,7 @@ class TextRequestAdapter:
             return q
 
         def mutc_wrapper(string, sections):
-            chunk: MarkedUpTextChunk = chunks_queue.get()
+            chunk: MUTCClass = chunks_queue.get()
             if chunk:
                 string = chunk.apply_spans_to_text(string)
             return string
@@ -207,5 +227,6 @@ class TextRequestAdapter:
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()
         self._add_node_data_to_return_obj()
+        self._add_linker_output()
         self._format_text()
         return self.return_obj

@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk, linker_output
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -29,7 +29,7 @@ subscribe(user_profile.process_index_title_change_in_user_history,      text.Ind
 subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
 subscribe(marked_up_text_chunk.process_index_title_change_in_marked_up_text_chunks,    text.Index, "attributeChange", "title")
-subscribe(linker_output.process_index_title_change_in_linker_output,    text.Index, "attributeChange", "title")
+subscribe(marked_up_text_chunk.process_index_title_change_in_linker_output,    text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -47,7 +47,7 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "delete")
 subscribe(marked_up_text_chunk.process_index_delete_in_marked_up_text_chunks,    text.Index, "delete")
-subscribe(linker_output.process_index_delete_in_linker_output,          text.Index, "delete")
+subscribe(marked_up_text_chunk.process_index_delete_in_linker_output,          text.Index, "delete")
 
 # Process in ES
 # todo: handle index name change in ES
