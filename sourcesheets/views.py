@@ -172,7 +172,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    redirect_url = get_redirect_to_help_center(request, f"Sheet {sheet_id}")
+    redirect_url = get_redirect_to_help_center(request, sheet_id)
     if redirect_url:
         return redirect(redirect_url)
     
