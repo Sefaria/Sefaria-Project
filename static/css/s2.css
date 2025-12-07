@@ -55,33 +55,6 @@ a, a:hover {
   --sans-serif-small-font-size: 14px;
 }
 
-/* Font Family */
-body, .sans-serif {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --is-serif: initial; /* false */
-}
-.serif {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --is-serif: ; /* true */
-}
-.sans-serif-in-hebrew {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-}
-body, .en, .int-en, .englishWithinHebrew {
-  --is-hebrew: initial; /* false */
-}
-.he, .int-he {
-  unicode-bidi: plaintext;
-  --is-hebrew: ; /* true */
-}
-* {
-  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
-  font-family: var(--hebrew-font-conditional, var(--english-font));
-}
-
 .sr-only,
 .layout-button label {
   position: absolute;
