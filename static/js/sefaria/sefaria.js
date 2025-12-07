@@ -23,7 +23,7 @@ let Sefaria = Sefaria || {
   last_place: [],
   VOICES_MODULE,
   LIBRARY_MODULE,
-  apiHost: "" // Defaults to localhost, override to talk another server
+  apiHost: Sefaria?.domainModules?.[Sefaria._getShortInterfaceLang()]['library'] || "" 
 };
 
 if (typeof window !== 'undefined') {
@@ -519,13 +519,11 @@ Sefaria = extend(Sefaria, {
     return result;
   },
   getDomainHostnames: function() {
-    // Returns a Set of all hostnames from domainModules.
+    // Returns a Set of all hostnames of current language from domainModules.
     const hostnames = new Set();
-    for (const langModules of Object.values(this.domainModules)) {
-      for (const moduleUrl of Object.values(langModules)) {
-        const url = new URL(moduleUrl);
-        hostnames.add(url.hostname);
-      }
+    for (const moduleUrl of Object.values(Sefaria.domainModules[Sefaria._getShortInterfaceLang()])) {
+      const url = new URL(moduleUrl);
+      hostnames.add(url.hostname);
     }
 
     return hostnames;
@@ -3586,6 +3584,76 @@ _media: {},
     const next = Sefaria.activeModule === Sefaria.VOICES_MODULE ? '' : 'texts';
     return `/logout?next=/${next}`;
   },
+  breakpoints: {
+    MOBILE: 'mobile',
+    TABLET: 'tablet',
+    DESKTOP: 'desktop',
+  },
+  getBreakpoint: () => {
+    /**
+     * Returns the current responsive breakpoint.
+     *
+     * This is a plain JS utility (not a React hook) because the top-level ReaderApp component already listens to
+     * window resize events and triggers re-renders on breakpoint changes.
+     * That means this function can reliably read the up-to-date breakpoint without needing its own hook or state.
+     */
+
+    const rootStyles = getComputedStyle(document.documentElement);
+    const tabletMin = parseInt(rootStyles.getPropertyValue('--bp-tablet-min'));
+    const desktopMin = parseInt(rootStyles.getPropertyValue('--bp-desktop-min'));
+    const width = window.innerWidth;
+
+    if (width < tabletMin) {
+      return Sefaria.breakpoints.MOBILE;
+    } else if (width >= tabletMin && width < desktopMin) {
+      return Sefaria.breakpoints.TABLET;
+    } else {
+      return Sefaria.breakpoints.DESKTOP;
+    }
+  },
+  getPageTitle: (baseTitle, pageType = "") => {
+      /**
+       * Generate consistent, module-aware, bilingual page titles.
+       * Mirrors the Python get_page_title() function in reader/views.py
+       */
+  
+      // Get current module (library or voices)
+      const module = (Sefaria.activeModule === VOICES_MODULE) ? VOICES_MODULE : LIBRARY_MODULE;
+  
+      // Page title suffix configuration
+      const suffixes = {
+        home: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria: a Living Library of Jewish Texts Online"
+        },
+        topic: {
+          voices: "Sheets from Voices on Sefaria",
+          library: "Texts from the Sefaria Library"
+        },
+        collection: {
+          voices: "Voices on Sefaria Collection"
+        },
+        default: {
+          voices: "Voices on Sefaria",
+          library: "Sefaria Library"
+        }
+      };
+  
+      // Special case: Sheet titles need default if empty
+      if (pageType === "sheet" && !baseTitle) {
+        baseTitle = "Untitled";
+      }
+
+      // If no page tye, or a page type with a default suffix
+      if (!pageType || pageType === "sheet" || pageType === "collections") {
+        pageType = "default";
+      }
+  
+      const suffix = suffixes[pageType][module];
+
+      // Combine base title with suffix
+      return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
+    },
 });
 
 Sefaria.unpackDataFromProps = function(props) {

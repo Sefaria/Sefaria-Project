@@ -130,7 +130,7 @@ data:
     
     # Session cookie settings for cross-subdomain support
     # Set this to your top-level domain to allow session cookies to work across all subdomains
-    SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN", ".sefaria.org")  
+    SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN") or None  
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "true").lower() == "true"
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
@@ -152,8 +152,8 @@ data:
     SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"
     SEARCH_URL = f'http{"s" if SEARCH_SSL_ENABLE else ""}://{auth_str}{os.getenv("SEARCH_HOST")}:{os.getenv("SEARCH_PORT")}/{os.getenv("SEARCH_PATH")}'
     SEARCH_INDEX_ON_SAVE = True
-    SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
-    SEARCH_INDEX_NAME_SHEET = 'sheet'
+    SEARCH_INDEX_NAME_TEXT = os.getenv("SEARCH_INDEX_NAME_TEXT", "text")  # name of the ElasticSearch index to use
+    SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
 
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)

@@ -1,0 +1,164 @@
+:root {
+  --bp-tablet-min: 843px;
+  --bp-desktop-min: 1087px;
+}
+
+.headerInner,
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
+  display: flex;
+  align-items: center;
+}
+
+.headerInner {
+  position: absolute;
+  width: 100%;
+  height: 60px;
+  z-index: 1001;
+  box-sizing: border-box;
+  padding: 0 30px;
+  justify-content: space-between;
+}
+@media (max-width: 842px) {
+  .headerInner {
+    padding: 0 15px;
+  }
+}
+
+.headerInner.boxShadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 1087px) {
+  [data-active-module=library] .interface-english .home {
+    background: url("/static/img/library-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 154px;
+  }
+  [data-active-module=library] .interface-hebrew .home {
+    background: url("/static/img/library-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 141px;
+  }
+  [data-active-module=voices] .interface-english .home {
+    background: url("/static/img/voices-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 174px;
+  }
+  [data-active-module=voices] .interface-hebrew .home {
+    background: url("/static/img/voices-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 148px;
+  }
+}
+@media (max-width: 842px) {
+  [data-active-module=library] .interface-english .home {
+    background: url("/static/img/library-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 154px;
+  }
+  [data-active-module=library] .interface-hebrew .home {
+    background: url("/static/img/library-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 141px;
+  }
+  [data-active-module=voices] .interface-english .home {
+    background: url("/static/img/voices-logo-english.svg") no-repeat center/contain;
+    height: 25px;
+    width: 174px;
+  }
+  [data-active-module=voices] .interface-hebrew .home {
+    background: url("/static/img/voices-logo-hebrew.svg") no-repeat center/contain;
+    height: 25px;
+    width: 148px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .home {
+    height: 25px;
+    width: 19px;
+    -webkit-mask: url("/static/img/samech-logo.svg") no-repeat;
+    mask: url("/static/img/samech-logo.svg") no-repeat;
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    background-color: var(--theme-primary);
+  }
+}
+@media (min-width: 1087px) {
+  .textLinks {
+    gap: 30px;
+    margin-inline-start: 60px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .textLinks {
+    gap: 24px;
+    margin-inline-start: 20px;
+  }
+}
+.textLinks {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 26px;
+  vertical-align: middle;
+  padding-top: 6px;
+}
+
+.textLink,
+.textLink:hover {
+  color: var(--dark-grey);
+}
+
+.headerLinksSection {
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.header .searchBox {
+  overflow: hidden;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 250px;
+  height: 30px;
+}
+
+.header .search {
+  background-color: transparent;
+  flex: 1;
+  border: none;
+  font-size: 18px;
+  margin-bottom: 1px;
+}
+
+.header .readerNavMenuSearchButton {
+  top: 2px;
+}
+
+.header .searchBox .keyboardInputInitiator {
+  display: none;
+}
+
+@media (min-width: 1087px) {
+  .header-icons {
+    gap: 20px;
+  }
+}
+@media (min-width: 843px) and (max-width: 1086px) {
+  .header-icons {
+    gap: 16px;
+  }
+}
+
+.headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
+  cursor: pointer;
+}
+
+.header .menuButton {
+  color: var(--medium-grey);
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/*# sourceMappingURL=header.css.map */

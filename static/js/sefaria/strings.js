@@ -8,6 +8,15 @@ const Strings = {
     "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
+
+    // Module Names and Page Title Suffixes
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Sefaria Library": "ספריית ספריא",
+    "Sheets from Voices on Sefaria": "דפים מתוך חיבורים בספריא",
+    "Texts from the Sefaria Library": "מקורות מתוך ספריית ספריא",
+    "Voices on Sefaria Collection": "אוסף מתוך חיבורים בספריא",
+    "Untitled": "ללא כותרת",
+
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
@@ -641,7 +650,8 @@ const Strings = {
     //Mobile Nav Header
     "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
-    "Saved & History": "היסטורית קריאה ושמורים",
+    "Saved & History": "שמורים והיסטוריה",
+    "Saved, History & Notes": "שמורים, היסטוריה והערות",
     "Sidebar navigation": "ניווט בסרגל הצד",
     "Site search": "חיפוש באתר",
     "Account menu": "תפריט חשבון",
@@ -715,6 +725,11 @@ const Strings = {
     "Click icon": "סמל לחיצה",
     "Collection Header Image": "תמונת כותרת אסופה",
     "image of maginfying glass": "תמונה של זכוכית מגדלת",
+
+    // Module Switcher Tooltip
+    "Looking for something?": "מחפשים משהו?",
+    "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah." : "ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.",
+    "Got it!": "הבנתי",
   },
 
   _i18nInterfaceStringsWithContext: {
