@@ -2,6 +2,7 @@ from typing import Iterable
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 from sefaria.model.text import TextChunk, Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.system.database import db
 from html import escape
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -385,3 +386,9 @@ def process_index_delete_in_linker_output(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
+    
+    
+def process_category_path_change(category, **kwargs):
+    print("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs['old'], kwargs['new']))
+    db.marked_up_text_chunks.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.slug": kwargs['old']}])
+    db.linker_output.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.slug": kwargs['old']}])
