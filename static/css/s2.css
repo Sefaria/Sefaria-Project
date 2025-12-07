@@ -1328,6 +1328,12 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   align-items: center;
   justify-content: center;
 }
+/* Hide ToC language toggle on narrow screens where mobile header shows its own toggle */
+@media (max-width: 842px) {
+  .navTitle .languageToggle {
+    display: none;
+  }
+}
 .navTitleTab {
   margin-inline-end: 26px;
   color: var(--medium-grey-legacy);
