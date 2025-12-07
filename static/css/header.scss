@@ -90,9 +90,12 @@ $interfaces: english hebrew;
   }
   font-size: 16px;
   font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-  padding-top: 6px;
+  .int-en {
+    transform: translateY(0.15em); // Align text that is more stable in zoom
+  }
+  .int-he {
+    transform: translateY(0.1em);
+  }
 }
 
 .textLink,

@@ -51,97 +51,71 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+/**
+ * Hook for paginated data loading triggered by scroll position.
+ *
+ * Fetches data from `url` when the user scrolls near the bottom of `scrollableRef`.
+ * Uses `skip` and `limit` query params for pagination.
+ *
+ * @param {Object} options
+ * @param {React.RefObject} options.scrollableRef - Ref to the scrollable container element
+ * @param {string} options.url - API endpoint (must support `skip` and `limit` query params)
+ * @param {function} options.setter - Callback to handle fetched data (receives array of items)
+ * @param {number} [options.itemsPreLoaded=0] - Number of items already in cache; skips initial fetch if > 0
+ * @param {number} [options.pageSize=20] - Number of items to fetch per request
+ */
+function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
+  const loadedToEndRef = useRef(false);
+  const loadingRef = useRef(false);
+  const fetchedCountRef = useRef(itemsPreLoaded);
 
-function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded=0, pageSize=20}) {
-  // Loads data from `url` and calls `setter` on the resulting data when `scrollableRef` scrolls
-  // close to its bottom. 
-  // API endpoint must return an array of results and support params `skip` and `limit`.
-  // `itemsPreLoaded` counts the number of items already loaded, e.g. when some data was already available
-  // in the JS cache.  If `itemsPreLoaded` > 0, no initial API is made
-  // call will be made until scroll occurs, otherwise the size page is requeste immediately.
-  const [skip, setSkip] = useState(0); // It is set to pageSize before the first load
-  const [loading, setLoading] = useState(false);
-  const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const isFirstRender = useRef(true);
+  const loadMore = useCallback(() => {
+    if (loadedToEndRef.current || loadingRef.current) return;
 
-  // Set a scroll handler that will update the value of `skip`.
-  useEffect(() => {
-    const $scrollable = $(scrollableRef.current);
-    const margin = 600;
-    const handleScroll = () => {
-      if (loadedToEnd || loading) { return; }
-      if ($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-        setSkip(skip + pageSize);
-      }
-    };
-    $scrollable.on("scroll", handleScroll);
-    return (() => {$scrollable.off("scroll", handleScroll);})
-  }, [scrollableRef.current, loadedToEnd, skip, loading]);
+    loadingRef.current = true;
+    const skip = fetchedCountRef.current;
 
-  // Load and set data whenever `skip` changes.
-  useEffect(() => {
-    if (isFirstRender.current && itemsPreLoaded > 10) {
-      return;
-    }
-    setLoading(true);
-    const nextUrl = url + (url.indexOf("?") === -1 ? "?" : "&") + "skip=" + skip + "&limit=" + pageSize;
+    const urlObj = new URL(url, window.location.origin);
+    urlObj.searchParams.set('skip', skip);
+    urlObj.searchParams.set('limit', pageSize);
+    const nextUrl = urlObj.pathname + urlObj.search;
+
     $.getJSON(nextUrl, (data) => {
       setter(data);
+      fetchedCountRef.current += data.length;
       if (data.length < pageSize) {
-        setLoadedToEnd(true);
+        loadedToEndRef.current = true;
       }
-      setLoading(false);
+      loadingRef.current = false;
     });
-  }, [skip]);
+  }, [url, setter, pageSize]);
 
+  // Initial fetch if there is no cached data
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (itemsPreLoaded === 0) {
+      loadMore();
     }
-  }, [])
-}
+  }, []);
 
-
-function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
-  // Fetches and sets data from `url` when user scrolls to the
-  // bottom of `scollable_element_ref`
-
-  const [page, setPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded - 1 : 0);
-  const [nextPage, setNextPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded : 1);
-  const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const isFirstRender = useRef(true);
-
+  // Scroll listener for infinite loading
   useEffect(() => {
-    const scrollable_element = $(scrollable_element_ref.current);
-    const margin = 600;
+    const scrollable = scrollableRef.current;
+    if (!scrollable) return;
+
+    const scrollMargin = 600;  // Pixels from bottom to trigger load
+
     const handleScroll = () => {
-      if (loadedToEnd || (page === nextPage)) { return; }
-      if (scrollable_element.scrollTop() + scrollable_element.innerHeight() + margin >= scrollable_element[0].scrollHeight) {
-        setPage(nextPage);
+      const scrollPosition = scrollable.scrollTop + scrollable.clientHeight;
+      const scrollThreshold = scrollable.scrollHeight - scrollMargin;
+
+      if (scrollPosition >= scrollThreshold) {
+        loadMore();
       }
     };
-    scrollable_element.on("scroll", handleScroll);
-    return (() => {scrollable_element.off("scroll", handleScroll);})
-  }, [scrollable_element_ref.current, loadedToEnd, page, nextPage]);
 
-  useEffect(() => {
-    if (pagesPreLoaded > 0 && isFirstRender.current) { return; }
-    const paged_url = url + "&page=" + page;
-    $.getJSON(paged_url, (data) => {
-      setter(data);
-      if (data.count < data.page_size) {
-        setLoadedToEnd(true);
-      } else {
-        setNextPage(page + 1);
-      }
-    });
-  }, [page]);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-    }
-  }, [])
+    scrollable.addEventListener('scroll', handleScroll);
+    return () => scrollable.removeEventListener('scroll', handleScroll);
+  }, [loadMore]);
 }
 
 
@@ -223,59 +197,8 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement,
   usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
 }
 
-
-function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue=false) {
-  /*
-  See `useIncrementalLoad` docs
-  */
-
-  const [page, setPage] = useState(0);
-  const [isCanceled, setCanceled] = useState({});    // dict {idElem: Bool}
-  const [valueQueue, setValueQueue] = useState(null);
-
-  // When identityElement changes:
-  // Set current identityElement to not canceled
-  // Sets previous identityElement to canceled.
-  //    Removes old items by calling setter(false);
-  //    Resets page to 0
-  useEffect(() => {
-      setCanceled(d => { d[identityElement] = false; return Object.assign({}, d);});
-      return () => {
-        setCanceled(d => { d[identityElement] = true; return Object.assign({}, d);});
-        setter(resetValue);
-        setPage(0);
-  }}, [identityElement]);
-
-  const fetchPage = useCallback(() => fetchDataByPage(page), [page, fetchDataByPage]);
-
-  // make sure value setting callback and page procession get short circuited when id_elem has been canceled
-  // clear value queue on success
-  const setResult = useCallback((id_elem, val) => {
-            if (isCanceled[id_elem]) { setValueQueue(null); return; }
-            setter(val);
-            setValueQueue(null);
-            if (page === numPages - 1 || numPages === 0) { return; }
-            setPage(prevPage => prevPage + 1);
-        }, [isCanceled, setter, numPages, page, identityElement]);
-
-  // Make sure that current value is processed with latest setResult function
-  // if this is called from within the fetchPage effect, it will have stale canceled data
-  useEffect(() => {
-    if(valueQueue) {
-      setResult(...valueQueue);
-    }
-  }, [valueQueue, setResult]);
-
-  // Put value returned and originating identity element into value queue
-  useEffect(() => {
-      fetchPage()
-        .then((val, err) => setValueQueue([identityElement, val]));
-  }, [fetchPage]);
-}
-
 export {
   useScrollToLoad,
-  usePaginatedScroll,
   usePaginatedDisplay,
   useDebounce,
   useContentLang,
