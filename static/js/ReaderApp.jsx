@@ -690,8 +690,14 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Sheet") {
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-        const sheetTitle = sheet ? sheet.title.stripHtml() : "";
-        hist.title = Sefaria.getPageTitle(sheetTitle, "sheet");
+        if (sheet) {
+          const sheetTitle = sheet.title.stripHtml();
+          hist.title = Sefaria.getPageTitle(sheetTitle, "sheet");
+        } else {
+          // Sheet not yet in cache - preserve current document title (from SSR)
+          // to avoid overwriting with "Untitled". Title will be updated when sheet loads.
+          hist.title = document.title;
+        }
         const sheetURLSlug = state.highlightedNode ? state.sheetID + "." + state.highlightedNode : state.sheetID;
         const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
