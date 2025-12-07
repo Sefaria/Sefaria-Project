@@ -118,48 +118,6 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
   }, [loadMore]);
 }
 
-function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
-  // Fetches and sets data from `url` when user scrolls to the
-  // bottom of `scollable_element_ref`
-
-  const [page, setPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded - 1 : 0);
-  const [nextPage, setNextPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded : 1);
-  const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    const scrollable_element = $(scrollable_element_ref.current);
-    const margin = 600;
-    const handleScroll = () => {
-      if (loadedToEnd || (page === nextPage)) { return; }
-      if (scrollable_element.scrollTop() + scrollable_element.innerHeight() + margin >= scrollable_element[0].scrollHeight) {
-        setPage(nextPage);
-      }
-    };
-    scrollable_element.on("scroll", handleScroll);
-    return (() => {scrollable_element.off("scroll", handleScroll);})
-  }, [scrollable_element_ref.current, loadedToEnd, page, nextPage]);
-
-  useEffect(() => {
-    if (pagesPreLoaded > 0 && isFirstRender.current) { return; }
-    const paged_url = url + "&page=" + page;
-    $.getJSON(paged_url, (data) => {
-      setter(data);
-      if (data.count < data.page_size) {
-        setLoadedToEnd(true);
-      } else {
-        setNextPage(page + 1);
-      }
-    });
-  }, [page]);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-    }
-  }, [])
-}
-
 
 function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin, initialRenderSize) {
   /*
@@ -239,59 +197,8 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement,
   usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
 }
 
-
-function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue=false) {
-  /*
-  See `useIncrementalLoad` docs
-  */
-
-  const [page, setPage] = useState(0);
-  const [isCanceled, setCanceled] = useState({});    // dict {idElem: Bool}
-  const [valueQueue, setValueQueue] = useState(null);
-
-  // When identityElement changes:
-  // Set current identityElement to not canceled
-  // Sets previous identityElement to canceled.
-  //    Removes old items by calling setter(false);
-  //    Resets page to 0
-  useEffect(() => {
-      setCanceled(d => { d[identityElement] = false; return Object.assign({}, d);});
-      return () => {
-        setCanceled(d => { d[identityElement] = true; return Object.assign({}, d);});
-        setter(resetValue);
-        setPage(0);
-  }}, [identityElement]);
-
-  const fetchPage = useCallback(() => fetchDataByPage(page), [page, fetchDataByPage]);
-
-  // make sure value setting callback and page procession get short circuited when id_elem has been canceled
-  // clear value queue on success
-  const setResult = useCallback((id_elem, val) => {
-            if (isCanceled[id_elem]) { setValueQueue(null); return; }
-            setter(val);
-            setValueQueue(null);
-            if (page === numPages - 1 || numPages === 0) { return; }
-            setPage(prevPage => prevPage + 1);
-        }, [isCanceled, setter, numPages, page, identityElement]);
-
-  // Make sure that current value is processed with latest setResult function
-  // if this is called from within the fetchPage effect, it will have stale canceled data
-  useEffect(() => {
-    if(valueQueue) {
-      setResult(...valueQueue);
-    }
-  }, [valueQueue, setResult]);
-
-  // Put value returned and originating identity element into value queue
-  useEffect(() => {
-      fetchPage()
-        .then((val, err) => setValueQueue([identityElement, val]));
-  }, [fetchPage]);
-}
-
 export {
   useScrollToLoad,
-  usePaginatedScroll,
   usePaginatedDisplay,
   useDebounce,
   useContentLang,
