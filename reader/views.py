@@ -98,7 +98,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 def _maintanance_mode_check(request):
-    # Maintenance Mode Check, do to the sensativity of this check - we check that the value is exactly 613
+    # Maintenance Mode Check, due to the sensativity of this check - we check that the value is exactly 613
     if remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == 613:
         # Check if current user is admin/staff and skip maintenance mode if so
         if not request.user.is_authenticated or not request.user.is_staff:
