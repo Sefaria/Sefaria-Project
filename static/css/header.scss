@@ -153,3 +153,10 @@ $interfaces: english hebrew;
   font-size: 24px;
   cursor: pointer;
 }
+
+// Hide ToC inline language toggle when mobile header (with its own toggle) is shown
+@include breakpoint(mobile) {
+  .navTitle .languageToggle {
+    display: none;
+  }
+}
