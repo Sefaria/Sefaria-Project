@@ -2215,7 +2215,12 @@ def related_api(request, tref):
             for item in value:
                 if 'expandedRefs' in item:
                     del item['expandedRefs']
-    return jsonResponse(response, callback=request.GET.get("callback", None))
+    json_response = jsonResponse(response, callback=request.GET.get("callback", None))
+    
+    # Explicit cleanup - help garbage collector
+    del response
+    
+    return json_response
 
 
 @catch_error_as_json
