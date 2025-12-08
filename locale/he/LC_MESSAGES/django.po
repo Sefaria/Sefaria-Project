@@ -731,7 +731,7 @@ msgstr ""
 
 #: templates/static/ai.html:4
 msgid "AI on Sefaria"
-msgstr "שימוש ב-AI בספריא"
+msgstr "השימוש בבינה מלאכותית בספריא"
 
 #: templates/static/ai.html:5 templates/static/en/about.html:5
 #: templates/static/he/about.html:6
