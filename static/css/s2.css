@@ -7462,6 +7462,66 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .connectionsSummaryLoading .loadingMessage {
   margin-top: 0;
 }
+
+/* Connections Search Filter */
+.connectionsSearchFilter {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--lighter-grey);
+}
+.connectionsSearchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.connectionsSearchInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  outline: none;
+}
+.connectionsSearchInput:focus {
+  border-color: var(--sefaria-blue);
+}
+.connectionsFilterButton,
+.connectionsClearFilterButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.connectionsFilterButton {
+  background: var(--sefaria-blue);
+  color: white;
+}
+.connectionsFilterButton:hover:not(:disabled) {
+  background: var(--dark-blue);
+}
+.connectionsFilterButton:disabled {
+  background: var(--medium-grey);
+  cursor: not-allowed;
+}
+.connectionsClearFilterButton {
+  background: var(--light-grey);
+  color: var(--dark-grey);
+}
+.connectionsClearFilterButton:hover {
+  background: var(--border-color);
+}
+.connectionsFilterStatus {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--dark-grey);
+}
+.interface-hebrew .connectionsSearchBox {
+  direction: rtl;
+}
+
 .textListTextRangeBox {
   position: relative;
 }

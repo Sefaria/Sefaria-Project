@@ -704,6 +704,99 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      searchText: "",
+      isFiltering: false,
+      filteredLinkRefs: null,  // null means no filter applied, array of sourceRefs means filter is active
+    };
+  }
+
+  handleSearchChange(e) {
+    this.setState({ searchText: e.target.value });
+  }
+
+  async handleFilterClick() {
+    const searchText = this.state.searchText.trim();
+    if (!searchText) {
+      // Clear filter if search is empty
+      this.setState({ filteredLinkRefs: null, isFiltering: false });
+      return;
+    }
+
+    this.setState({ isFiltering: true });
+
+    const refs = this.props.srefs;
+    const links = Sefaria.getLinksFromCacheAndPreprocess(refs);
+    const matchingRefs = [];
+
+    // Fetch text for each link and check if it contains the search term
+    const searchLower = searchText.toLowerCase();
+    const fetchPromises = links.map(async (link) => {
+      try {
+        // Use the v3 texts API via Sefaria.getText
+        const textData = await Sefaria.getText(link.sourceRef);
+        if (textData) {
+          // Check both Hebrew and English text
+          const heText = Array.isArray(textData.he) ? textData.he.join(" ") : (textData.he || "");
+          const enText = Array.isArray(textData.text) ? textData.text.join(" ") : (textData.text || "");
+          // Strip HTML tags for searching
+          const heTextClean = heText.replace(/<[^>]*>/g, "").toLowerCase();
+          const enTextClean = enText.replace(/<[^>]*>/g, "").toLowerCase();
+          
+          if (heTextClean.includes(searchLower) || enTextClean.includes(searchLower)) {
+            matchingRefs.push(link.sourceRef);
+          }
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch text for ${link.sourceRef}:`, err);
+      }
+    });
+
+    await Promise.all(fetchPromises);
+    this.setState({ filteredLinkRefs: matchingRefs, isFiltering: false });
+  }
+
+  handleClearFilter() {
+    this.setState({ searchText: "", filteredLinkRefs: null });
+  }
+
+  buildFilteredSummary(summary, filteredLinkRefs) {
+    // Filter the summary to only include links that match the filtered refs
+    if (!filteredLinkRefs) return summary;
+
+    const refs = this.props.srefs;
+    const allLinks = Sefaria.getLinksFromCacheAndPreprocess(refs);
+    
+    // Create a set of matching sourceRefs for quick lookup
+    const matchingRefSet = new Set(filteredLinkRefs);
+    
+    // Filter links to only those matching
+    const matchingLinks = allLinks.filter(link => matchingRefSet.has(link.sourceRef));
+    
+    // Build a new summary from matching links
+    const filteredSummary = summary.map(cat => {
+      const filteredBooks = cat.books.map(book => {
+        const bookLinks = matchingLinks.filter(link => 
+          link.collectiveTitle && link.collectiveTitle.en === book.book
+        );
+        return {
+          ...book,
+          count: bookLinks.length
+        };
+      }).filter(book => book.count > 0);
+      
+      return {
+        ...cat,
+        count: filteredBooks.reduce((sum, book) => sum + book.count, 0),
+        books: filteredBooks
+      };
+    }).filter(cat => cat.count > 0);
+
+    return filteredSummary;
+  }
+
   render() {
     const collapsedTopLevelLimit = 4;
     const refs = this.props.srefs;
@@ -714,6 +807,11 @@ class ConnectionsSummary extends Component {
     let essaySummary = [];
 
     if (!summary) { return null; }
+
+    // Apply text content filter if active
+    if (this.state.filteredLinkRefs !== null) {
+      summary = this.buildFilteredSummary(summary, this.state.filteredLinkRefs);
+    }
 
     if (this.props.category === "Commentary") {
       // Show Quoting Commentary together with Commentary
@@ -810,8 +908,45 @@ class ConnectionsSummary extends Component {
       }
     }
 
+    // Search filter UI
+    const searchFilterBox = isTopLevel ? (
+      <div className="connectionsSearchFilter">
+        <div className="connectionsSearchBox">
+          <input
+            type="text"
+            className="connectionsSearchInput"
+            placeholder={Sefaria._("Search in linked texts...")}
+            value={this.state.searchText}
+            onChange={this.handleSearchChange.bind(this)}
+            onKeyPress={(e) => { if (e.key === 'Enter') this.handleFilterClick(); }}
+          />
+          <button
+            className="connectionsFilterButton"
+            onClick={this.handleFilterClick.bind(this)}
+            disabled={this.state.isFiltering}
+          >
+            <InterfaceText>{this.state.isFiltering ? "Filtering..." : "Filter"}</InterfaceText>
+          </button>
+          {this.state.filteredLinkRefs !== null && (
+            <button
+              className="connectionsClearFilterButton"
+              onClick={this.handleClearFilter.bind(this)}
+            >
+              <InterfaceText>Clear</InterfaceText>
+            </button>
+          )}
+        </div>
+        {this.state.filteredLinkRefs !== null && (
+          <div className="connectionsFilterStatus">
+            <InterfaceText>Showing</InterfaceText> {this.state.filteredLinkRefs.length} <InterfaceText>matching connections</InterfaceText>
+          </div>
+        )}
+      </div>
+    ) : null;
+
     return (
       <div>
+        {searchFilterBox}
         {isTopLevel && essaySummary}
         {connectionsSummary}
         {summaryToggle}
