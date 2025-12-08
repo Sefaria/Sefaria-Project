@@ -708,6 +708,21 @@ entries:
     version: 0.69.0-add-named-entities-to-mutc.1
   - apiVersion: v2
     appVersion: v6.48.0
+    created: "2025-12-08T13:40:39.266252576Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: ca8da965901ef742b484f0dab8f18854112eb0d97fa7f7b2ec5ee034197a8e96
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.68.2.tgz
+    version: 0.68.2
+  - apiVersion: v2
+    appVersion: v6.48.0
     created: "2025-12-04T12:58:56.859834417Z"
     description: Chart to deploy complete Sefaria environment
     digest: af1dacb00c6ef212605046b3a20228a6b18af0b429f6f16ea61f566ca1d6344e
@@ -12120,4 +12135,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2025-12-08T09:26:36.752800993Z"
+generated: "2025-12-08T13:40:39.264114427Z"
