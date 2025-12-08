@@ -22,7 +22,10 @@ class ResolvedRefRefiner(ABC):
         return self.resolved_ref.resolved_parts + matched_parts
 
     def _clone_resolved_ref(self, **kwargs) -> 'ResolvedRef':
-        return self.resolved_ref.clone(**kwargs)
+        curr_node = kwargs.get('node', self.node)
+        kwargs.pop('node', None)
+        referenceable_book_nodes = self.resolved_ref.referenceable_book_nodes + [curr_node]
+        return self.resolved_ref.clone(referenceable_book_nodes=referenceable_book_nodes, **kwargs)
 
     def _has_prev_unused_numbered_ref_part(self) -> bool:
         """
@@ -59,7 +62,7 @@ class ResolvedRefRefinerForDefaultNode(ResolvedRefRefiner):
 
     def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
         resolved_parts = self.resolved_ref.resolved_parts
-        return [self._clone_resolved_ref(resolved_parts=resolved_parts, node=self.node, ref=self.node.ref())]
+        return [self._clone_resolved_ref(resolved_parts=resolved_parts, ref=self.node.ref())]
 
 
 class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
@@ -76,7 +79,7 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
             refined_ref = self.resolved_ref.ref.subref(self.part_to_match.address)
         except (InputError, IndexError, AssertionError, AttributeError):
             return []
-        return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=refined_ref)]
+        return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), ref=refined_ref)]
 
     def __refine_context_free(self, lang: str, fromSections=None) -> List['ResolvedRef']:
         if self.node is None or not isinstance(self.node, NumberedReferenceableBookNode):
@@ -93,13 +96,13 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
                 """
                 continue
             refined_refs += [refined_ref]
-        return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=refined_ref) for refined_ref in refined_refs]
+        return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), ref=refined_ref) for refined_ref in refined_refs]
 
 
 class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
 
-    def __get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], node: NumberedReferenceableBookNode, lang, fromSections: list=None):
-        resolved_raw_refs: List['ResolvedRef'] = [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=node)]
+    def __get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], lang, fromSections: list=None):
+        resolved_raw_refs: List['ResolvedRef'] = [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts())]
         incomplete_resolved_raw_refs = []
         is_first_pass = True
         for section_part in sections:
@@ -110,7 +113,7 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
                     # not 100% sure why this is here. It helps with ranged refs of Daf / Amud.
                     temp_children = temp_resolved_raw_ref.node.get_children(temp_resolved_raw_ref.ref)
                     # not sure what this does. currently seems like choosing first Numbered node works
-                    temp_resolved_raw_ref.node = next((x for x in temp_children if isinstance(x, NumberedReferenceableBookNode)), None)
+                    temp_resolved_raw_ref.set_last_node(next((x for x in temp_children if isinstance(x, NumberedReferenceableBookNode)), None))
                 is_first_pass = False
                 temp_resolved_ref_refiner = ResolvedRefRefinerForNumberedPart(section_part, temp_resolved_raw_ref.node, temp_resolved_raw_ref)
                 next_resolved_raw_refs = temp_resolved_ref_refiner.refine(lang, fromSections=fromSections)
@@ -121,8 +124,8 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
         return resolved_raw_refs, incomplete_resolved_raw_refs
 
     def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
-        section_resolved_raw_refs, incomplete_section_refs = self.__get_refined_matches_for_ranged_sections(self.part_to_match.sections, self.node, lang)
-        toSection_resolved_raw_refs, _ = self.__get_refined_matches_for_ranged_sections(self.part_to_match.toSections, self.node, lang, fromSections=[x.ref.sections for x in section_resolved_raw_refs])
+        section_resolved_raw_refs, incomplete_section_refs = self.__get_refined_matches_for_ranged_sections(self.part_to_match.sections, lang)
+        toSection_resolved_raw_refs, _ = self.__get_refined_matches_for_ranged_sections(self.part_to_match.toSections, lang, fromSections=[x.ref.sections for x in section_resolved_raw_refs])
         ranged_resolved_raw_refs = []
         for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
             try:
@@ -140,7 +143,7 @@ class ResolvedRefRefinerForNamedNode(ResolvedRefRefiner):
         if self.node.ref_part_title_trie(lang).has_continuations(self.part_to_match.key(), key_is_id=self.part_to_match.key_is_id) \
                 and not self._has_prev_unused_numbered_ref_part_for_node(lang):
 
-            return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=self.node.ref())]
+            return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), ref=self.node.ref())]
         return []
 
 
@@ -180,7 +183,7 @@ class ResolvedRefRefinerForPassage(ResolvedRefRefiner):
         resolved_refs = []
         for passage_node in self.node.get_children():
             if passage_node.get_match_template_trie(lang).has_continuations(self.part_to_match.key(), key_is_id=self.part_to_match.key_is_id):
-                resolved_refs.append(self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=passage_node.ref()))
+                resolved_refs.append(self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), ref=passage_node.ref()))
         return resolved_refs
 
 

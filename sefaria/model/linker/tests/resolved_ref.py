@@ -49,6 +49,6 @@ zohar_first_daf_node = zohar_volume1_intro_node.get_children()[0]
 def test_contains(node_a: ReferenceableBookNode, node_b: ReferenceableBookNode, self_tref: str, other_tref: str, is_contained: bool):
     self_oref = self_tref and Ref(self_tref)
     other_oref = other_tref and Ref(other_tref)
-    rr_a = ResolvedRef(Mock(), Mock(), node_a, self_oref)
-    rr_b = ResolvedRef(Mock(), Mock(), node_b, other_oref)
+    rr_a = ResolvedRef(Mock(), Mock(), [node_a], self_oref)
+    rr_b = ResolvedRef(Mock(), Mock(), [node_b], other_oref)
     assert rr_a.contains(rr_b) == is_contained

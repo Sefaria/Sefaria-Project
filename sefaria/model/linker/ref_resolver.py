@@ -45,10 +45,10 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, _raw_entity: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+    def __init__(self, _raw_entity: RawRef, resolved_parts: List[RawRefPart], referenceable_book_nodes: list[ReferenceableBookNode], ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self._raw_entity = _raw_entity
         self.resolved_parts = resolved_parts
-        self.node: ReferenceableBookNode = node
+        self.referenceable_book_nodes = referenceable_book_nodes[:]
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
@@ -58,6 +58,21 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
 
     def complies_with_thoroughness_level(self):
         return self._thoroughness >= ResolutionThoroughness.HIGH or not self.ref.is_book_level()
+    
+    @property
+    def node(self):
+        return self.referenceable_book_nodes[-1] if self.referenceable_book_nodes else None
+    
+    def set_last_node(self, node: ReferenceableBookNode) -> None:
+        """
+        Set the last node in referenceable_book_nodes to `node`
+        :param node: 
+        :return: 
+        """
+        if self.referenceable_book_nodes:
+            self.referenceable_book_nodes[-1] = node
+        else:
+            self.referenceable_book_nodes = [node]
     
     @property
     def is_ambiguous(self) -> bool:
@@ -376,7 +391,7 @@ class RefResolver:
         temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
         self._update_ibid_history(raw_ref, temp_resolved)
         if len(temp_resolved) == 0:
-            return [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
+            return [ResolvedRef(raw_ref, [], [], None, context_ref=book_context_ref)]
         return temp_resolved
 
     def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
@@ -464,7 +479,7 @@ class RefResolver:
     def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> List[ResolvedRef]:
         try:
             ref = text.Ref(raw_ref.text)
-            return [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
+            return [ResolvedRef(raw_ref, raw_ref.parts_to_match, [], ref)]
         except:
             return []
 
@@ -559,7 +574,7 @@ class RefResolver:
                         ref = node.ref()
                     except InputError:
                         continue
-                    matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
+                    matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, [node], ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 

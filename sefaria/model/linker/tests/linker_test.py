@@ -51,7 +51,7 @@ def test_referenceable_child():
 def test_resolved_raw_ref_clone():
     index = library.get_index("Berakhot")
     raw_ref, context_ref, lang, _ = create_raw_ref_data(["@בבלי", "@ברכות", "#דף ב"])
-    rrr = ResolvedRef(raw_ref, [], index.nodes, Ref("Berakhot"))
+    rrr = ResolvedRef(raw_ref, [], [index.nodes], Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
 
