@@ -98,7 +98,7 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
                 """
                 continue
             refined_refs += [refined_ref]
-            final_ooo_list += [refined_ref]
+            final_ooo_list += [can_match_out_of_order]
         return [
             self._clone_resolved_ref(
                 ref=refined_ref,
@@ -137,7 +137,7 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
         ranged_resolved_raw_refs = []
         for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
             try:
-                ranged_resolved_raw_refs += [self._clone_resolved_ref(node=section.node, ref=section.ref.to(toSection.ref), can_match_out_of_order=False)]
+                ranged_resolved_raw_refs += [self._clone_resolved_ref(node=section.node, ref=section.ref.to(toSection.ref))]
             except (InputError, AttributeError):
                 continue
         if len(section_resolved_raw_refs) == 0:
