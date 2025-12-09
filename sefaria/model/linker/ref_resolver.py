@@ -893,7 +893,7 @@ class ResolvedRefPruner:
             return False
         if ResolvedRefPruner.ignored_context_ref_part_type(match):
             return False
-        if ResolvedRefPruner.is_single_gematria(match):
+        if ResolvedRefPruner.is_single_part_that_cant_match_out_of_order(match):
             return False
 
         return True
