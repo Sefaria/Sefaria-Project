@@ -115,8 +115,8 @@ class AddToSourceSheetBox extends Component {
    * Selects the currently focused sheet from the list.
    */
   handleSheetListSelect = () => {
-    const sheets = this.props.userSheets;
-    if (sheets && sheets[this.state.focusedSheetIndex]) {
+    const sheets = Sefaria.sheets.userSheets(Sefaria._uid);
+    if (sheets?.[this.state.focusedSheetIndex]) {
       this.selectSheet(sheets[this.state.focusedSheetIndex]);
     }
   }
