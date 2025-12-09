@@ -340,11 +340,10 @@ const isSelected = this.state.selectedSheet?.id === sheet.id;
       const isFocused = i === this.state.focusedSheetIndex;
       const classes = classNames({dropdownOption: 1, noselect: 1, selected: isSelected, focused: isFocused});
       const title = Sefaria.sheets.getSheetTitle(sheet?.title);
-      const selectSheet = this.selectSheet.bind(this, sheet);
       return (
         <div
           className={classes}
-          onClick={selectSheet}
+          onClick={() => this.selectSheet(sheet)}
           key={sheet.id}
           role="option"
           aria-selected={!!isSelected}
