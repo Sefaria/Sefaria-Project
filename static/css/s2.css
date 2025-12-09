@@ -10183,8 +10183,8 @@ body.user-is-tabbing .dropdownLinks-button img:focus {
   outline-offset: 2px;
 }
 
-/* Show focus outline on dropdown options when using keyboard navigation */
-body.user-is-tabbing .dropdownOption.focused {
+/* Show focus outline on dropdown options when using keyboard navigation and listbox has focus */
+body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
 }

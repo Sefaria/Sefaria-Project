@@ -336,23 +336,21 @@ class AddToSourceSheetBox extends Component {
     const titleRef = this.makeTitleRef();
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet, i) => {
-      let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
-      let title = Sefaria.sheets.getSheetTitle(sheet?.title);
-      let selectSheet = this.selectSheet.bind(this, sheet);
-      const isSelected = !!(this.state.selectedSheet && this.state.selectedSheet.id == sheet.id);
+      const isSelected = this.state.selectedSheet && this.state.selectedSheet.id == sheet.id;
       const isFocused = i === this.state.focusedSheetIndex;
+      const classes = classNames({dropdownOption: 1, noselect: 1, selected: isSelected, focused: isFocused});
+      const title = Sefaria.sheets.getSheetTitle(sheet?.title);
+      const selectSheet = this.selectSheet.bind(this, sheet);
       return (
         <div
           className={classes}
           onClick={selectSheet}
-          onKeyDown={(e) => Util.handleKeyboardClick(e, selectSheet)}
           key={sheet.id}
           role="option"
-          aria-selected={isSelected}
+          aria-selected={!!isSelected}
           id={`user-sheet-option-${i}`}
-          tabIndex={-1}
+          data-index={i}
           ref={el => { if (isFocused) { this.activeOptionRef = el; } }}
-          style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--focus-blue')}`, outlineOffset: '2px'} : {}}
         >
           {title}
         </div>
