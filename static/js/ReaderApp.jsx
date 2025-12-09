@@ -117,7 +117,7 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
-      notificationCount: Sefaria.notificationCount,
+      notificationCount: props.notificationCount,
     };
   }
   setEditorSaveState = (nextState) => {
@@ -1745,7 +1745,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   setUnreadNotificationsCount(n) {
-    Sefaria.notificationCount = n;  // Keep global in sync
     this.setState({ notificationCount: n });
   }
 
