@@ -598,7 +598,7 @@ class RefResolver:
         :param match_index: Index of current match we are trying to refine
         :param common_index: Index
         """
-        def get_section_set(index: text.Index) -> Set[Tuple[str, str, bool]]:
+        def get_section_set(index: text.Index) -> set[tuple[str, str, bool]]:
             root_node = index.nodes.get_default_child() or index.nodes
             try:
                 referenceable_sections = getattr(root_node, 'referenceableSections', [True] * len(root_node.addressTypes))
@@ -622,7 +622,10 @@ class RefResolver:
                 addr_type_str, sec_name, referenceable = sec_tuple
                 if not referenceable: continue
                 addr_type = schema.AddressType.to_class_by_address_type(addr_type_str)
-                sec_contexts += [SectionContext(addr_type, sec_name, context_ref.sections[isec])]
+                to_address = None
+                if hasattr(addr_type, "sections_lack_amud") and addr_type.sections_lack_amud(context_ref.sections[isec], context_ref.toSections[isec]):
+                    to_address = context_ref.toSections[isec]
+                sec_contexts += [SectionContext(addr_type, sec_name, context_ref.sections[isec], to_address)]
         return sec_contexts
 
     @staticmethod
