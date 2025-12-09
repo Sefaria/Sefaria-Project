@@ -336,7 +336,7 @@ class AddToSourceSheetBox extends Component {
     const titleRef = this.makeTitleRef();
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet, i) => {
-      const isSelected = this.state.selectedSheet && this.state.selectedSheet.id == sheet.id;
+const isSelected = this.state.selectedSheet?.id === sheet.id;
       const isFocused = i === this.state.focusedSheetIndex;
       const classes = classNames({dropdownOption: 1, noselect: 1, selected: isSelected, focused: isFocused});
       const title = Sefaria.sheets.getSheetTitle(sheet?.title);
