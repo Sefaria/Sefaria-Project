@@ -3729,7 +3729,6 @@ Sefaria.unpackBaseProps = function(props){
       "following",
       "blocking",
       "calendars",
-      "notificationCount",
       "notifications",
       "saved",
       "userHistory",

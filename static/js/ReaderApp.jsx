@@ -117,7 +117,7 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
-      notificationCount: props.notificationCount,
+      notificationCount: props.notificationCount || 0,
     };
   }
   setEditorSaveState = (nextState) => {
