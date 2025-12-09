@@ -188,6 +188,133 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             return response
 
 
+class SessionCookieDomainMiddleware(MiddlewareMixin):
+    """
+    Sets appropriate domain on session and CSRF cookies based on request host.
+    
+    This middleware enables cross-subdomain cookie sharing within the same language domain,
+    allowing users to remain logged in when navigating between modules (e.g., library ↔ voices).
+    
+    Works by modifying cookies in response.cookies after Django's SessionMiddleware 
+    and CsrfViewMiddleware have set them.
+    
+    Cookie Domain Resolution Strategy:
+    1. First, try get_cookie_domain(lang) which finds common suffix for language-specific domains
+       - Works for production where English (.sefaria.org) and Hebrew (.sefaria.org.il) have different domains
+    2. If that returns None (e.g., ambiguous domains where same domain serves multiple languages),
+       fall back to computing domain directly from all DOMAIN_MODULES entries
+       - Works for localhost/dev environments where both languages share the same domains
+    
+    Examples:
+        - www.sefaria.org → '.sefaria.org' (via get_cookie_domain)
+        - voices.sefaria.org → '.sefaria.org' (via get_cookie_domain)
+        - www.sefaria.org.il → '.sefaria.org.il' (via get_cookie_domain)
+        - localhost → '.localhost' (via fallback, when en/he share same domains)
+        - voices.localhost → '.localhost' (via fallback)
+    """
+    
+    def _compute_cookie_domain_fallback(self):
+        """
+        Compute cookie domain directly from DOMAIN_MODULES without filtering.
+        
+        This fallback is used when get_cookie_domain() returns None, which happens when:
+        - The domain is ambiguous (same domain used for multiple languages, e.g., localhost)
+        - The domain is not in DOMAIN_MODULES
+        
+        Returns the common domain suffix if all configured domains share one,
+        enabling cookie sharing across all modules regardless of language.
+        """
+        print(f"      🔍 _compute_cookie_domain_fallback() called")
+        
+        if not getattr(settings, 'DOMAIN_MODULES', None):
+            print(f"      ❌ DOMAIN_MODULES not found in settings")
+            return None
+        
+        print(f"      DOMAIN_MODULES: {settings.DOMAIN_MODULES}")
+        
+        # Collect all unique hostnames from DOMAIN_MODULES (no filtering)
+        all_hostnames = set()
+        for modules in settings.DOMAIN_MODULES.values():
+            for url in modules.values():
+                hostname = urlparse(url).hostname
+                if hostname:
+                    all_hostnames.add(hostname)
+        
+        all_hostnames = list(all_hostnames)
+        print(f"      All hostnames found: {all_hostnames}")
+        
+        if len(all_hostnames) < 2:
+            print(f"      ⚠️  Only {len(all_hostnames)} hostname(s) found, need at least 2")
+            return None
+        
+        # Find the shortest hostname that's a suffix of all others
+        # e.g., for ['localhost', 'voices.localhost'] → returns '.localhost'
+        # e.g., for ['www.sefaria.org', 'voices.sefaria.org', 'www.sefaria.org.il', ...] → returns None
+        #       (because .org and .org.il domains don't share a common suffix)
+        for candidate in sorted(all_hostnames, key=len):
+            print(f"      Testing candidate: {candidate}")
+            if all(h == candidate or h.endswith('.' + candidate) for h in all_hostnames):
+                result = '.' + candidate
+                print(f"      ✅ Found common suffix: {result}")
+                return result
+        
+        print(f"      ❌ No common suffix found")
+        return None
+    
+    def process_response(self, request, response):
+        # DEBUG: Entry point logging
+        print(f"\n🔍 SessionCookieDomainMiddleware called")
+        print(f"   Host: {request.get_host()}")
+        print(f"   Path: {request.path}")
+        print(f"   Method: {request.method}")
+        print(f"   Cookies in response before middleware: {list(response.cookies.keys())}")
+        
+        # First, try the standard approach using language detection
+        # This works for production where different languages have different domains
+        lang = current_domain_lang(request)
+        print(f"   Detected language: {lang}")
+        
+        cookie_domain = get_cookie_domain(lang)
+        print(f"   get_cookie_domain({lang}) returned: {cookie_domain}")
+        
+        # If that didn't work, try the fallback
+        # This handles localhost/dev environments where both languages share the same domains
+        if cookie_domain is None:
+            print(f"   🔄 Using fallback method...")
+            cookie_domain = self._compute_cookie_domain_fallback()
+            print(f"   Fallback returned: {cookie_domain}")
+        
+        if cookie_domain:
+            print(f"   ✅ Final cookie_domain to apply: {cookie_domain}")
+            
+            # Check if settings already have the right domain
+            settings_session_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+            settings_csrf_domain = getattr(settings, 'CSRF_COOKIE_DOMAIN', None)
+            print(f"   Settings SESSION_COOKIE_DOMAIN: {settings_session_domain}")
+            print(f"   Settings CSRF_COOKIE_DOMAIN: {settings_csrf_domain}")
+            
+            # Update session cookie domain if it was set
+            if settings.SESSION_COOKIE_NAME in response.cookies:
+                old_domain = response.cookies[settings.SESSION_COOKIE_NAME].get('domain', 'not set')
+                response.cookies[settings.SESSION_COOKIE_NAME]['domain'] = cookie_domain
+                print(f"   📝 Updated {settings.SESSION_COOKIE_NAME} domain: {old_domain} → {cookie_domain}")
+            else:
+                print(f"   ⚠️  {settings.SESSION_COOKIE_NAME} not in response.cookies")
+                
+            # Update CSRF cookie domain if it was set
+            if settings.CSRF_COOKIE_NAME in response.cookies:
+                old_domain = response.cookies[settings.CSRF_COOKIE_NAME].get('domain', 'not set')
+                response.cookies[settings.CSRF_COOKIE_NAME]['domain'] = cookie_domain
+                print(f"   📝 Updated {settings.CSRF_COOKIE_NAME} domain: {old_domain} → {cookie_domain}")
+            else:
+                print(f"   ⚠️  {settings.CSRF_COOKIE_NAME} not in response.cookies")
+        else:
+            print(f"   ❌ No cookie_domain computed - cookies not updated")
+        
+        print(f"   Cookies in response after middleware: {list(response.cookies.keys())}\n")
+        return response
+
+
 class CORSDebugMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         """

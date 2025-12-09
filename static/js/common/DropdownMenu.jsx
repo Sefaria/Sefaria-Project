@@ -135,6 +135,7 @@ const DropdownModuleItem = ({url, newTab, targetModule, dotColor, text}) => {
        href={fullURL}
        onKeyDown={(e) => Util.handleKeyboardClick(e)}
        target={newTab ? '_blank' : null}
+       data-target-module={targetModule}
        data-anl-event={"modswitch_item_click:click"}
        data-anl-text={text.en}>
       <div className="dropdownHeader">
