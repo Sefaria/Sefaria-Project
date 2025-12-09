@@ -13370,7 +13370,7 @@ body .homeFeedWrapper.userStats {
   color: var(--dark-grey);
   padding: 20px 0px;
   line-height: 1.5;
-  text-align: start;
+  font-size: 22px;
 }
 .collectionsWidgetCreate,
 .collectionsWidgetDone {
