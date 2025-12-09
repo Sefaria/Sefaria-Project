@@ -623,18 +623,21 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
         return decorated_function
     return argumented_decorator
     
-def get_redirect_to_help_center(request, sheet_ref_part):
+def get_redirect_to_help_center(request, sheet_tref_part):
     """
-    Redirect to the help center for a given sheet id or ref part -- this function can accept sheet_ref_part of "3" but it can also accept "3:4".
-    If the sheet_ref_part is not from an actual sheet, returns None.
+    Redirect to the help center for a given sheet id or ref part -- this function can accept sheet_tref_part of "3" but it can also accept "3:4".
+    If the sheet_tref_part is not from an actual sheet, returns None.
     Otherwise, returns the redirect URL for the help center.
     """
     from sefaria.model.text import Ref
     from sefaria.site.site_settings import SITE_SETTINGS
-    oref = Ref(f"Sheet {sheet_ref_part}")
-    if not oref.is_sheet():
+    try:
+        oref = Ref(f"Sheet {sheet_tref_part}")
+    except InputError:
         return None
-    sheet_id = oref.sections[0]
-    help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
-    lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
-    return help_center_redirects.get(lang_code, {}).get(str(sheet_id))
+    if oref.is_sheet():
+        sheet_id = oref.sections[0]
+        help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
+        lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
+        return help_center_redirects.get(lang_code, {}).get(str(sheet_id))
+    return None
