@@ -137,7 +137,7 @@ class RawRefPartPair(RawRefPart):
         span = span1.doc.subspan(slice(span1.range[0], span2.range[1]), span1.label)
         _type = part1.type
         super().__init__(_type, span, None)
-        self.part_pair = [part1, part2]
+        self.part_pair = (part1, part2)
 
 
 class ContextPart(RawRefPart):

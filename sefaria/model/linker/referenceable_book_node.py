@@ -293,9 +293,10 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
             children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
             if serial['depth'] == 1:
                 return children
-        passages = PASSAGE_MATCHER.get_passages(context_ref)
-        if passages:
-            children += [PassageNodeSet(passages)]
+        if context_ref is not None:
+            passages = PASSAGE_MATCHER.get_passages(context_ref)
+            if passages:
+                children += [PassageNodeSet(passages)]
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
         return children + [NumberedReferenceableBookNode(new_ja)]
 
