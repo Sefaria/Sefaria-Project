@@ -73,6 +73,7 @@ shared_patterns = [
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
     url(r'^api/versions/?$', reader_views.complete_version_api),
     url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
+    url(r'^api/ai-text-search$', reader_views.ai_text_search_api),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),

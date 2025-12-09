@@ -706,11 +706,30 @@ class ConnectionsSummary extends Component {
 
   constructor(props) {
     super(props);
+    
+    // Capture highlighted_text from URL immediately before it gets rewritten by history state
+    let initialSearchText = "";
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const highlightedText = urlParams.get('highlighted_text');
+      if (highlightedText && highlightedText.trim()) {
+        initialSearchText = highlightedText.trim();
+      }
+    }
+    
     this.state = {
-      searchText: "",
+      searchText: initialSearchText,
       isFiltering: false,
       filteredLinkRefs: null,  // null means no filter applied, array of sourceRefs means filter is active
+      initialHighlightedText: initialSearchText,  // Store the initial value to trigger filter on mount
     };
+  }
+
+  componentDidMount() {
+    // If we had a highlighted_text parameter, trigger the filter now that component is mounted
+    if (this.state.initialHighlightedText) {
+      this.handleFilterClick();
+    }
   }
 
   handleSearchChange(e) {
@@ -719,8 +738,8 @@ class ConnectionsSummary extends Component {
 
   async handleFilterClick() {
     const searchText = this.state.searchText.trim();
-    if (!searchText) {
-      // Clear filter if search is empty
+    if (!searchText || !searchText.includes(" ")) {
+      // Clear filter if search is empty or single word
       this.setState({ filteredLinkRefs: null, isFiltering: false });
       return;
     }
@@ -729,7 +748,9 @@ class ConnectionsSummary extends Component {
 
     const refs = this.props.srefs;
     const links = Sefaria.getLinksFromCacheAndPreprocess(refs);
+    const totalLinks = links.length;
     const matchingRefs = [];
+    const textsForAI = [];  // Store texts for potential AI search
 
     // Fetch text for each link and check if it contains the search term
     const searchLower = searchText.toLowerCase();
@@ -745,6 +766,11 @@ class ConnectionsSummary extends Component {
           const heTextClean = heText.replace(/<[^>]*>/g, "").toLowerCase();
           const enTextClean = enText.replace(/<[^>]*>/g, "").toLowerCase();
           
+          // Store text for potential AI search (use English text)
+          if (enTextClean) {
+            textsForAI.push({ ref: link.sourceRef, text: enTextClean });
+          }
+          
           if (heTextClean.includes(searchLower) || enTextClean.includes(searchLower)) {
             matchingRefs.push(link.sourceRef);
           }
@@ -755,7 +781,56 @@ class ConnectionsSummary extends Component {
     });
 
     await Promise.all(fetchPromises);
+
+    // Check conditions for AI search:
+    // 1. Language is English
+    // 2. Search text has more than 2 words
+    // 3. Number of exact match links is less than 10% of total links
+    const wordCount = searchText.split(/\s+/).length;
+    const isEnglish = Sefaria.interfaceLang === "english" || !Sefaria.hebrew.isHebrew(searchText);
+    const exactMatchPercentage = totalLinks > 0 ? (matchingRefs.length / totalLinks) * 100 : 0;
+    const shouldUseAI = false; //isEnglish && wordCount > 2 && exactMatchPercentage < 10 && textsForAI.length > 0;
+
+    if (shouldUseAI) {
+      try {
+        console.log("Using AI search - conditions met:", { isEnglish, wordCount, exactMatchPercentage, totalLinks });
+        const aiMatchingRefs = await this.performAISearch(searchText, textsForAI);
+        if (aiMatchingRefs && aiMatchingRefs.length > 0) {
+          // Combine exact matches with AI matches (remove duplicates)
+          const combinedRefs = [...new Set([...matchingRefs, ...aiMatchingRefs])];
+          this.setState({ filteredLinkRefs: combinedRefs, isFiltering: false });
+          return;
+        }
+      } catch (err) {
+        console.warn("AI search failed, falling back to exact match:", err);
+      }
+    }
+
     this.setState({ filteredLinkRefs: matchingRefs, isFiltering: false });
+  }
+
+  async performAISearch(query, texts) {
+    // Call the AI search API endpoint
+    try {
+      const response = await fetch(`${Sefaria.apiHost}/api/ai-text-search`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query, texts }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "AI search request failed");
+      }
+
+      const data = await response.json();
+      return data.matching_refs || [];
+    } catch (err) {
+      console.error("AI search error:", err);
+      throw err;
+    }
   }
 
   handleClearFilter() {

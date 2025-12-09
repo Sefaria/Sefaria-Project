@@ -5051,3 +5051,109 @@ def dynamic_manifest(request, filename):
     response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
     
     return response
+
+
+@csrf_exempt
+def ai_text_search_api(request):
+    """
+    API endpoint for AI-powered semantic text search using Claude (Anthropic).
+    Takes a search query and a list of texts with their refs, returns matching refs.
+    
+    POST body:
+    {
+        "query": "search phrase",
+        "texts": [
+            {"ref": "Genesis 1:1", "text": "In the beginning..."},
+            ...
+        ]
+    }
+    
+    Returns:
+    {
+        "matching_refs": ["Genesis 1:1", ...]
+    }
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "POST request required."}, status=405)
+    
+    try:
+        import anthropic
+        from sefaria.settings import ANTHROPIC_API_KEY
+    except ImportError:
+        return jsonResponse({"error": "Anthropic library not installed. Run: pip install anthropic"}, status=500)
+    except AttributeError:
+        return jsonResponse({"error": "Anthropic API key not configured."}, status=500)
+    
+    if not ANTHROPIC_API_KEY:
+        return jsonResponse({"error": "Anthropic API key not configured."}, status=500)
+    
+    try:
+        data = json.loads(request.body)
+        query = data.get("query", "").strip()
+        texts = data.get("texts", [])
+        
+        if not query:
+            return jsonResponse({"error": "Query is required."}, status=400)
+        if not texts:
+            return jsonResponse({"error": "Texts are required."}, status=400)
+        
+        # Initialize Anthropic client
+        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        
+        # Build prompt for Claude to identify which texts semantically match the query
+        texts_for_prompt = "\n".join([
+            f"[{i}] {t.get('ref', 'Unknown')}: {t.get('text', '')[:500]}"  # Limit text length
+            for i, t in enumerate(texts)
+        ])
+        
+        prompt = f"""You are analyzing religious/scholarly texts to find semantic matches.
+
+Given the search query: "{query}"
+
+And these texts:
+{texts_for_prompt}
+
+Return ONLY a JSON array of the index numbers (the numbers in brackets) of texts that semantically match or relate to the search query. Consider:
+- Texts that discuss similar themes or concepts
+- Texts that use similar language or ideas
+- Texts that would be relevant to someone searching for the query
+
+Return format: [0, 2, 5] (just the indices, no explanation)
+If no texts match, return: []"""
+
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            system="You are a helpful assistant that identifies semantically related texts. You only respond with JSON arrays of numbers."
+        )
+        
+        # Parse the response
+        result_text = response.content[0].text.strip()
+        
+        # Extract JSON array from response
+        import re
+        match = re.search(r'\[[\d,\s]*\]', result_text)
+        if match:
+            matching_indices = json.loads(match.group())
+        else:
+            matching_indices = []
+        
+        # Convert indices to refs
+        matching_refs = []
+        for idx in matching_indices:
+            if 0 <= idx < len(texts):
+                ref = texts[idx].get("ref")
+                if ref:
+                    matching_refs.append(ref)
+        
+        return jsonResponse({"matching_refs": matching_refs})
+        
+    except json.JSONDecodeError:
+        return jsonResponse({"error": "Invalid JSON in request body."}, status=400)
+    except anthropic.APIError as e:
+        return jsonResponse({"error": f"Anthropic API error: {str(e)}"}, status=500)
+    except Exception as e:
+        return jsonResponse({"error": f"Server error: {str(e)}"}, status=500)
