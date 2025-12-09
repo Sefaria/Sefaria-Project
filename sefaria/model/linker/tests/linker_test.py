@@ -192,7 +192,6 @@ def test_multiple_ambiguities():
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
     [crrd(['&Ibid', '#12'], prev_trefs=["Exodus 1:7"], lang='en'), ["Exodus 1:12", "Exodus 12"]],  # ambiguous ibid when context is segment level (not clear if this is really ambiguous. maybe should only have segment level result)
-    [crrd(['#ב'], prev_trefs=["Genesis 1"]), ["Genesis 1:2", "Genesis 2"]],  # ambiguous ibid
     [crrd(['#ב', '#ז'], prev_trefs=["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
     [crrd(['@בראשית', '&שם', '#ז'], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
     [crrd(['&שם', '#ב', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 2:7"]],
@@ -216,9 +215,10 @@ def test_multiple_ambiguities():
     [crrd(["@Job"], lang='en', prev_trefs=['Job 1:1']), ("Job",)],  # don't use ibid context if there's a match that uses all input
     [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
-    [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
+    [crrd(["&ibid", "#30"], lang='en', prev_trefs=['Leviticus 15:13-17']), ("Leviticus 15:30",)],  # range in context ref
     [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#סימן תצ״ג"], lang='he', context_tref='Mishnah Berurah 494:1'), ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493")],  # use base_titles to infer possible links from book_ref context
+    [crrd(["#2"], lang='en', context_tref='Genesis'), tuple()],  # single gematria shouldn't be considered a match due to false positives
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -240,7 +240,6 @@ def test_multiple_ambiguities():
     [crrd(['#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['@Tosephta', '@Ševi‘it', '#1', '#1'], "Jerusalem Talmud Sheviit 1:1:3", 'en'), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
     [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
-    [crrd(['@Exodus', '#21', '#1', '~,', '#3', '~,', '#22', '#5'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
     pytest.param(crrd(['@Roš Haššanah', '#4', '#Notes 42', '^–', '#43'], "Jerusalem Talmud Taanit 1:1:3", "en"), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
     [crrd(['@Tosaphot', '#85a', '*s.v. ולרבינא'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), ("Tosafot on Pesachim 85a:14:1",)],
     [crrd(['@Unknown book', '#2'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), tuple()],  # make sure title context doesn't match this
