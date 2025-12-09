@@ -11,6 +11,7 @@ from sefaria.model import text
 from sefaria.model import schema
 from sefaria.model.linker.context_mutation import ContextMutationOp, ContextMutation, ContextMutationSet
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
+from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
 from ne_span import NESpan
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
@@ -45,10 +46,9 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, _raw_entity: RawRef, resolved_parts: List[RawRefPart], referenceable_book_nodes: list[ReferenceableBookNode], ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+    def __init__(self, _raw_entity: RawRef, ref_part_and_node_matches: list[RefPartAndNodeMatch], ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self._raw_entity = _raw_entity
-        self.resolved_parts = resolved_parts
-        self.referenceable_book_nodes = referenceable_book_nodes[:]
+        self.ref_part_and_node_matches = ref_part_and_node_matches
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
@@ -60,8 +60,16 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         return self._thoroughness >= ResolutionThoroughness.HIGH or not self.ref.is_book_level()
     
     @property
+    def resolved_parts(self) -> list[RawRefPart]:
+        return [part for match in self.ref_part_and_node_matches for part in match.parts]
+    
+    @property
+    def referenceable_book_nodes(self) -> list[ReferenceableBookNode]:
+        return [match.node for match in self.ref_part_and_node_matches]
+    
+    @property
     def node(self):
-        return self.referenceable_book_nodes[-1] if self.referenceable_book_nodes else None
+        return self.ref_part_and_node_matches[-1].node if len(self.ref_part_and_node_matches) > 0 else None
     
     def set_last_node(self, node: ReferenceableBookNode) -> None:
         """
@@ -69,10 +77,10 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         :param node: 
         :return: 
         """
-        if self.referenceable_book_nodes:
-            self.referenceable_book_nodes[-1] = node
+        if len(self.ref_part_and_node_matches) > 0:
+            self.ref_part_and_node_matches[-1].set_node(node)
         else:
-            self.referenceable_book_nodes = [node]
+            raise InputError("Cannot set last node when there are no referenceable book nodes")
     
     @property
     def is_ambiguous(self) -> bool:
@@ -155,13 +163,14 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         self._matched_dh_map[part] = matched_dh_continuation
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
-        for part in other.resolved_parts:
-            if part in self.resolved_parts: continue
-            if part.is_context:
+        for part_match in other.ref_part_and_node_matches:
+            if part_match in self.ref_part_and_node_matches:
+                continue
+            if any(part.is_context for part in part_match.parts):
                 # prepend context parts, so they pass validation that context parts need to precede non-context parts
-                self.resolved_parts = [part] + self.resolved_parts
+                self.ref_part_and_node_matches = [part_match] + self.ref_part_and_node_matches
             else:
-                self.resolved_parts += [part]
+                self.ref_part_and_node_matches += [part_match]
         if not self.ref:
             # self may reference an AltStructNode and therefore doesn't have a ref.
             # Use ref from other which is expected to be equivalent or more specific
@@ -391,7 +400,7 @@ class RefResolver:
         temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
         self._update_ibid_history(raw_ref, temp_resolved)
         if len(temp_resolved) == 0:
-            return [ResolvedRef(raw_ref, [], [], None, context_ref=book_context_ref)]
+            return [ResolvedRef(raw_ref, [], None, context_ref=book_context_ref)]
         return temp_resolved
 
     def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
@@ -479,7 +488,8 @@ class RefResolver:
     def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> List[ResolvedRef]:
         try:
             ref = text.Ref(raw_ref.text)
-            return [ResolvedRef(raw_ref, raw_ref.parts_to_match, [], ref)]
+            part_and_node_matches = [RefPartAndNodeMatch((part,), None, True) for part in raw_ref.parts_to_match]
+            return [ResolvedRef(raw_ref, part_and_node_matches, ref)]
         except:
             return []
 
@@ -567,14 +577,15 @@ class RefResolver:
                     matched_part = part  # fallback on original part
             else:
                 continue
-            temp_prev_ref_parts = prev_ref_parts + [matched_part]
+            temp_prev_ref_parts = tuple(list(prev_ref_parts) + [matched_part])
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
                     try:
                         ref = node.ref()
                     except InputError:
                         continue
-                    matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, [node], ref, _thoroughness=self._thoroughness)]
+                    part_and_node_matches = [RefPartAndNodeMatch(temp_prev_ref_parts, node, True)]
+                    matches += [ResolvedRef(temp_raw_ref, part_and_node_matches, ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
