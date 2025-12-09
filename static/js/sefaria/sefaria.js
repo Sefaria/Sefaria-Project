@@ -23,7 +23,7 @@ let Sefaria = Sefaria || {
   last_place: [],
   VOICES_MODULE,
   LIBRARY_MODULE,
-  apiHost: Sefaria?.domainModules?.[Sefaria._getShortInterfaceLang()]['library'] || "" 
+  apiHost: "" 
 };
 
 if (typeof window !== 'undefined') {
