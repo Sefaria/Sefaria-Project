@@ -472,7 +472,6 @@ def test_strip_imgs():
     assert AbstractTextRecord.strip_imgs(text) == text
 
 
-@pytest.mark.xfail(reason="<br/> tags become <br>, so don't match exactly.")
 def test_strip_itags():
     vs = ["Hadran Test"]
     for vt in vs:
@@ -499,12 +498,13 @@ def test_strip_itags():
         "title": "Hadran",
         "versionSource": "http://foobar.com",
         "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup>1</sup><i class="footnote yo">well, not that cool</i>',
-                    'Silly text <sup>1</sup><i class="footnote">See <i>cool text</i></i>',
+        "chapter": ['Cool text <sup class="footnote-marker">1</sup><i class="footnote yo">well, not that cool</i >',  # test </i> malformed with extra space
+                    'Silly text <sup class="footnote-marker">1</sup><i class="footnote">See <i>cool text</i></i>',
                     'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more',
-                    'Where the <i data-overlay="Other system" data-value=""></i>']
+                    'Where the <i data-overlay="Other system" data-value=""></i> #$%^&*',
+                    'Obscure thing<sup class="endFootnote">1</sup> that nobody cares about except Noah.']
     }).save()
-    modified_text = ['Cool text', 'Silly text', 'More text and yet more']
+    modified_text = ['Cool text', 'Silly text', 'More text and yet more', 'Where the #$%^&*', 'Obscure thing that nobody cares about except Noah.']
     c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
     test_modified_text = c._get_text_after_modifications([c.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
@@ -512,7 +512,7 @@ def test_strip_itags():
 
     test_modified_text = v._get_text_after_modifications([v.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
-        assert m == t
+        assert t == m
 
     # test without any modification functions
     test_modified_text = c._get_text_after_modifications([])

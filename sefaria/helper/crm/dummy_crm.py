@@ -28,3 +28,6 @@ class DummyConnectionManager(CrmConnectionManager):
     def find_crm_id(self, email=None):
         CrmConnectionManager.find_crm_id(self, email=email)
         return True
+
+    def get_available_lists(self) -> list[str]:
+        return ["Dummy List 1", "Dummy List 2"]
