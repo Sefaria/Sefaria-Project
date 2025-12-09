@@ -179,7 +179,7 @@ class SectionContext(ContextPart):
     NOTE: used to used index of section to help validate. Doesn't work b/c we change sections list on the nodes as we refine them
     """
 
-    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int) -> None:
+    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int, to_address: int = None) -> None:
         """
         :param addr_type: AddressType of section
         :param section_name: Name of section
@@ -189,6 +189,7 @@ class SectionContext(ContextPart):
         self.addr_type = addr_type
         self.section_name = section_name
         self.address = address
+        self.to_address = to_address  # used for ranged contexts
 
     @property
     def text(self):
