@@ -198,70 +198,17 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
     Works by modifying cookies in response.cookies after Django's SessionMiddleware 
     and CsrfViewMiddleware have set them.
     
-    Cookie Domain Resolution Strategy:
-    1. First, try get_cookie_domain(lang) which finds common suffix for language-specific domains
-       - Works for production where English (.sefaria.org) and Hebrew (.sefaria.org.il) have different domains
-    2. If that returns None (e.g., ambiguous domains where same domain serves multiple languages),
-       fall back to computing domain directly from all DOMAIN_MODULES entries
-       - Works for localhost/dev environments where both languages share the same domains
-    
     Examples:
-        - www.sefaria.org → '.sefaria.org' (via get_cookie_domain)
-        - voices.sefaria.org → '.sefaria.org' (via get_cookie_domain)
-        - www.sefaria.org.il → '.sefaria.org.il' (via get_cookie_domain)
-        - localhost → '.localhost' (via fallback, when en/he share same domains)
-        - voices.localhost → '.localhost' (via fallback)
+        - www.sefaria.org → '.sefaria.org'
+        - voices.sefaria.org → '.sefaria.org'
+        - www.sefaria.org.il → '.sefaria.org.il'
+    
+    Note: For localhost/dev environments, set SESSION_COOKIE_DOMAIN explicitly in local_settings.py
     """
     
-    def _compute_cookie_domain_fallback(self):
-        """
-        Compute cookie domain directly from DOMAIN_MODULES without filtering.
-        
-        This fallback is used when get_cookie_domain() returns None, which happens when:
-        - The domain is ambiguous (same domain used for multiple languages, e.g., localhost)
-        - The domain is not in DOMAIN_MODULES
-        
-        Returns the common domain suffix if all configured domains share one,
-        enabling cookie sharing across all modules regardless of language.
-        """
-        if not getattr(settings, 'DOMAIN_MODULES', None):
-            return None
-        
-        # Collect all unique hostnames from DOMAIN_MODULES (no filtering)
-        all_hostnames = set()
-        for modules in settings.DOMAIN_MODULES.values():
-            for url in modules.values():
-                hostname = urlparse(url).hostname
-                if hostname:
-                    all_hostnames.add(hostname)
-        
-        all_hostnames = list(all_hostnames)
-        
-        if len(all_hostnames) < 2:
-            return None
-        
-        # Find the shortest hostname that's a suffix of all others
-        # e.g., for ['localhost', 'voices.localhost'] → returns '.localhost'
-        # e.g., for ['www.sefaria.org', 'voices.sefaria.org', 'www.sefaria.org.il', ...] → returns None
-        #       (because .org and .org.il domains don't share a common suffix)
-        for candidate in sorted(all_hostnames, key=len):
-            if all(h == candidate or h.endswith('.' + candidate) for h in all_hostnames):
-                result = '.' + candidate
-                return result
-        
-        return None
-    
     def process_response(self, request, response):
-        # First, try the standard approach using language detection
-        # This works for production where different languages have different domains
         lang = current_domain_lang(request)
-        
         cookie_domain = get_cookie_domain(lang)
-        
-        # If that didn't work, try the fallback
-        # This handles localhost/dev environments where both languages share the same domains
-        if cookie_domain is None:
-            cookie_domain = self._compute_cookie_domain_fallback()
         
         if cookie_domain:
             # Update session cookie domain if it was set
