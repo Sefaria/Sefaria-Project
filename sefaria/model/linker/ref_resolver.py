@@ -859,6 +859,28 @@ class ResolvedRefPruner:
             if explicit_part_type_counts[part_type] < 0:
                 return True
         return False
+    
+    @staticmethod
+    def is_single_part_that_cant_match_out_of_order(match: ResolvedRef) -> bool:
+        """
+        Reject matches that only matched a single part and that part can't match out of order (most commonly, a gematria by itself).
+        These are almost always false positives
+        E.g. Input: "ב", Context: "Genesis", Match: "Genesis 2"
+        
+        Examples that should be allowed:
+        - Ibid 2
+        - v. 2
+        - 2a
+        """
+        # check parts_to_match and not resolved_parts since ibid parts aren't included in resolved_parts and if there's an ibid part it makes the citation valid
+        if len(match.raw_entity.parts_to_match) != 1:
+            return False
+        part = match.raw_entity.parts_to_match[0]
+        # find the corresponding part match
+        for part_match in match.ref_part_and_node_matches:
+            if part in part_match.parts:
+                return not part_match.can_match_out_of_order
+        return False
 
     @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
@@ -870,6 +892,8 @@ class ResolvedRefPruner:
         if not ResolvedRefPruner.matched_all_explicit_sections(match):
             return False
         if ResolvedRefPruner.ignored_context_ref_part_type(match):
+            return False
+        if ResolvedRefPruner.is_single_gematria(match):
             return False
 
         return True
