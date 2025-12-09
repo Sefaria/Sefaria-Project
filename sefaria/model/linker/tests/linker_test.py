@@ -239,8 +239,7 @@ def test_multiple_ambiguities():
     [crrd(['@Halakha', '#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['@Tosephta', '@Ševi‘it', '#1', '#1'], "Jerusalem Talmud Sheviit 1:1:3", 'en'), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
-    [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
-    [crrd(['@Exodus', '#21', '#1', '~,', '#3', '~,', '#22', '#5'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
+    [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Taanit 28b")],  # non-cts with talmud. non-cts is no longer supported. We only find the first citation.
     pytest.param(crrd(['@Roš Haššanah', '#4', '#Notes 42', '^–', '#43'], "Jerusalem Talmud Taanit 1:1:3", "en"), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
     [crrd(['@Tosaphot', '#85a', '*s.v. ולרבינא'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), ("Tosafot on Pesachim 85a:14:1",)],
     [crrd(['@Unknown book', '#2'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), tuple()],  # make sure title context doesn't match this
@@ -353,8 +352,11 @@ def test_multiple_ambiguities():
     [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    matches = get_matches_from_resolver_data(resolver_data)
-    matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
+    resolved_ref = get_matches_from_resolver_data(resolver_data)
+    if resolved_ref is None:
+        matched_orefs = []
+    else:
+        matched_orefs = sorted([rr.ref for rr in resolved_ref.resolved_raw_refs] if resolved_ref.is_ambiguous else [resolved_ref.ref], key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in matched_orefs:
@@ -671,14 +673,14 @@ def test_map_new_indices(crrd_params):
     [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), True],  # ambiguous
 ])
 def test_linker_output_validate(resolver_data, is_ambiguous):
-    matches = get_matches_from_resolver_data(resolver_data)
-    doc = LinkedDoc("", matches, [], [])
+    resolved_ref = get_matches_from_resolver_data(resolver_data)
+    doc = LinkedDoc("", [resolved_ref], [], [])
     spans = _extract_debug_spans(doc)
     for span in spans:
         assert span['ambiguous'] == is_ambiguous
     assert LinkerOutput({
         "ref": "Genesis 1:1",
-        "versionTitle": "mock",
+        "versionTitle": "Tanakh: The Holy Scriptures, published by JPS",
         "language": "en",
         "spans": spans
     })._validate()
