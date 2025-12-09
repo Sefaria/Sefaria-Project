@@ -428,7 +428,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           </a>
           <a href={"/topics"} onClick={close}>
             <img src="/static/icons/topic.svg" alt={Sefaria._("Topics")} />
-            <InterfaceText context="Header">Explore</InterfaceText>
+            <InterfaceText context="Header">Topics</InterfaceText>
           </a>
           <a href="/calendars" onClick={close}>
             <img src="/static/icons/calendar.svg" alt={Sefaria._("Learning Schedules")} />
