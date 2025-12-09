@@ -34,6 +34,9 @@ class Sheet extends Component {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
   onDataLoad(data) {
+    // Set page title for client-side navigation (SSR handles this on direct navigation)
+    document.title = Sefaria.getPageTitle(data.title.stripHtml(), "sheet");
+    history.replaceState(history.state, document.title, window.location.href);
     const sheetRef = "Sheet " + data.id + (this.props.highlightedNode ? "." + this.props.highlightedNode : "");
     this.props.openSheet(sheetRef, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
