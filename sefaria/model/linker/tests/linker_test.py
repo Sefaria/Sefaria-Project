@@ -1,10 +1,13 @@
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
+from sefaria.model.linker.ref_resolver import ResolvedRef, RefResolver, IbidHistory
+from sefaria.model.linker.linker import LinkedDoc
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
+from sefaria.model.marked_up_text_chunk import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError
+from sefaria.helper.linker.tasks import _extract_debug_spans
 
 
 def _seed_non_unique_terms(term_defs):
@@ -214,6 +217,7 @@ def test_multiple_ambiguities():
     [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
     [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
+    [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#סימן תצ״ג"], lang='he', context_tref='Mishnah Berurah 494:1'), ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493")],  # use base_titles to infer possible links from book_ref context
 
     # Relative (e.g. Lekaman)
@@ -349,19 +353,7 @@ def test_multiple_ambiguities():
     [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    raw_ref, context_ref, lang, prev_trefs = resolver_data
-    linker = library.get_linker(lang)
-    ref_resolver = linker._ref_resolver
-    ref_resolver.reset_ibid_history()  # reset from previous test runs
-    if prev_trefs:
-        for prev_tref in prev_trefs:
-            if prev_tref is None:
-                ref_resolver.reset_ibid_history()
-            else:
-                ref_resolver._ibid_history.last_refs = Ref(prev_tref)
-    print_spans(raw_ref)
-    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
-    matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+    matches = get_matches_from_resolver_data(resolver_data)
     matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
@@ -370,10 +362,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     assert len(matched_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
-class TestResolveRawRef:
-
-    pass
-
+        
 
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts', 'expected_part_strs_list'), [
     ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
@@ -493,7 +482,7 @@ def test_context_mutations(seeded_terms, mutation_runner):
     assert swap_context_ref == base_context_ref
     assert add_context_ref == base_context_ref
 
-    ref_resolver = library.get_linker("en")._ref_resolver
+    ref_resolver = library._build_ref_resolver('en')
     ref_resolver.reset_ibid_history()
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
 
@@ -675,3 +664,21 @@ def test_map_new_indices(crrd_params):
     assert norm_raw_ref.text == raw_ref.text
     for norm_part, part in zip(norm_raw_ref.raw_ref_parts, raw_ref.raw_ref_parts):
         assert norm_part.text == part.text
+    
+
+@pytest.mark.parametrize(('resolver_data', 'is_ambiguous'), [
+    [crrd(['@שמות', '#א', '#ב']), False],  # not ambiguous
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), True],  # ambiguous
+])
+def test_linker_output_validate(resolver_data, is_ambiguous):
+    matches = get_matches_from_resolver_data(resolver_data)
+    doc = LinkedDoc("", matches, [], [])
+    spans = _extract_debug_spans(doc)
+    for span in spans:
+        assert span['ambiguous'] == is_ambiguous
+    assert LinkerOutput({
+        "ref": "Genesis 1:1",
+        "versionTitle": "mock",
+        "language": "en",
+        "spans": spans
+    })._validate()

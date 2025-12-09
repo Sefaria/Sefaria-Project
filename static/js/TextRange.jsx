@@ -330,8 +330,6 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
-            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en?.versionTitle)[1] : 'en'}
-            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             primaryDirection={data.primaryDirection}
@@ -500,6 +498,18 @@ class TextSegment extends Component {
     return x?.attr('data-ref') && x?.prop('tagName') === 'A';
   }
   handleClick(event) {
+    const mutcTarget = event.target.closest("a.mutc");
+    if (mutcTarget) {
+        const charRange = mutcTarget.getAttribute('data-range');
+        const contentSpan = mutcTarget.closest('.contentSpan');
+        const lang = contentSpan?.classList.contains('he') ? 'he' : 'en';
+        const key = `${this.props.sref}|${lang}|${charRange}`;
+        const spans = Sefaria._linkerOutputMap[key];
+        Sefaria._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
