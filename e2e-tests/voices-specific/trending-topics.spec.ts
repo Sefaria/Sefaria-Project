@@ -100,15 +100,15 @@ test.describe('Voices Module - Trending Topics', () => {
   let pm: PageManager;
 
   test.beforeEach(async ({ context }) => {
-    page = await goToPageWithLang(context, MODULE_URLS.VOICES, LANGUAGES.EN);
+    page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
   test('Publish sheets with same topic from multiple users and verify in Trending Topics', async () => {
     const topicName = getRandomTopic();
     // User 1 logs in and publishes sheet
-    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.VOICES, false);
-    await page.goto(MODULE_URLS.VOICES);
+    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.EN.VOICES, false);
+    await page.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(page);
 
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
@@ -121,11 +121,11 @@ test.describe('Voices Module - Trending Topics', () => {
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(false);
 
     // User 2 logs in and publishes sheet with same topic
-    await page.goto(MODULE_URLS.VOICES);
+    await page.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(page);
 
-    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.VOICES, true);
-    await page.goto(MODULE_URLS.VOICES);
+    await pm.onModuleHeader().loginWithCredentials(MODULE_URLS.EN.VOICES, true);
+    await page.goto(MODULE_URLS.EN.VOICES);
     await hideAllModalsAndPopups(page);
 
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
@@ -133,7 +133,7 @@ test.describe('Voices Module - Trending Topics', () => {
 
     // Trigger trending-tags calculation via Django admin API
     // First, navigate to the admin reset URL (may redirect to backstage login if not authenticated)
-    const adminResetUrl = `${MODULE_URLS.LIBRARY}/admin/reset/api/sheets/trending-tags`;
+    const adminResetUrl = `${MODULE_URLS.EN.LIBRARY}/admin/reset/api/sheets/trending-tags`;
     await page.goto(adminResetUrl);
     await page.waitForLoadState('networkidle');
 
@@ -163,7 +163,7 @@ test.describe('Voices Module - Trending Topics', () => {
 
     // Navigate to Voices > Topics and verify topic appears in Trending Topics sidebar
     await pm.onModuleHeader().logout();
-    await page.goto(`${MODULE_URLS.VOICES}/topics`);
+    await page.goto(`${MODULE_URLS.EN.VOICES}/topics`);
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
 
