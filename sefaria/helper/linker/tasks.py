@@ -45,7 +45,6 @@ class DeleteAndSaveLinksMsg:
     vtitle: Optional[str] = None
     lang: Optional[str] = None
     user_id: Optional[str] = None
-    version_id: Optional[str] = None
     tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -56,7 +55,6 @@ class DeleteAndSaveLinksMsg:
             vtitle=d.get("vtitle"),
             lang=d.get("lang"),
             user_id=d.get("user_id"),
-            version_id=d.get("version_id"),
             tracker_kwargs=d.get("tracker_kwargs") or {},
         )
 
@@ -124,7 +122,6 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
         vtitle=linking_args.vtitle,
         lang=linking_args.lang,
         user_id=linking_args.user_id,
-        version_id=linking_args.kwargs.get('version_id'),
         tracker_kwargs=linking_args.kwargs,
     )
     
@@ -206,7 +203,6 @@ def delete_and_save_new_links(payload: dict) -> None:
         "refs": target_oref.normal(),
         "auto": True,
         "generated_by": "add_links_from_text",
-        "source_text_oid": ObjectId(msg.version_id),
     }).array()
 
     for linked_oref in linked_orefs:
@@ -215,7 +211,6 @@ def delete_and_save_new_links(payload: dict) -> None:
             "type": "",
             "auto": True,
             "generated_by": "add_links_from_text",
-            "source_text_oid": ObjectId(msg.version_id),
             "inline_citation": True
         }
         found.append(linked_oref.normal())
