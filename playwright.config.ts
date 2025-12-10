@@ -133,6 +133,14 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },    
+    {
+      name: 'chrome-sanity',
+      testDir: './e2e-tests/sanity-tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },    
 
     // Firefox - Library-specific modularization tests
     {
@@ -161,6 +169,14 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    {
+      name: 'firefox-sanity',
+      testDir: './e2e-tests/sanity-tests',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     // Safari - Library-specific modularization tests
     {
@@ -180,12 +196,18 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.VOICES,
       },
     },
-
-
     // WebKit - Misc tests
     {
       name: 'safari-misc',
       testDir: './e2e-tests/Misc',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-sanity',
+      testDir: './e2e-tests/sanity-tests',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,

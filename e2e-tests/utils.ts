@@ -1,5 +1,5 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS} from './globals'
-import {BrowserContext}  from '@playwright/test';
+import { DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS } from './globals'
+import { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
@@ -133,14 +133,20 @@ export const hideAllModalsAndPopups = async (page: Page) => {
     '#interruptingMessageClose', '.ub-emb-close', '.genericBanner .close, .genericBanner button.close',
     '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
     '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close',
-    '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover'
+    '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover', 'floating-ui-popover .popover-actions .accessible-touch-target',
+    'small.popover-button.accessible-touch-target',
+    // '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.header > div > div > div.header-icons > div.floating-ui-popover > div.floating-ui-popover-content > div.popover-actions > button',
   ];
   for (const s of selectors) {
     try {
       const el = page.locator(s);
       if (await el.isVisible({ timeout: 1500 })) await el.click();
-    } catch (e) {}
+    } catch (e) { }
   }
+  // await page.evaluate(() => {
+  //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2');
+  //   overlays.forEach(el => el.remove());
+  // }).catch(() => { });
   await page.waitForTimeout(300);
 };
 
@@ -151,14 +157,15 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
 export const changeLanguage = async (page: Page, language: string) => {
-    await toggleLanguage(page, language)
-  };
+  await toggleLanguage(page, language)
+};
 
 
 export const toggleLanguage = async (page: Page, language: string) => {
   await hideAllModalsAndPopups(page);
 
   const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+  const languageClass = language === LANGUAGES.HE ? '.hebrewLanguageLink' : '.englishLanguageLink';
   const langParam = language === LANGUAGES.HE ? 'he' : 'en';
 
   // Check if already in target language
@@ -171,11 +178,15 @@ export const toggleLanguage = async (page: Page, language: string) => {
   try {
     // Use dropdown menu to toggle language
     await openHeaderDropdown(page, 'user');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(1000);
 
-    const languageToggle = page.locator('.dropdownLanguageToggle');
+
+
+    const languageToggle = page.locator(`.header .headerDropdownMenu .dropdownLinks-menu.open .dropdownLinks-options .dropdownLanguageToggle`);
     await languageToggle.waitFor({ state: 'visible', timeout: 5000 });
-    await languageToggle.click();
+    const languageToggleClass = languageToggle.locator(languageClass);
+    await languageToggleClass.waitFor({ state: 'visible', timeout: 5000 });
+    await languageToggleClass.click();
 
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);
@@ -204,7 +215,7 @@ export const toggleLanguage = async (page: Page, language: string) => {
         expires: Math.floor(Date.now() / 1000) + 3600
       };
       await page.context().addCookies([cookie]);
-    } catch (e) {}
+    } catch (e) { }
 
     await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForLoadState('domcontentloaded');
@@ -241,125 +252,125 @@ export const expireLogoutCookie = async (context: BrowserContext) => {
     return false;
   }
 };
-        
+
 /*METHODS TO NAVIGATE TO A PAGE */
 
-export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    let page: Page = await context.newPage();
-    const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
-    const filePath = path.join(__dirname, settings.file);
-    if (!fs.existsSync(filePath)) {
-      await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-      await changeLanguage(page, language);
+export const goToPageWithLang = async (context: BrowserContext, url: string, language = DEFAULT_LANGUAGE) => {
+  let page: Page = await context.newPage();
+  const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
+  const filePath = path.join(__dirname, settings.file);
+  if (!fs.existsSync(filePath)) {
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await changeLanguage(page, language);
 
-      // Save storage state and fix cookie domains for cross-subdomain access
-      const storageState = await page.context().storageState();
-      storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
-      fs.writeFileSync(filePath, JSON.stringify(storageState, null, 2));
+    // Save storage state and fix cookie domains for cross-subdomain access
+    const storageState = await page.context().storageState();
+    storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+    fs.writeFileSync(filePath, JSON.stringify(storageState, null, 2));
 
-      // Also fix cookies in current context for immediate use
-      await page.context().addCookies(storageState.cookies);
+    // Also fix cookies in current context for immediate use
+    await page.context().addCookies(storageState.cookies);
 
-      await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-    } else {
-      const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-      if (storageCookies == null) {
-          throw new Error(`No cookies found in storage state for language ${language}`);
-      }
-      await page.context().addCookies(storageCookies);
-      await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  } else {
+    const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
+    if (storageCookies == null) {
+      throw new Error(`No cookies found in storage state for language ${language}`);
     }
+    await page.context().addCookies(storageCookies);
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  }
 
-    //await hideAllModalsAndPopups(page);
-    await hideAllModalsAndPopups(page);
-    return page
+  //await hideAllModalsAndPopups(page);
+  await hideAllModalsAndPopups(page);
+  return page
 }
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, settings: any) => {
-    // Use a persistent auth file to store/reuse login state
-    const language = settings.lang;
-    const user = settings.user;
-    const authPath = path.join(__dirname, settings.file);
-    let page: Page;
-    if (!fs.existsSync(authPath)) {
-        // No auth file, perform login and save storage state
-        page = await context.newPage();
-        await gotoOrThrow(page, '/login', {waitUntil: 'domcontentloaded'});
-        const loginPage = new LoginPage(page, language);
-        await changeLanguage(page, language);
-        await loginPage.loginAs(user);
-
-        // Save storage state and fix cookie domains for cross-subdomain access
-        const storageState = await page.context().storageState();
-        storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
-        fs.writeFileSync(authPath, JSON.stringify(storageState, null, 2));
-
-        // Also fix cookies in current context for immediate use
-        await page.context().addCookies(storageState.cookies);
-
-        await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
-        return page;
-    }
-    // If auth file exists, add cookies to the provided context and create page from it
-    const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
-    const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-    if (storageCookies == null) {
-        throw new Error(`No cookies found in storage state for language ${language}`);
-    }
-    // Add cookies to the provided context so all pages created from it will have auth
-    await context.addCookies(storageCookies);
-    
+  // Use a persistent auth file to store/reuse login state
+  const language = settings.lang;
+  const user = settings.user;
+  const authPath = path.join(__dirname, settings.file);
+  let page: Page;
+  if (!fs.existsSync(authPath)) {
+    // No auth file, perform login and save storage state
     page = await context.newPage();
-    // Navigate to the desired URL
-    await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
+    await gotoOrThrow(page, '/login', { waitUntil: 'domcontentloaded' });
+    const loginPage = new LoginPage(page, language);
     await changeLanguage(page, language);
-    await gotoOrThrow(page, url, {waitUntil: 'domcontentloaded'});
-    await hideAllModalsAndPopups(page);
+    await loginPage.loginAs(user);
+
+    // Save storage state and fix cookie domains for cross-subdomain access
+    const storageState = await page.context().storageState();
+    storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+    fs.writeFileSync(authPath, JSON.stringify(storageState, null, 2));
+
+    // Also fix cookies in current context for immediate use
+    await page.context().addCookies(storageState.cookies);
+
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
     return page;
+  }
+  // If auth file exists, add cookies to the provided context and create page from it
+  const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
+  const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
+  if (storageCookies == null) {
+    throw new Error(`No cookies found in storage state for language ${language}`);
+  }
+  // Add cookies to the provided context so all pages created from it will have auth
+  await context.addCookies(storageCookies);
+
+  page = await context.newPage();
+  // Navigate to the desired URL
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await changeLanguage(page, language);
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await hideAllModalsAndPopups(page);
+  return page;
 }
 
 export const getPathAndParams = (url: string) => {
-    const urlObj = new URL(url);
-    return urlObj.pathname + urlObj.search;
+  const urlObj = new URL(url);
+  return urlObj.pathname + urlObj.search;
 }
 
 
 export const getCountryByIp = async (page: Page) => {
-    const services = [
-        {
-            url: 'https://ipapi.co/json/',
-            extract: (data: any) => data.country
-        },
-        {
-            url: 'https://api.ipbase.com/v1/json/',
-            extract: (data: any) => data.country_code
-        }
-    ];
-
-    for (const service of services) {
-        try {
-            const data = await page.evaluate(async (url) => {
-                const response = await fetch(url);
-                return await response.json();
-            }, service.url);
-            
-            if (data) {
-                return service.extract(data);
-            }
-        } catch (e) {
-            console.log(`Failed to get country from ${service.url}`, e);
-            continue;
-        }
+  const services = [
+    {
+      url: 'https://ipapi.co/json/',
+      extract: (data: any) => data.country
+    },
+    {
+      url: 'https://api.ipbase.com/v1/json/',
+      extract: (data: any) => data.country_code
     }
-    return null;
+  ];
+
+  for (const service of services) {
+    try {
+      const data = await page.evaluate(async (url) => {
+        const response = await fetch(url);
+        return await response.json();
+      }, service.url);
+
+      if (data) {
+        return service.extract(data);
+      }
+    } catch (e) {
+      console.log(`Failed to get country from ${service.url}`, e);
+      continue;
+    }
+  }
+  return null;
 }
 
 export const isIsraelIp = async (page: Page) => {
-    if (!currentLocation) {
-        currentLocation = await getCountryByIp(page);
-    }
-    return currentLocation === "IL";
+  if (!currentLocation) {
+    currentLocation = await getCountryByIp(page);
+  }
+  return currentLocation === "IL";
 }
 
 
@@ -410,7 +421,7 @@ export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<
   else if (response && response.status() >= 400) {
     throw new Error(`Navigation to ${url} returned status ${response.status()}`);
   }
-  
+
   return response;
 };
 
@@ -565,7 +576,7 @@ export const switchModule = async (
   const isOnVoices = currentUrl.includes(MODULE_URLS.EN.VOICES);
 
   const needsNewTab = (targetModule === 'Library' && isOnVoices) ||
-                      (targetModule === 'Voices' && isOnLibrary);
+    (targetModule === 'Voices' && isOnLibrary);
 
   return await selectDropdownOption(page, targetModule, needsNewTab);
 };
@@ -577,7 +588,7 @@ export const switchModule = async (
  */
 export const waitForSegment = async (page: Page, selector: string) => {
   const loadingHeading = page.getByRole('heading', { name: 'Loading...' });
-  await loadingHeading.waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
+  await loadingHeading.waitFor({ state: 'detached', timeout: 15000 }).catch(() => { });
 
   const segment = page.locator(selector);
   await segment.waitFor({ state: 'visible', timeout: 10000 });

@@ -14,6 +14,9 @@ import { SourceTextPage } from "./sourceTextPage"
 import { SheetEditorPage } from "./sheetEditorPage"
 import { ModuleHeaderPage } from "./moduleHeaderPage"
 import { ModuleSidebarPage } from "./moduleSidebarPage"
+import { ProfilePage } from "./profilePage"
+import { EditProfilePage } from "./editProfilePage"
+import { AccountSettingsPage } from "./accountSettingsPage"
 
 export class PageManager{
     private readonly page: Page
@@ -30,6 +33,9 @@ export class PageManager{
     private readonly sheetEditorPage: SheetEditorPage
     private readonly moduleHeaderPage: ModuleHeaderPage
     private readonly moduleSidebarPage: ModuleSidebarPage
+    private readonly profilePage: ProfilePage
+    private readonly editProfilePage: EditProfilePage
+    private readonly accountSettingsPage: AccountSettingsPage
 
 
     constructor(page: Page, language: string){
@@ -47,6 +53,9 @@ export class PageManager{
         this.sheetEditorPage = new SheetEditorPage(page, language)
         this.moduleHeaderPage = new ModuleHeaderPage(page, language)
         this.moduleSidebarPage = new ModuleSidebarPage(page, language)
+        this.profilePage = new ProfilePage(page, language)
+        this.editProfilePage = new EditProfilePage(page, language)
+        this.accountSettingsPage = new AccountSettingsPage(page, language)
     }
 
     navigateFromBannerTo(){
@@ -100,5 +109,17 @@ export class PageManager{
 
     onModuleSidebar(){
         return this.moduleSidebarPage
+    }
+
+    onProfilePage(){
+        return this.profilePage
+    }
+
+    onEditProfilePage(){
+        return this.editProfilePage
+    }
+
+    onAccountSettingsPage(){
+        return this.accountSettingsPage
     }
 }
