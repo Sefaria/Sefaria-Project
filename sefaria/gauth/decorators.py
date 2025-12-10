@@ -31,9 +31,29 @@ def gauth_required(scope, ajax=False):
             profile = UserProfile(user_obj=request.user)
             credentials_dict = profile.gauth_token
 
+            logger.info("gauth_decorator_check",
+                user_id=request.user.id,
+                required_scope=scope,
+                required_scope_type=type(scope).__name__,
+                has_credentials=credentials_dict is not None,
+                stored_scopes=credentials_dict.get('scopes') if credentials_dict else None,
+                stored_scopes_type=type(credentials_dict.get('scopes')).__name__ if credentials_dict and credentials_dict.get('scopes') else None,
+            )
+
             if credentials_dict is None or not set(scope).issubset(set(credentials_dict['scopes'])):
+                logger.warning("gauth_decorator_insufficient_scope",
+                    user_id=request.user.id,
+                    required_scope=scope,
+                    stored_scopes=credentials_dict.get('scopes') if credentials_dict else None,
+                    missing_scopes=list(set(scope) - set(credentials_dict.get('scopes', []))) if credentials_dict else scope,
+                )
                 request.session['next_view'] = request.path
                 request.session['gauth_scope'] = scope
+                logger.info("gauth_decorator_set_session",
+                    user_id=request.user.id,
+                    session_gauth_scope=request.session.get('gauth_scope'),
+                    session_gauth_scope_type=type(request.session.get('gauth_scope')).__name__,
+                )
                 return (HttpResponse('Unauthorized', status=401)
                     if ajax else redirect('gauth_index'))
            
