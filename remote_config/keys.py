@@ -1,3 +1,5 @@
 CURRENT_LINKER_VERSION = "feature.linker.current_version"
 REF_CACHE_LIMIT_KEY = "feature.text.ref_cache_limit"
 ENABLE_WEBPAGES = "feature.webpages.enable"
+ENABLE_SITE_MAINTENANCE_MODE = "feature.site.maintenance_mode"
+SITE_MAINTENANCE_MESSAGE = "feature.site.maintenance_message"
