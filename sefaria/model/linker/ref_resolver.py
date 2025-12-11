@@ -590,7 +590,7 @@ class RefResolver:
             match_templates = list(node.get_match_templates())
             if len(match_templates) != 0:
                 # not clear which match_template to choose. shortest has advantage of adding minimum context to search
-                longest_template = min(match_templates, key=lambda x: len(list(x.terms)))
+                shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
                 term_contexts.extend([TermContext(term) for term in longest_template.terms])
             if node.parent is None:
                 break
