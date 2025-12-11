@@ -430,9 +430,9 @@ class ReaderApp extends Component {
       }
 
       // Update history when sheet title becomes available (was showing placeholder)
-      if (next.mode === "Sheet" && prev.mode === "Sheet" && prev.sheetID === next.sheetID
-          && Sefaria.sheets.loadSheetByID(next.sheetID)?.title
-          && document.title === Sefaria.getPageTitle("", "sheet")) {
+      if (next.mode === "Sheet"
+          && Sefaria.sheets.loadSheetByID(next.sheetID)?.title // sheet data now in cache
+          && document.title === Sefaria.getPageTitle("", "sheet")) { // title is still placeholder
         return true;
       }
     }
