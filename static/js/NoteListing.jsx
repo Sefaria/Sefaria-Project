@@ -34,7 +34,9 @@ class NoteListing extends Component {
   }
   render() {
     var data = this.props.data;
-    var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
+    const module = Sefaria.isSheetRef(data.ref) ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE;
+    const path = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
+    const url = Sefaria.getModuleURL(module).origin + path;
 
     return (<div className="noteListing">
               <div className="actionButtons">
