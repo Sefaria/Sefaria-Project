@@ -55,33 +55,6 @@ a, a:hover {
   --sans-serif-small-font-size: 14px;
 }
 
-/* Font Family */
-body, .sans-serif {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --is-serif: initial; /* false */
-}
-.serif {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --is-serif: ; /* true */
-}
-.sans-serif-in-hebrew {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-}
-body, .en, .int-en, .englishWithinHebrew {
-  --is-hebrew: initial; /* false */
-}
-.he, .int-he {
-  unicode-bidi: plaintext;
-  --is-hebrew: ; /* true */
-}
-* {
-  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
-  font-family: var(--hebrew-font-conditional, var(--english-font));
-}
-
 .sr-only,
 .layout-button label {
   position: absolute;
@@ -658,38 +631,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .globeLanguageToggle .englishLanguageLink::before {
   content: "";
   padding: 0 15px;
-}
-.header .mobile-notifications.mobile-unread::after,
-.header .notifications.unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  display: block;
-  top: 3px;
-  right: 1px;
-  position: absolute;
-}
-
-/* Mobile navigation menu notification styles */
-.mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 7px;
-  height: 7px;
-  border-radius: 4px;
-  display: block;
-  top: 20px;
-  position: absolute;
-}
-
-.interface-english .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  left: 15px;
-}
-
-.interface-hebrew .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  right: 15px;
 }
 .header .login {
   color: var(--dark-grey);
@@ -1354,6 +1295,12 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   flex-direction: row;
   align-items: center;
   justify-content: center;
+}
+/* Hide ToC language toggle on narrow screens where mobile header shows its own toggle */
+@media (max-width: 842px) {
+  .navTitle .languageToggle {
+    display: none;
+  }
 }
 .navTitleTab {
   margin-inline-end: 26px;
@@ -10204,6 +10151,12 @@ body.user-is-tabbing .dropdownLinks-button img:focus {
   outline-offset: 2px;
 }
 
+/* Show focus outline on dropdown options when using keyboard navigation and listbox has focus */
+body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
@@ -10855,7 +10808,10 @@ span.purim-emoji img{
 .sourceContentText h1 span {
   border-bottom: 4px solid var(--lighter-grey);
 }
-
+.interface-hebrew #aboutCover,
+.interface-hebrew .overlayTextOnSheetsHero {
+  direction: rtl;
+}
 #aboutCover {
   margin-top: -90px;
   height: 240px;
@@ -10902,6 +10858,17 @@ span.purim-emoji img{
   font-size: 24px;
   line-height: 18px;
   top: 227px;
+}
+@media screen and (min-width: 801px) and (max-width: 950px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 40px;
+    top: 115px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 22px;
+    top: 175px;
+  }
 }
 @media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {

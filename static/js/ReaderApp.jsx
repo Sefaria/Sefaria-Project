@@ -117,6 +117,7 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
+      notificationCount: props.notificationCount || 0,
     };
   }
   setEditorSaveState = (nextState) => {
@@ -1744,8 +1745,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   setUnreadNotificationsCount(n) {
-    Sefaria.notificationCount = n;
-    this.forceUpdate();
+    this.setState({ notificationCount: n });
   }
 
   shouldAlertBeforeCloseEditor() {
@@ -2224,7 +2224,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         toggleLanguage={this.toggleLanguageInFirstPanel}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
-        module={Sefaria.activeModule}/>
+        module={Sefaria.activeModule}
+        notificationCount={this.state.notificationCount}/>
     );
 
     var panels = [];

@@ -23,7 +23,7 @@ let Sefaria = Sefaria || {
   last_place: [],
   VOICES_MODULE,
   LIBRARY_MODULE,
-  apiHost: "" // Defaults to localhost, override to talk another server
+  apiHost: "" 
 };
 
 if (typeof window !== 'undefined') {
@@ -3729,7 +3729,6 @@ Sefaria.unpackBaseProps = function(props){
       "following",
       "blocking",
       "calendars",
-      "notificationCount",
       "notifications",
       "saved",
       "userHistory",
