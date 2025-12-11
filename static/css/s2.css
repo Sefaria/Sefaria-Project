@@ -10840,7 +10840,10 @@ span.purim-emoji img{
 .sourceContentText h1 span {
   border-bottom: 4px solid var(--lighter-grey);
 }
-
+.interface-hebrew #aboutCover,
+.interface-hebrew .overlayTextOnSheetsHero {
+  direction: rtl;
+}
 #aboutCover {
   margin-top: -90px;
   height: 240px;
@@ -10887,6 +10890,17 @@ span.purim-emoji img{
   font-size: 24px;
   line-height: 18px;
   top: 227px;
+}
+@media screen and (min-width: 801px) and (max-width: 950px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 40px;
+    top: 115px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 22px;
+    top: 175px;
+  }
 }
 @media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {
