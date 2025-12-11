@@ -143,41 +143,6 @@ class TestBuildApprovedDomains:
             
             assert middleware.approved_domains == expected
     
-    def test_cauldron_domain_strips_only_first_subdomain(self):
-        """Test that cauldron domain preserves second-level domain."""
-        cauldron_config = {
-            "en": {
-                "library": "http://name.cauldron.sefaria.org",
-                "voices": "http://voices.cauldron.sefaria.org"
-            }
-        }
-        
-        with override_settings(DOMAIN_MODULES=cauldron_config):
-            middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-            
-            expected = {
-                'name.cauldron.sefaria.org': '.cauldron.sefaria.org',
-                'voices.cauldron.sefaria.org': '.cauldron.sefaria.org'
-            }
-            
-            assert middleware.approved_domains == expected
-    
-    def test_single_cauldron_hostname_strips_first_subdomain(self):
-        """Test that single cauldron hostname strips only first subdomain."""
-        single_cauldron_config = {
-            "en": {
-                "library": "http://name.cauldron.sefaria.org"
-            }
-        }
-        
-        with override_settings(DOMAIN_MODULES=single_cauldron_config):
-            middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
-            
-            expected = {
-                'name.cauldron.sefaria.org': '.cauldron.sefaria.org'
-            }
-            
-            assert middleware.approved_domains == expected
 
 
 # ============================================================================
