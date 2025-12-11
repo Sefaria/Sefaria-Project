@@ -428,6 +428,13 @@ class ReaderApp extends Component {
           return true; // both are set, compare arrays
         }
       }
+
+      // Update history when sheet title becomes available (was showing placeholder)
+      if (next.mode === "Sheet" && prev.mode === "Sheet" && prev.sheetID === next.sheetID
+          && Sefaria.sheets.loadSheetByID(next.sheetID)?.title
+          && document.title === Sefaria.getPageTitle("", "sheet")) {
+        return true;
+      }
     }
     return false;
   }
