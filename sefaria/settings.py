@@ -113,8 +113,8 @@ TEMPLATES = [
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',  # must be first
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'sefaria.system.middleware.SessionCookieDomainMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
