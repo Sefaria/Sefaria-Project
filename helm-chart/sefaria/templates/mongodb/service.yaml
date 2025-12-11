@@ -1,0 +1,16 @@
+{{- if .Values.mongo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.deployEnv }}-mongo
+  name: {{ .Values.deployEnv }}-mongo
+spec:
+  ports:
+  - port: 27017
+    protocol: TCP
+    targetPort: 27017
+  selector:
+    app: {{ .Values.deployEnv }}-mongo
+  type: ClusterIP
+{{- end }}
