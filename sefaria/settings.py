@@ -112,11 +112,11 @@ TEMPLATES = [
 
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',  # must be first
-    'sefaria.system.middleware.SessionCookieDomainMiddleware',  # Must be early: process_response runs in reverse order, so this runs after Session/CSRF cookies are set
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'sefaria.system.middleware.SessionCookieDomainMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',

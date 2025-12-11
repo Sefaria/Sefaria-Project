@@ -15,7 +15,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param
-from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
+from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, _get_hostname_without_port
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urlparse, urljoin
@@ -190,32 +190,117 @@ class LanguageCookieMiddleware(MiddlewareMixin):
 
 class SessionCookieDomainMiddleware(MiddlewareMixin):
     """
-    Sets appropriate domain on session and CSRF cookies based on request host.
+    Dynamically sets session/CSRF cookie domain based on DOMAIN_MODULES configuration.
     
-    This middleware enables cross-subdomain cookie sharing within the same language domain,
+    Enables cross-subdomain cookie sharing within the same language domain,
     allowing users to remain logged in when navigating between modules (e.g., library ↔ voices).
     
-    Works by modifying cookies in response.cookies after Django's SessionMiddleware 
-    and CsrfViewMiddleware have set them.
+    Works by setting Django's SESSION_COOKIE_DOMAIN and CSRF_COOKIE_DOMAIN in process_request,
+    before SessionMiddleware creates the cookies.
     
     Examples:
-        - www.sefaria.org → '.sefaria.org'
-        - voices.sefaria.org → '.sefaria.org'
-        - www.sefaria.org.il → '.sefaria.org.il'
-    
-    Note: For localhost/dev environments, set SESSION_COOKIE_DOMAIN explicitly in local_settings.py
+        - www.sefaria.org, voices.sefaria.org → cookie domain '.sefaria.org'
+        - www.sefaria.org.il, chiburim.sefaria.org.il → cookie domain '.sefaria.org.il'
     """
     
-    def process_response(self, request, response):
-        lang = current_domain_lang(request)
-        cookie_domain = get_cookie_domain(lang)
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        self.approved_domains = self._build_approved_domains()
+        # Store original settings
+        self.original_session_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+        self.original_csrf_domain = getattr(settings, 'CSRF_COOKIE_DOMAIN', None)
+    
+    def process_request(self, request):
+        """Set cookie domain in Django settings before SessionMiddleware runs."""
+        hostname = _get_hostname_without_port(request)
+        cookie_domain = self.approved_domains.get(hostname)
         
         if cookie_domain:
-            # Update session cookie domain if it was set
+            settings.SESSION_COOKIE_DOMAIN = cookie_domain
+            settings.CSRF_COOKIE_DOMAIN = cookie_domain
+        else:
+            # Reset to original if host not in approved list
+            settings.SESSION_COOKIE_DOMAIN = self.original_session_domain
+            settings.CSRF_COOKIE_DOMAIN = self.original_csrf_domain
+    
+    def _build_approved_domains(self):
+        """
+        Build mapping of hostname -> cookie domain from DOMAIN_MODULES.
+        
+        Groups hostnames by language and finds the common domain suffix for each group,
+        enabling cookie sharing across all modules within that language.
+        
+        Returns:
+            dict: {hostname: cookie_domain}, e.g., {'www.sefaria.org': '.sefaria.org'}
+        """
+        approved = {}
+        domain_modules = getattr(settings, 'DOMAIN_MODULES', {})
+        
+        for modules in domain_modules.values():
+            # Collect all hostnames for this language
+            hostnames = [
+                urlparse(url).hostname 
+                for url in modules.values() 
+                if urlparse(url).hostname
+            ]
+            
+            if not hostnames:
+                continue
+            
+            # Find common domain suffix for this language group
+            cookie_domain = self._find_top_level_domain(hostnames)
+            
+            # Map each hostname to the common suffix
+            for hostname in hostnames:
+                approved[hostname] = cookie_domain
+        
+        return approved
+    
+    def _find_top_level_domain(self, hostnames):
+        """
+        Find the longest common domain suffix among hostnames.
+        
+        Args:
+            hostnames: List of hostname strings
+            
+        Returns:
+            str: Common suffix with leading dot (e.g., '.sefaria.org'), or None
+            
+        Examples:
+            ['www.sefaria.org', 'voices.sefaria.org'] → '.sefaria.org'
+            ['localsefaria.xyz', 'voices.localsefaria.xyz'] → '.localsefaria.xyz'
+            ['name.cauldron.sefaria.org'] → '.cauldron.sefaria.org'
+            ['name.cauldron.sefaria.org', 'voices.cauldron.sefaria.org'] → '.cauldron.sefaria.org'
+        """
+        if len(hostnames) == 1:
+            # Single hostname: strip first subdomain if multi-part
+            parts = hostnames[0].split('.')
+            return '.' + '.'.join(parts[1:]) if len(parts) > 1 else '.' + hostnames[0]
+        
+        # Find longest common suffix by progressively removing left parts
+        common = hostnames[0]
+        for hostname in hostnames[1:]:
+            while common and not (hostname == common or hostname.endswith('.' + common)):
+                parts = common.split('.', 1)
+                common = parts[1] if len(parts) > 1 else ''
+        
+        return '.' + common if common else None
+    
+    def process_response(self, request, response):
+        """
+        Fallback: modify cookie domains in response if they weren't set correctly.
+        
+        This handles edge cases where cookies are set outside the normal request flow.
+        """
+        hostname = _get_hostname_without_port(request)
+        cookie_domain = self.approved_domains.get(hostname)
+        
+        if cookie_domain:
+            # Update session cookie domain if present
             if settings.SESSION_COOKIE_NAME in response.cookies:
                 response.cookies[settings.SESSION_COOKIE_NAME]['domain'] = cookie_domain
                 
-            # Update CSRF cookie domain if it was set
+            # Update CSRF cookie domain if present
             if settings.CSRF_COOKIE_NAME in response.cookies:
                 response.cookies[settings.CSRF_COOKIE_NAME]['domain'] = cookie_domain
         
