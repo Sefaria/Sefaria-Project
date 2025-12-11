@@ -1,6 +1,7 @@
 from collections import defaultdict
 from sefaria.model.category import Category
 from sefaria.model.linker.ref_part import RawRef
+from sefaria.utils.hebrew import get_matches_with_prefixes
 
 
 class ResolvedCategory:
@@ -29,7 +30,7 @@ class CategoryMatcher:
                         self._title_to_cat[title] += [cat]
 
     def match(self, raw_ref: RawRef) -> list[Category]:
-        return self._title_to_cat[raw_ref.text]
+        return get_matches_with_prefixes(raw_ref.text, matches_map=self._title_to_cat)
 
 
 class CategoryResolver:
