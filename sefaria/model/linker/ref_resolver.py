@@ -366,33 +366,29 @@ class RefResolver:
         self._thoroughness = thoroughness
         if reset_ibids:
             self.reset_ibid_history()
-        resolved = []
-        for raw_ref in raw_refs:
-            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref)
-            resolved += temp_resolved
-        return resolved
+        return [self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref) for raw_ref in raw_refs]
 
-    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref) -> List[PossiblyAmbigResolvedRef]:
-        temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
-        self._update_ibid_history(raw_ref, temp_resolved)
-        if len(temp_resolved) == 0:
-            return [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
-        return temp_resolved
+    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref) -> PossiblyAmbigResolvedRef:
+        resolved_ref = self.resolve_raw_ref(book_context_ref, raw_ref)
+        self._update_ibid_history(raw_ref, resolved_ref)
+        if resolved_ref is None:
+            return ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)
+        return resolved_ref
 
-    def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
-        if len(temp_resolved) == 0:
+    def _update_ibid_history(self, raw_ref: RawRef, resolved_ref: Optional[PossiblyAmbigResolvedRef]):
+        if resolved_ref is None:
             self.reset_ibid_history()
-        elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
-            for r in temp_resolved:
-                if r.is_ambiguous:
-                    for rr in r.resolved_raw_refs:
-                        if rr.ref is None:
-                            continue
-                        self._ibid_history.last_refs = rr.ref
+        elif resolved_ref.is_ambiguous:
+            for rr in resolved_ref.resolved_raw_refs:
+                if rr.ref is None:
+                    continue
+                self._ibid_history.last_refs = rr.ref
+        elif resolved_ref.ref is None:
             # if ref is None, match is likely to AltStructNode
             # TODO this node still has useful info. Try to salvage it.
+            pass
         else:
-            self._ibid_history.last_refs = temp_resolved[-1].ref
+            self._ibid_history.last_refs = resolved_ref.ref
 
     def get_ref_part_title_trie(self) -> MatchTemplateTrie:
         return self._ref_part_title_trie
@@ -400,8 +396,15 @@ class RefResolver:
     def get_term_matcher(self) -> TermMatcher:
         return self._term_matcher
 
-    def split_non_cts_parts(self, raw_ref: RawRef) -> List[RawRef]:
-        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
+    def split_non_cts_parts(self, raw_ref: RawRef) -> RawRef:
+        """
+        Split raw ref into multiple raw refs if it contains non-CTS parts
+        :note: non-cts parts are no longer supported. This function will return the first raw ref until the first non-cts part and ignore the rest
+        :param raw_ref: 
+        :return: 
+        """
+        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts):
+            return raw_ref
         split_raw_refs = []
         curr_parts = []
         curr_part_start = 0
@@ -420,53 +423,34 @@ class RefResolver:
                     pass
                 curr_parts = []
                 curr_part_start = ipart+1
-        return split_raw_refs
+        return split_raw_refs[0]
 
     def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
         self._thoroughness = thoroughness
 
-    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[PossiblyAmbigResolvedRef]:
-        split_raw_refs = self.split_non_cts_parts(raw_ref)
-        resolved_list = []
-        for i, temp_raw_ref in enumerate(split_raw_refs):
-            is_non_cts = i > 0 and len(resolved_list) > 0
-            if is_non_cts:
-                # TODO assumes context is only first resolved ref
-                book_context_ref = None if resolved_list[0].is_ambiguous else resolved_list[0].ref
-            context_mutations = self._collect_context_mutations(book_context_ref)
-            if context_mutations:
-                context_mutations.apply_to(raw_ref, self.get_term_matcher())
-            else:
-                raw_ref.parts_to_match = raw_ref.raw_ref_parts
-            unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
-            if is_non_cts:
-                # filter unrefined matches to matches that resolved previously
-                resolved_titles = {r.ref.index.title for r in resolved_list if not r.is_ambiguous}
-                unrefined_matches = list(filter(lambda x: x.ref.index.title in resolved_titles, unrefined_matches))
-                # resolution will start at context_ref.sections - len(ref parts). rough heuristic
-                for match in unrefined_matches:
-                    try:
-                        match.ref = match.ref.subref(book_context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
-                    except (InputError, AttributeError):
-                        continue
-            temp_resolved_list = self.refine_ref_part_matches(book_context_ref, unrefined_matches)
-            if len(temp_resolved_list) > 1:
-                resolved_list += [AmbiguousResolvedRef(temp_resolved_list)]
-            else:
-                resolved_list += temp_resolved_list
-
-        if len(resolved_list) == 0:
-            resolved_list += self.resolve_raw_ref_using_ref_instantiation(raw_ref)
-
-        return resolved_list
+    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> PossiblyAmbigResolvedRef:
+        raw_ref = self.split_non_cts_parts(raw_ref)
+        context_mutations = self._collect_context_mutations(book_context_ref)
+        if context_mutations:
+            context_mutations.apply_to(raw_ref, self.get_term_matcher())
+        else:
+            raw_ref.parts_to_match = raw_ref.raw_ref_parts
+        unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, raw_ref)
+        temp_resolved_list = self.refine_ref_part_matches(book_context_ref, unrefined_matches)
+        if len(temp_resolved_list) > 1:
+            return AmbiguousResolvedRef(temp_resolved_list)
+        elif len(temp_resolved_list) == 0:
+            return self.resolve_raw_ref_using_ref_instantiation(raw_ref)
+        else:
+            return temp_resolved_list[0]
 
     @staticmethod
-    def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> List[ResolvedRef]:
+    def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> Optional[ResolvedRef]:
         try:
             ref = text.Ref(raw_ref.text)
-            return [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
+            return ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)
         except:
-            return []
+            return None
 
     def get_unrefined_ref_part_matches(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
             'ResolvedRef']:

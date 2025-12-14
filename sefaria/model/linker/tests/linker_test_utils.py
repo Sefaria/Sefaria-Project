@@ -155,7 +155,7 @@ def print_spans(raw_ref: RawRef):
         print(f'{i}) {part.text}')
         
         
-def get_matches_from_resolver_data(resolver_data) -> list[PossiblyAmbigResolvedRef]:
+def get_matches_from_resolver_data(resolver_data) -> PossiblyAmbigResolvedRef:
     raw_ref, context_ref, lang, prev_trefs = resolver_data
     linker = library.get_linker(lang)
     ref_resolver = linker._ref_resolver
