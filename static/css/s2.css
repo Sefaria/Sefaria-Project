@@ -8373,7 +8373,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
 }
 .saveProfileButton{
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .button.disabled{
   border: 1px solid var(--light-grey);
@@ -8871,7 +8871,7 @@ a .button:hover {
   margin-block-end: 40px;
 }
 a.sheetAuthorName {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -10633,7 +10633,7 @@ span.purim-emoji img{
   position: relative;
 }
 .sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetContentSidebar .largeFollowButton {
   --english-font: var(--english-sans-serif-font-family);
@@ -10894,7 +10894,7 @@ span.purim-emoji img{
   align-items: flex-end;
   width: 25px;
   height: 25px;
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
   border-radius: 50%;
   color: white;
   font-size: 30px;
@@ -12610,7 +12610,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--midrash-green);;
+  background: var(--sheets-green);
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
@@ -14592,10 +14592,10 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 .sheetsHomepage .button {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetsHomepage .sheetsHomepageSectionTitle {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: 400;
