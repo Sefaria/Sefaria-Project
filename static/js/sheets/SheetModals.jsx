@@ -149,6 +149,15 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
   const exportToDrive = async () => {
     if (currentlyExporting()) {
+      // Check for gauth error before attempting export
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('gauth_error')) {
+        urlParams.delete('gauth_error');
+        const newSearch = urlParams.toString() ? '?' + urlParams.toString() : '';
+        history.replaceState("", document.title, window.location.pathname + newSearch);
+        setGoogleDriveText({en: "Google authentication failed. Please try again.", he: "אימות גוגל נכשל. אנא נסה שוב."});
+        return;
+      }
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       try {
         const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);

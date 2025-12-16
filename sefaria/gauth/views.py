@@ -71,7 +71,14 @@ def auth_return(request):
     # flow.redirect_uri = request.session.get('next_view', '/')
 
     authorization_response = request.build_absolute_uri().replace("http:", "https:")
-    flow.fetch_token(authorization_response=authorization_response)
+    try:
+        flow.fetch_token(authorization_response=authorization_response)
+    except Warning as e:
+        # Scope mismatch - typically happens when session scope is empty but Google returns actual scopes
+        # Redirect user back to the original destination with error indicator
+        next_view = request.session.get('next_view', '/')
+        separator = '&' if '?' in next_view else '?'
+        return redirect(f"{next_view}{separator}gauth_error=1")
     credentials = flow.credentials
 
     credentials_dict = {
