@@ -2,7 +2,7 @@
 Tests for sefaria.helper.linker.tasks
 """
 import pytest
-from sefaria.helper.linker.tasks import get_link_trefs_to_add_and_delete
+from sefaria.helper.linker.tasks import _get_link_trefs_to_add_and_delete
 
 
 @pytest.mark.parametrize("trefs_found,prev_trefs_found,all_linked_trefs,expected_add,expected_delete,test_id", [
@@ -55,9 +55,7 @@ from sefaria.helper.linker.tasks import get_link_trefs_to_add_and_delete
 def test_link_trefs_operations(trefs_found, prev_trefs_found, all_linked_trefs, 
                                expected_add, expected_delete, test_id):
     """Test various scenarios for adding and deleting link trefs"""
-    to_add, to_delete = get_link_trefs_to_add_and_delete(
-        trefs_found, prev_trefs_found, all_linked_trefs
-    )
+    to_add, to_delete = _get_link_trefs_to_add_and_delete(trefs_found, prev_trefs_found, all_linked_trefs)
     
     assert to_add == expected_add, f"Failed for test: {test_id}"
     assert to_delete == expected_delete, f"Failed for test: {test_id}"
