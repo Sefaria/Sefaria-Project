@@ -191,13 +191,18 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
     return existing
 
 
+def get_link_trefs_to_add_and_delete(trefs_found: set[str], prev_trefs_found: set[str], all_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
+    linked_trefs_to_add = trefs_found - all_linked_trefs
+    linked_refs_to_delete = prev_trefs_found - all_linked_trefs
+    return linked_trefs_to_add, linked_refs_to_delete
+
+
 @app.task(name="linker.delete_and_save_new_links")
 def delete_and_save_new_links(payload: dict):
     msg = DeleteAndSaveLinksMsg.from_dict(payload)
     all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref})
     all_linked_trefs = {span.ref for mutc in all_mutcs for span in mutc.spans if span.type == MUTCSpanType.CITATION.value and hasattr(span, "ref")}
-    # add
-    linked_trefs_to_add = set(msg.linked_refs) - all_linked_trefs
+    linked_trefs_to_add, linked_trefs_to_delete = get_link_trefs_to_add_and_delete(set(msg.linked_refs), set(msg.prev_linked_refs), all_linked_trefs)
     for linked_tref in linked_trefs_to_add:
         link = {
             "refs": [msg.ref, linked_tref],
@@ -223,7 +228,6 @@ def delete_and_save_new_links(payload: dict):
         "auto": True,
         "generated_by": "add_links_from_text",
     })
-    linked_refs_to_delete = set(msg.prev_linked_refs) - all_linked_trefs
     for ex_link in existing_links:
         for r in ex_link.refs:
             if r == msg.ref:  # current base ref
@@ -233,7 +237,7 @@ def delete_and_save_new_links(payload: dict):
                     invalidate_ref(Ref(r))
                 except InputError:
                     pass
-            if r not in linked_refs_to_delete:
+            if r not in linked_trefs_to_delete:
                 tracker.delete(msg.user_id, Link, ex_link._id)
             break
 
