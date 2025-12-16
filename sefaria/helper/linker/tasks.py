@@ -41,8 +41,7 @@ class LinkingArgs:
 @dataclass(frozen=True)
 class DeleteAndSaveLinksMsg:
     ref: str
-    prev_linked_refs: List[str]
-    linked_refs: List[str]
+    added_mutc_trefs: List[str]
     vtitle: Optional[str] = None
     lang: Optional[str] = None
     user_id: Optional[str] = None
@@ -52,8 +51,7 @@ class DeleteAndSaveLinksMsg:
     def from_dict(cls, d: Dict[str, Any]) -> "DeleteAndSaveLinksMsg":
         return cls(
             ref=d["ref"],
-            prev_linked_refs=list(d.get("prev_linked_refs", [])),
-            linked_refs=list(d.get("linked_refs", [])),
+            added_mutc_trefs=list(d.get("added_mutc_trefs", [])),
             vtitle=d.get("vtitle"),
             lang=d.get("lang"),
             user_id=d.get("user_id"),
@@ -114,15 +112,13 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
         "spans": spans,
     })
 
-    prev_mutc = _replace_existing_chunk(chunk)
+    _replace_existing_chunk(chunk)
 
     # Prepare the minimal info the next task needs
-    prev_linked_refs = sorted({s["ref"] for s in prev_mutc.spans if "ref" in s}) if prev_mutc else []  # unique + stable
-    linked_refs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
+    mutc_trefs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
     msg = DeleteAndSaveLinksMsg(
         ref=linking_args.ref,
-        prev_linked_refs=prev_linked_refs,
-        linked_refs=linked_refs,
+        added_mutc_trefs=mutc_trefs,
         vtitle=linking_args.vtitle,
         lang=linking_args.lang,
         user_id=linking_args.user_id,
@@ -182,27 +178,50 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
     if existing:
         existing_spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
         # add_non_overlapping_spans prefers `self.spans` over the spans that are input
-        new_mutc = existing.copy()
-        new_mutc.spans = chunk.spans
-        new_mutc.add_non_overlapping_spans(existing_spans)
-        new_mutc.save()
+        existing.spans = chunk.spans
+        existing.add_non_overlapping_spans(existing_spans)
+        existing.save()
     else:
         chunk.save()
     return existing
 
 
-def get_link_trefs_to_add_and_delete(trefs_found: set[str], prev_trefs_found: set[str], all_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
-    linked_trefs_to_add = trefs_found - all_linked_trefs
-    linked_refs_to_delete = prev_trefs_found - all_linked_trefs
+def _get_existing_linked_trefs(base_tref: str) -> tuple[list[str], list[ObjectId]]:
+    existing_links = LinkSet({
+        "refs": base_tref,
+        "auto": True,
+        "generated_by": "add_links_from_text",
+    })
+    existing_linked_trefs = []
+    existing_link_ids = []
+    for link in existing_links:
+        for r in link.refs:
+            if r != base_tref:
+                existing_linked_trefs.append(r)
+                existing_link_ids.append(link._id)
+    return existing_linked_trefs, existing_link_ids
+
+
+def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, existing_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
+    all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref})
+    other_mutc_trefs = set()
+    for mutc in all_mutcs:
+        if mutc.versionTitle == msg.vtitle and mutc.language == msg.lang:
+            # Skip MUTC that matches the current version
+            continue
+        for span in mutc.spans:
+            if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
+                other_mutc_trefs.add(span['ref'])
+    return _get_link_trefs_to_add_and_delete(set(msg.added_mutc_trefs), existing_linked_trefs, other_mutc_trefs)
+
+
+def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
+    linked_trefs_to_add = added_mutc_trefs - other_linked_trefs
+    linked_refs_to_delete = existing_linked_trefs - other_linked_trefs - added_mutc_trefs
     return linked_trefs_to_add, linked_refs_to_delete
 
 
-@app.task(name="linker.delete_and_save_new_links")
-def delete_and_save_new_links(payload: dict):
-    msg = DeleteAndSaveLinksMsg.from_dict(payload)
-    all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref})
-    all_linked_trefs = {span.ref for mutc in all_mutcs for span in mutc.spans if span.type == MUTCSpanType.CITATION.value and hasattr(span, "ref")}
-    linked_trefs_to_add, linked_trefs_to_delete = get_link_trefs_to_add_and_delete(set(msg.linked_refs), set(msg.prev_linked_refs), all_linked_trefs)
+def _add_new_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_add: set[str]) -> None:
     for linked_tref in linked_trefs_to_add:
         link = {
             "refs": [msg.ref, linked_tref],
@@ -215,31 +234,36 @@ def delete_and_save_new_links(payload: dict):
         try:
             tracker.add(msg.user_id, Link, link, **msg.tracker_kwargs)
             if USE_VARNISH:
-                invalidate_ref(Ref(linked_tref))
+                try:
+                    invalidate_ref(Ref(linked_tref))
+                except InputError:
+                    pass
         except DuplicateRecordError as e:
             # Link exists - skip
             print(f"Existing Link no need to change: {e}")
         except InputError as e:
             # Other kinds of input error
             print(f"InputError: {e}")
-    # delete
-    existing_links = LinkSet({
-        "refs": msg.ref,
-        "auto": True,
-        "generated_by": "add_links_from_text",
-    })
-    for ex_link in existing_links:
-        for r in ex_link.refs:
-            if r == msg.ref:  # current base ref
-                continue
+
+
+def _delete_old_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_delete: set[str], existing_linked_trefs: list[str], existing_link_ids: list[ObjectId]) -> None:
+    for tref, _id in zip(existing_linked_trefs, existing_link_ids):
+        if tref in linked_trefs_to_delete:
             if USE_VARNISH:
                 try:
-                    invalidate_ref(Ref(r))
+                    invalidate_ref(Ref(tref))
                 except InputError:
                     pass
-            if r not in linked_trefs_to_delete:
-                tracker.delete(msg.user_id, Link, ex_link._id)
-            break
+            tracker.delete(msg.user_id, Link, _id)
+
+
+@app.task(name="linker.delete_and_save_new_links")
+def delete_and_save_new_links(payload: dict):
+    msg = DeleteAndSaveLinksMsg.from_dict(payload)
+    existing_linked_trefs, existing_link_ids = _get_existing_linked_trefs(msg.ref)
+    linked_trefs_to_add, linked_trefs_to_delete = _get_link_trefs_to_add_and_delete_from_msg(msg, set(existing_linked_trefs))
+    _delete_old_links(msg, linked_trefs_to_delete, existing_linked_trefs, existing_link_ids)
+    _add_new_links(msg, linked_trefs_to_add)
 
 
 def enqueue_linking_chain(linking_args: LinkingArgs):
