@@ -79,6 +79,7 @@ def auth_return(request):
         next_view = request.session.get('next_view', '/')
         separator = '&' if '?' in next_view else '?'
         return redirect(f"{next_view}{separator}gauth_error=1")
+        
     credentials = flow.credentials
 
     credentials_dict = {

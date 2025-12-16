@@ -149,33 +149,35 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
   const exportToDrive = async () => {
     if (currentlyExporting()) {
-      // Check for gauth error before attempting export
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('gauth_error')) {
+        // Found a gauth_error parameter, so show error message and don't proceed with export
         urlParams.delete('gauth_error');
         const newSearch = urlParams.toString() ? '?' + urlParams.toString() : '';
         history.replaceState("", document.title, window.location.pathname + newSearch);
         setGoogleDriveText({en: "Google authentication failed. Please try again.", he: "אימות גוגל נכשל. אנא נסה שוב."});
-        return;
       }
-      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-      try {
-        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
-        if (response.status === 401) {
-          // couldn't authenticate, so forward to google authentication
-          window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
-          return;
+      else {
+        // No gauth_error parameter, so proceed with export
+        history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
+        try {
+          const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
+          if (response.status === 401) {
+            // couldn't authenticate, so forward to google authentication
+            window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+            return;
+          }
+          const data = await response.json();
+          if ("error" in data) {
+            setGoogleDriveText(data.error.message);
+          } else {
+            // Export succeeded
+            setGoogleDriveLink(data.webViewLink);
+            setGoogleDriveText(googleDriveState.exportComplete);
+          }
+        } catch (error) {
+          setGoogleDriveText(error);
         }
-        const data = await response.json();
-        if ("error" in data) {
-          setGoogleDriveText(data.error.message);
-        } else {
-          // Export succeeded
-          setGoogleDriveLink(data.webViewLink);
-          setGoogleDriveText(googleDriveState.exportComplete);
-        }
-      } catch (error) {
-        setGoogleDriveText(error);
       }
     }
   }
