@@ -162,38 +162,81 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
 
+  console.log("[GDocExport] Modal rendered", { sheetID, language, layout, googleDriveText });
+
   const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
   const exportToDrive = async () => {
+    console.log("[GDocExport] exportToDrive called", { 
+      currentlyExporting: currentlyExporting(),
+      currentUrl: window.location.href
+    });
+    
     if (currentlyExporting()) {
       const urlParams = new URLSearchParams(window.location.search);
       const gauthError = urlParams.get('gauth_error');
+      
+      console.log("[GDocExport] Checking for gauth_error", { 
+        gauthError,
+        allParams: Object.fromEntries(urlParams)
+      });
+      
       if (gauthError) {
         // Found a gauth_error parameter, get the appropriate error message
+        console.log("[GDocExport] Found gauth_error, looking up message", { 
+          gauthError,
+          knownErrorCodes: Object.keys(GAUTH_ERROR_MESSAGES),
+          hasMessage: gauthError in GAUTH_ERROR_MESSAGES
+        });
+        
         urlParams.delete('gauth_error');
         const newSearch = urlParams.toString() ? '?' + urlParams.toString() : '';
         history.replaceState("", document.title, window.location.pathname + newSearch);
         const errorMessage = GAUTH_ERROR_MESSAGES[gauthError];
+        
+        console.log("[GDocExport] Setting error message", { errorMessage });
         setGoogleDriveText(errorMessage);
       }
       else {
         // No gauth_error parameter, so proceed with export
+        console.log("[GDocExport] No gauth_error, proceeding with export API call");
         history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
         try {
-          const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
+          const apiUrl = `/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`;
+          console.log("[GDocExport] Calling export API", { apiUrl });
+          
+          const response = await Sefaria.apiRequestWithBody(apiUrl, null, {}, "POST", false);
+          
+          console.log("[GDocExport] API response received", { 
+            status: response.status,
+            ok: response.ok,
+            statusText: response.statusText
+          });
+          
           if (response.status === 401) {
             // couldn't authenticate, so forward to google authentication
-            window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+            const gauthUrl = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+            console.log("[GDocExport] 401 received, redirecting to gauth", { gauthUrl });
+            window.location.href = gauthUrl;
             return;
           }
           const data = await response.json();
+          console.log("[GDocExport] Parsed response JSON", { data });
+          
           if ("error" in data) {
+            console.log("[GDocExport] Error in response", { error: data.error });
             setGoogleDriveText(Sefaria._(data.error.message));
           } else {
             // Export succeeded
+            console.log("[GDocExport] Export successful", { webViewLink: data.webViewLink });
             setGoogleDriveLink(data.webViewLink);
             setGoogleDriveText(googleDriveState.exportComplete);
           }
         } catch (error) {
+          console.error("[GDocExport] Network error caught", { 
+            error,
+            errorMessage: error.message,
+            errorName: error.name
+          });
           setGoogleDriveText({
             en: "A network error occurred. Please check your connection and try again.",
             he: "אירעה שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב."

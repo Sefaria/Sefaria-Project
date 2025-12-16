@@ -1053,11 +1053,30 @@ def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
     """
+    user_id = request.user.id
+    
+    logger.info("[GDoc Export] Starting export",
+                user_id=user_id,
+                sheet_id=sheet_id,
+                language=request.GET.get("language", "bilingual"),
+                layout=request.GET.get("layout", "heRight"))
+    
     # Using credentials in google-api-python-client.
+    logger.info("[GDoc Export] Building Google services",
+                user_id=user_id,
+                sheet_id=sheet_id)
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
+    
+    logger.info("[GDoc Export] Fetching sheet data",
+                user_id=user_id,
+                sheet_id=sheet_id)
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
+        logger.error("[GDoc Export] Error fetching sheet",
+                     user_id=user_id,
+                     sheet_id=sheet_id,
+                     error=sheet["error"])
         return jsonResponse({'error': {'message': sheet["error"]}})
 
     options = {'language': request.GET.get("language", "bilingual"),
@@ -1068,22 +1087,49 @@ def export_to_drive(request, credential, sheet_id):
         'name': strip_tags(sheet['title'].strip()),
         'mimeType': 'application/vnd.google-apps.document'
     }
+    
+    logger.info("[GDoc Export] Converting sheet to HTML",
+                user_id=user_id,
+                sheet_id=sheet_id,
+                sheet_title=file_metadata['name'])
     html_string = bytes(sheet_to_html_string(sheet), "utf8")
+    html_size_kb = len(html_string) / 1024
+    
+    logger.info("[GDoc Export] HTML generated",
+                user_id=user_id,
+                sheet_id=sheet_id,
+                html_size_kb=round(html_size_kb, 2))
 
     media = MediaIoBaseUpload(
         BytesIO(html_string),
         mimetype='text/html',
         resumable=True)
 
+    logger.info("[GDoc Export] Uploading to Google Drive",
+                user_id=user_id,
+                sheet_id=sheet_id)
     new_file = service.files().create(body=file_metadata,
                                         media_body=media,
                                         fields='webViewLink').execute()
+    
+    logger.info("[GDoc Export] Upload successful",
+                user_id=user_id,
+                sheet_id=sheet_id,
+                web_view_link=new_file.get('webViewLink'))
         
+    logger.info("[GDoc Export] Fetching user info",
+                user_id=user_id,
+                sheet_id=sheet_id)
     user_info = user_info_service.userinfo().get().execute()
 
     profile = UserProfile(id=request.user.id)
     profile.update({"gauth_email": user_info['email']})
     profile.save()
+    
+    logger.info("[GDoc Export] Export complete",
+                user_id=user_id,
+                sheet_id=sheet_id,
+                gauth_email=user_info['email'])
 
     return jsonResponse(new_file)
 
