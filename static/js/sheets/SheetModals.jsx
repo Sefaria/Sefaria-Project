@@ -146,7 +146,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
 
-  const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
+  const currentlyExporting = () => googleDriveText === googleDriveState.exporting.en;
   const exportToDrive = async () => {
     if (currentlyExporting()) {
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
@@ -166,7 +166,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
           setGoogleDriveText(googleDriveState.exportComplete);
         }
       } catch (error) {
-        setGoogleDriveText(error);
+        setGoogleDriveText(error.message);
       }
     }
   }
