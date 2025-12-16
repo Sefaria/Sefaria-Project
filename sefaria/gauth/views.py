@@ -21,7 +21,7 @@ from sefaria import settings
 GAUTH_ERROR_CODES = [
     'access_denied',      # User clicked "Deny" on consent screen
     'invalid_grant',      # Authorization code expired or already used
-    'scope_mismatch'   # Scope mismatch error
+    'scope_mismatch'      # Scope mismatch error occurs often when session scope is empty but Google returns actual scopes
 ]
 
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
