@@ -137,6 +137,22 @@ const SaveModal = ({historyObject, close}) => {
   return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={handleClose}/>;
 }
 
+// Error messages for different Google OAuth failure scenarios
+const GAUTH_ERROR_MESSAGES = {
+  access_denied: {
+    en: "You declined permission to connect with Google. Export requires Google Drive access.",
+    he: "סירבת לתת הרשאה להתחבר לגוגל. הייצוא דורש גישה ל-Google Drive."
+  },
+  invalid_grant: {
+    en: "The authorization expired or was already used. Please try again.",
+    he: "ההרשאה פגה או כבר נוצלה. אנא נסה שוב."
+  },
+  scope_mismatch: {
+    en: "There was a permission mismatch. Please try again.",
+    he: "הייתה אי התאמה בהרשאות. אנא נסה שוב."
+  },
+};
+
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
     exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
@@ -146,16 +162,18 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
 
-  const currentlyExporting = () => googleDriveText === googleDriveState.exporting.en;
+  const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
   const exportToDrive = async () => {
     if (currentlyExporting()) {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('gauth_error')) {
-        // Found a gauth_error parameter, so show error message and don't proceed with export
+      const gauthError = urlParams.get('gauth_error');
+      if (gauthError) {
+        // Found a gauth_error parameter, get the appropriate error message
         urlParams.delete('gauth_error');
         const newSearch = urlParams.toString() ? '?' + urlParams.toString() : '';
         history.replaceState("", document.title, window.location.pathname + newSearch);
-        setGoogleDriveText({en: "Google authentication failed. Please try again.", he: "אימות גוגל נכשל. אנא נסה שוב."});
+        const errorMessage = GAUTH_ERROR_MESSAGES[gauthError];
+        setGoogleDriveText(errorMessage);
       }
       else {
         // No gauth_error parameter, so proceed with export
@@ -169,14 +187,17 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
           }
           const data = await response.json();
           if ("error" in data) {
-            setGoogleDriveText(data.error.message);
+            setGoogleDriveText(Sefaria._(data.error.message));
           } else {
             // Export succeeded
             setGoogleDriveLink(data.webViewLink);
             setGoogleDriveText(googleDriveState.exportComplete);
           }
         } catch (error) {
-          setGoogleDriveText(error.message);
+          setGoogleDriveText({
+            en: "A network error occurred. Please check your connection and try again.",
+            he: "אירעה שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב."
+          });
         }
       }
     }
