@@ -219,6 +219,7 @@ def test_multiple_ambiguities():
     [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#סימן תצ״ג"], lang='he', context_tref='Mishnah Berurah 494:1'), ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493")],  # use base_titles to infer possible links from book_ref context
     [crrd(["#2"], lang='en', context_tref='Genesis'), tuple()],  # single gematria shouldn't be considered a match due to false positives
+    [crrd(['@והשולחן ערוך', '#סימן א', '#סעיף ב'], context_tref='Arukh HaShulchan, Orach Chaim 75:11'), ("Shulchan Arukh, Orach Chayim 1:2",)],  # pull context from lower node to use to resolve book title
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -227,10 +228,10 @@ def test_multiple_ambiguities():
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
-    
+
     # Passage nodes
     [crrd(["@משנה", "@ביצה", "#יד:"]), ("Beitzah 14b:4", "Beitzah 14b:12", "Beitzah 14b:9")],
-    
+
 
     # YERUSHALMI EN
     [crrd(['@Bavli', '#2a'], "Jerusalem Talmud Shabbat 1:1", "en"), ("Shabbat 2a",)],
@@ -352,8 +353,11 @@ def test_multiple_ambiguities():
     [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    matches = get_matches_from_resolver_data(resolver_data)
-    matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
+    resolved_ref = get_matches_from_resolver_data(resolver_data)
+    if resolved_ref is None:
+        matched_orefs = []
+    else:
+        matched_orefs = sorted([rr.ref for rr in resolved_ref.resolved_raw_refs] if resolved_ref.is_ambiguous else [resolved_ref.ref], key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in matched_orefs:
@@ -670,14 +674,14 @@ def test_map_new_indices(crrd_params):
     [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), True],  # ambiguous
 ])
 def test_linker_output_validate(resolver_data, is_ambiguous):
-    matches = get_matches_from_resolver_data(resolver_data)
-    doc = LinkedDoc("", matches, [], [])
+    resolved_ref = get_matches_from_resolver_data(resolver_data)
+    doc = LinkedDoc("", [resolved_ref], [], [])
     spans = _extract_debug_spans(doc)
     for span in spans:
         assert span['ambiguous'] == is_ambiguous
     assert LinkerOutput({
         "ref": "Genesis 1:1",
-        "versionTitle": "mock",
+        "versionTitle": "Tanakh: The Holy Scriptures, published by JPS",
         "language": "en",
         "spans": spans
     })._validate()

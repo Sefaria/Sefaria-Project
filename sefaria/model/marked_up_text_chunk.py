@@ -287,6 +287,8 @@ class CitationMUTCSpan(MUTCSpan):
         if self.ref:
             href = self.ref.url()
             tref = self.ref.normal()
+            if not self._debug and self.ref.is_book_level():
+                return self.text  # don't link book-level refs in non-debug mode
         return (f'<a class="refLink {self.get_debug_css_classes()}"'
                 f' href="{href}" data-ref="{escape(tref)}"'
                 f' data-range={self.char_range_str}>{self.text}</a>')

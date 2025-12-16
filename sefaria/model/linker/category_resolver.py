@@ -3,6 +3,7 @@ from sefaria.model.category import Category
 from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
+from sefaria.utils.hebrew import get_matches_with_prefixes
 
 
 class ResolvedCategory(AbstractResolvedEntity):
@@ -50,7 +51,7 @@ class CategoryMatcher:
                         self._title_to_cat[title] += [cat]
 
     def match(self, raw_ref: RawRef) -> list[Category]:
-        return self._title_to_cat[raw_ref.text]
+        return get_matches_with_prefixes(raw_ref.text, matches_map=self._title_to_cat)
 
 
 class CategoryResolver:
