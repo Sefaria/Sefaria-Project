@@ -822,32 +822,6 @@ class ResolvedRefPruner:
         return resolved_explicit == to_match_explicit
 
     @staticmethod
-    def ignored_context_ref_part_type(match: ResolvedRef) -> bool:
-        """
-        When using context, must include at least same number of ref part types in match as were in context
-        Logic being, don't drop a section without replacing it with something equivalent
-        Prevents errors like the following:
-
-        Input = [DH]
-        Context = [Title] [Section]
-        Correct Output = [Title] [Section] [DH]
-        Invalid Output = [Title] [DH]
-
-        context_ref_part_type_counts = {NAMED: 1, NUMBERED: 1}
-        output_counts = {NAMED: 1, NUMBERED: 1, DH: 1}
-        invalid_output_counts = {NAMED: 1, DH: 1}
-        """
-        context_part_type_counts = match.count_by_part_type(match.context_parts)
-        explicit_part_type_counts = match.count_by_part_type(match.get_resolved_parts())
-        for part_type, count in context_part_type_counts.items():
-            if part_type not in explicit_part_type_counts:
-                return True
-            explicit_part_type_counts[part_type] -= count
-            if explicit_part_type_counts[part_type] < 0:
-                return True
-        return False
-    
-    @staticmethod
     def is_single_part_that_cant_match_out_of_order(match: ResolvedRef) -> bool:
         """
         Reject matches that only matched a single part and that part can't match out of order (most commonly, a gematria by itself).
@@ -877,8 +851,6 @@ class ResolvedRefPruner:
         if ResolvedRefPruner.do_explicit_sections_match_before_context_sections(match):
             return False
         if not ResolvedRefPruner.matched_all_explicit_sections(match):
-            return False
-        if ResolvedRefPruner.ignored_context_ref_part_type(match):
             return False
         if ResolvedRefPruner.is_single_part_that_cant_match_out_of_order(match):
             return False
