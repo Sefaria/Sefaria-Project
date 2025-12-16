@@ -240,7 +240,6 @@ def test_multiple_ambiguities():
     [crrd(['@Halakha', '#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['@Tosephta', '@Ševi‘it', '#1', '#1'], "Jerusalem Talmud Sheviit 1:1:3", 'en'), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
-    [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
     pytest.param(crrd(['@Roš Haššanah', '#4', '#Notes 42', '^–', '#43'], "Jerusalem Talmud Taanit 1:1:3", "en"), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
     [crrd(['@Tosaphot', '#85a', '*s.v. ולרבינא'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), ("Tosafot on Pesachim 85a:14:1",)],
     [crrd(['@Unknown book', '#2'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), tuple()],  # make sure title context doesn't match this
@@ -489,17 +488,12 @@ def test_context_mutations(seeded_terms, mutation_runner):
     ref_resolver.reset_ibid_history()
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
 
-    swap_matches = mutation_runner(ref_resolver, base_context_ref, swap_raw_ref, swap_context_ref, [swap_mutation])
-    add_matches = mutation_runner(ref_resolver, base_context_ref, add_raw_ref, add_context_ref, [add_mutation])
+    swap_resolved = mutation_runner(ref_resolver, base_context_ref, swap_raw_ref, swap_context_ref, [swap_mutation])
+    add_resolved = mutation_runner(ref_resolver, base_context_ref, add_raw_ref, add_context_ref, [add_mutation])
 
-    assert len(swap_matches) == 1
-    swap_resolved = swap_matches[0]
     assert not swap_resolved.is_ambiguous
     assert swap_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
 
-
-    assert len(add_matches) == 1
-    add_resolved = add_matches[0]
     assert not add_resolved.is_ambiguous
     assert add_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
 

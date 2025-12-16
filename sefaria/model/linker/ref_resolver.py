@@ -384,7 +384,7 @@ class RefResolver:
         self._thoroughness = thoroughness
         if reset_ibids:
             self.reset_ibid_history()
-        split_raw_refs = reduce(lambda a, b: a + b, [self.split_non_cts_parts(raw_ref) for raw_ref in raw_refs])
+        split_raw_refs = reduce(lambda a, b: a + b, [self.split_non_cts_parts(raw_ref) for raw_ref in raw_refs], [])
         return [self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref) for raw_ref in split_raw_refs]
 
     def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref) -> PossiblyAmbigResolvedRef:
