@@ -416,6 +416,12 @@ urlpatterns += [
     url(r'^api/send_feedback$', sefaria_views.generate_feedback),
 ]
 
+# Strapi GraphQL Cache
+urlpatterns += [
+    url(r'^api/strapi/graphql-cache$', sefaria_views.strapi_graphql_cache),
+    url(r'^api/strapi/cache-invalidate$', sefaria_views.strapi_cache_invalidate),
+]
+
 # Email Newsletter Subscriptions
 urlpatterns += [
     url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
