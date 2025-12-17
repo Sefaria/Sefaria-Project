@@ -106,10 +106,16 @@ def auth_return(request):
     flow.redirect_uri = redirect_url
 
     authorization_response = request.build_absolute_uri().replace("http:", "https:")
-    
-    logger.info(f"[GAuth Step 2] Fetching token from Google")
-    flow.fetch_token(authorization_response=authorization_response)
-    credentials = flow.credentials
+        
+    try:
+        logger.info(f"[GAuth Step 2] Fetching token from Google")
+        flow.fetch_token(authorization_response=authorization_response)
+        credentials = flow.credentials
+    except Warning as e:
+        # oauthlib raises Warning when scope changes (user didn't grant all requested scopes)
+        logger.warning(f"[GAuth Step 2] Scope mismatch: {e}")
+        next_view = request.session.get('next_view', '/')
+        return _redirect_with_error(next_view, 'scope_mismatch')
     
     logger.info(f"[GAuth Step 2] Token received, scopes={credentials.scopes}, expiry={credentials.expiry}")
 
