@@ -1,7 +1,6 @@
 import os
 import datetime
 import json
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -89,20 +88,9 @@ def _redirect_with_error(request, error_code):
     next_view = request.session.get('next_view', '/')
     
     # Parse the URL to properly handle fragments
-    parsed = urlparse(next_view)
-    query_params = parse_qs(parsed.query)
-    query_params['gauth_error'] = [error_code]
-    new_query = urlencode(query_params, doseq=True)
-    
-    # Rebuild URL with gauth_error before the fragment
-    redirect_url = urlunparse((
-        parsed.scheme,
-        parsed.netloc,
-        parsed.path,
-        parsed.params,
-        new_query,
-        parsed.fragment
-    ))
+    base, hash_char, fragment = next_view.partition('#')
+    separator = '&' if '?' in base else '?'
+    redirect_url = f"{base}{separator}gauth_error={error_code}{hash_char}{fragment}"
     
     logger.warning("[GAuth] Redirecting with error",
                    user_id=request.user.id,
