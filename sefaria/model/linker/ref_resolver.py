@@ -360,7 +360,8 @@ class RefResolver:
         self._thoroughness = thoroughness
         if reset_ibids:
             self.reset_ibid_history()
-        return [self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref) for raw_ref in raw_refs]
+        split_raw_refs = reduce(lambda a, b: a + b, [self.split_non_cts_parts(raw_ref) for raw_ref in raw_refs], [])
+        return [self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref) for raw_ref in split_raw_refs]
 
     def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref) -> PossiblyAmbigResolvedRef:
         resolved_ref = self.resolve_raw_ref(book_context_ref, raw_ref)
@@ -390,15 +391,13 @@ class RefResolver:
     def get_term_matcher(self) -> TermMatcher:
         return self._term_matcher
 
-    def split_non_cts_parts(self, raw_ref: RawRef) -> RawRef:
+    def split_non_cts_parts(self, raw_ref: RawRef) -> List[RawRef]:
         """
         Split raw ref into multiple raw refs if it contains non-CTS parts
-        :note: non-cts parts are no longer supported. This function will return the first raw ref until the first non-cts part and ignore the rest
         :param raw_ref: 
         :return: 
         """
-        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts):
-            return raw_ref
+        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
         split_raw_refs = []
         curr_parts = []
         curr_part_start = 0
@@ -417,13 +416,12 @@ class RefResolver:
                     pass
                 curr_parts = []
                 curr_part_start = ipart+1
-        return split_raw_refs[0]
+        return split_raw_refs
 
     def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
         self._thoroughness = thoroughness
 
     def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> PossiblyAmbigResolvedRef:
-        raw_ref = self.split_non_cts_parts(raw_ref)
         context_mutations = self._collect_context_mutations(book_context_ref)
         if context_mutations:
             context_mutations.apply_to(raw_ref, self.get_term_matcher())

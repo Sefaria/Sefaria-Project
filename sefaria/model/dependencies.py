@@ -44,7 +44,6 @@ subscribe(text.process_index_delete_in_versions,                        text.Ind
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
 subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
-subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "delete")
 subscribe(marked_up_text_chunk.process_index_delete,                    text.Index, "delete")
 
 # Process in ES
