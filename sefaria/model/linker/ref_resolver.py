@@ -11,6 +11,7 @@ from sefaria.model import text
 from sefaria.model import schema
 from sefaria.model.linker.context_mutation import ContextMutationOp, ContextMutation, ContextMutationSet
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
+from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
 from ne_span import NESpan
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
@@ -45,10 +46,9 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, _raw_entity: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+    def __init__(self, _raw_entity: RawRef, ref_part_and_node_matches: list[RefPartAndNodeMatch], ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self._raw_entity = _raw_entity
-        self.resolved_parts = resolved_parts
-        self.node: ReferenceableBookNode = node
+        self.ref_part_and_node_matches = ref_part_and_node_matches
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
@@ -58,6 +58,29 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
 
     def complies_with_thoroughness_level(self):
         return self._thoroughness >= ResolutionThoroughness.HIGH or not self.ref.is_book_level()
+    
+    @property
+    def resolved_parts(self) -> list[RawRefPart]:
+        return [part for match in self.ref_part_and_node_matches for part in match.parts]
+    
+    @property
+    def referenceable_book_nodes(self) -> list[ReferenceableBookNode]:
+        return [match.node for match in self.ref_part_and_node_matches]
+    
+    @property
+    def node(self):
+        return self.ref_part_and_node_matches[-1].node if len(self.ref_part_and_node_matches) > 0 else None
+    
+    def set_last_node(self, node: ReferenceableBookNode) -> None:
+        """
+        Set the last node in referenceable_book_nodes to `node`
+        :param node: 
+        :return: 
+        """
+        if len(self.ref_part_and_node_matches) > 0:
+            self.ref_part_and_node_matches[-1].set_node(node)
+        else:
+            raise InputError("Cannot set last node when there are no referenceable book nodes")
     
     @property
     def is_ambiguous(self) -> bool:
@@ -140,13 +163,14 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         self._matched_dh_map[part] = matched_dh_continuation
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
-        for part in other.resolved_parts:
-            if part in self.resolved_parts: continue
-            if part.is_context:
+        for part_match in other.ref_part_and_node_matches:
+            if part_match in self.ref_part_and_node_matches:
+                continue
+            if any(part.is_context for part in part_match.parts):
                 # prepend context parts, so they pass validation that context parts need to precede non-context parts
-                self.resolved_parts = [part] + self.resolved_parts
+                self.ref_part_and_node_matches = [part_match] + self.ref_part_and_node_matches
             else:
-                self.resolved_parts += [part]
+                self.ref_part_and_node_matches += [part_match]
         if not self.ref:
             # self may reference an AltStructNode and therefore doesn't have a ref.
             # Use ref from other which is expected to be equivalent or more specific
@@ -367,7 +391,7 @@ class RefResolver:
         resolved_ref = self.resolve_raw_ref(book_context_ref, raw_ref)
         self._update_ibid_history(raw_ref, resolved_ref)
         if resolved_ref is None:
-            return ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)
+            return ResolvedRef(raw_ref, [], None, context_ref=book_context_ref)
         return resolved_ref
 
     def _update_ibid_history(self, raw_ref: RawRef, resolved_ref: Optional[PossiblyAmbigResolvedRef]):
@@ -440,7 +464,8 @@ class RefResolver:
     def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> Optional[ResolvedRef]:
         try:
             ref = text.Ref(raw_ref.text)
-            return ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)
+            part_and_node_matches = [RefPartAndNodeMatch((part,), None, True) for part in raw_ref.parts_to_match]
+            return ResolvedRef(raw_ref, part_and_node_matches, ref)
         except:
             return None
 
@@ -528,14 +553,15 @@ class RefResolver:
                     matched_part = part  # fallback on original part
             else:
                 continue
-            temp_prev_ref_parts = prev_ref_parts + [matched_part]
+            temp_prev_ref_parts = tuple(list(prev_ref_parts) + [matched_part])
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
                     try:
                         ref = node.ref()
                     except InputError:
                         continue
-                    matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
+                    part_and_node_matches = [RefPartAndNodeMatch(temp_prev_ref_parts, node, True)]
+                    matches += [ResolvedRef(temp_raw_ref, part_and_node_matches, ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
@@ -799,29 +825,25 @@ class ResolvedRefPruner:
         return resolved_explicit == to_match_explicit
 
     @staticmethod
-    def ignored_context_ref_part_type(match: ResolvedRef) -> bool:
+    def is_single_part_that_cant_match_out_of_order(match: ResolvedRef) -> bool:
         """
-        When using context, must include at least same number of ref part types in match as were in context
-        Logic being, don't drop a section without replacing it with something equivalent
-        Prevents errors like the following:
-
-        Input = [DH]
-        Context = [Title] [Section]
-        Correct Output = [Title] [Section] [DH]
-        Invalid Output = [Title] [DH]
-
-        context_ref_part_type_counts = {NAMED: 1, NUMBERED: 1}
-        output_counts = {NAMED: 1, NUMBERED: 1, DH: 1}
-        invalid_output_counts = {NAMED: 1, DH: 1}
+        Reject matches that only matched a single part and that part can't match out of order (most commonly, a gematria by itself).
+        These are almost always false positives
+        E.g. Input: "ב", Context: "Genesis", Match: "Genesis 2"
+        
+        Examples that should be allowed:
+        - Ibid 2
+        - v. 2
+        - 2a
         """
-        context_part_type_counts = match.count_by_part_type(match.context_parts)
-        explicit_part_type_counts = match.count_by_part_type(match.get_resolved_parts())
-        for part_type, count in context_part_type_counts.items():
-            if part_type not in explicit_part_type_counts:
-                return True
-            explicit_part_type_counts[part_type] -= count
-            if explicit_part_type_counts[part_type] < 0:
-                return True
+        # check parts_to_match and not resolved_parts since ibid parts aren't included in resolved_parts and if there's an ibid part it makes the citation valid
+        if len(match.raw_entity.parts_to_match) != 1:
+            return False
+        part = match.raw_entity.parts_to_match[0]
+        # find the corresponding part match
+        for part_match in match.ref_part_and_node_matches:
+            if part in part_match.parts:
+                return not part_match.can_match_out_of_order
         return False
 
     @staticmethod
@@ -833,7 +855,7 @@ class ResolvedRefPruner:
             return False
         if not ResolvedRefPruner.matched_all_explicit_sections(match):
             return False
-        if ResolvedRefPruner.ignored_context_ref_part_type(match):
+        if ResolvedRefPruner.is_single_part_that_cant_match_out_of_order(match):
             return False
 
         return True
