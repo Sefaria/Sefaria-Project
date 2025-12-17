@@ -223,6 +223,13 @@ def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linke
 
 def _add_new_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_add: set[str]) -> None:
     for linked_tref in linked_trefs_to_add:
+        try:
+            # don't allow book-level links
+            linked_oref = Ref(linked_tref)
+            if linked_oref.is_book_level():
+                continue
+        except:
+            continue
         link = {
             "refs": [msg.ref, linked_tref],
             "type": "",
