@@ -257,12 +257,16 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const getExportMessage = () => {
     if (currentlyExporting()) {
       return <InterfaceText text={googleDriveText}/>;
-    } else {
+    } else if (googleDriveLink) {
+      // Success - show link
       return <>
         <InterfaceText text={googleDriveText}/>&nbsp;
         <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
           Docs</InterfaceText></a>
       </>
+    } else {
+      // Error - just show the error message, no link
+      return <InterfaceText text={googleDriveText}/>;
     }
   }
   const handleClose = () => {
