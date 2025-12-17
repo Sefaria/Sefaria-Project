@@ -78,6 +78,9 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
             return []
         try:
             refined_ref = self.resolved_ref.ref.subref(self.part_to_match.address)
+            if self.part_to_match.to_address is not None:
+                to_refined_ref = self.resolved_ref.ref.subref(self.part_to_match.to_address)
+                refined_ref = refined_ref.to(to_refined_ref)
         except (InputError, IndexError, AssertionError, AttributeError):
             return []
         return [self._clone_resolved_ref(ref=refined_ref)]
