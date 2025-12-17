@@ -172,25 +172,30 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     });
     
     if (currentlyExporting()) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const gauthError = urlParams.get('gauth_error');
+      // Parse the hash to check for gauth_error (error is passed in fragment to avoid makeHistoryState issues)
+      const hashParams = Sefaria.util.parseHash(window.location.hash);
+      const gauthError = hashParams.gauth_error;
       
-      console.log("[GDocExport] Checking for gauth_error", { 
+      console.log("[GDocExport] Checking for gauth_error in hash", { 
         gauthError,
-        allParams: Object.fromEntries(urlParams)
+        hashParams
       });
       
       if (gauthError) {
-        // Found a gauth_error parameter, get the appropriate error message
+        // Found a gauth_error in the hash, get the appropriate error message
         console.log("[GDocExport] Found gauth_error, looking up message", { 
           gauthError,
           knownErrorCodes: Object.keys(GAUTH_ERROR_MESSAGES),
           hasMessage: gauthError in GAUTH_ERROR_MESSAGES
         });
         
-        urlParams.delete('gauth_error');
-        const newSearch = urlParams.toString() ? '?' + urlParams.toString() : '';
-        history.replaceState("", document.title, window.location.pathname + newSearch);
+        // Remove gauth_error from hash, keeping other hash params like afterLoading
+        delete hashParams.gauth_error;
+        const remainingHash = Object.entries(hashParams)
+          .map(([k, v]) => `${k}=${v}`)
+          .join('&');
+        const newHash = remainingHash ? '#' + remainingHash : '';
+        history.replaceState("", document.title, window.location.pathname + window.location.search + newHash);
         const errorMessage = GAUTH_ERROR_MESSAGES[gauthError];
         
         console.log("[GDocExport] Setting error message", { errorMessage });
