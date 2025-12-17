@@ -25,5 +25,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(revert_voices_to_sheets, migrations.RunPython.noop),
+        # migrations.RunPython(revert_voices_to_sheets, migrations.RunPython.noop),
     ]

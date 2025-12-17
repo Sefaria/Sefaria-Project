@@ -40,5 +40,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(rename_sheets_to_voices, reverse_voices_to_sheets),
+        # migrations.RunPython(rename_sheets_to_voices, reverse_voices_to_sheets),
     ]
