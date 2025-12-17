@@ -1,6 +1,7 @@
 import os
 import datetime
 import json
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -77,10 +78,31 @@ def index(request):
     return redirect(authorization_url)
 
 def _redirect_with_error(request, error_code):
-    """Helper to redirect back to the original destination with a specific error code."""
+    """Helper to redirect back to the original destination with a specific error code.
+    
+    Properly handles URLs with fragments by inserting gauth_error into the query string
+    before the fragment, e.g.:
+        /sheets/123?lang=bi#afterLoading=exportToDrive
+        becomes:
+        /sheets/123?lang=bi&gauth_error=access_denied#afterLoading=exportToDrive
+    """
     next_view = request.session.get('next_view', '/')
-    separator = '&' if '?' in next_view else '?'
-    redirect_url = f"{next_view}{separator}gauth_error={error_code}"
+    
+    # Parse the URL to properly handle fragments
+    parsed = urlparse(next_view)
+    query_params = parse_qs(parsed.query)
+    query_params['gauth_error'] = [error_code]
+    new_query = urlencode(query_params, doseq=True)
+    
+    # Rebuild URL with gauth_error before the fragment
+    redirect_url = urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        new_query,
+        parsed.fragment
+    ))
     
     logger.warning("[GAuth] Redirecting with error",
                    user_id=request.user.id,
