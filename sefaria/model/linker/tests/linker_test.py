@@ -219,6 +219,7 @@ def test_multiple_ambiguities():
     [crrd(["#30"], lang='en', context_tref='Leviticus 15:13-17'), ("Leviticus 15:30",)],  # range in context ref
     [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
     [crrd(["#סימן תצ״ג"], lang='he', context_tref='Mishnah Berurah 494:1'), ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493")],  # use base_titles to infer possible links from book_ref context
+    [crrd(["@Yoma", "&ibid"], lang="en", prev_trefs=["Yoma 86"]), ("Yoma 86",)],  # respect the amud-less ibid
     [crrd(['@והשולחן ערוך', '#סימן א', '#סעיף ב'], context_tref='Arukh HaShulchan, Orach Chaim 75:11'), ("Shulchan Arukh, Orach Chayim 1:2",)],  # pull context from lower node to use to resolve book title
 
     # Relative (e.g. Lekaman)

@@ -2337,6 +2337,17 @@ class AddressTalmud(AddressType):
             return re.search(cls.amud_patterns["he"], part) is None
         else:
             return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
+        
+    @classmethod
+    def sections_lack_amud(cls, section:int, toSection:int) -> bool:
+        """
+        Given section and toSection integers, return whether together they represent a range that lacks amud.
+        For example, section=3 (daf 2b) and toSection=4 (daf 2b) represent a daf 2 which lacks amud.
+        :param section: 
+        :param toSection: 
+        :return: 
+        """
+        return section % 2 == 1 and toSection % 2 == 0 and toSection == section + 1
 
     @classmethod
     def parse_range_end(cls, ref, parts, base):
