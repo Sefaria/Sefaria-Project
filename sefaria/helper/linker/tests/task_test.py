@@ -5,7 +5,7 @@ import pytest
 from sefaria.helper.linker.tasks import _get_link_trefs_to_add_and_delete
 
 
-@pytest.mark.parametrize("trefs_found,prev_trefs_found,all_linked_trefs,expected_add,expected_delete,test_id", [
+@pytest.mark.parametrize("trefs_found,existing_linked_trefs,all_linked_trefs,expected_add,expected_delete,test_id", [
     # Empty sets
     (set(), set(), set(), set(), set(), "all_empty"),
     
@@ -52,10 +52,10 @@ from sefaria.helper.linker.tasks import _get_link_trefs_to_add_and_delete
     ({"Genesis 1:1", "Exodus 2:3"}, {"Genesis 1:1", "Leviticus 3:4"}, {"Genesis 1:1"}, 
      {"Exodus 2:3"}, {"Leviticus 3:4"}, "same_ref_in_both"),
 ])
-def test_link_trefs_operations(trefs_found, prev_trefs_found, all_linked_trefs, 
+def test_link_trefs_operations(trefs_found, existing_linked_trefs, all_linked_trefs, 
                                expected_add, expected_delete, test_id):
     """Test various scenarios for adding and deleting link trefs"""
-    to_add, to_delete = _get_link_trefs_to_add_and_delete(trefs_found, prev_trefs_found, all_linked_trefs)
+    to_add, to_delete = _get_link_trefs_to_add_and_delete(trefs_found, existing_linked_trefs, all_linked_trefs)
     
     assert to_add == expected_add, f"Failed for test: {test_id}"
     assert to_delete == expected_delete, f"Failed for test: {test_id}"
