@@ -10,7 +10,7 @@ from sefaria.settings import USE_VARNISH
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version
 from sefaria.celery_setup.app import app
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput, MarkedUpTextChunkSet
 from sefaria.model import Ref
 from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRef, AmbiguousResolvedRef
 from sefaria.model.linker.ref_part import TermContext, RefPartType
@@ -41,22 +41,20 @@ class LinkingArgs:
 @dataclass(frozen=True)
 class DeleteAndSaveLinksMsg:
     ref: str
-    linked_refs: List[str]
+    added_mutc_trefs: List[str]
     vtitle: Optional[str] = None
     lang: Optional[str] = None
     user_id: Optional[str] = None
-    version_id: Optional[str] = None
     tracker_kwargs: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "DeleteAndSaveLinksMsg":
         return cls(
             ref=d["ref"],
-            linked_refs=list(d.get("linked_refs", [])),
+            added_mutc_trefs=list(d.get("added_mutc_trefs", [])),
             vtitle=d.get("vtitle"),
             lang=d.get("lang"),
             user_id=d.get("user_id"),
-            version_id=d.get("version_id"),
             tracker_kwargs=d.get("tracker_kwargs") or {},
         )
 
@@ -117,14 +115,13 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     _replace_existing_chunk(chunk)
 
     # Prepare the minimal info the next task needs
-    linked_refs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
+    mutc_trefs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
     msg = DeleteAndSaveLinksMsg(
         ref=linking_args.ref,
-        linked_refs=linked_refs,
+        added_mutc_trefs=mutc_trefs,
         vtitle=linking_args.vtitle,
         lang=linking_args.lang,
         user_id=linking_args.user_id,
-        version_id=linking_args.kwargs.get('version_id'),
         tracker_kwargs=linking_args.kwargs,
     )
     
@@ -169,7 +166,10 @@ def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     return spans
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> None:
+def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextChunk]:
+    """
+    :return: existing mutc that was replaced, or None
+    """
     existing = MarkedUpTextChunk().load({
         "ref": chunk.ref,
         "language": chunk.language,
@@ -183,48 +183,61 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> None:
         existing.save()
     else:
         chunk.save()
+    return existing
 
 
-
-@app.task(name="linker.delete_and_save_new_links")
-def delete_and_save_new_links(payload: dict) -> None:
-    if not payload:
-        return []
-
-    msg = DeleteAndSaveLinksMsg.from_dict(payload)
-
-    target_oref = Ref(msg.ref)
-    linked_orefs = [Ref(r) for r in msg.linked_refs]
-
-    user = msg.user_id
-    kwargs = msg.tracker_kwargs
-
-    found = []   # normal refs discovered in this run
-    links = []   # links actually created
-
-    existingLinks = LinkSet({
-        "refs": target_oref.normal(),
+def _get_existing_linked_trefs(base_tref: str) -> tuple[list[str], list[ObjectId]]:
+    existing_links = LinkSet({
+        "refs": base_tref,
         "auto": True,
         "generated_by": "add_links_from_text",
-        "source_text_oid": ObjectId(msg.version_id),
-    }).array()
+    })
+    existing_linked_trefs = []
+    existing_link_ids = []
+    for link in existing_links:
+        for r in link.refs:
+            if r != base_tref:
+                existing_linked_trefs.append(r)
+                existing_link_ids.append(link._id)
+    return existing_linked_trefs, existing_link_ids
 
-    for linked_oref in linked_orefs:
+
+def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, existing_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
+    all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref})
+    other_mutc_trefs = set()
+    for mutc in all_mutcs:
+        if mutc.versionTitle == msg.vtitle and mutc.language == msg.lang:
+            # Skip MUTC that matches the current version
+            continue
+        for span in mutc.spans:
+            if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
+                other_mutc_trefs.add(span['ref'])
+    return _get_link_trefs_to_add_and_delete(set(msg.added_mutc_trefs), existing_linked_trefs, other_mutc_trefs)
+
+
+def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
+    linked_trefs_to_add = added_mutc_trefs - other_linked_trefs
+    linked_refs_to_delete = existing_linked_trefs - other_linked_trefs - added_mutc_trefs
+    return linked_trefs_to_add, linked_refs_to_delete
+
+
+def _add_new_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_add: set[str]) -> None:
+    for linked_tref in linked_trefs_to_add:
         link = {
-            "refs": [target_oref.normal(), linked_oref.normal()],
+            "refs": [msg.ref, linked_tref],
             "type": "",
             "auto": True,
             "generated_by": "add_links_from_text",
-            "source_text_oid": ObjectId(msg.version_id),
             "inline_citation": True
         }
-        found.append(linked_oref.normal())
 
         try:
-            tracker.add(user, Link, link, **kwargs)
-            links.append(link)
+            tracker.add(msg.user_id, Link, link, **msg.tracker_kwargs)
             if USE_VARNISH:
-                invalidate_ref(linked_oref)
+                try:
+                    invalidate_ref(Ref(linked_tref))
+                except InputError:
+                    pass
         except DuplicateRecordError as e:
             # Link exists - skip
             print(f"Existing Link no need to change: {e}")
@@ -232,19 +245,25 @@ def delete_and_save_new_links(payload: dict) -> None:
             # Other kinds of input error
             print(f"InputError: {e}")
 
-    # Remove existing links that are no longer supported by the text
-    for exLink in existingLinks:
-        for r in exLink.refs:
-            if r == target_oref.normal():  # current base ref
-                continue
+
+def _delete_old_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_delete: set[str], existing_linked_trefs: list[str], existing_link_ids: list[ObjectId]) -> None:
+    for tref, _id in zip(existing_linked_trefs, existing_link_ids):
+        if tref in linked_trefs_to_delete:
             if USE_VARNISH:
                 try:
-                    invalidate_ref(Ref(r))
+                    invalidate_ref(Ref(tref))
                 except InputError:
                     pass
-            if r not in found:
-                tracker.delete(user, Link, exLink._id)
-            break
+            tracker.delete(msg.user_id, Link, _id)
+
+
+@app.task(name="linker.delete_and_save_new_links")
+def delete_and_save_new_links(payload: dict):
+    msg = DeleteAndSaveLinksMsg.from_dict(payload)
+    existing_linked_trefs, existing_link_ids = _get_existing_linked_trefs(msg.ref)
+    linked_trefs_to_add, linked_trefs_to_delete = _get_link_trefs_to_add_and_delete_from_msg(msg, set(existing_linked_trefs))
+    _delete_old_links(msg, linked_trefs_to_delete, existing_linked_trefs, existing_link_ids)
+    _add_new_links(msg, linked_trefs_to_add)
 
 
 def enqueue_linking_chain(linking_args: LinkingArgs):

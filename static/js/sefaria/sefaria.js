@@ -624,8 +624,10 @@ Sefaria = extend(Sefaria, {
               output += "Context Type: " + span.contextType + "\n";
           }
       } else if (span.type === 'named-entity') {
+          output += "Text: " + span.text + "\n";
           output += "Topic Slug: " + span.topicSlug + "\n";
       } else if (span.type === 'category') {
+          output += "Text: " + span.text + "\n";
           output += "Category Path: " + span.categoryPath.join(' | ') + "\n";
       }
       return output;
