@@ -4,6 +4,7 @@ import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
 import { InterfaceText, DonateLink } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
+
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
@@ -37,15 +38,17 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
+    const helpURL = Sefaria.interfaceLang == "hebrew" ? Sefaria._siteSettings.HELP_CENTER_URLS.HE : Sefaria._siteSettings.HELP_CENTER_URLS.EN_US;
     let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
-                <Link href="/help" en="Help" he="עזרה" />
+                <Link href={helpURL} en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/products" en="Products" he="מוצרים" />
+                <Link href="/ai" en="AI on Sefaria" he="השימוש ב-AI בספריא" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
                 <Link href="/annualreport" en="Annual Report" he='דו"ח שנתי' />
@@ -64,7 +67,6 @@ class Footer extends Component {
                 <Link href="/people" en="Authors" he="מחברים" />
                 <Link href="/collections" en="Collections" he="אסופות" />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
-                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
             </Section>
 
             <Section en="Developers" he="מפתחים">

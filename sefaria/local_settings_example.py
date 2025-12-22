@@ -238,16 +238,7 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
-
-RAW_REF_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None
-}
-
-RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None
-}
+GPU_SERVER_URL = 'http://localhost:5000'
 
 # Simple JWT
 SIMPLE_JWT = {
@@ -338,3 +329,6 @@ CLIENT_SENTRY_DSN = None
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
+
+WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")

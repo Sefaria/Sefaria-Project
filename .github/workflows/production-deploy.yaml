@@ -46,13 +46,13 @@ jobs:
       matrix:
         app: [ web, node ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.workflow-check.outputs.ref }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -60,14 +60,8 @@ jobs:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.PROD_GKE_SA }}'
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -80,7 +74,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
             us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -112,15 +105,15 @@ jobs:
       - workflow-check
     strategy:
       matrix:
-        app: [ asset, linker ]
+        app: [ asset ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.workflow-check.outputs.ref }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -128,14 +121,8 @@ jobs:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.PROD_GKE_SA }}'
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -148,7 +135,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
             us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -159,7 +145,7 @@ jobs:
           flavor: |
             latest=true
       - name: build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
 #         cache-from: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
 #         cache-to: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
@@ -180,7 +166,7 @@ jobs:
       - workflow-check
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.workflow-check.outputs.ref }}
       - id: auth
@@ -222,9 +208,10 @@ jobs:
       - name: Update workflow default chart
         run: > 
           curl -L 
+          --fail-with-body
           -X PATCH 
           -H "Accept: application/vnd.github+json" 
-          -H "Authorization: Bearer ${{ secrets.WORKFLOW_AUTOMATION_TOKEN }}" 
+          -H "Authorization: Bearer ${{ secrets.VARIABLE_GPAT }}"
           -H "X-GitHub-Api-Version: 2022-11-28"
           https://api.github.com/repos/Sefaria/Sefaria-Project/actions/variables/CHART_VERSION
           -d '{"name":"CHART_VERSION","value":"${{ steps.chart_version.outputs.chart_version }}"}'

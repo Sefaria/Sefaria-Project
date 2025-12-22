@@ -1,0 +1,125 @@
+# apiVersion: apps/v1
+# kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-nginx
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  annotations:
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: nginx-{{ .Values.deployEnv }}
+      previewService: nginx-{{ .Values.deployEnv }}-preview
+      autoPromotionEnabled: true
+      prePromotionAnalysis:
+        templates:
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+          - templateName: rollout-priming-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+  selector:
+    matchLabels:
+      app: nginx-{{ .Values.deployEnv }}
+      # releaseRevision: "{{ .Release.Revision }}" # Variable pod selectors breaks Argo. Check filed issue
+  replicas: {{ .Values.nginx.replicaCount }}
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        app: nginx-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: nginx
+        releaseRevision: "{{ .Release.Revision }}"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io.hostname
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: nginx
+        image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
+        imagePullPolicy: Always
+        command: ["bash", "-c", "/usr/src/entrypoint.sh"]
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        # startupProbe:
+        #   httpGet:
+        #     path: /healthz-rollout
+        #     port: 80
+        #     failureThreshold: 30 # 15 minutes to start up
+        #     periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /nginx-health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        resources: {{ toYaml .Values.nginx.resources | nindent 10 }}
+        volumeMounts:
+          - mountPath: /conf/nginx.template.conf
+            name: nginx-conf
+            subPath: nginx.template.conf
+            readOnly: true
+          - mountPath: /usr/src/entrypoint.sh
+            name: nginx-conf
+            subPath: entrypoint.sh
+          {{- if .Values.instrumentation.enabled }}
+          - mountPath: /etc/nginx/opentracing.json
+            name: nginx-conf
+            subPath: opentracing.json
+          {{- end }}
+          - mountPath: /app/robots.txt
+            name: robots-txt
+            readOnly: true
+            subPath: robots.txt
+        env:
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: RELEASE_TAG
+            value: "{{ .Release.Revision }}"
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: SEARCH_HOST
+            value: "{{ .Values.nginx.SEARCH_HOST }}"
+          - name: STRAPI_LOCATION
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                key: STRAPI_LOCATION
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
+        envFrom:
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}
+          - configMapRef:
+              name: local-settings-nginx-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-nginx-secrets-{{ .Values.deployEnv }}
+              optional: true
+      volumes:
+        - name:  nginx-conf
+          configMap:
+            name: nginx-conf-{{ .Values.deployEnv }}
+            defaultMode: 0755
+        - name: robots-txt
+          configMap:
+            name: robots-txt-{{ .Values.deployEnv }}

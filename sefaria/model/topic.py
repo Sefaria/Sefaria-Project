@@ -64,7 +64,7 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
         return self._index.get_title(lang)
 
     def get_url(self):
-        return f'/{self._index.title.replace(" ", "_")}'
+        return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
 
 
 class AuthorCategoryAggregation(AuthorWorksAggregation):
@@ -239,12 +239,14 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         DjangoTopic.objects.get(slug=self.slug).pools.add(pool)
         if not self.has_pool(pool_name):
             self.get_pools().append(pool_name)
+        DjangoTopic.objects.build_slug_to_pools_cache(rebuild=True)
 
     def remove_pool(self, pool_name) -> None:
         pool = TopicPool.objects.get(name=pool_name)
         DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
         if self.has_pool(pool_name):
             self.get_pools().remove(pool_name)
+        DjangoTopic.objects.build_slug_to_pools_cache(rebuild=True)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -1167,7 +1169,7 @@ def process_topic_delete(topic):
     IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]}).delete()
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     try:
         DjangoTopic.objects.get(slug=topic.slug).delete()
     except DjangoTopic.DoesNotExist:

@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
+import pRetry, {AbortError} from 'p-retry';
 
 
 (function(ns) {
@@ -381,7 +382,7 @@ import {LinkExcluder} from "./excluder";
 
     function getFindRefsUrl() {
         const params = {
-            with_text: 1,
+            with_text: ns.mode.startsWith("popup") ? 1 : 0,
             debug: 0 + ns.debug,
             max_segments: ns.maxParagraphs,
         }
@@ -437,16 +438,36 @@ import {LinkExcluder} from "./excluder";
         return makeFindRefsApiRequest(postData).then(onFindRefs);
     }
 
-    function makeFindRefsApiRequest(postData) {
-        return new Promise((resolve, reject) => {
-            fetch(getFindRefsUrl(), {
-                method: 'POST',
-                body: JSON.stringify(postData),
-                headers: {'Content-Type': 'application/json'},
-            })
-                .then(handleApiResponse)
-                .then(resp => resolve(resp));
+    async function pollTaskStatusUntilDone(taskId) {
+        return pRetry(async attempt => {
+            const resp = await fetch(`${ns.sefariaUrl}/api/async/${taskId}`);
+            const status = await resp.json();
+
+            if (status.state === "FAILURE") {
+                throw new AbortError(`Task failed: ${status.error || status}`);
+            }
+            if (status.state === "SUCCESS" || (status.ready && "result" in status)) {
+                return status;
+            }
+
+            throw new Error("Not ready yet"); // triggers retry
+        }, {
+            retries: 15,                // number of retries
+            minTimeout: 500,            // initial delay
+            maxTimeout: 5000,           // cap delay
+            factor: 1.5,                // growth factor
+            maxRetryTime: 120_000       // total max wait
         });
+    }
+
+    function makeFindRefsApiRequest(postData) {
+        return fetch(getFindRefsUrl(), {
+            method: 'POST',
+            body: JSON.stringify(postData),
+            headers: {'Content-Type': 'application/json'},
+        }).then(handleApiResponse)
+          .then(resp => pollTaskStatusUntilDone(resp.task_id))
+          .then(resp => resp.result);
     }
 
     function deprecatedOptionsWarning({ selector, excludeFromTracking, parenthesesOnly, quotationOnly } = {}) {
@@ -467,7 +488,7 @@ import {LinkExcluder} from "./excluder";
     function applyDefaultOptions(options) {
         const defaultOptions = {
             sefariaUrl: "https://www.sefaria.org",  // for configuring which backend linker communicates with
-            mode: "popup-click",
+            mode: "link",
             whitelistSelector: null,
             excludeFromLinking: null,    // CSS Selector
             popupStyles: {},
@@ -500,8 +521,8 @@ import {LinkExcluder} from "./excluder";
         ns.maxParagraphs = 20;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (options.debug || true) { removeExistingSefariaLinks(); }
-        const mode = getMode(options);
-        ns.popupManager = new PopupManager({ mode, reportCitation, ...options });
+        ns.mode = getMode(options);
+        ns.popupManager = new PopupManager({ mode: ns.mode, reportCitation, ...options });
         ns.popupManager.setupPopup();
 
         getFullWhitelistSelectors(options.whitelistSelector)

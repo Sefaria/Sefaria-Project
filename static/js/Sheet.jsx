@@ -17,6 +17,7 @@ import {
   CollectionStatement,
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
+import {shouldUseEditor} from './sefaria/sheetsUtils';
 
 
 class Sheet extends Component {
@@ -105,51 +106,52 @@ class Sheet extends Component {
     }
     else {
       content = (
-            <SheetContent
-          sheetNotice={sheet.sheetNotice}
-          sources={sheet.sources}
-          title={sheet.title}
-          onRefClick={this.props.onRefClick}
-          handleClick={this.handleClick}
-          sheetSourceClick={this.props.onSegmentClick}
-          highlightedNode={this.props.highlightedNode}
-          highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-          scrollToHighlighted={this.props.scrollToHighlighted}
-          authorStatement={sheet.ownerName}
-          authorUrl={sheet.ownerProfileUrl}
-          authorImage={sheet.ownerImageUrl}
-          collectionName={sheet.collectionName}
-          collectionSlug={sheet.displayedCollection}
-          collectionImage={sheet.collectionImage}
-          editable={Sefaria._uid === sheet.owner}
-          hasSidebar={this.props.hasSidebar}
-          setSelectedWords={this.props.setSelectedWords}
-          sheetNumbered={sheet.options.numbered}
-          hideImages={!!sheet.hideImages}
-          sheetID={sheet.id}
-        />
-      );
-    }
-    return (
-      <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
-        <div className="sheetContent">
-          <SefariaEditor
-            data={sheet}
-            hasSidebar={this.props.hasSidebar}
+        <div className={classes}>
+          <SheetContent
+            sheetNotice={sheet.sheetNotice}
+            sources={sheet.sources}
+            title={sheet.title}
             handleClick={this.handleClick}
-            multiPanel={this.props.multiPanel}
             sheetSourceClick={this.props.onSegmentClick}
             highlightedNode={this.props.highlightedNode}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            setDivineNameReplacement={this.props.setDivineNameReplacement}
-            divineNameReplacement={this.props.divineNameReplacement}
+            scrollToHighlighted={this.props.scrollToHighlighted}
+            authorStatement={sheet.ownerName}
+            authorUrl={sheet.ownerProfileUrl}
+            authorImage={sheet.ownerImageUrl}
+            collectionName={sheet.collectionName}
+            collectionSlug={sheet.displayedCollection}
+            collectionImage={sheet.collectionImage}
+            editable={Sefaria._uid === sheet.owner}
+            hasSidebar={this.props.hasSidebar}
+            setSelectedWords={this.props.setSelectedWords}
+            sheetNumbered={sheet.options.numbered}
+            hideImages={!!sheet.hideImages}
+            sheetID={sheet.id}
           />
-        </div>
-        :
-        content }
       </div>
-    );
+      );
+    }
+    const editor = (
+      <>
+        <div className={classes}>
+            <SefariaEditor
+              data={sheet}
+              hasSidebar={this.props.hasSidebar}
+              handleClick={this.handleClick}
+              multiPanel={this.props.multiPanel}
+              sheetSourceClick={this.props.onSegmentClick}
+              highlightedNode={this.props.highlightedNode}
+              highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+              setDivineNameReplacement={this.props.setDivineNameReplacement}
+              divineNameReplacement={this.props.divineNameReplacement}
+              editorSaveState={this.props.editorSaveState}
+              setEditorSaveState={this.props.setEditorSaveState}
+            />
+        </div>
+       </>);
+    const usingEditor = shouldUseEditor(sheet?.id);
+    return ( usingEditor ? editor : content )
   }
 }
 
@@ -531,12 +533,22 @@ class SheetOutsideText extends Component {
         this.props.source.options ? this.props.source.options.indented : null
     );
 
+   const paragraphsToBreaks = (html)=> {
+    return html
+      .replace(/<\/p>\s*<p>/g, '<br/>')
+      .replace(/<p( [^>]*)?>/g, '')
+      .replace(/<\/p>/g, '<br/>');
+    }
+
+    const outsideHTML = paragraphsToBreaks(
+      Sefaria.util.cleanHTML(this.props.source.outsideText)
+    );
     return (
       <section className="SheetOutsideText">
         <div className={containerClasses} data-node={this.props.source.node} onClick={(e) => this.shouldPassClick(e)} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
-              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
+            <div className="sourceContentText" dangerouslySetInnerHTML={{ __html: outsideHTML }} />
           </div>
 
           <div className="clearFix"></div>
@@ -603,6 +615,10 @@ class SheetMedia extends Component {
     var mediaClass = "media fullWidth";
     var mediaURL = this.props.source.media;
     var caption  = this.props.source.caption;
+    let parsedUrl
+    if (mediaURL) {
+      parsedUrl = new URL(mediaURL);
+    }
 
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
@@ -617,6 +633,24 @@ class SheetMedia extends Component {
 
     else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
+    }
+
+    else if (parsedUrl.hostname.includes("spotify.com")) {
+      const [,, type] = parsedUrl.pathname.split("/");
+
+      // Spotify embed heights are fixed by Spotify's player design.
+      // DO NOT change these values — reducing them will cut off content.
+      const SPOTIFY_IFRAME_HEIGHT_WITH_METADATA = 152; // episode
+      const SPOTIFY_IFRAME_HEIGHT_COMPACT = 80; // music tracks
+      const height = type === "episode" ? SPOTIFY_IFRAME_HEIGHT_WITH_METADATA : SPOTIFY_IFRAME_HEIGHT_COMPACT;
+      return `<iframe 
+        src=${mediaURL}
+        width="100%"
+        height="${height}"
+        frameborder="0"
+        allow="autoplay; encrypted-media" 
+        loading="lazy">
+      </iframe>`;
     }
 
     else if (mediaURL.match(/\.(mp3)$/i) != null) {

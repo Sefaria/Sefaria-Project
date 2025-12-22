@@ -86,7 +86,7 @@ const needsUpdating = function(cachekey, last_cached_to_compare){
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
-  SefariaReact.sefariaSetup(data, props); //Do we really need to do Sefaria.setup every request?
+  SefariaReact.sefariaSetup(data, props, true);  // true means reset cache - we are clearing out old data
   SefariaReact.unpackDataFromProps(props);
   timer.ms_to_set_data = timer.elapsed();
   const html  = ReactDOMServer.renderToString(ReaderApp(props));
@@ -99,13 +99,13 @@ router.get('/error', function(req, res, next) {
   return next(new Error("This is an error and it should be logged to the console"));
 });
 
-router.post('/ReaderApp/:cachekey', function(req, res) {
+router.post('/ReaderApp/:cachekey', function(req, res, next) {
   // timing stored on locals so that it gets returned with the result to be logged
   const timer = res.locals.timing = {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
-  const props = JSON.parse(req.body.propsJSON);
+  const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
   req.input_props = {               // For logging
     initialRefs: props.panels ? props.panels[0].refs : null,
     initialMenu: props.initialMenu,
@@ -128,16 +128,16 @@ router.post('/ReaderApp/:cachekey', function(req, res) {
       delete res.locals.timing.elapsed;  // no need to pass this around
 
       res.end(resphtml);
-    } catch (render_e){
-      logger.error(render_e);
+    } catch (render_e) {
+      return next(render_e);
     }
   }).catch(error => {
-    res.status(500).end('Data required for render is missing:  ' + error.message);
+    return next(error);
   });
 });
 
 router.post('/Footer/:cachekey', function(req, res) {
-  const props = JSON.parse(req.body.propsJSON);
+  const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
   SefariaReact.unpackDataFromProps(props);
   const html  = ReactDOMServer.renderToString(React.createElement(SefariaReact.Footer));
   res.send(html);

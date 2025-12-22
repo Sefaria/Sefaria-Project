@@ -25,14 +25,14 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
 
-    //Autocomplete
+    //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
     "Users": "משתמשים",
     "Categories": "קטגוריות",
 
     // Texts Page
-    "Learn More": "לקריאה נוספת",
+    "Learn More": "למדו עוד",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
@@ -75,12 +75,10 @@ const Strings = {
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
-    "Explore by Topic": "לימוד לפי נושאים",
+    "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
-    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
-    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -114,6 +112,24 @@ const Strings = {
     // Topic Images
     "Illustrative image" : "תמונה להמחשה",
 
+    // Topic Landing Page
+    "Featured Topic": "נושא היום",
+    "Go to Topic ›": "לפתיחת הנושא ›",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Learn more about": "למדו עוד על",
+    "Learn more on": "למדו עוד על",
+    "Read the Portion": "לקריאת הפרשה",
+    "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
+    "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
+    "Browse Topics": "לדפדוף במגוון נושאים",
+    "Trending Topics": "נושאים פופולריים",
+    "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
+    "Browse All Torah Portions": "לרשימת כל הפרשות",
+    "First Name": "שם פרטי",
+    "Last Name": "שם משפחה",
+    "Explore": "למדו עוד על",
+    "Explore all Topics ›": "לדפדוף בכל הנושאים ›",
+    "Learn more…": "למדו עוד…",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
@@ -387,11 +403,13 @@ const Strings = {
     "Portuguese": "פורטוגזית",
     "Spanish": "ספרדית",
     "French": "צרפתית",
+    "Romanian": "רומנית",
     "German": "גרמנית",
     "Arabic": "ערבית",
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
@@ -404,12 +422,14 @@ const Strings = {
     "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
     "Language": "שפה",
     "Layout": "עימוד",
-    "Bilingual Layout" : "עימוד דו לשוני",
+    "Translation": "תרגום",
+    'Source with Translation': 'מקור ותרגום',
     "Color": "צבע",
     "Font Size" : "גודל גופן",
     "Aliyot" : "עליות לתורה",
     "Taamim and Nikkud" : "טעמים וניקוד",
     "Punctuation" : "פיסוק",
+    'Cantillation': 'טעמים',
     "Show Punctuation": "הצגת סימני פיסוק",
     "Hide Punctuation": "הסתרת סימני פיסוק",
     "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
@@ -460,7 +480,6 @@ const Strings = {
     "by": "על ידי",
     "based on": "ע“פ",
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
-    "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
     "Updates": "עדכונים",
     "Preferred Translation": "תרגום מועדף",
@@ -500,6 +519,7 @@ const Strings = {
     "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
     "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
     "Sorry, there was an error.": "סליחה, ארעה שגיאה",
+    "Please enter a valid first and last name.": "נא להוסיף שם פרטי ושם משפחה.",
 
     // Footer
     "Connect": "צרו קשר",
@@ -511,23 +531,19 @@ const Strings = {
     "on Sefaria": " בספריא",
 
     //New Editor Flow
-    "Thanks for Trying the New Editor!": "תודה שבחרת לנסות את העורך החדש שלנו!",
     "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
     "Back to Profile": "חזרה לפרופיל האישי שלך",
-    "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
+    "Get Started": "התחילו כאן",
     "Difficulties using the editor": "קושי להשתמש בעורך",
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
-    "You are currently testing the new Sefaria editor.": "ברגע זה הינך עושה שימוש בעורך החדש של ספריא",
-    "You are currently using the old Sefaria editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך ספריא",
-    "Try the new version": "להתנסוּת בגרסה החדשה",
-    "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
     "Contents": "תוכן",
@@ -548,6 +564,12 @@ const Strings = {
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
     "National Library of Israel": "הספרייה הלאומית",
     "Works on Sefaria": "חיבורים וכתבים בספריא",
+    "Learn More on Parashat": "לקריאה נוספת על פרשת",
+    "This Week’s Torah Portion": "פרשת השבוע",
+    "Learn More on": "לקריאה נוספת על",
+    "Learn More about": "לקריאה נוספת על",
+    "Browse all Parshayot": "לצפייה בכל הפרשות",
+    "From the Jewish Calendar": "מלוח השנה",
 
     //Module Names
     "Download Text": "הורדת טקסט",
@@ -592,6 +614,19 @@ const Strings = {
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
     },
+    "EditorSaveIndicator": {
+      "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
+      "Saving…": "שומר...",
+      "Saved": "נשמר",
+      "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+      "Trying to connect…": "ניסיון התחברות...",
+      "No internet connection detected": "לא זוהה חיבור לאינטרנט",
+      "User Logged out": "בוצעה התנתקות מהמערכת",
+      "Log in": "התחברות",
+      "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
+      "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
+      "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
+    },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
     },
@@ -625,6 +660,7 @@ const Strings = {
     },
     "Header": {
       "Texts": "מקורות",
+      "Explore": "נושאים",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",
@@ -649,6 +685,22 @@ const Strings = {
     },
     "WebPageList": {
       'Author': 'מחבר'
+    },
+    "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
+    "Loading guide...": "טוען מדריך...",
+    },
+    "GuideBox": {
+      "Guided Learning": "מדריך למידה",
+    },
+    "AiInfoTooltip": {
+      "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
     }
   },
 };

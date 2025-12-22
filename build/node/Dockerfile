@@ -1,4 +1,4 @@
-FROM us-east1-docker.pkg.dev/production-deployment/containers/base-node:v13.0.0
+FROM us-east1-docker.pkg.dev/production-deployment/containers/base-node:v22.0.0
 ARG TYPE=build-prod
 
 WORKDIR /app/

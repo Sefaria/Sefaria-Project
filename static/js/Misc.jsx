@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState, useCallback} from 'react';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import {CollectionsModal} from "./CollectionsWidget";
@@ -8,7 +8,9 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
+import {AdContext, StrapiDataContext} from './context';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
@@ -21,7 +23,32 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import { ReaderApp } from './ReaderApp';
+
+function useOnceFullyVisible(onVisible, key) {
+  const targetRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(key)) return;
+    const node = targetRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio === 1) {
+          onVisible();
+          sessionStorage.setItem(key, "true");
+          observer.disconnect();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onVisible, key]);
+
+  return targetRef;
+}
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -61,14 +88,18 @@ const __filterChildrenByLanguage = (children, language) => {
 };
 
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
+const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=['p']}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
-   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
-   *  Otherwise:
+   * If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   * Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
-   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragraphs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
+   * `disallowedMarkdownElements` is an array of HTML element names to disallow when rendering markdown.
+   *   - Defaults to ['p'] to prevent paragraph tags (preserves inline-only behavior)
+   *   - Pass [] to allow all elements including paragraphs
+   *   - Pass ['p', 'a'] to disallow both paragraphs and links, etc.
    */
   const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
@@ -93,7 +124,7 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={disallowedMarkdownElements}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
@@ -106,7 +137,8 @@ InterfaceText.propTypes = {
   content: PropTypes.object,
   html: PropTypes.object,
   context: PropTypes.string,
-  className: PropTypes.string
+  className: PropTypes.string,
+  disallowedMarkdownElements: PropTypes.array
 };
 
 const LoadingRing = () => (
@@ -1114,16 +1146,28 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    if (this.props.icon == "circledX"){
-      var icon = <img src="/static/icons/circled-x.svg" />;
-    } else if (this.props.icon == "chevron") {
-      var icon = <i className="fa fa-chevron-left"></i>
+    const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
+    
+    if (icon == "circledX"){
+      var iconElement = <img src="/static/icons/circled-x.svg" alt="" />;
+    } else if (icon == "chevron") {
+      var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
-      var icon = "×";
+      var iconElement = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
-    var url = this.props.url || "";
-    return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
+    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    
+    return (
+      <a 
+        href={url} 
+        className={classes} 
+        onClick={this.onClick}
+        aria-label={altText}
+        title={altText}
+      >
+        {iconElement}
+      </a>
+    );
   }
 }
 
@@ -1287,6 +1331,65 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+/**
+ * A button that shows a guide for the given guide type
+ * @param {function} onShowGuide - A function to call when the button is clicked
+ * @param {boolean} tooltip - Whether to show a tooltip when the button is hovered
+ */
+function GuideButton({onShowGuide}) {
+  const classes = classNames({guideButton: 1, "tooltip-toggle": true});
+  const altText = Sefaria._("Show guide", "Guide");
+
+  function onClick(event) {
+    event.preventDefault();
+    
+    if (onShowGuide) {
+      onShowGuide();
+    }
+  }
+
+  return (
+    <ToolTipped {...{ altText, classes, onClick }}>
+      <img src="/static/img/bulb.svg" alt={altText}/>
+    </ToolTipped>
+  );
+}
+GuideButton.propTypes = {
+  onShowGuide: PropTypes.func.isRequired,
+};
+
+/**
+ * ArrowButton component for navigation buttons (next/previous arrows)
+ * @param {string} direction - "next" or "previous" 
+ * @param {function} onClick - Function to call when arrow is clicked
+ * @param {string} altText - Alt text for accessibility
+ * @param {string} className - Additional CSS classes
+ */
+function ArrowButton({ direction, onClick, altText = "", className = "" }) {
+
+  // Use appropriate arrow icons for each direction
+  const imageSrc = direction === "next" 
+    ? `/static/img/arrow-right-bold.svg`
+    : `/static/img/arrow-left-bold.svg`;
+  const buttonClass = className ? `arrowButton arrowButton--${direction} ${className}` : `arrowButton arrowButton--${direction}`; // Use CSS transforms to handle RTL direction reversal
+  
+  return (
+    <button 
+      onClick={onClick} 
+      className={buttonClass}
+      aria-label={altText}
+      title={altText}
+    >
+      <img src={imageSrc} alt={altText} />
+    </button>
+  );
+}
+ArrowButton.propTypes = {
+  direction: PropTypes.oneOf(["next", "previous"]).isRequired,
+  onClick: PropTypes.func.isRequired,
+  altText: PropTypes.string.isRequired,
+  className: PropTypes.string,
+};
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   const analyticsContext = useContext(AdContext)
@@ -1302,7 +1405,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 const AiLearnMoreLink = ({lang}) => {
   const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
   return (
-      <a href={"/sheets/583824?lang=bi"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
         {text}
       </a>
   );
@@ -1332,10 +1435,10 @@ const AiInfoTooltip = () => {
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
             <div className="ai-info-first-message">
             <InterfaceText>
-                <EnglishText>Some of the text on this page has been AI generated.
+                <EnglishText>{Sefaria._("The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.", "AiInfoTooltip")}
                   &nbsp;<AiLearnMoreLink lang="english" />
                 </EnglishText>
-                <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.&nbsp;
+                <HebrewText>{Sefaria._("The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.", "AiInfoTooltip")}&nbsp;
                   <AiLearnMoreLink lang="hebrew" />
                 </HebrewText>
             </InterfaceText>
@@ -1440,8 +1543,20 @@ const SmallBlueButton = ({onClick, tabIndex, text}) => {
 };
 
 
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) => {
+  const categoryColorLineRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "category_color_line" });
+    gtag("event", "header_viewed", { impression_type: "category_color_line" });
+    if (Sefaria._debug) console.log("sa: we got a view event (category color line)!");
+  }, "sa.header_viewed");
+  return (
+    <div
+      className="categoryColorLine"
+      style={{ background: Sefaria.palette.categoryColor(category) }}
+      ref={categoryColorLineRef}
+    />
+  );
+};
 
 
 class ProfileListing extends Component {
@@ -1639,11 +1754,6 @@ const SheetListing = ({
       </div>
       <div className="sheetRight">
         {
-          editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
-            : null
-        }
-        {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
@@ -1828,47 +1938,54 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-
-function OnInView({ children, onVisible }) {
   /**
    *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
    *  `children` single element or nested group of elements wrapped in a div
    *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
    *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
-  const elementRef = useRef();
+function OnInView({ children, onVisible }) {
+  const nodeRef = useRef(null); // DOM element and children
+  const onVisibleRef = useRef(onVisible);
+  const wasFullyVisible = useRef(false); // Tracks if element has been fully visible to prevent duplicate callbacks
 
+  // Keep the ref in sync with the latest prop without remounting the observer
+  useEffect(() => {
+    onVisibleRef.current = onVisible;
+  }, [onVisible]);
+
+  // Set up the observer once – runs only on mount / unmount
   useEffect(() => {
     const observer = new IntersectionObserver(
       // Callback function will be invoked whenever the visibility of the observed element changes
-      (entries) => {
-        const entry = entries[0];
+      ([entry]) => {
+        const fullyInView = entry.intersectionRatio === 1;
+
         // Check if the observed element is intersecting with the viewport (it's visible)
-        // Invoke provided prop callback for analytics purposes
-        if (entry.isIntersecting) {
-          onVisible();
+        if (fullyInView && !wasFullyVisible.current) {
+          // Rising edge: element just became 100% visible
+          wasFullyVisible.current = true;
+          // Invoke provided prop callback for analytics purposes
+          onVisibleRef.current();
+        } else if (!fullyInView && wasFullyVisible.current) {
+          // Falling edge: element is no longer fully visible
+          wasFullyVisible.current = false;
         }
       },
       // The entire element must be entirely visible
       { threshold: 1 }
     );
 
+    const node = nodeRef.current;
     // Start observing the element, but wait until the element exists
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
+    if (node) observer.observe(node);
 
     // Cleanup when the component unmounts
-    return () => {
-      // Stop observing the element when it's no longer on the screen and can't be visible
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
-      }
-    };
-  }, [onVisible]);
+    return () => observer.disconnect();
+  }, []);
 
-  // Attach elementRef to a div wrapper and pass the children to be rendered within it
-  return <div ref={elementRef}>{children}</div>;
+  // Attach nodeRef to a div wrapper and pass the children to be rendered within it
+  return <div ref={nodeRef}>{children}</div>;
 }
 
 const transformValues = (obj, callback) => {
@@ -1879,16 +1996,22 @@ const transformValues = (obj, callback) => {
   return newObj;
 };
 
-const replaceNewLinesWithLinebreaks = (content) => {
-  return transformValues(
-    content,
-    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
-  );
-}
+// Use optional parameter with destructuring
+export const replaceNewLinesWithLinebreaks = (content, options = {}) => {
+  const { mode = "standard" } = options ?? {};
+
+  if (mode === "strapi") {
+    // Strapi needs to have all the newslines in markdown replaced with &nbsp; entities, extra space at the end for good measure
+    return transformValues(content, (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n");
+  }
+
+  // Replace single newlines only, preserving double newlines (paragraph breaks)
+  return transformValues(content, (s) => s.replace(/\n(?!\n)/g, " \n"));
+};
 
 const InterruptingMessage = ({
-  onClose,
-}) => {
+                               onClose,
+                             }) => {
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
@@ -1906,6 +2029,7 @@ const InterruptingMessage = ({
       campaignID: modalName,
       adType: "modal",
     });
+    sa_event("modal_interacted_with_" + eventDescription, { campaignID: modalName });
   };
 
   const trackModalImpression = () => {
@@ -1914,6 +2038,7 @@ const InterruptingMessage = ({
       campaignID: strapi.modal.internalModalName,
       adType: "modal",
     });
+    sa_event("modal_viewed", { campaignID: strapi.modal.internalModalName });
   };
 
   const shouldShow = () => {
@@ -1928,30 +2053,35 @@ const InterruptingMessage = ({
 
     let shouldShowModal = false;
 
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
+      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
     )
       shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
+    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.modal.showToReturningVisitors,
+        strapi.modal.showToNewVisitors,
+        strapi.modal.showToSustainers,
+        strapi.modal.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
+      )
+        shouldShowModal = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      )
+        shouldShowModal = true;
+      else if (noUserKindIsSet) 
+        shouldShowModal = true;
+    }
     if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
         excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
@@ -2013,7 +2143,8 @@ const InterruptingMessage = ({
                   <div id="defaultModalBody" className="line-break">
                     <InterfaceText
                       markdown={replaceNewLinesWithLinebreaks(
-                        strapi.modal.modalText
+                        strapi.modal.modalText,
+                        { mode: "strapi" }
                       )}
                     />
                   </div>
@@ -2076,6 +2207,7 @@ const Banner = ({ onClose }) => {
       campaignID: bannerName,
       adType: "banner",
     });
+    sa_event("banner_interacted_with_" + eventDescription, { campaignID: bannerName });
   };
 
   const trackBannerImpression = () => {
@@ -2083,6 +2215,7 @@ const Banner = ({ onClose }) => {
       campaignID: strapi.banner.internalBannerName,
       adType: "banner",
     });
+    sa_event("banner_viewed", { campaign_id: strapi.banner.internalBannerName });
   };
 
   const shouldShow = () => {
@@ -2097,26 +2230,33 @@ const Banner = ({ onClose }) => {
 
     let shouldShowBanner = false;
 
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
     if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
+      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
     )
       shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
+    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
+      let noUserKindIsSet = ![
+        strapi.banner.showToReturningVisitors,
+        strapi.banner.showToNewVisitors,
+        strapi.banner.showToSustainers,
+        strapi.banner.showToNonSustainers,
+      ].some((p) => p);
+      if (
+        Sefaria._uid &&
+        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+      )
+        shouldShowBanner = true;
+      else if (
+        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      )
+        shouldShowBanner = true;
+      else if (noUserKindIsSet) 
+        shouldShowBanner = true;
+    }
     if (!shouldShowBanner) return false;
-
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
@@ -2168,7 +2308,8 @@ const Banner = ({ onClose }) => {
             <div id="bannerTextBox">
               <InterfaceText
                 markdown={replaceNewLinesWithLinebreaks(
-                  strapi.banner.bannerText
+                  strapi.banner.bannerText,
+                  { mode: 'strapi' }
                 )}
               />
             </div>
@@ -2208,8 +2349,6 @@ const Banner = ({ onClose }) => {
     return null;
   }
 };
-
-Banner.displayName = "Banner";
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
@@ -2256,7 +2395,11 @@ TwoOrThreeBox.defaultProps = {
 const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
   //above threshold2, there will be 2 columns
   //above threshold3, there will be 3 columns
-  initialWidth = initialWidth || (window ? window.innerWidth : 1000);
+  initialWidth = initialWidth || (
+    typeof window !== 'undefined' && window.innerWidth
+    ? window.innerWidth
+    : 1000
+  );
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
 
@@ -2790,6 +2933,68 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
+const DivineNameDepricationNotification = () => {
+
+  // Constants for the deprecation notification
+  const DEPRECATION_DATE = "October 15, 2025";
+  const DEPRECATION_DATE_HEBREW = "15 באוקטובר 2025";
+
+  const DEPRECATION_LINKS = {
+      en: {
+      exportSheet: "https://help.sefaria.org/hc/en-us/articles/20532656851228-How-to-Export-Print-or-Share-a-Sheet",
+      extension: "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+      },
+      he: {
+      exportSheet: "https://help.sefaria.org/hc/he/articles/20532656851228-ייצוא-הדפסה-ושיתוף-דף-מקורות-בספריא",
+      extension: "https://help.sefaria.org/hc/he/sections/20235182393244-התוסף-של-ספריא-ל-Google-Docs"
+      }
+  };
+
+  const DEPRECATION_MESSAGES = {
+      en: {
+      notice: "Please note:",
+      mainMessage: `The divine name substitution tool will no longer be available in the Sefaria Sheet Editor after ${DEPRECATION_DATE}.`,
+      continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing, ",
+      exportText: "export your sheet to Google Docs ",
+      andText: "and use the 'Transform Divine Names' feature in the ",
+      extensionText: "Sefaria for Google Docs extension",
+      period: "."
+      },
+      he: {
+      notice: "שימו לב:",
+      mainMessage: `החל מה-${DEPRECATION_DATE_HEBREW}, לא יהיה ניתן לשנות שמות קודש בדפי מקורות באמצעות העורך של ספריא.`,
+      continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף, ",
+      exportText: "יש לייצא את הדף ל-Google Docs ",
+      andText: "ולבצע את השינוי באמצעות הכלי המיועד לכך ב",
+      extensionText: "תוסף של ספריא ל-Google Docs",
+      period: "."
+      }
+  };
+
+  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+  const messages = DEPRECATION_MESSAGES[lang];
+  const links = DEPRECATION_LINKS[lang];
+
+  return (
+    <div className="divineNameDepricationNotification sans-serif">
+      <p>
+        <strong>{messages.notice}</strong> {messages.mainMessage}
+      </p>
+      <p>
+        {messages.continuationMessage}
+        <a href={links.exportSheet}>
+          {messages.exportText}
+        </a>
+        {messages.andText}
+        <a href={links.extension}>
+          {messages.extensionText}
+        </a>
+        {messages.period}
+      </p>
+    </div>
+  );
+};
+
 const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
   return (
       <div className="divineNameReplacer">
@@ -2807,6 +3012,8 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
               onChange={(e) => setDivineNameReplacement((e.target.value))}
               preselected={divineNameReplacement}
             />
+            <DivineNameDepricationNotification />
+
       </div>
   )
 
@@ -2830,8 +3037,46 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const [showAddButton, setShowAddButton] = useState(false);
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
   const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
+  const popupsEl = useRef(null);
+
+  const checkSpaceBelow = useCallback(() => {
+    const input = inputEl.current;
+    const pops = popupsEl.current;
+    if (!input || !pops) return;
+
+    // Calculate the visible space
+    const inputRect = input.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - inputRect.bottom
+    const spaceAbove = inputRect.top;
+    const popsTop = Math.min(...Array.from(pops.children).map(c => c.getBoundingClientRect().top))
+    const popsBottom = Math.max(...Array.from(pops.children).map(c => c.getBoundingClientRect().bottom))
+    const popsHeight = popsBottom - popsTop;
+    setShouldShowAbove(spaceBelow < popsHeight && spaceAbove >= popsHeight);
+  }, []);
+
+  useEffect(
+    () => {
+         const element = document.querySelector('.textPreviewSegment.highlight');
+         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+    }, [previewText]
+  )
+  useEffect(() => {
+    window.addEventListener('resize', checkSpaceBelow);
+    window.addEventListener('scroll', checkSpaceBelow, true);
+    return () => {
+      window.removeEventListener('resize', checkSpaceBelow);
+      window.removeEventListener('scroll', checkSpaceBelow, true);
+    };
+  }, []);
+  useEffect(() => {
+    checkSpaceBelow()
+  }, [currentSuggestions, showCurrentSuggestions, previewText]);
+
+
   const buttonClassNames = classNames({button: 1, small: 1});
 
   const getWidthOfInput = () => {
@@ -2860,13 +3105,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     document.body.removeChild(tmp);
     return theWidth;
   }
-
-  useEffect(
-    () => {
-         const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
-    }, [previewText]
-  )
 
   const resizeInputIfNeeded = () => {
     const currentWidth = getWidthOfInput();
@@ -2952,7 +3190,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     }
   }
 
-
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            let segments = Sefaria.makeSegments(text, true);
@@ -3003,7 +3240,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                     handleSelection(inputValue, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 
-      {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
+      <div className={`autocompleterPopups ${shouldShowAbove ? 'show-above' : ''}`} ref={popupsEl}>
+        {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
@@ -3019,32 +3257,34 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       }
 
       {previewText ?
-          <div className="textPreviewContainer">
+          <div className="textPreviewContainer" onMouseDown={(e) => e.preventDefault()}>
             <div className="textPreview">
               <div className="inner">{previewText}</div>
             </div>
           </div>
 
           : null
-
       }
+      </div>
 
     </div>
     )
 }
 
 const getImgAltText = (caption) => {
-return Sefaria._v(caption) || Sefaria._('Illustrative image');
+  return (caption && Sefaria._v(caption)) || Sefaria._('Illustrative image');
 }
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
     <div>
-        <img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(caption)}/>
+        <ImageWithAltText photoLink={photoLink} altText={caption} />
         <div className="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
 }
+
+const ImageWithAltText = ({photoLink, altText}) => (<img className="imageWithCaptionPhoto" src={photoLink} alt={getImgAltText(altText)}/>);
 
 const AppStoreButton = ({ platform, href, altText }) => {
   const isIOS = platform === 'ios';
@@ -3121,7 +3361,7 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
   const buttonData = [
-  { buttonTitle: "Source Language", buttonId: "source" },
+  { buttonTitle: "Source", buttonId: "source" },
   { buttonTitle: "Translation", buttonId: "translation" },
   { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
 ];
@@ -3160,7 +3400,6 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
         }
       }
     >
-      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
        {buttonData.map((button, index) => (
         <LangRadioButton
           key={button.buttonId}
@@ -3241,8 +3480,13 @@ export {
   TitleVariants,
   OnInView,
   ImageWithCaption,
+  ImageWithAltText,
   handleAnalyticsOnMarkdown,
   LangSelectInterface,
   PencilSourceEditor,
   SmallBlueButton,
+  GuideButton,
+  ArrowButton as Arrow,
+  transformValues,
+  useOnceFullyVisible
 };

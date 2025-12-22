@@ -118,7 +118,7 @@ class PagesTest(SefariaTestCase):
         response = c.get('/sheets/new?editor=1')
         self.assertEqual(200, response.status_code)
 
-    def test_new_sheet(self):
+    def test_sheets_tags(self):
         response = c.get('/sheets/tags')
         self.assertEqual(200, response.status_code)
 
@@ -722,11 +722,11 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
         self.assertEqual(1, IndexSet({"title": "Shmoni"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, VersionSet({"title": "Ploni on Job"}).count())
         self.assertEqual(1, VersionSet({"title": "Shmoni on Job"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
 
@@ -1114,8 +1114,8 @@ class SheetPostTest(SefariaTestCase):
 
     def tearDown(self):
         if self._sheet_id:
-            db.sheets.remove({"id": self._sheet_id})
-            db.history.remove({"sheet": self._sheet_id})
+            db.sheets.delete_one({"id": self._sheet_id})
+            db.history.delete_many({"sheet": self._sheet_id})
 
     def test_post_sheet(self):
         """

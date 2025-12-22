@@ -2,10 +2,11 @@
 from . import abstract as abst
 from . import text
 import structlog
+from sefaria.model.linker.has_match_template import MatchTemplateMixin
 logger = structlog.get_logger(__name__)
 
 
-class Passage(abst.AbstractMongoRecord):
+class Passage(abst.AbstractMongoRecord, MatchTemplateMixin):
     """
     Sugyot
     """
@@ -17,14 +18,20 @@ class Passage(abst.AbstractMongoRecord):
         "ref_list"   # []
     ]
     optional_attrs = [
-        "same_as"    # []
+        "same_as",    # []
+        "source",
+        "match_templates",
     ]
+
+    possible_types = ["Mishnah", "Sugya", "passage", "biblical-story"]
 
     @classmethod
     def containing_segment(cls, ref):
+        #get shortest passage containing this segment ref
         assert isinstance(ref, text.Ref)
         assert ref.is_segment_level()
-        return cls().load({"ref_list": ref.starting_ref().normal()})
+        passages = PassageSet({"ref_list": ref.starting_ref().normal()})
+        return min(passages, key=lambda passage: len(passage.ref_list)) if passages else None
 
     def _normalize(self):
         super(Passage, self)._normalize()
@@ -35,7 +42,7 @@ class Passage(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(Passage, self)._validate()
-        assert self.type == "Mishnah" or self.type == "Sugya"
+        assert self.type in self.possible_types
 
     def ref(self):
         return text.Ref(self.full_ref)

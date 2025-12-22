@@ -7,6 +7,8 @@ import time
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
+
+from remote_config.keys import REF_CACHE_LIMIT_KEY
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -15,7 +17,7 @@ import copy
 import bleach
 import json
 import itertools
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
@@ -29,9 +31,11 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
+from sefaria.helper.normalization import NormalizerFactory
+from remote_config import remoteConfigCache
 
 """
                 ----------------------------------
@@ -1029,7 +1033,11 @@ class AbstractTextRecord(object):
 
     def word_count(self):
         """ Returns the number of words in this text """
-        return self.ja(remove_html=True).word_count()
+        try:
+            wc = self.ja(remove_html=True).word_count()
+        except AttributeError:
+            wc = 0
+        return wc
 
     def char_count(self):
         """ Returns the number of characters in this text """
@@ -1209,27 +1217,15 @@ class AbstractTextRecord(object):
         else:
             return False
         return t
-
+    
     @staticmethod
-    def find_all_itags(s, only_footnotes=False):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
-        if only_footnotes:
-            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
-        return soup, itag_list
-
-    @staticmethod
-    def _itag_is_footnote(tag):
-        return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
-
-    @staticmethod
-    def _find_itags(tag):
-        if isinstance(tag, Tag):
-            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
-        return False
+    def find_all_footnotes(s: str) -> list[str]:
+        fn_normalizer = NormalizerFactory.get('footnote')
+        text_to_remove = fn_normalizer.find_text_to_remove(s)
+        footnotes = []
+        for (start, end), repl in text_to_remove:
+            footnotes.append(s[start:end])
+        return footnotes
 
     @staticmethod
     def strip_imgs(s, sections=None):
@@ -1241,15 +1237,10 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def strip_itags(s, sections=None):
-        soup, itag_list = AbstractTextRecord.find_all_itags(s)
-        for itag in itag_list:
-            try:
-                if AbstractTextRecord._itag_is_footnote(itag):
-                    itag.next_sibling.decompose()  # it's a footnote
-            except AttributeError:
-                pass  # it's an inline commentator
-            itag.decompose()
-        return soup.root.encode_contents().decode()  # remove divs added
+        s = NormalizerFactory.get('footnote').normalize(s)
+        s = NormalizerFactory.get('other-itag').normalize(s)
+        s = NormalizerFactory.get('fn-marker').normalize(s)
+        return s
 
     def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
         """
@@ -1355,7 +1346,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
         assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
-
+        if getattr(self, "direction", None) not in ["rtl", "ltr"]:
+            raise InputError("Version direction must be either 'rtl' or 'ltr'")
+        assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
+        assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
+        is_any_other_primary = any(v.isPrimary for v in index.versionSet() if v._id != getattr(self, '_id', None))
+        if not self.isPrimary and not is_any_other_primary:  # if all are False, return true
+            raise InputError("There must be at least one version that is primary.")
         return True
 
     def _check_arrays_lengths(self, array1, array2):
@@ -2616,8 +2613,26 @@ class RefCacheType(type):
 
     def __init__(cls, name, parents, dct):
         super(RefCacheType, cls).__init__(name, parents, dct)
-        cls.__tref_oref_map = {}
+        cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
+        cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, 60000)
+
+    def _touch_cache_key(cls, key):
+        try:
+            cls.__tref_oref_map.move_to_end(key)
+        except KeyError:
+            pass
+
+    def _set_cache_key(cls, key, value):
+        cls.__tref_oref_map[key] = value
+        cls._enforce_cache_limit()
+
+    def _enforce_cache_limit(cls):
+        limit = getattr(cls, "_tref_oref_cache_limit", None)
+        if not limit:
+            return
+        while len(cls.__tref_oref_map) > limit:
+            cls.__tref_oref_map.popitem(last=False)
 
     def cache_size(cls):
         return len(cls.__tref_oref_map)
@@ -2633,7 +2648,7 @@ class RefCacheType(type):
         return cls.__tref_oref_map
 
     def clear_cache(cls):
-        cls.__tref_oref_map = {}
+        cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
 
     def remove_index_from_cache(cls, index_title):
@@ -2662,21 +2677,25 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                return cls.__tref_oref_map[tref]
+                result = cls.__tref_oref_map[tref]
+                cls._touch_cache_key(tref)
+                return result
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
                 title = result.index.title
                 if uid in cls.__tref_oref_map:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__tref_oref_map[tref] = cls.__tref_oref_map[uid]
+                    cached = cls.__tref_oref_map[uid]
+                    cls._touch_cache_key(uid)
+                    cls._set_cache_key(tref, cached)
                     try:
                         cls.__index_tref_map[title] += [tref]
                     except KeyError:
                         cls.__index_tref_map[title] = [tref]
-                    return cls.__tref_oref_map[uid]
-                cls.__tref_oref_map[uid] = result
-                cls.__tref_oref_map[tref] = result
+                    return cached
+                cls._set_cache_key(uid, result)
+                cls._set_cache_key(tref, result)
                 try:
                     cls.__index_tref_map[title] += [tref]
                 except KeyError:
@@ -2690,8 +2709,10 @@ class RefCacheType(type):
             title = result.index.title
             if uid in cls.__tref_oref_map:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__tref_oref_map[uid]
-            cls.__tref_oref_map[uid] = result
+                cached = cls.__tref_oref_map[uid]
+                cls._touch_cache_key(uid)
+                return cached
+            cls._set_cache_key(uid, result)
             try:
                 cls.__index_tref_map[title] += [uid]
             except KeyError:
@@ -4712,21 +4733,27 @@ class Ref(object, metaclass=RefCacheType):
         """
         return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
 
-    def url(self):
+    def url(self, encode_html=True):
         """
+        :param encode_html: boolean - True for encoding also HTML chars, or only our own things (like space to underscore)
         :return string: normal url form
         """
-        if not self._url:
-            self._url = self.normal().replace(" ", "_").replace(":", ".")
+        if not self._url or not encode_html:
+            url = self.normal()
+
+            html_encoding_map = {'?': '%3F'}
+            pretty_url_map = {' ': '_', ':': '.'}
+            replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
+            for key, value in replace_map.items():
+                url = url.replace(key, value)
 
             # Change "Mishna_Brachot_2:3" to "Mishna_Brachot.2.3", but don't run on "Mishna_Brachot"
             if len(self.sections) > 0:
-                last = self._url.rfind("_")
-                if last == -1:
-                    return self._url
-                lref = list(self._url)
-                lref[last] = "."
-                self._url = "".join(lref)
+                url = '.'.join(url.rsplit('_', 1))
+
+            if not encode_html:
+                return url
+            self._url = url
         return self._url
 
     def noteset(self, public=True, uid=None):
@@ -4947,10 +4974,8 @@ class Library(object):
 
         # Spell Checking and Autocompleting
         self._full_auto_completer = {}
-        self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
         self._cross_lexicon_auto_completer = None
-        self._topic_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4968,7 +4993,6 @@ class Library(object):
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
         self._full_auto_completer_is_ready = False
-        self._ref_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
         self._topic_auto_completer_is_ready = False
@@ -5304,20 +5328,6 @@ class Library(object):
             self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
         self._full_auto_completer_is_ready = True
 
-    def build_ref_auto_completer(self):
-        """
-        Builds the autocomplete for Refs across the languages in the library
-        Sets internal boolean to True upon successful completion to indicate Ref auto completer is ready.
-        """
-        from .autospell import AutoCompleter
-        self._ref_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
-        }
-
-        for lang in self.langs:
-            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
-        self._ref_auto_completer_is_ready = True
-
     def build_lexicon_auto_completers(self):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
@@ -5340,24 +5350,6 @@ class Library(object):
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
 
-    def build_topic_auto_completer(self):
-        """
-        Builds the topic auto complete including topics with no sources
-        """
-        from .autospell import AutoCompleter
-        self._topic_auto_completer = AutoCompleter("en", library, include_topics=True, include_titles=False, min_topics=0)
-        self._topic_auto_completer_is_ready = True
-
-    def topic_auto_completer(self):
-        """
-        Returns the topic auto completer. If the auto completer was not initially loaded,
-        it rebuilds before returning, emitting warnings to the logger.
-        """
-        if self._topic_auto_completer is None:
-            logger.warning("Failed to load topic auto completer. rebuilding")
-            self.build_topic_auto_completer()
-            logger.warning("Built topic auto completer")
-        return self._topic_auto_completer
 
     def cross_lexicon_auto_completer(self):
         """
@@ -5394,15 +5386,6 @@ class Library(object):
             self.build_full_auto_completer()  # I worry that these could pile up.
             logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
-
-    def ref_auto_completer(self, lang):
-        try:
-            return self._ref_auto_completer[lang]
-        except KeyError:
-            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
-            self.build_ref_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built {} ref auto completer.".format(lang))
-            return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
         # This is used in the case of a remotely triggered multiserver update
@@ -5751,14 +5734,9 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_recognizer import NamedEntityRecognizer
-        from sefaria.helper.linker import load_spacy_model
+        from .linker.linker_entity_recognizer import LinkerEntityRecognizer
 
-        return NamedEntityRecognizer(
-            lang,
-            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
-        )
+        return LinkerEntityRecognizer(lang)
 
     def _build_category_resolver(self, lang: str):
         from sefaria.model.category import CategorySet, Category
@@ -5920,7 +5898,7 @@ class Library(object):
         q = {'corpora': corpus}
         if not include_dependant:
             q['dependence'] = {'$in': [False, None]}
-        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+        return IndexSet(q, sort="order.0") if full_records else IndexSet(q, sort="order.0").distinct("title")
 
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
@@ -6037,14 +6015,27 @@ class Library(object):
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
-        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags,
+        excluding refs that are already wrapped in the data
 
         :param string st: the input string
         :param lang: "he" or "en"
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
+            substrings = [st]
+        else:
+            html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
+            substrings = re.split(html_a_tag_reg, st)
+        new_string = ''
+        for i, substring in enumerate(substrings):
+            if i % 2 == 1:  # An <a> tag
+                new_string += substring
+            elif i % 2 == 0 and substring:
+                new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
+                                                                       citing_only, reg, title_nodes)
+        return new_string
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
         """
@@ -6249,7 +6240,7 @@ class Library(object):
             if replacement is None:
                 return match.group(0)
             return replacement
-        except InputError as e:
+        except (InputError, KeyError) as e:
             logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
             return match.group(0)
 
@@ -6386,7 +6377,6 @@ class Library(object):
         Returns True if the following fields are initialized
             * self._toc_tree
             * self._full_auto_completer
-            * self._ref_auto_completer
             * self._lexicon_auto_completer
             * self._cross_lexicon_auto_completer
         """
@@ -6395,13 +6385,12 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
             logger.warning({"message": "Application not fully initialized", "Current State": {
                 "toc_tree_is_ready": self._toc_tree_is_ready,
                 "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
-                "ref_auto_completer_is_ready": self._ref_auto_completer_is_ready,
                 "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
                 "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
             }})
@@ -6463,7 +6452,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
 
 
 def process_index_delete_in_versions(indx, **kwargs):

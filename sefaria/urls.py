@@ -10,11 +10,14 @@ from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, Sefa
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL, ADMIN_PATH
 
 import reader.views as reader_views
+import remote_config.views as remote_config_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 import api.views as api_views
+import guides.views as guides_views
+from sefaria.heapdump import heapdump_view
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -47,6 +50,11 @@ urlpatterns = [
     url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
     url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
     url(r'^torahtracker/?$', reader_views.user_stats),
+]
+
+# Operational tooling
+urlpatterns += [
+    url(r'^admin/heapdump/$', heapdump_view, name="heapdump"),
 ]
 
 # People Pages
@@ -102,7 +110,6 @@ urlpatterns += [
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
-    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
     url(r'^_api/topics/images/secondary/(?P<slug>.+)$', reader_views.topic_upload_photo, {"secondary": True}),
     url(r'^_api/topics/images/(?P<slug>.+)$', reader_views.topic_upload_photo)
 
@@ -164,6 +171,7 @@ urlpatterns += [
     url(r'^api/link-summary/(?P<ref>.+)$', reader_views.link_summary_api),
     url(r'^api/notes/all$', reader_views.all_notes_api),
     url(r'^api/notes/(?P<note_id_or_ref>.*)$', reader_views.notes_api),
+    url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
     url(r'^api/related/(?P<tref>.*)$', reader_views.related_api),
     url(r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', reader_views.link_count_api),
     url(r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', reader_views.word_count_api),
@@ -173,6 +181,8 @@ urlpatterns += [
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
     url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
+    url(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
+    url(r'^api/calendars/topics/holiday/?$', reader_views.next_holiday),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
@@ -265,7 +275,10 @@ urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/generate-prompts/(?P<slug>.+)$', reader_views.generate_topic_prompts_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
+    url(r'^_api/topics/seasonal-topic/?$', reader_views.seasonal_topic_api),
     url(r'^api/topics/pools/(?P<pool_name>.+)$', reader_views.topic_pool_api),
+    url(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
+    url(r'^api/topics/trending/?$', reader_views.trending_topics_api),
     url(r'^api/ref-topic-links/bulk$', reader_views.topic_ref_bulk_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
@@ -389,6 +402,11 @@ urlpatterns += [
 
 ]
 
+# Async Tasks
+urlpatterns += [
+    url(r'^api/async/(?P<task_id>.+)$', sefaria_views.async_task_status_api),
+]
+
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]
@@ -396,6 +414,12 @@ urlpatterns += [
 # Send Feedback
 urlpatterns += [
     url(r'^api/send_feedback$', sefaria_views.generate_feedback),
+]
+
+# Strapi GraphQL Cache
+urlpatterns += [
+    url(r'^api/strapi/graphql-cache$', sefaria_views.strapi_graphql_cache),
+    url(r'^api/strapi/cache-invalidate$', sefaria_views.strapi_cache_invalidate),
 ]
 
 # Email Newsletter Subscriptions
@@ -423,8 +447,10 @@ urlpatterns += [
     url(r'^admin/delete/sheet$', sefaria_views.delete_sheet_by_id, name="delete/sheet"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
+    url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
+    url(r'^admin/memory/summary', sefaria_views.memory_summary),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
@@ -463,6 +489,11 @@ urlpatterns += site_urlpatterns
 # Sheets in a reader panel
 urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
+]
+
+# Guides
+urlpatterns += [
+    url(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
 ]
 
 # add static files to urls

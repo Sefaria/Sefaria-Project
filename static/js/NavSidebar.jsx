@@ -36,6 +36,9 @@ const SidebarModules = ({type, props}) => {
     "DafYomi":                DafYomi,
     "AboutTopics":            AboutTopics,
     "TrendingTopics":         TrendingTopics,
+    "TopicLandingTrendingTopics": TopicLandingTrendingTopics,
+    "TopicLandingTopicCatList":  TopicLandingTopicCatList,
+    "AZTopicsLink":           AZTopicsLink,
     "RelatedTopics":          RelatedTopics,
     "TitledText":             TitledText,
     "Visualizations":         Visualizations,
@@ -92,8 +95,10 @@ const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
      gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
    }
+   const params = Sefaria.util.getUrlVersionsParams(oref.versions);
+   const url = "/" + Sefaria.normRef(oref.ref) + (params ? "?" + params  : "");
    return <li>
-            <a href={oref.ref} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
+            <a href={url} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
          </li>;
 }
 const RecentlyViewedList = ({items}) => {
@@ -192,7 +197,7 @@ const AboutSefaria = ({hideTitle}) => (
     </a>
       {!hideTitle && <InterfaceText>
           <EnglishText>
-            <a className="button get-start" href="/sheets/210670">
+            <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED}>
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
                   Getting Started (2 min)
@@ -262,7 +267,7 @@ const Resources = () => (
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url="/help" icon="help.svg" />
+      <IconLink text="Help" url={Sefaria._v({he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US})} icon="help.svg" openInNewTab={true} />
     </div>
   </SidebarModule>
 );
@@ -392,7 +397,7 @@ const ParashahLink = () => {
   return (
     <div className="navSidebarLink ref serif">
       <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
-      <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
+      <a href={"/" + parashah.url} data-anl-text={parashah.ref}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
 };
@@ -607,6 +612,78 @@ const TrendingTopics = () => (
         </SidebarModule>
     </div>
 );
+const TopicLandingTrendingTopics = () => {
+    let [trendingTopics, setTrendingTopics] = useState(null);
+    useEffect(() => {
+        Sefaria.getTrendingTopics().then(result => setTrendingTopics(result));
+    }, []);
+
+    if (!trendingTopics) { return null; }
+    return(
+    <div data-anl-feature_name="Trending" data-anl-link_type="topic">
+        <SidebarModule>
+            <SidebarModuleTitle>Trending Topics</SidebarModuleTitle>
+            <div className="topic-landing-sidebar-list">
+            {trendingTopics.map((topic, i) =>
+                <div className="navSidebarLink ref serif" key={i}>
+                    <a
+                        href={"/topics/" + topic.slug}
+                        data-anl-link_type="topic"
+                        data-anl-event="navto_topic:click"
+                        data-anl-text={topic.primaryTitle.en}
+                    >
+                        <InterfaceText text={{en: topic.primaryTitle.en, he: topic.primaryTitle.he}}/>
+                    </a>
+                </div>
+            )}
+            </div>
+        </SidebarModule>
+    </div>)
+};
+const TopicLandingTopicCatList = () => {
+    const topicCats = Sefaria.topicTocPage();
+    return(
+        <span data-anl-feature_name="Browse Topics">
+        <SidebarModule>
+            <span id="browseTopics">
+            <SidebarModuleTitle>
+                Browse Topics
+            </SidebarModuleTitle>
+            </span>
+            <div className="topic-landing-sidebar-list">
+                {topicCats.map((topic, i) =>
+                    <div className="navSidebarLink ref serif" key={i}>
+                        <a href={"/topics/category/" + topic.slug}
+                            data-anl-link_type="category"
+                            data-anl-text={topic.en}
+                            data-anl-event="navto_topic:click"
+                        >
+                            <InterfaceText text={{en: topic.en, he: topic.he}}/>
+                        </a>
+                    </div>
+                )}
+            </div>
+        </SidebarModule>
+        </span>
+    )
+};
+const AZTopicsLink = () => {
+    return (
+        <span
+            data-anl-feature_name="Browse A-Z"
+        >
+        <SidebarModule>
+            <a href={'/topics/all/a'}
+            data-anl-link_type="see all"
+            data-anl-text="All Topics A-Z ›"
+            data-anl-event="navto_topic:click"
+            >
+            <SidebarModuleTitle>All Topics A-Z ›</SidebarModuleTitle>
+            </a>
+        </SidebarModule>
+        </span>
+    )
+};
 
 
 const RelatedTopics = ({title}) => {
@@ -790,10 +867,10 @@ const Wrapper = ({title, content}) => (
 );
 
 
-const IconLink = ({text, url, icon}) => (
+const IconLink = ({text, url, icon, openInNewTab}) => (
   <div className="navSidebarLink gray">
     <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("icon")}`} />
-    <a href={url}><InterfaceText>{text}</InterfaceText></a>
+    <a href={url} target={openInNewTab ? "_blank" : "_self"}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
 
@@ -946,5 +1023,6 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   SidebarModules,
-  RecentlyViewed
+  RecentlyViewed,
+  ParashahLink,
 };

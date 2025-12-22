@@ -11,76 +11,82 @@ import {
   InterfaceLanguageMenu,
   InterfaceText,
   LanguageToggleButton,
-  DonateLink
+  DonateLink,
+  useOnceFullyVisible
 } from './Misc';
 import {ProfilePic} from "./ProfilePic";
-import {Autocomplete} from './Autocomplete'
+import {HeaderAutocomplete} from './HeaderAutocomplete';
 
-class Header extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      mobileNavMenuOpen: false,
-    };
-  }
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleFirstTab);
-  }
-  handleFirstTab(e) {
-    if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
-      document.body.classList.add('user-is-tabbing');
-      window.removeEventListener('keydown', this.handleFirstTab);
+
+
+const Header = (props) => {
+
+  useEffect(() => {
+    const handleFirstTab = (e) => {
+      if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
+        document.body.classList.add('user-is-tabbing');
+        window.removeEventListener('keydown', handleFirstTab);
+      }
     }
-  }
-  toggleMobileNavMenu() {
-    this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
-  }
-  render() {
-    if (this.props.hidden && !this.props.mobileNavMenuOpen) {
-      return null;
+
+    window.addEventListener('keydown', handleFirstTab);
+
+    return () => {
+      window.removeEventListener('keydown', handleFirstTab);
     }
-    const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+  }, []);
 
-    const headerContent = (
-      <>
+  const headerRef = useOnceFullyVisible(() => {
+    sa_event("header_viewed", { impression_type: "regular_header" });
+    gtag("event", "header_viewed", { impression_type: "regular_header" });
+    if (Sefaria._debug) console.log("sa: we got a view event! (regular header)");
+  }, "sa.header_viewed");
 
-        <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
-        </div>
+  if (props.hidden && !props.mobileNavMenuOpen) {
+    return null;
+  }
 
-        <div className="headerLinksSection">
-        <Autocomplete
-            onRefClick={this.props.onRefClick}
-            showSearch={this.props.showSearch}
-            openTopic={this.props.openTopic}
-            openURL={this.props.openURL}
-        />
+  const logo = Sefaria.interfaceLang == "hebrew" ?
+    <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
+    <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+
+  const headerContent = (
+    <>
+      <div className="headerNavSection">
+        { Sefaria._siteSettings.TORAH_SPECIFIC ?
+        <a className="home" href="/" >{logo}</a> : null }
+        <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
+          <a href="/topics" className="textLink"><InterfaceText context="Header">Explore</InterfaceText></a>
+        <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
+        <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+      </div>
+
+      <div className="headerLinksSection">
+      <HeaderAutocomplete
+          onRefClick={props.onRefClick}
+          showSearch={props.showSearch}
+          openTopic={props.openTopic}
+          openURL={props.openURL}
+      />
 
 
-          { Sefaria._uid ?
-            <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutButtons headerMode={this.props.headerMode}/>
-          }
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <InterfaceLanguageMenu
-                currentLang={Sefaria.interfaceLang}
-                translationLanguagePreference={this.props.translationLanguagePreference}
-                setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
-        </div>
-      </>
+        { Sefaria._uid ?
+          <LoggedInButtons headerMode={props.headerMode}/>
+          : <LoggedOutButtons headerMode={props.headerMode}/>
+        }
+        { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <InterfaceLanguageMenu
+              currentLang={Sefaria.interfaceLang}
+              translationLanguagePreference={props.translationLanguagePreference}
+              setTranslationLanguagePreference={props.setTranslationLanguagePreference} /> : null}
+      </div>
+    </>
     );
 
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
+          <button onClick={props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="menuButton">
             <i className="fa fa-bars"></i>
           </button>
         </div>
@@ -90,40 +96,40 @@ class Header extends Component {
           <a className="home" href="/texts" >{logo}</a> : null }
         </div>
 
-        {this.props.hasLanguageToggle ?
-        <div className={this.props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
-          <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+        {props.hasLanguageToggle ?
+        <div className={props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+          <LanguageToggleButton toggleLanguage={props.toggleLanguage} />
         </div> :
         <div></div>}
       </>
     );
 
-    const headerClasses = classNames({header: 1, mobile: !this.props.multiPanel});
+    const headerClasses = classNames({header: 1, mobile: !props.multiPanel});
     const headerInnerClasses = classNames({
       headerInner: 1,
-      boxShadow: this.props.hasBoxShadow,
-      mobile: !this.props.multiPanel
+      boxShadow: props.hasBoxShadow,
+      mobile: !props.multiPanel
     });
     return (
-      <div className={headerClasses} role="banner">
+      <div className={headerClasses} role="banner" ref={headerRef}>
         <div className={headerInnerClasses}>
-          {this.props.multiPanel ? headerContent : mobileHeaderContent}
+          {props.multiPanel ? headerContent : mobileHeaderContent}
         </div>
 
-        {this.props.multiPanel ? null :
+        {props.multiPanel ? null :
         <MobileNavMenu
-          visible={this.props.mobileNavMenuOpen}
-          onRefClick={this.props.onRefClick}
-          showSearch={this.props.showSearch}
-          openTopic={this.props.openTopic}
-          openURL={this.props.openURL}
-          close={this.props.onMobileMenuButtonClick} />
+          visible={props.mobileNavMenuOpen}
+          onRefClick={props.onRefClick}
+          showSearch={props.showSearch}
+          openTopic={props.openTopic}
+          openURL={props.openURL}
+          close={props.onMobileMenuButtonClick} />
         }
         <GlobalWarningMessage />
       </div>
     );
-  }
 }
+
 Header.propTypes = {
   multiPanel:   PropTypes.bool.isRequired,
   headerMode:   PropTypes.bool.isRequired,
@@ -198,7 +204,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
   return (
     <div className={classes}>
       <div className="searchLine">
-        <Autocomplete
+        <HeaderAutocomplete
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}
@@ -213,7 +219,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       </a>
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
-        <InterfaceText>Topics</InterfaceText>
+        <InterfaceText context="Header">Explore</InterfaceText>
       </a>
       <a href="/community" onClick={close}>
         <img src="/static/icons/community.svg" />
@@ -271,7 +277,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         </a>
 
 
-        <a href="/help">
+        <a href={Sefaria._v({
+          he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+          en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+        })} target="_blank">
           <img src="/static/icons/help.svg" />
           <InterfaceText>Get Help</InterfaceText>
         </a>
@@ -358,7 +367,10 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
+              <div><a className="interfaceLinks-row bottom" id="help-link" href={Sefaria._v({
+                he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+                en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+              })} target="_blank">
                 <InterfaceText>Help</InterfaceText>
               </a></div>
             </div>
@@ -399,10 +411,13 @@ const MobileInterfaceLanguageToggle = () => {
 
 
 const HelpButton = () => {
-  const url = Sefaria._v({he: "/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90", en:"/collections/sefaria-faqs"});
+  const url = Sefaria._v({
+    he: Sefaria._siteSettings.HELP_CENTER_URLS.HE, 
+    en: Sefaria._siteSettings.HELP_CENTER_URLS.EN_US
+  });
   return (
     <div className="help">
-      <a href={url}>
+      <a href={url} target="_blank">
         <img src="/static/img/help.svg" alt={Sefaria._("Help")}/>
       </a>
     </div>
@@ -410,4 +425,4 @@ const HelpButton = () => {
 };
 
 
-export default Header;
+export {Header};

@@ -11,7 +11,7 @@ import dataclasses
 import re
 import regex
 import math
-from typing import List
+from typing import List, Callable
 import itertools
 from sefaria.system.decorators import memoized
 import structlog
@@ -430,14 +430,14 @@ def is_all_hebrew(s):
 	return any_hebrew.search(s) and not any_english.search(s)
 
 
-def is_mostly_hebrew(s: str, len_to_check: int = 60):
+def is_mostly_hebrew(s: str, len_to_check: int = 300):
 	"""
 	Check if input string is majority Hebrew
 	@param s: Input string to check
 	@param len_to_check: Maximum number of characters to check. Use `None` to check the whole string.
 	@return: Returns True if text is majority Hebrew
 	"""
-	s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s)  # remove punctuation/spaces/numbers
+	s = regex.sub(r"(?:[0-9.,'\"?!;:\-=@\#$%^&*()/<>]|\s)", "", s)  # remove punctuation/spaces/numbers
 	s = s[:len_to_check]
 	he_count = len(any_hebrew.findall(s))
 	return he_count > len(s)/2
@@ -651,3 +651,26 @@ def get_prefixless_inds(st: str) -> List[int]:
 		if not st.startswith(prefix): continue
 		starti_list += [len(prefix)]
 	return starti_list
+
+
+def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, get_matches_func: Callable = None) -> list:
+    """
+    Get matches for text including possible prefix-stripped versions
+    :param text: Text to match. Possible prefixes will be stripped
+    :param lang: If "he" or None, will consider Hebrew prefixes
+    :param matches_map: dict from where to pull matches directly instead of calling get_matches_func. This is meant as an optimization when such a dict already exists.
+    :param get_matches_func: generic function which takes a string and returns matches. If matches_map is provided, this will not be used.
+    :return: list of all possible matches when considering all possible prefixes to strip
+    """
+    starti_inds = [0]
+    if lang is None or lang == 'he':
+        starti_inds += get_prefixless_inds(text)
+    matches = []
+    for starti in starti_inds:
+        if matches_map:
+            matches += matches_map.get(text[starti:], [])
+        else:
+            matches += get_matches_func(text[starti:])
+    return matches
+
+  

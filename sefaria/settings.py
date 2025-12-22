@@ -133,6 +133,7 @@ ROOT_URLCONF = 'sefaria.urls'
 WSGI_APPLICATION = 'sefaria.wsgi.application'
 
 INSTALLED_APPS = (
+    'adminsortable',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -142,7 +143,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'sourcesheets',
+    'guides',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'captcha',
@@ -151,6 +152,7 @@ INSTALLED_APPS = (
     'webpack_loader',
     'django_user_agents',
     'rest_framework',
+    'remote_config.apps.RemoteConfigConfig',
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -308,7 +310,8 @@ try:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-
+if os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {

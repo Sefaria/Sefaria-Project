@@ -255,7 +255,7 @@ class SheetMetadata extends Component {
 
   updateSuggestedTags(input) {
     if (input == "") return
-    Sefaria.getName(input, false, 0).then(d => {
+    Sefaria.getName(input, 0).then(d => {
       const topics = d.completion_objects
           .filter(obj => obj.type === "Topic")
           .map((filteredObj, index) => ({
@@ -388,11 +388,6 @@ class SheetMetadata extends Component {
 
                     <div>
                       <div className="sheetMetaButtons">
-                        {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
-                        <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-                          <img src="/static/icons/tools-write-note.svg" alt="edit sheet" />
-                          <InterfaceText>Edit</InterfaceText>
-                        </a> : null }
 
                         <a href="#" className="button white" onClick={this.copySheet}>
                           <img src="/static/icons/copy.svg" alt="copy sheet" />
@@ -403,11 +398,6 @@ class SheetMetadata extends Component {
                           <img src="/static/icons/plus.svg" alt="copy sheet" />
                           <InterfaceText>Add to Collection</InterfaceText>
                         </a>
-
-                        {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
-                        <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-                          <InterfaceText>View in Editor</InterfaceText>
-                        </a> : null }
                       </div>
 
                       {this.state.sheetCopyStatus == "Copied" ?
@@ -416,11 +406,6 @@ class SheetMetadata extends Component {
                           <span className="int-he">צפייה בהעתק &raquo;</span>
                       </a></div> : null }
 
-                      {Sefaria._uses_new_editor ?
-                      <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
-                        <span className="int-en">View in the old sheets experience</span>
-                        <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
-                      </a> : null }
 
                       {this.state.showCollectionsModal ?
                       <CollectionsModal
@@ -511,8 +496,6 @@ SheetMetadata.propTypes = {
   narrowPanel:      PropTypes.bool,
   close:            PropTypes.func.isRequired,
   openNav:          PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func,
   interfaceLang:    PropTypes.string,
 };
 

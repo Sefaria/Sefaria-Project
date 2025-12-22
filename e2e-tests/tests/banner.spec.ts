@@ -5,12 +5,59 @@
 */
 
 import {test, expect} from '@playwright/test';
-import {goToPageWithLang, getPathAndParams} from "../utils";
-import {LANGUAGES} from '../globals'
+import {goToPageWithLang, getPathAndParams, isIsraelIp, changeLanguage} from "../utils";
+import {LANGUAGES} from '../globals';
+import { PageManager } from '../pages/pageManager';
 
-test('Banner links exist - English', async ({ context }) => {
+const testLanguageConfigs = [
+    {testLanguage: "English", interfaceLanguage: LANGUAGES.EN},
+    {testLanguage: "Hebrew", interfaceLanguage: LANGUAGES.HE}
+]
+
+testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
+    test(`Banner links - ${testLanguage}`, async({ context }) =>{
+        const page = await goToPageWithLang(context,'/texts', interfaceLanguage)
+        
+        const pm = new PageManager(page, interfaceLanguage)
+
+        await pm.navigateFromBannerTo().textsPageFromLogo()
+
+        await pm.navigateFromBannerTo().textsPageFromLink()
+
+        await pm.navigateFromBannerTo().topicsPage()
+
+        await pm.navigateFromBannerTo().communityPage()
+
+        const donatePage = await pm.navigateFromBannerTo().donatePage()
+        await donatePage.close()
+
+    })
+})
+
+testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
+    test(`Search Functionality from Banner - ${testLanguage}`, async({ context }) => {
+        const page = await goToPageWithLang(context,'/texts', interfaceLanguage)
+        
+        const pm = new PageManager(page, interfaceLanguage)
+
+        if(interfaceLanguage == LANGUAGES.HE){
+            await pm.onSearchPage().searchFor('אהבה')
+        }
+        else{
+            await pm.onSearchPage().searchFor('Love')
+            await pm.onSearchPage().validateVirtualKeyboardForEnglish('א')
+        }
+    })
+})
+
+test('Toggle Language Based on Locale', async({ context }) => {
+    const page = await goToPageWithLang(context,'/texts', LANGUAGES.HE)
     
-    const page = await goToPageWithLang(context,'/texts',LANGUAGES.EN);
+    const inIsrael = await isIsraelIp(page)
+
+    if(inIsrael){
+        await changeLanguage(page, LANGUAGES.EN)
+    }
 
     // Testing Sefaria logo
     await page.getByRole('link', { name: 'Sefaria Logo' }).click();
@@ -21,7 +68,7 @@ test('Banner links exist - English', async ({ context }) => {
     expect(getPathAndParams(page.url())).toBe("/texts")
 
     // Testing Topics link
-    await page.getByRole('banner').getByRole('link', { name: 'Topics' }).click();
+    await page.getByRole('banner').getByRole('link', { name: 'Explore' }).click();
     expect(getPathAndParams(page.url())).toBe("/topics")
 
     // Testing Community link
@@ -40,8 +87,9 @@ test('Banner links exist - English', async ({ context }) => {
     await page2.close();
     
     // Testing Help link
-    await page.getByRole('banner').getByRole('link', { name: 'Help' }).click();
-    expect(getPathAndParams(page.url())).toContain("/collections/sefaria-faqs")
+    const helpLink = page.getByRole('banner').getByRole('link', { name: 'Help' });
+    const helpHref = await helpLink.getAttribute('href');
+    expect(helpHref).toContain("/hc/en-us");
 
     const page1Promise = page.waitForEvent('popup');
     await page.getByRole('banner').getByRole('link', { name: 'Donate' }).click();
@@ -83,8 +131,8 @@ test('Banner links exist - Hebrew', async ({ context }) => {
     await page.getByPlaceholder('חיפוש').fill('love');
     await page.getByPlaceholder('חיפוש').press('Enter');
     await page.getByText('תוצאות עבור').click();
-    await page.getByRole('heading', { name: 'תוצאות עבור ״Love״' }).click();
-    expect(getPathAndParams(page.url())).toBe('/search?q=Love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
+    await page.getByRole('heading', { name: 'תוצאות עבור ״love״' }).click();
+    expect(getPathAndParams(page.url())).toBe('/search?q=love&tab=text&tvar=1&tsort=relevance&svar=1&ssort=relevance')
     
     // Testing Login
     const page2 = await goToPageWithLang(context, '/', LANGUAGES.HE);
@@ -94,11 +142,12 @@ test('Banner links exist - Hebrew', async ({ context }) => {
 
     // Testing Sign-up
     await page.getByRole('banner').getByRole('link', { name: /הרשמה/ }).click();
-    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3DLove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
+    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fsearch%3Fq%3Dlove%26tab%3Dtext%26tvar%3D1%26tsort%3Drelevance%26svar%3D1%26ssort%3Drelevance");
     
     // Testing Help link
-    await page.getByRole('banner').getByRole('link', { name: 'עזרה' }).click();
-    expect(getPathAndParams(page.url())).toContain("/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90");
+    const heHelpLink = page.getByRole('banner').getByRole('link', { name: 'עזרה' });
+    const heHelpHref = await heHelpLink.getAttribute('href');
+    expect(heHelpHref).toContain("/hc/he");
 
 });
 

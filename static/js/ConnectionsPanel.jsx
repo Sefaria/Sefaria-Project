@@ -17,7 +17,8 @@ import {
 } from './Media';
 
 import { CategoryFilter, TextFilter } from './ConnectionFilters';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import { ReaderPanelContext } from './context';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
@@ -49,7 +50,7 @@ class ConnectionsPanel extends Component {
     this.state = {
       flashMessage: null,
       currObjectVersions: { en: null, he: null },
-      mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
+      // mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
@@ -62,7 +63,7 @@ class ConnectionsPanel extends Component {
   componentDidMount() {
     this._isMounted = true;
     this.loadData();
-    this.getCurrentVersions();
+    this.setCurrentVersions();
     this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
     this.addScrollListener();
   }
@@ -89,11 +90,10 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Resources");
     }
 
-    if (prevProps.currVersions.en !== this.props.currVersions.en ||
-      prevProps.currVersions.he !== this.props.currVersions.he ||
+    if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions) ||
       prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
       prevProps.srefs[0] !== this.props.srefs[0]) {
-      this.getCurrentVersions();
+      this.setCurrentVersions();
     }
 
     if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
@@ -187,7 +187,7 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs), true) || this.props.srefs;
   }
   loadData() {
-    let ref = this.sectionRef();
+    let ref = this.props.srefs[0];
     if (!Sefaria.related(ref)) {
       Sefaria.related(ref, function (data) {
         if (this._isMounted) {
@@ -231,51 +231,29 @@ class ConnectionsPanel extends Component {
     this.props.setConnectionsMode("Resources");
     this.flashMessage("Success! You've created a new connection.");
   }
-  getData(cb) {
+  async getData() {
     // Gets data about this text from cache, which may be null.
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
+    return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions, this.props.translationLanguagePreference, 1);
   }
-  getVersionFromData(d, lang) {
-    //d - data received from this.getData()
-    //language - the language of the version
-    //console.log(d);
-    const currentVersionTitle = (lang === "he") ? d.heVersionTitle : d.versionTitle;
-    return {
-      ...d.versions.find(v => v.versionTitle === currentVersionTitle && v.language === lang),
-      title: d.indexTitle,
-      heTitle: d.heIndexTitle,
-      sources: lang === "he" ? d.heSources : d.sources,
-      merged: lang === "he" ? !!d.heSources : !!d.sources,
+  async setCurrentVersions() {
+    const data = await this.getData();
+    let currentLanguage = this.props.masterPanelLanguage;
+    if (currentLanguage === "bilingual") {
+      currentLanguage = "hebrew"
     }
-  }
-  getCurrentVersions() {
-    const data = this.getData((data) => {
-      let currentLanguage = this.props.masterPanelLanguage;
-      if (currentLanguage === "bilingual") {
-        currentLanguage = "hebrew"
-      }
-      if (!data || data.error) {
-        this.setState({
-          currObjectVersions: { en: null, he: null },
-          mainVersionLanguage: currentLanguage,
-        });
-        return
-      }
-      if (currentLanguage === "hebrew" && !data.he.length) {
-        currentLanguage = "english"
-      }
-      if (currentLanguage === "english" && !data.text.length) {
-        currentLanguage = "hebrew"
-      }
+    if (!data || data.error) {
       this.setState({
-        currObjectVersions: {
-          en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
-          he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
-        },
-        mainVersionLanguage: currentLanguage,
-        sectionRef: data.sectionRef,
+        currObjectVersions: { en: null, he: null },
       });
+    }
+    const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(data.versions);
+    this.setState({
+      currObjectVersions: {
+        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? translation : null,
+        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? primary : null,
+      },
+      sectionRef: data.sectionRef,
     });
   }
   checkSrefs(srefs) {
@@ -342,11 +320,11 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
-              {resourcesButtonCounts?.guides ? <ToolsButton en="Learning Guide" he="מדריך" image="iconmonstr-school-17.svg" blueBackground={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
           }
           {showConnectionSummary ?
@@ -396,6 +374,8 @@ class ConnectionsPanel extends Component {
             {this.props.masterPanelMode === "Sheet" ? <SheetToolsList
               toggleSignUpModal={this.props.toggleSignUpModal}
               setConnectionsMode={this.props.setConnectionsMode}
+              masterPanelLanguage={this.props.masterPanelLanguage}
+              masterPanelLayout={this.props.masterPanelLayout}
               masterPanelSheetId={this.props.masterPanelSheetId} /> : null}
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
@@ -448,7 +428,6 @@ class ConnectionsPanel extends Component {
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
         openNav={this.props.openNav}
-        openDisplaySettings={this.props.openDisplaySettings}
         closePanel={this.props.closePanel}
         selectedWords={this.props.selectedWords}
         checkVisibleSegments={this.checkVisibleSegments}
@@ -486,14 +465,14 @@ class ConnectionsPanel extends Component {
         selectedWordsForSheet = null;
       } else { // add source from sheet itself
         refForSheet = this.props.srefs;
-        versionsForSheet = this.props.currVersions;
+        versionsForSheet = this.state.currObjectVersions;
         selectedWordsForSheet = this.props.selectedWords;
         nodeRef = this.props.nodeRef;
       }
       content = (<div>
         <AddToSourceSheetBox
           srefs={refForSheet}
-          currVersions={versionsForSheet} //sidebar doesn't actually do versions
+          currObjectVersions={versionsForSheet} //sidebar doesn't actually do versions
           contentLanguage={this.props.masterPanelLanguage}
           selectedWords={selectedWordsForSheet}
           nodeRef={nodeRef}
@@ -606,13 +585,16 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
 
-    } else if (this.props.mode === "About") {
+    } else if (this.props.mode === "About" || this.props.mode === 'Version Open') {
       content = (<AboutBox
         currObjectVersions={this.state.currObjectVersions}
         masterPanelLanguage={this.props.masterPanelLanguage}
         setConnectionsMode={this.props.setConnectionsMode}
         mode={this.props.mode}
         setFilter={this.props.setVersionFilter}
+        vFilter={this.props.versionFilter}
+        onRangeClick={this.props.onTextClick}
+        onCitationClick={this.props.onCitationClick}
         title={this.props.title}
         srefs={this.props.srefs}
         sectionRef={this.state.sectionRef}
@@ -724,7 +706,6 @@ ConnectionsPanel.propTypes = {
   onTextClick: PropTypes.func,
   onCitationClick: PropTypes.func,
   openNav: PropTypes.func,
-  openDisplaySettings: PropTypes.func,
   closePanel: PropTypes.func,
   toggleLanguage: PropTypes.func,
   selectedWords: PropTypes.string,
@@ -733,6 +714,7 @@ ConnectionsPanel.propTypes = {
   interfaceLang: PropTypes.string,
   contentLang: PropTypes.string,
   masterPanelLanguage: PropTypes.oneOf(["english", "bilingual", "hebrew"]),
+  masterPanelLayout: PropTypes.string,
   masterPanelMode: PropTypes.string,
   masterPanelSheetId: PropTypes.number,
   versionFilter: PropTypes.array,
@@ -794,13 +776,6 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   useEffect(() => {
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
-    setShowEditButton(
-        !Sefaria._uses_new_editor && Sefaria._uid && (
-            sheet.owner === Sefaria._uid ||
-            sheet.options.collaboration == "anyone-can-edit" ||
-            sheet.options.collaboration == "anyone-can-add"
-        )
-    )
     console.log(sheet)
   }, []);
 
@@ -820,7 +795,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
   </div>);
 }
 
-const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode }) => {
+const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsMode, masterPanelLanguage, masterPanelLayout }) => {
 
   // const [isOwner, setIsOwner] = useState(false);
   // const [isPublished, setIsPublished] = useState(false);
@@ -848,7 +823,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
       history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
       $.ajax({
         type: "POST",
-        url: "/api/sheets/" + sheet.id + "/export_to_drive",
+        url: "/api/sheets/" + sheet.id + `/export_to_drive?language=${masterPanelLanguage}&layout=${masterPanelLayout}`,
         success: function (data) {
           if ("error" in data) {
             console.log(data.error.message);
@@ -943,7 +918,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {
-      Sefaria._uses_new_editor && Sefaria._uid && (
+      Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration == "anyone-can-edit"
         ) ?
@@ -952,6 +927,14 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
   </div>
   )
 }
+SheetToolsList.propTypes = {
+  toggleSignUpModal: PropTypes.func.isRequired,
+  masterPanelSheetId: PropTypes.number.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  masterPanelLanguage: PropTypes.string.isRequired,
+  masterPanelLayout: PropTypes.string.isRequired
+};
+
 class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
@@ -1085,7 +1068,7 @@ class ConnectionsSummary extends Component {
 
     return (
       <div>
-        {isTopLevel ? essaySummary : null}
+        {isTopLevel && essaySummary}
         {connectionsSummary}
         {summaryToggle}
       </div>
@@ -1288,18 +1271,18 @@ WebPagesList.propTypes = {
 };
 
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
-    const editText = canEditText ? function () {
-      let refString = srefs[0];
-      let currentPath = Sefaria.util.currentPath();
-      let currentLangParam;
-      const langCode = masterPanelLanguage.slice(0, 2);
-      if (currVersions[langCode]) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode]);
-      }
+    const {textsData} = useContext(ReaderPanelContext);
+    const editText = canEditText && textsData ? function () {
+      const isTranslation = masterPanelLanguage === 'english';
+      const versionType = isTranslation ? 'translation' : 'primary';
+      const langCode = textsData[`${versionType}Direction`] === 'ltr' ? 'en': 'he';
+      const versionTitle = isTranslation ? textsData.versionTitle : textsData.heVersionTitle;
+      const refString = `${srefs[0]}/${encodeURIComponent(langCode)}/${encodeURIComponent(versionTitle)}`;
+
       let path = "/edit/" + refString;
+      let currentPath = Sefaria.util.currentPath();
       let nextParam = "?next=" + encodeURIComponent(currentPath);
       path += nextParam;
-      //console.log(path);
       Sefaria.track.event("Tools", "Edit Text Click", refString,
         { hitCallback: () => window.location = path }
       );
@@ -1335,7 +1318,7 @@ AdvancedToolsList.propTypes = {
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count = null, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false, blueBackground=false, experiment=false }) => {
+                       secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1356,7 +1339,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
-    <div className={classNames({toolsButtonContainer: 1, blue: blueBackground})}>
+    <div className={classNames({toolsButtonContainer: 1, highlighted: highlighted})}>
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
@@ -1378,7 +1361,7 @@ ToolsButton.propTypes = {
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
-  blueBackground: PropTypes.bool,
+  highlighted: PropTypes.bool,
   experiment: PropTypes.bool,
   secondaryEn: PropTypes.string,
   secondaryHe: PropTypes.string
@@ -1463,19 +1446,6 @@ class ShareBox extends Component {
             <button tabindex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input tabindex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
           </div>
-          {this.state.sheet && Sefaria._uid === this.state.sheet.owner ?
-            <div className="shareSettingsBox">
-              <InterfaceText>People with this link can</InterfaceText>
-              <select
-                className="shareDropdown"
-                name="Share"
-                onChange={this.updateShareOptions.bind(this)}
-                value={this.state.shareValue}>
-                <option value="none">{Sefaria._("View", "Sheet Share")}</option>
-                <option value="anyone-can-add">{Sefaria._("Add", "Sheet Share")}</option>
-                <option value="anyone-can-edit">{Sefaria._("Edit", "Sheet Share")}</option>
-              </select>
-            </div> : null}
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
@@ -1548,7 +1518,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
