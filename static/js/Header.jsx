@@ -143,8 +143,8 @@ const ModuleSwitcher = () => {
                     ariaLabel={Sefaria._("Library")}
                   />);
 
-  const handleClose = (isPassiveDismissal) => {
-    if (isPassiveDismissal) {
+  const handleClose = (event) => {
+    if (event?.type === 'passive') {
       gtag("event", "modswitch_close", {
         feature_name: "module_switcher"
       });
