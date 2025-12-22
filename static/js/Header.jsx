@@ -138,11 +138,21 @@ const ModuleSwitcher = () => {
                     icon="moduleswitcher_mdl"
                     ariaLabel={Sefaria._("Library")}
                   />);
+
+  const handleClose = (event) => {
+    if (event?.type === 'passive') {
+      gtag("event", "modswitch_close", {
+        feature_name: "module_switcher"
+      });
+    }
+  };
+
   return (
     <ModuleSwitcherPopover>
       <DropdownMenu positioningClass="headerDropdownMenu"
                     analyticsFeatureName="module_switcher"
-                    buttonComponent={button}>
+                    buttonComponent={button}
+                    onClose={handleClose}>
         <div className='dropdownLinks-options moduleDropdown'>
           <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
             <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
