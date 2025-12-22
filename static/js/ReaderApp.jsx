@@ -117,6 +117,7 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
+      notificationCount: props.notificationCount || 0,
     };
   }
   setEditorSaveState = (nextState) => {
@@ -427,6 +428,13 @@ class ReaderApp extends Component {
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
           return true; // both are set, compare arrays
         }
+      }
+
+      // Update history when sheet title becomes available (was showing placeholder)
+      if (next.mode === "Sheet"
+          && Sefaria.sheets.loadSheetByID(next.sheetID)?.title // sheet data now in cache
+          && document.title === Sefaria.getPageTitle("", "sheet")) { // title is still placeholder
+        return true;
       }
     }
     return false;
@@ -1744,8 +1752,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   setUnreadNotificationsCount(n) {
-    Sefaria.notificationCount = n;
-    this.forceUpdate();
+    this.setState({ notificationCount: n });
   }
 
   shouldAlertBeforeCloseEditor() {
@@ -2224,7 +2231,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         toggleLanguage={this.toggleLanguageInFirstPanel}
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
-        module={Sefaria.activeModule}/>
+        module={Sefaria.activeModule}
+        notificationCount={this.state.notificationCount}/>
     );
 
     var panels = [];

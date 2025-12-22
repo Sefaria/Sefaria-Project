@@ -294,7 +294,7 @@ const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `$
                                     {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
                                     {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
                                     {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/ways-to-give`},
-                                    {'he': 'תרומות','en':'Donate', 'url': 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer'},
+                                    {'he': 'תרומות','en':'Donate', 'url': Sefaria._v({en: 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer', he: 'https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Footer'})},
                                   ];
 
 
