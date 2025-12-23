@@ -101,9 +101,6 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
-    if not spans:
-        # Nothing to do next — stop the chain by returning None
-        return
 
     chunk = MarkedUpTextChunk({
         "ref": linking_args.ref,
@@ -145,16 +142,21 @@ def _extract_resolved_spans(resolved_refs):
 
 def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
     spans = _extract_debug_spans(doc)
-    if not spans:
-        return
     query = {
         "ref": tref,
         "versionTitle": version_title,
         "language": lang,
     }
-    try:
-        LinkerOutput().update(query, {"spans": spans})
-    except InputError as e:
+    existing = LinkerOutput().load(query)
+    if existing:
+        if len(spans) == 0:
+            existing.delete()
+        else:
+            existing.spans = spans
+            existing.save()
+    else:
+        if len(spans) == 0:
+            return
         query["spans"] = spans
         LinkerOutput(query).save()
 
@@ -176,12 +178,19 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
         "versionTitle": chunk.versionTitle,
     })
     if existing:
+        if len(chunk.spans) == 0:
+            # If the new chunk has no spans, just delete the existing one
+            existing.delete()
+            return existing
         existing_spans = list(filter(lambda span: span["type"] == MUTCSpanType.NAMED_ENTITY.value, existing.spans))
         # add_non_overlapping_spans prefers `self.spans` over the spans that are input
         existing.spans = chunk.spans
         existing.add_non_overlapping_spans(existing_spans)
         existing.save()
     else:
+        if len(chunk.spans) == 0:
+            # No existing chunk and no spans to save
+            return None
         chunk.save()
     return existing
 
