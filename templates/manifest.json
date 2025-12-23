@@ -23,8 +23,8 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}",
-  "background_color": "{% if active_module == 'voices' %}#5D956F{% else %}#18345D{% endif %}",
+  "theme_color": "{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}",
+  "background_color": "{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}",
   "display": "standalone",
   "orientation": "portrait-primary"{% if is_hebrew %},
   "dir": "rtl",
