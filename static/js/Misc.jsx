@@ -1420,10 +1420,7 @@ const AiFeedbackLink = ({lang}) => {
   );
 }
 
-const AiInfoTooltip = ({ displayText = {
-  en: Sefaria._("Some of the text on this page has been AI generated.", "AiInfoTooltip"),
-  he: Sefaria._("Some of the text on this page has been AI generated.", "AiInfoTooltip")
-} }) => {
+const AiInfoTooltip = ({ displayText = "Some of the text on this page has been AI generated." }) => {
   const [showMessage, setShowMessage] = useState(false);  
   const aiInfoIcon = (
       <img
@@ -1437,13 +1434,13 @@ const AiInfoTooltip = ({ displayText = {
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
             <div className="ai-info-first-message">
-            <InterfaceText>
+            <InterfaceText context="AiInfoTooltip">
                 <EnglishText>
-                  {displayText?.en}
+                  {displayText}
                   <AiLearnMoreLink lang="english" />
                 </EnglishText>
                 <HebrewText>
-                  {displayText?.he}
+                  {displayText}
                   <AiLearnMoreLink lang="hebrew" />
                 </HebrewText>
             </InterfaceText>

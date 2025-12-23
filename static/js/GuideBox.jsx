@@ -184,10 +184,7 @@ class GuideBox extends Component {
           </div>
           <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
-            {this.state.promptState !== COMMENTARIES && <AiInfoTooltip displayText={{
-              en: Sefaria._(DISPLAY_TEXT, "AiInfoTooltip"),
-              he: Sefaria._(DISPLAY_TEXT, "AiInfoTooltip")
-            }}/>}
+            {this.state.promptState !== COMMENTARIES && <AiInfoTooltip displayText={DISPLAY_TEXT}/>}
           </div>
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
