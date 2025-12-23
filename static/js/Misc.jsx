@@ -1421,8 +1421,8 @@ const AiFeedbackLink = ({lang}) => {
 }
 
 const AiInfoTooltip = ({ displayText = {
-  en: Sefaria._("Some of the text on this page has been AI generated."),
-  he: Sefaria._("Some of the text on this page has been AI generated.")
+  en: Sefaria._("Some of the text on this page has been AI generated.", "AiInfoTooltip"),
+  he: Sefaria._("Some of the text on this page has been AI generated.", "AiInfoTooltip")
 } }) => {
   const [showMessage, setShowMessage] = useState(false);  
   const aiInfoIcon = (
