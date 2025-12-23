@@ -37,6 +37,13 @@ PRODUCTION_CONFIG = {
     }
 }
 
+CAULDRON_CONFIG = {
+    "en": {
+        "library": "http://name.cauldron.sefaria.org",
+        "voices": "http://voices.cauldron.sefaria.org"
+    }
+}
+
 EMPTY_CONFIG = {}
 
 
@@ -109,14 +116,7 @@ class TestBuildApprovedDomains:
     
     def test_cauldron_domain_strips_only_first_subdomain(self):
         """Test that cauldron domain preserves second-level domain."""
-        cauldron_config = {
-            "en": {
-                "library": "http://name.cauldron.sefaria.org",
-                "voices": "http://voices.cauldron.sefaria.org"
-            }
-        }
-        
-        with override_settings(DOMAIN_MODULES=cauldron_config):
+        with override_settings(DOMAIN_MODULES=CAULDRON_CONFIG):
             middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
             
             expected = {

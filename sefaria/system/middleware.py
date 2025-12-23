@@ -239,9 +239,9 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         for modules in domain_modules.values():
             # Collect all hostnames for this language
             hostnames = [
-                urlparse(url).hostname 
-                for url in modules.values() 
-                if urlparse(url).hostname
+                hostname
+                for url in modules.values()
+                if (hostname := urlparse(url).hostname)
             ]
             
             if not hostnames:
