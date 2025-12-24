@@ -175,6 +175,7 @@ class GuideBox extends Component {
   }
 
   render() {
+    const DISPLAY_TEXT = "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know."
     return (
       <section className="guideBox">
         <h2 className="guideHeader">
@@ -183,7 +184,7 @@ class GuideBox extends Component {
           </div>
           <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
-            {this.state.promptState !== COMMENTARIES && <AiInfoTooltip/>}
+            {this.state.promptState !== COMMENTARIES && <AiInfoTooltip displayText={DISPLAY_TEXT}/>}
           </div>
         </h2>
         {this.state.promptState === QUESTIONS && <QuestionBox prompt={this.state.livePrompt} onClick={this.onClickQuestion} />}
