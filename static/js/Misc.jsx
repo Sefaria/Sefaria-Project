@@ -1402,11 +1402,10 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   </div>
 )};
 
-const AiLearnMoreLink = ({lang}) => {
-  const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
+const AiLearnMoreLink = () => {
   return (
       <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
-        {text}
+        <InterfaceText context="AiInfoTooltip">Learn More</InterfaceText>
       </a>
   );
 };
@@ -1435,14 +1434,8 @@ const AiInfoTooltip = ({ displayText = "Some of the text on this page has been A
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
             <div className="ai-info-first-message">
             <InterfaceText context="AiInfoTooltip">
-                <EnglishText>
-                  {displayText}
-                  <AiLearnMoreLink lang="english" />
-                </EnglishText>
-                <HebrewText>
-                  {displayText}
-                  <AiLearnMoreLink lang="hebrew" />
-                </HebrewText>
+                {displayText}
+                <AiLearnMoreLink />
             </InterfaceText>
 
         </div>
