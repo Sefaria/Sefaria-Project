@@ -2388,7 +2388,7 @@ def visualize_parasha_colors(request):
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file, "renderStatic": True})
+    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
@@ -4113,7 +4113,6 @@ def edit_profile(request):
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
-      "renderStatic": True
     })
 
 
@@ -4260,7 +4259,6 @@ def dashboard(request):
 
     return render_template(request,'dashboard.html', None, {
         "states": states,
-        "renderStatic": True
     })
 
 
@@ -4273,7 +4271,6 @@ def metrics(request):
     metrics_json = dumps(metrics)
     return render_template(request,'metrics.html', None,{
         "metrics_json": metrics_json,
-        "renderStatic": True
     })
 
 
