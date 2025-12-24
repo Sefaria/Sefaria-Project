@@ -20,7 +20,7 @@ const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 // Text content (keys correspond to sefaria/strings.js)
 const STRINGS = {
   HEADER: "Looking for something?",
-  CONTENT: "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah.",
+  CONTENT: "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.",
   LEARN_MORE: "Learn More",
   CONFIRM: "Got it!",
 };
@@ -83,11 +83,11 @@ const ModuleSwitcherPopover = ({ children }) => {
         <div className="floating-ui-popover-content">
           {/* Header text */}
           <div className="popover-header">
-            <InterfaceText>{STRINGS.HEADER}</InterfaceText>
+            <InterfaceText context="ModuleSwitcherPopover">{STRINGS.HEADER}</InterfaceText>
           </div>
           
           {/* Main explanatory content */}
-          <InterfaceText>{STRINGS.CONTENT}</InterfaceText>
+          <InterfaceText context="ModuleSwitcherPopover">{STRINGS.CONTENT}</InterfaceText>
           
           {/* Action buttons */}
           <div className="popover-actions">
@@ -98,12 +98,12 @@ const ModuleSwitcherPopover = ({ children }) => {
               target="_blank"
               targetModule={Sefaria.VOICES_MODULE}
             >
-              <InterfaceText>{STRINGS.LEARN_MORE}</InterfaceText>
+              <InterfaceText context="ModuleSwitcherPopover">{STRINGS.LEARN_MORE}</InterfaceText>
             </Button>
             
             {/* Dismiss button that closes popover and saves to localStorage */}
             <PopoverClose className="accessible-touch-target">
-              <InterfaceText>{STRINGS.CONFIRM}</InterfaceText>
+              <InterfaceText context="ModuleSwitcherPopover">{STRINGS.CONFIRM}</InterfaceText>
             </PopoverClose>
           </div>
         </div>
