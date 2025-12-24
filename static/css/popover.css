@@ -114,15 +114,23 @@
 }
 .floating-ui-arrow.mobile-hebrew-right, .floating-ui-arrow.desktop-left {
   right: -4px;
+  top: 8%;
+  transform: translateY(-10%) rotate(45deg);
 }
 .floating-ui-arrow.mobile-english-left, .floating-ui-arrow.desktop-right {
   left: -4px;
+  top: 8%;
+  transform: translateY(-10%) rotate(45deg);
 }
 .floating-ui-arrow.desktop-top {
   bottom: -4px;
+  left: 8%;
+  transform: translateX(-10%) rotate(45deg);
 }
 .floating-ui-arrow.desktop-bottom {
   top: -4px;
+  right: 8%;
+  transform: translateX(-10%) rotate(45deg);
 }
 
 @media (max-width: 842px) {

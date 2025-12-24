@@ -1,11 +1,10 @@
-import React, { createContext, useContext, useRef } from 'react';
+import React, { createContext, useContext, useRef, useEffect } from 'react';
 import {
   useFloating,
   autoUpdate,
   offset,
   flip,
   shift,
-  arrow as arrowMiddleware,
 } from '@floating-ui/react-dom';
 import Sefaria from '../sefaria/sefaria';
 import Button from './Button';
@@ -63,9 +62,10 @@ export const Popover = ({ children, open = false, handleOpen }) => {
   const arrowRef = useRef(null);
   const isMobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
   const placement = getPlacement();
+  const updateRef = useRef(null);
 
   // Floating UI hook handles all positioning logic
-  const { x, y, refs, strategy, middlewareData } = useFloating({
+  const { x, y, refs, strategy, middlewareData, update } = useFloating({
     open,
     handleOpen,
     placement,
@@ -73,10 +73,43 @@ export const Popover = ({ children, open = false, handleOpen }) => {
       offset(TOOLTIP_OFFSET),           // Add space between trigger and popover
       flip(),                          // Flip to opposite side if no space
       shift({ padding: isMobile ? 10 : 45 }), // Shift within viewport bounds
-      arrowMiddleware({ element: arrowRef }),  // Position arrow element
+      // Arrow positioning removed - using static CSS positioning instead
     ],
-    whileElementsMounted: autoUpdate,  // Auto-update position when elements move
   });
+
+  // Store update function in ref so it's accessible in effect
+  updateRef.current = update;
+
+  // Set up observer to watch .headerInner element position changes
+  useEffect(() => {
+    if (!open) return;
+
+    const headerInner = document.querySelector('.headerInner');
+    if (!headerInner) return;
+
+    // Create ResizeObserver to watch for size/position changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateRef.current?.();
+    });
+
+    // Create MutationObserver to watch for attribute/class changes that might affect position
+    const mutationObserver = new MutationObserver(() => {
+      updateRef.current?.();
+    });
+
+    // Observe the headerInner element
+    resizeObserver.observe(headerInner);
+    mutationObserver.observe(headerInner, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
+    // Cleanup observers when popover closes or component unmounts
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [open]);
 
   // Context value shared with all child components
   const value = {
@@ -89,8 +122,6 @@ export const Popover = ({ children, open = false, handleOpen }) => {
       left: x ?? 0,
     },
     arrowRef,                          // Ref for arrow element
-    arrowX: middlewareData.arrow?.x,   // Arrow X position
-    arrowY: middlewareData.arrow?.y,   // Arrow Y position
     placement: middlewareData?.placement || placement, // Final computed placement
   };
 
@@ -119,7 +150,7 @@ export const PopoverTrigger = ({ children }) => {
  * Includes automatic arrow positioning and responsive placement.
  */
 export const PopoverContent = ({ children, className = '' }) => {
-  const { open, refs, floatingStyles, arrowRef, arrowX, arrowY, placement } = usePopoverContext();
+  const { open, refs, floatingStyles, arrowRef, placement } = usePopoverContext();
   const isMobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
   const isHebrew = Sefaria.interfaceLang === 'hebrew';
 
@@ -137,12 +168,6 @@ export const PopoverContent = ({ children, className = '' }) => {
     arrowClass = `desktop-${placement}`;
   }
 
-  // Arrow positioning styles (computed by Floating UI)
-  const arrowStyle = {
-    ...(arrowX != null && { left: `${arrowX}px` }),
-    ...(arrowY != null && { top: `${arrowY}px` }),
-  };
-
   return (
     <div
       ref={refs.setFloating}
@@ -151,11 +176,10 @@ export const PopoverContent = ({ children, className = '' }) => {
       style={floatingStyles}
     >
       {children}
-      {/* Arrow element positioned by Floating UI */}
+      {/* Arrow element positioned statically via CSS */}
       <div
         ref={arrowRef}
         className={`floating-ui-arrow ${arrowClass}`}
-        style={arrowStyle}
       />
     </div>
   );
