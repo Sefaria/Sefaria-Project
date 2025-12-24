@@ -1433,8 +1433,8 @@ const AiInfoTooltip = ({ displayText = "Some of the text on this page has been A
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
             <div className="ai-info-first-message">
-            <InterfaceText context="AiInfoTooltip">
-                {displayText}
+            <InterfaceText>
+                {Sefaria._(displayText,AiInfoTooltip)}
                 <AiLearnMoreLink />
             </InterfaceText>
 
