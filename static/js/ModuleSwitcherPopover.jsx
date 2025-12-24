@@ -20,7 +20,7 @@ const STORAGE_KEY = 'sefaria.moduleSwitcherTooltipDismissed';
 // Text content (keys correspond to sefaria/strings.js)
 const STRINGS = {
   HEADER: "Looking for something?",
-  CONTENT: "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah.",
+  CONTENT: "We’ve updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.",
   LEARN_MORE: "Learn More",
   CONFIRM: "Got it!",
 };
