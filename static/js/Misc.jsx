@@ -1420,7 +1420,7 @@ const AiFeedbackLink = ({lang}) => {
 }
 
 const AiInfoTooltip = ({ displayText = "Some of the text on this page has been AI generated." }) => {
-  const [showMessage, setShowMessage] = useState(false);  
+  const [showMessage, setShowMessage] = useState(false);
   const aiInfoIcon = (
       <img
           className="ai-info-icon"
@@ -1434,10 +1434,10 @@ const AiInfoTooltip = ({ displayText = "Some of the text on this page has been A
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
           <div className="ai-info-first-message">
-          <InterfaceText context="AiInfoTooltip">
-              {displayText}
-          </InterfaceText>
-          <AiLearnMoreLink />
+            <InterfaceText context="AiInfoTooltip">
+                {displayText}
+            </InterfaceText>
+            <AiLearnMoreLink />
         </div>
         <hr className="ai-info-messages-hr" />
         <div className="ai-info-last-message">
