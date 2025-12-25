@@ -4460,29 +4460,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 0px 0px 6px 4px;
   z-index: 2;
 }
-.singlePanel .autocomplete-dropdown {
-  width: 0;
-  position: fixed;
-  top: 120px;
-  inset-inline-start: 0;
-  padding-bottom: 10px;
-  max-height: calc(100dvh - 120px);
-  overflow-y: auto;
-}
-.singlePanel .autocomplete-dropdown:has(*){
-  width: 100vw;
-}
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
   display: flex;
   align-items: start;
   padding-top: 5px;
   padding-bottom: 5px;
-}
-.singlePanel .search-group-suggestions{
-  border-bottom-width: 0;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 .search-group-suggestions-items{
   display: flex;
@@ -4496,17 +4479,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-suggestion-link-wrapper:hover{
   text-decoration: none;
-}
-.singlePanel .search-suggestion-link-wrapper{
-  border-bottom: 0;
-  padding: 0;
-}
-.singlePanel .search-suggestion-link-wrapper.search-override-wrapper {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-top: 0.766667px solid #EDEDEC;
-  border-bottom: 0.766667px solid #EDEDEC;
 }
 
 .search-suggestion {
@@ -4524,15 +4496,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     max-width: 100%;
     min-height: 10px;
 }
-.singlePanel .search-suggestion{
-  width: auto;
-}
 
 .search-suggestion-text{
   font-family: 'EB Garamond';
-}
-.singlePanel .search-suggestion-text{
-  color: #000000;
 }
 .search-suggestion-text.hebrew-result{
   font-family: "Taamey Frank";
@@ -4557,13 +4523,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: .4;
   height: 18px;
   width: 18px;
-  margin-top: 2px;
-}
-.singlePanel .autocomplete-dropdown .type-icon{
-  padding-inline-start: 2px;
-}
-
-.singlePanel .autocomplete-dropdown .type-icon.english-result{
   margin-top: 2px;
 }
 
@@ -4603,10 +4562,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 15px;
   margin-left: 114px;
 }
-.singlePanel .autocomplete-dropdown .type-title {
-  width: 0;
-  visibility: hidden;
-  padding-inline-end: 0;
+
+/* Mobile autocomplete styles */
+@media (max-width: 842px) {
+  .autocomplete-dropdown {
+    width: 0;
+    position: fixed;
+    top: 120px;
+    inset-inline-start: 0;
+    padding-bottom: 10px;
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+  }
+  .autocomplete-dropdown:has(*){
+    width: 100vw;
+  }
+  .search-group-suggestions{
+    border-bottom-width: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .search-suggestion-link-wrapper{
+    border-bottom: 0;
+    padding: 0;
+  }
+  .search-suggestion-link-wrapper.search-override-wrapper {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-top: 0.766667px solid #EDEDEC;
+    border-bottom: 0.766667px solid #EDEDEC;
+  }
+  .search-suggestion{
+    width: auto;
+  }
+  .search-suggestion-text{
+    color: #000000;
+  }
+  .autocomplete-dropdown .type-icon{
+    padding-inline-start: 2px;
+  }
+  .autocomplete-dropdown .type-icon.english-result{
+    margin-top: 2px;
+  }
+  .autocomplete-dropdown .type-title {
+    width: 0;
+    visibility: hidden;
+    padding-inline-end: 0;
+  }
 }
 
 .topic-landing-search-wrapper{
