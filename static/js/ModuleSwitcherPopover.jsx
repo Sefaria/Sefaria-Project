@@ -71,6 +71,8 @@ const ModuleSwitcherPopover = ({ children }) => {
     }
   };
 
+  const learnMorePath = Sefaria._v(Sefaria._siteSettings.MODULE_SWITCHER_LEARN_MORE_PATH);
+
   return (
     <Popover open={isOpen} handleOpen={handleOpenChange}>
       {/* Trigger: The element that the popover points to (module switcher button) */}
@@ -94,8 +96,7 @@ const ModuleSwitcherPopover = ({ children }) => {
             {/* External link to learn more */}
             <Button
               className="learn-more accessible-touch-target"
-              href={Sefaria.util.fullURL(Sefaria._siteSettings?.MODULE_SWITCHER_LEARN_MORE_PATH, Sefaria.VOICES_MODULE)}
-              target="_blank"
+              href={learnMorePath}
               targetModule={Sefaria.VOICES_MODULE}
             >
               <InterfaceText context="ModuleSwitcherPopover">{STRINGS.LEARN_MORE}</InterfaceText>
