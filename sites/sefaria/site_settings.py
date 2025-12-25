@@ -25,7 +25,10 @@ SITE_SETTINGS = {
 		"en": "/sheets/674324",
 		"he": "/sheets/674327"
 	},
-	"MODULE_SWITCHER_LEARN_MORE_PATH": "/sheets/689609",
+	"MODULE_SWITCHER_LEARN_MORE_PATH": { 
+		"en": "/sheets/689609", 
+		"he": "/sheets/689610" 
+	},
 	"HELP_CENTER_REDIRECTS": { 
 	"en": {
 		"215584": "https://help.sefaria.org/hc/en-us/sections/12756520483868-Text-Formatting-Accessibility",
