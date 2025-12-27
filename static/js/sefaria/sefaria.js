@@ -364,61 +364,7 @@ Sefaria = extend(Sefaria, {
     }
   return [enSection, heSection];
   },
-  titlesInText: function(text) {
-    // Returns an array of the known book titles that appear in text.
-    return Sefaria.books.filter(function(title) {
-        return (text.indexOf(title) > -1);
-    });
-  },
   _eras:  ["GN", "RI", "AH", "CO"],
-  makeRefRe: function(titles) {
-    // Construct and store a Regular Expression for matching citations
-    // based on known books, or a list of titles explicitly passed
-    titles = titles || Sefaria.books;
-    const books = "(" + titles.map(RegExp.escape).join("|")+ ")";
-    const refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
-    return new RegExp(refReStr, "gi");
-  },
-  wrapRefLinks: function(text) {
-      if (typeof text !== "string" ||
-          text.indexOf("data-ref") !== -1) {
-          return text;
-      }
-      const titles = Sefaria.titlesInText(text);
-      if (titles.length === 0) {
-          return text;
-      }
-      const refRe    = Sefaria.makeRefRe(titles);
-      const replacer = function(match, p1, p2, p3, p4, p5) {
-          // p1: Book
-          // p2: From section
-          // p3: From segment
-          // p4: To section
-          // p5: To segment
-          let uref, nref, r;
-
-          uref = p1 + "." + p2;
-          nref = p1 + " " + p2;
-          if (p3) {
-              uref += "." + p3;
-              nref += ":" + p3;
-          }
-          if (p4) {
-              uref += "-" + p4;
-              nref += "-" + p4;
-          }
-          if (p5) {
-              uref += "." + p5;
-              nref += ":" + p5;
-          }
-          r = '<span class="refLink" data-ref="' + uref + '">' + nref + '</span>';
-          if (match.slice(-1)[0] === " ") {
-              r = r + " ";
-          }
-          return r;
-      };
-      return text.replace(refRe, replacer);
-  },
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
   _complete_text_settings: function(s = null) {
@@ -1148,36 +1094,7 @@ Sefaria = extend(Sefaria, {
       this._refmap[refkey] = contextKey;
     }
   },
-    /*  Not used?
-  _splitSpanningText: function(data) {
-    // Returns an array of section level data, corresponding to spanning `data`.
-    // Assumes `data` includes context.
-    var sections = [];
-    var en = data.text;
-    var he = data.he;
-    var length = Math.max(en.length, he.length);
-    en = en.pad(length, []);
-    he = he.pad(length, []);
-    var length = Math.max(data.text.length, data.he.length);
-    for (var i = 0; i < length; i++) {
-      var section        = Sefaria.util.clone(data);
-      section.text       = en[i];
-      section.he         = he[i];
-    }
-  },
-     */
 
-    /* not used?
-  _wrapRefs: function(data) {
-    // Wraps citations found in text of data
-    if (!data.text) { return data; }
-    if (typeof data.text === "string") {
-      data.text = Sefaria.wrapRefLinks(data.text);
-    } else {
-      data.text = data.text.map(Sefaria.wrapRefLinks);
-    }
-    return data;
-  }, */
   areCurrVersionObjectsEqual: function(version1, version2) {
       return version1?.versionTitle === version2?.versionTitle && version1?.languageFamilyName === version2?.languageFamilyName;
   },
@@ -3630,7 +3547,7 @@ Sefaria.resetCache = function() {
     this._TopicsByPool = {};  // constant
     this._portals = {}; // constant
     this._tableOfContentsDedications  = {};
-    
+
     // Resetting _i18nInterfaceStrings will break ssr translation
     // this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
 
