@@ -18,14 +18,19 @@ SITE_SETTINGS = {
 	"HELP_CENTER_URLS": {
 		"EN_US": "https://help.sefaria.org/hc/en-us",
 		"HE": "https://help.sefaria.org/hc/he",
-		"GETTING_STARTED": "https://help.sefaria.org/hc/en-us/articles/21471911125020-Video-Guide-How-to-Get-Started-Navigating-the-Library"
+		"GETTING_STARTED": "https://help.sefaria.org/hc/en-us/articles/21471911125020-Video-Guide-How-to-Get-Started-Navigating-the-Library",
+		"TRANSLATION_PREFERENCE_EN": "https://help.sefaria.org/hc/en-us/articles/18613593620636-How-to-Choose-a-Preferred-Translation",
+		"TRANSLATION_PREFERENCE_HE": "https://help.sefaria.org/hc/he/articles/18613593620636-%D7%91%D7%97%D7%99%D7%A8%D7%AA-%D7%AA%D7%A8%D7%92%D7%95%D7%9D-%D7%9E%D7%95%D7%A2%D7%93%D7%A3"
 	},
 	
 	"WHAT_ARE_VOICES_PATHS": {
 		"en": "/sheets/674324",
 		"he": "/sheets/674327"
 	},
-	"MODULE_SWITCHER_LEARN_MORE_PATH": "/sheets/689609",
+	"MODULE_SWITCHER_LEARN_MORE_PATH": { 
+		"en": "/sheets/689609", 
+		"he": "/sheets/689610" 
+	},
 	"HELP_CENTER_REDIRECTS": { 
 	"en": {
 		"215584": "https://help.sefaria.org/hc/en-us/sections/12756520483868-Text-Formatting-Accessibility",
