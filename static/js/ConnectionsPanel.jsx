@@ -1046,7 +1046,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
         {iconElem}
         <span className="toolsButtonText">
           {control === "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
-          {count && (<span className="connectionsCount">({count})</span>)}
+          {count > 0 && (<span className="connectionsCount">({count})</span>)}
           {experiment && <span className="experimentLabel">Experiment</span>}
         </span>
         {children}
