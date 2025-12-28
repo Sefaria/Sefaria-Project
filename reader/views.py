@@ -931,6 +931,7 @@ def search(request):
         "noindex": True
     })
 
+@ensure_csrf_cookie
 def public_collections(request):
     props = base_props(request)
     props.update({
@@ -977,6 +978,7 @@ def sheets_redirect_to_getstarted(request):
     return redirect("/getstarted/", permanent=True)
 
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def collection_page(request, slug):
     """
@@ -3192,6 +3194,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def topics_page(request):
     """
@@ -3211,6 +3214,7 @@ def topics_page(request):
 def topic_page_b(request, slug):
     return topic_page(request, slug, test_version="b")
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def topic_page(request, slug, test_version=None):
     """
