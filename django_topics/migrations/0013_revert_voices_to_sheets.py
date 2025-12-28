@@ -25,5 +25,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.RunPython(revert_voices_to_sheets, migrations.RunPython.noop),
+        ## This migration is no longer needed because we have commented out the rename_sheets_to_voices migration.
+        ## migrations.RunPython(revert_voices_to_sheets, migrations.RunPython.noop),
     ]
