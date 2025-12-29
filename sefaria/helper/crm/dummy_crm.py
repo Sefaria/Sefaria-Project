@@ -24,9 +24,9 @@ class DummyConnectionManager(CrmConnectionManager):
         return True
 
     def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
-        logger.info("DummyConnectionManager.subscribe_to_lists called", email=email)
+        logger.info("[NEWSLETTER_DEBUG] DummyConnectionManager.subscribe_to_lists called", email=email)
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
-        logger.info("DummyConnectionManager.subscribe_to_lists returning True")
+        logger.info("[NEWSLETTER_DEBUG] DummyConnectionManager.subscribe_to_lists returning True")
         return True
 
     def find_crm_id(self, email=None):

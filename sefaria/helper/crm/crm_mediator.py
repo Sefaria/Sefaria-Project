@@ -23,17 +23,17 @@ class CrmMediator:
             return False
 
     def subscribe_to_lists(self, email, first_name, last_name, educator=False, lang="en", mailing_lists=None):
-        logger.info("CrmMediator.subscribe_to_lists called",
+        logger.info("[NEWSLETTER_DEBUG] CrmMediator.subscribe_to_lists called",
                    email=email,
                    first_name=first_name,
                    last_name=last_name,
                    connection_type=type(self._crm_connection).__name__)
         try:
             result = self._crm_connection.subscribe_to_lists(email, first_name, last_name, educator, lang, mailing_lists)
-            logger.info("CrmMediator.subscribe_to_lists result", result=result)
+            logger.info("[NEWSLETTER_DEBUG] CrmMediator.subscribe_to_lists result", result=result)
             return result
         except Exception as e:
-            logger.error("CrmMediator.subscribe_to_lists exception", error=str(e), error_type=type(e).__name__)
+            logger.error("[NEWSLETTER_DEBUG] CrmMediator.subscribe_to_lists exception", error=str(e), error_type=type(e).__name__)
             raise
 
     def sync_sustainers(self):

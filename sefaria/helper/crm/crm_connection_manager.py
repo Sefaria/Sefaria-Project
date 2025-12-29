@@ -56,7 +56,7 @@ class CrmConnectionManager(object):
         if len(name) < 20 and re.fullmatch(r"^[\w\-' \u0590-\u05fe]+$", name):
             return True
         else:
-            logger.error("Name validation failed", name=name, name_length=len(name) if name else 0)
+            logger.error("[NEWSLETTER_DEBUG] Name validation failed", name=name, name_length=len(name) if name else 0)
             raise ValueError(f"Invalid Name: {name}")
 
     @staticmethod
@@ -64,5 +64,5 @@ class CrmConnectionManager(object):
         if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', email):
             return True
         else:
-            logger.error("Email validation failed", email=email)
+            logger.error("[NEWSLETTER_DEBUG] Email validation failed", email=email)
             raise ValueError(f"Invalid Email: {email}")

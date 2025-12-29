@@ -11,7 +11,7 @@ class CrmFactory(object):
         self.crm_type = sls.CRM_TYPE
 
     def get_connection_manager(self):
-        logger.info("CrmFactory creating connection", crm_type=self.crm_type)
+        logger.info("[NEWSLETTER_DEBUG] CrmFactory creating connection", crm_type=self.crm_type)
         if self.crm_type == "NATIONBUILDER":
             return NationbuilderConnectionManager()
         elif self.crm_type == "SALESFORCE":
