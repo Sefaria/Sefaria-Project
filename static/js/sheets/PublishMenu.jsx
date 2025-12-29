@@ -1,5 +1,5 @@
 import Sefaria from "../sefaria/sefaria";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {InterfaceText} from "../Misc";
 import Modal from "../common/modal";
 import ReactTags from "react-tag-autocomplete";
@@ -10,19 +10,20 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
   // `status` is 'public' or 'unlisted'.  we are going to toggle the status.  if it's 'public' we want to unlist it
   // so this modal simply posts the new status.  If it's 'unlisted', we want to give the user the PublishMenu component
   // allowing them to specify title, summary, and tags and from there the user can choose to make the sheet public
+  const initStatus = useRef(status);
   const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-  const publishState = {
+  const postingState = {
     notPosting: "",
     posting: "Updating sheet...",
     posted: "Success!",
   }
 
   // if it's not yet public, show PublishMenu and don't yet post it; if it's public, start posting it
-  const initState = status === 'unlisted' ? publishState.notPosting : publishState.posting;
-  const [publishText, setPublishText] = useState(initState);
+  const initPostingState = status === 'unlisted' ? postingState.notPosting : postingState.posting;
+  const [postingText, setPostingText] = useState(initPostingState);
 
   const handleClose = () => {
-    if (publishText !== publishText.posting) {
+    if (postingText !== postingState.posting) {
       // don't allow user to close modal while posting is taking place
       close();
     }
@@ -33,28 +34,31 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       delete sheet._id;
       try {
         await postSheet(JSON.stringify(sheet));
-        setPublishText(publishState.posted);
+        setPostingText(postingState.posted);
       } catch (error) {
-        setPublishText(`Error: ${error.message}`);
+        setPostingText(`Error: ${error.message}`);
       }
   }
   useEffect( () => {
       const toggle = async () => {
-          if (publishText === publishState.posting) {
+          if (postingText === postingState.posting) {
               await togglePublishStatus();
           }
       }
       toggle();
-  }, [publishText])
+  }, [postingText])
+
+  const publishStateText = initStatus.current === 'public' ? 'Unpublish' :  'Publish';
+
   let contents;
-  if (publishText === publishState.notPosting) {
-      contents = <PublishMenu sheet={sheet} publishCallback={() => setPublishText(publishState.posting)}/>;
+  if (postingText === postingState.notPosting) {
+      contents = <PublishMenu sheet={sheet} publishCallback={() => setPostingText(postingState.posting)}/>;
   }
   else {
-      contents = <div className="modalMessage"><InterfaceText>{publishText}</InterfaceText></div>;
+      contents = <div className="modalMessage"><InterfaceText>{postingText}</InterfaceText></div>;
   }
   return <Modal isOpen={true} close={handleClose}>
-              <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
+              <div className="modalTitle"><InterfaceText>{publishStateText}</InterfaceText></div>
               {contents}
           </Modal>;
 }

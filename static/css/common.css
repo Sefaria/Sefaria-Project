@@ -773,3 +773,4 @@ a:active {
   background-size: 200% 100%; /* Expand the size so we can animate */
   animation: rainbowAnimation 1s linear infinite;
 }
+

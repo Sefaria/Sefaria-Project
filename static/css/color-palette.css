@@ -2,7 +2,7 @@
   /* colors */
   --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
-  --sheets-green: #5D956F; /* same as --midrash-green but serves a different purpose so separate */
+  --sheets-green: #518159; 
   --devportal-purple: #7C416F; /* same as --mussar-purple but serves a different purpose so separate */
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
@@ -38,5 +38,6 @@
   --miscelaneous-green: #3B5849;
   --selected-option: #000000;
   --select-blue: #0056b3;
+  --select-green: #00827F;
   --focus-blue: #1976d2;
 }
