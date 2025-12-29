@@ -8,7 +8,7 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
-  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM 
+  schedule: "0 2 * * 0"  # Every week on Sunday at 2 AM
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
