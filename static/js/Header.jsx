@@ -596,7 +596,6 @@ const MobileInterfaceLanguageToggle = () => {
       <span className="separator">•</span>
       <NextRedirectAnchor url="/interface/hebrew" className="int-he inactive">עברית</NextRedirectAnchor>
     </>;
-
   return (
     <div className="mobileInterfaceLanguageToggle">
       <img src="/static/icons/globallanguageswitcher_mdl.svg" alt={Sefaria._("Language")} />
