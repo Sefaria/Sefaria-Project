@@ -7,6 +7,8 @@ from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from django.conf import settings as sls
 
 from typing import Any, Optional
+import structlog
+logger = structlog.get_logger(__name__)
 
 class SalesforceNewsletterListRetrievalError(Exception):
     pass
@@ -50,6 +52,11 @@ class SalesforceConnectionManager(CrmConnectionManager):
         }
         basic_res = requests.post(access_token_url, headers=headers)
         basic_data = basic_res.json()
+        if 'access_token' not in basic_data:
+            logger.error("Salesforce OAuth failed",
+                        status_code=basic_res.status_code,
+                        response=basic_data)
+            raise Exception(f"Salesforce OAuth failed: {basic_data}")
         session = requests.Session()
         session.headers.update({
             'Authorization': 'Bearer %s' % basic_data['access_token']
@@ -156,10 +163,19 @@ class SalesforceConnectionManager(CrmConnectionManager):
                             "JSON_STRING__c": json_string
                         })
         try:
-            return res.status_code == 201
-        except:
+            if res.status_code == 201:
+                return True
+            else:
+                logger.error("Salesforce subscribe_to_lists failed",
+                           status_code=res.status_code,
+                           response_text=res.text,
+                           email=email)
+                return False
+        except Exception as e:
+            logger.error("Salesforce subscribe_to_lists exception",
+                        error=str(e),
+                        email=email)
             return False
-        return res
 
     def get_available_lists(self) -> list[str]:
         try:

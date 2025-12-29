@@ -2,6 +2,8 @@ from django.conf import settings as sls
 from sefaria.helper.crm.nationbuilder import NationbuilderConnectionManager
 from sefaria.helper.crm.salesforce import SalesforceConnectionManager
 from sefaria.helper.crm.dummy_crm import DummyConnectionManager
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class CrmFactory(object):
@@ -9,6 +11,7 @@ class CrmFactory(object):
         self.crm_type = sls.CRM_TYPE
 
     def get_connection_manager(self):
+        logger.info("CrmFactory creating connection", crm_type=self.crm_type)
         if self.crm_type == "NATIONBUILDER":
             return NationbuilderConnectionManager()
         elif self.crm_type == "SALESFORCE":
