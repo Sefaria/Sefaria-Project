@@ -7,7 +7,7 @@ import re
 def get_domain_reg(url):
     return re.escape(urlparse(url).netloc)
 
-# Build domain patterns for all configured languages
+# Build domain patterns for all configured languages 
 library_domains = []
 sheets_domains = []
 
