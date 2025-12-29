@@ -106,6 +106,7 @@ test.describe('User Flow Sanity Tests', () => {
       location: 'Test City',
     });
 
+    // Removes new Modularization popups
     await page.evaluate(() => {
       const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2');
       overlays.forEach(el => el.remove());
@@ -150,6 +151,7 @@ test.describe('User Flow Sanity Tests', () => {
 
     // Save settings
     await accountSettingsPage.saveSettings();
+    // TODO: Show that the settings are saved
     await page.waitForTimeout(2000);
   });
 
@@ -208,18 +210,14 @@ test.describe('User Flow Sanity Tests', () => {
   // TEST 7: MODULE SWITCHER - ALL DESTINATIONS
   // =================================================================
   test('Sanity 7: Module switcher reaches all destinations', async ({ context }) => {
-    console.log('Test 7: Module switcher');
-
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // 7a. Navigate to Voices
-    console.log('  Testing Voices...');
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     const voicesPage = await pm.onModuleHeader().selectDropdownOption('Voices', true);
     await expect(voicesPage!).toHaveURL(new RegExp(MODULE_URLS.EN.VOICES));
-    console.log('  ✓ Voices accessible');
     await voicesPage!.close();
 
     // 7b. Navigate to Developers
@@ -235,12 +233,8 @@ test.describe('User Flow Sanity Tests', () => {
     await productsPage!.close();
 
     // 7d. Verify Library still accessible
-    console.log('  Testing Library...');
     await expect(page).toHaveURL(new RegExp(MODULE_URLS.EN.LIBRARY));
     await expect(page.locator(MODULE_SELECTORS.LOGO.LIBRARY)).toBeVisible();
-    console.log('  ✓ Library confirmed');
-
-    console.log('✓ All module switcher destinations working');
   });
 });
 
