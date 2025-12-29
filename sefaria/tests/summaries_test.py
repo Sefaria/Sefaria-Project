@@ -10,18 +10,14 @@ from sefaria.utils.testing_utils import *
 # no wandering commentaries
 
 
-""" SOME SETUP """
-
-text_titles = model.IndexSet({}).distinct('title')
-model.library.rebuild_toc()
-
-
 """ THE TESTS """
 
+@pytest.mark.django_db
 class Test_Toc(object):
 
     @classmethod
     def setup_class(cls):
+        cls.text_titles = model.IndexSet({}).distinct('title')
         model.library.rebuild_toc()
 
     @classmethod
@@ -65,10 +61,9 @@ class Test_Toc(object):
             raise
 
     def verify_text_node_integrity(self, node):
-        global text_titles
         expected_keys = {'title', 'heTitle'}
         assert set(node.keys()) >= expected_keys
-        assert (node['title'] in text_titles), node['title']
+        assert (node['title'] in self.text_titles), node['title']
         assert 'category' not in node
         #do we need to assert that the title is not equal to any category name?
 
