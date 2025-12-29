@@ -632,38 +632,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   content: "";
   padding: 0 15px;
 }
-.header .mobile-notifications.mobile-unread::after,
-.header .notifications.unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  display: block;
-  top: 3px;
-  right: 1px;
-  position: absolute;
-}
-
-/* Mobile navigation menu notification styles */
-.mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 7px;
-  height: 7px;
-  border-radius: 4px;
-  display: block;
-  top: 20px;
-  position: absolute;
-}
-
-.interface-english .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  left: 15px;
-}
-
-.interface-hebrew .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  right: 15px;
-}
 .header .login {
   color: var(--dark-grey);
   display: inline-block;
@@ -4492,29 +4460,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 0px 0px 6px 4px;
   z-index: 2;
 }
-.singlePanel .autocomplete-dropdown {
-  width: 0;
-  position: fixed;
-  top: 120px;
-  inset-inline-start: 0;
-  padding-bottom: 10px;
-  max-height: calc(100dvh - 120px);
-  overflow-y: auto;
-}
-.singlePanel .autocomplete-dropdown:has(*){
-  width: 100vw;
-}
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
   display: flex;
   align-items: start;
   padding-top: 5px;
   padding-bottom: 5px;
-}
-.singlePanel .search-group-suggestions{
-  border-bottom-width: 0;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 .search-group-suggestions-items{
   display: flex;
@@ -4528,17 +4479,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-suggestion-link-wrapper:hover{
   text-decoration: none;
-}
-.singlePanel .search-suggestion-link-wrapper{
-  border-bottom: 0;
-  padding: 0;
-}
-.singlePanel .search-suggestion-link-wrapper.search-override-wrapper {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-top: 0.766667px solid #EDEDEC;
-  border-bottom: 0.766667px solid #EDEDEC;
 }
 
 .search-suggestion {
@@ -4556,15 +4496,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     max-width: 100%;
     min-height: 10px;
 }
-.singlePanel .search-suggestion{
-  width: auto;
-}
 
 .search-suggestion-text{
   font-family: 'EB Garamond';
-}
-.singlePanel .search-suggestion-text{
-  color: #000000;
 }
 .search-suggestion-text.hebrew-result{
   font-family: "Taamey Frank";
@@ -4589,13 +4523,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: .4;
   height: 18px;
   width: 18px;
-  margin-top: 2px;
-}
-.singlePanel .autocomplete-dropdown .type-icon{
-  padding-inline-start: 2px;
-}
-
-.singlePanel .autocomplete-dropdown .type-icon.english-result{
   margin-top: 2px;
 }
 
@@ -4635,10 +4562,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 15px;
   margin-left: 114px;
 }
-.singlePanel .autocomplete-dropdown .type-title {
-  width: 0;
-  visibility: hidden;
-  padding-inline-end: 0;
+
+/* Mobile autocomplete styles */
+@media (max-width: 842px) {
+  .autocomplete-dropdown {
+    width: 0;
+    position: fixed;
+    top: 120px;
+    inset-inline-start: 0;
+    padding-bottom: 10px;
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+  }
+  .autocomplete-dropdown:has(*){
+    width: 100vw;
+  }
+  .search-group-suggestions{
+    border-bottom-width: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .search-suggestion-link-wrapper{
+    border-bottom: 0;
+    padding: 0;
+  }
+  .search-suggestion-link-wrapper.search-override-wrapper {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-top: 0.766667px solid #EDEDEC;
+    border-bottom: 0.766667px solid #EDEDEC;
+  }
+  .search-suggestion{
+    width: auto;
+  }
+  .search-suggestion-text{
+    color: #000000;
+  }
+  .autocomplete-dropdown .type-icon{
+    padding-inline-start: 2px;
+  }
+  .autocomplete-dropdown .type-icon.english-result{
+    margin-top: 2px;
+  }
+  .autocomplete-dropdown .type-title {
+    width: 0;
+    visibility: hidden;
+    padding-inline-end: 0;
+  }
 }
 
 .topic-landing-search-wrapper{
@@ -8405,7 +8376,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
 }
 .saveProfileButton{
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .button.disabled{
   border: 1px solid var(--light-grey);
@@ -8903,7 +8874,7 @@ a .button:hover {
   margin-block-end: 40px;
 }
 a.sheetAuthorName {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -10183,6 +10154,12 @@ body.user-is-tabbing .dropdownLinks-button img:focus {
   outline-offset: 2px;
 }
 
+/* Show focus outline on dropdown options when using keyboard navigation and listbox has focus */
+body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
@@ -10659,7 +10636,7 @@ span.purim-emoji img{
   position: relative;
 }
 .sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetContentSidebar .largeFollowButton {
   --english-font: var(--english-sans-serif-font-family);
@@ -10920,7 +10897,7 @@ span.purim-emoji img{
   align-items: flex-end;
   width: 25px;
   height: 25px;
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
   border-radius: 50%;
   color: white;
   font-size: 30px;
@@ -12636,7 +12613,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--midrash-green);;
+  background: var(--sheets-green);
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
@@ -14618,10 +14595,10 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 .sheetsHomepage .button {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetsHomepage .sheetsHomepageSectionTitle {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: 400;

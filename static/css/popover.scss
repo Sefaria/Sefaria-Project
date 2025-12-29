@@ -115,6 +115,7 @@ $button-height-desktop: 30px;
   background-color: $popover-bg;
   transform: rotate(45deg);
   box-shadow: $popover-shadow;
+  z-index: -1;
 
   // Arrow positioning based on placement
   &.mobile-hebrew-right,

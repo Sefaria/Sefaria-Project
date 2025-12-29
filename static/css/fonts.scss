@@ -75,6 +75,7 @@ body, .sans-serif {
 .info-text {
   --english-font: var(--english-secondary-font-family);
   --hebrew-font: var(--hebrew-secondary-font-family);
+  font-size: var(--is-hebrew) 90%; //applies only if is-hebrew
 }
 
 body, .en, .int-en, .englishWithinHebrew {

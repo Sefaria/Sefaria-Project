@@ -17,6 +17,7 @@
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
+  background: white;
 }
 @media (max-width: 842px) {
   .headerInner {
