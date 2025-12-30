@@ -35,7 +35,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
-from remote_config.keys import ENABLE_WEBPAGES
+from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
@@ -116,6 +116,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     template_context = template_context if template_context else {}
     props = base_props(request)
     props.update(app_props)
+    props["remoteConfig"] = remoteConfigCache.get(CLIENT_REMOTE_CONFIG_JSON, {})
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
