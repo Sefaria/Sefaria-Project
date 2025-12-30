@@ -153,14 +153,10 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
         from sefaria.model import Version
 
         generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
+        generator.generate_from_ref_and_version_id(oref, version_id)
         # # Some commentaries can generate links to their base text automatically
         # linker = oref.autolinker(user=user)
 
-        generator.generate_from_ref_and_version_id(oref, version_id)
-
-        if USE_VARNISH:
-            invalidate_linked(oref)
-    # rabbis_move(oref, vtitle)
     count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
 
 
