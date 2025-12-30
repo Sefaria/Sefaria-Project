@@ -221,6 +221,8 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
         for span in mutc.spans:
             if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
                 other_mutc_trefs.add(span['ref'])
+    logger.info(f"Other MUTC Trefs: {other_mutc_trefs}")
+    logger.info("Added MUTC Trefs:", added_mutc_trefs=msg.added_mutc_trefs)
     return _get_link_trefs_to_add_and_delete(set(msg.added_mutc_trefs), existing_linked_trefs, other_mutc_trefs)
 
 
