@@ -241,7 +241,11 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         "sefaria": subscribe_sefaria_newsletter,
         "steinsaltz": subscribe_steinsaltz,
     }
-    body = json.loads(request.body)
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        logger.warning(f"[NEWSLETTER_DEBUG] invalid JSON body for email={email}")
+        body = {}
     first_name = body.get("firstName")
     last_name = body.get("lastName")
     logger.info(f"[NEWSLETTER_DEBUG] subscribe request: org={org}, email={email}, first_name={first_name}, last_name={last_name}")

@@ -5,15 +5,19 @@ import json
 
 from django.conf import settings as sls
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
+import structlog
+logger = structlog.get_logger(__name__)
 
 base_url = "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com"
 
 
 class NationbuilderConnectionManager(CrmConnectionManager):
     def __init__(self):
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager initializing")
         CrmConnectionManager.__init__(self, base_url)
 
     def _get_connection(self):
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager._get_connection starting")
         access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
         authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
         service = OAuth2Service(
@@ -25,10 +29,16 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             base_url=base_url
         )
         token = sls.NATIONBUILDER_TOKEN
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager._get_connection got token",
+                   has_token=bool(token))
         session = service.get_session(token)
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager._get_connection session created")
         return session
 
     def add_user_to_crm(self, email, first_name=None, last_name=None, lang="en", educator=False, signup=True):
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm called",
+                   email=email, first_name=first_name, last_name=last_name,
+                   lang=lang, educator=educator, signup=signup)
         lists = []
         if lang == "en":
             if educator:
@@ -55,24 +65,44 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         if last_name:
             post["person"]["last_name"] = last_name
 
-        r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
-                             data=json.dumps(post),
-                             params={'format': 'json'},
-                             headers={'content-type': 'application/json'})
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm making API request",
+                   tags=tags, has_first_name=bool(first_name), has_last_name=bool(last_name))
+
+        try:
+            r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
+                                 data=json.dumps(post),
+                                 params={'format': 'json'},
+                                 headers={'content-type': 'application/json'})
+            logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm API response",
+                       status_code=r.status_code, response_text=r.text[:500] if r.text else None)
+        except Exception as e:
+            logger.error("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm API request failed",
+                        error=str(e), error_type=type(e).__name__)
+            return False
 
         try:  # add nationbuilder id to user profile
             nationbuilder_user = r.json()
+            logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm parsed JSON",
+                       has_person_key="person" in nationbuilder_user)
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
                 nationbuilder_user["id"]
+            logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm success",
+                       nationbuilder_id=nationbuilder_id)
             return nationbuilder_id
-        except:
+        except Exception as e:
+            logger.error("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.add_user_to_crm JSON parsing failed",
+                        error=str(e), error_type=type(e).__name__)
             return False
 
         return True
 
     def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.subscribe_to_lists called",
+                   email=email, first_name=first_name, last_name=last_name)
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
-        return self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
+        result = self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
+        logger.info("[NEWSLETTER_DEBUG] NationbuilderConnectionManager.subscribe_to_lists result", result=result)
+        return result
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):
         next_endpoint = endpoint_func(*args)
