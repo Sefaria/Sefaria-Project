@@ -99,6 +99,10 @@ logger = structlog.get_logger(__name__)
 # Maintenance Mode Check, due to the sensativity of this check - we check that the value is exactly VALIDATION_NUMBER
 MAINTENANCE_MODE_VALIDATION_NUMBER = 613
 
+def _is_maintenance_mode_enabled():
+    return (remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) and 
+            remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == MAINTENANCE_MODE_VALIDATION_NUMBER)
+
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
@@ -120,9 +124,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     props.update(app_props)
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
-    if (remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) and 
-        remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == MAINTENANCE_MODE_VALIDATION_NUMBER and 
-        request.user.is_staff == False):
+    if _is_maintenance_mode_enabled() and not request.user.is_staff:
         template_name = "static/maintenance.html"
         template_context = {"message": remoteConfigCache.get(SITE_MAINTENANCE_MESSAGE)}
         status = 503
