@@ -244,28 +244,21 @@ def generic_subscribe_to_newsletter_api(request, org, email):
     try:
         body = json.loads(request.body) if request.body else {}
     except json.JSONDecodeError:
-        logger.warning(f"[NEWSLETTER_DEBUG] invalid JSON body for email={email}")
         body = {}
     first_name = body.get("firstName")
     last_name = body.get("lastName")
-    logger.info(f"[NEWSLETTER_DEBUG] subscribe request: org={org}, email={email}, first_name={first_name}, last_name={last_name}")
     if not first_name or not last_name:
-        logger.warning(f"[NEWSLETTER_DEBUG] missing name: first_name={first_name}, last_name={last_name}")
         return jsonResponse({"error": "You must provide first and last name."})
     try:
         subscribe = org_subscribe_fn_map.get(org)
         if not subscribe:
-            logger.error(f"[NEWSLETTER_DEBUG] unknown org: {org}")
             return jsonResponse({"error": f"Organization '{org}' not recognized."})
         result = subscribe(request, email, first_name, last_name)
-        logger.info(f"[NEWSLETTER_DEBUG] subscribe result: {result}")
         if result:
             return jsonResponse({"status": "ok"})
         else:
-            logger.error(f"[NEWSLETTER_DEBUG] subscribe returned False")
             return jsonResponse({"error": _("Sorry, there was an error.")})
     except ValueError as e:
-        logger.error(f"[NEWSLETTER_DEBUG] ValueError: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
