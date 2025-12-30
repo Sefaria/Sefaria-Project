@@ -15,10 +15,10 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param
-from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, _get_hostname_without_port
+from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-from urllib.parse import quote, urlparse, urljoin
+from urllib.parse import quote, urljoin
 from sefaria.constants.model import LIBRARY_MODULE
 
 import structlog
@@ -195,8 +195,9 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
     Enables cross-subdomain cookie sharing within the same language domain,
     allowing users to remain logged in when navigating between modules (e.g., library ↔ voices).
     
-    Works by setting Django's SESSION_COOKIE_DOMAIN and CSRF_COOKIE_DOMAIN in process_request,
-    before SessionMiddleware creates the cookies.
+    Works by storing the cookie domain on the request object in process_request,
+    then applying it to cookies in process_response. This approach is thread-safe
+    as it avoids modifying global Django settings.
     
     Examples:
         - www.sefaria.org, voices.sefaria.org → cookie domain '.sefaria.org'
@@ -205,23 +206,22 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
     
     def __init__(self, get_response=None):
         super().__init__(get_response)
-        self.approved_domains = self._build_approved_domains()
-        # Store original settings
-        self.original_session_domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
-        self.original_csrf_domain = getattr(settings, 'CSRF_COOKIE_DOMAIN', None)
+        self._approved_domains = self._build_approved_domains()
+    
+    def _get_cookie_domain_for_request(self, request):
+        """
+        Get the cookie domain for a request based on its hostname.
+        
+        Returns:
+            str or None: The cookie domain (e.g., '.sefaria.org') if hostname is approved,
+                        None otherwise.
+        """
+        hostname = get_hostname_without_port(request)
+        return self._approved_domains.get(hostname)
     
     def process_request(self, request):
-        """Set cookie domain in Django settings before SessionMiddleware runs."""
-        hostname = _get_hostname_without_port(request)
-        cookie_domain = self.approved_domains.get(hostname)
-        
-        if cookie_domain:
-            settings.SESSION_COOKIE_DOMAIN = cookie_domain
-            settings.CSRF_COOKIE_DOMAIN = cookie_domain
-        else:
-            # Reset to original if host not in approved list
-            settings.SESSION_COOKIE_DOMAIN = self.original_session_domain
-            settings.CSRF_COOKIE_DOMAIN = self.original_csrf_domain
+        """Determine cookie domain for this request and store it on the request object."""
+        request._cookie_domain = self._get_cookie_domain_for_request(request)
     
     def _build_approved_domains(self):
         """
@@ -260,12 +260,11 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
     
     def process_response(self, request, response):
         """
-        Fallback: modify cookie domains in response if they weren't set correctly.
+        Apply the cookie domain to session and CSRF cookies in the response.
         
-        This handles edge cases where cookies are set outside the normal request flow.
+        Uses the cookie domain stored on the request object by process_request.
         """
-        hostname = _get_hostname_without_port(request)
-        cookie_domain = self.approved_domains.get(hostname)
+        cookie_domain = getattr(request, '_cookie_domain', None)
         
         if cookie_domain:
             # Update session cookie domain if present

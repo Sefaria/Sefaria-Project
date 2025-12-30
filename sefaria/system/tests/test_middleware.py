@@ -4,8 +4,6 @@ Tests for SessionCookieDomainMiddleware.
 Tests that session and CSRF cookie domains are dynamically set based on 
 an approved list derived from DOMAIN_MODULES.
 """
-
-import pytest
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
 from sefaria.system.middleware import SessionCookieDomainMiddleware
@@ -95,7 +93,7 @@ class TestBuildApprovedDomains:
             'chiburim.localsefaria-il.xyz': '.localsefaria-il.xyz'
         }
         
-        assert middleware.approved_domains == expected
+        assert middleware._approved_domains == expected
     
     @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
     def test_builds_correct_mapping_for_production_config(self):
@@ -109,14 +107,14 @@ class TestBuildApprovedDomains:
             'chiburim.sefaria.org.il': '.sefaria.org.il'
         }
         
-        assert middleware.approved_domains == expected
+        assert middleware._approved_domains == expected
     
     @override_settings(DOMAIN_MODULES=EMPTY_CONFIG)
     def test_handles_empty_config(self):
         """Test that empty DOMAIN_MODULES results in empty approved list."""
         middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
         
-        assert middleware.approved_domains == {}
+        assert middleware._approved_domains == {}
     
     def test_cauldron_domain_strips_only_first_subdomain(self):
         """Test that cauldron domain preserves second-level domain."""
@@ -128,7 +126,7 @@ class TestBuildApprovedDomains:
                 'voices.cauldron.sefaria.org': '.cauldron.sefaria.org'
             }
             
-            assert middleware.approved_domains == expected
+            assert middleware._approved_domains == expected
     
     def test_single_hostname_per_language_returns_no_cookie_domain(self):
         """Test that single hostname per language returns no cookie domain (need 2+ for common suffix)."""
@@ -145,12 +143,65 @@ class TestBuildApprovedDomains:
             middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
             
             # No cookie domain should be set when there's only one hostname per language
-            assert middleware.approved_domains == {}
+            assert middleware._approved_domains == {}
     
 
 
 # ============================================================================
-# TESTS: COOKIE DOMAIN SETTING
+# TESTS: PROCESS_REQUEST (stores cookie domain on request)
+# ============================================================================
+
+class TestProcessRequest:
+    """Test that process_request correctly stores cookie domain on request object."""
+    
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
+    def test_approved_domain_sets_cookie_domain_on_request(self):
+        """Test that approved host stores correct cookie domain on request."""
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('localsefaria.xyz:8000')
+        
+        middleware.process_request(request)
+        
+        assert request._cookie_domain == '.localsefaria.xyz'
+    
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG, ALLOWED_HOSTS=['*'])
+    def test_unapproved_domain_sets_none_on_request(self):
+        """Test that unapproved host stores None on request."""
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('random.example.com')
+        
+        middleware.process_request(request)
+        
+        assert request._cookie_domain is None
+    
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG, ALLOWED_HOSTS=['*'])
+    def test_production_domains_stored_correctly(self):
+        """Test that production domains are stored correctly on request."""
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        
+        # Test English production
+        request_en = create_request('www.sefaria.org')
+        middleware.process_request(request_en)
+        assert request_en._cookie_domain == '.sefaria.org'
+        
+        # Test Hebrew production
+        request_he = create_request('www.sefaria.org.il')
+        middleware.process_request(request_he)
+        assert request_he._cookie_domain == '.sefaria.org.il'
+    
+    @override_settings(DOMAIN_MODULES=EMPTY_CONFIG)
+    def test_empty_config_sets_none_on_request(self):
+        """Test that empty DOMAIN_MODULES sets None on request."""
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('localsefaria.xyz:8000')
+        
+        middleware.process_request(request)
+        
+        assert request._cookie_domain is None
+
+
+# ============================================================================
+# TESTS: COOKIE DOMAIN SETTING (process_response)
 # ============================================================================
 
 class TestCookieDomainSetting:
@@ -167,6 +218,7 @@ class TestCookieDomainSetting:
         request = create_request('localsefaria.xyz:8000')
         response = create_response_with_cookies()
         
+        middleware.process_request(request)
         result = middleware.process_response(request, response)
         
         assert result.cookies['sessionid']['domain'] == '.localsefaria.xyz'
@@ -183,6 +235,7 @@ class TestCookieDomainSetting:
         request = create_request('localsefaria-il.xyz:8000')
         response = create_response_with_cookies()
         
+        middleware.process_request(request)
         result = middleware.process_response(request, response)
         
         assert result.cookies['sessionid']['domain'] == '.localsefaria-il.xyz'
@@ -199,12 +252,14 @@ class TestCookieDomainSetting:
         
         # Test English voices
         request_en = create_request('voices.localsefaria.xyz:8000')
+        middleware.process_request(request_en)
         response_en = create_response_with_cookies()
         result_en = middleware.process_response(request_en, response_en)
         assert result_en.cookies['sessionid']['domain'] == '.localsefaria.xyz'
         
         # Test Hebrew voices
         request_he = create_request('chiburim.localsefaria-il.xyz:8000')
+        middleware.process_request(request_he)
         response_he = create_response_with_cookies()
         result_he = middleware.process_response(request_he, response_he)
         assert result_he.cookies['sessionid']['domain'] == '.localsefaria-il.xyz'
@@ -233,6 +288,7 @@ class TestUnapprovedDomains:
         original_session_domain = response.cookies['sessionid']['domain']
         original_csrf_domain = response.cookies['csrftoken']['domain']
         
+        middleware.process_request(request)
         result = middleware.process_response(request, response)
         
         # Domain should remain unchanged
@@ -252,6 +308,7 @@ class TestUnapprovedDomains:
         response = create_response_with_cookies()
         
         original_domain = response.cookies['sessionid']['domain']
+        middleware.process_request(request)
         result = middleware.process_response(request, response)
         
         # Domain should remain unchanged since localhost not in DOMAIN_MODULES
@@ -278,6 +335,7 @@ class TestEdgeCases:
         response = create_response_without_cookies()
         
         # Should not raise an exception
+        middleware.process_request(request)
         result = middleware.process_response(request, response)
         
         assert 'sessionid' not in result.cookies
@@ -295,6 +353,7 @@ class TestEdgeCases:
         response = create_response_with_cookies()
         
         original_domain = response.cookies['sessionid']['domain']
+        middleware.process_request(request)
         result = middleware.process_response(request, response)
         
         assert result.cookies['sessionid']['domain'] == original_domain
@@ -311,12 +370,14 @@ class TestEdgeCases:
         
         # Test English production
         request = create_request('www.sefaria.org')
+        middleware.process_request(request)
         response = create_response_with_cookies()
         result = middleware.process_response(request, response)
         assert result.cookies['sessionid']['domain'] == '.sefaria.org'
         
         # Test Hebrew production
         request = create_request('www.sefaria.org.il')
+        middleware.process_request(request)
         response = create_response_with_cookies()
         result = middleware.process_response(request, response)
         assert result.cookies['sessionid']['domain'] == '.sefaria.org.il'

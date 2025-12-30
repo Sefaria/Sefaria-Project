@@ -9,7 +9,7 @@ from sefaria.utils.util import short_to_long_lang_code, get_short_lang
 IPV4_ADDRESS_PATTERN = r'^\d+\.\d+\.\d+\.\d+$'
 
 
-def _get_hostname_without_port(request):
+def get_hostname_without_port(request):
     """
     Extract hostname from request, stripping port if present.
     Handles both IPv4 and IPv6 addresses.
@@ -42,7 +42,7 @@ def current_domain_lang(request):
     if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
-    current_hostname = _get_hostname_without_port(request)
+    current_hostname = get_hostname_without_port(request)
     matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
@@ -83,7 +83,7 @@ def needs_domain_switch(request, target_domain):
     :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
     :return: Boolean indicating if domain switch is needed
     """
-    current_hostname = _get_hostname_without_port(request)
+    current_hostname = get_hostname_without_port(request)
     target_hostname = urlparse(target_domain).hostname if target_domain else None
     return target_hostname is not None and current_hostname != target_hostname
 
