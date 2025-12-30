@@ -52,14 +52,14 @@ class CrmConnectionManager(object):
 
     @staticmethod
     def validate_name(name):
-        if len(name) < 20 and re.fullmatch(r"^[\w\-' \u0590-\u05fe]+$", name):
+        if len(name) < 20 and re.fullmatch(r"^[\w\- \u0590-\u05fe]+$", name):
             return True
         else:
-            raise ValueError(f"Invalid Name: {name}")
+            raise ValueError("Invalid Name")
 
     @staticmethod
-    def validate_email(email):
-        if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', email):
+    def validate_email(name):
+        if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', name):
             return True
         else:
-            raise ValueError(f"Invalid Email: {email}")
+            raise ValueError("Invalid Email")
