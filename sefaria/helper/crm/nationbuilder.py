@@ -1,3 +1,17 @@
+"""
+DEPRECATED: NationBuilder CRM integration is deprecated.
+This module is no longer used in production. The CrmFactory routes
+NATIONBUILDER CRM_TYPE to DummyConnectionManager instead.
+For new CRM integrations, use SalesforceConnectionManager.
+"""
+import warnings
+warnings.warn(
+    "NationbuilderConnectionManager is deprecated and will be removed in a future release. "
+    "Use SalesforceConnectionManager or DummyConnectionManager instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
