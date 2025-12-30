@@ -226,9 +226,9 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
     return _get_link_trefs_to_add_and_delete(set(msg.added_mutc_trefs), existing_linked_trefs, other_mutc_trefs)
 
 
-def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
-    linked_trefs_to_add = added_mutc_trefs - other_linked_trefs
-    linked_refs_to_delete = existing_linked_trefs - other_linked_trefs - added_mutc_trefs
+def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_mutc_trefs: set[str]) -> tuple[set[str], set[str]]:
+    linked_trefs_to_add = added_mutc_trefs - existing_linked_trefs
+    linked_refs_to_delete = existing_linked_trefs - other_mutc_trefs - added_mutc_trefs
     return linked_trefs_to_add, linked_refs_to_delete
 
 
