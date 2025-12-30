@@ -40,5 +40,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(rename_sheets_to_voices, reverse_voices_to_sheets),
+        ## Commented out to avoid renaming the sheets pool to voices because it is unnecessary and will break all cauldrons not on modularization-main.
+        ## We decided to comment this out and simply have some code in both sefaria.js and on the back-end to translate the sheets pool to voices.
+        ## migrations.RunPython(rename_sheets_to_voices, reverse_voices_to_sheets),
     ]
