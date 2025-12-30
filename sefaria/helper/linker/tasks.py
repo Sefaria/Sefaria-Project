@@ -269,6 +269,7 @@ def _delete_old_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_delete: set[st
                 try:
                     invalidate_ref(Ref(tref))
                 except InputError:
+                    pass
             tracker.delete(msg.user_id, Link, _id)
 
 
