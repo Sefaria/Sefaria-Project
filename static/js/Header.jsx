@@ -405,7 +405,6 @@ const LoggedOutButtons = ({ mobile, loginOnly }) => {
             <InterfaceText>Log in</InterfaceText>
           </NextRedirectAnchor>
         </span>}
-
     </div>
   );
 }
