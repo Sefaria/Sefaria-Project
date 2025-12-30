@@ -253,12 +253,13 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         subscribe = org_subscribe_fn_map.get(org)
         if not subscribe:
             return jsonResponse({"error": f"Organization '{org}' not recognized."})
-        result = subscribe(request, email, first_name, last_name)
-        if result:
+        if subscribe(request, email, first_name, last_name):
             return jsonResponse({"status": "ok"})
         else:
+            logger.error(f"Failed to subscribe to list")
             return jsonResponse({"error": _("Sorry, there was an error.")})
     except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 

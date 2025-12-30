@@ -8,7 +8,6 @@ from django.conf import settings as sls
 
 from typing import Any, Optional
 
-
 class SalesforceNewsletterListRetrievalError(Exception):
     pass
 
@@ -159,11 +158,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
                             "JSON_STRING__c": json_string
                         })
         try:
-            if res.status_code == 201:
-                return True
-            else:
-                return False
-        except Exception as e:
+            return res.status_code == 201
+        except Exception:
             return False
 
     def get_available_lists(self) -> list[str]:
