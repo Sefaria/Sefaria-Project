@@ -236,7 +236,7 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         approved = {}
         domain_modules = getattr(settings, 'DOMAIN_MODULES', {})
         
-        for modules in domain_modules.values():
+        for lang_code, modules in domain_modules.items():
             # Collect all hostnames for this language
             hostnames = [
                 hostname
@@ -247,44 +247,16 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
             if not hostnames:
                 continue
             
-            # Find common domain suffix for this language group
-            cookie_domain = self._find_top_level_domain(hostnames)
+            # Get cookie domain using get_cookie_domain for this language
+            long_lang = short_to_long_lang_code(lang_code)
+            cookie_domain = get_cookie_domain(long_lang)
             
             # Map each hostname to the common suffix
-            for hostname in hostnames:
-                approved[hostname] = cookie_domain
+            if cookie_domain:
+                for hostname in hostnames:
+                    approved[hostname] = cookie_domain
         
         return approved
-    
-    def _find_top_level_domain(self, hostnames):
-        """
-        Find the longest common domain suffix among hostnames.
-        
-        Args:
-            hostnames: List of hostname strings
-            
-        Returns:
-            str: Common suffix with leading dot (e.g., '.sefaria.org'), or None
-            
-        Examples:
-            ['www.sefaria.org', 'voices.sefaria.org'] → '.sefaria.org'
-            ['localsefaria.xyz', 'voices.localsefaria.xyz'] → '.localsefaria.xyz'
-            ['name.cauldron.sefaria.org'] → '.cauldron.sefaria.org'
-            ['name.cauldron.sefaria.org', 'voices.cauldron.sefaria.org'] → '.cauldron.sefaria.org'
-        """
-        common = hostnames[0]
-        
-        if len(hostnames) == 1:
-            # Single hostname: strip first subdomain if multi-part
-            parts = common.split('.')[1:]
-            return f'.{".".join(parts) if parts else common}'
-        
-        # Find longest common suffix by progressively removing left parts
-        for hostname in hostnames[1:]:
-            while common and hostname != common and not hostname.endswith(f'.{common}'):
-                common = common.split('.', 1)[1] if '.' in common else ''
-        
-        return f'.{common}' if common else None
     
     def process_response(self, request, response):
         """

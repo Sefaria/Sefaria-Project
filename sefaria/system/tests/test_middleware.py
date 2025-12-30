@@ -41,6 +41,10 @@ CAULDRON_CONFIG = {
     "en": {
         "library": "http://name.cauldron.sefaria.org",
         "voices": "http://voices.cauldron.sefaria.org"
+    },
+    "he": {
+        "library": "http://name.cauldron.sefaria.org",
+        "voices": "http://voices.cauldron.sefaria.org"
     }
 }
 
@@ -126,22 +130,22 @@ class TestBuildApprovedDomains:
             
             assert middleware.approved_domains == expected
     
-    def test_single_cauldron_hostname_strips_first_subdomain(self):
-        """Test that single cauldron hostname strips only first subdomain."""
-        single_cauldron_config = {
+    def test_single_hostname_per_language_returns_no_cookie_domain(self):
+        """Test that single hostname per language returns no cookie domain (need 2+ for common suffix)."""
+        single_hostname_config = {
             "en": {
+                "library": "http://name.cauldron.sefaria.org"
+            },
+            "he": {
                 "library": "http://name.cauldron.sefaria.org"
             }
         }
         
-        with override_settings(DOMAIN_MODULES=single_cauldron_config):
+        with override_settings(DOMAIN_MODULES=single_hostname_config):
             middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
             
-            expected = {
-                'name.cauldron.sefaria.org': '.cauldron.sefaria.org'
-            }
-            
-            assert middleware.approved_domains == expected
+            # No cookie domain should be set when there's only one hostname per language
+            assert middleware.approved_domains == {}
     
 
 
