@@ -272,19 +272,19 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
             ['name.cauldron.sefaria.org'] → '.cauldron.sefaria.org'
             ['name.cauldron.sefaria.org', 'voices.cauldron.sefaria.org'] → '.cauldron.sefaria.org'
         """
+        common = hostnames[0]
+        
         if len(hostnames) == 1:
             # Single hostname: strip first subdomain if multi-part
-            parts = hostnames[0].split('.')
-            return '.' + '.'.join(parts[1:]) if len(parts) > 1 else '.' + hostnames[0]
+            parts = common.split('.')[1:]
+            return f'.{".".join(parts) if parts else common}'
         
         # Find longest common suffix by progressively removing left parts
-        common = hostnames[0]
         for hostname in hostnames[1:]:
-            while common and not (hostname == common or hostname.endswith('.' + common)):
-                parts = common.split('.', 1)
-                common = parts[1] if len(parts) > 1 else ''
+            while common and hostname != common and not hostname.endswith(f'.{common}'):
+                common = common.split('.', 1)[1] if '.' in common else ''
         
-        return '.' + common if common else None
+        return f'.{common}' if common else None
     
     def process_response(self, request, response):
         """
