@@ -32,13 +32,11 @@ on:
       - ready_for_review
     branches:
       - modularization-main
-      - feat/mdl-merge-action
   
   # Runs when PR enters the merge queue (requires merge queue to be enabled)
   merge_group:
     branches:
       - modularization-main
-      - feat/mdl-merge-action
   
   # Manual trigger to update all open PRs when TESTING variable changes
   workflow_dispatch:
@@ -104,7 +102,7 @@ jobs:
             console.log('==========================================\n');
             
             // Get all open PRs targeting protected branches
-            const targetBranches = ['modularization-main', 'feat/mdl-merge-action'];
+            const targetBranches = ['modularization-main', ''];
             let allPrs = [];
             
             for (const branch of targetBranches) {
