@@ -9,23 +9,44 @@ metadata:
 data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
+    set -e  # Exit on any error
 
     DATADIR="/pgdumps/shared_volume"
 
     DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST"
     if [[ $DATABASES_PORT ]]; then
-      DUMPCMD+=" --port $DATABASES_PORT"
+      DUMP_CMD+=" --port $DATABASES_PORT"
     else
-      DUMPCMD+=" --port 5432"
+      DUMP_CMD+=" --port 5432"
     fi
     DUMP_CMD+=" --username $DATABASES_USER"
     if [[ ! $DATABASES_PASSWORD ]]; then
-      DUMP_CMD+=" --no_password"
+      DUMP_CMD+=" --no-password"
     else
       export PGPASSWORD="${DATABASES_PASSWORD}"
     fi
-    DUMP_CMD+=" --verbose --format=c --no-owner --section=pre-data --section=data --no-privileges"
-    DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'"
+    DUMP_CMD+=" --verbose --format=c --no-owner"
+    DUMP_CMD+=" --section=pre-data --section=data"
+    DUMP_CMD+=" --no-privileges --no-tablespaces --no-unlogged-table-data"
+    DUMP_CMD+=" sefaria_auth"
 
+    echo "Running: $DUMP_CMD"
     eval $DUMP_CMD
+
+    # # Validate dump was created and has reasonable size
+    # if [ ! -f "$DATADIR/pg.dump" ]; then
+    #     echo "ERROR: pg.dump file not created"
+    #     exit 1
+    # fi
+
+    # DUMP_SIZE=$(stat -c%s "$DATADIR/pg.dump" 2>/dev/null || stat -f%z "$DATADIR/pg.dump")
+    # MIN_SIZE=524288000  # 500MB minimum (database is ~636MB)
+
+    # if [ "$DUMP_SIZE" -lt "$MIN_SIZE" ]; then
+    #     echo "ERROR: Dump is only ${DUMP_SIZE} bytes, expected at least ${MIN_SIZE}"
+    #     echo "Production database is ~636MB, dump should be similar size"
+    #     exit 1
+    # fi
+
+    # echo "Dump completed successfully: ${DUMP_SIZE} bytes"
 {{- end }}
