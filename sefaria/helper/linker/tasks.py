@@ -248,11 +248,14 @@ def _add_new_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_add: set[str]) ->
         }
 
         try:
+            logger.info(f"Adding link: {link['refs']}")
             tracker.add(msg.user_id, Link, link, **msg.tracker_kwargs)
             if USE_VARNISH:
                 try:
                     invalidate_ref(Ref(linked_tref))
+                    logger.info(f"Invalidated link: {link['refs']}")
                 except InputError:
+                    logger.info(f"Could not invalidate link: {link['refs']}")
                     pass
         except DuplicateRecordError as e:
             # Link exists - skip
@@ -269,15 +272,17 @@ def _delete_old_links(msg: DeleteAndSaveLinksMsg, linked_trefs_to_delete: set[st
                 try:
                     invalidate_ref(Ref(tref))
                 except InputError:
-                    pass
+                    logger.info("Could not invalidate ref during link deletion", tref=tref)
             tracker.delete(msg.user_id, Link, _id)
+            logger.info(f"Deleted link: {tref}")
 
 
-@app.task(name="linker.delete_and_save_new_links")
 def delete_and_save_new_links(payload: dict):
     msg = DeleteAndSaveLinksMsg.from_dict(payload)
     existing_linked_trefs, existing_link_ids = _get_existing_linked_trefs(msg.ref)
+    logger.info(f"Num Existing Links: {len(existing_linked_trefs)}")
     linked_trefs_to_add, linked_trefs_to_delete = _get_link_trefs_to_add_and_delete_from_msg(msg, set(existing_linked_trefs))
+    logger.info(f"Links to Add: {linked_trefs_to_add}, Links to Delete: {linked_trefs_to_delete}")
     _delete_old_links(msg, linked_trefs_to_delete, existing_linked_trefs, existing_link_ids)
     _add_new_links(msg, linked_trefs_to_add)
 
