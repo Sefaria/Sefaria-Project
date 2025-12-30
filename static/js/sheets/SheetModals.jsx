@@ -139,30 +139,21 @@ const SaveModal = ({historyObject, close}) => {
 
 // Error messages for different Google OAuth failure scenarios
 const GAUTH_ERROR_MESSAGES = {
-  access_denied: {
-    en: "You declined permission to connect with Google. Export requires Google Drive access.",
-    he: "סירבת לתת הרשאה להתחבר לגוגל. הייצוא דורש גישה ל-Google Drive."
-  },
-  invalid_grant: {
-    en: "The authorization expired or was already used. Please try again.",
-    he: "ההרשאה פגה או כבר נוצלה. אנא נסה שוב."
-  },
-  scope_mismatch: {
-    en: "There was a permission mismatch. Please try again.",
-    he: "הייתה אי התאמה בהרשאות. אנא נסה שוב."
-  },
+  access_denied: "You declined permission to connect with Google. Export requires Google Drive access.",
+  invalid_grant: "The authorization expired or was already used. Please try again.",
+  scope_mismatch: "There was a permission mismatch. Please try again.",
 };
 
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
+    exporting: "Exporting to Google Docs...",
+    exportComplete: "Success!",
   }
   const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
 
-  const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
+  const currentlyExporting = () => googleDriveText === googleDriveState.exporting;
   const exportToDrive = async () => {
     if (currentlyExporting()) {
       // Parse the hash to check for gauth_error (error is passed in fragment to avoid makeHistoryState issues)
@@ -193,17 +184,14 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
           }
           const data = await response.json();
           if ("error" in data) {
-            setGoogleDriveText(Sefaria._(data.error.message));
+            setGoogleDriveText(data.error.message);
           } else {
             // Export succeeded
             setGoogleDriveLink(data.webViewLink);
             setGoogleDriveText(googleDriveState.exportComplete);
           }
         } catch (error) {
-          setGoogleDriveText({
-            en: "A network error occurred. Please check your connection and try again.",
-            he: "אירעה שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב."
-          });
+          setGoogleDriveText("A network error occurred. Please check your connection and try again.");
         }
       }
     }
@@ -214,17 +202,17 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   }, [googleDriveText]);
   const getExportMessage = () => {
     if (currentlyExporting()) {
-      return <InterfaceText text={googleDriveText}/>;
+      return <InterfaceText>{googleDriveText}</InterfaceText>;
     } else if (googleDriveLink) {
       // Success - show link
       return <>
-        <InterfaceText text={googleDriveText}/>&nbsp;
+        <InterfaceText>{googleDriveText}</InterfaceText>&nbsp;
         <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
           Docs</InterfaceText></a>
       </>
     } else {
       // Error - just show the error message, no link
-      return <InterfaceText text={googleDriveText}/>;
+      return <InterfaceText>{googleDriveText}</InterfaceText>;
     }
   }
   const handleClose = () => {
