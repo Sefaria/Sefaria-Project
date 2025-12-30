@@ -230,16 +230,10 @@ class TermMatcher:
                 self._str2term_map[title] += [term]
 
     def match_term(self, ref_part: RawRefPart) -> List[schema.NonUniqueTerm]:
-        from sefaria.utils.hebrew import get_prefixless_inds
+        from sefaria.utils.hebrew import get_matches_with_prefixes
 
-        matches = []
-        if ref_part.type != RefPartType.NAMED: return matches
-        starti_inds = [0]
-        if self.lang == 'he':
-            starti_inds += get_prefixless_inds(ref_part.text)
-        for starti in starti_inds:
-            matches += self._str2term_map.get(ref_part.text[starti:], [])
-        return matches
+        if ref_part.type != RefPartType.NAMED: return []
+        return get_matches_with_prefixes(ref_part.text, lang=self.lang, matches_map=self._str2term_map)
 
     def match_terms(self, ref_parts: List[RawRefPart]) -> List[schema.NonUniqueTerm]:
         matches = []
@@ -433,7 +427,7 @@ class RefResolver:
     def _get_unrefined_ref_part_matches_for_title_context(self, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
         if context_ref is None: return matches
-        term_contexts = self._get_term_contexts(context_ref.index.nodes)
+        term_contexts = self._get_term_contexts(context_ref.index_node)
         if len(term_contexts) == 0: return matches
         temp_ref_parts = raw_ref.parts_to_match + term_contexts
         temp_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, ref_parts=temp_ref_parts)
@@ -584,11 +578,22 @@ class RefResolver:
 
     @staticmethod
     def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
-        match_templates = list(node.get_match_templates())
-        if len(match_templates) == 0: return []
-        # not clear which match_template to choose. shortest has advantage of adding minimum context to search
-        longest_template = min(match_templates, key=lambda x: len(list(x.terms)))
-        return [TermContext(term) for term in longest_template.terms]
+        term_contexts = []
+        recursion_depth = 0
+        while True:
+            match_templates = list(node.get_match_templates())
+            if len(match_templates) != 0:
+                # not clear which match_template to choose. shortest has advantage of adding minimum context to search
+                shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
+                term_contexts.extend([TermContext(term) for term in shortest_template.terms])
+            if node.parent is None:
+                break
+            node = node.parent
+            recursion_depth += 1
+            if recursion_depth > 10:
+                # in case of infinite loop
+                break
+        return term_contexts
 
     def _get_refined_ref_part_matches_for_section_context(self, context_ref: Optional[text.Ref], context_type: ContextType, ref_part_match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         """

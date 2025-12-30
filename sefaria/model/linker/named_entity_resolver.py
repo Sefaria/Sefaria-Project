@@ -1,17 +1,16 @@
 import dataclasses
-from typing import List, Dict, Type, Set
 import re2 as re
 from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawNamedEntity
 from sefaria.model.topic import Topic
-from sefaria.utils.hebrew import strip_cantillation
+from sefaria.utils.hebrew import strip_cantillation, get_matches_with_prefixes
 from sefaria.system.exceptions import InputError
 
 
 class ResolvedNamedEntity:
 
-    def __init__(self, raw_named_entity: RawNamedEntity, topics: List[Topic]):
+    def __init__(self, raw_named_entity: RawNamedEntity, topics: list[Topic]):
         self.raw_entity = raw_named_entity
         self.topics = topics
 
@@ -36,7 +35,7 @@ class TitleGenerator:
     expansions = {}
 
     @classmethod
-    def generate(cls, title: str) -> List[str]:
+    def generate(cls, title: str) -> list[str]:
         expansions = [title]
         for reg, reg_expansions in cls.expansions.items():
             for reg_expansion in reg_expansions:
@@ -68,7 +67,7 @@ class FallbackTitleGenerator(TitleGenerator):
 @dataclasses.dataclass
 class NamedEntityTitleExpanderRoute:
     type_slug: str
-    generator: Type[TitleGenerator]
+    generator: type[TitleGenerator]
 
 
 class NamedEntityTitleExpander:
@@ -80,16 +79,16 @@ class NamedEntityTitleExpander:
     def __init__(self, lang: str):
         self._lang = lang
 
-    def expand(self, topic: Topic) -> List[str]:
+    def expand(self, topic: Topic) -> list[str]:
         for route in self.type_generator_router:
             if topic.has_types({route.type_slug}):
                 return self._expand_titles_with_generator(topic, route.generator)
         return self._get_topic_titles(topic)
 
-    def _get_topic_titles(self, topic: Topic) -> List[str]:
+    def _get_topic_titles(self, topic: Topic) -> list[str]:
         return topic.get_titles(lang=self._lang, with_disambiguation=False)
 
-    def _expand_titles_with_generator(self, topic: Topic, generator: Type[TitleGenerator]) -> List[str]:
+    def _expand_titles_with_generator(self, topic: Topic, generator: type[TitleGenerator]) -> list[str]:
         expansions = []
         for title in self._get_topic_titles(topic):
             expansions += generator.generate(title)
@@ -98,7 +97,7 @@ class NamedEntityTitleExpander:
 
 class TopicMatcher:
 
-    def __init__(self, lang: str, named_entity_types_to_topics: Dict[str, Dict[str, List[str]]]):
+    def __init__(self, lang: str, named_entity_types_to_topics: dict[str, dict[str, list[str]]]):
         self._lang = lang
         self._title_expander = NamedEntityTitleExpander(lang)
         topics_by_type = {
@@ -112,7 +111,7 @@ class TopicMatcher:
             for named_entity_type, topic_spec in named_entity_types_to_topics.items()
         }
 
-    def __get_title_map_for_topics(self, topics: List[Topic]) -> Dict[str, Set[str]]:
+    def __get_title_map_for_topics(self, topics: list[Topic]) -> dict[str, set[str]]:
         title_slug_map = defaultdict(set)
         unique_topics = {t.slug: t for t in topics}.values()
         for topic in unique_topics:
@@ -121,15 +120,15 @@ class TopicMatcher:
         return title_slug_map
 
     @staticmethod
-    def __generate_topic_list_from_spec(topic_spec: Dict[str, List[str]]) -> List[Topic]:
+    def __generate_topic_list_from_spec(topic_spec: dict[str, list[str]]) -> list[Topic]:
         topics = []
         for root in topic_spec.get('ontology_roots', []):
             topics += Topic.init(root).topics_by_link_type_recursively()
         topics += [Topic.init(slug) for slug in topic_spec.get('single_slugs', [])]
         return topics
 
-    def match(self, named_entity: RawNamedEntity) -> List[Topic]:
-        slugs = self._title_slug_map_by_type.get(named_entity.type.name, {}).get(named_entity.text, [])
+    def match(self, named_entity: RawNamedEntity) -> list[Topic]:
+        slugs = get_matches_with_prefixes(named_entity.text, matches_map=self._title_slug_map_by_type.get(named_entity.type.name, {}))
         return [self._slug_topic_map[slug] for slug in slugs]
 
 
@@ -138,7 +137,7 @@ class NamedEntityResolver:
     def __init__(self, topic_matcher: TopicMatcher):
         self._topic_matcher = topic_matcher
 
-    def bulk_resolve(self, raw_named_entities: List[RawNamedEntity]) -> List[ResolvedNamedEntity]:
+    def bulk_resolve(self, raw_named_entities: list[RawNamedEntity]) -> list[ResolvedNamedEntity]:
         resolved = []
         for named_entity in raw_named_entities:
             matched_topics = self._topic_matcher.match(named_entity)
