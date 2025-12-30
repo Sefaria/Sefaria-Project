@@ -181,6 +181,7 @@ def accounts(request):
     })
 
 
+@csrf_exempt
 def generic_subscribe_to_newsletter_api(request, org, email):
     """
     Generic view for subscribing a user to a newsletter
@@ -208,6 +209,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+@csrf_exempt
 def subscribe_sefaria_newsletter_view(request, email):
     return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
 
