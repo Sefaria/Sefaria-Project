@@ -169,7 +169,7 @@ const BulkIndexEditor = () => {
     setLoading(true);
     setMsg("Loading indices...");
 
-    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
       .done(d => {
         setIndices(d.indices);
         setPick(new Set(d.indices));
@@ -970,6 +970,7 @@ class ModeratorToolsPanel extends Component {
      );
    }
  }
+ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
 
@@ -1596,7 +1597,7 @@ const AutoLinkCommentaryTool = () => {
     if (!vtitle) { setMsg("❌ Please enter a version title"); return; }
     setLoading(true);  setMsg("Loading indices…");
 
-    $.getJSON(`/api/indices-by-version?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
       .done(d => {
         const comm = d.indices.filter(t => t.includes(" on "));
         setIndices(comm);

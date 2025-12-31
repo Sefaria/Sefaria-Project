@@ -1655,24 +1655,6 @@ def check_index_dependencies_api(request, title):
 
 
 @staff_member_required
-def indices_by_version_api(request):
-    if request.method != "GET":
-        return jsonResponse({"error": "GET required"})
-    vtitle = request.GET.get("versionTitle")
-    lang   = request.GET.get("language")
-    if not vtitle:
-        return jsonResponse({"error": "versionTitle param required"})
-    q = {"versionTitle": vtitle}
-    if lang:
-        q["language"] = lang
-    indices = db.texts.distinct("title", q)      # same query as bulk-version tool
-    return jsonResponse({"indices": sorted(indices)})
-
-
-# ───────────────────────────────────────────────────────────────────────────
-
-
-@staff_member_required
 def version_indices_api(request):
     if request.method != "GET":
         return HttpResponseBadRequest("GET required")
