@@ -1,0 +1,579 @@
+/**
+ * ModeratorToolsPanel Styles
+ *
+ * Internal admin tool for bulk text/version/index operations.
+ * Uses Sefaria design system colors with clear "internal tool" indicator.
+ */
+
+/* ==========================================================================
+   Variables (Sefaria Design System)
+   ========================================================================== */
+:root {
+  --modtools-primary: #18345D;
+  --modtools-primary-hover: #0F2341;
+  --modtools-success: #28a745;
+  --modtools-success-bg: #d4edda;
+  --modtools-warning: #ffc107;
+  --modtools-warning-bg: #fff3cd;
+  --modtools-error: #dc3545;
+  --modtools-error-bg: #f8d7da;
+  --modtools-info-bg: #d1ecf1;
+  --modtools-border: #ccc;
+  --modtools-text: #333;
+  --modtools-text-muted: #666;
+  --modtools-bg-light: #f9f9f9;
+  --modtools-bg-section: #f5f5f5;
+  --modtools-font-main: "Roboto", "Helvetica Neue", sans-serif;
+  --modtools-font-hebrew: "Heebo", sans-serif;
+}
+
+/* ==========================================================================
+   Main Container
+   ========================================================================== */
+.modTools {
+  width: 80%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 40px 40px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* Internal Tool Indicator Banner */
+.modTools::before {
+  content: "Internal Admin Tool";
+  display: block;
+  background: linear-gradient(135deg, #18345D 0%, #2c4a7c 100%);
+  color: white;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: -20px -40px 20px;
+  text-align: center;
+  font-family: var(--modtools-font-main);
+}
+
+/* ==========================================================================
+   Section Styling
+   ========================================================================== */
+.modTools .modToolsSection {
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--modtools-border);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.modTools .dlSectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--modtools-primary);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--modtools-primary);
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Form Elements
+   ========================================================================== */
+.modTools .dlVersionSelect,
+.modTools input[type="text"],
+.modTools input[type="number"],
+.modTools select,
+.modTools textarea {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-family: var(--modtools-font-main);
+  font-size: 14px;
+  border: 1px solid var(--modtools-border);
+  border-radius: 4px;
+  background-color: white;
+  color: var(--modtools-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modTools .dlVersionSelect:focus,
+.modTools input:focus,
+.modTools select:focus,
+.modTools textarea:focus {
+  outline: none;
+  border-color: var(--modtools-primary);
+  box-shadow: 0 0 0 3px rgba(24, 52, 93, 0.1);
+}
+
+.modTools .dlVersionSelect option {
+  unicode-bidi: plaintext;
+}
+
+.modTools textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Input with inline button layout */
+.modTools .inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.modTools .inputRow input,
+.modTools .inputRow select {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.modTools .inputRow .modtoolsButton {
+  flex-shrink: 0;
+  margin: 0;
+  height: auto;
+  min-width: 100px;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+.modTools .modtoolsButton {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: var(--modtools-primary);
+  color: white;
+  font-family: var(--modtools-font-main);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+  text-align: center;
+}
+
+.modTools .modtoolsButton:hover {
+  background-color: var(--modtools-primary-hover);
+}
+
+.modTools .modtoolsButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modTools .modtoolsButton .modtoolsButtonInner {
+  font-size: 14px;
+}
+
+.modTools .modtoolsButton.secondary {
+  background-color: white;
+  color: var(--modtools-primary);
+  border: 1px solid var(--modtools-primary);
+}
+
+.modTools .modtoolsButton.secondary:hover {
+  background-color: var(--modtools-bg-light);
+}
+
+.modTools .modtoolsButton.danger {
+  background-color: var(--modtools-error);
+}
+
+.modTools .modtoolsButton.danger:hover {
+  background-color: #c82333;
+}
+
+/* Small button variant */
+.modTools .modtoolsButton.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Hebrew text in buttons */
+.modTools .modtoolsButton .he {
+  font-family: var(--modtools-font-hebrew);
+  direction: rtl;
+}
+
+/* ==========================================================================
+   Index/Version Selection List
+   ========================================================================== */
+.modTools .indicesList {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--modtools-border);
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 16px;
+  background-color: var(--modtools-bg-light);
+}
+
+.modTools .indicesList label {
+  display: block;
+  padding: 6px 8px;
+  margin: 2px 0;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.1s ease;
+}
+
+.modTools .indicesList label:hover {
+  background-color: rgba(24, 52, 93, 0.05);
+}
+
+.modTools .indicesList label input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Selection controls */
+.modTools .indexSelectorContainer {
+  margin-top: 16px;
+}
+
+.modTools .selectionControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--modtools-bg-section);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.modTools .selectionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.modTools .selectionCount {
+  font-size: 14px;
+  color: var(--modtools-text-muted);
+}
+
+.modTools .selectionCount strong {
+  color: var(--modtools-primary);
+}
+
+/* Selected item highlight */
+.modTools .indicesList label.selected {
+  background-color: rgba(24, 52, 93, 0.1);
+  border-left: 3px solid var(--modtools-primary);
+  padding-left: 8px;
+}
+
+.modTools .indicesList label .indexTitle {
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   Field Groups & Labels
+   ========================================================================== */
+.modTools .fieldGroup {
+  margin-bottom: 16px;
+}
+
+.modTools .fieldGroup label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--modtools-text);
+}
+
+.modTools .fieldHelp {
+  font-size: 12px;
+  color: var(--modtools-text-muted);
+  margin-bottom: 4px;
+}
+
+.modTools .fieldHelp .autoSupport {
+  color: var(--modtools-primary);
+  font-weight: 500;
+}
+
+/* Field group sections with headers */
+.modTools .fieldGroupSection {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: var(--modtools-bg-light);
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.modTools .fieldGroupSection:last-child {
+  margin-bottom: 16px;
+}
+
+.modTools .fieldGroupHeader {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--modtools-text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Fields in a grid within a section */
+.modTools .fieldGroupGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.modTools .fieldGroupGrid .fieldGroup {
+  margin-bottom: 0;
+}
+
+/* Full width field within grid */
+.modTools .fieldGroup.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* Validation error state */
+.modTools .fieldGroup.hasError input,
+.modTools .fieldGroup.hasError select,
+.modTools .fieldGroup.hasError textarea {
+  border-color: var(--modtools-error);
+}
+
+.modTools .fieldError {
+  font-size: 12px;
+  color: var(--modtools-error);
+  margin-top: 4px;
+}
+
+/* No results message */
+.modTools .noResults {
+  padding: 24px;
+  text-align: center;
+  color: var(--modtools-text-muted);
+  background-color: var(--modtools-bg-light);
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+.modTools .noResults strong {
+  display: block;
+  color: var(--modtools-text);
+  margin-bottom: 8px;
+}
+
+/* ==========================================================================
+   Status Messages
+   ========================================================================== */
+.modTools .message {
+  padding: 12px 16px;
+  margin-top: 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modTools .message.success {
+  background-color: var(--modtools-success-bg);
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.modTools .message.warning {
+  background-color: var(--modtools-warning-bg);
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.modTools .message.error {
+  background-color: var(--modtools-error-bg);
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.modTools .message.info {
+  background-color: var(--modtools-info-bg);
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+/* ==========================================================================
+   Warning/Info Boxes
+   ========================================================================== */
+.modTools .warningBox {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: var(--modtools-warning-bg);
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modTools .warningBox strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.modTools .warningBox ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.modTools .warningBox li {
+  margin-bottom: 4px;
+}
+
+.modTools .infoBox {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: var(--modtools-info-bg);
+  border: 1px solid #bee5eb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modTools .dangerBox {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: var(--modtools-error-bg);
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Changes Preview
+   ========================================================================== */
+.modTools .changesPreview {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: #e7f3ff;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modTools .changesPreview strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.modTools .changesPreview ul {
+  margin: 4px 0 0 20px;
+  padding: 0;
+}
+
+/* ==========================================================================
+   Workflowy Tool Specific
+   ========================================================================== */
+.modTools .workflowy-tool {
+  width: 100%;
+}
+
+.modTools .workflowy-tool .workflowy-tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modTools .workflowy-tool .workflowy-tool-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modTools .workflowy-tool textarea {
+  width: 100%;
+  min-height: 300px;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.modTools .wf-upl-msg {
+  padding: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+.modTools .loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.modTools .loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Checkbox & Radio Styling
+   ========================================================================== */
+.modTools input[type="checkbox"] {
+  width: auto;
+  margin: 0 8px 0 0;
+  cursor: pointer;
+}
+
+.modTools .checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .modTools {
+    width: 95%;
+    padding: 10px 20px 20px;
+  }
+
+  .modTools::before {
+    margin: -10px -20px 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modTools .inputRow {
+    flex-direction: column;
+  }
+
+  .modTools .inputRow .modtoolsButton {
+    width: 100%;
+  }
+
+  .modTools .fieldGroupGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modTools .selectionControls {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .modTools .selectionButtons {
+    width: 100%;
+  }
+
+  .modTools .selectionButtons .modtoolsButton {
+    flex: 1;
+  }
+}
