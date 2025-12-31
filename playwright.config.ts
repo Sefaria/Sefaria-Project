@@ -3,7 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 // load environment variables from .env file in the e2e-tests directory
 if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
-  process.env = {  ...process.env,
+  process.env = {
+    ...process.env,
     ...env,
   };
 }
@@ -12,13 +13,13 @@ if (!process.env.CI) {
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 const MODULE_URLS = {
-  EN : {
+  EN: {
     LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-    VOICES:  `https://voices.${SANDBOX_DOMAIN}`
+    VOICES: `https://voices.${SANDBOX_DOMAIN}`
   },
   HE: {
     LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`
+    VOICES: `https://chiburim.${SANDBOX_DOMAIN_IL}`
   }
 } as const;
 
@@ -47,14 +48,14 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.CI 
-    ? [['github']] 
+  reporter: process.env.CI
+    ? [['github']]
     : process.env.GENERATE_REPORTS
       ? [
-          ['list', { printSteps: true }],
-          ['html', { outputFolder: './e2e-tests/e2e-test-logs/html-report' }],
-          ['junit', { outputFile: './e2e-tests/e2e-test-logs/junit-results.xml' }]
-        ]
+        ['list', { printSteps: true }],
+        ['html', { outputFolder: './e2e-tests/e2e-test-logs/html-report' }],
+        ['junit', { outputFile: './e2e-tests/e2e-test-logs/junit-results.xml' }]
+      ]
       : [['list', { printSteps: true }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -107,7 +108,7 @@ export default defineConfig({
       },
     },
 
-    // Library-specific modularization tests
+    // Library-specific tests
     {
       name: 'chrome-library',
       testDir: './e2e-tests/library-specific',
@@ -116,7 +117,7 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
-    // Voices-specific modularization tests
+    // Voices-specific tests
     {
       name: 'chrome-voices',
       testDir: './e2e-tests/voices-specific',
@@ -132,15 +133,15 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
-    },    
+    },
     {
       name: 'chrome-sanity',
-      testDir: './e2e-tests/sanity-tests',
+      testDir: './e2e-tests/Sanity',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
-    },    
+    },
 
     // Firefox - Library-specific modularization tests
     {
@@ -171,7 +172,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-sanity',
-      testDir: './e2e-tests/sanity-tests',
+      testDir: './e2e-tests/Sanity',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -207,7 +208,7 @@ export default defineConfig({
     },
     {
       name: 'safari-sanity',
-      testDir: './e2e-tests/sanity-tests',
+      testDir: './e2e-tests/Sanity',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,

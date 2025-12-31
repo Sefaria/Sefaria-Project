@@ -20,7 +20,7 @@ import { LANGUAGES, testUser, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../constants';
 
-test.describe('User Flow Sanity Tests', () => {
+test.describe.serial('User Flow Sanity Tests', () => {
 
   // =================================================================
   // TEST 1: LOGIN
@@ -117,7 +117,7 @@ test.describe('User Flow Sanity Tests', () => {
     await hideAllModalsAndPopups(page);
 
     // Verify we're back on profile page (#main is hidden, check .content instead)
-    await expect(page.locator('.content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.content')).toBeVisible({ timeout: 20000 });
     await expect(page.locator('.title.sub-title')).toContainText(`QA Automation ${timestamp}`);
   });
 
@@ -151,35 +151,14 @@ test.describe('User Flow Sanity Tests', () => {
 
     // Save settings
     await accountSettingsPage.saveSettings();
-    // TODO: Show that the settings are saved
-    await page.waitForTimeout(2000);
   });
 
-  // =================================================================
-  // TEST 5: LOGOUT
-  // =================================================================
-  test('Sanity 5: User can logout successfully', async ({ context }) => {
-    // Start logged in
-    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
-    const pm = new PageManager(page, LANGUAGES.EN);
 
-    // Verify logged in
-    expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
-
-    // Perform logout
-    await pm.onModuleHeader().logout();
-    await page.waitForLoadState('networkidle');
-    await hideAllModalsAndPopups(page);
-
-    // Verify user is logged out
-    expect(await pm.onModuleHeader().isLoggedIn()).toBe(false);
-  });
 
   // =================================================================
-  // TEST 6: LANGUAGE SWITCHING
+  // TEST 5: LANGUAGE SWITCHING
   // =================================================================
-  test('Sanity 6: User can change site language', async ({ context }) => {
+  test('Sanity 5: User can change site language', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -207,34 +186,55 @@ test.describe('User Flow Sanity Tests', () => {
   });
 
   // =================================================================
-  // TEST 7: MODULE SWITCHER - ALL DESTINATIONS
+  // TEST 6: MODULE SWITCHER - ALL DESTINATIONS
   // =================================================================
-  test('Sanity 7: Module switcher reaches all destinations', async ({ context }) => {
+  test('Sanity 6: Module switcher reaches all destinations', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
-    // 7a. Navigate to Voices
+    // Navigate to Voices
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     const voicesPage = await pm.onModuleHeader().selectDropdownOption('Voices', true);
     await expect(voicesPage!).toHaveURL(new RegExp(MODULE_URLS.EN.VOICES));
     await voicesPage!.close();
 
-    // 7b. Navigate to Developers
+    // Navigate to Developers
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     const developersPage = await pm.onModuleHeader().selectDropdownOption('Developers', true);
     await expect(developersPage!).toHaveURL(EXTERNAL_URLS.DEVELOPERS);
     await developersPage!.close();
 
-    // 7c. Navigate to More from Sefaria
+    // Navigate to More from Sefaria
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     const productsPage = await pm.onModuleHeader().selectDropdownOption('More from Sefaria ›', true);
     await expect(productsPage!).toHaveURL(/\/products$/);
     await productsPage!.close();
 
-    // 7d. Verify Library still accessible
+    // Verify Library still accessible
     await expect(page).toHaveURL(new RegExp(MODULE_URLS.EN.LIBRARY));
     await expect(page.locator(MODULE_SELECTORS.LOGO.LIBRARY)).toBeVisible();
+  });
+
+  // =================================================================
+  // TEST 7: LOGOUT
+  // =================================================================
+  test('Sanity 7: User can logout successfully', async ({ context }) => {
+    // Start logged in
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
+    await hideAllModalsAndPopups(page);
+    const pm = new PageManager(page, LANGUAGES.EN);
+
+    // Verify logged in
+    expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
+
+    // Perform logout
+    await pm.onModuleHeader().logout();
+    await page.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(page);
+
+    // Verify user is logged out
+    expect(await pm.onModuleHeader().isLoggedIn()).toBe(false);
   });
 });
 

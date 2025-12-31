@@ -115,18 +115,63 @@ export const READER_SELECTORS = {
   LOADING_HEADING: 'heading[name="Loading..."]'
 } as const;
 
-// Sheet editor selectors
+// Sheet editor selectors (Updated for Modularization)
 export const SHEET_EDITOR_SELECTORS = {
-  BODY: '.sourceSheetBody',
-  EDITABLE_AREA: '[contenteditable="true"]',
-  TITLE_INPUT: 'input[type="text"]',
-  PUBLISH_BUTTON: 'button:has-text("Publish")',
-  ADD_SOURCE_BUTTON: 'button:has-text("Add Source")',
-  ADDED_SOURCE: '.sheetItem',
-  SAVE_STATUS: '.saveStatus',
-  TAGS_INPUT: '.react-tags__search-input',
-  TAG_SUGGESTION: '.react-tags__suggestions li',
-  SEARCH_INPUT: 'textbox[name*="Search for"]'
+  // Main containers
+  BODY: '.sheetContent',                          // Main sheet container (replaces .sourceSheetBody)
+  EDITOR_CONTENT: '.editorContent',               // Editor content area
+  TEXT_CONTAINER: '.text',                        // Text wrapper
+  SIDEBAR_LAYOUT: '.sidebarLayout',               // Sidebar layout container
+
+  // Metadata & Title
+  METADATA_BOX: '.sheetMetaDataBox',              // Metadata container
+  TITLE: '.title',                                // Sheet title element
+  SUMMARY: '.summary',                            // Sheet summary/description
+
+  // Editable areas
+  EDITABLE_AREA: '[contenteditable="true"]',      // Any editable area
+  TITLE_INPUT: '.title[contenteditable="true"]',  // Editable title
+  SUMMARY_INPUT: '.summary[contenteditable="true"]', // Editable summary
+
+  // Add interface
+  ADD_INTERFACE: '.editorAddInterface',           // Add interface container
+  ADD_SOURCE_BUTTON: '#addSourceButton',          // Add source button (ID)
+  ADD_IMAGE_BUTTON: '#addImageButton',            // Add image button (ID)
+  ADD_MEDIA_BUTTON: '#addMediaButton',            // Add media button (ID)
+  ADD_INTERFACE_BUTTON: '.editorAddInterfaceButton', // Generic add button class
+
+  // Sheet items
+  SHEET_ITEM: '.sheetItem',                       // Individual sheet item (sources, comments, etc.)
+  ADDED_SOURCE: '.sheetItem',                     // Alias for backward compatibility
+  BOXED_SHEET_ITEM: '.boxedSheetItem',           // Boxed editable item
+  SHEET_SOURCE: '.SheetSource',                   // Source element
+  SHEET_COMMENT: '.SheetComment',                 // Comment element
+  SHEET_MEDIA: '.SheetMedia',                     // Media element
+
+  // Spacers
+  SPACER: '.spacer',                              // Spacer between items
+  SPACER_SELECTED: '.spacerSelected',             // Selected spacer
+  SPACER_EMPTY: '.spacer.empty',                  // Empty spacer
+
+  // Save state
+  SAVE_STATE_INDICATOR: '.editorSaveStateIndicator', // Save state indicator
+  SAVE_STATE_MESSAGE: '.saveStateMessage',        // Save state message text
+  SAVE_STATUS: '.editorSaveStateIndicator',       // Alias for backward compatibility
+
+  // Publish & options
+  PUBLISH_BUTTON: 'button.sefaria-common-button', // Publish button
+  OPTIONS_MENU: '.headerDropdownMenu',            // Options dropdown menu
+
+  // Form inputs (for publish modal, etc.)
+  TAGS_INPUT: '.react-tags__search-input',        // Tags/topics input
+  TAG_SUGGESTION: '.react-tags__suggestions li',  // Tag suggestion item
+  SEARCH_INPUT: 'textbox[name*="Search for"]',    // Search input
+
+  // Source content
+  SOURCE_CONTENT_TEXT: '.sourceContentText',      // Source text content
+  SOURCE_REF: '.ref',                             // Source reference link
+  HE_SECTION: '.he',                              // Hebrew section
+  EN_SECTION: '.en'                               // English section
 } as const;
 
 // Sidebar selectors

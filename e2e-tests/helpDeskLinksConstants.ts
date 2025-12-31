@@ -443,24 +443,25 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
     sheetPath: '/sheets/477118?lang=en',
     zendeskUrl: 'https://help.sefaria.org/hc/en-us/sections/18472260943900-Sefaria-101-Quick-Guides-and-Sefaria-Basics'
   },
-  {
-    category: 'Sheets',
-    sheetTitle: 'Making a Source Sheet (old editor)',
-    includedTopics: [
-      'Link to new editor help sheet',
-      'Overview of sheet',
-      'Start and save sheet',
-      'adding to sheet',
-      'Locating your sheet',
-      'Formatting sheet',
-      'Delete/Print/Export to Google',
-      'Sharing sheet'
-    ],
-    sheetPath: '/sheets/212911?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/sections/20094783356956-All-About-Source-Sheets',
-    upToDate: 'yes',
-    views: 7231
-  },
+  // Deprecated / removed in modularization
+  // {
+  //   category: 'Sheets',
+  //   sheetTitle: 'Making a Source Sheet (old editor)',
+  //   includedTopics: [
+  //     'Link to new editor help sheet',
+  //     'Overview of sheet',
+  //     'Start and save sheet',
+  //     'adding to sheet',
+  //     'Locating your sheet',
+  //     'Formatting sheet',
+  //     'Delete/Print/Export to Google',
+  //     'Sharing sheet'
+  //   ],
+  //   sheetPath: '/sheets/212911?lang=bi',
+  //   zendeskUrl: 'https://help.sefaria.org/hc/en-us/sections/20094783356956-All-About-Source-Sheets',
+  //   upToDate: 'yes',
+  //   views: 7231
+  // },
   {
     category: '',
     sheetTitle: 'Instructions for Using Sefaria for Google Docs',
@@ -603,7 +604,7 @@ export const HELP_SHEET_REDIRECTS_HE: ReadonlyArray<HelpSheetRedirect> = [
   {
     sheetTitle: 'הדפסת מקורות בספריא',
     sheetPath: '/sheets/242573.1?lang=he',
-    zendeskUrl: 'https://help.sefaria.org/hc/he/search?utf8=%E2%9C%93&query=%D7%94%D7%93%D7%A4%D7%A1%D7%94'
+    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18490652948508-%D7%94%D7%93%D7%A4%D7%A1%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94'
   },
   {
     sheetTitle: 'פרסום דפי מקורות',

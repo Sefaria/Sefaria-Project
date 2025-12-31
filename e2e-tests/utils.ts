@@ -76,8 +76,8 @@ interface StorageState {
 const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
   return cookies.map((cookie: Cookie) => {
     // Extract parent domain from subdomain-specific domain
-    // e.g., "www.modularization.cauldron.sefaria.org" -> ".modularization.cauldron.sefaria.org"
-    // e.g., "modularization.cauldron.sefaria.org" -> ".modularization.cauldron.sefaria.org"
+    // e.g., "www.baseurl.org" -> ".baseurl.org"
+    // e.g., "baseurl.org" -> ".baseurl.org"
 
     let domain = cookie.domain;
 
@@ -134,14 +134,15 @@ export const hideAllModalsAndPopups = async (page: Page) => {
     '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
     '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close',
     '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover', 'floating-ui-popover .popover-actions .accessible-touch-target',
-    'small.popover-button.accessible-touch-target',
-    // '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.header > div > div > div.header-icons > div.floating-ui-popover > div.floating-ui-popover-content > div.popover-actions > button',
+    'small.popover-button.accessible-touch-target', '#bannerMessageClose', '.cookiesNotification',
+    'button[data-active-module="voices"].popover-button', '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.cookiesNotification > span.int-en > div',
+    'button.popover-button:has-text("Got it!")',
   ];
   for (const s of selectors) {
     try {
       const el = page.locator(s);
       if (await el.isVisible({ timeout: 1500 })) await el.click();
-    } catch (e) { }
+    } catch (e) { console.log(e); }
   }
   // await page.evaluate(() => {
   //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2');
@@ -296,7 +297,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
   if (!fs.existsSync(authPath)) {
     // No auth file, perform login and save storage state
     page = await context.newPage();
-    await gotoOrThrow(page, '/login', { waitUntil: 'domcontentloaded' });
+    await gotoOrThrow(page, `/login`, { waitUntil: 'domcontentloaded' });
     const loginPage = new LoginPage(page, language);
     await changeLanguage(page, language);
     await loginPage.loginAs(user);
@@ -310,6 +311,8 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     await page.context().addCookies(storageState.cookies);
 
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    // await page.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(page);
     return page;
   }
   // If auth file exists, add cookies to the provided context and create page from it

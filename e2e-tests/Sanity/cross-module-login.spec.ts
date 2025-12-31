@@ -212,7 +212,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     const pm1 = new PageManager(libraryTab, LANGUAGES.EN);
     await pm1.onLoginPage().loginAs(testUser);
     await libraryTab.waitForLoadState('networkidle');
-    
+
     await hideAllModalsAndPopups(libraryTab);
     // Wait for profile pic to appear (indicates login success)
     await libraryTab.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });
@@ -253,7 +253,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     const pm2 = new PageManager(voicesTab2, LANGUAGES.EN);
     await pm2.onLoginPage().loginAs(testUser);
     await voicesTab2.waitForLoadState('networkidle');
-    
+
     // Wait for profile pic to appear (indicates login success)
     await voicesTab2.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });
     await hideAllModalsAndPopups(voicesTab2);

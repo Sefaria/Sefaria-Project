@@ -9,9 +9,10 @@ export const AUTH_CONSTANTS = {
     password: process.env.PLAYWRIGHT_USER_PASSWORD || "example"
   },
   SUPERUSER: {
-    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL || "example@example.com", 
+    email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL || "example@example.com",
     password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD || "badpassword"
   },
+  // 
   LOGIN_URLS: {
     LIBRARY: 'https://modularization.cauldron.sefaria.org/login',
     VOICES: 'https://voices.modularization.cauldron.sefaria.org/login'
@@ -73,7 +74,7 @@ export const SEARCH_DROPDOWN = {
   }
 } as const;
 
-export const MODULE_SWITCHER ={
+export const MODULE_SWITCHER = {
   options: [
     { name: 'Library', url: URLS.LIBRARY },
     { name: 'Voices', url: URLS.VOICES },
