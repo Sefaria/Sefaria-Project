@@ -25,6 +25,83 @@ import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
+import HelpButton from './shared/HelpButton';
+
+/**
+ * Detailed help documentation for this tool
+ */
+const HELP_CONTENT = (
+  <>
+    <h3>What This Tool Does</h3>
+    <p>
+      This tool edits <strong>Version metadata</strong> across multiple texts simultaneously.
+      A "Version" in Sefaria represents a specific translation or edition of a text
+      (e.g., "Kehati" commentary on Mishnah, or "JPS 1917" translation of Tanakh).
+    </p>
+    <p>
+      Use this tool when you need to update the same metadata fields across many versions
+      that share a common version title. For example, updating the license information
+      for all "Kehati" versions, or adding source URLs for all "Torat Emet 357" texts.
+    </p>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li><strong>Search:</strong> Enter the exact version title (case-sensitive) to find all texts with matching versions.</li>
+      <li><strong>Select:</strong> Choose which texts to update. All are selected by default.</li>
+      <li><strong>Edit:</strong> Fill in only the fields you want to change. Empty fields are ignored.</li>
+      <li><strong>Save:</strong> Click "Update" to apply changes to all selected versions.</li>
+    </ol>
+
+    <h3>Available Fields</h3>
+    <table className="field-table">
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>versionTitle</code></td><td>The display name of this version (e.g., "Kehati", "JPS 1917")</td></tr>
+        <tr><td><code>versionTitleInHebrew</code></td><td>Hebrew version of the title for Hebrew interface</td></tr>
+        <tr><td><code>versionSource</code></td><td>URL where the original text was sourced from (must be valid URL)</td></tr>
+        <tr><td><code>license</code></td><td>Copyright/license type (e.g., "Public Domain", "CC-BY")</td></tr>
+        <tr><td><code>status</code></td><td>"locked" prevents non-staff from editing; "none" allows edits</td></tr>
+        <tr><td><code>priority</code></td><td>Display priority (higher = shown first). Use decimal values like 1.5</td></tr>
+        <tr><td><code>digitizedBySefaria</code></td><td>Whether Sefaria digitized this version (true/false)</td></tr>
+        <tr><td><code>isPrimary</code></td><td>Whether this is the primary version for this language (true/false)</td></tr>
+        <tr><td><code>isSource</code></td><td>Whether this is a source text, not a translation (true/false)</td></tr>
+        <tr><td><code>direction</code></td><td>Text direction: "rtl" or "ltr"</td></tr>
+        <tr><td><code>versionNotes</code></td><td>English notes about this version (shown to users)</td></tr>
+        <tr><td><code>versionNotesInHebrew</code></td><td>Hebrew notes about this version</td></tr>
+        <tr><td><code>purchaseInformationURL</code></td><td>Link to purchase the physical book</td></tr>
+        <tr><td><code>purchaseInformationImage</code></td><td>Image URL for the purchase link</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Mark for Deletion</h3>
+    <p>
+      The "Mark for Deletion" button does NOT immediately delete versions. Instead, it adds
+      a timestamped note to <code>versionNotes</code> flagging the version for manual review.
+      This is a safety mechanism to prevent accidental data loss.
+    </p>
+
+    <div className="warning">
+      <strong>Important Notes:</strong>
+      <ul>
+        <li>Version titles are <strong>case-sensitive</strong>. "Kehati" and "kehati" are different.</li>
+        <li>URL fields are validated. Invalid URLs will prevent saving.</li>
+        <li>Setting <code>status: "locked"</code> prevents non-staff users from editing the version.</li>
+        <li>Changes are applied immediately to production data. There is no undo.</li>
+      </ul>
+    </div>
+
+    <h3>Common Use Cases</h3>
+    <ul>
+      <li>Adding license information to a publisher's versions</li>
+      <li>Setting source URLs for versions missing attribution</li>
+      <li>Marking outdated versions for review before deletion</li>
+      <li>Updating priority to control which version displays first</li>
+      <li>Adding purchase links for commercially available texts</li>
+    </ul>
+  </>
+);
 
 /**
  * Field groupings for logical organization in the UI
@@ -377,6 +454,11 @@ const BulkVersionEditor = () => {
 
   return (
     <ModToolsSection title="Bulk Edit Version Metadata" titleHe="עריכת גרסאות בכמות">
+      <HelpButton
+        title="Bulk Edit Version Metadata"
+        description={HELP_CONTENT}
+      />
+
       {/* Info box */}
       <div className="infoBox">
         <strong>How it works:</strong> Enter a version title to find all texts with matching versions.

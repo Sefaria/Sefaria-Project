@@ -6,6 +6,7 @@
 export { default as ModToolsSection } from './ModToolsSection';
 export { default as StatusMessage } from './StatusMessage';
 export { default as IndexSelector } from './IndexSelector';
+export { default as HelpButton } from './HelpButton';
 
 // Utility function for safe HTML text extraction (re-exported for convenience)
 export const stripHtmlTags = (text) => {

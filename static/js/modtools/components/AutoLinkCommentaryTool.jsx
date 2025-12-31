@@ -30,6 +30,117 @@ import { BASE_TEXT_MAPPING_OPTIONS } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
+import HelpButton from './shared/HelpButton';
+
+/**
+ * Detailed help documentation for this tool
+ */
+const HELP_CONTENT = (
+  <>
+    <h3>What This Tool Does</h3>
+    <p>
+      This tool automatically creates <strong>links between commentaries and their base texts</strong>.
+      When a user views "Genesis 1:1", they see connections to "Rashi on Genesis 1:1:1" and other
+      commentaries. This tool generates those connections automatically.
+    </p>
+    <p>
+      The tool works by setting up commentary metadata on the Index record and then triggering
+      Sefaria's auto-linking system to generate the actual link records.
+    </p>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li><strong>Search:</strong> Enter a version title to find commentary texts (texts with "X on Y" pattern).</li>
+      <li><strong>Select:</strong> Choose which commentaries to link.</li>
+      <li><strong>Choose mapping:</strong> Select how commentary sections map to base text sections.</li>
+      <li><strong>Create Links:</strong> The tool patches each Index with commentary metadata, then triggers link building.</li>
+    </ol>
+
+    <h3>What Gets Changed</h3>
+    <p>For each selected commentary, the tool sets:</p>
+    <ul>
+      <li><code>dependence: "Commentary"</code> - Marks the text as a commentary</li>
+      <li><code>base_text_titles</code> - The text(s) being commented on (extracted from title pattern)</li>
+      <li><code>base_text_mapping</code> - The algorithm for mapping commentary refs to base refs</li>
+    </ul>
+    <p>Then it calls <code>/admin/rebuild/auto-links/</code> to generate the actual link records.</p>
+
+    <h3>Mapping Algorithms</h3>
+    <table className="field-table">
+      <thead>
+        <tr><th>Algorithm</th><th>Use Case</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>many_to_one_default_only</code></td>
+          <td>Most common. Multiple commentary segments per verse.</td>
+          <td>Rashi on Genesis 1:1:1, 1:1:2, 1:1:3 all link to Genesis 1:1</td>
+        </tr>
+        <tr>
+          <td><code>many_to_one</code></td>
+          <td>Like above but includes alt structures.</td>
+          <td>Same as above, but also links to alt verse numberings</td>
+        </tr>
+        <tr>
+          <td><code>one_to_one_default_only</code></td>
+          <td>One commentary segment per base segment.</td>
+          <td>Translation where Chapter 1:1 = Chapter 1:1</td>
+        </tr>
+        <tr>
+          <td><code>one_to_one</code></td>
+          <td>Like above but includes alt structures.</td>
+          <td>Same as above with alt structures</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div className="info">
+      <strong>Which mapping should I use?</strong><br/>
+      For most Tanakh commentaries (Rashi, Ibn Ezra, etc.) and Mishnah commentaries (Kehati, Bartenura),
+      use <code>many_to_one_default_only</code>. This is the default and works for commentaries where
+      each verse/mishnah has multiple comment segments.
+    </div>
+
+    <h3>What "X on Y" Pattern Means</h3>
+    <p>
+      The tool only works with texts that follow the "X on Y" naming pattern:
+    </p>
+    <ul>
+      <li>"Rashi on Genesis" - Commentary name is "Rashi", base text is "Genesis"</li>
+      <li>"Kehati on Mishnah Berakhot" - Commentary is "Kehati", base is "Mishnah Berakhot"</li>
+      <li>"Ibn Ezra on Psalms" - Commentary is "Ibn Ezra", base is "Psalms"</li>
+    </ul>
+    <p>
+      The tool extracts the base text name from after " on " in the title and uses that
+      to set <code>base_text_titles</code>.
+    </p>
+
+    <div className="warning">
+      <strong>Important Notes:</strong>
+      <ul>
+        <li>This tool is <strong>idempotent</strong> - running it multiple times is safe.</li>
+        <li>Only texts with " on " in their title are shown (non-commentaries are filtered out).</li>
+        <li>The base text (e.g., "Genesis") must already exist in Sefaria for links to work.</li>
+        <li>Link building may take a few seconds per text.</li>
+        <li>Links update automatically when text content changes.</li>
+      </ul>
+    </div>
+
+    <h3>Common Use Cases</h3>
+    <ul>
+      <li>Setting up links for a new commentary series just uploaded</li>
+      <li>Re-linking commentaries after the base text structure changed</li>
+      <li>Fixing commentaries that were uploaded without proper linking metadata</li>
+    </ul>
+
+    <h3>Troubleshooting</h3>
+    <ul>
+      <li><strong>"Title pattern didn't reveal base text"</strong> - The index title doesn't match "X on Y" pattern. Rename the index first.</li>
+      <li><strong>Links not appearing</strong> - Make sure the base text exists and the ref structure matches.</li>
+      <li><strong>Wrong links</strong> - Try a different mapping algorithm. "many_to_one" vs "one_to_one" depends on commentary structure.</li>
+    </ul>
+  </>
+);
 
 const AutoLinkCommentaryTool = () => {
   // Search state
@@ -137,6 +248,11 @@ const AutoLinkCommentaryTool = () => {
 
   return (
     <ModToolsSection title="Auto-Link Commentaries" titleHe="יצירת קישורים אוטומטית לפירושים">
+      <HelpButton
+        title="Auto-Link Commentaries"
+        description={HELP_CONTENT}
+      />
+
       {/* Info box */}
       <div className="infoBox">
         <strong>How it works:</strong> This tool automatically creates links between commentaries

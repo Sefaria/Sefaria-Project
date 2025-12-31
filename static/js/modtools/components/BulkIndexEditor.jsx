@@ -30,6 +30,99 @@ import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
+import HelpButton from './shared/HelpButton';
+
+/**
+ * Detailed help documentation for this tool
+ */
+const HELP_CONTENT = (
+  <>
+    <h3>What This Tool Does</h3>
+    <p>
+      This tool edits <strong>Index metadata</strong> (text catalog records) across multiple texts.
+      An "Index" in Sefaria is the master record for a text, containing its title, category,
+      authorship, composition date, and structural information.
+    </p>
+    <p>
+      Unlike the Version Editor which edits translations/editions, this tool edits the
+      underlying text record itself. Use this when you need to update catalog information
+      like descriptions, categories, authors, or commentary relationships.
+    </p>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li><strong>Search:</strong> Enter a version title to find all indices that have versions with that title.</li>
+      <li><strong>Select:</strong> Choose which indices to update.</li>
+      <li><strong>Edit:</strong> Fill in the metadata fields you want to change.</li>
+      <li><strong>Save:</strong> Each index is updated individually via the API, with cache clearing.</li>
+    </ol>
+
+    <h3>Available Fields</h3>
+    <table className="field-table">
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>enDesc</code></td><td>English description of the text (shown in reader)</td></tr>
+        <tr><td><code>heDesc</code></td><td>Hebrew description of the text</td></tr>
+        <tr><td><code>enShortDesc</code></td><td>Brief English description for search results</td></tr>
+        <tr><td><code>heShortDesc</code></td><td>Brief Hebrew description</td></tr>
+        <tr><td><code>categories</code></td><td>Category path in the table of contents (e.g., "Mishnah, Seder Zeraim")</td></tr>
+        <tr><td><code>authors</code></td><td>Author slugs (must exist in AuthorTopic). Comma-separated.</td></tr>
+        <tr><td><code>compDate</code></td><td>Composition date. Single year or range like [1200, 1250]</td></tr>
+        <tr><td><code>compPlace</code></td><td>Place of composition (English)</td></tr>
+        <tr><td><code>heCompPlace</code></td><td>Place of composition (Hebrew)</td></tr>
+        <tr><td><code>pubDate</code></td><td>Publication date</td></tr>
+        <tr><td><code>pubPlace</code></td><td>Place of publication (English)</td></tr>
+        <tr><td><code>hePubPlace</code></td><td>Place of publication (Hebrew)</td></tr>
+        <tr><td><code>dependence</code></td><td>"Commentary" or "Targum" - marks text as dependent on another</td></tr>
+        <tr><td><code>base_text_titles</code></td><td>For commentaries: exact titles of base texts. Comma-separated.</td></tr>
+        <tr><td><code>collective_title</code></td><td>For commentaries: the commentary name (e.g., "Rashi")</td></tr>
+        <tr><td><code>he_collective_title</code></td><td>Hebrew collective title (creates a Term if both en/he provided)</td></tr>
+        <tr><td><code>toc_zoom</code></td><td>Table of contents zoom level (0-10, 0=fully expanded)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Auto-Detection Feature</h3>
+    <p>
+      For texts with "X on Y" naming pattern (e.g., "Rashi on Genesis"), you can use
+      <code>'auto'</code> as a value for certain fields:
+    </p>
+    <ul>
+      <li><code>dependence: 'auto'</code> - Sets to "Commentary" if pattern detected</li>
+      <li><code>base_text_titles: 'auto'</code> - Extracts the base text name (e.g., "Genesis")</li>
+      <li><code>collective_title: 'auto'</code> - Extracts the commentary name (e.g., "Rashi")</li>
+      <li><code>authors: 'auto'</code> - Looks up the commentary name as an AuthorTopic</li>
+    </ul>
+
+    <h3>Term Creation</h3>
+    <p>
+      If you provide both <code>collective_title</code> (English) and <code>he_collective_title</code>
+      (Hebrew), the tool will automatically create a Term for that collective title if it
+      doesn't already exist. This is required for the collective title to display properly.
+    </p>
+
+    <div className="warning">
+      <strong>Important Notes:</strong>
+      <ul>
+        <li><strong>Authors must exist</strong> in the AuthorTopic database. Invalid author names will fail validation.</li>
+        <li><strong>Base text titles must be exact</strong> index titles (e.g., "Mishnah Berakhot", not "Mishnah").</li>
+        <li><strong>Categories</strong> must match existing category paths in the Sefaria table of contents.</li>
+        <li>Changes trigger a <strong>cache reset</strong> for each index, which may take a moment.</li>
+        <li>Changes are applied <strong>immediately to production</strong>. There is no undo.</li>
+      </ul>
+    </div>
+
+    <h3>Common Use Cases</h3>
+    <ul>
+      <li>Adding descriptions to a set of related texts</li>
+      <li>Setting up commentary metadata for a new commentary series</li>
+      <li>Moving texts to a different category</li>
+      <li>Adding authorship information to texts by the same author</li>
+      <li>Configuring TOC display depth for complex texts</li>
+    </ul>
+  </>
+);
 
 /**
  * Detect commentary pattern from title (e.g., "Rashi on Genesis")
@@ -412,6 +505,11 @@ const BulkIndexEditor = () => {
 
   return (
     <ModToolsSection title="Bulk Edit Index Metadata" titleHe="עריכת אינדקסים בכמות">
+      <HelpButton
+        title="Bulk Edit Index Metadata"
+        description={HELP_CONTENT}
+      />
+
       {/* Warning box */}
       <div className="warningBox">
         <strong>⚠️ Important Notes:</strong>

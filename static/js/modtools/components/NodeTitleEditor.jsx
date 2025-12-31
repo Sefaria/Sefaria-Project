@@ -27,6 +27,120 @@ import $ from '../../sefaria/sefariaJquery';
 import Sefaria from '../../sefaria/sefaria';
 import ModToolsSection from './shared/ModToolsSection';
 import StatusMessage from './shared/StatusMessage';
+import HelpButton from './shared/HelpButton';
+
+/**
+ * Detailed help documentation for this tool
+ */
+const HELP_CONTENT = (
+  <>
+    <h3>What This Tool Does</h3>
+    <p>
+      This tool edits <strong>node titles</strong> within a text's schema structure.
+      Every text in Sefaria has a schema that defines its structure (chapters, sections, etc.).
+      Each structural unit is a "node" with English and Hebrew titles.
+    </p>
+    <p>
+      Use this tool when you need to fix typos in section names, add missing Hebrew titles,
+      or update how a text's internal structure is displayed.
+    </p>
+
+    <h3>How It Works</h3>
+    <ol>
+      <li><strong>Load:</strong> Enter the exact index title (e.g., "Mishneh Torah, Laws of Kings").</li>
+      <li><strong>Review:</strong> All nodes in the schema are displayed with their current titles.</li>
+      <li><strong>Edit:</strong> Modify English or Hebrew titles as needed.</li>
+      <li><strong>Save:</strong> The entire Index is saved with the updated schema.</li>
+    </ol>
+
+    <h3>What Are Nodes?</h3>
+    <p>
+      Nodes are the structural building blocks of a text's schema. For example:
+    </p>
+    <ul>
+      <li><strong>Mishneh Torah</strong> has nodes for each "Laws of X" section</li>
+      <li><strong>Shulchan Arukh</strong> has nodes for Orach Chaim, Yoreh De'ah, etc.</li>
+      <li><strong>Complex texts</strong> may have nested nodes (sections within sections)</li>
+    </ul>
+    <p>
+      The "Path" shown for each node (e.g., <code>nodes[0][1][2]</code>) indicates its
+      position in the nested structure.
+    </p>
+
+    <h3>Shared Titles</h3>
+    <p>
+      Some nodes use a "shared title" (Term) instead of direct title strings. This allows
+      the same title to be reused across different texts. If a node has a shared title,
+      you'll see it displayed with an option to remove it.
+    </p>
+    <p>
+      When you remove a shared title, the node will use its direct <code>title</code>
+      and <code>heTitle</code> fields instead. This is useful when a text uses a generic
+      term but needs a more specific title.
+    </p>
+
+    <h3>Validation Rules</h3>
+    <table className="field-table">
+      <thead>
+        <tr><th>Field</th><th>Rules</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>English titles</strong></td>
+          <td>
+            Must be ASCII characters only. Cannot contain: periods (.), hyphens (-),
+            colons (:), forward slashes (/), or backslashes (\).
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Hebrew titles</strong></td>
+          <td>No restrictions. Can contain any Unicode characters.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Dependency Checking</h3>
+    <p>
+      Before you edit, the tool checks what depends on this index:
+    </p>
+    <ul>
+      <li><strong>Dependent texts:</strong> Commentaries or other texts that reference this one</li>
+      <li><strong>Versions:</strong> Translations and editions of this text</li>
+      <li><strong>Links:</strong> Connections to other texts in the library</li>
+    </ul>
+    <p>
+      A warning is shown if dependencies exist. Changing node titles on texts with many
+      dependencies should be done carefully, as it may affect references.
+    </p>
+
+    <div className="warning">
+      <strong>Important Notes:</strong>
+      <ul>
+        <li><strong>English title restrictions</strong> are enforced because titles become part of reference URLs.</li>
+        <li>Changing titles does <strong>not</strong> automatically update existing references or links.</li>
+        <li>The tool saves the <strong>entire Index</strong>, not just the changed nodes.</li>
+        <li>A <strong>cache reset</strong> is triggered after saving, which may take a moment.</li>
+        <li>Changes are applied <strong>immediately to production</strong>. There is no undo.</li>
+      </ul>
+    </div>
+
+    <h3>Common Use Cases</h3>
+    <ul>
+      <li>Fixing typos in section or chapter names</li>
+      <li>Adding missing Hebrew titles to nodes</li>
+      <li>Standardizing title formats across similar texts</li>
+      <li>Removing shared titles when a text needs custom naming</li>
+      <li>Updating outdated or incorrect transliterations</li>
+    </ul>
+
+    <h3>Troubleshooting</h3>
+    <ul>
+      <li><strong>"Invalid: ASCII only"</strong> - English title contains non-ASCII characters. Remove accents or special characters.</li>
+      <li><strong>"contains forbidden characters"</strong> - Title has periods, hyphens, colons, or slashes. Use spaces or other characters instead.</li>
+      <li><strong>Changes not visible</strong> - Clear your browser cache or wait a few minutes for the cache reset to propagate.</li>
+    </ul>
+  </>
+);
 
 const NodeTitleEditor = () => {
   // Index state
@@ -237,6 +351,11 @@ const NodeTitleEditor = () => {
 
   return (
     <ModToolsSection title="Edit Node Titles" titleHe="עריכת כותרות צמתים">
+      <HelpButton
+        title="Edit Node Titles"
+        description={HELP_CONTENT}
+      />
+
       {/* Search bar */}
       <div className="searchRow">
         <input
