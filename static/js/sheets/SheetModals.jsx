@@ -204,7 +204,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     } else if (googleDriveLink) {
       // Success - show link
       return <>
-        <div className="successMessage"><InterfaceText>{googleDriveText}</InterfaceText></div>
+        <InterfaceText>{googleDriveText}</InterfaceText>
         <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
           Docs</InterfaceText></a>
       </>

@@ -196,7 +196,7 @@ const Strings = {
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
     "Exporting to Google Docs...": "מייצא לגוגל דוקס...",
-    "Success!": "ייצוא הסתיים",
+    "Success!": "ייצוא הסתיים!",
     "You declined permission to connect with Google. Export requires Google Drive access.": "סירבת לתת הרשאה להתחבר לגוגל. הייצוא דורש גישה ל-Google Drive.",
     "The authorization expired or was already used. Please try again.": "ההרשאה פגה או כבר נוצלה. אנא נסה שוב.",
     "There was a permission mismatch. Please try again.": "הייתה אי התאמה בהרשאות. אנא נסה שוב.",
