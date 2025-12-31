@@ -54,22 +54,21 @@ This file tracks progress on the ModeratorToolsPanel rebuild for Shortcut #36475
 - [x] Updated decisions log
 - [x] Updated CSS class reference
 
-## Pending Work
+## Completed Commits
 
-### Commits (in order)
-1. [ ] Backend fixes (history.py, views.py, helper/text.py)
-2. [ ] CSS file (modtools.css)
-3. [ ] Shared components (modtools/components/shared/*)
-4. [ ] Constants (modtools/constants/*)
-5. [ ] Individual tool components (BulkVersionEditor, etc.)
-6. [ ] Module entry point (modtools/index.js)
-7. [ ] Main panel updates (ModeratorToolsPanel.jsx)
-8. [ ] Documentation (docs/modtools/*)
+All commits completed and pushed:
+1. [x] Backend fixes (history.py, views.py, helper/text.py) - `7ab3e635b`
+2. [x] CSS file (modtools.css) - `ba76c7d4c`
+3. [x] Shared components (modtools/components/shared/*) - `badd54538`
+4. [x] Constants (modtools/constants/*) - `ecc4707ad`
+5. [x] Individual tool components (BulkVersionEditor, etc.) - `6bb35339f`
+6. [x] Module entry point (modtools/index.js) + Main panel - `ac0453789`
+7. [x] Documentation (docs/modtools/*) - `e5f476088`
 
-### PR Description
-- [ ] Write comprehensive PR description
-- [ ] Include screenshots if possible
-- [ ] List all acceptance criteria met
+### PR Status
+- [x] PR #2527 updated with comprehensive description
+- [x] Test plan checklist included
+- [ ] Ready for review (PR is still draft)
 
 ## Questions for Later
 
