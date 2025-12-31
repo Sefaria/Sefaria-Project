@@ -24,8 +24,8 @@
  * - "many_to_one_default_only" is correct for most Tanakh/Mishnah commentaries
  */
 import React, { useState } from 'react';
-import $ from '../../../sefaria/sefariaJquery';
-import Sefaria from '../../../sefaria/sefaria';
+import $ from '../../sefaria/sefariaJquery';
+import Sefaria from '../../sefaria/sefaria';
 import { BASE_TEXT_MAPPING_OPTIONS } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';

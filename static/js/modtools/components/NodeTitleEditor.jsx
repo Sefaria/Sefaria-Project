@@ -23,8 +23,8 @@
  * - Changes to titles may affect dependent texts (commentaries, links)
  */
 import React, { useState } from 'react';
-import $ from '../../../sefaria/sefariaJquery';
-import Sefaria from '../../../sefaria/sefaria';
+import $ from '../../sefaria/sefariaJquery';
+import Sefaria from '../../sefaria/sefaria';
 import ModToolsSection from './shared/ModToolsSection';
 import StatusMessage from './shared/StatusMessage';
 

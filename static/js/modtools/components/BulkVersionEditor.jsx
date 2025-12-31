@@ -20,7 +20,7 @@
  * - The API now returns {status, count, total, successes, failures}
  */
 import React, { useState, useCallback } from 'react';
-import $ from '../../../sefaria/sefariaJquery';
+import $ from '../../sefaria/sefariaJquery';
 import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';

@@ -24,8 +24,8 @@
  * - Term creation requires both English and Hebrew collective titles
  */
 import React, { useState, useEffect } from 'react';
-import $ from '../../../sefaria/sefariaJquery';
-import Sefaria from '../../../sefaria/sefaria';
+import $ from '../../sefaria/sefariaJquery';
+import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
