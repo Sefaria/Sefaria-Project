@@ -212,7 +212,9 @@ def _get_existing_linked_trefs(base_tref: str) -> tuple[list[str], list[ObjectId
 
 
 def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, existing_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
-    all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref})
+    # we need to consider all other MUTCs that link to this ref, to avoid deleting links that are still needed
+    # a link should be deleted if it isn't backed by any MUTCs, either an alternate version of the target ref or for any ref that is linked to the target ref
+    all_mutcs = MarkedUpTextChunkSet({"ref": {"$in": [msg.ref] + list(existing_linked_trefs)}}, hint="ref_1")
     other_mutc_trefs = set()
     for mutc in all_mutcs:
         if mutc.versionTitle == msg.vtitle and mutc.language == msg.lang:
@@ -226,7 +228,7 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
 
 def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_mutc_trefs: set[str]) -> tuple[set[str], set[str]]:
     linked_trefs_to_add = added_mutc_trefs - existing_linked_trefs
-    linked_refs_to_delete = existing_linked_trefs - other_mutc_trefs - added_mutc_trefs
+    linked_refs_to_delete = existing_linked_trefs - (other_mutc_trefs & added_mutc_trefs)
     return linked_trefs_to_add, linked_refs_to_delete
 
 
