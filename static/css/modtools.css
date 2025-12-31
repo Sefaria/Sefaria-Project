@@ -995,6 +995,12 @@
   margin-top: var(--mt-space-xs);
 }
 
+.modTools .requiredIndicator {
+  color: var(--mt-error);
+  font-weight: bold;
+  margin-left: 2px;
+}
+
 /* ==========================================================================
    9. FEEDBACK & ALERTS
    ========================================================================== */
