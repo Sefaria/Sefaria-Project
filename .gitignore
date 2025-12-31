@@ -150,3 +150,4 @@ e2e-tests/auth_*.json
 e2e-tests/e2e-test-logs/
 static_collected/*
 storybook-static/
+CLAUDE.md
