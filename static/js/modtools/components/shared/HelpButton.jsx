@@ -19,14 +19,19 @@ const HelpButton = ({ title, description }) => {
   // Handle ESC key to close modal
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsOpen(false);
+      }
     };
     if (isOpen) {
-      document.addEventListener('keydown', handleEsc);
+      // Use capture phase to intercept ESC before other handlers
+      document.addEventListener('keydown', handleEsc, true);
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.removeEventListener('keydown', handleEsc);
+      document.removeEventListener('keydown', handleEsc, true);
       document.body.style.overflow = '';
     };
   }, [isOpen]);
