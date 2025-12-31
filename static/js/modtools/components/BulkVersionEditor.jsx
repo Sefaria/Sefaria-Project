@@ -395,7 +395,11 @@ const BulkVersionEditor = () => {
 
     return (
       <div key={fieldName} className={`fieldGroup ${hasError ? 'hasError' : ''}`}>
-        <label>{meta.label}:</label>
+        <label>
+          {meta.label}
+          {meta.required && <span className="requiredIndicator" title="Required field">*</span>}
+          :
+        </label>
 
         {meta.help && (
           <div className="fieldHelp">{meta.help}</div>
@@ -477,7 +481,7 @@ const BulkVersionEditor = () => {
           placeholder="e.g., 'Torat Emet 357'"
           value={vtitle}
           onChange={e => setVtitle(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && load()}
+          onKeyDown={e => e.key === 'Enter' && load()}
         />
         <button
           className="modtoolsButton"

@@ -362,7 +362,7 @@ const NodeTitleEditor = () => {
           placeholder="Index title (e.g., 'Binyan Olam')"
           value={indexTitle}
           onChange={e => setIndexTitle(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && load()}
+          onKeyDown={e => e.key === 'Enter' && load()}
         />
         <button
           className="modtoolsButton"

@@ -23,7 +23,7 @@
  * - The base_text_mapping algorithm determines how commentary refs map to base refs
  * - "many_to_one_default_only" is correct for most Tanakh/Mishnah commentaries
  */
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import $ from '../../sefaria/sefariaJquery';
 import Sefaria from '../../sefaria/sefaria';
 import { BASE_TEXT_MAPPING_OPTIONS } from '../constants/fieldMetadata';
@@ -145,9 +145,11 @@ const AutoLinkCommentaryTool = () => {
   // Search state
   const [vtitle, setVtitle] = useState("");
   const [lang, setLang] = useState("");
+  const [searched, setSearched] = useState(false);
 
   // Results state
   const [indices, setIndices] = useState([]);
+  const [indexMetadata, setIndexMetadata] = useState({});
   const [pick, setPick] = useState(new Set());
 
   // Options state
@@ -159,6 +161,17 @@ const AutoLinkCommentaryTool = () => {
   const [linking, setLinking] = useState(false);
 
   /**
+   * Clear search and reset state
+   */
+  const clearSearch = useCallback(() => {
+    setIndices([]);
+    setIndexMetadata({});
+    setPick(new Set());
+    setMsg("");
+    setSearched(false);
+  }, []);
+
+  /**
    * Load indices that have " on " in their title (commentary pattern)
    */
   const load = () => {
@@ -168,20 +181,34 @@ const AutoLinkCommentaryTool = () => {
     }
 
     setLoading(true);
+    setSearched(true);
     setMsg("Loading indices...");
 
     $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
       .done(d => {
         // Filter for commentary pattern
         const comm = (d.indices || []).filter(t => t.includes(" on "));
+        // Build filtered metadata
+        const filteredMetadata = {};
+        comm.forEach(title => {
+          if (d.metadata?.[title]) {
+            filteredMetadata[title] = d.metadata[title];
+          }
+        });
         setIndices(comm);
+        setIndexMetadata(filteredMetadata);
         setPick(new Set(comm));
-        setMsg(`Found ${comm.length} commentary indices`);
+        if (comm.length > 0) {
+          setMsg(`✅ Found ${comm.length} commentaries with version "${vtitle}"`);
+        } else {
+          setMsg("");
+        }
       })
       .fail(xhr => {
         const err = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
         setMsg(`❌ Error: ${err}`);
         setIndices([]);
+        setIndexMetadata({});
         setPick(new Set());
       })
       .always(() => setLoading(false));
@@ -266,7 +293,7 @@ const AutoLinkCommentaryTool = () => {
           placeholder="Version title (e.g., 'Torat Emet 357')"
           value={vtitle}
           onChange={e => setVtitle(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && load()}
+          onKeyDown={e => e.key === 'Enter' && load()}
         />
         <button
           className="modtoolsButton"
@@ -291,6 +318,28 @@ const AutoLinkCommentaryTool = () => {
         </select>
       </div>
 
+      {/* Clear button - centered */}
+      {searched && (
+        <div className="clearSearchRow">
+          <button
+            className="modtoolsButton secondary"
+            onClick={clearSearch}
+            type="button"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
+
+      {/* No results message */}
+      {searched && !loading && indices.length === 0 && (
+        <div className="noResults">
+          <strong>No commentaries found with version "{vtitle}"</strong>
+          This tool only finds texts with " on " in their title (e.g., "Rashi on Genesis").
+          Verify the version title is correct and contains commentary texts.
+        </div>
+      )}
+
       {/* Index selector */}
       {indices.length > 0 && (
         <>
@@ -299,6 +348,7 @@ const AutoLinkCommentaryTool = () => {
             selectedIndices={pick}
             onSelectionChange={setPick}
             label="commentaries"
+            indexMetadata={indexMetadata}
           />
 
           {/* Mapping selector */}

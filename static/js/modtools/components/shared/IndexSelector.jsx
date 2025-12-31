@@ -1,15 +1,26 @@
 /**
  * IndexSelector - Card-based grid for selecting indices
  *
- * Used by BulkVersionEditor, BulkIndexEditor, and AutoLinkCommentaryTool
+ * Shared component used by BulkVersionEditor, BulkIndexEditor, and AutoLinkCommentaryTool
  * to display indices in a visual card grid with filtering.
  *
  * Features:
- * - Card-based 3-column grid layout
- * - Text search filtering
+ * - Card-based 3-column grid layout (scrollable, max-height 400px)
+ * - Text search filtering (searches both title and categories)
  * - Select All checkbox in header (toggles selection of filtered items)
  * - Visual distinction for selected items (blue left border)
- * - Category display on cards (when provided)
+ * - Category display on cards (when indexMetadata prop is provided)
+ *
+ * Props:
+ * - indices: string[] - Array of index titles to display
+ * - selectedIndices: Set<string> - Set of currently selected indices
+ * - onSelectionChange: (Set) => void - Callback when selection changes
+ * - label: string - Label for the items (e.g., "texts", "indices", "commentaries")
+ * - indexMetadata: object - Optional metadata for each index { title: { categories: [...] } }
+ *
+ * Parent components should:
+ * - Pass indexMetadata from the /api/version-indices response to show categories
+ * - Implement their own Clear Search button and searched state
  *
  * For AI agents: This component manages a Set of selected indices.
  * The onSelectionChange callback receives the new Set when selection changes.

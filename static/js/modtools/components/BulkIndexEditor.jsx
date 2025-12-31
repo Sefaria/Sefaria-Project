@@ -23,7 +23,7 @@
  * - Use 'auto' value for fields that support auto-detection
  * - Term creation requires both English and Hebrew collective titles
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import $ from '../../sefaria/sefariaJquery';
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
@@ -179,9 +179,11 @@ const BulkIndexEditor = () => {
   // Search state
   const [vtitle, setVtitle] = useState("");
   const [lang, setLang] = useState("");
+  const [searched, setSearched] = useState(false);
 
   // Results state
   const [indices, setIndices] = useState([]);
+  const [indexMetadata, setIndexMetadata] = useState({});
   const [pick, setPick] = useState(new Set());
   const [categories, setCategories] = useState([]);
 
@@ -214,6 +216,18 @@ const BulkIndexEditor = () => {
   }, []);
 
   /**
+   * Clear search and reset state
+   */
+  const clearSearch = useCallback(() => {
+    setIndices([]);
+    setIndexMetadata({});
+    setPick(new Set());
+    setUpdates({});
+    setMsg("");
+    setSearched(false);
+  }, []);
+
+  /**
    * Load indices matching the version title
    */
   const load = () => {
@@ -223,18 +237,27 @@ const BulkIndexEditor = () => {
     }
 
     setLoading(true);
+    setSearched(true);
     setMsg("Loading indices...");
 
     $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
       .done(d => {
-        setIndices(d.indices || []);
-        setPick(new Set(d.indices || []));
-        setMsg(`Found ${d.indices?.length || 0} indices`);
+        const resultIndices = d.indices || [];
+        const resultMetadata = d.metadata || {};
+        setIndices(resultIndices);
+        setIndexMetadata(resultMetadata);
+        setPick(new Set(resultIndices));
+        if (resultIndices.length > 0) {
+          setMsg(`✅ Found ${resultIndices.length} indices with version "${vtitle}"`);
+        } else {
+          setMsg("");
+        }
       })
       .fail(xhr => {
         const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
         setMsg(`❌ Error: ${errorMsg}`);
         setIndices([]);
+        setIndexMetadata({});
         setPick(new Set());
       })
       .always(() => setLoading(false));
@@ -528,7 +551,7 @@ const BulkIndexEditor = () => {
           placeholder="Version title (e.g., 'Torat Emet 357')"
           value={vtitle}
           onChange={e => setVtitle(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && load()}
+          onKeyDown={e => e.key === 'Enter' && load()}
         />
         <button
           className="modtoolsButton"
@@ -553,6 +576,28 @@ const BulkIndexEditor = () => {
         </select>
       </div>
 
+      {/* Clear button - centered */}
+      {searched && (
+        <div className="clearSearchRow">
+          <button
+            className="modtoolsButton secondary"
+            onClick={clearSearch}
+            type="button"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
+
+      {/* No results message */}
+      {searched && !loading && indices.length === 0 && (
+        <div className="noResults">
+          <strong>No indices found with version "{vtitle}"</strong>
+          Please verify the exact version title. Version titles are case-sensitive
+          and must match exactly (e.g., "Torat Emet 357" not "torat emet").
+        </div>
+      )}
+
       {/* Index selector */}
       {indices.length > 0 && (
         <IndexSelector
@@ -560,6 +605,7 @@ const BulkIndexEditor = () => {
           selectedIndices={pick}
           onSelectionChange={setPick}
           label="indices"
+          indexMetadata={indexMetadata}
         />
       )}
 
