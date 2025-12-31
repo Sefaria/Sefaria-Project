@@ -430,7 +430,7 @@ Exodus 20:1,Mekhilta d'Rabbi Yishmael 20:1`}
           <td>General thematic or topical connection</td>
         </tr>
         <tr>
-          <td><strong>Mesorat HaShas</strong></td>
+          <td><strong>Mesorat hashas</strong></td>
           <td>Talmudic cross-references (traditional marginal notes)</td>
         </tr>
         <tr>
