@@ -771,7 +771,8 @@
   grid-template-columns: repeat(3, 1fr);
   gap: var(--mt-space-md);
   padding: var(--mt-space-lg);
-  /* Let the page scroll instead of inner section */
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 /* Custom scrollbar for card grid */
@@ -1277,10 +1278,10 @@
 /* When section header exists, title shouldn't have its own border */
 .modTools .sectionHeader .dlSectionTitle {
   margin: 0;
-  padding-bottom: 0;
+  padding: 0; /* Reset legacy padding from s2.css */
   border-bottom: none;
   white-space: nowrap;
-  line-height: 28px; /* Match collapseToggle height for alignment */
+  line-height: 1;
 }
 
 /* Left side: collapse toggle + title */
@@ -1331,11 +1332,6 @@
 .modTools .modToolsSection.collapsed .sectionHeader {
   margin-bottom: 0;
   padding-bottom: var(--mt-space-md);
-  border-bottom-color: transparent;
-}
-
-.modTools .modToolsSection.collapsed:hover .sectionHeader {
-  border-bottom-color: var(--mt-border);
 }
 
 /* Section content - animated collapse */
