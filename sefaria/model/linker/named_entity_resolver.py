@@ -77,6 +77,7 @@ class PersonTitleGenerator(TitleGenerator):
         r'^Bar ': ['bar '],
         r'^Rabbi ': ['R. '],
         r'^Rebbi ': ['R. '],
+        r'^רבי ': ["ר' "],
     }
 
 
