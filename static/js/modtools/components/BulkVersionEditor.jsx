@@ -79,6 +79,7 @@ const BulkVersionEditor = () => {
 
   // Results state
   const [indices, setIndices] = useState([]);
+  const [indexMetadata, setIndexMetadata] = useState({});
   const [pick, setPick] = useState(new Set());
 
   // Edit state
@@ -96,6 +97,7 @@ const BulkVersionEditor = () => {
    */
   const clearSearch = useCallback(() => {
     setIndices([]);
+    setIndexMetadata({});
     setPick(new Set());
     setUpdates({});
     setValidationErrors({});
@@ -121,7 +123,9 @@ const BulkVersionEditor = () => {
     $.getJSON(url)
       .done(d => {
         const resultIndices = d.indices || [];
+        const resultMetadata = d.metadata || {};
         setIndices(resultIndices);
+        setIndexMetadata(resultMetadata);
         setPick(new Set(resultIndices)); // Pre-select all
         if (resultIndices.length > 0) {
           setMsg(`✅ Found ${resultIndices.length} texts with version "${vtitle}"`);
@@ -133,6 +137,7 @@ const BulkVersionEditor = () => {
         const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
         setMsg(`❌ Error: ${errorMsg}`);
         setIndices([]);
+        setIndexMetadata({});
         setPick(new Set());
       })
       .always(() => setLoading(false));
@@ -379,43 +384,56 @@ const BulkVersionEditor = () => {
         Only filled-in fields will be modified.
       </div>
 
-      {/* Search bar */}
-      <div className="inputRow">
+      {/* Search description */}
+      <p className="sectionDescription">
+        Enter the exact version title as it appears in the database. The search is case-sensitive.
+      </p>
+
+      {/* Search bar - input + button inline */}
+      <div className="searchRow">
         <input
           className="dlVersionSelect"
           type="text"
-          placeholder="Enter exact version title (e.g., 'Torat Emet 357')"
+          placeholder="e.g., 'Torat Emet 357'"
           value={vtitle}
           onChange={e => setVtitle(e.target.value)}
           onKeyPress={e => e.key === 'Enter' && load()}
         />
-        <select
-          className="dlVersionSelect"
-          value={lang}
-          onChange={e => setLang(e.target.value)}
-          style={{ width: "120px" }}
-        >
-          <option value="">All languages</option>
-          <option value="he">Hebrew</option>
-          <option value="en">English</option>
-        </select>
         <button
           className="modtoolsButton"
           onClick={load}
           disabled={loading || !vtitle.trim()}
         >
-          {loading ? <><span className="loadingSpinner" />Loading...</> : "Find Versions"}
+          {loading ? <><span className="loadingSpinner" />Searching...</> : "Search"}
         </button>
-        {searched && (
+      </div>
+
+      {/* Language filter - inline row */}
+      <div className="filterRow">
+        <label>Filter by language:</label>
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+        >
+          <option value="">All languages</option>
+          <option value="he">Hebrew only</option>
+          <option value="en">English only</option>
+        </select>
+      </div>
+
+      {/* Clear button - centered */}
+      {searched && (
+        <div className="clearSearchRow">
           <button
             className="modtoolsButton secondary"
             onClick={clearSearch}
             type="button"
           >
-            Clear
+            Clear Search
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* No results message */}
       {searched && !loading && indices.length === 0 && (
@@ -433,6 +451,7 @@ const BulkVersionEditor = () => {
           selectedIndices={pick}
           onSelectionChange={setPick}
           label="texts"
+          indexMetadata={indexMetadata}
         />
       )}
 

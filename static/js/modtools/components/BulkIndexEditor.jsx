@@ -438,9 +438,9 @@ const BulkIndexEditor = () => {
           className="dlVersionSelect"
           value={lang}
           onChange={e => setLang(e.target.value)}
-          style={{ width: "100px" }}
+          style={{ width: "150px" }}
         >
-          <option value="">All langs</option>
+          <option value="">All languages</option>
           <option value="he">Hebrew</option>
           <option value="en">English</option>
         </select>

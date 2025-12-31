@@ -1659,9 +1659,10 @@ def version_indices_api(request):
     if request.method != "GET":
         return HttpResponseBadRequest("GET required")
     """
-    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...]}
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...], "metadata": {...}}
+    Returns indices and optional metadata (categories) for each index.
     """
-    from sefaria.model import Version
+    from sefaria.model import Version, library
     vtitle  = request.GET.get("versionTitle")
     lang    = request.GET.get("language")
     if not vtitle:
@@ -1671,7 +1672,21 @@ def version_indices_api(request):
     if lang:
         q["language"] = lang
     indices = db.texts.distinct("title", q)          # 4–5 ms
-    return jsonResponse({"indices": sorted(indices)})
+    sorted_indices = sorted(indices)
+
+    # Build metadata with categories for each index
+    metadata = {}
+    for title in sorted_indices:
+        try:
+            idx = library.get_index(title)
+            if idx:
+                metadata[title] = {
+                    "categories": idx.categories if hasattr(idx, 'categories') else []
+                }
+        except:
+            metadata[title] = {"categories": []}
+
+    return jsonResponse({"indices": sorted_indices, "metadata": metadata})
 
 
 @staff_member_required

@@ -1,470 +1,935 @@
 /**
  * ModeratorToolsPanel Styles
  *
- * Internal admin tool for bulk text/version/index operations.
- * Uses Sefaria design system colors with clear "internal tool" indicator.
+ * A refined admin dashboard with scholarly character.
+ * Warm tones, generous spacing, and clear hierarchy.
+ *
+ * Key features:
+ * - Card-based index selector grid
+ * - Proper form alignment
+ * - Smooth scrolling
+ * - No overflow/cutoff issues
  */
 
+/* Google Fonts - Scholarly + Modern pairing */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 /* ==========================================================================
-   Variables (Sefaria Design System)
+   Design System Variables
    ========================================================================== */
 :root {
-  --modtools-primary: #18345D;
-  --modtools-primary-hover: #0F2341;
-  --modtools-success: #28a745;
-  --modtools-success-bg: #d4edda;
-  --modtools-warning: #ffc107;
-  --modtools-warning-bg: #fff3cd;
-  --modtools-error: #dc3545;
-  --modtools-error-bg: #f8d7da;
-  --modtools-info-bg: #d1ecf1;
-  --modtools-border: #ccc;
-  --modtools-text: #333;
-  --modtools-text-muted: #666;
-  --modtools-bg-light: #f9f9f9;
-  --modtools-bg-section: #f5f5f5;
-  --modtools-font-main: "Roboto", "Helvetica Neue", sans-serif;
-  --modtools-font-hebrew: "Heebo", sans-serif;
+  /* Colors - Warm scholarly palette */
+  --mt-bg-page: #F8F7F4;
+  --mt-bg-card: #FFFFFF;
+  --mt-bg-subtle: #F3F2EE;
+  --mt-bg-input: #FAFAF8;
+
+  /* Brand colors */
+  --mt-primary: #1E3A5F;
+  --mt-primary-hover: #152942;
+  --mt-primary-light: rgba(30, 58, 95, 0.08);
+  --mt-accent: #0891B2;
+  --mt-accent-hover: #0E7490;
+  --mt-accent-light: rgba(8, 145, 178, 0.1);
+
+  /* Text colors */
+  --mt-text: #1A1A1A;
+  --mt-text-secondary: #5C5C5C;
+  --mt-text-muted: #8B8B8B;
+  --mt-text-on-primary: #FFFFFF;
+
+  /* Borders & Shadows */
+  --mt-border: #E5E3DD;
+  --mt-border-focus: var(--mt-primary);
+  --mt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mt-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mt-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* Status colors */
+  --mt-success: #059669;
+  --mt-success-bg: #ECFDF5;
+  --mt-success-border: #A7F3D0;
+  --mt-warning: #D97706;
+  --mt-warning-bg: #FFFBEB;
+  --mt-warning-border: #FDE68A;
+  --mt-error: #DC2626;
+  --mt-error-bg: #FEF2F2;
+  --mt-error-border: #FECACA;
+  --mt-info: #0891B2;
+  --mt-info-bg: #ECFEFF;
+  --mt-info-border: #A5F3FC;
+
+  /* Typography */
+  --mt-font-display: "Crimson Pro", "Georgia", serif;
+  --mt-font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --mt-font-hebrew: "Heebo", "Arial Hebrew", sans-serif;
+  --mt-font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Spacing scale */
+  --mt-space-xs: 4px;
+  --mt-space-sm: 8px;
+  --mt-space-md: 16px;
+  --mt-space-lg: 24px;
+  --mt-space-xl: 32px;
+  --mt-space-2xl: 48px;
+
+  /* Border radius */
+  --mt-radius-sm: 6px;
+  --mt-radius-md: 10px;
+  --mt-radius-lg: 14px;
+
+  /* Transitions */
+  --mt-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ==========================================================================
-   Main Container
+   Base & Reset
    ========================================================================== */
 .modTools {
-  width: 80%;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 20px 40px 40px;
-  overflow-y: auto;
-  height: 100%;
+  margin-top: var(--mt-space-lg);
+  padding: var(--mt-space-xl) var(--mt-space-lg);
+  min-height: 100vh;
+  background: var(--mt-bg-page);
+  font-family: var(--mt-font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--mt-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
 }
 
-/* Internal Tool Indicator Banner */
+.modTools *,
+.modTools *::before,
+.modTools *::after {
+  box-sizing: border-box;
+}
+
+/* Admin banner */
 .modTools::before {
-  content: "Internal Admin Tool";
+  content: "Moderator Tools";
   display: block;
-  background: linear-gradient(135deg, #18345D 0%, #2c4a7c 100%);
-  color: white;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: -20px -40px 20px;
-  text-align: center;
-  font-family: var(--modtools-font-main);
-}
-
-/* ==========================================================================
-   Section Styling
-   ========================================================================== */
-.modTools .modToolsSection {
-  padding: 24px;
-  margin-bottom: 20px;
-  border: 1px solid var(--modtools-border);
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.modTools .dlSectionTitle {
-  font-size: 16px;
+  background: linear-gradient(135deg, var(--mt-primary) 0%, #2D4A6F 100%);
+  color: var(--mt-text-on-primary);
+  padding: var(--mt-space-sm) var(--mt-space-lg);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: var(--modtools-primary);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-bottom: 2px solid var(--modtools-primary);
-  letter-spacing: 0.5px;
+  letter-spacing: 1.5px;
+  margin: calc(var(--mt-space-xl) * -1) calc(var(--mt-space-lg) * -1) var(--mt-space-xl);
+  text-align: center;
+  font-family: var(--mt-font-body);
 }
 
 /* ==========================================================================
-   Form Elements
+   Section Cards
    ========================================================================== */
+.modTools .modToolsSection {
+  background: var(--mt-bg-card);
+  border-radius: var(--mt-radius-lg);
+  padding: var(--mt-space-xl);
+  margin-bottom: var(--mt-space-lg);
+  box-shadow: var(--mt-shadow-card);
+  border: 1px solid var(--mt-border);
+  transition: box-shadow var(--mt-transition);
+  overflow: visible;
+}
+
+.modTools .modToolsSection:hover {
+  box-shadow: var(--mt-shadow-elevated);
+}
+
+/* Section Title */
+.modTools .dlSectionTitle {
+  font-family: var(--mt-font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--mt-primary);
+  margin: 0 0 var(--mt-space-sm) 0;
+  padding-bottom: var(--mt-space-md);
+  border-bottom: 2px solid var(--mt-border);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.modTools .dlSectionTitle .int-he {
+  font-family: var(--mt-font-hebrew);
+  margin-left: var(--mt-space-md);
+  font-size: 18px;
+  color: var(--mt-text-secondary);
+}
+
+/* Section subtitle/description */
+.modTools .sectionDescription {
+  font-size: 14px;
+  color: var(--mt-text-secondary);
+  margin-bottom: var(--mt-space-lg);
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   Form Elements - Proper Alignment & No Overflow
+   ========================================================================== */
+
+/* Labels */
+.modTools label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mt-text);
+  margin-bottom: var(--mt-space-sm);
+}
+
+/* All form inputs - consistent styling */
 .modTools .dlVersionSelect,
 .modTools input[type="text"],
 .modTools input[type="number"],
+.modTools input[type="url"],
 .modTools select,
 .modTools textarea {
   display: block;
   width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 12px;
-  font-family: var(--modtools-font-main);
-  font-size: 14px;
-  border: 1px solid var(--modtools-border);
-  border-radius: 4px;
-  background-color: white;
-  color: var(--modtools-text);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  max-width: 100%;
+  padding: 12px 16px;
+  margin-bottom: var(--mt-space-md);
+  font-family: var(--mt-font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mt-text);
+  background: var(--mt-bg-input);
+  border: 1.5px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  transition: all var(--mt-transition);
+  box-sizing: border-box;
+}
+
+.modTools .dlVersionSelect::placeholder,
+.modTools input::placeholder,
+.modTools textarea::placeholder {
+  color: var(--mt-text-muted);
+}
+
+.modTools .dlVersionSelect:hover,
+.modTools input[type="text"]:hover,
+.modTools input[type="number"]:hover,
+.modTools input[type="url"]:hover,
+.modTools select:hover,
+.modTools textarea:hover {
+  border-color: #C5C3BC;
+  background: #FFFFFF;
 }
 
 .modTools .dlVersionSelect:focus,
-.modTools input:focus,
+.modTools input[type="text"]:focus,
+.modTools input[type="number"]:focus,
+.modTools input[type="url"]:focus,
 .modTools select:focus,
 .modTools textarea:focus {
   outline: none;
-  border-color: var(--modtools-primary);
-  box-shadow: 0 0 0 3px rgba(24, 52, 93, 0.1);
+  border-color: var(--mt-primary);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px var(--mt-primary-light);
 }
 
-.modTools .dlVersionSelect option {
-  unicode-bidi: plaintext;
+/* Select dropdowns - Clear arrow indicator */
+.modTools select,
+.modTools select.dlVersionSelect {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--mt-bg-input);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231E3A5F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px 14px;
+  padding-right: 44px !important;
+  cursor: pointer;
 }
 
+/* Textarea */
 .modTools textarea {
-  min-height: 80px;
+  min-height: 100px;
   resize: vertical;
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-/* Input with inline button layout */
+/* Form rows - Stack vertically, button on its own row */
 .modTools .inputRow {
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+  margin-bottom: var(--mt-space-lg);
 }
 
 .modTools .inputRow input,
 .modTools .inputRow select {
+  margin-bottom: 0;
+}
+
+/* Search row - Input + Button inline */
+.modTools .searchRow {
+  display: flex;
+  gap: var(--mt-space-md);
+  align-items: stretch;
+  margin-bottom: var(--mt-space-lg);
+}
+
+.modTools .searchRow input {
   flex: 1;
   margin-bottom: 0;
 }
 
-.modTools .inputRow .modtoolsButton {
+.modTools .searchRow .modtoolsButton {
   flex-shrink: 0;
-  margin: 0;
-  height: auto;
-  min-width: 100px;
+  white-space: nowrap;
+  /* Match input height: account for input's 1.5px border on each side */
+  padding-top: calc(12px + 1.5px);
+  padding-bottom: calc(12px + 1.5px);
+}
+
+/* Filter row - label inline with dropdown */
+.modTools .filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+  margin-bottom: var(--mt-space-lg);
+}
+
+.modTools .filterRow label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.modTools .filterRow select {
+  margin-bottom: 0;
+  max-width: 200px;
+}
+
+/* Clear search button - centered */
+.modTools .clearSearchRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--mt-space-lg);
+}
+
+/* Two-column grid for related fields */
+.modTools .formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mt-space-md);
+}
+
+.modTools .formGrid.fullWidth {
+  grid-column: 1 / -1;
 }
 
 /* ==========================================================================
-   Buttons
+   Buttons - Consistent & No Cutoff
    ========================================================================== */
 .modTools .modtoolsButton {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: var(--modtools-primary);
-  color: white;
-  font-family: var(--modtools-font-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mt-space-sm);
+  padding: 12px 24px;
+  background: var(--mt-primary);
+  color: var(--mt-text-on-primary);
+  font-family: var(--mt-font-body);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--mt-radius-md);
   cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+  transition: all var(--mt-transition);
+  text-decoration: none;
+  white-space: nowrap;
   text-align: center;
 }
 
 .modTools .modtoolsButton:hover {
-  background-color: var(--modtools-primary-hover);
+  background: var(--mt-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--mt-shadow-sm);
+}
+
+.modTools .modtoolsButton:active {
+  transform: translateY(0);
 }
 
 .modTools .modtoolsButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
-.modTools .modtoolsButton .modtoolsButtonInner {
-  font-size: 14px;
-}
-
+/* Secondary button */
 .modTools .modtoolsButton.secondary {
-  background-color: white;
-  color: var(--modtools-primary);
-  border: 1px solid var(--modtools-primary);
+  background: transparent;
+  color: var(--mt-primary);
+  border: 2px solid var(--mt-primary);
+  padding: 10px 22px;
 }
 
 .modTools .modtoolsButton.secondary:hover {
-  background-color: var(--modtools-bg-light);
+  background: var(--mt-primary-light);
 }
 
+/* Danger button */
 .modTools .modtoolsButton.danger {
-  background-color: var(--modtools-error);
+  background: var(--mt-error);
 }
 
 .modTools .modtoolsButton.danger:hover {
-  background-color: #c82333;
+  background: #B91C1C;
 }
 
-/* Small button variant */
+/* Small button */
 .modTools .modtoolsButton.small {
-  padding: 6px 12px;
+  padding: 8px 16px;
   font-size: 13px;
 }
 
-/* Hebrew text in buttons */
-.modTools .modtoolsButton .he {
-  font-family: var(--modtools-font-hebrew);
-  direction: rtl;
+/* Loading spinner in buttons */
+.modTools .loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: mt-spin 0.7s linear infinite;
+}
+
+@keyframes mt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Button row */
+.modTools .buttonRow {
+  display: flex;
+  gap: var(--mt-space-md);
+  flex-wrap: wrap;
+  margin-top: var(--mt-space-lg);
 }
 
 /* ==========================================================================
-   Index/Version Selection List
+   File Upload Zones
    ========================================================================== */
-.modTools .indicesList {
-  max-height: 250px;
-  overflow-y: auto;
-  border: 1px solid var(--modtools-border);
-  border-radius: 4px;
-  padding: 8px;
-  margin-bottom: 16px;
-  background-color: var(--modtools-bg-light);
-}
-
-.modTools .indicesList label {
+.modTools input[type="file"] {
   display: block;
-  padding: 6px 8px;
-  margin: 2px 0;
+  width: 100%;
+  padding: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-md);
+  background: var(--mt-bg-subtle);
+  border: 2px dashed var(--mt-border);
+  border-radius: var(--mt-radius-md);
   cursor: pointer;
-  border-radius: 3px;
-  transition: background-color 0.1s ease;
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  color: var(--mt-text-secondary);
 }
 
-.modTools .indicesList label:hover {
-  background-color: rgba(24, 52, 93, 0.05);
+.modTools input[type="file"]:hover {
+  border-color: var(--mt-primary);
+  background: var(--mt-primary-light);
 }
 
-.modTools .indicesList label input[type="checkbox"] {
-  margin-right: 8px;
+.modTools input[type="file"]::file-selector-button {
+  padding: 10px 20px;
+  margin-right: var(--mt-space-md);
+  background: var(--mt-primary);
+  color: white;
+  border: none;
+  border-radius: var(--mt-radius-sm);
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--mt-transition);
 }
 
-/* Selection controls */
+.modTools input[type="file"]::file-selector-button:hover {
+  background: var(--mt-primary-hover);
+}
+
+/* ==========================================================================
+   Index Selector - Card Grid
+   ========================================================================== */
 .modTools .indexSelectorContainer {
-  margin-top: 16px;
+  margin-top: var(--mt-space-lg);
+  background: var(--mt-bg-card);
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-lg);
+  overflow: hidden;
 }
 
-.modTools .selectionControls {
+/* Header */
+.modTools .indexSelectorHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background-color: var(--modtools-bg-section);
-  border-radius: 4px;
-  margin-bottom: 8px;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  background: var(--mt-bg-subtle);
+  border-bottom: 1px solid var(--mt-border);
+  flex-wrap: wrap;
+  gap: var(--mt-space-md);
 }
 
-.modTools .selectionButtons {
+.modTools .indexSelectorTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+.modTools .indexSelectorTitle .highlight {
+  color: var(--mt-primary);
+  font-weight: 700;
+}
+
+.modTools .indexSelectorActions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: var(--mt-space-lg);
 }
 
 .modTools .selectionCount {
   font-size: 14px;
-  color: var(--modtools-text-muted);
+  color: var(--mt-text-secondary);
 }
 
-.modTools .selectionCount strong {
-  color: var(--modtools-primary);
+.modTools .selectAllToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mt-text);
+  cursor: pointer;
+  margin-bottom: 0;
 }
 
-/* Selected item highlight */
-.modTools .indicesList label.selected {
-  background-color: rgba(24, 52, 93, 0.1);
-  border-left: 3px solid var(--modtools-primary);
-  padding-left: 8px;
+.modTools .selectAllToggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--mt-primary);
+  cursor: pointer;
 }
 
-.modTools .indicesList label .indexTitle {
+/* Search input */
+.modTools .indexSearchWrapper {
+  position: relative;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  background: var(--mt-bg-card);
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.modTools .indexSearchInput {
+  width: 100%;
+  padding: 10px 40px 10px 16px;
+  margin: 0;
+  font-size: 14px;
+  border: 1.5px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  background: var(--mt-bg-input);
+}
+
+.modTools .indexSearchInput:focus {
+  outline: none;
+  border-color: var(--mt-primary);
+  box-shadow: 0 0 0 3px var(--mt-primary-light);
+}
+
+.modTools .indexSearchClear {
+  position: absolute;
+  right: calc(var(--mt-space-lg) + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--mt-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.modTools .indexSearchClear:hover {
+  background: var(--mt-bg-subtle);
+  color: var(--mt-text);
+}
+
+/* Card Grid */
+.modTools .indexCardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--mt-space-md);
+  padding: var(--mt-space-lg);
+  /* Let the page scroll instead of inner section */
+}
+
+/* Custom scrollbar for card grid */
+.modTools .indexCardGrid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modTools .indexCardGrid::-webkit-scrollbar-track {
+  background: var(--mt-bg-subtle);
+  border-radius: 4px;
+}
+
+.modTools .indexCardGrid::-webkit-scrollbar-thumb {
+  background: var(--mt-border);
+  border-radius: 4px;
+}
+
+.modTools .indexCardGrid::-webkit-scrollbar-thumb:hover {
+  background: #B5B3AC;
+}
+
+/* Index Card */
+.modTools .indexCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mt-space-md);
+  padding: var(--mt-space-md);
+  background: var(--mt-bg-card);
+  border: 1.5px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  cursor: pointer;
+  transition: all var(--mt-transition);
+}
+
+.modTools .indexCard:hover {
+  border-color: var(--mt-primary);
+  background: var(--mt-primary-light);
+}
+
+.modTools .indexCard.selected {
+  border-color: var(--mt-primary);
+  background: rgba(30, 58, 95, 0.08);
+  box-shadow: inset 4px 0 0 var(--mt-primary), 0 1px 3px rgba(30, 58, 95, 0.1);
+  padding-left: calc(var(--mt-space-md) + 2px);
+}
+
+.modTools .indexCard input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--mt-primary);
+  cursor: pointer;
+}
+
+.modTools .indexCardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.modTools .indexCardTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mt-text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.modTools .indexCardCategory {
+  font-size: 12px;
+  color: var(--mt-text-muted);
+  margin-top: var(--mt-space-xs);
+}
+
+/* No results in search */
+.modTools .indexNoResults {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--mt-space-xl);
+  color: var(--mt-text-muted);
+  font-size: 14px;
+}
+
+/* Legacy indices list (fallback) */
+.modTools .selectionControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--mt-space-md);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-md) var(--mt-radius-md) 0 0;
+  border: 1px solid var(--mt-border);
+  border-bottom: none;
+}
+
+.modTools .selectionButtons {
+  display: flex;
+  gap: var(--mt-space-sm);
+}
+
+.modTools .indicesList {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--mt-border);
+  border-radius: 0 0 var(--mt-radius-md) var(--mt-radius-md);
+  padding: var(--mt-space-sm);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-bg-card);
+  scroll-behavior: smooth;
+}
+
+.modTools .indicesList label {
+  display: flex;
+  align-items: center;
+  padding: var(--mt-space-sm) var(--mt-space-md);
+  margin: 2px 0;
+  cursor: pointer;
+  border-radius: var(--mt-radius-sm);
+  transition: background var(--mt-transition);
   font-weight: 400;
+  font-size: 14px;
+}
+
+.modTools .indicesList label:hover {
+  background: var(--mt-bg-subtle);
+}
+
+.modTools .indicesList label.selected {
+  background: var(--mt-primary-light);
+  border-left: 3px solid var(--mt-primary);
+}
+
+.modTools .indicesList label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0 var(--mt-space-md) 0 0;
 }
 
 /* ==========================================================================
-   Field Groups & Labels
+   Field Groups & Forms
    ========================================================================== */
 .modTools .fieldGroup {
-  margin-bottom: 16px;
+  margin-bottom: var(--mt-space-lg);
 }
 
 .modTools .fieldGroup label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--modtools-text);
+  margin-bottom: var(--mt-space-xs);
+}
+
+.modTools .fieldGroup .fieldInput {
+  margin-bottom: var(--mt-space-xs);
 }
 
 .modTools .fieldHelp {
-  font-size: 12px;
-  color: var(--modtools-text-muted);
-  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--mt-text-muted);
+  margin-bottom: var(--mt-space-sm);
+  line-height: 1.5;
 }
 
-.modTools .fieldHelp .autoSupport {
-  color: var(--modtools-primary);
-  font-weight: 500;
-}
-
-/* Field group sections with headers */
+/* Field group sections */
 .modTools .fieldGroupSection {
-  margin-bottom: 24px;
-  padding: 16px;
-  background-color: var(--modtools-bg-light);
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-}
-
-.modTools .fieldGroupSection:last-child {
-  margin-bottom: 16px;
+  margin-bottom: var(--mt-space-xl);
+  padding: var(--mt-space-lg);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-md);
+  border: 1px solid var(--mt-border);
 }
 
 .modTools .fieldGroupHeader {
-  font-size: 13px;
-  font-weight: 600;
+  font-family: var(--mt-font-body);
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--modtools-text-muted);
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #ddd;
+  letter-spacing: 1px;
+  color: var(--mt-text-muted);
+  margin-bottom: var(--mt-space-md);
+  padding-bottom: var(--mt-space-sm);
+  border-bottom: 1px solid var(--mt-border);
 }
 
-/* Fields in a grid within a section */
 .modTools .fieldGroupGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: var(--mt-space-md);
 }
 
 .modTools .fieldGroupGrid .fieldGroup {
   margin-bottom: 0;
 }
 
-/* Full width field within grid */
 .modTools .fieldGroup.fullWidth {
   grid-column: 1 / -1;
 }
 
-/* Validation error state */
+/* Field name badge */
+.modTools .fieldNameBadge {
+  display: inline-block;
+  font-family: var(--mt-font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--mt-bg-subtle);
+  border: 1px solid var(--mt-border);
+  border-radius: 4px;
+  color: var(--mt-text-muted);
+  margin-left: var(--mt-space-sm);
+  vertical-align: middle;
+}
+
+/* Validation states */
 .modTools .fieldGroup.hasError input,
-.modTools .fieldGroup.hasError select,
-.modTools .fieldGroup.hasError textarea {
-  border-color: var(--modtools-error);
+.modTools .fieldGroup.hasError select {
+  border-color: var(--mt-error);
+  background: var(--mt-error-bg);
 }
 
 .modTools .fieldError {
-  font-size: 12px;
-  color: var(--modtools-error);
-  margin-top: 4px;
-}
-
-/* No results message */
-.modTools .noResults {
-  padding: 24px;
-  text-align: center;
-  color: var(--modtools-text-muted);
-  background-color: var(--modtools-bg-light);
-  border-radius: 6px;
-  margin-top: 16px;
-}
-
-.modTools .noResults strong {
-  display: block;
-  color: var(--modtools-text);
-  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--mt-error);
+  margin-top: var(--mt-space-xs);
 }
 
 /* ==========================================================================
-   Status Messages
+   Alert & Message Boxes
    ========================================================================== */
 .modTools .message {
-  padding: 12px 16px;
-  margin-top: 16px;
-  border-radius: 4px;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-top: var(--mt-space-md);
+  border-radius: var(--mt-radius-md);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .modTools .message.success {
-  background-color: var(--modtools-success-bg);
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  background: var(--mt-success-bg);
+  color: var(--mt-success);
+  border: 1px solid var(--mt-success-border);
 }
 
 .modTools .message.warning {
-  background-color: var(--modtools-warning-bg);
-  color: #856404;
-  border: 1px solid #ffeeba;
+  background: var(--mt-warning-bg);
+  color: #92400E;
+  border: 1px solid var(--mt-warning-border);
 }
 
 .modTools .message.error {
-  background-color: var(--modtools-error-bg);
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background: var(--mt-error-bg);
+  color: var(--mt-error);
+  border: 1px solid var(--mt-error-border);
 }
 
 .modTools .message.info {
-  background-color: var(--modtools-info-bg);
-  color: #0c5460;
-  border: 1px solid #bee5eb;
+  background: var(--mt-info-bg);
+  color: #0E7490;
+  border: 1px solid var(--mt-info-border);
 }
 
-/* ==========================================================================
-   Warning/Info Boxes
-   ========================================================================== */
-.modTools .warningBox {
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background-color: var(--modtools-warning-bg);
-  border: 1px solid #ffeaa7;
-  border-radius: 4px;
+/* Info/Warning/Danger boxes */
+.modTools .infoBox {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-info-bg);
+  border: 1px solid var(--mt-info-border);
+  border-radius: var(--mt-radius-md);
   font-size: 14px;
+  line-height: 1.6;
+  color: #0E7490;
+}
+
+.modTools .infoBox strong {
+  color: var(--mt-info);
+}
+
+.modTools .warningBox {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-warning-bg);
+  border: 1px solid var(--mt-warning-border);
+  border-radius: var(--mt-radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #92400E;
 }
 
 .modTools .warningBox strong {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--mt-space-sm);
+  color: var(--mt-warning);
+  font-size: 15px;
 }
 
 .modTools .warningBox ul {
-  margin: 8px 0 0 0;
-  padding-left: 20px;
-}
-
-.modTools .warningBox li {
-  margin-bottom: 4px;
-}
-
-.modTools .infoBox {
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background-color: var(--modtools-info-bg);
-  border: 1px solid #bee5eb;
-  border-radius: 4px;
-  font-size: 14px;
+  margin: var(--mt-space-sm) 0 0;
+  padding-left: var(--mt-space-lg);
 }
 
 .modTools .dangerBox {
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background-color: var(--modtools-error-bg);
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-error-bg);
+  border: 1px solid var(--mt-error-border);
+  border-radius: var(--mt-radius-md);
   font-size: 14px;
+  line-height: 1.6;
+  color: #991B1B;
 }
 
-/* ==========================================================================
-   Changes Preview
-   ========================================================================== */
+.modTools .dangerBox strong {
+  color: var(--mt-error);
+}
+
+/* Changes preview box */
 .modTools .changesPreview {
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background-color: #e7f3ff;
-  border-radius: 4px;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(30, 58, 95, 0.06) 100%);
+  border: 1px solid rgba(8, 145, 178, 0.3);
+  border-radius: var(--mt-radius-md);
   font-size: 14px;
 }
 
 .modTools .changesPreview strong {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--mt-space-sm);
+  color: var(--mt-primary);
 }
 
 .modTools .changesPreview ul {
-  margin: 4px 0 0 20px;
+  margin: var(--mt-space-xs) 0 0 var(--mt-space-lg);
   padding: 0;
 }
 
+.modTools .changesPreview li {
+  margin-bottom: var(--mt-space-xs);
+  color: var(--mt-text-secondary);
+}
+
+/* No results state */
+.modTools .noResults {
+  padding: var(--mt-space-xl);
+  text-align: center;
+  color: var(--mt-text-muted);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-md);
+  margin-top: var(--mt-space-md);
+}
+
+.modTools .noResults strong {
+  display: block;
+  color: var(--mt-text);
+  margin-bottom: var(--mt-space-sm);
+  font-size: 16px;
+}
+
 /* ==========================================================================
-   Workflowy Tool Specific
+   Workflowy & Legacy Forms
    ========================================================================== */
 .modTools .workflowy-tool {
   width: 100%;
@@ -473,107 +938,169 @@
 .modTools .workflowy-tool .workflowy-tool-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.modTools .workflowy-tool .workflowy-tool-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  gap: var(--mt-space-md);
 }
 
 .modTools .workflowy-tool textarea {
   width: 100%;
-  min-height: 300px;
-  font-family: "Lucida Console", Monaco, monospace;
+  min-height: 200px;
+  font-family: var(--mt-font-mono);
   font-size: 12px;
-  line-height: 1.4;
 }
 
-.modTools .wf-upl-msg {
-  padding: 8px;
-  margin-top: 12px;
+.modTools .getLinks,
+.modTools .uploadLinksFromCSV,
+.modTools .remove-links-csv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+}
+
+.modTools .getLinks form,
+.modTools .uploadLinksFromCSV form,
+.modTools .remove-links-csv form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+}
+
+.modTools .getLinks fieldset {
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-lg);
+  margin: 0;
+  background: var(--mt-bg-subtle);
+}
+
+.modTools .getLinks fieldset legend {
+  padding: 0 var(--mt-space-sm);
+  font-weight: 600;
+}
+
+/* Submit buttons in legacy forms */
+.modTools input[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: var(--mt-primary);
+  color: var(--mt-text-on-primary);
+  font-family: var(--mt-font-body);
   font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--mt-radius-md);
+  cursor: pointer;
+  transition: all var(--mt-transition);
+  align-self: flex-start;
+}
+
+.modTools input[type="submit"]:hover {
+  background: var(--mt-primary-hover);
+}
+
+.modTools input[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ==========================================================================
-   Loading States
-   ========================================================================== */
-.modTools .loading {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.modTools .loadingSpinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ==========================================================================
-   Checkbox & Radio Styling
+   Checkbox Styling
    ========================================================================== */
 .modTools input[type="checkbox"] {
-  width: auto;
-  margin: 0 8px 0 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
   cursor: pointer;
+  accent-color: var(--mt-primary);
 }
 
 .modTools .checkboxLabel {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: var(--mt-space-sm);
   cursor: pointer;
-  padding: 4px 0;
+  padding: var(--mt-space-xs) 0;
+  font-weight: 400;
+}
+
+.modTools label:has(input[type="checkbox"]) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--mt-space-sm);
+  font-weight: 400;
+  cursor: pointer;
+  padding: var(--mt-space-sm) 0;
 }
 
 /* ==========================================================================
-   Responsive Adjustments
+   Responsive Design
    ========================================================================== */
-@media (max-width: 1024px) {
-  .modTools {
-    width: 95%;
-    padding: 10px 20px 20px;
-  }
-
-  .modTools::before {
-    margin: -10px -20px 15px;
+@media (max-width: 900px) {
+  .modTools .indexCardGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .modTools .inputRow {
-    flex-direction: column;
+  .modTools {
+    padding: var(--mt-space-lg) var(--mt-space-md);
   }
 
-  .modTools .inputRow .modtoolsButton {
-    width: 100%;
+  .modTools::before {
+    margin: calc(var(--mt-space-lg) * -1) calc(var(--mt-space-md) * -1) var(--mt-space-lg);
+  }
+
+  .modTools .modToolsSection {
+    padding: var(--mt-space-lg);
+  }
+
+  .modTools .dlSectionTitle {
+    font-size: 20px;
   }
 
   .modTools .fieldGroupGrid {
     grid-template-columns: 1fr;
   }
 
-  .modTools .selectionControls {
+  .modTools .indexCardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modTools .indexSelectorHeader {
     flex-direction: column;
-    gap: 12px;
     align-items: flex-start;
   }
 
-  .modTools .selectionButtons {
-    width: 100%;
+  .modTools .searchRow {
+    flex-direction: column;
   }
 
-  .modTools .selectionButtons .modtoolsButton {
-    flex: 1;
+  .modTools .searchRow .modtoolsButton {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+@media print {
+  .modTools {
+    background: white;
+  }
+
+  .modTools::before {
+    display: none;
+  }
+
+  .modTools .modToolsSection {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+
+  .modTools .modtoolsButton {
+    display: none;
   }
 }
