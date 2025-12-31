@@ -10,6 +10,8 @@ from sefaria.model import schema
 from sefaria.model.passage import PassageSet, Passage
 from sefaria.system.exceptions import InputError
 from bisect import bisect_right
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def subref(ref: text.Ref, section: int):
@@ -168,7 +170,9 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
         thingy = self._titled_tree_node_or_index
         # the schema node for this referenceable node has a dibur hamatchil child
         if isinstance(thingy, schema.NumberedTitledTreeNode) and thingy.is_segment_level_dibur_hamatchil():
-            return [DiburHamatchilNodeSet({"container_refs": self.ref().normal()})]
+            tref = self.ref().normal()
+            logger.info(f"Querying DH for {tref}")
+            return [DiburHamatchilNodeSet({"container_refs": tref})]
         # the schema node for this referenceable is a JAN. JANs act as both named and numbered nodes
         if isinstance(thingy, schema.JaggedArrayNode) and len(thingy.children) == 0:
             return [NumberedReferenceableBookNode(thingy)]
