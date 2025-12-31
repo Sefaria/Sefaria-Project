@@ -19,6 +19,7 @@ import re
 import uuid
 from dataclasses import asdict
 
+from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -199,6 +200,8 @@ def render_template(request, template_name='base.html', app_props=None, template
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
+    else:
+        template_context["renderStatic"] = True
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
@@ -386,8 +389,12 @@ def catchall(request, tref, sheet=None):
             return reader_redirect(uref)
 
         return text_panels(request, ref=tref)
+    else:
+        help_center_redirect = get_redirect_to_help_center(request, tref)
+        if help_center_redirect:
+            return redirect(help_center_redirect)
 
-    return text_panels(request, ref=tref, sheet=sheet)
+        return text_panels(request, ref=tref, sheet=sheet)
 
 
 @ensure_csrf_cookie
@@ -612,6 +619,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
+    
 
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
@@ -923,6 +931,7 @@ def search(request):
         "noindex": True
     })
 
+@ensure_csrf_cookie
 def public_collections(request):
     props = base_props(request)
     props.update({
@@ -969,6 +978,7 @@ def sheets_redirect_to_getstarted(request):
     return redirect("/getstarted/", permanent=True)
 
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def collection_page(request, slug):
     """
@@ -2386,7 +2396,7 @@ def visualize_parasha_colors(request):
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file, "renderStatic": True})
+    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
@@ -3184,6 +3194,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def topics_page(request):
     """
@@ -3203,6 +3214,7 @@ def topics_page(request):
 def topic_page_b(request, slug):
     return topic_page(request, slug, test_version="b")
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def topic_page(request, slug, test_version=None):
     """
@@ -4111,7 +4123,6 @@ def edit_profile(request):
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
-      "renderStatic": True
     })
 
 
@@ -4258,7 +4269,6 @@ def dashboard(request):
 
     return render_template(request,'dashboard.html', None, {
         "states": states,
-        "renderStatic": True
     })
 
 
@@ -4271,7 +4281,6 @@ def metrics(request):
     metrics_json = dumps(metrics)
     return render_template(request,'metrics.html', None,{
         "metrics_json": metrics_json,
-        "renderStatic": True
     })
 
 

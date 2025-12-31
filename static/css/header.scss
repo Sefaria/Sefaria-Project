@@ -28,6 +28,7 @@ $not-selector: "";
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
+  background: white;
   @include breakpoint(mobile) {
     padding: 0 15px;
   }

@@ -734,14 +734,15 @@ const Strings = {
     "Click icon": "סמל לחיצה",
     "Collection Header Image": "תמונת כותרת אסופה",
     "image of maginfying glass": "תמונה של זכוכית מגדלת",
-
-    // Module Switcher Tooltip
-    "Looking for something?": "מחפשים משהו?",
-    "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah." : "ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.",
-    "Got it!": "הבנתי",
   },
 
   _i18nInterfaceStringsWithContext: {
+    "ModuleSwitcherPopover": {
+      "Looking for something?": "חיפשתם משהו?",
+      "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",
+      "Learn More": "למידע נוסף",
+      "Got it!": "הבנתי, תודה!",
+    },
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",
       "None": "ללא",
