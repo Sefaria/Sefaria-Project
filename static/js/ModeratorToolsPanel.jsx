@@ -250,15 +250,19 @@ class WorkflowyModeratorTool extends Component {
               </InterfaceText>
             </button>
           </form>
-          <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
-          <textarea
-            id="wf-upl-message"
-            className="wf-upl-message"
-            cols="80"
-            rows="30"
-            value={this.state.uploadResult || ""}
-            readOnly
-          />
+          {this.state.uploadMessage && (
+            <div id="wf-upl-msg" className="message">{this.state.uploadMessage}</div>
+          )}
+          {this.state.uploadResult && (
+            <textarea
+              id="wf-upl-message"
+              className="wf-upl-message"
+              cols="80"
+              rows="20"
+              value={this.state.uploadResult}
+              readOnly
+            />
+          )}
         </div>
       </div>
     );
@@ -765,10 +769,10 @@ class ModeratorToolsPanel extends Component {
         </div>
         <form id="file-form">
           <input className="dlVersionSelect" type="file" id="file-select" multiple onChange={this.handleFiles} />
-          {ulReady ? uploadButton : ""}
+          {ulReady && uploadButton}
         </form>
-        {this.state.uploadMessage ? <div className="message">{this.state.uploadMessage}</div> : ""}
-        {this.state.uploadError ? <div className="message error">{this.state.uploadError}</div> : ""}
+        {this.state.uploadMessage && <div className="message">{this.state.uploadMessage}</div>}
+        {this.state.uploadError && <div className="message error">{this.state.uploadError}</div>}
       </div>
     );
 
