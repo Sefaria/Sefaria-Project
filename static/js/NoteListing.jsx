@@ -33,9 +33,9 @@ class NoteListing extends Component {
     Sefaria.deleteNote(this.props.data._id).then(resolve);
   }
   getNoteURL(ref) {
-    // This helper function returns the URL of the note for the given ref.  When the URL is to a ref in the library, 
-    // this is very simple, but when the ref is to a sheet, we need to modify the ref and change the link so that it sends the user to the voices module.
-    // The ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
+    // This helper function returns the a tag linking to the given ref of the note  When the URL is to a ref in the library, 
+    // returning the appropriate a tag is very simple, but when the ref is to a sheet, we need to modify the ref and set the data-target-module attribute to the voices module.
+    // If the ref is to a sheet, the ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
     const isSheet = Sefaria.isSheetRef(ref);
     let path, noteURL;
     const module = isSheet ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE;
