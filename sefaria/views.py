@@ -1676,15 +1676,20 @@ def version_indices_api(request):
 
 @staff_member_required
 def version_bulk_edit_api(request):
-    if request.method != "POST":
-        return HttpResponseBadRequest("POST required")
     """
+    Bulk update Version metadata for multiple indices.
+
     Body JSON:
       {"versionTitle":"Example 2025",
        "language":"he",
        "indices":["Genesis","Exodus"],
        "updates":{"license":"CC-BY","versionNotes":"Second draft"}}
+
+    Returns detailed success/failure info to handle partial updates gracefully.
     """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
     from sefaria.model import Version
     data = json.loads(request.body)
     vtitle, lang, indices, updates = (
@@ -1694,16 +1699,38 @@ def version_bulk_edit_api(request):
     if not indices:
         raise InputError("indices may not be empty")
 
+    # Track successes and failures for detailed reporting
+    successes = []
+    failures = []
+
     for t in indices:
-        v = Version().load({"title": t,
-                            "versionTitle": vtitle,
-                            "language": lang})
-        if not v:
-            raise InputError(f'No Version "{vtitle}" in "{t}"')
-        for k, val in updates.items():
-            setattr(v, k, val)
-        v.save()                                # retains full history / cache hooks
-    return jsonResponse({"status":"ok","count":len(indices)})
+        try:
+            v = Version().load({"title": t,
+                                "versionTitle": vtitle,
+                                "language": lang})
+            if not v:
+                failures.append({"index": t, "error": f'No Version "{vtitle}" found'})
+                continue
+
+            for k, val in updates.items():
+                setattr(v, k, val)
+            v.save()  # retains full history / cache hooks
+            successes.append(t)
+
+        except Exception as e:
+            # Catch any save errors (validation, database, etc.) and continue
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": t, "error": error_msg})
+
+    # Return detailed results
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "count": len(successes),
+        "total": len(indices),
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
 
 
 @staff_member_required
