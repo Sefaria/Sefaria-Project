@@ -1,101 +1,177 @@
 /**
- * ModeratorToolsPanel Styles
- *
+ * ModTools Design System
+ * ======================
  * A refined admin dashboard with scholarly character.
- * Warm tones, generous spacing, and clear hierarchy.
  *
- * Key features:
- * - Card-based index selector grid
- * - Proper form alignment
- * - Smooth scrolling
- * - No overflow/cutoff issues
+ * STRUCTURE:
+ * 1. Design Tokens (CSS Variables)
+ * 2. Base & Reset
+ * 3. Layout Components (Section, Cards)
+ * 4. Form Elements (Inputs, Selects, Buttons)
+ * 5. Layout Patterns (SearchRow, FilterRow, ActionRow)
+ * 6. Data Display (IndexSelector, NodeList)
+ * 7. Feedback (Alerts, Messages, Status)
+ * 8. Utilities
+ * 9. Responsive
+ *
+ * NAMING CONVENTION:
+ * - All classes prefixed with context (e.g., .modTools .searchRow)
+ * - Variables prefixed with --mt- (mod tools)
+ * - BEM-lite: .component, .component-element, .component.modifier
  */
 
 /* Google Fonts - Scholarly + Modern pairing */
 @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ==========================================================================
-   Design System Variables
+   1. DESIGN TOKENS
    ========================================================================== */
 :root {
-  /* Colors - Warm scholarly palette */
-  --mt-bg-page: #F8F7F4;
-  --mt-bg-card: #FFFFFF;
-  --mt-bg-subtle: #F3F2EE;
-  --mt-bg-input: #FAFAF8;
+  /*
+   * COLOR PALETTE
+   * Warm scholarly tones with clear semantic meaning
+   */
+
+  /* Background colors */
+  --mt-bg-page: #F8F7F4;      /* Main page background */
+  --mt-bg-card: #FFFFFF;       /* Card/section background */
+  --mt-bg-subtle: #F3F2EE;     /* Subtle background for groupings */
+  --mt-bg-input: #FAFAF8;      /* Input field background */
+  --mt-bg-hover: #F0EFEB;      /* Hover state background */
 
   /* Brand colors */
-  --mt-primary: #1E3A5F;
-  --mt-primary-hover: #152942;
-  --mt-primary-light: rgba(30, 58, 95, 0.08);
-  --mt-accent: #0891B2;
-  --mt-accent-hover: #0E7490;
-  --mt-accent-light: rgba(8, 145, 178, 0.1);
+  --mt-primary: #1E3A5F;                    /* Primary actions, headings */
+  --mt-primary-hover: #152942;              /* Primary hover state */
+  --mt-primary-light: rgba(30, 58, 95, 0.08); /* Primary tint for backgrounds */
+  --mt-accent: #0891B2;                     /* Accent/links */
+  --mt-accent-hover: #0E7490;               /* Accent hover */
+  --mt-accent-light: rgba(8, 145, 178, 0.1); /* Accent tint */
 
   /* Text colors */
-  --mt-text: #1A1A1A;
-  --mt-text-secondary: #5C5C5C;
-  --mt-text-muted: #8B8B8B;
-  --mt-text-on-primary: #FFFFFF;
+  --mt-text: #1A1A1A;           /* Primary text */
+  --mt-text-secondary: #5C5C5C; /* Secondary/supporting text */
+  --mt-text-muted: #8B8B8B;     /* Muted/placeholder text */
+  --mt-text-on-primary: #FFFFFF; /* Text on primary color */
 
-  /* Borders & Shadows */
-  --mt-border: #E5E3DD;
-  --mt-border-focus: var(--mt-primary);
-  --mt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --mt-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --mt-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  /* Border colors */
+  --mt-border: #E5E3DD;         /* Default border */
+  --mt-border-hover: #C5C3BC;   /* Border on hover */
+  --mt-border-focus: var(--mt-primary); /* Border on focus */
 
-  /* Status colors */
+  /* Status colors - Success */
   --mt-success: #059669;
   --mt-success-bg: #ECFDF5;
   --mt-success-border: #A7F3D0;
+  --mt-success-text: #065F46;
+
+  /* Status colors - Warning */
   --mt-warning: #D97706;
   --mt-warning-bg: #FFFBEB;
   --mt-warning-border: #FDE68A;
+  --mt-warning-text: #92400E;
+
+  /* Status colors - Error */
   --mt-error: #DC2626;
   --mt-error-bg: #FEF2F2;
   --mt-error-border: #FECACA;
+  --mt-error-text: #991B1B;
+
+  /* Status colors - Info */
   --mt-info: #0891B2;
   --mt-info-bg: #ECFEFF;
   --mt-info-border: #A5F3FC;
+  --mt-info-text: #0E7490;
 
-  /* Typography */
+  /*
+   * TYPOGRAPHY
+   */
+
+  /* Font families */
   --mt-font-display: "Crimson Pro", "Georgia", serif;
   --mt-font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
   --mt-font-hebrew: "Heebo", "Arial Hebrew", sans-serif;
   --mt-font-mono: "JetBrains Mono", "Fira Code", monospace;
 
-  /* Spacing scale */
-  --mt-space-xs: 4px;
-  --mt-space-sm: 8px;
-  --mt-space-md: 16px;
-  --mt-space-lg: 24px;
-  --mt-space-xl: 32px;
-  --mt-space-2xl: 48px;
+  /* Font sizes - Using a modular scale */
+  --mt-text-xs: 11px;   /* Small labels, badges */
+  --mt-text-sm: 13px;   /* Help text, meta */
+  --mt-text-base: 15px; /* Body text */
+  --mt-text-md: 16px;   /* Slightly larger body */
+  --mt-text-lg: 18px;   /* Section intros */
+  --mt-text-xl: 20px;   /* Mobile headings */
+  --mt-text-2xl: 24px;  /* Section titles */
+
+  /* Font weights */
+  --mt-font-normal: 400;
+  --mt-font-medium: 500;
+  --mt-font-semibold: 600;
+  --mt-font-bold: 700;
+
+  /* Line heights */
+  --mt-leading-tight: 1.3;
+  --mt-leading-normal: 1.5;
+  --mt-leading-relaxed: 1.6;
+
+  /*
+   * SPACING
+   * Based on 4px grid
+   */
+  --mt-space-xs: 4px;   /* Tight spacing */
+  --mt-space-sm: 8px;   /* Small gaps */
+  --mt-space-md: 16px;  /* Medium gaps, default padding */
+  --mt-space-lg: 24px;  /* Large gaps, section spacing */
+  --mt-space-xl: 32px;  /* Extra large, card padding */
+  --mt-space-2xl: 48px; /* Major section breaks */
+
+  /*
+   * BORDERS & EFFECTS
+   */
 
   /* Border radius */
-  --mt-radius-sm: 6px;
-  --mt-radius-md: 10px;
-  --mt-radius-lg: 14px;
+  --mt-radius-sm: 6px;  /* Small elements, badges */
+  --mt-radius-md: 10px; /* Inputs, buttons */
+  --mt-radius-lg: 14px; /* Cards, sections */
 
-  /* Transitions */
+  /* Border width */
+  --mt-border-width: 1px;
+  --mt-border-width-thick: 1.5px;
+  --mt-border-width-heavy: 2px;
+
+  /* Shadows */
+  --mt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mt-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mt-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --mt-shadow-focus: 0 0 0 4px var(--mt-primary-light);
+
+  /*
+   * ANIMATION
+   */
+  --mt-transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
   --mt-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --mt-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /*
+   * LAYOUT
+   */
+  --mt-max-width: 1100px;
+  --mt-input-height: 48px; /* Standard input height (12px padding * 2 + line-height) */
 }
 
 /* ==========================================================================
-   Base & Reset
+   2. BASE & RESET
    ========================================================================== */
 .modTools {
   width: 100%;
-  max-width: 1100px;
+  max-width: var(--mt-max-width);
   margin: 0 auto;
   margin-top: var(--mt-space-lg);
   padding: var(--mt-space-xl) var(--mt-space-lg);
+  padding-bottom: var(--mt-space-2xl);
   min-height: 100vh;
   background: var(--mt-bg-page);
   font-family: var(--mt-font-body);
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: var(--mt-text-base);
+  line-height: var(--mt-leading-relaxed);
   color: var(--mt-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -115,8 +191,8 @@
   background: linear-gradient(135deg, var(--mt-primary) 0%, #2D4A6F 100%);
   color: var(--mt-text-on-primary);
   padding: var(--mt-space-sm) var(--mt-space-lg);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--mt-text-xs);
+  font-weight: var(--mt-font-semibold);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin: calc(var(--mt-space-xl) * -1) calc(var(--mt-space-lg) * -1) var(--mt-space-xl);
@@ -125,8 +201,10 @@
 }
 
 /* ==========================================================================
-   Section Cards
+   3. LAYOUT COMPONENTS
    ========================================================================== */
+
+/* --- Section Cards --- */
 .modTools .modToolsSection {
   background: var(--mt-bg-card);
   border-radius: var(--mt-radius-lg);
@@ -145,20 +223,20 @@
 /* Section Title */
 .modTools .dlSectionTitle {
   font-family: var(--mt-font-display);
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--mt-text-2xl);
+  font-weight: var(--mt-font-semibold);
   color: var(--mt-primary);
   margin: 0 0 var(--mt-space-sm) 0;
   padding-bottom: var(--mt-space-md);
-  border-bottom: 2px solid var(--mt-border);
+  border-bottom: var(--mt-border-width-heavy) solid var(--mt-border);
   letter-spacing: -0.01em;
-  line-height: 1.3;
+  line-height: var(--mt-leading-tight);
 }
 
 .modTools .dlSectionTitle .int-he {
   font-family: var(--mt-font-hebrew);
   margin-left: var(--mt-space-md);
-  font-size: 18px;
+  font-size: var(--mt-text-lg);
   color: var(--mt-text-secondary);
 }
 
@@ -167,23 +245,23 @@
   font-size: 14px;
   color: var(--mt-text-secondary);
   margin-bottom: var(--mt-space-lg);
-  line-height: 1.5;
+  line-height: var(--mt-leading-normal);
 }
 
 /* ==========================================================================
-   Form Elements - Proper Alignment & No Overflow
+   4. FORM ELEMENTS
    ========================================================================== */
 
-/* Labels */
+/* --- Labels --- */
 .modTools label {
   display: block;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--mt-font-semibold);
   color: var(--mt-text);
   margin-bottom: var(--mt-space-sm);
 }
 
-/* All form inputs - consistent styling */
+/* --- Input Base Styles --- */
 .modTools .dlVersionSelect,
 .modTools input[type="text"],
 .modTools input[type="number"],
@@ -196,11 +274,11 @@
   padding: 12px 16px;
   margin-bottom: var(--mt-space-md);
   font-family: var(--mt-font-body);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: var(--mt-text-base);
+  line-height: var(--mt-leading-normal);
   color: var(--mt-text);
   background: var(--mt-bg-input);
-  border: 1.5px solid var(--mt-border);
+  border: var(--mt-border-width-thick) solid var(--mt-border);
   border-radius: var(--mt-radius-md);
   transition: all var(--mt-transition);
   box-sizing: border-box;
@@ -218,8 +296,8 @@
 .modTools input[type="url"]:hover,
 .modTools select:hover,
 .modTools textarea:hover {
-  border-color: #C5C3BC;
-  background: #FFFFFF;
+  border-color: var(--mt-border-hover);
+  background: var(--mt-bg-card);
 }
 
 .modTools .dlVersionSelect:focus,
@@ -229,9 +307,9 @@
 .modTools select:focus,
 .modTools textarea:focus {
   outline: none;
-  border-color: var(--mt-primary);
-  background: #FFFFFF;
-  box-shadow: 0 0 0 4px var(--mt-primary-light);
+  border-color: var(--mt-border-focus);
+  background: var(--mt-bg-card);
+  box-shadow: var(--mt-shadow-focus);
 }
 
 /* Select dropdowns - Clear arrow indicator */
@@ -249,16 +327,20 @@
   cursor: pointer;
 }
 
-/* Textarea */
+/* --- Textarea --- */
 .modTools textarea {
   min-height: 100px;
   resize: vertical;
   font-family: var(--mt-font-body);
   font-size: 14px;
-  line-height: 1.6;
+  line-height: var(--mt-leading-relaxed);
 }
 
-/* Form rows - Stack vertically, button on its own row */
+/* ==========================================================================
+   5. LAYOUT PATTERNS
+   ========================================================================== */
+
+/* --- Input Row (legacy, stacked) --- */
 .modTools .inputRow {
   display: flex;
   flex-direction: column;
@@ -317,7 +399,124 @@
   margin-bottom: var(--mt-space-lg);
 }
 
-/* Two-column grid for related fields */
+/* Action button row - for primary action buttons */
+.modTools .actionRow {
+  display: flex;
+  gap: var(--mt-space-md);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--mt-space-lg);
+}
+
+/* Section intro text - for counts, descriptions */
+.modTools .sectionIntro {
+  margin-bottom: var(--mt-space-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+/* Subsection heading */
+.modTools .subsectionHeading {
+  margin-top: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+/* Option row - for single option with label */
+.modTools .optionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+  margin-bottom: var(--mt-space-md);
+}
+
+.modTools .optionRow label {
+  margin-bottom: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.modTools .optionRow select,
+.modTools .optionRow input {
+  margin-bottom: 0;
+  flex: 1;
+  max-width: 300px;
+}
+
+/* Node list container - for scrollable lists */
+.modTools .nodeListContainer {
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-md);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-bg-card);
+}
+
+/* Node item - for individual editable items */
+.modTools .nodeItem {
+  margin-bottom: var(--mt-space-md);
+  padding: var(--mt-space-md);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-sm);
+  border: 1px solid var(--mt-border);
+  transition: all var(--mt-transition);
+}
+
+.modTools .nodeItem:last-child {
+  margin-bottom: 0;
+}
+
+.modTools .nodeItem.modified {
+  background: var(--mt-warning-bg);
+  border-color: var(--mt-warning-border);
+}
+
+.modTools .nodeItem .nodeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mt-space-md);
+}
+
+.modTools .nodeItem .nodeMeta {
+  margin-top: var(--mt-space-sm);
+  font-size: 12px;
+  color: var(--mt-text-muted);
+}
+
+.modTools .nodeItem .nodeSharedTitle {
+  margin-bottom: var(--mt-space-sm);
+  font-size: 13px;
+  color: var(--mt-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+}
+
+/* Small label for form fields */
+.modTools .fieldLabel {
+  font-size: 13px;
+  color: var(--mt-text-secondary);
+  margin-bottom: var(--mt-space-xs);
+  font-weight: 500;
+}
+
+/* Validation error on input */
+.modTools input.hasError,
+.modTools select.hasError {
+  border-color: var(--mt-error) !important;
+  background: var(--mt-error-bg);
+}
+
+.modTools .validationHint {
+  font-size: var(--mt-text-sm);
+  color: var(--mt-error);
+  margin-top: var(--mt-space-xs);
+}
+
+/* --- Two-column grid for related fields --- */
 .modTools .formGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -329,8 +528,10 @@
 }
 
 /* ==========================================================================
-   Buttons - Consistent & No Cutoff
+   6. BUTTONS
    ========================================================================== */
+
+/* --- Primary Button --- */
 .modTools .modtoolsButton {
   display: inline-flex;
   align-items: center;
@@ -417,9 +618,7 @@
   margin-top: var(--mt-space-lg);
 }
 
-/* ==========================================================================
-   File Upload Zones
-   ========================================================================== */
+/* --- File Upload Zones --- */
 .modTools input[type="file"] {
   display: block;
   width: 100%;
@@ -458,8 +657,10 @@
 }
 
 /* ==========================================================================
-   Index Selector - Card Grid
+   7. DATA DISPLAY COMPONENTS
    ========================================================================== */
+
+/* --- Index Selector --- */
 .modTools .indexSelectorContainer {
   margin-top: var(--mt-space-lg);
   background: var(--mt-bg-card);
@@ -713,7 +914,7 @@
 }
 
 /* ==========================================================================
-   Field Groups & Forms
+   8. FIELD GROUPS
    ========================================================================== */
 .modTools .fieldGroup {
   margin-bottom: var(--mt-space-lg);
@@ -791,13 +992,13 @@
 }
 
 .modTools .fieldError {
-  font-size: 13px;
+  font-size: var(--mt-text-sm);
   color: var(--mt-error);
   margin-top: var(--mt-space-xs);
 }
 
 /* ==========================================================================
-   Alert & Message Boxes
+   9. FEEDBACK & ALERTS
    ========================================================================== */
 .modTools .message {
   padding: var(--mt-space-md) var(--mt-space-lg);
@@ -815,7 +1016,7 @@
 
 .modTools .message.warning {
   background: var(--mt-warning-bg);
-  color: #92400E;
+  color: var(--mt-warning-text);
   border: 1px solid var(--mt-warning-border);
 }
 
@@ -868,6 +1069,23 @@
 .modTools .warningBox ul {
   margin: var(--mt-space-sm) 0 0;
   padding-left: var(--mt-space-lg);
+}
+
+.modTools .warningBox li {
+  margin-bottom: var(--mt-space-sm);
+}
+
+.modTools .warningBox li:last-child {
+  margin-bottom: 0;
+}
+
+.modTools .warningBox li strong {
+  display: inline;
+  margin-bottom: 0;
+}
+
+.modTools .warningBox li p {
+  margin: var(--mt-space-xs) 0 0;
 }
 
 .modTools .dangerBox {
