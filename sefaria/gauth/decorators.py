@@ -28,7 +28,8 @@ def gauth_required(scope, ajax=False):
             # Try grabbing credential from storage
             profile = UserProfile(user_obj=request.user)
             credentials_dict = profile.gauth_token
-            needs_auth = not (credentials_dict is not None and set(scope).issubset(set(credentials_dict.get('scopes', []))))
+            existing_scope = set(credentials_dict.get('scopes', []))
+            needs_auth = not set(scope).issubset(existing_scope)
         
             if needs_auth:
                 request.session['next_view'] = request.path

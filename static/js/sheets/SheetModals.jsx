@@ -164,9 +164,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
         // Found a gauth_error in the hash, get the appropriate error message
         // Remove gauth_error from hash, keeping other hash params like afterLoading
         delete hashParams.gauth_error;
-        const remainingHash = Object.entries(hashParams)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('&');
+        const remainingHash = new URLSearchParams(hashParams).toString();
         const newHash = remainingHash ? '#' + remainingHash : '';
         history.replaceState("", document.title, window.location.pathname + window.location.search + newHash);
         const errorMessage = GAUTH_ERROR_MESSAGES[gauthError];
@@ -206,7 +204,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     } else if (googleDriveLink) {
       // Success - show link
       return <>
-        <InterfaceText>{googleDriveText}</InterfaceText>&nbsp;
+        <div className="successMessage"><InterfaceText>{googleDriveText}</InterfaceText></div>
         <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
           Docs</InterfaceText></a>
       </>
