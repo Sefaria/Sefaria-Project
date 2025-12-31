@@ -1697,7 +1697,7 @@ def version_bulk_edit_api(request):
         data["indices"],       data["updates"]
     )
     if not indices:
-        raise InputError("indices may not be empty")
+        return jsonResponse({"error": "indices may not be empty"}, status=500)
 
     # Track successes and failures for detailed reporting
     successes = []

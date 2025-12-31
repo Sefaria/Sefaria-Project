@@ -264,9 +264,16 @@ Bulk update Version metadata.
 }
 ```
 
-**Response**: `{ status: "ok", count: N }`
-
-**Known Bug**: Triggers `process_version_title_change_in_history()` when changing `versionTitle`, which calls deprecated `db.history.update()` (PyMongo 4.x incompatibility).
+**Response**:
+```json
+{
+  "status": "ok" | "partial" | "error",
+  "count": 5,
+  "total": 6,
+  "successes": ["Genesis", "Exodus", ...],
+  "failures": [{"index": "Leviticus", "error": "..."}]
+}
+```
 
 ### `/api/check-index-dependencies/{title}` (GET)
 Checks what depends on an Index before making changes.
@@ -308,32 +315,37 @@ Rebuilds automatic links for a commentary Index.
 
 ## CSS Classes
 
-Current styles are in `static/css/s2.css` (lines 3918-4030):
+Current styles are in `static/css/modtools.css` (579 lines):
 
 | Class | Purpose |
 |-------|---------|
-| `.modTools` | Main container |
-| `.modToolsSection` | Section wrapper |
-| `.dlSectionTitle` | Section header |
+| `.modTools` | Main container with "Internal Admin Tool" banner |
+| `.modToolsSection` | Section wrapper with border and shadow |
+| `.dlSectionTitle` | Section header with underline |
 | `.dlVersionSelect` | Input/select elements |
-| `.modtoolsButton` | Action buttons |
-| `.workflowy-tool` | Workflowy uploader section |
+| `.modtoolsButton` | Action buttons (variants: `.secondary`, `.danger`, `.small`) |
+| `.indexSelectorContainer` | Index selector wrapper |
+| `.selectionControls` | Select All/Deselect All header |
 | `.indicesList` | Checkbox list container |
-| `.message` | Status message display |
+| `.fieldGroupSection` | Grouped field sections |
+| `.fieldGroupGrid` | 2-column grid for fields |
+| `.message` | Status messages (`.success`, `.error`, `.warning`, `.info`) |
+| `.warningBox`, `.dangerBox`, `.infoBox` | Alert boxes |
+| `.changesPreview` | Preview of pending changes |
 
 ---
 
 ## Known Issues
 
-1. **PyMongo TypeError** (`sefaria/model/history.py:210`): Uses deprecated `db.history.update()` method, causing bulk edits to fail when `versionTitle` changes.
+1. ~~**PyMongo TypeError**~~: Fixed - now uses `update_many()` in history.py and helper/text.py.
 
-2. **Partial Success Handling**: Save loop doesn't handle partial failures gracefully - some versions may update while others fail.
+2. ~~**Partial Success Handling**~~: Fixed - API now returns detailed success/failure info.
 
-3. **Timeout Risk**: Large bulk operations may hit request timeouts without progress indication.
+3. **Timeout Risk**: Large bulk operations (50+ versions) may hit request timeouts. Consider batch processing for very large sets.
 
-4. **Missing Deselect All**: UI has "Select All" but no dedicated "Deselect All" action.
+4. ~~**Missing Deselect All**~~: Fixed - IndexSelector now has both Select All and Deselect All buttons.
 
-5. **Input Types**: License uses text input instead of dropdown; boolean fields use text instead of checkboxes.
+5. ~~**Input Types**~~: Fixed - License and boolean fields now use dropdown selects.
 
 ---
 
@@ -341,16 +353,32 @@ Current styles are in `static/css/s2.css` (lines 3918-4030):
 
 ```
 static/js/
-  ModeratorToolsPanel.jsx    # All components (2200+ lines)
+  ModeratorToolsPanel.jsx       # Main panel, imports refactored components
+  modtools/
+    index.js                    # Module entry point with exports
+    constants/
+      fieldMetadata.js          # VERSION_FIELD_METADATA, INDEX_FIELD_METADATA
+    components/
+      BulkVersionEditor.jsx     # Version metadata bulk editor (#36475)
+      BulkIndexEditor.jsx       # Index metadata bulk editor
+      AutoLinkCommentaryTool.jsx # Commentary auto-linker
+      NodeTitleEditor.jsx       # Schema node title editor
+      shared/
+        ModToolsSection.jsx     # Section wrapper component
+        IndexSelector.jsx       # Checkbox list with select all/deselect all
+        StatusMessage.jsx       # Status message display
+        index.js                # Barrel export
 
 sefaria/
-  views.py                    # Backend API handlers
-  urls.py                     # Route definitions
+  views.py                      # Backend API handlers
+  urls.py                       # Route definitions
   model/
-    text.py                   # Version, Index models
-    history.py                # History tracking (has bug)
-    abstract.py               # Base MongoDB record class
+    text.py                     # Version, Index models
+    history.py                  # History tracking
+    abstract.py                 # Base MongoDB record class
+  helper/
+    text.py                     # Text manipulation helpers
 
 static/css/
-  s2.css                      # Contains .modTools styles
+  modtools.css                  # Dedicated modtools styles (Sefaria design system)
 ```
