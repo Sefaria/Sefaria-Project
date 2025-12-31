@@ -1,27 +1,29 @@
 import Sefaria from "../sefaria/sefaria";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {InterfaceText} from "../Misc";
 import Modal from "../common/modal";
 import ReactTags from "react-tag-autocomplete";
 import Button from "../common/Button";
 
+
 const PublishModal = ({close, status, sheetID, postSheet}) => {
   // `status` is 'public' or 'unlisted'.  we are going to toggle the status.  if it's 'public' we want to unlist it
   // so this modal simply posts the new status.  If it's 'unlisted', we want to give the user the PublishMenu component
   // allowing them to specify title, summary, and tags and from there the user can choose to make the sheet public
+  const initStatus = useRef(status);
   const sheet = Sefaria.sheets.loadSheetByID(sheetID);
-  const publishState = {
+  const postingState = {
     notPosting: "",
     posting: "Updating sheet...",
     posted: "Success!",
   }
 
   // if it's not yet public, show PublishMenu and don't yet post it; if it's public, start posting it
-  const initState = status === 'unlisted' ? publishState.notPosting : publishState.posting;
-  const [publishText, setPublishText] = useState(initState);
+  const initPostingState = status === 'unlisted' ? postingState.notPosting : postingState.posting;
+  const [postingText, setPostingText] = useState(initPostingState);
 
   const handleClose = () => {
-    if (publishText !== publishText.posting) {
+    if (postingText !== postingState.posting) {
       // don't allow user to close modal while posting is taking place
       close();
     }
@@ -31,36 +33,39 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       sheet.lastModified = sheet.dateModified;
       delete sheet._id;
       try {
-        await postSheet(sheet);
-        setPublishText(publishState.posted);
+        await postSheet(JSON.stringify(sheet));
+        setPostingText(postingState.posted);
       } catch (error) {
-        setPublishText(`Error: ${error.message}`);
+        setPostingText(`Error: ${error.message}`);
       }
   }
   useEffect( () => {
       const toggle = async () => {
-          if (publishText === publishState.posting) {
+          if (postingText === postingState.posting) {
               await togglePublishStatus();
           }
       }
       toggle();
-  }, [publishText])
+  }, [postingText])
+
+  const publishStateText = initStatus.current === 'public' ? 'Unpublish' :  'Publish';
+
   let contents;
-  if (publishText === publishState.notPosting) {
-      contents = <PublishMenu sheet={sheet} publishCallback={() => setPublishText(publishState.posting)}/>;
+  if (postingText === postingState.notPosting) {
+      contents = <PublishMenu sheet={sheet} publishCallback={() => setPostingText(postingState.posting)}/>;
   }
   else {
-      contents = <div className="modalMessage"><InterfaceText>{publishText}</InterfaceText></div>;
+      contents = <div className="modalMessage"><InterfaceText>{postingText}</InterfaceText></div>;
   }
   return <Modal isOpen={true} close={handleClose}>
-              <div className="modalTitle"><InterfaceText>Publish</InterfaceText></div>
+              <div className="modalTitle"><InterfaceText>{publishStateText}</InterfaceText></div>
               {contents}
           </Modal>;
 }
 
 const PublishMenu = ({sheet, publishCallback}) => {
   const reactTags = React.createRef();
-  const [title, setTitle] = useState(sheet.title.stripHtmlConvertLineBreaks() || "");
+  const [title, setTitle] = useState(Sefaria.sheets.getSheetTitle(sheet.title));
   const [summary, setSummary] = useState(sheet.summary || "");
   const [suggestions, setSuggestions] = useState([]);
   const [validation, setValidation] = useState({
@@ -109,9 +114,8 @@ const PublishMenu = ({sheet, publishCallback}) => {
     }
     const updateSuggestedTags = (input) => {
     if (input === "") return
-    Sefaria.getName(input, false, 0).then(d => {
+    Sefaria.getName(input, 5, ["Topic"]).then(d => {
         const topics = d.completion_objects
-            .filter(obj => obj.type === "Topic")
             .map((filteredObj, index) => ({
                 id: index,
                 name: filteredObj.title,
@@ -130,8 +134,11 @@ const PublishMenu = ({sheet, publishCallback}) => {
     const newTags = [].concat(tags, tag);
     setTags(newTags);
   }
-  const onTagValidate = (tag) => {
-      return tags.every((item) => item.name !== tag.name)
+  const onTagValidate = (newTag) => {
+    // Validate that the new tag is not already in the list and is in the list of autocompleted suggestions
+    const isSuggestion = suggestions.some(suggestion => suggestion.slug === newTag.slug);
+    const isNewTag = tags.every((item) => item.name !== newTag.name);
+    return isNewTag && isSuggestion;
   }
   const handleSummaryChange = (event) => {
     const newSummary = event.target.value;
@@ -150,7 +157,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
     setSummary(newSummary);
   }
   const handlePublish = () => {
-    sheet.title = title === "" ? "Untitled" : title;
+    sheet.title = Sefaria.sheets.getSheetTitle(title);
     sheet.summary = summary;
     sheet.topics = tags.map(tag => ({
           asTyped: tag.name,
@@ -192,7 +199,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
                     suggestions={suggestions}
                     onDelete={onTagDelete}
                     placeholderText={Sefaria._("Add a topic...")}
-                    delimiters={["Enter", "Tab", ","]}
+                    delimiters={["Enter", ","]}
                     onAddition={onTagAddition}
                     onValidate={onTagValidate}
                     onInput={updateSuggestedTags}
@@ -200,7 +207,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
             </div>
             {validation.validationFailed !== "none" &&
                 <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
-            <Button className="small" onClick={handlePublish}>Publish</Button>
+            <Button className="button small" onClick={handlePublish}>Publish</Button>
         </div>
     </>
 }

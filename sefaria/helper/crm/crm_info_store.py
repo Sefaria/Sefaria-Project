@@ -1,5 +1,5 @@
 from sefaria.model.user_profile import UserProfile
-from sefaria import settings as sls
+from django.conf import settings as sls
 from sefaria.system.database import db
 
 import structlog

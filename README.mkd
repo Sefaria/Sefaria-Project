@@ -2,10 +2,12 @@
 
 [Sefaria](https://www.sefaria.org) is a digital library and platform for accessing Jewish texts and text-based learning. We invite developers to leverage the largest open-source database of Jewish texts in history to build apps and services utilizing the Jewish canon.
 
+
 ## Getting Started
 Visit our [Developer Portal](https://developers.sefaria.org/) to read our [docs](https://developers.sefaria.org/docs/getting-started-1), play with our interactive [API Reference](https://developers.sefaria.org/reference/getting-started-with-your-api) and to learn more about Sefaria's open source data and technology.  There, you can also find tutorials, installation instructions, and all of the most up-to-date information about our technology.
 
 Interested developers can join the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+
 
 ## Questions?
 - If you have questions about our API or our technology, you can [contact us](https://developers.sefaria.org/page/contact-us) via the [Developer Portal](https://developers.sefaria.org/).
@@ -25,9 +27,18 @@ We're grateful to the following organizations for providing us with donated serv
 - [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Slack](https://slack.com)
 
+## Storybook
+
+We use [Storybook](https://storybook.js.org/) with the Vite builder to develop and review shared React components. To start Storybook locally:
+
+1. Ensure you are using Node.js 18 or newer (Storybook 8 requires the active LTS releases).
+2. Install dependencies with `npm install` if you have not done so recently.
+3. Run `npm run storybook` to launch the dev server at http://localhost:6006.
+
+Stories live in the `stories/` directory. Each story can import components from `static/js` and will automatically receive the global Sefaria stubs defined in `.storybook/preview.js`.
+
 
 ## License
 
 [GPL](http://www.gnu.org/copyleft/gpl.html)
-
 

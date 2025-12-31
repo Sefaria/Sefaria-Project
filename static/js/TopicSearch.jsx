@@ -36,7 +36,7 @@ class TopicSearch extends Component {
         topics.push({title: this.props.createNewTopicStr+word, key: ""})
         return topics;
      };
-    const rawCompletions = await Sefaria.getName(word, undefined, 'Topic');
+    const rawCompletions = await Sefaria.getName(word, undefined, ['Topic']);
     const completion_objects = parseCompletions(rawCompletions['completion_objects'])
     results.currentSuggestions = completion_objects
         .map(suggestion => ({

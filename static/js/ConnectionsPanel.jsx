@@ -37,6 +37,7 @@ import Component from 'react-class';
 import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
+import Util from './sefaria/util';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
@@ -294,7 +295,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
               {resourcesButtonCounts?.guides ? <ToolsButton en="Guided Learning" he="מדריך" image="iconmonstr-school-17.svg" highlighted={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
             </div>
-          }
+        
           {showConnectionSummary ?
             <ConnectionsPanelSection title="Related Texts">
               <ConnectionsSummary
@@ -420,7 +421,7 @@ class ConnectionsPanel extends Component {
           onCancel={() => this.props.setConnectionsMode("Notes")} />
         {Sefaria._uid ?
           <div>
-            <a href="/my/profile?tab=notes" className="allNotesLink button white transparent bordered fillWidth">
+            <a href="/texts/notes" className="allNotesLink button white transparent bordered fillWidth">
               <span className="int-en">Go to My Notes</span>
               <span className="int-he">הרשומות שלי</span>
             </a>
@@ -654,15 +655,18 @@ ConnectionsPanel.propTypes = {
 };
 
 const createSheetsWithRefURL = (srefs) => {
+  const sheetsURL = Sefaria.getModuleURL(Sefaria.VOICES_MODULE);
   const normalizedRef = Sefaria.normRef(srefs);
-  window.open(`${Sefaria.apiHost}/sheets/sheets-with-ref/${normalizedRef}`);
+  window.open(`${sheetsURL.origin}/sheets-with-ref/${normalizedRef}`, '_blank');
 }
 
 const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)} />
+      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => createSheetsWithRefURL(srefs)}>
+        <ToolsButton.SecondaryIcon icon="open-panel.svg" alt="Opens in new window" />
+      </ToolsButton>
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
@@ -679,7 +683,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      {Sefaria._uid && <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />}
+      <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
       <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
@@ -921,8 +925,8 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website" role="button" tabindex="0" onKeyUp={(event) => event.key==='Enter' && this.setFilter(site.name)} onClick={() => this.setFilter(site.name)} key={site.name}>
-          <img className="icon" src={site.faviconUrl} />
+        return (<div className="website" role="button" tabindex="0" onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
+          <img className="icon" src={site.faviconUrl} alt={Sefaria._("Website icon")} />
           <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);
       });
@@ -1005,8 +1009,9 @@ AdvancedToolsList.propTypes = {
 
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
-                       count = null, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false, highlighted=false, experiment=false }) => {
+                       count, control = "interface", typeface = "system", alwaysShow = false,
+                       greyColor=false, highlighted=false, experiment=false,
+                       children }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1019,28 +1024,47 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
     classes[iconName] = 1;
     iconElem = (<i className={classNames(classes)} />)
   } else if (image) {
-    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
+    iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt={en} />);
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
+  const isLink = !!url;
   const nameClass = en.camelize();
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
     <div className={classNames({toolsButtonContainer: 1, highlighted: highlighted})}>
-      <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
+      <a
+        href={isLink ? url : undefined}
+        className={wrapperClasses}
+        data-name={en}
+        onClick={clickHandler}
+        role={isLink ? undefined : "button"}
+        tabIndex={0}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, clickHandler)}
+      >
         {iconElem}
         <span className="toolsButtonText">
           {control === "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
-          {count ? (<span className="connectionsCount">({count})</span>) : null}
-          {experiment ? <span className="experimentLabel">Experiment</span> : null}
+          {count > 0 && (<span className="connectionsCount">({count})</span>)}
+          {experiment && <span className="experimentLabel">Experiment</span>}
         </span>
+        {children}
       </a>
-      {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /> <img className="linkArrow" src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} aria-hidden="true"></img></a> : null}
       </div>
       : null
   );
 }
+
+ToolsButton.SecondaryIcon = ({ icon, alt }) => (
+  <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt={alt} />
+);
+
+ToolsButton.SecondaryIcon.propTypes = {
+  icon: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired
+};
+
 ToolsButton.propTypes = {
   en: PropTypes.string.isRequired,
   he: PropTypes.string.isRequired,
@@ -1051,8 +1075,7 @@ ToolsButton.propTypes = {
   greyColor: PropTypes.bool,
   highlighted: PropTypes.bool,
   experiment: PropTypes.bool,
-  secondaryEn: PropTypes.string,
-  secondaryHe: PropTypes.string
+  children: PropTypes.node
 };
 
 class ShareBox extends Component {
@@ -1130,8 +1153,8 @@ class ShareBox extends Component {
       <div>
         <ConnectionsPanelSection title="Share Link">
           <div className="shareInputBox">
-            <button tabIndex="0" className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
-            <input tabIndex="0" className="shareInput" id="sheetShareLink" value={this.props.url} />
+            <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
+            <input className="shareInput" id="sheetShareLink" value={this.props.url} aria-label="Shareable link"/>
           </div>
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
@@ -1202,7 +1225,6 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
@@ -1215,17 +1237,31 @@ class AddNoteBox extends Component {
     return (
       <div className="addNoteBox">
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
-        <div className="button fillWidth" onClick={this.saveNote}>
+        <div
+          className="button fillWidth"
+          role="button"
+          tabIndex="0"
+          aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
+          onClick={this.saveNote}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, this.saveNote)}
+        >
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
           <span className="int-he">{this.props.noteId ? "שמירה" : "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
-          <div className="button white fillWidth" onClick={this.props.onCancel}>
+          <div
+            className="button white fillWidth"
+            role="button"
+            tabIndex="0"
+            aria-label={Sefaria._("Cancel")}
+            onClick={this.props.onCancel}
+            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.onCancel)}
+          >
             <span className="int-en">Cancel</span>
             <span className="int-he">בטל</span>
           </div> : null}
         {this.props.noteId ?
-          (<div className="deleteNote" onClick={this.deleteNote}>
+          (<div className="deleteNote" role="button" tabIndex="0" aria-label={Sefaria._("Delete Note")} onClick={this.deleteNote} onKeyDown={(e) => Util.handleKeyboardClick(e, this.deleteNote)}>
             <span className="int-en">Delete Note</span>
             <span className="int-he">מחיקת הערה</span>
           </div>) : null}
@@ -1275,10 +1311,10 @@ class MyNotes extends Component {
   }
   render() {
     const myNotesData = Sefaria.privateNotes(this.props.srefs);
-    const myNotes = myNotesData ? myNotesData.map(function (note) {
-      let editNote = function () {
+    const myNotes = myNotesData ? myNotesData.map((note) => {
+      const editNote = () => {
         this.props.editNote(note);
-      }.bind(this);
+      };
       return (<Note
         text={note.text}
         isPrivate={!note.public}
@@ -1288,7 +1324,7 @@ class MyNotes extends Component {
         ownerImageUrl={note.ownerImageUrl}
         editNote={editNote}
         key={note._id} />);
-    }.bind(this)) : null;
+    }) : null;
 
     return myNotes ? (
       <div className="noteList myNoteList">
@@ -1392,7 +1428,13 @@ class AddConnectionBox extends Component {
           <span className="int-en">Choose a text to connect.</span>
           <span className="int-he">בחר טקסט לקישור</span>
 
-          <div className="button fillWidth" onClick={this.props.openComparePanel}>
+          <div 
+            className="button fillWidth" 
+            role="button"
+            tabIndex="0"
+            onClick={this.props.openComparePanel}
+            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.openComparePanel)}
+          >
             <span className="int-en">Browse</span>
             <span className="int-he">סייר</span>
           </div>

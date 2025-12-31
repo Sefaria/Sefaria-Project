@@ -30,7 +30,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 
@@ -1364,8 +1364,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             raise InputError("Version direction must be either 'rtl' or 'ltr'")
         assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
         assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
-        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
-        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+        is_any_other_primary = any(v.isPrimary for v in index.versionSet() if v._id != getattr(self, '_id', None))
+        if not self.isPrimary and not is_any_other_primary:  # if all are False, return true
             raise InputError("There must be at least one version that is primary.")
         return True
 
@@ -5165,23 +5165,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = {
-                "slug": topic.slug,
-                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
-                "en": topic.get_primary_title("en"),
-                "he": topic.get_primary_title("he"),
-                "displayOrder": getattr(topic, "displayOrder", 10000),
-                "pools": DjangoTopic.objects.slug_to_pools.get(topic.slug, [])
-            }
-
-            with_descriptions = True # TODO revisit for data size / performance
-            if with_descriptions:
-                if getattr(topic, "categoryDescription", False):
-                    topic_json['categoryDescription'] = topic.categoryDescription
-                description = getattr(topic, "description", None)
-                if description is not None and getattr(topic, "description_published", False):
-                    topic_json['description'] = description
-
+            topic_json = topic.contents(minify=True, children=children, with_html=True)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
@@ -5725,14 +5709,9 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_recognizer import NamedEntityRecognizer
-        from sefaria.helper.linker import load_spacy_model
+        from .linker.linker_entity_recognizer import LinkerEntityRecognizer
 
-        return NamedEntityRecognizer(
-            lang,
-            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
-        )
+        return LinkerEntityRecognizer(lang)
 
     def _build_category_resolver(self, lang: str):
         from sefaria.model.category import CategorySet, Category
@@ -6011,14 +5990,27 @@ class Library(object):
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False, reg=None, title_nodes=None):
         """
-        Returns a string with the list of Ref objects derived from string wrapped in <a> tags
+        Returns a string with the list of Ref objects derived from string wrapped in <a> tags,
+        excluding refs that are already wrapped in the data
 
         :param string st: the input string
         :param lang: "he" or "en"
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
-        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+        if '<a ' not in st:  # This is 30 times faster than re.split, and applies for most cases
+            substrings = [st]
+        else:
+            html_a_tag_reg = '(<a [^<>]*>.*?</a>)'  # Assuming no nested <a> within <a>
+            substrings = re.split(html_a_tag_reg, st)
+        new_string = ''
+        for i, substring in enumerate(substrings):
+            if i % 2 == 1:  # An <a> tag
+                new_string += substring
+            elif i % 2 == 0 and substring:
+                new_string += self.apply_action_for_all_refs_in_string(substring, self._wrap_ref_match, lang,
+                                                                       citing_only, reg, title_nodes)
+        return new_string
 
     def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
         """

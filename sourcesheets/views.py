@@ -34,9 +34,11 @@ from sefaria.model.user_profile import *
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.utils.util import strip_tags
+from sefaria.system.cache import django_cache
+from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import render_template, catchall, get_search_params
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -62,10 +64,12 @@ def annotate_user_links(sources):
 
 from django.utils.translation import ugettext as _
 from reader.views import menu_page
+
+@ensure_csrf_cookie
 def sheets_home_page(request):
-    title = _("Sheets on Sefaria")
-    desc  = _("Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos.")
-    return menu_page(request, page="sheets", title=title, desc=desc)
+    title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
+    desc  = _("Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos.")
+    return menu_page(request, page="voices", title=title, desc=desc)
 
 @login_required
 @ensure_csrf_cookie
@@ -165,20 +169,22 @@ def make_sheet_class_string(sheet):
 
     return " ".join(classes)
 
-
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    editor = request.GET.get('editor', '0')
+    redirect_url = get_redirect_to_help_center(request, sheet_id)
+    if redirect_url:
+        return redirect(redirect_url)
+    
     embed = request.GET.get('embed', '0')
-
-    if editor != '1' and embed !='1' and editorMode is False:
+    if embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 
@@ -570,10 +576,13 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
+                return jsonResponse(
+                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"},
+                    status=401
+                )
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
+                return jsonResponse({"error": "Unrecognized API key."}, status=401)
         else:
             apikey = None
 
@@ -616,6 +625,7 @@ def save_sheet_api(request):
 
         rebuild_nodes = request.POST.get('rebuildNodes', False)
         responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
+        responseSheet["topics"] = add_langs_to_topics(responseSheet.get("topics", [])) # add langs to topics for consistency.  GET requests already do this, but POST requests didn't before
         if "rebuild" in responseSheet and responseSheet["rebuild"]:
             # Don't bother adding user links if this data won't be used to rebuild the sheet
             responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
@@ -880,6 +890,7 @@ def user_tag_list_api(request, user_id):
     response["Cache-Control"] = "max-age=3600"
     return response
 
+@django_cache(timeout=6 * 60 * 60)
 def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
@@ -978,7 +989,7 @@ def sheets_with_ref(request, tref):
     }
     he_tref = Ref(tref).he_normal()
     normal_ref = tref if request.interfaceLang == "english" else he_tref
-    title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
+    title = get_page_title(f"Sheets with {normal_ref}", module=request.active_module)
     props["sheetsWithRef"] = {"en": tref, "he": he_tref}
     return menu_page(request, page="sheetsWithRef", title=title, props=props)
 

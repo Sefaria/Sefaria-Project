@@ -51,7 +51,7 @@ const getSuggestions = async (input) => {
     const isInputHebrew = Sefaria.hebrew.isHebrew(word);
     const lang = isInputHebrew? 'he' : 'en';
 
-    const rawCompletions = await Sefaria.getName(word,20, "Topic", "library", true, true);
+    const rawCompletions = await Sefaria.getName(word,20, ["Topic"], "library",true, true);
     const completionObjects = _parseSuggestions(rawCompletions["completion_objects"], lang);
     return completionObjects.map((suggestion) => ({
       text: suggestion.title,
@@ -76,7 +76,7 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
               data-anl-event="navto_topic:click"
 
           >
-              <img alt="Topic" className="type-icon" src="/static/icons/iconmonstr-hashtag-1.svg"/>
+              <img alt={Sefaria._("Topic")} className="type-icon" src="/static/icons/iconmonstr-hashtag-1.svg"/>
               <span className="topic-landing-search-suggestion-title">{item.text}</span> <span
               className="topic-landing-search-suggestion-category-path">&nbsp;{item.categoryText}</span>
           </div>
@@ -114,6 +114,7 @@ const renderInput = (openTopic, numOfTopics, highlightedIndex, highlightedSugges
             className='topic-landing-search-input'
             id="searchInput"
             placeholder={placeHolder}
+            aria-label={placeHolder}
             onKeyDown={onKeyDownOverride}
             maxLength={75}
             {...otherInputDownshiftProps}
