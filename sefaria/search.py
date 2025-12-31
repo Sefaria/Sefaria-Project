@@ -593,13 +593,15 @@ class TextIndexer(object):
 
     @classmethod
     def remove_footnotes(cls, content):
-        ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
+        ftnotes = AbstractTextRecord.find_all_footnotes(content)
         if len(ftnotes) == 0:
             return content
         else:
-            for sup_tag in ftnotes:
-                i_tag = sup_tag.next_sibling
-                content += f" {sup_tag.text} {i_tag.text}"
+            for raw_footnote in ftnotes:
+                sup_text = re.search(r'<sup[^>]*class="footnote-marker">(.*?)</sup>', raw_footnote).group(1)
+                # should be greedy since we already pulled out precise i-tag
+                itag_text = re.search(r'<i[^>]*class="footnote"[^>]*>(.*)</i>', raw_footnote).group(1)
+                content += f" {sup_text} {itag_text}"
             content = AbstractTextRecord.strip_itags(content)
             return content
 

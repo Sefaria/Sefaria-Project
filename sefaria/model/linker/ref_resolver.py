@@ -1,12 +1,14 @@
 from collections import defaultdict
+from functools import reduce
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
 from enum import IntEnum, Enum
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext
-from ne_span import NESpan, RefPartType
+from sefaria.model.linker.context_mutation import ContextMutationOp, ContextMutation, ContextMutationSet
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
+from ne_span import NESpan
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
@@ -131,7 +133,11 @@ class ResolvedRef(abst.Cloneable):
     def count_by_part_type(parts) -> Dict[RefPartType, int]:
         part_type_counts = defaultdict(int)
         for part in parts:
-            part_type_counts[part.type] += 1
+            if part.type == RefPartType.RANGE:
+                # for the sake of counting equivalent parts, we can consider a ranged part to be numbered since they are interchangeable in a citation
+                part_type_counts[RefPartType.NUMBERED] += 1
+            else:
+                part_type_counts[part.type] += 1
         return part_type_counts
 
     def get_node_children(self):
@@ -224,16 +230,10 @@ class TermMatcher:
                 self._str2term_map[title] += [term]
 
     def match_term(self, ref_part: RawRefPart) -> List[schema.NonUniqueTerm]:
-        from sefaria.utils.hebrew import get_prefixless_inds
+        from sefaria.utils.hebrew import get_matches_with_prefixes
 
-        matches = []
-        if ref_part.type != RefPartType.NAMED: return matches
-        starti_inds = [0]
-        if self.lang == 'he':
-            starti_inds += get_prefixless_inds(ref_part.text)
-        for starti in starti_inds:
-            matches += self._str2term_map.get(ref_part.text[starti:], [])
-        return matches
+        if ref_part.type != RefPartType.NAMED: return []
+        return get_matches_with_prefixes(ref_part.text, lang=self.lang, matches_map=self._str2term_map)
 
     def match_terms(self, ref_parts: List[RawRefPart]) -> List[schema.NonUniqueTerm]:
         matches = []
@@ -320,11 +320,14 @@ class RefResolver:
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
         elif any(r.is_ambiguous for r in temp_resolved) or temp_resolved[-1].ref is None:
-            # can't be sure about future ibid inferences
-            # TODO can probably salvage parts of history if matches are ambiguous within one book
+            for r in temp_resolved:
+                if r.is_ambiguous:
+                    for rr in r.resolved_raw_refs:
+                        if rr.ref is None:
+                            continue
+                        self._ibid_history.last_refs = rr.ref
             # if ref is None, match is likely to AltStructNode
             # TODO this node still has useful info. Try to salvage it.
-            self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
 
@@ -367,9 +370,11 @@ class RefResolver:
             if is_non_cts:
                 # TODO assumes context is only first resolved ref
                 book_context_ref = None if resolved_list[0].is_ambiguous else resolved_list[0].ref
-            context_swap_map = None if book_context_ref is None else getattr(book_context_ref.index.nodes,
-                                                                        'ref_resolver_context_swaps', None)
-            self._apply_context_swaps(raw_ref, context_swap_map)
+            context_mutations = self._collect_context_mutations(book_context_ref)
+            if context_mutations:
+                context_mutations.apply_to(raw_ref, self.get_term_matcher())
+            else:
+                raw_ref.parts_to_match = raw_ref.raw_ref_parts
             unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
@@ -403,7 +408,14 @@ class RefResolver:
     def get_unrefined_ref_part_matches(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
             'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, ref_parts=raw_ref.parts_to_match)
-        contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
+        contexts = []
+        if book_context_ref:
+            contexts += [(book_context_ref, ContextType.CURRENT_BOOK)]
+            contexts += [
+                (text.Ref(base_text_title), ContextType.CURRENT_BOOK)
+                for base_text_title in (getattr(book_context_ref.index, 'base_text_titles', []))
+            ]
+        contexts += [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
         matches = context_free_matches
         if len(matches) == 0:
             context_full_matches = []
@@ -415,7 +427,7 @@ class RefResolver:
     def _get_unrefined_ref_part_matches_for_title_context(self, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
         if context_ref is None: return matches
-        term_contexts = self._get_term_contexts(context_ref.index.nodes)
+        term_contexts = self._get_term_contexts(context_ref.index_node)
         if len(term_contexts) == 0: return matches
         temp_ref_parts = raw_ref.parts_to_match + term_contexts
         temp_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, ref_parts=temp_ref_parts)
@@ -427,28 +439,32 @@ class RefResolver:
             matches += [match]
         return matches
 
-    def _apply_context_swaps(self, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
-        """
-        Use `context_swap_map` to swap matching element of `ref_parts`
-        Allows us to redefine how a ref part is interpreted depending on the context
-        E.g. some rishonim refer to other rishonim based on nicknames
+    def _collect_context_mutations(self, book_context_ref: Optional[text.Ref]) -> Optional[ContextMutationSet]:
+        if book_context_ref is None:
+            return None
+        node = book_context_ref.index_node
+        path_nodes = []
+        curr_node = node
+        while curr_node is not None:
+            path_nodes.append(curr_node)
+            curr_node = curr_node.parent
+        mutation_set = ContextMutationSet()
+        for path_node in reversed(path_nodes):
+            raw_mutations = getattr(path_node, 'ref_resolver_context_mutations', None)
+            if not raw_mutations:
+                continue
+            parsed_mutations = self._parse_context_mutation_data(raw_mutations)
+            if parsed_mutations:
+                mutation_set.add_mutations(parsed_mutations)
+        return mutation_set if len(mutation_set) > 0 else None
 
-        Modifies `raw_ref` with updated ref_parts
-        """
-        swapped_ref_parts = []
-        term_matcher = self.get_term_matcher()
-        if context_swap_map is None: return
-        for part in raw_ref.raw_ref_parts:
-            # TODO assumes only one match in term_matches
-            term_matches = term_matcher.match_term(part)
-            found_match = False
-            for match in term_matches:
-                if match.slug not in context_swap_map: continue
-                swapped_ref_parts += [TermContext(schema.NonUniqueTerm.init(slug)) for slug in context_swap_map[match.slug]]
-                found_match = True
-                break
-            if not found_match: swapped_ref_parts += [part]
-        raw_ref.parts_to_match = swapped_ref_parts
+    @staticmethod
+    def _parse_context_mutation_data(raw_mutations: Iterable[dict]) -> List[ContextMutation]:
+        parsed: List[ContextMutation] = []
+        for raw_mutation in raw_mutations:
+            op = ContextMutationOp(raw_mutation["op"])
+            parsed.append(ContextMutation(op, raw_mutation["input_terms"], raw_mutation["output_terms"]))
+        return parsed
 
     def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
         """
@@ -528,11 +544,6 @@ class RefResolver:
                 # complex text
                 return set()
 
-        if context_ref.is_range():
-            # SectionContext doesn't seem to make sense for ranged refs (It works incidentally when context is parsha
-            # and input is "See beginning of parsha pasuk 1" but not sure we want to plan for that case)
-            return []
-
         context_node = context_ref.index_node
         if not hasattr(context_node, 'addressTypes'):
             # complex text
@@ -567,11 +578,22 @@ class RefResolver:
 
     @staticmethod
     def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
-        match_templates = list(node.get_match_templates())
-        if len(match_templates) == 0: return []
-        # not clear which match_template to choose. shortest has advantage of adding minimum context to search
-        longest_template = min(match_templates, key=lambda x: len(list(x.terms)))
-        return [TermContext(term) for term in longest_template.terms]
+        term_contexts = []
+        recursion_depth = 0
+        while True:
+            match_templates = list(node.get_match_templates())
+            if len(match_templates) != 0:
+                # not clear which match_template to choose. shortest has advantage of adding minimum context to search
+                shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
+                term_contexts.extend([TermContext(term) for term in shortest_template.terms])
+            if node.parent is None:
+                break
+            node = node.parent
+            recursion_depth += 1
+            if recursion_depth > 10:
+                # in case of infinite loop
+                break
+        return term_contexts
 
     def _get_refined_ref_part_matches_for_section_context(self, context_ref: Optional[text.Ref], context_type: ContextType, ref_part_match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         """
@@ -598,10 +620,30 @@ class RefResolver:
             matches += temp_matches
         return matches
 
+    @staticmethod
+    def _get_named_part_pairs(ref_parts: [RawRefPart]) -> [RawRefPartPair]:
+        """
+        Look for pairs of ref parts that are consecutive named parts
+        The ref part ML model sometimes breaks up named parts too much and then the individual parts don't match the corresponding match templates
+        This function merges consecutive named parts to mitigate this issue
+        @param ref_parts:
+        @return:
+        """
+        named_parts = [part for part in ref_parts if part.type == RefPartType.NAMED and not part.is_context]
+        named_parts.sort(key=lambda part: part.char_indices[0])
+        named_part_pairs = []
+        for i, part in enumerate(named_parts[:-1]):
+            next_part = named_parts[i+1]
+            # check that next_part is consecutive to part
+            if 0 < (next_part.char_indices[0] - part.char_indices[1]) <= 2:  # allow for space or punctuation between named parts
+                named_part_pairs += [RawRefPartPair(part, next_part)]
+        return named_part_pairs
+
     def _get_refined_ref_part_matches_recursive(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         fully_refined = []
         children = match.get_node_children()
-        for part in ref_parts:
+        part_pairs = self._get_named_part_pairs(ref_parts)
+        for part in (ref_parts + part_pairs):
             for child in children:
                 resolved_ref_refiner = resolved_ref_refiner_factory.create(part, child, match)
                 temp_matches = resolved_ref_refiner.refine(self._lang)
@@ -650,6 +692,18 @@ class ResolvedRefPruner:
 
     @staticmethod
     def do_explicit_sections_match_before_context_sections(match: ResolvedRef) -> bool:
+        """
+        similar to context_parts_before_or_between_explicit_parts() but this focuses on numbered parts
+        This test is still needed since context_parts_before_or_between_explicit_parts() will ignore citations with "Ibid" in them.
+        
+        Context sections should always appear after explicit sections.
+        E.g.
+            Context Ref: Exodus 1:7
+            Input: Ibid 12
+            Don't consider: Exodus 12:7. This makes no sense.
+        :param match: 
+        :return: 
+        """
         first_explicit_section = None
         for part in match.get_resolved_parts():
             if not first_explicit_section and part.type == RefPartType.NUMBERED and not part.is_context:
@@ -657,6 +711,34 @@ class ResolvedRefPruner:
             elif first_explicit_section and part.is_context:
                 return True
         return False
+    
+    @staticmethod
+    def _has_explicit_ibid_in_input_parts(match: ResolvedRef) -> bool:
+        return RefPartType.IBID in {part.type for part in match.raw_entity.parts_to_match}
+
+    @staticmethod
+    def context_parts_before_or_between_explicit_parts(match: ResolvedRef) -> bool:
+        """
+        similar to do_explicit_sections_match_before_context_sections() but focused on all part types.
+        Context parts should always be matched before explicit parts
+        OR they should be in between explicit parts
+        They should never be only after explicit parts UNLESS there's an explicit ibid in the original citation. This indicates the citation should be using context and then this rule doesn't apply
+        :param match: 
+        :return: 
+        """
+        if ResolvedRefPruner._has_explicit_ibid_in_input_parts(match):
+            # skip this rule
+            return True
+        explicit_part_after_context = None
+        check_explicit_part_after_context = False
+        for part in match.get_resolved_parts():
+            if part.is_context:
+                check_explicit_part_after_context = True
+            elif check_explicit_part_after_context:
+                explicit_part_after_context = part
+        if check_explicit_part_after_context and not explicit_part_after_context:
+            return False
+        return True
 
     @staticmethod
     def matched_all_explicit_sections(match: ResolvedRef) -> bool:
@@ -703,6 +785,8 @@ class ResolvedRefPruner:
     @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
         # make sure no explicit sections matched before context sections
+        if not ResolvedRefPruner.context_parts_before_or_between_explicit_parts(match):
+            return False
         if ResolvedRefPruner.do_explicit_sections_match_before_context_sections(match):
             return False
         if not ResolvedRefPruner.matched_all_explicit_sections(match):

@@ -409,6 +409,7 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
@@ -694,6 +695,14 @@ const Strings = {
     "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
     "of": "מתוך",
     "Loading guide...": "טוען מדריך...",
+    },
+    "GuideBox": {
+      "Guided Learning": "מדריך למידה",
+    },
+    "AiInfoTooltip": {
+      "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
+      "Some of the text on this page has been AI generated.": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית.",
+      "Learn More": "לפרטים נוספים",
     }
   },
 };

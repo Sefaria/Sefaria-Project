@@ -48,7 +48,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     linking_args = LinkingArgs(**linking_args_dict)
     linker = library.get_linker(linking_args.lang)
     book_ref = Ref(linking_args.ref)
-    output = linker.link(linking_args.text, book_context_ref=book_ref)
+    output = linker.link_with_footnotes(linking_args.text, book_context_ref=book_ref)
 
     spans = _extract_resolved_spans(output.resolved_refs)
     if not spans:

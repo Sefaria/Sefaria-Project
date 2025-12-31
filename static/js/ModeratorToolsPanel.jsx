@@ -7,8 +7,8 @@ import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import qs from 'qs';
 import { useState } from 'react';
+import { InterfaceText, EnglishText, HebrewText } from "./Misc";
 
-// Define field metadata for proper handling
 const INDEX_FIELD_METADATA = {
   "enDesc": {
     label: "English Description",
@@ -776,6 +776,7 @@ const save = async () => {
   );
 };
 
+
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
@@ -926,11 +927,11 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <GetLinks/>
       </div>);
-     const removeLinksFromCsv = (
-         <div className='modToolsSection'>
-             <RemoveLinksFromCsv/>
-         </div>
-     );
+    const removeLinksFromCsv = (
+        <div className='modToolsSection'>
+            <RemoveLinksFromCsv/>
+        </div>
+    );
 
      const bulkIndexEditor = (
       <div className="modToolsSection"><BulkIndexEditor /></div>
@@ -969,8 +970,6 @@ class ModeratorToolsPanel extends Component {
      );
    }
  }
- 
-ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
 
@@ -978,18 +977,22 @@ ModeratorToolsPanel.propTypes = {
 class WorkflowyModeratorTool extends Component{
     constructor(props) {
     super(props);
-    this.handleWfSubmit = this.handleWfSubmit.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleFileChange = this.handleFileChange.bind(this);
     this.wfFileInput = React.createRef();
     this.state = {
       c_index: true,
-      files: [],
-      multipleFiles: false
+      c_version: false,
+      delims: '',
+      term_scheme: '',
+      uploading: false,
+      uploadMessage: null,
+      uploadResult: null,
+      error: false,
+      errorIsHTML: false,
+      files: []
     };
   }
 
-  handleInputChange(event) {
+  handleInputChange = (event) => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
@@ -999,15 +1002,14 @@ class WorkflowyModeratorTool extends Component{
     });
   }
 
-  handleFileChange(event) {
+  handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     this.setState({
-      files: files,
-      multipleFiles: files.length > 1
+      files: files
     });
   }
 
-  handleWfSubmit(event) {
+  handleWfSubmit = (event) => {
     event.preventDefault();
 
     if (this.state.files.length === 0) {
@@ -1015,26 +1017,9 @@ class WorkflowyModeratorTool extends Component{
       return;
     }
 
-    this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 ? 's' : ''}...`});
+    this.setState({uploading: true, uploadMessage: `Uploading ${this.state.files.length} file${this.state.files.length > 1 && 's'}...`});
 
-    const data = new FormData();
-
-    // Add files - use appropriate field name based on number of files
-    if (this.state.files.length === 1) {
-      // Single file - use original field name for backward compatibility
-      data.append('wf_file', this.state.files[0]);
-    } else {
-      // Multiple files - use array field name
-      this.state.files.forEach(file => {
-        data.append('workflowys[]', file);
-      });
-    }
-
-    // Add other form data
-    data.append('c_index', this.state.c_index);
-    data.append('c_version', this.state.c_version || false);
-    data.append('delims', this.state.delims || '');
-    data.append('term_scheme', this.state.term_scheme || '');
+    const data = new FormData(event.target);
 
     const request = new Request(
         '/modtools/upload_text',
@@ -1059,13 +1044,42 @@ class WorkflowyModeratorTool extends Component{
         }else{
             response.json().then(resp_json=>{
                 console.log("okay response", resp_json);
-                this.setState({uploading: false,
-                    error: false,
-                    uploadMessage: resp_json.data ? resp_json.data.message : resp_json.message,
-                    uploadResult: resp_json.data ? JSON.stringify(resp_json.data.index, undefined, 4) : resp_json.message});
 
-                // Clear files after successful upload
-                this.setState({files: [], multipleFiles: false});
+                const successes = resp_json.successes || [];
+                const failures = resp_json.failures || [];
+
+                let uploadMessage = "";
+                let uploadResult = "";
+
+                // Build summary message
+                if (failures.length === 0) {
+                    uploadMessage = `Successfully imported ${successes.length} file${successes.length > 1 && 's'}`;
+                } else if (successes.length === 0) {
+                    uploadMessage = `All ${failures.length} file${failures.length > 1 && 's'} failed`;
+                } else {
+                    uploadMessage = `${successes.length} succeeded, ${failures.length} failed`;
+                }
+
+                // Build detailed result
+                const parts = [];
+                if (successes.length > 0) {
+                    parts.push("Successes:\n" + successes.map(f => `  ✓ ${f}`).join('\n'));
+                }
+                if (failures.length > 0) {
+                    parts.push("Failures:\n" + failures.map(f => `  ✗ ${f.file}: ${f.error}`).join('\n'));
+                }
+                uploadResult = parts.join('\n\n');
+
+                this.setState({
+                    uploading: false,
+                    error: failures.length > 0,
+                    errorIsHTML: false,
+                    uploadMessage: uploadMessage,
+                    uploadResult: uploadResult
+                });
+
+                // Clear files after upload
+                this.setState({files: []});
                 if (this.wfFileInput.current) {
                   this.wfFileInput.current.value = '';
                 }
@@ -1099,7 +1113,7 @@ class WorkflowyModeratorTool extends Component{
               Upload Workflowy file(s):
               <input
                 type="file"
-                name="wf_file"
+                name="workflowys[]"
                 ref={this.wfFileInput}
                 multiple
                 accept=".opml"
@@ -1116,6 +1130,7 @@ class WorkflowyModeratorTool extends Component{
               <input
                 name="c_index"
                 type="checkbox"
+                value="true"
                 checked={this.state.c_index}
                 onChange={this.handleInputChange} />
            </label>
@@ -1124,7 +1139,8 @@ class WorkflowyModeratorTool extends Component{
               <input
                 name="c_version"
                 type="checkbox"
-                checked={this.state.c_version || false}
+                value="true"
+                checked={this.state.c_version}
                 onChange={this.handleInputChange} />
            </label>
            <label>
@@ -1133,7 +1149,7 @@ class WorkflowyModeratorTool extends Component{
                 className="dlVersionSelect"
                 name="delims"
                 type="text"
-                value={this.state.delims || ''}
+                value={this.state.delims}
                 onChange={this.handleInputChange} />
             </label>
             <label>
@@ -1142,7 +1158,7 @@ class WorkflowyModeratorTool extends Component{
                 className="dlVersionSelect"
                 name="term_scheme"
                 type="text"
-                value={this.state.term_scheme || ''}
+                value={this.state.term_scheme}
                 onChange={this.handleInputChange} />
             </label>
              <button
@@ -1151,19 +1167,22 @@ class WorkflowyModeratorTool extends Component{
                type="submit"
                disabled={this.state.uploading || this.state.files.length === 0}
              >
-                <span className="int-en">
+              <InterfaceText>
+                <EnglishText className="int-en">
                   {this.state.uploading ? 'Uploading...' :
                    this.state.files.length > 1 ? `Upload ${this.state.files.length} Files` : 'Upload'}
-                </span>
-                <span className="int-he">
-                  {this.state.uploading ? 'מעלה...' : 'העלאה'}
-                </span>
+                </EnglishText>
+                <HebrewText className="int-he">
+                  {this.state.uploading ? 'מעלה...' :
+                   this.state.files.length > 1 ? `העלאת ${this.state.files.length} קבצים` : 'העלאה'}
+                </HebrewText>
+              </InterfaceText>
              </button>
          </form>
         <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
         { (this.state.error && this.state.errorIsHTML) ?
               <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
-              <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult || ''}></textarea> }
+              <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
         </div>);
   }
 }
@@ -1460,10 +1479,6 @@ function GetLinks() {
 }
 
 
-
-/*****************************************************************
- *  B U L K   V E R S I O N   E D I T O R   (full field list)
- *****************************************************************/
 const ALL_FIELDS = [
   "versionTitle", "versionTitleInHebrew",
   "versionSource", "license", "status",        // locked = status:"locked"
@@ -2180,5 +2195,6 @@ const NodeTitleEditor = () => {
     </div>
   );
 };
+
 
 export default ModeratorToolsPanel;
