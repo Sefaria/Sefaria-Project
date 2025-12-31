@@ -1,0 +1,503 @@
+/**
+ * BulkIndexEditor - Bulk edit Index metadata across multiple indices
+ *
+ * Similar workflow to BulkVersionEditor, but operates on Index records
+ * (the text metadata) rather than Version records (text content/translations).
+ *
+ * Workflow:
+ * 1. User enters a versionTitle to find indices that have matching versions
+ * 2. User selects which indices to update
+ * 3. User fills in index metadata fields
+ * 4. On save, updates each Index via the raw API
+ *
+ * Special features:
+ * - Auto-detection for commentary texts ("X on Y" pattern)
+ * - Automatic term creation for collective titles
+ * - Author validation against AuthorTopic
+ * - TOC zoom level setting on schema nodes
+ *
+ * Backend API: POST /api/v2/raw/index/{title}?update=1
+ *
+ * For AI agents:
+ * - Index fields are defined in INDEX_FIELD_METADATA
+ * - Use 'auto' value for fields that support auto-detection
+ * - Term creation requires both English and Hebrew collective titles
+ */
+import React, { useState, useEffect } from 'react';
+import $ from '../../../sefaria/sefariaJquery';
+import Sefaria from '../../../sefaria/sefaria';
+import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
+import ModToolsSection from './shared/ModToolsSection';
+import IndexSelector from './shared/IndexSelector';
+import StatusMessage from './shared/StatusMessage';
+
+/**
+ * Detect commentary pattern from title (e.g., "Rashi on Genesis")
+ * Returns { commentaryName, baseText } or null
+ */
+const detectCommentaryPattern = (title) => {
+  const match = title.match(/^(.+?)\s+on\s+(.+)$/);
+  if (match) {
+    return {
+      commentaryName: match[1].trim(),
+      baseText: match[2].trim()
+    };
+  }
+  return null;
+};
+
+/**
+ * Create a term if it doesn't exist
+ */
+const createTermIfNeeded = async (enTitle, heTitle) => {
+  if (!enTitle || !heTitle) {
+    throw new Error("Both English and Hebrew titles are required to create a term");
+  }
+
+  try {
+    // Check if term already exists
+    await $.ajax({
+      url: `/api/terms/${encodeURIComponent(enTitle)}`,
+      method: 'GET'
+    });
+    return true; // Term exists
+  } catch (e) {
+    if (e.status === 404) {
+      // Create term
+      await $.ajax({
+        url: `/api/terms/${encodeURIComponent(enTitle)}`,
+        method: 'POST',
+        data: {
+          json: JSON.stringify({
+            name: enTitle,
+            titles: [
+              { lang: "en", text: enTitle, primary: true },
+              { lang: "he", text: heTitle, primary: true }
+            ]
+          })
+        }
+      });
+      return true;
+    }
+    throw e;
+  }
+};
+
+const BulkIndexEditor = () => {
+  // Search state
+  const [vtitle, setVtitle] = useState("");
+  const [lang, setLang] = useState("");
+
+  // Results state
+  const [indices, setIndices] = useState([]);
+  const [pick, setPick] = useState(new Set());
+  const [categories, setCategories] = useState([]);
+
+  // Edit state
+  const [updates, setUpdates] = useState({});
+
+  // UI state
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load categories on mount
+  useEffect(() => {
+    $.getJSON('/api/index', data => {
+      const cats = [];
+      const extractCategories = (node, path = []) => {
+        if (node.category) {
+          const fullPath = [...path, node.category].join(", ");
+          cats.push(fullPath);
+        }
+        if (node.contents) {
+          node.contents.forEach(item => {
+            extractCategories(item, node.category ? [...path, node.category] : path);
+          });
+        }
+      };
+      data.forEach(cat => extractCategories(cat));
+      setCategories(cats.sort());
+    });
+  }, []);
+
+  /**
+   * Load indices matching the version title
+   */
+  const load = () => {
+    if (!vtitle.trim()) {
+      setMsg("❌ Please enter a version title");
+      return;
+    }
+
+    setLoading(true);
+    setMsg("Loading indices...");
+
+    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
+      .done(d => {
+        setIndices(d.indices || []);
+        setPick(new Set(d.indices || []));
+        setMsg(`Found ${d.indices?.length || 0} indices`);
+      })
+      .fail(xhr => {
+        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
+        setMsg(`❌ Error: ${errorMsg}`);
+        setIndices([]);
+        setPick(new Set());
+      })
+      .always(() => setLoading(false));
+  };
+
+  /**
+   * Handle field value changes
+   */
+  const handleFieldChange = (fieldName, value) => {
+    setUpdates(prev => ({ ...prev, [fieldName]: value }));
+  };
+
+  /**
+   * Save changes to selected indices
+   */
+  const save = async () => {
+    if (!pick.size || !Object.keys(updates).length) return;
+
+    setSaving(true);
+    setMsg("Saving changes...");
+
+    // Process updates to ensure correct data types
+    const processedUpdates = {};
+
+    for (const [field, value] of Object.entries(updates)) {
+      if (!value && field !== "toc_zoom") continue;
+
+      const fieldMeta = INDEX_FIELD_METADATA[field];
+      if (!fieldMeta) {
+        processedUpdates[field] = value;
+        continue;
+      }
+
+      switch (fieldMeta.type) {
+        case 'array':
+          if (value === 'auto') {
+            processedUpdates[field] = 'auto';
+          } else {
+            processedUpdates[field] = value.split(',').map(v => v.trim()).filter(v => v);
+          }
+          break;
+        case 'daterange':
+          if (value.startsWith('[') && value.endsWith(']')) {
+            try {
+              processedUpdates[field] = JSON.parse(value);
+            } catch (e) {
+              setMsg(`❌ Invalid date format for ${field}`);
+              setSaving(false);
+              return;
+            }
+          } else {
+            const year = parseInt(value);
+            if (!isNaN(year)) {
+              processedUpdates[field] = year;
+            } else {
+              setMsg(`❌ Invalid date format for ${field}`);
+              setSaving(false);
+              return;
+            }
+          }
+          break;
+        case 'number':
+          const numValue = parseInt(value);
+          if (isNaN(numValue)) {
+            setMsg(`❌ Invalid number format for ${field}`);
+            setSaving(false);
+            return;
+          }
+          processedUpdates[field] = numValue;
+          break;
+        default:
+          processedUpdates[field] = value;
+      }
+    }
+
+    // Validate authors if present
+    if (processedUpdates.authors && processedUpdates.authors !== 'auto') {
+      try {
+        const authorSlugs = [];
+        for (const authorName of processedUpdates.authors) {
+          const response = await $.ajax({ url: `/api/name/${authorName}`, method: 'GET' });
+          const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+          const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
+
+          if (!exactMatch) {
+            const closestMatches = matches.map(t => t.title).slice(0, 3);
+            const msg = matches.length > 0
+              ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
+              : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
+            setMsg(`❌ ${msg}`);
+            setSaving(false);
+            return;
+          }
+          authorSlugs.push(exactMatch.key);
+        }
+        processedUpdates.authors = authorSlugs;
+      } catch (e) {
+        setMsg(`❌ Error validating authors`);
+        setSaving(false);
+        return;
+      }
+    }
+
+    let successCount = 0;
+    const errors = [];
+
+    for (const indexTitle of pick) {
+      try {
+        setMsg(`Updating ${indexTitle}...`);
+
+        const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+        if (!existingIndexData) {
+          errors.push(`${indexTitle}: Could not fetch existing index data.`);
+          continue;
+        }
+
+        let indexSpecificUpdates = { ...processedUpdates };
+        const pattern = detectCommentaryPattern(indexTitle);
+
+        // Handle auto-detection for various fields
+        if (indexSpecificUpdates.dependence === 'auto') {
+          indexSpecificUpdates.dependence = pattern ? 'Commentary' : undefined;
+          if (!pattern) delete indexSpecificUpdates.dependence;
+        }
+
+        if (indexSpecificUpdates.base_text_titles === 'auto') {
+          if (pattern?.baseText) {
+            indexSpecificUpdates.base_text_titles = [pattern.baseText];
+          } else {
+            delete indexSpecificUpdates.base_text_titles;
+          }
+        }
+
+        if (indexSpecificUpdates.collective_title === 'auto') {
+          if (pattern?.commentaryName) {
+            indexSpecificUpdates.collective_title = pattern.commentaryName;
+          } else {
+            delete indexSpecificUpdates.collective_title;
+          }
+        }
+
+        // Handle term creation for collective_title
+        if (indexSpecificUpdates.collective_title && indexSpecificUpdates.he_collective_title) {
+          try {
+            await createTermIfNeeded(indexSpecificUpdates.collective_title, indexSpecificUpdates.he_collective_title);
+            delete indexSpecificUpdates.he_collective_title;
+          } catch (e) {
+            errors.push(`${indexTitle}: Failed to create term: ${e.message}`);
+            continue;
+          }
+        }
+
+        // Handle authors auto-detection
+        if (indexSpecificUpdates.authors === 'auto' && pattern?.commentaryName) {
+          try {
+            const response = await $.ajax({ url: `/api/name/${pattern.commentaryName}`, method: 'GET' });
+            const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+            const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
+            if (exactMatch) {
+              indexSpecificUpdates.authors = [exactMatch.key];
+            } else {
+              delete indexSpecificUpdates.authors;
+            }
+          } catch (e) {
+            delete indexSpecificUpdates.authors;
+          }
+        }
+
+        // Handle TOC zoom
+        let tocZoomValue = null;
+        if ('toc_zoom' in indexSpecificUpdates) {
+          tocZoomValue = indexSpecificUpdates.toc_zoom;
+          delete indexSpecificUpdates.toc_zoom;
+
+          if (existingIndexData.schema?.nodes) {
+            existingIndexData.schema.nodes.forEach(node => {
+              if (node.nodeType === "JaggedArrayNode") {
+                node.toc_zoom = tocZoomValue;
+              }
+            });
+          } else if (existingIndexData.schema) {
+            existingIndexData.schema.toc_zoom = tocZoomValue;
+          }
+        }
+
+        const postData = {
+          title: indexTitle,
+          heTitle: existingIndexData.heTitle,
+          categories: existingIndexData.categories,
+          schema: existingIndexData.schema,
+          ...indexSpecificUpdates
+        };
+
+        const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
+        await $.ajax({ url, type: 'POST', data: { json: JSON.stringify(postData) } });
+        await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
+
+        successCount++;
+      } catch (e) {
+        const errorMsg = e.responseJSON?.error || e.responseText || e.message || 'Unknown error';
+        errors.push(`${indexTitle}: ${errorMsg}`);
+      }
+    }
+
+    if (errors.length) {
+      setMsg(`⚠️ Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+    } else {
+      setMsg(`✅ Successfully updated ${successCount} indices`);
+      setUpdates({});
+    }
+    setSaving(false);
+  };
+
+  /**
+   * Render a field input based on its metadata
+   */
+  const renderField = (fieldName) => {
+    const fieldMeta = INDEX_FIELD_METADATA[fieldName];
+    const currentValue = updates[fieldName] || "";
+
+    const commonProps = {
+      className: "dlVersionSelect fieldInput",
+      placeholder: fieldMeta.placeholder,
+      value: currentValue,
+      onChange: e => handleFieldChange(fieldName, e.target.value),
+      style: { width: "100%", direction: fieldMeta.dir || "ltr" }
+    };
+
+    return (
+      <div key={fieldName} className="fieldGroup">
+        <label>{fieldMeta.label}:</label>
+
+        {fieldMeta.help && (
+          <div className="fieldHelp">
+            {fieldMeta.help}
+            {fieldMeta.auto && (
+              <span className="autoSupport"> (Supports 'auto' for commentary texts)</span>
+            )}
+          </div>
+        )}
+
+        {fieldName === "categories" ? (
+          <select {...commonProps}>
+            <option value="">Select category...</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        ) : fieldMeta.type === "select" && fieldMeta.options ? (
+          <select {...commonProps}>
+            {fieldMeta.options.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        ) : fieldMeta.type === "textarea" ? (
+          <textarea {...commonProps} rows={3} />
+        ) : fieldMeta.type === "number" ? (
+          <input {...commonProps} type="number" min="0" max="10" />
+        ) : (
+          <input {...commonProps} type="text" />
+        )}
+      </div>
+    );
+  };
+
+  const hasChanges = Object.keys(updates).filter(k => updates[k] || k === 'toc_zoom').length > 0;
+
+  return (
+    <ModToolsSection title="Bulk Edit Index Metadata" titleHe="עריכת אינדקסים בכמות">
+      {/* Warning box */}
+      <div className="warningBox">
+        <strong>⚠️ Important Notes:</strong>
+        <ul>
+          <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
+          <li><strong>Collective Title:</strong> If Hebrew equivalent is provided, terms will be created automatically.</li>
+          <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot").</li>
+          <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
+          <li><strong>TOC Zoom:</strong> Integer 0-10 (0=fully expanded).</li>
+        </ul>
+      </div>
+
+      {/* Search bar */}
+      <div className="inputRow">
+        <input
+          className="dlVersionSelect"
+          type="text"
+          placeholder="Version title"
+          value={vtitle}
+          onChange={e => setVtitle(e.target.value)}
+          onKeyPress={e => e.key === 'Enter' && load()}
+        />
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+          style={{ width: "100px" }}
+        >
+          <option value="">All langs</option>
+          <option value="he">Hebrew</option>
+          <option value="en">English</option>
+        </select>
+        <button
+          className="modtoolsButton"
+          onClick={load}
+          disabled={loading || !vtitle.trim()}
+        >
+          {loading ? "Loading..." : "Find Indices"}
+        </button>
+      </div>
+
+      {/* Index selector */}
+      {indices.length > 0 && (
+        <IndexSelector
+          indices={indices}
+          selectedIndices={pick}
+          onSelectionChange={setPick}
+          label="indices"
+        />
+      )}
+
+      {/* Field inputs */}
+      {pick.size > 0 && (
+        <>
+          <div style={{ marginTop: "16px", marginBottom: "12px", fontWeight: "500" }}>
+            Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
+          </div>
+
+          {hasChanges && (
+            <div className="changesPreview">
+              <strong>Changes to apply:</strong>
+              <ul>
+                {Object.entries(updates).filter(([k, v]) => v || k === 'toc_zoom').map(([k, v]) => (
+                  <li key={k}>{INDEX_FIELD_METADATA[k]?.label || k}: "{v}"</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <button
+            className="modtoolsButton"
+            disabled={!hasChanges || saving}
+            onClick={save}
+          >
+            {saving ? "Saving..." : `Save Changes to ${pick.size} Indices`}
+          </button>
+        </>
+      )}
+
+      <StatusMessage message={msg} />
+    </ModToolsSection>
+  );
+};
+
+export default BulkIndexEditor;
