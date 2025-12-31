@@ -30,7 +30,6 @@ import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
-import HelpButton from './shared/HelpButton';
 
 /**
  * Detailed help documentation for this tool
@@ -504,12 +503,11 @@ const BulkIndexEditor = () => {
   const hasChanges = Object.keys(updates).filter(k => updates[k] || k === 'toc_zoom').length > 0;
 
   return (
-    <ModToolsSection title="Bulk Edit Index Metadata" titleHe="עריכת אינדקסים בכמות">
-      <HelpButton
-        title="Bulk Edit Index Metadata"
-        description={HELP_CONTENT}
-      />
-
+    <ModToolsSection
+      title="Bulk Edit Index Metadata"
+      titleHe="עריכת אינדקסים בכמות"
+      helpContent={HELP_CONTENT}
+    >
       {/* Warning box */}
       <div className="warningBox">
         <strong>⚠️ Important Notes:</strong>

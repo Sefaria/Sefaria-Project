@@ -35,7 +35,7 @@ import BulkVersionEditor from './modtools/components/BulkVersionEditor';
 import BulkIndexEditor from './modtools/components/BulkIndexEditor';
 import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
 import NodeTitleEditor from './modtools/components/NodeTitleEditor';
-import HelpButton from './modtools/components/shared/HelpButton';
+import ModToolsSection from './modtools/components/shared/ModToolsSection';
 
 
 /**
@@ -271,16 +271,12 @@ class WorkflowyModeratorTool extends Component {
 
   render() {
     return (
-      <div className="modToolsSection">
+      <ModToolsSection
+        title="Workflowy Outline Upload"
+        titleHe="העלאת קובץ - workflowy"
+        helpContent={WORKFLOWY_HELP_CONTENT}
+      >
         <div className="workflowy-tool">
-          <div className="dlSectionTitle">
-            <span className="int-en">Workflowy Outline Upload</span>
-            <span className="int-he">העלאת קובץ - workflowy</span>
-          </div>
-          <HelpButton
-            title="Workflowy Outline Upload"
-            description={WORKFLOWY_HELP_CONTENT}
-          />
           <form id="wf-file-form" className="workflowy-tool-form" onSubmit={this.handleWfSubmit}>
             <label>
               Upload Workflowy file(s):
@@ -370,7 +366,7 @@ class WorkflowyModeratorTool extends Component {
             />
           )}
         </div>
-      </div>
+      </ModToolsSection>
     );
   }
 }
@@ -559,13 +555,11 @@ class UploadLinksFromCSV extends Component {
 
   render() {
     return (
-      <div className="modToolsSection">
+      <ModToolsSection
+        title="Upload Links"
+        helpContent={UPLOAD_LINKS_HELP_CONTENT}
+      >
         <div className="uploadLinksFromCSV">
-          <div className="dlSectionTitle">Upload links</div>
-          <HelpButton
-            title="Upload Links"
-            description={UPLOAD_LINKS_HELP_CONTENT}
-          />
           <form id="upload-links-form" onSubmit={this.handleSubmit}>
             <label>
               Upload file:
@@ -596,7 +590,7 @@ class UploadLinksFromCSV extends Component {
             <div className="message error">{this.state.uploadResult}</div>
           )}
         </div>
-      </div>
+      </ModToolsSection>
     );
   }
 }
@@ -733,13 +727,11 @@ const RemoveLinksFromCsv = () => {
   };
 
   return (
-    <div className="modToolsSection">
+    <ModToolsSection
+      title="Remove Links"
+      helpContent={REMOVE_LINKS_HELP_CONTENT}
+    >
       <div className="remove-links-csv">
-        <div className="dlSectionTitle">Remove links</div>
-        <HelpButton
-          title="Remove Links"
-          description={REMOVE_LINKS_HELP_CONTENT}
-        />
         <form id="remove-links-form" onSubmit={handleSubmit}>
           <label>
             Upload file:
@@ -755,7 +747,7 @@ const RemoveLinksFromCsv = () => {
         {uploadMessage && <div className="message">{uploadMessage}</div>}
         {errorMessage && <div className="message error">{errorMessage}</div>}
       </div>
-    </div>
+    </ModToolsSection>
   );
 };
 
@@ -988,13 +980,11 @@ function GetLinks() {
   };
 
   return (
-    <div className="modToolsSection">
+    <ModToolsSection
+      title="Download Links"
+      helpContent={DOWNLOAD_LINKS_HELP_CONTENT}
+    >
       <div className="getLinks">
-        <div className="dlSectionTitle">Download links</div>
-        <HelpButton
-          title="Download Links"
-          description={DOWNLOAD_LINKS_HELP_CONTENT}
-        />
         <form id="download-links-form">
           <fieldset>
             <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
@@ -1016,7 +1006,7 @@ function GetLinks() {
         </form>
         {formReady() ? <a href={linksDownloadLink()} download><DownloadButton /></a> : <DownloadButton />}
       </div>
-    </div>
+    </ModToolsSection>
   );
 }
 
@@ -1280,15 +1270,12 @@ class ModeratorToolsPanel extends Component {
     );
 
     const downloadSection = (
-      <div className="modToolsSection dlSection">
-        <div className="dlSectionTitle">
-          <span className="int-en">Bulk Download Text</span>
-          <span className="int-he">הורדת הטקסט</span>
-        </div>
-        <HelpButton
-          title="Bulk Download Text"
-          description={BULK_DOWNLOAD_HELP_CONTENT}
-        />
+      <ModToolsSection
+        title="Bulk Download Text"
+        titleHe="הורדת הטקסט"
+        helpContent={BULK_DOWNLOAD_HELP_CONTENT}
+        className="dlSection"
+      >
         <input className="dlVersionSelect" type="text" placeholder="Index Title Pattern" onChange={this.onDlTitleChange} />
         <input className="dlVersionSelect" type="text" placeholder="Version Title Pattern" onChange={this.onDlVersionChange} />
         <select className="dlVersionSelect dlVersionLanguageSelect" value={this.state.bulk_language || ""} onChange={this.onDlLanguageSelect}>
@@ -1305,7 +1292,7 @@ class ModeratorToolsPanel extends Component {
           <option key="json" value="json">JSON</option>
         </select>
         {dlReady ? <a href={this.bulkVersionDlLink()} download>{downloadButton}</a> : downloadButton}
-      </div>
+      </ModToolsSection>
     );
 
     // CSV Upload section
@@ -1322,22 +1309,18 @@ class ModeratorToolsPanel extends Component {
     );
 
     const uploadForm = (
-      <div className="modToolsSection">
-        <div className="dlSectionTitle">
-          <span className="int-en">Bulk Upload CSV</span>
-          <span className="int-he">העלאה מ-CSV</span>
-        </div>
-        <HelpButton
-          title="Bulk Upload CSV"
-          description={BULK_UPLOAD_HELP_CONTENT}
-        />
+      <ModToolsSection
+        title="Bulk Upload CSV"
+        titleHe="העלאה מ-CSV"
+        helpContent={BULK_UPLOAD_HELP_CONTENT}
+      >
         <form id="file-form">
           <input className="dlVersionSelect" type="file" id="file-select" multiple onChange={this.handleFiles} />
           {ulReady && uploadButton}
         </form>
         {this.state.uploadMessage && <div className="message">{this.state.uploadMessage}</div>}
         {this.state.uploadError && <div className="message error">{this.state.uploadError}</div>}
-      </div>
+      </ModToolsSection>
     );
 
     return (

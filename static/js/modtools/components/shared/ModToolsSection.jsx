@@ -6,16 +6,19 @@
  *
  * Features:
  * - Collapsible sections with smooth animation
- * - Optional help button integration
+ * - Collapse toggle on left side of header
+ * - Optional help button on right side of header
  * - Keyboard accessible (Enter/Space to toggle)
- * - Remembers collapsed state during session
+ * - All sections collapsed by default
+ *
+ * Layout:
+ * [▼ collapse] [Title] ............................ [? help]
  *
  * @example
  * <ModToolsSection
  *   title="Bulk Download"
  *   titleHe="הורדה"
  *   helpContent={<p>Help text here</p>}
- *   defaultCollapsed={false}
  * >
  *   <form>...</form>
  * </ModToolsSection>
@@ -49,7 +52,7 @@ const ChevronIcon = () => (
  * @param {string} className - Additional CSS classes
  * @param {React.ReactNode} helpContent - Optional help modal content
  * @param {string} helpTitle - Title for help modal (defaults to title prop)
- * @param {boolean} defaultCollapsed - Whether section starts collapsed
+ * @param {boolean} defaultCollapsed - Whether section starts collapsed (default: true)
  */
 const ModToolsSection = ({
   title,
@@ -58,7 +61,7 @@ const ModToolsSection = ({
   className = '',
   helpContent,
   helpTitle,
-  defaultCollapsed = false
+  defaultCollapsed = true
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
@@ -95,23 +98,23 @@ const ModToolsSection = ({
           tabIndex={0}
           aria-expanded={!isCollapsed}
         >
-          <div className="dlSectionTitle">
-            {title && <span className="int-en">{title}</span>}
-            {titleHe && <span className="int-he">{titleHe}</span>}
-          </div>
-          <div className="sectionHeaderActions">
-            {helpContent && (
-              <div onClick={handleHelpClick}>
-                <HelpButton
-                  title={helpTitle || title}
-                  description={helpContent}
-                />
-              </div>
-            )}
+          <div className="sectionHeaderLeft">
             <div className="collapseToggle" aria-hidden="true">
               <ChevronIcon />
             </div>
+            <div className="dlSectionTitle">
+              {title && <span className="int-en">{title}</span>}
+              {titleHe && <span className="int-he">{titleHe}</span>}
+            </div>
           </div>
+          {helpContent && (
+            <div className="sectionHeaderRight" onClick={handleHelpClick}>
+              <HelpButton
+                title={helpTitle || title}
+                description={helpContent}
+              />
+            </div>
+          )}
         </div>
       )}
       <div className="sectionContent">

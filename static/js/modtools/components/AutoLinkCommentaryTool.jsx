@@ -30,7 +30,6 @@ import { BASE_TEXT_MAPPING_OPTIONS } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
-import HelpButton from './shared/HelpButton';
 
 /**
  * Detailed help documentation for this tool
@@ -247,12 +246,11 @@ const AutoLinkCommentaryTool = () => {
   };
 
   return (
-    <ModToolsSection title="Auto-Link Commentaries" titleHe="יצירת קישורים אוטומטית לפירושים">
-      <HelpButton
-        title="Auto-Link Commentaries"
-        description={HELP_CONTENT}
-      />
-
+    <ModToolsSection
+      title="Auto-Link Commentaries"
+      titleHe="יצירת קישורים אוטומטית לפירושים"
+      helpContent={HELP_CONTENT}
+    >
       {/* Info box */}
       <div className="infoBox">
         <strong>How it works:</strong> This tool automatically creates links between commentaries

@@ -25,7 +25,6 @@ import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
-import HelpButton from './shared/HelpButton';
 
 /**
  * Detailed help documentation for this tool
@@ -453,12 +452,11 @@ const BulkVersionEditor = () => {
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
   return (
-    <ModToolsSection title="Bulk Edit Version Metadata" titleHe="עריכת גרסאות בכמות">
-      <HelpButton
-        title="Bulk Edit Version Metadata"
-        description={HELP_CONTENT}
-      />
-
+    <ModToolsSection
+      title="Bulk Edit Version Metadata"
+      titleHe="עריכת גרסאות בכמות"
+      helpContent={HELP_CONTENT}
+    >
       {/* Info box */}
       <div className="infoBox">
         <strong>How it works:</strong> Enter a version title to find all texts with matching versions.

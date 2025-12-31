@@ -27,7 +27,6 @@ import $ from '../../sefaria/sefariaJquery';
 import Sefaria from '../../sefaria/sefaria';
 import ModToolsSection from './shared/ModToolsSection';
 import StatusMessage from './shared/StatusMessage';
-import HelpButton from './shared/HelpButton';
 
 /**
  * Detailed help documentation for this tool
@@ -350,12 +349,11 @@ const NodeTitleEditor = () => {
   const hasChanges = Object.keys(editingNodes).length > 0;
 
   return (
-    <ModToolsSection title="Edit Node Titles" titleHe="עריכת כותרות צמתים">
-      <HelpButton
-        title="Edit Node Titles"
-        description={HELP_CONTENT}
-      />
-
+    <ModToolsSection
+      title="Edit Node Titles"
+      titleHe="עריכת כותרות צמתים"
+      helpContent={HELP_CONTENT}
+    >
       {/* Search bar */}
       <div className="searchRow">
         <input

@@ -1281,7 +1281,19 @@
   border-bottom: none;
 }
 
-/* Collapse toggle indicator */
+/* Left side: collapse toggle + title */
+.modTools .sectionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-sm);
+}
+
+/* Right side: help button */
+.modTools .sectionHeaderRight {
+  flex-shrink: 0;
+}
+
+/* Collapse toggle indicator - on the left */
 .modTools .collapseToggle {
   display: flex;
   align-items: center;
@@ -1295,7 +1307,6 @@
   font-size: 14px;
   transition: all var(--mt-transition);
   flex-shrink: 0;
-  margin-left: var(--mt-space-md);
 }
 
 .modTools .sectionHeader:hover .collapseToggle {
@@ -1337,13 +1348,6 @@
   max-height: 0;
   opacity: 0;
   pointer-events: none;
-}
-
-/* Header actions container (for help button placement) */
-.modTools .sectionHeaderActions {
-  display: flex;
-  align-items: center;
-  gap: var(--mt-space-sm);
 }
 
 /* ==========================================================================
