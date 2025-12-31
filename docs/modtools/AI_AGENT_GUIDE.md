@@ -82,20 +82,13 @@ const VERSION_EDITABLE_FIELDS = [
 
 ### Loading Indices by Version
 ```javascript
-// Frontend
+// Frontend - API returns indices with category metadata
 $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
-  .done(d => setIndices(d.indices))
+  .done(d => {
+    setIndices(d.indices);
+    setIndexMetadata(d.metadata); // { "Genesis": { categories: [...] }, ... }
+  })
   .fail(xhr => setError(xhr.responseText));
-
-// Backend (views.py)
-def version_indices_api(request):
-    vtitle = request.GET.get("versionTitle")
-    lang = request.GET.get("language")
-    q = {"versionTitle": vtitle}
-    if lang:
-        q["language"] = lang
-    indices = db.texts.distinct("title", q)
-    return jsonResponse({"indices": sorted(indices)})
 ```
 
 ### Bulk Updating Versions
@@ -156,29 +149,21 @@ const FIELD_METADATA = {
 
 ---
 
-## Known Bugs to Fix
+## Known Issues (Resolved)
 
-### 1. PyMongo Deprecated Method (CRITICAL)
-**Location**: `sefaria/model/history.py:210`
-**Issue**: `db.history.update()` is deprecated in PyMongo 4.x
-**Fix**: Replace with `db.history.update_many()`
+The following issues have been fixed but are documented here for context:
 
-```python
-# Before (broken)
-db.history.update(query, {"$set": {"version": kwargs["new"]}}, upsert=False, multi=True)
+### 1. PyMongo Deprecated Method - FIXED
+**Location**: `sefaria/model/history.py`
+**Resolution**: Changed `db.history.update()` to `db.history.update_many()` for PyMongo 4.x compatibility.
 
-# After (fixed)
-db.history.update_many(query, {"$set": {"version": kwargs["new"]}})
-```
-
-### 2. Partial Success Not Handled
+### 2. Partial Success Handling - FIXED
 **Location**: `version_bulk_edit_api` in views.py
-**Issue**: If save() fails mid-loop, some versions are updated, others aren't
-**Fix**: Collect results and return detailed success/failure report
+**Resolution**: API now returns `{status, count, total, successes, failures}` for detailed feedback.
 
-### 3. Timeout on Large Operations
-**Issue**: Bulk operations on 50+ versions may timeout
-**Fix**: Consider batch processing or async approach
+### 3. Timeout on Large Operations - KNOWN LIMITATION
+**Issue**: Bulk operations on 50+ versions may timeout.
+**Workaround**: Process in smaller batches. Consider async job queue for future improvement.
 
 ---
 
@@ -213,8 +198,8 @@ The new `modtools.css` uses CSS variables for consistent styling:
 /* Selection controls */
 .indexSelectorContainer { }
 .selectionControls { display: flex; justify-content: space-between; }
-.selectionButtons { display: flex; gap: 8px; }
-.selectionCount { /* "X of Y selected" */ }
+.indexCards { display: grid; grid-template-columns: repeat(3, 1fr); }
+.indexCard { /* Card with optional blue left border when selected */ }
 
 /* Field groups */
 .fieldGroupSection { background: #f9f9f9; padding: 16px; border-radius: 6px; }
@@ -305,7 +290,7 @@ static/js/modtools/
     NodeTitleEditor.jsx         # Edit schema node titles
     shared/
       ModToolsSection.jsx       # Section wrapper with title
-      IndexSelector.jsx         # Checkbox list with select all/deselect all
+      IndexSelector.jsx         # Card-based grid with search and Select All
       StatusMessage.jsx         # Status/error message display
       index.js                  # Barrel export
 
@@ -316,7 +301,7 @@ static/css/
 ### Shared Components
 
 - **ModToolsSection**: Wrapper providing consistent section styling with title
-- **IndexSelector**: Reusable checkbox list with Select All/Deselect All buttons and count display
+- **IndexSelector**: Card-based grid with search filtering, Select All checkbox, and category display
 - **StatusMessage**: Auto-detects message type from emoji prefix (✅, ❌, ⚠️)
 
 ---

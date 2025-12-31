@@ -18,7 +18,7 @@ This file tracks progress on the ModeratorToolsPanel rebuild for Shortcut #36475
 
 ### Phase 3: Architecture Refactor
 - [x] Created `/static/js/modtools/` directory structure
-- [x] Created `/static/css/modtools.css` (579 lines) with Sefaria design system
+- [x] Created `/static/css/modtools.css` with Sefaria design system
 - [x] Split components into separate files:
   - `components/BulkVersionEditor.jsx`
   - `components/BulkIndexEditor.jsx`
@@ -64,6 +64,8 @@ All commits completed and pushed:
 5. [x] Individual tool components (BulkVersionEditor, etc.) - `6bb35339f`
 6. [x] Module entry point (modtools/index.js) + Main panel - `ac0453789`
 7. [x] Documentation (docs/modtools/*) - `e5f476088`
+8. [x] API tests and error handling - `92fdbae34`
+9. [x] Card-based UI redesign with category metadata - `8f0c5313b`
 
 ### PR Status
 - [x] PR #2527 updated with comprehensive description
@@ -102,7 +104,7 @@ Groups in BulkVersionEditor:
 ## File Changes Summary
 
 ### New Files
-- `static/css/modtools.css` - 579 lines
+- `static/css/modtools.css`
 - `static/js/modtools/index.js`
 - `static/js/modtools/constants/fieldMetadata.js`
 - `static/js/modtools/components/BulkVersionEditor.jsx`

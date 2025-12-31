@@ -239,13 +239,22 @@ Edit titles of schema nodes within an Index.
 ## API Endpoints
 
 ### `/api/version-indices` (GET)
-Returns list of Index titles that have a Version matching the query.
+Returns list of Index titles that have a Version matching the query, with optional metadata.
 
 **Query Params**:
 - `versionTitle` (required): Version title to match
 - `language` (optional): "he" or "en"
 
-**Response**: `{ indices: ["Genesis", "Exodus", ...] }`
+**Response**:
+```json
+{
+  "indices": ["Genesis", "Exodus", ...],
+  "metadata": {
+    "Genesis": { "categories": ["Tanakh", "Torah"] },
+    "Exodus": { "categories": ["Tanakh", "Torah"] }
+  }
+}
+```
 
 **Auth**: None (public read)
 
@@ -315,7 +324,7 @@ Rebuilds automatic links for a commentary Index.
 
 ## CSS Classes
 
-Current styles are in `static/css/modtools.css` (579 lines):
+Current styles are in `static/css/modtools.css`:
 
 | Class | Purpose |
 |-------|---------|
@@ -325,8 +334,9 @@ Current styles are in `static/css/modtools.css` (579 lines):
 | `.dlVersionSelect` | Input/select elements |
 | `.modtoolsButton` | Action buttons (variants: `.secondary`, `.danger`, `.small`) |
 | `.indexSelectorContainer` | Index selector wrapper |
-| `.selectionControls` | Select All/Deselect All header |
-| `.indicesList` | Checkbox list container |
+| `.selectionControls` | Header with search and Select All checkbox |
+| `.indexCards` | 3-column card grid container |
+| `.indexCard` | Individual index card (selected: blue left border) |
 | `.fieldGroupSection` | Grouped field sections |
 | `.fieldGroupGrid` | 2-column grid for fields |
 | `.message` | Status messages (`.success`, `.error`, `.warning`, `.info`) |
@@ -365,7 +375,7 @@ static/js/
       NodeTitleEditor.jsx       # Schema node title editor
       shared/
         ModToolsSection.jsx     # Section wrapper component
-        IndexSelector.jsx       # Checkbox list with select all/deselect all
+        IndexSelector.jsx       # Card-based grid with search and Select All
         StatusMessage.jsx       # Status message display
         index.js                # Barrel export
 
