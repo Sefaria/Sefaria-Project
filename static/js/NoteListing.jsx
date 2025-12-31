@@ -37,31 +37,32 @@ class NoteListing extends Component {
     // this is very simple, but when the ref is to a sheet, we need to modify the ref and change the link so that it sends the user to the voices module.
     // The ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
     const isSheet = Sefaria.isSheetRef(ref);
+    let path, noteURL;
+    const module = isSheet ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE;
     if (isSheet) {
-      moduleURL = Sefaria.getModuleURL(Sefaria.VOICES_MODULE);
       const parsedRef = Sefaria.parseRef(ref);
-      path = `/sheets/${parsedRef.sections.join('/')}`;
+      path = `/sheets/${parsedRef.sections.join('.')}`;
+      noteURL = new URL(path, Sefaria.getModuleURL(module));
     }
     else {
-      module = Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE);
       path = `/${ref}`;
+      noteURL = new URL(path, Sefaria.getModuleURL(module));
+      noteURL.searchParams.set('with', 'Notes');  // side panel should only open to show notes in Library module
     }
-    const noteURL = new URL(path, moduleURL);
-    noteURL.searchParams.set('with', 'Notes');  
-    return noteURL.toString();
+    return <a className="noteRefTitle" href={noteURL.toString()} data-target-module={module}>
+            <span>{ref}</span>
+          </a>
   }
   render() {
-    const noteURL = this.getNoteURL(this.props.data.ref);
+    const noteLink = this.getNoteURL(this.props.data.ref);
     var data = this.props.data;
     return (<div className="noteListing">
               <div className="actionButtons">
                 <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} alt={Sefaria._("Delete note")} />
               </div>
-              <a className="noteRefTitle" href={noteURL}>
-                <span>{data.ref}</span>
-              </a>
+              {noteLink}
               <span className="noteText"><Note text={data.text}/></span>
-              {this.state.showSheetModal ?
+              {this.state.showSheetModal &&
                 <div>
                   <AddToSourceSheetWindow
                     srefs={[data.ref]}
@@ -69,8 +70,7 @@ class NoteListing extends Component {
                     close={this.hideSheetModal} />
                   <div className="mask" onClick={this.hideSheetModal}></div>
                 </div>
-                : null }
-
+              }
             </div>);
   }
 }
