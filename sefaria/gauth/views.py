@@ -66,9 +66,8 @@ def auth_return(request):
     """
     # Check for OAuth errors from Google (e.g., user denied access)
     oauth_error = request.GET.get('error', None)
-    if oauth_error:
-        if oauth_error in GAUTH_ERROR_CODES:
-            return _redirect_with_error(request.session.get('next_view', '/'), oauth_error)
+    if oauth_error and oauth_error in GAUTH_ERROR_CODES:
+        return _redirect_with_error(request.session.get('next_view', '/'), oauth_error)
 
     state = request.GET.get('state', None)
 
