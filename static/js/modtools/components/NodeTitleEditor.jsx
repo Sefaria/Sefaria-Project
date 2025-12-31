@@ -238,7 +238,7 @@ const NodeTitleEditor = () => {
   return (
     <ModToolsSection title="Edit Node Titles" titleHe="עריכת כותרות צמתים">
       {/* Search bar */}
-      <div className="inputRow">
+      <div className="searchRow">
         <input
           className="dlVersionSelect"
           type="text"
@@ -252,19 +252,19 @@ const NodeTitleEditor = () => {
           onClick={load}
           disabled={loading || !indexTitle.trim()}
         >
-          {loading ? "Loading..." : "Load Index"}
+          {loading ? <><span className="loadingSpinner" />Loading...</> : "Load Index"}
         </button>
       </div>
 
       {nodes.length > 0 && (
         <>
-          <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
+          <div className="sectionIntro">
             Found {nodes.length} nodes. Edit titles below:
           </div>
 
           {/* Validation warning */}
           <div className="warningBox">
-            <strong>⚠️ Important:</strong>
+            <strong>Important:</strong>
             <ul>
               <li><strong>English titles:</strong> ASCII only. No periods, hyphens, colons, slashes.</li>
               <li><strong>Hebrew titles:</strong> Can be changed freely.</li>
@@ -275,7 +275,7 @@ const NodeTitleEditor = () => {
           {/* Dependency warning */}
           {dependencies?.has_dependencies && (
             <div className="dangerBox">
-              <strong>🚨 Dependency Warning for "{indexTitle}":</strong>
+              <strong>Dependency Warning for "{indexTitle}":</strong>
               <ul>
                 {dependencies.dependent_count > 0 && (
                   <li><strong>{dependencies.dependent_count} dependent texts:</strong>{" "}
@@ -298,7 +298,7 @@ const NodeTitleEditor = () => {
           )}
 
           {/* Node list */}
-          <div style={{ maxHeight: "400px", overflow: "auto", border: "1px solid #ddd", padding: "12px", marginBottom: "16px" }}>
+          <div className="nodeListContainer">
             {nodes.map(({ path, pathStr, node, sharedTitle, title, heTitle }) => {
               const edits = editingNodes[pathStr] || {};
               const nodeHasChanges = edits.title !== undefined || edits.heTitle !== undefined || edits.removeSharedTitle;
@@ -306,18 +306,12 @@ const NodeTitleEditor = () => {
               return (
                 <div
                   key={pathStr}
-                  style={{
-                    marginBottom: "16px",
-                    padding: "12px",
-                    backgroundColor: nodeHasChanges ? "#fffbf0" : "#f9f9f9",
-                    borderRadius: "4px",
-                    border: nodeHasChanges ? "1px solid #ffa500" : "1px solid #eee"
-                  }}
+                  className={`nodeItem ${nodeHasChanges ? 'modified' : ''}`}
                 >
                   {sharedTitle && (
-                    <div style={{ marginBottom: "8px", fontSize: "12px", color: "#666" }}>
+                    <div className="nodeSharedTitle">
                       Shared Title: "{sharedTitle}"
-                      <label style={{ marginLeft: "12px" }}>
+                      <label>
                         <input
                           type="checkbox"
                           checked={edits.removeSharedTitle || false}
@@ -328,37 +322,33 @@ const NodeTitleEditor = () => {
                     </div>
                   )}
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <div className="nodeGrid">
                     <div>
-                      <label style={{ fontSize: "12px", color: "#666" }}>English Title:</label>
+                      <div className="fieldLabel">English Title:</div>
                       <input
-                        className="dlVersionSelect"
+                        className={`dlVersionSelect ${edits.title !== undefined && edits.title_valid === false ? 'hasError' : ''}`}
                         value={edits.title !== undefined ? edits.title : title}
                         onChange={e => handleNodeEdit(pathStr, 'title', e.target.value)}
-                        style={{
-                          width: "100%",
-                          borderColor: edits.title !== undefined && edits.title_valid === false ? "#dc3545" : undefined
-                        }}
                       />
                       {edits.title !== undefined && edits.title_valid === false && (
-                        <div style={{ fontSize: "11px", color: "#dc3545", marginTop: "2px" }}>
-                          ⚠️ Invalid: ASCII only, no special characters
+                        <div className="validationHint">
+                          Invalid: ASCII only, no special characters
                         </div>
                       )}
                     </div>
                     <div>
-                      <label style={{ fontSize: "12px", color: "#666" }}>Hebrew Title:</label>
+                      <div className="fieldLabel">Hebrew Title:</div>
                       <input
                         className="dlVersionSelect"
                         value={edits.heTitle !== undefined ? edits.heTitle : heTitle}
                         onChange={e => handleNodeEdit(pathStr, 'heTitle', e.target.value)}
-                        style={{ width: "100%", direction: "rtl" }}
+                        style={{ direction: "rtl" }}
                       />
                     </div>
                   </div>
 
                   {node.nodeType && (
-                    <div style={{ marginTop: "4px", fontSize: "11px", color: "#999" }}>
+                    <div className="nodeMeta">
                       Type: {node.nodeType} | Path: nodes[{path.join('][')}]
                     </div>
                   )}
@@ -368,16 +358,17 @@ const NodeTitleEditor = () => {
           </div>
 
           {hasChanges && (
-            <button
-              className="modtoolsButton"
-              onClick={save}
-              disabled={saving || hasValidationErrors}
-              style={{ opacity: hasValidationErrors ? 0.5 : 1 }}
-            >
-              {saving ? "Saving..." :
-               hasValidationErrors ? "Fix validation errors to save" :
-               `Save Changes to ${Object.keys(editingNodes).length} Nodes`}
-            </button>
+            <div className="actionRow">
+              <button
+                className="modtoolsButton"
+                onClick={save}
+                disabled={saving || hasValidationErrors}
+              >
+                {saving ? <><span className="loadingSpinner" />Saving...</> :
+                 hasValidationErrors ? "Fix validation errors to save" :
+                 `Save Changes to ${Object.keys(editingNodes).length} Nodes`}
+              </button>
+            </div>
           )}
         </>
       )}

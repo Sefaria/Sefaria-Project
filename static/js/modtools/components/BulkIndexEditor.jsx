@@ -425,32 +425,36 @@ const BulkIndexEditor = () => {
       </div>
 
       {/* Search bar */}
-      <div className="inputRow">
+      <div className="searchRow">
         <input
           className="dlVersionSelect"
           type="text"
-          placeholder="Version title"
+          placeholder="Version title (e.g., 'Torat Emet 357')"
           value={vtitle}
           onChange={e => setVtitle(e.target.value)}
           onKeyPress={e => e.key === 'Enter' && load()}
         />
-        <select
-          className="dlVersionSelect"
-          value={lang}
-          onChange={e => setLang(e.target.value)}
-          style={{ width: "150px" }}
-        >
-          <option value="">All languages</option>
-          <option value="he">Hebrew</option>
-          <option value="en">English</option>
-        </select>
         <button
           className="modtoolsButton"
           onClick={load}
           disabled={loading || !vtitle.trim()}
         >
-          {loading ? "Loading..." : "Find Indices"}
+          {loading ? <><span className="loadingSpinner" />Searching...</> : "Find Indices"}
         </button>
+      </div>
+
+      {/* Language filter - inline */}
+      <div className="filterRow">
+        <label>Filter by language:</label>
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+        >
+          <option value="">All languages</option>
+          <option value="he">Hebrew only</option>
+          <option value="en">English only</option>
+        </select>
       </div>
 
       {/* Index selector */}
@@ -466,11 +470,11 @@ const BulkIndexEditor = () => {
       {/* Field inputs */}
       {pick.size > 0 && (
         <>
-          <div style={{ marginTop: "16px", marginBottom: "12px", fontWeight: "500" }}>
+          <div className="subsectionHeading">
             Edit fields for {pick.size} selected {pick.size === 1 ? 'index' : 'indices'}:
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
+          <div className="fieldGroupSection">
             {Object.keys(INDEX_FIELD_METADATA).map(f => renderField(f))}
           </div>
 
@@ -485,13 +489,15 @@ const BulkIndexEditor = () => {
             </div>
           )}
 
-          <button
-            className="modtoolsButton"
-            disabled={!hasChanges || saving}
-            onClick={save}
-          >
-            {saving ? "Saving..." : `Save Changes to ${pick.size} Indices`}
-          </button>
+          <div className="actionRow">
+            <button
+              className="modtoolsButton"
+              disabled={!hasChanges || saving}
+              onClick={save}
+            >
+              {saving ? <><span className="loadingSpinner" />Saving...</> : `Save Changes to ${pick.size} Indices`}
+            </button>
+          </div>
         </>
       )}
 

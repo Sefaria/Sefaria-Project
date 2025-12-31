@@ -458,7 +458,7 @@ const BulkVersionEditor = () => {
       {/* Field inputs grouped by section */}
       {pick.size > 0 && (
         <>
-          <div style={{ marginTop: "24px", marginBottom: "16px", fontWeight: "500", fontSize: "15px" }}>
+          <div className="subsectionHeading">
             Edit fields for {pick.size} selected {pick.size === 1 ? 'text' : 'texts'}:
           </div>
 
@@ -498,7 +498,7 @@ const BulkVersionEditor = () => {
           )}
 
           {/* Action buttons */}
-          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <div className="actionRow">
             {/* Save button */}
             <button
               className="modtoolsButton"
@@ -527,17 +527,17 @@ const BulkVersionEditor = () => {
 
           {/* Delete confirmation dialog */}
           {showDeleteConfirm && (
-            <div className="dangerBox" style={{ marginTop: "16px" }}>
-              <strong>⚠️ Confirm Mark for Deletion</strong>
-              <p style={{ margin: "8px 0" }}>
+            <div className="dangerBox">
+              <strong>Confirm Mark for Deletion</strong>
+              <p className="sectionDescription">
                 This will mark <strong>{pick.size}</strong> versions for deletion review by adding a note to their versionNotes field.
                 The versions will not be immediately deleted - they will be flagged for manual review.
               </p>
-              <p style={{ margin: "8px 0", fontSize: "13px", color: "#666" }}>
+              <p className="sectionDescription">
                 Affected texts: {Array.from(pick).slice(0, 5).join(", ")}
                 {pick.size > 5 && ` and ${pick.size - 5} more...`}
               </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <div className="actionRow">
                 <button
                   className="modtoolsButton danger"
                   onClick={markForDeletion}

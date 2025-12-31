@@ -145,32 +145,36 @@ const AutoLinkCommentaryTool = () => {
       </div>
 
       {/* Search bar */}
-      <div className="inputRow">
+      <div className="searchRow">
         <input
           className="dlVersionSelect"
           type="text"
-          placeholder="Version title"
+          placeholder="Version title (e.g., 'Torat Emet 357')"
           value={vtitle}
           onChange={e => setVtitle(e.target.value)}
           onKeyPress={e => e.key === 'Enter' && load()}
         />
-        <select
-          className="dlVersionSelect"
-          value={lang}
-          onChange={e => setLang(e.target.value)}
-          style={{ width: "150px" }}
-        >
-          <option value="">All languages</option>
-          <option value="he">Hebrew</option>
-          <option value="en">English</option>
-        </select>
         <button
           className="modtoolsButton"
           onClick={load}
           disabled={loading || !vtitle.trim()}
         >
-          {loading ? "Loading..." : "Find Commentaries"}
+          {loading ? <><span className="loadingSpinner" />Searching...</> : "Find Commentaries"}
         </button>
+      </div>
+
+      {/* Language filter - inline */}
+      <div className="filterRow">
+        <label>Filter by language:</label>
+        <select
+          className="dlVersionSelect"
+          value={lang}
+          onChange={e => setLang(e.target.value)}
+        >
+          <option value="">All languages</option>
+          <option value="he">Hebrew only</option>
+          <option value="en">English only</option>
+        </select>
       </div>
 
       {/* Index selector */}
@@ -184,7 +188,7 @@ const AutoLinkCommentaryTool = () => {
           />
 
           {/* Mapping selector */}
-          <div className="fieldGroup" style={{ marginTop: "12px" }}>
+          <div className="optionRow">
             <label>base_text_mapping:</label>
             <select
               className="dlVersionSelect"
@@ -198,18 +202,19 @@ const AutoLinkCommentaryTool = () => {
           </div>
 
           {/* Action button */}
-          <button
-            className="modtoolsButton"
-            disabled={!pick.size || linking}
-            onClick={createLinks}
-            style={{ marginTop: "12px" }}
-          >
-            {linking ? (
-              <><span className="loadingSpinner" />Creating Links...</>
-            ) : (
-              `Create Links for ${pick.size} Commentaries`
-            )}
-          </button>
+          <div className="actionRow">
+            <button
+              className="modtoolsButton"
+              disabled={!pick.size || linking}
+              onClick={createLinks}
+            >
+              {linking ? (
+                <><span className="loadingSpinner" />Creating Links...</>
+              ) : (
+                `Create Links for ${pick.size} Commentaries`
+              )}
+            </button>
+          </div>
         </>
       )}
 
