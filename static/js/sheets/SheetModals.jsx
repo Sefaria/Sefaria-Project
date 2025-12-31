@@ -199,9 +199,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exportToDrive();
   }, [googleDriveText]);
   const getExportMessage = () => {
-    if (currentlyExporting()) {
-      return <InterfaceText>{googleDriveText}</InterfaceText>;
-    } else if (googleDriveLink) {
+    if (!currentlyExporting() && googleDriveLink) {
       // Success - show link
       return <>
         <InterfaceText>{googleDriveText}</InterfaceText>
@@ -209,7 +207,7 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
           Docs</InterfaceText></a>
       </>
     } else {
-      // Error - just show the error message, no link
+      // Either currently exporting or error
       return <InterfaceText>{googleDriveText}</InterfaceText>;
     }
   }
