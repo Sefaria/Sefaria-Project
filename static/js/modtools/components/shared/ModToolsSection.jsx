@@ -1,22 +1,122 @@
 /**
- * ModToolsSection - Wrapper component for modtools sections
+ * ModToolsSection - Collapsible wrapper component for modtools sections
  *
- * Provides consistent styling and structure for each tool section.
- * All modtools components should be wrapped in this component.
+ * Provides consistent styling, structure, and collapse/expand functionality
+ * for each tool section. All modtools components should be wrapped in this component.
+ *
+ * Features:
+ * - Collapsible sections with smooth animation
+ * - Optional help button integration
+ * - Keyboard accessible (Enter/Space to toggle)
+ * - Remembers collapsed state during session
+ *
+ * @example
+ * <ModToolsSection
+ *   title="Bulk Download"
+ *   titleHe="הורדה"
+ *   helpContent={<p>Help text here</p>}
+ *   defaultCollapsed={false}
+ * >
+ *   <form>...</form>
+ * </ModToolsSection>
  */
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import HelpButton from './HelpButton';
 
-const ModToolsSection = ({ title, titleHe, children, className = '' }) => {
+/**
+ * Chevron icon component for collapse indicator
+ */
+const ChevronIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+/**
+ * ModToolsSection component
+ *
+ * @param {string} title - English section title
+ * @param {string} titleHe - Hebrew section title
+ * @param {React.ReactNode} children - Section content
+ * @param {string} className - Additional CSS classes
+ * @param {React.ReactNode} helpContent - Optional help modal content
+ * @param {string} helpTitle - Title for help modal (defaults to title prop)
+ * @param {boolean} defaultCollapsed - Whether section starts collapsed
+ */
+const ModToolsSection = ({
+  title,
+  titleHe,
+  children,
+  className = '',
+  helpContent,
+  helpTitle,
+  defaultCollapsed = false
+}) => {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(prev => !prev);
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleCollapse();
+    }
+  }, [toggleCollapse]);
+
+  const handleHelpClick = useCallback((e) => {
+    // Prevent collapse toggle when clicking help button
+    e.stopPropagation();
+  }, []);
+
+  const sectionClasses = [
+    'modToolsSection',
+    isCollapsed ? 'collapsed' : '',
+    className
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className={`modToolsSection ${className}`.trim()}>
+    <div className={sectionClasses}>
       {(title || titleHe) && (
-        <div className="dlSectionTitle">
-          {title && <span className="int-en">{title}</span>}
-          {titleHe && <span className="int-he">{titleHe}</span>}
+        <div
+          className="sectionHeader"
+          onClick={toggleCollapse}
+          onKeyDown={handleKeyDown}
+          role="button"
+          tabIndex={0}
+          aria-expanded={!isCollapsed}
+        >
+          <div className="dlSectionTitle">
+            {title && <span className="int-en">{title}</span>}
+            {titleHe && <span className="int-he">{titleHe}</span>}
+          </div>
+          <div className="sectionHeaderActions">
+            {helpContent && (
+              <div onClick={handleHelpClick}>
+                <HelpButton
+                  title={helpTitle || title}
+                  description={helpContent}
+                />
+              </div>
+            )}
+            <div className="collapseToggle" aria-hidden="true">
+              <ChevronIcon />
+            </div>
+          </div>
         </div>
       )}
-      {children}
+      <div className="sectionContent">
+        {children}
+      </div>
     </div>
   );
 };
@@ -25,7 +125,10 @@ ModToolsSection.propTypes = {
   title: PropTypes.string,
   titleHe: PropTypes.string,
   children: PropTypes.node.isRequired,
-  className: PropTypes.string
+  className: PropTypes.string,
+  helpContent: PropTypes.node,
+  helpTitle: PropTypes.string,
+  defaultCollapsed: PropTypes.bool
 };
 
 export default ModToolsSection;

@@ -164,9 +164,8 @@
   width: 100%;
   max-width: var(--mt-max-width);
   margin: 0 auto;
-  margin-top: var(--mt-space-lg);
   padding: var(--mt-space-xl) var(--mt-space-lg);
-  padding-bottom: var(--mt-space-2xl);
+  padding-bottom: 80px; /* Generous bottom margin */
   min-height: 100vh;
   background: var(--mt-bg-page);
   font-family: var(--mt-font-body);
@@ -184,20 +183,18 @@
   box-sizing: border-box;
 }
 
-/* Admin banner */
+/* Page header */
 .modTools::before {
   content: "Moderator Tools";
   display: block;
-  background: linear-gradient(135deg, var(--mt-primary) 0%, #2D4A6F 100%);
-  color: var(--mt-text-on-primary);
-  padding: var(--mt-space-sm) var(--mt-space-lg);
-  font-size: var(--mt-text-xs);
+  font-family: var(--mt-font-display);
+  font-size: 28px;
   font-weight: var(--mt-font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin: calc(var(--mt-space-xl) * -1) calc(var(--mt-space-lg) * -1) var(--mt-space-xl);
-  text-align: center;
-  font-family: var(--mt-font-body);
+  color: var(--mt-primary);
+  padding: var(--mt-space-lg) 0;
+  margin-bottom: var(--mt-space-xl);
+  border-bottom: 2px solid var(--mt-border);
+  letter-spacing: -0.01em;
 }
 
 /* ==========================================================================
@@ -1253,62 +1250,108 @@
 }
 
 /* ==========================================================================
-   Responsive Design
+   10. COLLAPSIBLE SECTIONS
    ========================================================================== */
-@media (max-width: 900px) {
-  .modTools .indexCardGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+
+/* Section header - clickable to toggle */
+.modTools .sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding-bottom: var(--mt-space-md);
+  margin-bottom: var(--mt-space-md);
+  border-bottom: var(--mt-border-width-heavy) solid var(--mt-border);
+  transition: all var(--mt-transition);
 }
 
-@media (max-width: 768px) {
-  .modTools {
-    padding: var(--mt-space-lg) var(--mt-space-md);
-  }
+.modTools .sectionHeader:hover {
+  border-bottom-color: var(--mt-primary);
+}
 
-  .modTools::before {
-    margin: calc(var(--mt-space-lg) * -1) calc(var(--mt-space-md) * -1) var(--mt-space-lg);
-  }
+.modTools .sectionHeader:hover .dlSectionTitle {
+  color: var(--mt-primary-hover);
+}
 
-  .modTools .modToolsSection {
-    padding: var(--mt-space-lg);
-  }
+/* When section header exists, title shouldn't have its own border */
+.modTools .sectionHeader .dlSectionTitle {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
 
-  .modTools .dlSectionTitle {
-    font-size: 20px;
-  }
+/* Collapse toggle indicator */
+.modTools .collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mt-bg-subtle);
+  border: 1.5px solid var(--mt-border);
+  color: var(--mt-text-secondary);
+  font-size: 14px;
+  transition: all var(--mt-transition);
+  flex-shrink: 0;
+  margin-left: var(--mt-space-md);
+}
 
-  .modTools .fieldGroupGrid {
-    grid-template-columns: 1fr;
-  }
+.modTools .sectionHeader:hover .collapseToggle {
+  background: var(--mt-primary-light);
+  border-color: var(--mt-primary);
+  color: var(--mt-primary);
+}
 
-  .modTools .indexCardGrid {
-    grid-template-columns: 1fr;
-  }
+.modTools .collapseToggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--mt-transition);
+}
 
-  .modTools .indexSelectorHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* Collapsed state */
+.modTools .modToolsSection.collapsed .collapseToggle svg {
+  transform: rotate(-90deg);
+}
 
-  .modTools .searchRow {
-    flex-direction: column;
-  }
+.modTools .modToolsSection.collapsed .sectionHeader {
+  margin-bottom: 0;
+  padding-bottom: var(--mt-space-md);
+  border-bottom-color: transparent;
+}
 
-  .modTools .searchRow .modtoolsButton {
-    width: 100%;
-  }
+.modTools .modToolsSection.collapsed:hover .sectionHeader {
+  border-bottom-color: var(--mt-border);
+}
+
+/* Section content - animated collapse */
+.modTools .sectionContent {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+  max-height: 5000px; /* Large enough for any content */
+  opacity: 1;
+}
+
+.modTools .modToolsSection.collapsed .sectionContent {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Header actions container (for help button placement) */
+.modTools .sectionHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-sm);
 }
 
 /* ==========================================================================
-   10. HELP BUTTON & MODAL
+   11. HELP BUTTON & MODAL
    ========================================================================== */
 
-/* Help Button - positioned in section header */
+/* Help Button - in section header actions */
 .modTools .helpButton {
-  position: absolute;
-  top: var(--mt-space-md);
-  right: var(--mt-space-md);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -1324,6 +1367,7 @@
   transition: all var(--mt-transition);
   font-family: var(--mt-font-body);
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .modTools .helpButton:hover {
@@ -1336,11 +1380,6 @@
 .modTools .helpButton:focus {
   outline: none;
   box-shadow: 0 0 0 3px var(--mt-primary-light);
-}
-
-/* Position section relatively for absolute help button */
-.modTools .modToolsSection {
-  position: relative;
 }
 
 /* Modal Overlay */
@@ -1558,11 +1597,17 @@
     break-inside: avoid;
   }
 
+  .modTools .modToolsSection.collapsed .sectionContent {
+    max-height: none;
+    opacity: 1;
+  }
+
   .modTools .modtoolsButton {
     display: none;
   }
 
-  .modTools .helpButton {
+  .modTools .helpButton,
+  .modTools .collapseToggle {
     display: none;
   }
 
