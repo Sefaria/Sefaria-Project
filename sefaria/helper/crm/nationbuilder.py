@@ -74,7 +74,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
                                  data=json.dumps(post),
                                  params={'format': 'json'},
                                  headers={'content-type': 'application/json'})
-        except Exception as e:
+        except Exception:
             return False
 
         try:  # add nationbuilder id to user profile
@@ -82,7 +82,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
                 nationbuilder_user["id"]
             return nationbuilder_id
-        except Exception as e:
+        except Exception:
             return False
 
         return True
