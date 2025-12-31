@@ -169,54 +169,67 @@ The following issues have been fixed but are documented here for context:
 
 ## CSS Class Reference
 
-The new `modtools.css` uses CSS variables for consistent styling:
+The `modtools.css` uses CSS variables for consistent styling:
 
 ```css
-/* CSS Variables (Sefaria Design System) */
+/* CSS Variables (prefixed with --mt-) */
 :root {
-  --modtools-primary: #18345D;
-  --modtools-success: #28a745;
-  --modtools-warning: #ffc107;
-  --modtools-error: #dc3545;
+  --mt-primary: #1E3A5F;
+  --mt-success: #059669;
+  --mt-warning: #D97706;
+  --mt-error: #DC2626;
+  --mt-info: #0891B2;
 }
 
 /* Main container */
-.modTools { width: 80%; max-width: 1200px; margin: 0 auto; }
+.modTools { width: 100%; max-width: 1100px; margin: 0 auto; }
 
-/* Section wrapper */
-.modToolsSection { border: 1px solid #ccc; padding: 24px; border-radius: 8px; }
+/* Section wrapper - collapsible */
+.modToolsSection { background: white; padding: 32px; border-radius: 14px; }
+.modToolsSection.collapsed .sectionContent { max-height: 0; opacity: 0; }
+
+/* Section header - clickable for collapse */
+.sectionHeader { display: flex; justify-content: space-between; cursor: pointer; }
+.sectionHeaderLeft { display: flex; align-items: center; gap: 8px; }
+.sectionHeaderRight { /* Help button container */ }
+.collapseToggle { /* Chevron icon, rotates when collapsed */ }
 
 /* Section title */
-.dlSectionTitle { color: var(--modtools-primary); border-bottom: 2px solid; }
+.dlSectionTitle { font-family: "Crimson Pro", serif; color: var(--mt-primary); }
+
+/* Help button & modal */
+.helpButton { width: 28px; height: 28px; border-radius: 50%; }
+.helpModal-overlay { position: fixed; z-index: 10000; }
+.helpModal { max-width: 680px; max-height: 85vh; }
 
 /* Buttons */
-.modtoolsButton { background-color: var(--modtools-primary); }
-.modtoolsButton.secondary { background: white; border: 1px solid var(--modtools-primary); }
-.modtoolsButton.danger { background-color: var(--modtools-error); }
-.modtoolsButton.small { padding: 6px 12px; font-size: 13px; }
+.modtoolsButton { background-color: var(--mt-primary); }
+.modtoolsButton.secondary { background: transparent; border: 2px solid var(--mt-primary); }
+.modtoolsButton.danger { background-color: var(--mt-error); }
+.modtoolsButton.small { padding: 8px 16px; font-size: 13px; }
 
 /* Selection controls */
 .indexSelectorContainer { }
 .selectionControls { display: flex; justify-content: space-between; }
-.indexCards { display: grid; grid-template-columns: repeat(3, 1fr); }
+.indexCardGrid { display: grid; grid-template-columns: repeat(3, 1fr); }
 .indexCard { /* Card with optional blue left border when selected */ }
 
 /* Field groups */
-.fieldGroupSection { background: #f9f9f9; padding: 16px; border-radius: 6px; }
+.fieldGroupSection { background: #f3f2ee; padding: 24px; border-radius: 10px; }
 .fieldGroupHeader { text-transform: uppercase; color: #666; }
 .fieldGroupGrid { display: grid; grid-template-columns: repeat(2, 1fr); }
-.fieldGroup.hasError input { border-color: var(--modtools-error); }
-.fieldError { color: var(--modtools-error); font-size: 12px; }
+.fieldGroup.hasError input { border-color: var(--mt-error); }
+.fieldError { color: var(--mt-error); font-size: 13px; }
 
 /* Messages */
-.message.success { background: #d4edda; }
-.message.warning { background: #fff3cd; }
-.message.error { background: #f8d7da; }
-.warningBox { background: #fff3cd; }
-.dangerBox { background: #f8d7da; }
-.infoBox { background: #d1ecf1; }
-.noResults { text-align: center; background: #f9f9f9; }
-.changesPreview { background: #e7f3ff; }
+.message.success { background: #ECFDF5; }
+.message.warning { background: #FFFBEB; }
+.message.error { background: #FEF2F2; }
+.warningBox { background: #FFFBEB; }
+.dangerBox { background: #FEF2F2; }
+.infoBox { background: #ECFEFF; }
+.noResults { text-align: center; background: #f3f2ee; }
+.changesPreview { background: linear-gradient(...); }
 ```
 
 ---
@@ -289,7 +302,8 @@ static/js/modtools/
     AutoLinkCommentaryTool.jsx  # Create commentary links
     NodeTitleEditor.jsx         # Edit schema node titles
     shared/
-      ModToolsSection.jsx       # Section wrapper with title
+      ModToolsSection.jsx       # Collapsible section wrapper with help button
+      HelpButton.jsx            # Help button with modal dialog
       IndexSelector.jsx         # Card-based grid with search and Select All
       StatusMessage.jsx         # Status/error message display
       index.js                  # Barrel export
@@ -300,7 +314,15 @@ static/css/
 
 ### Shared Components
 
-- **ModToolsSection**: Wrapper providing consistent section styling with title
+- **ModToolsSection**: Collapsible wrapper providing consistent section styling
+  - Collapse toggle (▼) on the left side
+  - Help button (?) on the right side
+  - All sections collapsed by default
+  - Accepts `helpContent` prop for integrated help modal
+  - Keyboard accessible (Enter/Space to toggle)
+- **HelpButton**: Help button that opens a modal dialog with documentation
+  - Used internally by ModToolsSection when helpContent is provided
+  - Can also be used standalone if needed
 - **IndexSelector**: Card-based grid with search filtering, Select All checkbox, and category display
 - **StatusMessage**: Auto-detects message type from emoji prefix (✅, ❌, ⚠️)
 

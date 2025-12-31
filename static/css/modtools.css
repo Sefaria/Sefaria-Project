@@ -1279,6 +1279,8 @@
   margin: 0;
   padding-bottom: 0;
   border-bottom: none;
+  white-space: nowrap;
+  line-height: 28px; /* Match collapseToggle height for alignment */
 }
 
 /* Left side: collapse toggle + title */

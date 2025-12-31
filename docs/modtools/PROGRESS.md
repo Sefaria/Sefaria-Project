@@ -43,16 +43,28 @@ This file tracks progress on the ModeratorToolsPanel rebuild for Shortcut #36475
 
 ### Phase 5: Visual Design & UX
 - [x] Created dedicated CSS file with Sefaria design system variables
-- [x] Added "Internal Admin Tool" banner
+- [x] Clean scholarly page header (Crimson Pro display font)
 - [x] Button variants (primary, secondary, danger, small)
 - [x] Field group sections with headers
-- [x] Responsive layout for mobile
 - [x] Selected item highlighting in index list
+- [x] Generous bottom padding (80px)
 
-### Phase 6: Documentation
+### Phase 6: Collapsible Sections & Help System
+- [x] All sections use unified ModToolsSection component
+- [x] Collapse toggle (▼) on left side of header
+- [x] Help button (?) on right side of header
+- [x] All sections collapsed by default for cleaner initial view
+- [x] Smooth CSS animations for collapse/expand
+- [x] Keyboard accessible (Enter/Space to toggle)
+- [x] HelpButton component with modal dialog
+- [x] Print styles to expand collapsed sections when printing
+- [x] Comprehensive help documentation for all 10 tools
+
+### Phase 7: Documentation
 - [x] Updated AI_AGENT_GUIDE.md with new file locations
 - [x] Updated decisions log
 - [x] Updated CSS class reference
+- [x] Documented collapsible sections and HelpButton component
 
 ## Completed Commits
 
@@ -66,6 +78,8 @@ All commits completed and pushed:
 7. [x] Documentation (docs/modtools/*) - `e5f476088`
 8. [x] API tests and error handling - `92fdbae34`
 9. [x] Card-based UI redesign with category metadata - `8f0c5313b`
+10. [x] Help documentation for all tools - `afe63998a`
+11. [x] Collapsible sections with unified ModToolsSection - `5596842ea`
 
 ### PR Status
 - [x] PR #2527 updated with comprehensive description
@@ -112,6 +126,7 @@ Groups in BulkVersionEditor:
 - `static/js/modtools/components/AutoLinkCommentaryTool.jsx`
 - `static/js/modtools/components/NodeTitleEditor.jsx`
 - `static/js/modtools/components/shared/ModToolsSection.jsx`
+- `static/js/modtools/components/shared/HelpButton.jsx`
 - `static/js/modtools/components/shared/StatusMessage.jsx`
 - `static/js/modtools/components/shared/IndexSelector.jsx`
 - `static/js/modtools/components/shared/index.js`

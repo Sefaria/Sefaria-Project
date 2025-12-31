@@ -328,11 +328,20 @@ Current styles are in `static/css/modtools.css`:
 
 | Class | Purpose |
 |-------|---------|
-| `.modTools` | Main container with "Internal Admin Tool" banner |
-| `.modToolsSection` | Section wrapper with border and shadow |
-| `.dlSectionTitle` | Section header with underline |
+| `.modTools` | Main container with page title |
+| `.modToolsSection` | Section wrapper with border and shadow (collapsible) |
+| `.modToolsSection.collapsed` | Collapsed state - content hidden |
+| `.sectionHeader` | Clickable header for collapse toggle |
+| `.sectionHeaderLeft` | Left side: collapse toggle + title |
+| `.sectionHeaderRight` | Right side: help button |
+| `.collapseToggle` | Chevron icon for expand/collapse |
+| `.sectionContent` | Animated content container |
+| `.dlSectionTitle` | Section title styling |
 | `.dlVersionSelect` | Input/select elements |
 | `.modtoolsButton` | Action buttons (variants: `.secondary`, `.danger`, `.small`) |
+| `.helpButton` | Help button (?) that opens modal |
+| `.helpModal-overlay` | Modal backdrop |
+| `.helpModal` | Modal container with header, body, footer |
 | `.indexSelectorContainer` | Index selector wrapper |
 | `.selectionControls` | Header with search and Select All checkbox |
 | `.indexCards` | 3-column card grid container |
@@ -374,7 +383,8 @@ static/js/
       AutoLinkCommentaryTool.jsx # Commentary auto-linker
       NodeTitleEditor.jsx       # Schema node title editor
       shared/
-        ModToolsSection.jsx     # Section wrapper component
+        ModToolsSection.jsx     # Collapsible section wrapper with help button
+        HelpButton.jsx          # Help button with modal dialog
         IndexSelector.jsx       # Card-based grid with search and Select All
         StatusMessage.jsx       # Status message display
         index.js                # Barrel export
