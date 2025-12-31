@@ -241,10 +241,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         "sefaria": subscribe_sefaria_newsletter,
         "steinsaltz": subscribe_steinsaltz,
     }
-    try:
-        body = json.loads(request.body) if request.body else {}
-    except json.JSONDecodeError:
-        body = {}
+    body = json.loads(request.body)
     first_name = body.get("firstName")
     last_name = body.get("lastName")
     if not first_name or not last_name:
