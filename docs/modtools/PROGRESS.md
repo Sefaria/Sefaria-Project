@@ -66,6 +66,15 @@ This file tracks progress on the ModeratorToolsPanel rebuild for Shortcut #36475
 - [x] Updated CSS class reference
 - [x] Documented collapsible sections and HelpButton component
 
+### Phase 8: Comprehensive Documentation Review (2025-12-31)
+- [x] Created COMPONENT_LOGIC.md - detailed logic flows, state machines, decision trees
+- [x] Created DESIGN_SYSTEM.md - complete UI/CSS documentation with usage examples
+- [x] Rewrote AI_AGENT_GUIDE.md with comprehensive context for AI agents
+- [x] Added cross-references between all documentation files
+- [x] Documented all shared component props and behaviors
+- [x] Added troubleshooting guides and decision trees
+- [x] Documented common tasks (adding fields, adding tools, testing)
+
 ## Completed Commits
 
 All commits completed and pushed:
@@ -130,12 +139,28 @@ Groups in BulkVersionEditor:
 - `static/js/modtools/components/shared/StatusMessage.jsx`
 - `static/js/modtools/components/shared/IndexSelector.jsx`
 - `static/js/modtools/components/shared/index.js`
-- `docs/modtools/AI_AGENT_GUIDE.md`
-- `docs/modtools/ARCHITECTURE.md`
-- `docs/modtools/PROGRESS.md`
+- `docs/modtools/AI_AGENT_GUIDE.md` - Quick reference for AI agents
+- `docs/modtools/ARCHITECTURE.md` - Technical architecture documentation
+- `docs/modtools/PROGRESS.md` - This file
+- `docs/modtools/COMPONENT_LOGIC.md` - Detailed logic flows (added 2025-12-31)
+- `docs/modtools/DESIGN_SYSTEM.md` - UI/CSS documentation (added 2025-12-31)
 
 ### Modified Files
 - `sefaria/model/history.py` - PyMongo fix
 - `sefaria/views.py` - Partial success handling
 - `sefaria/helper/text.py` - Minor updates
 - `static/js/ModeratorToolsPanel.jsx` - Import refactored components
+
+---
+
+## Documentation Structure
+
+The documentation suite now includes:
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| **ARCHITECTURE.md** | API contracts, data models, component overview | Backend/full-stack developers |
+| **AI_AGENT_GUIDE.md** | Quick reference, common tasks, patterns | AI coding agents, new developers |
+| **COMPONENT_LOGIC.md** | Detailed logic flows, state machines | Frontend developers, debugging |
+| **DESIGN_SYSTEM.md** | UI/CSS patterns, design tokens | Frontend developers, designers |
+| **PROGRESS.md** | Project tracking, decisions log | Project management |

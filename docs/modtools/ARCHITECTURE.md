@@ -2,6 +2,13 @@
 
 This document describes the architecture, data structures, and API contracts of the ModeratorToolsPanel (`/modtools`).
 
+## Related Documentation
+
+- **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Quick reference for AI agents and developers
+- **[COMPONENT_LOGIC.md](./COMPONENT_LOGIC.md)** - Detailed logic flows and decision trees
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - UI/CSS documentation and patterns
+- **[PROGRESS.md](./PROGRESS.md)** - Project tracking and roadmap
+
 ## Overview
 
 The ModeratorToolsPanel is an internal admin interface for Sefaria staff to perform bulk operations on texts, versions, indices, and links. Access is restricted to authenticated moderators (`Sefaria.is_moderator`).
@@ -401,4 +408,11 @@ sefaria/
 
 static/css/
   modtools.css                  # Dedicated modtools styles (Sefaria design system)
+
+docs/modtools/
+  ARCHITECTURE.md               # This file - technical architecture
+  AI_AGENT_GUIDE.md             # Quick reference for AI agents
+  COMPONENT_LOGIC.md            # Detailed logic flows and state machines
+  DESIGN_SYSTEM.md              # UI/CSS documentation
+  PROGRESS.md                   # Project tracking
 ```
