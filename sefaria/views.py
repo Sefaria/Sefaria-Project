@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -1550,6 +1549,7 @@ def bulk_download_versions_api(request):
     return response
 
 
+
 def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
@@ -1596,7 +1596,6 @@ def _get_text_version_file(format, title, lang, versionTitle):
     return content
 
 
-
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
@@ -1614,6 +1613,139 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+@staff_member_required
+def check_index_dependencies_api(request, title):
+    """
+    Check what dependencies exist for a given index title.
+    Used by NodeTitleEditor to warn about potential impacts of title changes.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+
+    try:
+        # Get dependent indices (commentaries, etc.)
+        dependent_indices = library.get_dependant_indices(title, full_records=False)
+
+        # Get version count
+        version_count = db.texts.count_documents({"title": title})
+
+        # Get link count (approximate)
+        from sefaria.model.text import prepare_index_regex_for_dependency_process
+        try:
+            index = library.get_index(title)
+            pattern = prepare_index_regex_for_dependency_process(index)
+            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
+        except:
+            link_count = 0
+
+        return jsonResponse({
+            "title": title,
+            "dependent_indices": dependent_indices,
+            "dependent_count": len(dependent_indices),
+            "version_count": version_count,
+            "link_count": link_count,
+            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
+        })
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
+
+
+
+@staff_member_required
+def version_indices_api(request):
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+    """
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...], "metadata": {...}}
+    Returns indices and optional metadata (categories) for each index.
+    """
+    from sefaria.model import Version, library
+    vtitle  = request.GET.get("versionTitle")
+    lang    = request.GET.get("language")
+    if not vtitle:
+        raise InputError("versionTitle is required")
+
+    q = {"versionTitle": vtitle}
+    if lang:
+        q["language"] = lang
+    indices = db.texts.distinct("title", q)          # 4–5 ms
+    sorted_indices = sorted(indices)
+
+    # Build metadata with categories for each index
+    metadata = {}
+    for title in sorted_indices:
+        try:
+            idx = library.get_index(title)
+            if idx:
+                metadata[title] = {
+                    "categories": idx.categories if hasattr(idx, 'categories') else []
+                }
+        except:
+            metadata[title] = {"categories": []}
+
+    return jsonResponse({"indices": sorted_indices, "metadata": metadata})
+
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    """
+    Bulk update Version metadata for multiple indices.
+
+    Body JSON:
+      {"versionTitle":"Example 2025",
+       "language":"he",
+       "indices":["Genesis","Exodus"],
+       "updates":{"license":"CC-BY","versionNotes":"Second draft"}}
+
+    Returns detailed success/failure info to handle partial updates gracefully.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    from sefaria.model import Version
+    data = json.loads(request.body)
+    vtitle, lang, indices, updates = (
+        data["versionTitle"], data["language"],
+        data["indices"],       data["updates"]
+    )
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=500)
+
+    # Track successes and failures for detailed reporting
+    successes = []
+    failures = []
+
+    for t in indices:
+        try:
+            v = Version().load({"title": t,
+                                "versionTitle": vtitle,
+                                "language": lang})
+            if not v:
+                failures.append({"index": t, "error": f'No Version "{vtitle}" found'})
+                continue
+
+            for k, val in updates.items():
+                setattr(v, k, val)
+            v.save()  # retains full history / cache hooks
+            successes.append(t)
+
+        except Exception as e:
+            # Catch any save errors (validation, database, etc.) and continue
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": t, "error": error_msg})
+
+    # Return detailed results
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "count": len(successes),
+        "total": len(indices),
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
 
 
 @staff_member_required
@@ -1650,7 +1782,7 @@ def modtools_upload_workflowy(request):
     # Handle checkbox parameters
     c_index = request.POST.get("c_index", "").lower() == "true"
     c_version = request.POST.get("c_version", "").lower() == "true"
-    
+
     delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
     term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 
