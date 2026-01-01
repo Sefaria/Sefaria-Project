@@ -61,7 +61,7 @@ const HELP_CONTENT = (
         <tr><td><code>versionTitleInHebrew</code></td><td>Hebrew version of the title for Hebrew interface</td></tr>
         <tr><td><code>versionSource</code></td><td>URL where the original text was sourced from (must be valid URL)</td></tr>
         <tr><td><code>license</code></td><td>Copyright/license type (e.g., "Public Domain", "CC-BY")</td></tr>
-        <tr><td><code>status</code></td><td>"locked" prevents non-staff from editing; "none" allows edits</td></tr>
+        <tr><td><code>status</code></td><td>"locked" prevents non-staff from editing; empty/unset allows edits</td></tr>
         <tr><td><code>priority</code></td><td>Display priority (higher = shown first). Use decimal values like 1.5</td></tr>
         <tr><td><code>digitizedBySefaria</code></td><td>Whether Sefaria digitized this version (true/false)</td></tr>
         <tr><td><code>isPrimary</code></td><td>Whether this is the primary version for this language (true/false)</td></tr>
