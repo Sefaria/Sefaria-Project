@@ -226,6 +226,10 @@ def test_multiple_ambiguities():
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     [crrd(['<לקמן', '#משנה א'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
+    
+    # Section name matching instead of address type
+    [crrd(["@Teshuvot", "@HaRosh", "#Klal 1"], lang='en'), ("Teshuvot HaRosh 1",)],
+    [crrd(["@תשובות", '@הרא"ש', '#כלל א']), ("Teshuvot HaRosh 1",)],
 
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],

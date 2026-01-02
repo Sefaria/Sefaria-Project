@@ -11,6 +11,9 @@ from sefaria.model.passage import PassageSet, Passage
 from sefaria.system.exceptions import InputError
 from bisect import bisect_right
 import structlog
+
+from sefaria.utils.hebrew import hebrew_term
+
 logger = structlog.get_logger(__name__)
 
 
@@ -235,12 +238,28 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
 
     def leaf_refs(self) -> list[text.Ref]:
         return [self.ref()]
-
-    def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> tuple[list[text.Ref], list[bool]]:
+    
+    def _get_all_possible_sections_for_address_class(self, lang: str, section_str: str, fromSections=None) -> tuple[list[int], list[int], list[schema.AddressType]]:
         try:
             possible_sections, possible_to_sections, addr_classes = self._address_class.get_all_possible_sections_from_string(lang, section_str, fromSections, strip_prefixes=True)
+            return possible_sections, possible_to_sections, addr_classes
         except (IndexError, TypeError, KeyError):
-            return [], []
+            return [], [], []
+        
+    def _get_all_possible_sections_for_address_class_or_section_name(self, lang: str, section_str: str, fromSections=None) -> tuple[list[int], list[int], list[schema.AddressType]]:
+        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class(lang, section_str, fromSections)
+        if len(possible_sections) == 0:
+            # try removing section name prefix
+            section_name = self._section_name
+            if lang == 'he':
+                section_name = hebrew_term(section_name)
+            new_section_str = re.sub(fr'^{re.escape(section_name)}\s+', '', section_str, flags=re.IGNORECASE)
+            if new_section_str != section_str:
+                possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class(lang, new_section_str, fromSections)
+        return possible_sections, possible_to_sections, addr_classes
+
+    def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> tuple[list[text.Ref], list[bool]]:
+        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class_or_section_name(lang, section_str, fromSections)
         possible_subrefs = []
         can_match_out_of_order_list = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
@@ -259,11 +278,6 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
     def _address_class(self) -> schema.AddressType:
         return self._ja_node.address_class(0)
 
-    @property
-    def _section_name(self) -> str:
-        return self._ja_node.sectionNames[0]
-
-    def _get_next_referenceable_depth(self):
         if self.is_default():
             return 0
         next_refereceable_depth = 1
@@ -387,11 +401,7 @@ class MapReferenceableBookNode(NumberedReferenceableBookNode):
         return list(self._section_ref_map.values())
 
     def possible_subrefs(self, lang: str, initial_ref: text.Ref, section_str: str, fromSections=None) -> tuple[list[text.Ref], list[bool]]:
-        try:
-            possible_sections, possible_to_sections, addr_classes = self._address_class.\
-                get_all_possible_sections_from_string(lang, section_str, fromSections, strip_prefixes=True)
-        except (IndexError, TypeError, KeyError):
-            return [], []
+        possible_sections, possible_to_sections, addr_classes = self._get_all_possible_sections_for_address_class_or_section_name(lang, section_str, fromSections)
         # map sections to equivalent refs in section_ref_map
         mapped_refs = []
         for sec, to_sec in zip(possible_sections, possible_to_sections):
