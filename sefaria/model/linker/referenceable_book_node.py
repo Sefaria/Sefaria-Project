@@ -278,6 +278,11 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
     def _address_class(self) -> schema.AddressType:
         return self._ja_node.address_class(0)
 
+    @property
+    def _section_name(self) -> str:
+        return self._ja_node.sectionNames[0]
+
+    def _get_next_referenceable_depth(self):
         if self.is_default():
             return 0
         next_refereceable_depth = 1
