@@ -667,7 +667,7 @@ def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, 
         starti_inds += get_prefixless_inds(text)
     matches = []
     for starti in starti_inds:
-        if matches_map:
+        if matches_map is not None:
             matches += matches_map.get(text[starti:], [])
         else:
             matches += get_matches_func(text[starti:])

@@ -5,6 +5,7 @@ from copy import deepcopy
 from ne_span import NEDoc, RefPartType
 from sefaria.model.text import Ref, library
 from sefaria.model.linker.ref_part import RawRef, RawRefPart
+from sefaria.model.linker.ref_resolver import ResolutionThoroughness, PossiblyAmbigResolvedRef
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
@@ -152,6 +153,23 @@ def print_spans(raw_ref: RawRef):
     print('Spans:')
     for i, part in enumerate(raw_ref.raw_ref_parts):
         print(f'{i}) {part.text}')
+        
+        
+def get_matches_from_resolver_data(resolver_data) -> PossiblyAmbigResolvedRef:
+    raw_ref, context_ref, lang, prev_trefs = resolver_data
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.reset_ibid_history()  # reset from previous test runs
+    if prev_trefs:
+        for prev_tref in prev_trefs:
+            if prev_tref is None:
+                ref_resolver.reset_ibid_history()
+            else:
+                ref_resolver._ibid_history.last_refs = Ref(prev_tref)
+    print_spans(raw_ref)
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+    return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+
 
 
 _MISSING = object()

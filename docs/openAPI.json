@@ -1131,17 +1131,6 @@
             "in": "query"
           },
           {
-            "name": "wrapNamedEntities",
-            "schema": {
-              "enum": [
-                "0",
-                "1"
-              ],
-              "type": "string"
-            },
-            "in": "query"
-          },
-          {
             "name": "stripItags",
             "description": "Sefaria texts include footnotes and other `iTags` in the response. This param defaults to `0` which leaves them in. Changing it to `1` will remove them.",
             "schema": {

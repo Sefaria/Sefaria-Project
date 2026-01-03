@@ -437,6 +437,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             index.authors = [self.slug if author_slug == other_slug else author_slug for author_slug in index.authors]
             props = index._saveable_attrs()
             db.index.replace_one({"title":index.title}, props)
+            
+        # marked up text chunks
+        db.marked_up_text_chunks.update_many({'spans.topicSlug': other_slug}, {"$set": {'spans.$[element].topicSlug': self.slug}}, array_filters=[{"element.topicSlug": other_slug}])
+        db.linker_output.update_many({'spans.topicSlug': other_slug}, {"$set": {'spans.$[element].topicSlug': self.slug}}, array_filters=[{"element.topicSlug": other_slug}])
 
         if isinstance(other, Topic):
             # titles

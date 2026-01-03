@@ -2391,7 +2391,7 @@ class TextFamily(object):
 
     def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
                  version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
-                 wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+                 translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
         :param oref:
         :param context:
@@ -2404,7 +2404,6 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
-        :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
         :return:
         """
         if pad:
@@ -2455,20 +2454,6 @@ class TextFamily(object):
                 c = TextChunk(**tc_kwargs)
             self._chunks[language] = c
             text_modification_funcs = []
-            if wrapNamedEntities and len(c._versions) > 0:
-                from . import RefTopicLinkSet
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
-                if len(named_entities) > 0:
-                    # assumption is that refTopicLinks are all to unranged refs
-                    ne_by_secs = defaultdict(list)
-                    for ne in named_entities:
-                        try:
-                            temp_ref = Ref(ne.ref)
-                        except InputError:
-                            continue
-                        temp_secs = tuple(s-1 for s in temp_ref.sections)
-                        ne_by_secs[temp_secs] += [ne]
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
                 text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
@@ -5727,8 +5712,7 @@ class Library(object):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
 
         named_entity_types_to_topics = {
-            "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
-            "GROUP": {'ontology_roots': ["group-of-people"]},
+            "PERSON": {"ontology_roots": ['people', 'group-of-people'], "single_slugs": ['god', 'the-tetragrammaton']},
         }
         return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
 
@@ -6243,41 +6227,6 @@ class Library(object):
         except (InputError, KeyError) as e:
             logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
             return match.group(0)
-
-    @staticmethod
-    def get_wrapped_named_entities_string(links, s):
-        """
-        Parallel to library.get_wrapped_refs_string
-        Returns `s` with every link in `links` wrapped in an a-tag
-        """
-        if len(links) == 0:
-            return s
-        links.sort(key=lambda x: x.charLevelData['startChar'])
-
-        # replace all mentions with `dummy_char` so they can later be easily replaced using re.sub()
-        # this ensures char locations are preserved
-        dummy_char = "█"
-        char_list = list(s)
-        start_char_to_slug = {}
-        for link in links:
-            start = link.charLevelData['startChar']
-            end = link.charLevelData['endChar']
-            mention = s[start:end]
-            if mention != link.charLevelData['text']:
-                # dont link if current text at startChar:endChar doesn't match text on link
-                continue
-            start_char_to_slug[start] = (mention, link.toTopic, getattr(link, 'unambiguousToTopic', None))
-            char_list[start:end] = list(dummy_char*(end-start))
-        dummy_text = "".join(char_list)
-
-        def repl(match):
-            try:
-                mention, slug, unambiguous_slug = start_char_to_slug[match.start()]
-            except KeyError:
-                return match.group()
-            link_slug = unambiguous_slug or slug
-            return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
-        return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         """Returns a dict of unique category ids based on the ToC, with the

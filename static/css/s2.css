@@ -6610,6 +6610,31 @@ But not to use a display block directive that might break continuous mode for ot
 .stacked.bilingual .segment .en .namedEntityLink:hover {
   border-bottom-color: #666;
 }
+.mutc {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    padding: 0 3px 0 3px;
+    border-top: none;
+    border-bottom: none;
+}
+.mutc.refLink {
+    border-color: #1e88e5;
+}
+.mutc.namedEntityLink {
+    border-color: #8e24aa;
+}
+.mutc.categoryLink {
+    border-color: #fb8c00;
+}
+.mutc.spanSucceeded {
+    background: #e8f5e9;
+}
+.mutc.spanFailed {
+    background: #ffebee;
+}
+.mutc.spanAmbiguous {
+    background: #fff8e1;
+}
 .textRange .actionLinks {
   text-align: right;
 }
