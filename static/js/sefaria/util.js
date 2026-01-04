@@ -293,10 +293,26 @@ class Util {
       return (typeof window === "undefined" ) ? this._initialPath :
                 window.location.pathname + window.location.search;
     }
-    static fullURL(relativePath, moduleTarget) {
-      return relativePath.startsWith("/")
-        ? Sefaria.getModuleURL(moduleTarget).origin + relativePath
-        : relativePath;
+    static fullURL(relativePath, moduleTarget, params=null) {
+      if (!relativePath.startsWith("/")) {
+        return relativePath;
+      }
+      const baseURL = Sefaria.getModuleURL(moduleTarget);
+      if (!baseURL) {
+        return relativePath;
+      }
+      try {
+        const url = new URL(relativePath, baseURL);
+        if (params) {
+          for (const [key, value] of Object.entries(params)) {
+            url.searchParams.set(key, value);
+          }
+        }
+        return url.toString();
+      } catch (e) {
+        console.error('Error building full URL:', e);
+        return relativePath;
+      }
     }
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);

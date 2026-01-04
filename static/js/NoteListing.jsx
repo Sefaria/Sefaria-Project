@@ -32,29 +32,28 @@ class NoteListing extends Component {
     const resolve = this.props.onDeleteNote || (()=>{});
     Sefaria.deleteNote(this.props.data._id).then(resolve);
   }
-  getNoteURL(ref) {
-    // This helper function returns the a tag linking to the given ref of the note  When the URL is to a ref in the library, 
+  getNoteLink(ref) {
+    // This helper function returns the a tag linking to the given ref of the note.  When the URL is to a ref in the library, 
     // returning the appropriate a tag is very simple, but when the ref is to a sheet, we need to modify the ref and set the data-target-module attribute to the voices module.
     // If the ref is to a sheet, the ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
-    const isSheet = Sefaria.isSheetRef(ref);
-    let path, noteURL;
-    const module = isSheet ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE;
-    if (isSheet) {
+    let path, noteURL, module;
+    if (Sefaria.isSheetRef(ref)) {
+      module = Sefaria.VOICES_MODULE;
       const parsedRef = Sefaria.parseRef(ref);
       path = `/sheets/${parsedRef.sections.join('.')}`;
-      noteURL = new URL(path, Sefaria.getModuleURL(module));
+      noteURL = Sefaria.util.fullURL(path, module);
     }
     else {
+      module = Sefaria.LIBRARY_MODULE;
       path = `/${ref}`;
-      noteURL = new URL(path, Sefaria.getModuleURL(module));
-      noteURL.searchParams.set('with', 'Notes');  // side panel should only open to show notes in Library module
+      noteURL = Sefaria.util.fullURL(path, module, {"with": "Notes"});  
     }
-    return <a className="noteRefTitle" href={noteURL.toString()} data-target-module={module}>
+    return <a className="noteRefTitle" href={noteURL} data-target-module={module}>
             <span>{ref}</span>
           </a>
   }
   render() {
-    const noteLink = this.getNoteURL(this.props.data.ref);
+    const noteLink = this.getNoteLink(this.props.data.ref);
     var data = this.props.data;
     return (<div className="noteListing">
               <div className="actionButtons">
