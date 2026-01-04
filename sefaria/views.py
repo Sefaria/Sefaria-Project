@@ -1635,6 +1635,7 @@ def check_index_dependencies_api(request, title):
         version_count = db.texts.count_documents({"title": title})
 
         # Get link count (approximate)
+        # Inline import: this specific function is not exported via sefaria.model wildcard
         from sefaria.model.text import prepare_index_regex_for_dependency_process
         try:
             index = library.get_index(title)
@@ -1660,33 +1661,33 @@ def check_index_dependencies_api(request, title):
 
 @staff_member_required
 def version_indices_api(request):
-    if request.method != "GET":
-        return HttpResponseBadRequest("GET required")
     """
+    Get indices that have versions matching a versionTitle.
+
     ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...], "metadata": {...}}
     Returns indices and optional metadata (categories) for each index.
     """
-    from sefaria.model import Version, library
-    vtitle  = request.GET.get("versionTitle")
-    lang    = request.GET.get("language")
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+
+    vtitle = request.GET.get("versionTitle")
     if not vtitle:
         raise InputError("versionTitle is required")
+    lang = request.GET.get("language")
 
     q = {"versionTitle": vtitle}
     if lang:
         q["language"] = lang
-    indices = db.texts.distinct("title", q)          # 4–5 ms
+    indices = db.texts.distinct("title", q)
     sorted_indices = sorted(indices)
 
     # Build metadata with categories for each index
+    # Note: library.get_index() uses an in-memory cache, so this loop is efficient
     metadata = {}
     for title in sorted_indices:
         try:
             idx = library.get_index(title)
-            if idx:
-                metadata[title] = {
-                    "categories": idx.categories if hasattr(idx, 'categories') else []
-                }
+            metadata[title] = {"categories": getattr(idx, 'categories', [])}
         except Exception:
             metadata[title] = {"categories": []}
 
@@ -1716,18 +1717,16 @@ def version_bulk_edit_api(request):
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
-    from sefaria.model import Version
-
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError as e:
         return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
 
     try:
-        vtitle, lang, indices, updates = (
-            data["versionTitle"], data["language"],
-            data["indices"],       data["updates"]
-        )
+        vtitle = data["versionTitle"]
+        lang = data["language"]
+        indices = data["indices"]
+        updates = data["updates"]
     except KeyError as e:
         return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
 
@@ -1745,9 +1744,11 @@ def version_bulk_edit_api(request):
 
     for t in indices:
         try:
-            v = Version().load({"title": t,
-                                "versionTitle": vtitle,
-                                "language": lang})
+            v = Version().load({
+                "title": t,
+                "versionTitle": vtitle,
+                "language": lang
+            })
             if not v:
                 failures.append({"index": t, "error": f'No Version "{vtitle}" found'})
                 continue

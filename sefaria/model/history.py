@@ -207,5 +207,4 @@ def process_version_title_change_in_history(ver, **kwargs):
         "version": kwargs["old"],
         "language": ver.language,
     }
-    # Note: update() deprecated in PyMongo 4.x, use update_many() instead
     db.history.update_many(query, {"$set": {"version": kwargs["new"]}})
