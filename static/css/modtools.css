@@ -354,7 +354,7 @@
 .modTools .searchRow {
   display: flex;
   gap: var(--mt-space-md);
-  align-items: stretch;
+  align-items: flex-start;
   margin-bottom: var(--mt-space-lg);
 }
 
@@ -366,9 +366,10 @@
 .modTools .searchRow .modtoolsButton {
   flex-shrink: 0;
   white-space: nowrap;
-  /* Match input height: account for input's 1.5px border on each side */
-  padding-top: calc(12px + 1.5px);
-  padding-bottom: calc(12px + 1.5px);
+  /* Standard button sizing - not stretched */
+  padding: 12px 24px;
+  min-width: auto;
+  width: auto;
 }
 
 /* Filter row - label inline with dropdown */
@@ -957,7 +958,8 @@
 .modTools .fieldGroupGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--mt-space-md);
+  gap: var(--mt-space-lg) var(--mt-space-md);
+  align-items: end; /* Align inputs at bottom of each row */
 }
 
 .modTools .fieldGroupGrid .fieldGroup {
