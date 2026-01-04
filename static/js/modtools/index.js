@@ -6,6 +6,8 @@
  *
  * Components:
  * - BulkVersionEditor: Edit Version metadata across multiple indices
+ *
+ * NOTE: The following components are temporarily disabled (open tickets to reintroduce):
  * - BulkIndexEditor: Edit Index metadata across multiple indices
  * - AutoLinkCommentaryTool: Create links between commentaries and base texts
  * - NodeTitleEditor: Edit node titles within an Index schema
@@ -21,9 +23,10 @@ export { default as ModeratorToolsPanel } from '../ModeratorToolsPanel';
 
 // Individual components
 export { default as BulkVersionEditor } from './components/BulkVersionEditor';
-export { default as BulkIndexEditor } from './components/BulkIndexEditor';
-export { default as AutoLinkCommentaryTool } from './components/AutoLinkCommentaryTool';
-export { default as NodeTitleEditor } from './components/NodeTitleEditor';
+// TODO: The following exports are temporarily disabled - open tickets to reintroduce:
+// export { default as BulkIndexEditor } from './components/BulkIndexEditor';
+// export { default as AutoLinkCommentaryTool } from './components/AutoLinkCommentaryTool';
+// export { default as NodeTitleEditor } from './components/NodeTitleEditor';
 
 // Shared components
 export * from './components/shared';

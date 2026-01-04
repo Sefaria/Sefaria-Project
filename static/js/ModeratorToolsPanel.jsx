@@ -8,9 +8,12 @@
  * - CSV upload of texts
  * - Workflowy OPML outline upload
  * - Links management (upload/download/remove)
- * - Bulk editing of Index and Version metadata
- * - Auto-linking commentaries to base texts
- * - Editing node titles in Index schemas
+ * - Bulk editing of Version metadata
+ *
+ * NOTE: The following tools are temporarily disabled (open tickets to reintroduce):
+ * - Bulk editing of Index metadata (BulkIndexEditor)
+ * - Auto-linking commentaries to base texts (AutoLinkCommentaryTool)
+ * - Editing node titles in Index schemas (NodeTitleEditor)
  *
  * For AI agents: See /docs/modtools/AI_AGENT_GUIDE.md for detailed documentation.
  *
@@ -32,9 +35,13 @@ import '../css/modtools.css';
 
 // Import refactored components
 import BulkVersionEditor from './modtools/components/BulkVersionEditor';
-import BulkIndexEditor from './modtools/components/BulkIndexEditor';
-import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
-import NodeTitleEditor from './modtools/components/NodeTitleEditor';
+// TODO: The following tools are temporarily disabled. There are open tickets to reintroduce them:
+// - BulkIndexEditor: Bulk edit index metadata
+// - AutoLinkCommentaryTool: Auto-link commentaries to base texts
+// - NodeTitleEditor: Edit node titles within an Index schema
+// import BulkIndexEditor from './modtools/components/BulkIndexEditor';
+// import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
+// import NodeTitleEditor from './modtools/components/NodeTitleEditor';
 import ModToolsSection from './modtools/components/shared/ModToolsSection';
 
 
@@ -1336,14 +1343,15 @@ class ModeratorToolsPanel extends Component {
         <RemoveLinksFromCsv />
 
         {/* Bulk Editing Tools */}
-        <BulkIndexEditor />
+        {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
+        {/* <BulkIndexEditor /> */}
         <BulkVersionEditor />
 
-        {/* Commentary Tools */}
-        <AutoLinkCommentaryTool />
+        {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
+        {/* <AutoLinkCommentaryTool /> */}
 
-        {/* Schema Tools */}
-        <NodeTitleEditor />
+        {/* Schema Tools - temporarily disabled, open ticket to reintroduce */}
+        {/* <NodeTitleEditor /> */}
       </div>
     );
   }

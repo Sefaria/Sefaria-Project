@@ -101,7 +101,9 @@ Deletes links specified in a CSV file.
 
 ---
 
-### 7. Bulk Edit Index Metadata
+### 7. Bulk Edit Index Metadata *(Temporarily Disabled)*
+> **Note**: This tool is temporarily disabled in the UI. There is an open ticket to reintroduce it.
+
 Edit metadata fields across multiple Index records that share a version.
 
 **UI Elements**:
@@ -151,7 +153,9 @@ Edit metadata fields across multiple Version records.
 
 ---
 
-### 9. Auto-Link Commentaries
+### 9. Auto-Link Commentaries *(Temporarily Disabled)*
+> **Note**: This tool is temporarily disabled in the UI. There is an open ticket to reintroduce it.
+
 Creates automatic links between commentary texts and their base texts.
 
 **UI Elements**:
@@ -169,7 +173,9 @@ Creates automatic links between commentary texts and their base texts.
 
 ---
 
-### 10. Edit Node Titles
+### 10. Edit Node Titles *(Temporarily Disabled)*
+> **Note**: This tool is temporarily disabled in the UI. There is an open ticket to reintroduce it.
+
 Edit titles of schema nodes within an Index.
 
 **UI Elements**:
@@ -386,9 +392,9 @@ static/js/
       fieldMetadata.js          # VERSION_FIELD_METADATA, INDEX_FIELD_METADATA
     components/
       BulkVersionEditor.jsx     # Version metadata bulk editor (#36475)
-      BulkIndexEditor.jsx       # Index metadata bulk editor
-      AutoLinkCommentaryTool.jsx # Commentary auto-linker
-      NodeTitleEditor.jsx       # Schema node title editor
+      BulkIndexEditor.jsx       # Index metadata bulk editor (temporarily disabled)
+      AutoLinkCommentaryTool.jsx # Commentary auto-linker (temporarily disabled)
+      NodeTitleEditor.jsx       # Schema node title editor (temporarily disabled)
       shared/
         ModToolsSection.jsx     # Collapsible section wrapper with help button
         HelpButton.jsx          # Help button with modal dialog
