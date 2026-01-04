@@ -195,11 +195,31 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
+        // Track search_navto event for navigation to suggestion
+        if (typeof gtag !== 'undefined') {
+          gtag("event", "search_navto", {
+            suggestion_type: highlightedItem.type,
+            suggestion_label: highlightedItem.label || highlightedItem.value,
+            method: "keyboard",
+            feature_name: "header_search",
+            site_lang: Sefaria.interfaceLang
+          });
+        }
         redirectToObject(highlightedItem);
         return;
       }
       const inputQuery = getInputValue();
       if (!inputQuery) return;
+      // Track search_submit event
+      if (typeof gtag !== 'undefined') {
+        gtag("event", "search_submit", {
+          query: inputQuery,
+          query_length: inputQuery.length,
+          method: "enter_key",
+          feature_name: "header_search",
+          site_lang: Sefaria.interfaceLang
+        });
+      }
       submitSearch(inputQuery);
     };
 
@@ -207,6 +227,16 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const handleSearchButtonClick = (event) => {
       const inputQuery = getInputValue();
       if (inputQuery) {
+        // Track search_submit event
+        if (typeof gtag !== 'undefined') {
+          gtag("event", "search_submit", {
+            query: inputQuery,
+            query_length: inputQuery.length,
+            method: "button_click",
+            feature_name: "header_search",
+            site_lang: Sefaria.interfaceLang
+          });
+        }
         submitSearch(inputQuery);
       } else {
         focusSearch()
@@ -227,6 +257,13 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const focusSearch = () => {
       setSearchFocused(true);
       showVirtualKeyboardIcon(true);
+      // Track search focus event
+      if (typeof gtag !== 'undefined') {
+        gtag("event", "search_focus", {
+          feature_name: "header_search",
+          site_lang: Sefaria.interfaceLang
+        });
+      }
     };
 
     const blurSearch = (e) => {
@@ -234,6 +271,15 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       const oldValue = getVirtualKeyboardInputValue();
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
+        // Track search_defocus event
+        if (typeof gtag !== 'undefined') {
+          gtag("event", "search_defocus", {
+            query: oldValue || "",
+            query_length: oldValue ? oldValue.length : 0,
+            feature_name: "header_search",
+            site_lang: Sefaria.interfaceLang
+          });
+        }
         // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
@@ -397,6 +443,16 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
   const search = (onChange, query) => {
       //   Execute the actions for searching the query string
       Sefaria.track.event("Search", "Search Box Search", query);
+      // Track search_submit event for GA4
+      if (typeof gtag !== 'undefined') {
+        gtag("event", "search_submit", {
+          query: query,
+          query_length: query.length,
+          method: "suggestion_click",
+          feature_name: "header_search",
+          site_lang: Sefaria.interfaceLang
+        });
+      }
       showSearchWrapper(query);
       clearSearchBox(onChange);
   }
@@ -406,11 +462,32 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           if (queryType === 'Ref') {
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
+              // Track search_navto event for GA4
+              if (typeof gtag !== 'undefined') {
+                gtag("event", "search_navto", {
+                  suggestion_type: queryType,
+                  suggestion_label: queryId,
+                  is_book: queryIsBook,
+                  method: "direct_navigation",
+                  feature_name: "header_search",
+                  site_lang: Sefaria.interfaceLang
+                });
+              }
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+              // Track search_navto event for GA4
+              if (typeof gtag !== 'undefined') {
+                gtag("event", "search_navto", {
+                  suggestion_type: queryType,
+                  suggestion_label: queryId,
+                  method: "direct_navigation",
+                  feature_name: "header_search",
+                  site_lang: Sefaria.interfaceLang
+                });
+              }
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
@@ -424,6 +501,16 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     }
    const submitSearch = (onChange, query, highlightedIndex, highlightedSuggestion, enforceSearch) => {
       if (highlightedIndex > -1 && highlightedSuggestion.type === 'search') {
+              // Track search_submit event when selecting search suggestion
+              if (typeof gtag !== 'undefined') {
+                gtag("event", "search_submit", {
+                  query: query,
+                  query_length: query.length,
+                  method: "suggestion_select",
+                  feature_name: "header_search",
+                  site_lang: Sefaria.interfaceLang
+                });
+              }
               showSearchWrapper(query);
               clearSearchBox(onChange);
               return;
@@ -450,6 +537,16 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
+        // Track search_navto event for navigation to suggestion
+        if (typeof gtag !== 'undefined') {
+          gtag("event", "search_navto", {
+            suggestion_type: item.type,
+            suggestion_label: item.key,
+            method: "mouse_click",
+            feature_name: "header_search",
+            site_lang: Sefaria.interfaceLang
+          });
+        }
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
