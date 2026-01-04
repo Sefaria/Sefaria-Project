@@ -345,7 +345,8 @@ const NodeTitleEditor = () => {
   };
 
   const nodes = indexData ? extractNodes(indexData.schema || indexData) : [];
-  const hasValidationErrors = Object.values(editingNodes).some(edits => edits.title_valid === false);
+  // Check for validation errors - title_valid must be explicitly true to pass
+  const hasValidationErrors = Object.values(editingNodes).some(edits => edits.title !== undefined && edits.title_valid !== true);
   const hasChanges = Object.keys(editingNodes).length > 0;
 
   return (

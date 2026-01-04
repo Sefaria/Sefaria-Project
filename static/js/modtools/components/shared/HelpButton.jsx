@@ -10,11 +10,19 @@
  * The button renders as a question mark icon in the top-right corner of its
  * parent container. When clicked, it opens a modal with the full documentation.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 const HelpButton = ({ title, description }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef(null);
+
+  // Restore focus to button when modal closes
+  const closeModal = () => {
+    setIsOpen(false);
+    // Use setTimeout to ensure focus happens after modal unmounts
+    setTimeout(() => buttonRef.current?.focus(), 0);
+  };
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -22,7 +30,7 @@ const HelpButton = ({ title, description }) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        setIsOpen(false);
+        closeModal();
       }
     };
     if (isOpen) {
@@ -39,6 +47,7 @@ const HelpButton = ({ title, description }) => {
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         className="helpButton"
         onClick={() => setIsOpen(true)}
@@ -49,14 +58,14 @@ const HelpButton = ({ title, description }) => {
       </button>
 
       {isOpen && (
-        <div className="helpModal-overlay" onClick={() => setIsOpen(false)}>
+        <div className="helpModal-overlay" onClick={closeModal}>
           <div className="helpModal" onClick={(e) => e.stopPropagation()}>
             <div className="helpModal-header">
               <h2 className="helpModal-title">{title}</h2>
               <button
                 type="button"
                 className="helpModal-close"
-                onClick={() => setIsOpen(false)}
+                onClick={closeModal}
                 aria-label="Close"
               >
                 &times;
@@ -69,7 +78,7 @@ const HelpButton = ({ title, description }) => {
               <button
                 type="button"
                 className="modtoolsButton"
-                onClick={() => setIsOpen(false)}
+                onClick={closeModal}
               >
                 Got it
               </button>

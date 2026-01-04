@@ -158,10 +158,10 @@ class TestCheckIndexDependenciesAPI:
     def test_check_dependencies_returns_info(self, staff_client):
         """Should return dependency information for valid index."""
         response = staff_client.get('/api/check-index-dependencies/Genesis')
-        if response.status_code == 200:
-            data = json.loads(response.content)
-            assert 'has_dependencies' in data
-            assert 'dependent_count' in data
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.content}"
+        data = json.loads(response.content)
+        assert 'has_dependencies' in data, "Response missing 'has_dependencies' field"
+        assert 'dependent_count' in data, "Response missing 'dependent_count' field"
 
 
 # ============================================================================
@@ -367,9 +367,9 @@ class TestLinksDownloadAPI:
     def test_links_download_returns_csv(self, staff_client):
         """Should return CSV for valid refs."""
         response = staff_client.get('/modtools/links/Genesis 1/Rashi on Genesis 1')
-        # May return CSV or error depending on data availability
-        if response.status_code == 200:
-            assert 'text/csv' in response['Content-Type']
+        # Should return 200 with CSV content type
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        assert 'text/csv' in response['Content-Type'], f"Expected CSV, got {response['Content-Type']}"
 
     @pytest.mark.django_db
     def test_links_download_handles_invalid_refs(self, staff_client):
@@ -386,5 +386,5 @@ class TestIndexLinksDownloadAPI:
     def test_index_links_returns_csv(self, staff_client):
         """Should return CSV for valid refs with by_segment=True."""
         response = staff_client.get('/modtools/index_links/Genesis 1/Rashi on Genesis 1')
-        if response.status_code == 200:
-            assert 'text/csv' in response['Content-Type']
+        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        assert 'text/csv' in response['Content-Type'], f"Expected CSV, got {response['Content-Type']}"

@@ -523,7 +523,8 @@ const BulkIndexEditor = () => {
     );
   };
 
-  const hasChanges = Object.keys(updates).filter(k => updates[k] || k === 'toc_zoom').length > 0;
+  // Check if there are actual changes - toc_zoom of 0 is valid, so check for undefined instead
+  const hasChanges = Object.keys(updates).filter(k => updates[k] || (k === 'toc_zoom' && updates[k] !== undefined && updates[k] !== '')).length > 0;
 
   return (
     <ModToolsSection

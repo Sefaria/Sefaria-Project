@@ -1637,7 +1637,8 @@ def check_index_dependencies_api(request, title):
             index = library.get_index(title)
             pattern = prepare_index_regex_for_dependency_process(index)
             link_count = db.links.count_documents({"refs": {"$regex": pattern}})
-        except:
+        except Exception as e:
+            logger.debug(f"Failed to get link count for {title}: {e}")
             link_count = 0
 
         return jsonResponse({
@@ -1683,11 +1684,18 @@ def version_indices_api(request):
                 metadata[title] = {
                     "categories": idx.categories if hasattr(idx, 'categories') else []
                 }
-        except:
+        except Exception:
             metadata[title] = {"categories": []}
 
     return jsonResponse({"indices": sorted_indices, "metadata": metadata})
 
+
+# Allowed fields for version bulk edit - prevents arbitrary attribute injection
+VERSION_BULK_EDIT_ALLOWED_FIELDS = {
+    "versionTitle", "versionTitleInHebrew", "versionSource", "license", "status",
+    "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
+    "versionNotesInHebrew", "purchaseInformationURL", "purchaseInformationImage", "direction"
+}
 
 @staff_member_required
 def version_bulk_edit_api(request):
@@ -1706,13 +1714,27 @@ def version_bulk_edit_api(request):
         return HttpResponseBadRequest("POST required")
 
     from sefaria.model import Version
-    data = json.loads(request.body)
-    vtitle, lang, indices, updates = (
-        data["versionTitle"], data["language"],
-        data["indices"],       data["updates"]
-    )
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        vtitle, lang, indices, updates = (
+            data["versionTitle"], data["language"],
+            data["indices"],       data["updates"]
+        )
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
     if not indices:
         return jsonResponse({"error": "indices may not be empty"}, status=500)
+
+    # Validate that all update fields are allowed
+    disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
+    if disallowed_fields:
+        return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
 
     # Track successes and failures for detailed reporting
     successes = []
