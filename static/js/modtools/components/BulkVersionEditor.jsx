@@ -301,17 +301,20 @@ const BulkVersionEditor = () => {
         updates: processedUpdates
       }),
       success: d => {
-        // Handle detailed success/failure response
+        const successCount = d.successes?.length || 0;
+        const failureCount = d.failures?.length || 0;
+        const total = successCount + failureCount;
+
         if (d.status === "ok") {
-          setMsg(`✅ Successfully updated ${d.count} versions`);
+          setMsg(`✅ Successfully updated ${successCount} versions`);
           setUpdates({});
           setValidationErrors({});
         } else if (d.status === "partial") {
-          const failureDetails = d.failures.map(f => `${f.index}: ${f.error}`).join("; ");
-          setMsg(`⚠️ Updated ${d.count}/${d.total} versions. Failures: ${failureDetails}`);
+          const failureList = d.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+          setMsg(`⚠️ Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`);
         } else {
-          const failureDetails = d.failures?.map(f => `${f.index}: ${f.error}`).join("; ") || "Unknown error";
-          setMsg(`❌ All updates failed: ${failureDetails}`);
+          const failureList = d.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+          setMsg(`❌ All ${failureCount} updates failed:\n${failureList}`);
         }
         setSaving(false);
       },
@@ -352,12 +355,17 @@ const BulkVersionEditor = () => {
         }
       }),
       success: d => {
+        const successCount = d.successes?.length || 0;
+        const failureCount = d.failures?.length || 0;
+
         if (d.status === "ok") {
-          setMsg(`✅ Marked ${d.count} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`);
+          setMsg(`✅ Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`);
         } else if (d.status === "partial") {
-          setMsg(`⚠️ Marked ${d.count}/${d.total} versions. Some failed.`);
+          const failureList = d.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+          setMsg(`⚠️ Marked ${successCount}/${successCount + failureCount} versions.\n\nFailed:\n${failureList}`);
         } else {
-          setMsg(`❌ Failed to mark versions for deletion.`);
+          const failureList = d.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+          setMsg(`❌ Failed to mark versions for deletion:\n${failureList}`);
         }
         setSaving(false);
       },

@@ -121,7 +121,7 @@ class TestVersionBulkEditAPI:
 
     @pytest.mark.django_db
     def test_bulk_edit_returns_detailed_response(self, staff_client):
-        """Should return status, count, total, successes, failures."""
+        """Should return status, successes, failures."""
         response = staff_client.post(
             '/api/version-bulk-edit',
             data=json.dumps({
@@ -134,10 +134,8 @@ class TestVersionBulkEditAPI:
         )
         assert response.status_code == 200
         data = json.loads(response.content)
-        # Should have the new detailed response format
+        # Should have the detailed response format
         assert 'status' in data
-        assert 'count' in data
-        assert 'total' in data
         assert 'successes' in data
         assert 'failures' in data
         # Version doesn't exist, so should report failure

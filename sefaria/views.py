@@ -1706,13 +1706,11 @@ def version_bulk_edit_api(request):
     """
     Bulk update Version metadata for multiple indices.
 
-    Body JSON:
-      {"versionTitle":"Example 2025",
-       "language":"he",
-       "indices":["Genesis","Exodus"],
-       "updates":{"license":"CC-BY","versionNotes":"Second draft"}}
+    Request:
+      POST {"versionTitle": "...", "language": "he", "indices": [...], "updates": {...}}
 
-    Returns detailed success/failure info to handle partial updates gracefully.
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
@@ -1742,32 +1740,29 @@ def version_bulk_edit_api(request):
     successes = []
     failures = []
 
-    for t in indices:
+    for title in indices:
         try:
             v = Version().load({
-                "title": t,
+                "title": title,
                 "versionTitle": vtitle,
                 "language": lang
             })
             if not v:
-                failures.append({"index": t, "error": f'No Version "{vtitle}" found'})
+                failures.append({"index": title, "error": f'No Version "{vtitle}" found'})
                 continue
 
             for k, val in updates.items():
                 setattr(v, k, val)
-            v.save()  # retains full history / cache hooks
-            successes.append(t)
+            v.save()
+            successes.append(title)
 
         except Exception as e:
-            # Catch any save errors (validation, database, etc.) and continue
             error_msg = str(e) if str(e) else type(e).__name__
-            failures.append({"index": t, "error": error_msg})
+            failures.append({"index": title, "error": error_msg})
 
     # Return detailed results
     result = {
         "status": "ok" if not failures else "partial" if successes else "error",
-        "count": len(successes),
-        "total": len(indices),
         "successes": successes,
         "failures": failures
     }
