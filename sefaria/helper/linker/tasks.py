@@ -212,17 +212,21 @@ def _get_existing_linked_trefs(base_tref: str) -> tuple[list[str], list[ObjectId
 
 
 def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, existing_linked_trefs: set[str]) -> tuple[set[str], set[str]]:
-    # we need to consider all other MUTCs that link to this ref, to avoid deleting links that are still needed
-    # a link should be deleted if it isn't backed by any MUTCs, either an alternate version of the target ref or for any ref that is linked to the target ref
-    all_mutcs = MarkedUpTextChunkSet({"ref": {"$in": [msg.ref] + list(existing_linked_trefs)}}, hint="ref_1")
+    all_mutcs = MarkedUpTextChunkSet({"ref": msg.ref}, hint="ref_1")
     other_mutc_trefs = set()
     for mutc in all_mutcs:
-        if mutc.versionTitle == msg.vtitle and mutc.language == msg.lang:
+        if mutc.ref == msg.ref and mutc.versionTitle == msg.vtitle and mutc.language == msg.lang:
             # Skip MUTC that matches the current version
             continue
         for span in mutc.spans:
             if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
                 other_mutc_trefs.add(span['ref'])
+
+    # we need to consider all other MUTCs that link to this ref, to avoid deleting links that are still needed
+    # a link should be deleted if it isn't backed by any MUTCs, either an alternate version of the target ref or for any ref that is linked to the target ref
+    linked_mutcs = MarkedUpTextChunkSet({"ref": {"$in": list(existing_linked_trefs)}}, hint="ref_1")
+    for mutc in linked_mutcs:
+        other_mutc_trefs.add(mutc.ref)
 
     logger.info(f"LINKER: curr ref: {msg.ref} existing_linked_trefs: {existing_linked_trefs}")
     logger.info(f"LINKER: curr ref: {msg.ref} other_mutc_trefs: {other_mutc_trefs}")
