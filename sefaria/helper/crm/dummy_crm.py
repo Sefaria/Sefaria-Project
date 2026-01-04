@@ -21,8 +21,8 @@ class DummyConnectionManager(CrmConnectionManager):
     def change_user_email(self, uid, new_email):
         return True
 
-    def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
-        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en"):
+        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang)
         return True
 
     def find_crm_id(self, email=None):

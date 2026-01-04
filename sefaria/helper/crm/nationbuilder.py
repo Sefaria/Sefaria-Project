@@ -70,8 +70,8 @@ class NationbuilderConnectionManager(CrmConnectionManager):
 
         return True
 
-    def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
-        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
+        CrmConnectionManager.subscribe_to_lists(self,email, first_name, last_name, lang, educator)
         return self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):

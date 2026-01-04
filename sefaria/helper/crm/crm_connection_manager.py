@@ -38,7 +38,7 @@ class CrmConnectionManager(object):
         """
         pass
 
-    def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en"):
         CrmConnectionManager.validate_email(email)
         CrmConnectionManager.validate_name(first_name)
         CrmConnectionManager.validate_name(last_name)
