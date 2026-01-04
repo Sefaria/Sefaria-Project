@@ -1,3 +1,6 @@
+import pytest
+
+
 def pytest_configure(config):
     import sys
     import django
@@ -8,3 +11,28 @@ def pytest_configure(config):
 def pytest_unconfigure(config):
     import sys
     del sys._called_from_test
+
+
+@pytest.fixture
+def mock_toc_callbacks(monkeypatch):
+    """Mock TOC-related callbacks that cause database access during tests
+
+    Use this fixture in tests that save Index models to avoid
+    RuntimeError: Database access not allowed
+    """
+    def mock_process_index_change_in_toc(indx, **kwargs):
+        pass  # Do nothing to avoid database access
+
+    def mock_rebuild_library_after_category_change(*args, **kwargs):
+        pass  # Do nothing to avoid database access
+
+    def mock_get_topic_toc(*args, **kwargs):
+        return {}  # Return empty topic TOC to avoid database access
+
+    def mock_get_pools_by_topic_slug(self, *args, **kwargs):
+        return []  # Return empty list to avoid database access
+
+    monkeypatch.setattr('sefaria.model.text.process_index_change_in_toc', mock_process_index_change_in_toc)
+    monkeypatch.setattr('sefaria.model.text.rebuild_library_after_category_change', mock_rebuild_library_after_category_change)
+    monkeypatch.setattr('sefaria.model.text.Library.get_topic_toc', mock_get_topic_toc)
+    monkeypatch.setattr('django_topics.models.topic.TopicManager.get_pools_by_topic_slug', mock_get_pools_by_topic_slug)
