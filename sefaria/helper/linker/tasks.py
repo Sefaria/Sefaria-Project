@@ -223,13 +223,14 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
         for span in mutc.spans:
             if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
                 other_mutc_trefs.add(span['ref'])
+
+    logger.info(f"LINKER: curr ref: {msg.ref} existing_linked_trefs: {existing_linked_trefs}")
+    logger.info(f"LINKER: curr ref: {msg.ref} other_mutc_trefs: {other_mutc_trefs}")
+    logger.info(f"LINKER: curr ref: {msg.ref} added_mutc_trefs: {msg.added_mutc_trefs}")
     return _get_link_trefs_to_add_and_delete(set(msg.added_mutc_trefs), existing_linked_trefs, other_mutc_trefs)
 
 
 def _get_link_trefs_to_add_and_delete(added_mutc_trefs: set[str], existing_linked_trefs: set[str], other_mutc_trefs: set[str]) -> tuple[set[str], set[str]]:
-    logger.info(f"LINKER: existing_linked_trefs: {existing_linked_trefs}")
-    logger.info(f"LINKER: other_mutc_trefs: {other_mutc_trefs}")
-    logger.info(f"LINKER: added_mutc_trefs: {added_mutc_trefs}")
     linked_trefs_to_add = added_mutc_trefs - existing_linked_trefs
     linked_refs_to_delete = existing_linked_trefs - (other_mutc_trefs & added_mutc_trefs)
     return linked_trefs_to_add, linked_refs_to_delete
