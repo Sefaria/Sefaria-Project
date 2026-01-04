@@ -765,91 +765,91 @@
   color: var(--mt-text);
 }
 
-/* Card Grid */
-.modTools .indexCardGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--mt-space-md);
-  padding: var(--mt-space-lg);
+/* Index List */
+.modTools .indexList {
+  display: flex;
+  flex-direction: column;
   max-height: 400px;
   overflow-y: auto;
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  background: var(--mt-bg-card);
 }
 
-/* Custom scrollbar for card grid */
-.modTools .indexCardGrid::-webkit-scrollbar {
+/* Custom scrollbar for index list */
+.modTools .indexList::-webkit-scrollbar {
   width: 8px;
 }
 
-.modTools .indexCardGrid::-webkit-scrollbar-track {
+.modTools .indexList::-webkit-scrollbar-track {
   background: var(--mt-bg-subtle);
   border-radius: 4px;
 }
 
-.modTools .indexCardGrid::-webkit-scrollbar-thumb {
+.modTools .indexList::-webkit-scrollbar-thumb {
   background: var(--mt-border);
   border-radius: 4px;
 }
 
-.modTools .indexCardGrid::-webkit-scrollbar-thumb:hover {
+.modTools .indexList::-webkit-scrollbar-thumb:hover {
   background: #B5B3AC;
 }
 
-/* Index Card */
-.modTools .indexCard {
+/* Index List Row */
+.modTools .indexListRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--mt-space-md);
-  padding: var(--mt-space-md);
-  background: var(--mt-bg-card);
-  border: 1.5px solid var(--mt-border);
-  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-sm) var(--mt-space-md);
+  border-bottom: 1px solid var(--mt-border);
   cursor: pointer;
-  transition: all var(--mt-transition);
+  transition: background var(--mt-transition);
 }
 
-.modTools .indexCard:hover {
-  border-color: var(--mt-primary);
+.modTools .indexListRow:last-child {
+  border-bottom: none;
+}
+
+.modTools .indexListRow:hover {
   background: var(--mt-primary-light);
 }
 
-.modTools .indexCard.selected {
-  border-color: var(--mt-primary);
+.modTools .indexListRow.selected {
   background: rgba(30, 58, 95, 0.08);
-  box-shadow: inset 4px 0 0 var(--mt-primary), 0 1px 3px rgba(30, 58, 95, 0.1);
-  padding-left: calc(var(--mt-space-md) + 2px);
+  box-shadow: inset 3px 0 0 var(--mt-primary);
 }
 
-.modTools .indexCard input[type="checkbox"] {
+.modTools .indexListRow input[type="checkbox"] {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
+  width: 16px;
+  height: 16px;
   accent-color: var(--mt-primary);
   cursor: pointer;
 }
 
-.modTools .indexCardContent {
+.modTools .indexListTitle {
   flex: 1;
-  min-width: 0;
-}
-
-.modTools .indexCardTitle {
   font-size: 14px;
   font-weight: 500;
   color: var(--mt-text);
   line-height: 1.4;
-  word-break: break-word;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.modTools .indexCardCategory {
+.modTools .indexListCategory {
+  flex-shrink: 0;
   font-size: 12px;
   color: var(--mt-text-muted);
-  margin-top: var(--mt-space-xs);
+  padding: 2px 8px;
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-sm);
 }
 
 /* No results in search */
 .modTools .indexNoResults {
-  grid-column: 1 / -1;
   text-align: center;
   padding: var(--mt-space-xl);
   color: var(--mt-text-muted);

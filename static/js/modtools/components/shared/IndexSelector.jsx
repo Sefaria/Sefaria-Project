@@ -1,15 +1,15 @@
 /**
- * IndexSelector - Card-based grid for selecting indices
+ * IndexSelector - List-based display for selecting indices
  *
  * Shared component used by BulkVersionEditor, BulkIndexEditor, and AutoLinkCommentaryTool
- * to display indices in a visual card grid with filtering.
+ * to display indices in a compact list with filtering.
  *
  * Features:
- * - Card-based 3-column grid layout (scrollable, max-height 400px)
+ * - List-based layout with rows (scrollable, configurable max-height)
  * - Text search filtering (searches both title and categories)
  * - Select All checkbox in header (toggles selection of filtered items)
- * - Visual distinction for selected items (blue left border)
- * - Category display on cards (when indexMetadata prop is provided)
+ * - Visual distinction for selected items (highlighted background)
+ * - Category display inline (when indexMetadata prop is provided)
  *
  * Props:
  * - indices: string[] - Array of index titles to display
@@ -133,8 +133,8 @@ const IndexSelector = ({
         )}
       </div>
 
-      {/* Card Grid */}
-      <div className="indexCardGrid" style={maxHeight ? { maxHeight, overflowY: 'auto' } : undefined}>
+      {/* Index List */}
+      <div className="indexList" style={maxHeight ? { maxHeight, overflowY: 'auto' } : undefined}>
         {filteredIndices.length === 0 ? (
           <div className="indexNoResults">
             No {label} match "{searchFilter}"
@@ -147,7 +147,7 @@ const IndexSelector = ({
             return (
               <div
                 key={idx}
-                className={`indexCard ${isSelected ? 'selected' : ''}`}
+                className={`indexListRow ${isSelected ? 'selected' : ''}`}
                 onClick={() => toggleOne(idx, !isSelected)}
               >
                 <input
@@ -158,12 +158,10 @@ const IndexSelector = ({
                     toggleOne(idx, e.target.checked);
                   }}
                 />
-                <div className="indexCardContent">
-                  <div className="indexCardTitle">{idx}</div>
-                  {category && (
-                    <div className="indexCardCategory">{category}</div>
-                  )}
-                </div>
+                <span className="indexListTitle">{idx}</span>
+                {category && (
+                  <span className="indexListCategory">{category}</span>
+                )}
               </div>
             );
           })
