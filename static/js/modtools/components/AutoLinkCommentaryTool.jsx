@@ -1,6 +1,9 @@
 /**
  * AutoLinkCommentaryTool - Automatically create links between commentaries and base texts
  *
+ * NOTE: This component is currently DISABLED in ModeratorToolsPanel.
+ * It is retained for future re-enablement but not rendered in the UI.
+ *
  * This tool helps set up the commentary linking infrastructure for texts that follow
  * the "X on Y" naming pattern (e.g., "Rashi on Genesis").
  *

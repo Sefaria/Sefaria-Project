@@ -1,6 +1,9 @@
 /**
  * BulkIndexEditor - Bulk edit Index metadata across multiple indices
  *
+ * NOTE: This component is currently DISABLED in ModeratorToolsPanel.
+ * It is retained for future re-enablement but not rendered in the UI.
+ *
  * Similar workflow to BulkVersionEditor, but operates on Index records
  * (the text metadata) rather than Version records (text content/translations).
  *

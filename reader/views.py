@@ -1743,6 +1743,10 @@ def index_api(request, title, raw=False):
         return None, None
 
     def index_post(request, uid, j, method, raw):
+        # NOTE: The enhanced error handling and new format support below was added for
+        # NodeTitleEditor and BulkIndexEditor, which are currently disabled in ModeratorToolsPanel.
+        # The changes are backward-compatible and provide better error messages for all callers.
+        #
         # Handle both old format (with 'update' key) and new format (direct index data)
         # If the JSON contains a 'title' field but no 'update' key, assume it's an update
         is_update = 'update' in j or ('title' in j and j.get('title'))

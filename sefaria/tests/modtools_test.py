@@ -113,8 +113,8 @@ class TestVersionBulkEditAPI:
             }),
             content_type='application/json'
         )
-        # Empty indices should return 500 with error message
-        assert response.status_code == 500
+        # Empty indices should return 400 (bad request) with error message
+        assert response.status_code == 400
         data = json.loads(response.content)
         assert 'error' in data
         assert 'empty' in data['error'].lower()

@@ -1620,6 +1620,9 @@ def check_index_dependencies_api(request, title):
     """
     Check what dependencies exist for a given index title.
     Used by NodeTitleEditor to warn about potential impacts of title changes.
+
+    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
+    This endpoint is not in active use but retained for future re-enablement.
     """
     if request.method != "GET":
         return jsonResponse({"error": "GET required"})
@@ -1729,7 +1732,7 @@ def version_bulk_edit_api(request):
         return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
 
     if not indices:
-        return jsonResponse({"error": "indices may not be empty"}, status=500)
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
 
     # Validate that all update fields are allowed
     disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
