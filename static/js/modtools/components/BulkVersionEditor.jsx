@@ -222,11 +222,10 @@ const BulkVersionEditor = () => {
   };
 
   /**
-   * Validate a field value
-   * Currently only validates URL fields to prevent invalid URLs from being saved
+   * Validate URL fields to prevent invalid URLs from being saved
    * Returns error message if invalid, null if valid
    */
-  const validateField = useCallback((field, value) => {
+  const validateUrlField = useCallback((field, value) => {
     if (URL_FIELDS.includes(field) && value && !isValidUrl(value)) {
       return "Please enter a valid URL (e.g., https://example.com)";
     }
@@ -234,7 +233,7 @@ const BulkVersionEditor = () => {
   }, []);
 
   /**
-   * Handle field value changes with validation
+   * Handle field value changes with URL validation
    */
   const handleFieldChange = useCallback((field, value) => {
     // Update the value
@@ -248,8 +247,8 @@ const BulkVersionEditor = () => {
       return next;
     });
 
-    // Validate if needed
-    const error = validateField(field, value);
+    // Validate URL fields
+    const error = validateUrlField(field, value);
     setValidationErrors(prev => {
       const next = { ...prev };
       if (error) {
@@ -259,7 +258,7 @@ const BulkVersionEditor = () => {
       }
       return next;
     });
-  }, [validateField]);
+  }, [validateUrlField]);
 
   /**
    * Save changes to selected versions
