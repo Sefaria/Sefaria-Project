@@ -147,6 +147,18 @@ const isValidUrl = (string) => {
  */
 const URL_FIELDS = ['versionSource', 'purchaseInformationURL', 'purchaseInformationImage'];
 
+/**
+ * Validate a field value and return error message if invalid
+ * Only validates URL fields - returns null for all other fields
+ */
+const getFieldValidationError = (field, value) => {
+  const isUrlField = URL_FIELDS.includes(field);
+  if (isUrlField && value && !isValidUrl(value)) {
+    return "Please enter a valid URL (e.g., https://example.com)";
+  }
+  return null;
+};
+
 const BulkVersionEditor = () => {
   // Search state
   const [vtitle, setVtitle] = useState("");
@@ -222,21 +234,11 @@ const BulkVersionEditor = () => {
   };
 
   /**
-   * Validate URL fields to prevent invalid URLs from being saved
-   * Returns error message if invalid, null if valid
-   */
-  const validateUrlField = useCallback((field, value) => {
-    if (URL_FIELDS.includes(field) && value && !isValidUrl(value)) {
-      return "Please enter a valid URL (e.g., https://example.com)";
-    }
-    return null;
-  }, []);
-
-  /**
-   * Handle field value changes with URL validation
+   * Handle field value changes with validation
+   * Stores user input and validates URL fields in real-time
    */
   const handleFieldChange = useCallback((field, value) => {
-    // Update the value
+    // Store the field value (remove if empty)
     setUpdates(prev => {
       const next = { ...prev };
       if (value) {
@@ -247,26 +249,18 @@ const BulkVersionEditor = () => {
       return next;
     });
 
-    // Validate and update errors
+    // Validate and update error state
+    const errorMessage = getFieldValidationError(field, value);
     setValidationErrors(prev => {
       const next = { ...prev };
-
-      // Only validate URL fields
-      if (URL_FIELDS.includes(field) && value) {
-        const errorMessage = validateUrlField(field, value);
-        if (errorMessage) {
-          next[field] = errorMessage;
-        } else {
-          delete next[field];
-        }
+      if (errorMessage) {
+        next[field] = errorMessage;
       } else {
-        // Clear validation error for non-URL or empty fields
         delete next[field];
       }
-
       return next;
     });
-  }, [validateUrlField]);
+  }, []);
 
   /**
    * Save changes to selected versions
