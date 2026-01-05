@@ -63,7 +63,7 @@ Updated deprecated MongoDB operations:
 
 #### 1. Main Component: BulkVersionEditor (static/js/modtools/components/BulkVersionEditor.jsx)
 
-This is an **entirely new component** (650 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
+This is an **entirely new component** (~630 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
 
 **User Workflow:**
 
@@ -74,67 +74,126 @@ This is an **entirely new component** (650 lines). The old ModeratorToolsPanel o
 5. On save, POST to `/api/version-bulk-edit` updates all selected versions
 6. Results show which versions succeeded and which failed (partial success handling)
 
+**Key Implementation Details:**
+
+**State Management:**
+- `vtitle`, `lang`: Search parameters for finding versions
+- `indices`: List of index titles returned from API
+- `pick`: Set of selected indices for bulk edit
+- `updates`: Object mapping field names to new values
+- `validationErrors`: Object mapping field names to error messages
+
+**Core Functions:**
+
+- **`load()` (lines 203-235)**: Fetches indices with matching versions
+  - Calls `/api/version-indices` with URLSearchParams
+  - Auto-selects all returned indices
+  - Uses async/await with `Sefaria.apiRequestWithBody`
+
+- **`getFieldValidationError(field, value)` (lines 151-158)**: Pure validation function
+  - Only validates URL fields (`versionSource`, `purchaseInformationURL`, `purchaseInformationImage`)
+  - Returns error message string or null
+  - Extracted for testability
+
+- **`handleFieldChange(field, value)` (lines 243-266)**: Field change handler
+  - Updates `updates` state (adds/removes based on value presence)
+  - Validates and updates `validationErrors` state
+  - Uses useCallback for performance
+
+- **`performBulkEdit(...)` (lines 276-308)**: Shared API call logic
+  - Builds payload with versionTitle, language, indices, updates
+  - Calls `/api/version-bulk-edit`
+  - Handles ok/partial/error status responses
+  - Takes message generator functions for flexibility
+
+- **`save()` (lines 313-352)**: Save user changes
+  - Validates: indices selected, fields to update, no validation errors
+  - Converts boolean string values ("true"/"false") to actual booleans
+  - Delegates to `performBulkEdit` with custom messages
+  - Clears form on success
+
+- **`markForDeletion()` (lines 358-375)**: Soft delete feature
+  - Adds timestamped note to `versionNotes` instead of deleting
+  - Delegates to `performBulkEdit` with deletion note
+  - Safety mechanism to prevent accidental data loss
+
+- **`renderField(fieldName)` (lines 381-442)**: Dynamic field renderer
+  - Reads metadata from `VERSION_FIELD_METADATA`
+  - Renders select, textarea, number, or text/url inputs
+  - Shows validation errors inline
+  - Handles RTL/LTR text direction
+
+**Field Organization:**
+
+Fields grouped in `FIELD_GROUPS` (lines 109-130):
+- **Identification**: versionTitleInHebrew (versionTitle excluded - it's the search key)
+- **Source & License**: versionSource, license, purchaseInformationURL, purchaseInformationImage
+- **Metadata**: status, priority, digitizedBySefaria, isPrimary, isSource, direction
+- **Notes**: versionNotes, versionNotesInHebrew
+
 **Special Features:**
 
-- **Mark for Deletion**: Adds timestamped note to `versionNotes` instead of actually deleting (safety mechanism)
-- **URL Validation**: Real-time validation for URL fields prevents invalid data
-- **Partial Success**: If some versions fail, shows detailed error list while reporting successes
-- **Field Organization**: Fields grouped into Identification, Source & License, Metadata, Notes
-
-**Code Modernization:**
-
-✅ **Migrated to Sefaria API utilities**:
-- Replaced jQuery (`$.ajax`, `$.getJSON`) and manual `fetch` with `Sefaria.apiRequestWithBody`
-- Automatic URL parameter building via `URLSearchParams`
-- Consistent CSRF token handling and error management
-- Converted callback-based code to async/await pattern
-- Removed jQuery dependency
-- Cleaner, more maintainable API call pattern
-
-✅ **Error Display Improvement**:
-- Changed from semicolon-separated to bullet-list format with newlines
-- Removed emoji characters from user messages
-- Better readability for multiple errors
-
-✅ **Response Format Simplification**:
-- Frontend calculates counts from array lengths
-- Backend no longer sends redundant `count`/`total` fields
-- Reduced response size and naming confusion
+- **URL Validation**: Real-time validation for 3 URL fields using native URL constructor
+- **Partial Success Handling**: Shows detailed failure list while reporting successes
+- **Soft Delete**: Mark for deletion adds note instead of actually deleting
+- **Boolean Conversion**: Converts "true"/"false" strings to booleans before API call
 
 #### 2. Shared Components (static/js/modtools/components/shared/)
 
-**IndexSelector.jsx** - Reusable index selection component
-- List-based display with checkboxes
+Four reusable components extracted for consistency across modtools:
+
+**IndexSelector.jsx** (~80 lines)
+- List-based display with checkboxes for selecting multiple indices
 - Text search filtering (searches both title and categories)
-- Select All/Deselect All functionality
-- Category display for each index
-- Used by BulkVersionEditor, BulkIndexEditor, and AutoLinkCommentaryTool
+- Select All/Deselect All buttons
+- Shows category path for each index (e.g., "Tanakh > Torah")
+- Props: `indices`, `selectedIndices` (Set), `onSelectionChange`, `label`, `indexMetadata`
+- Used by: BulkVersionEditor, BulkIndexEditor (disabled), AutoLinkCommentaryTool (disabled)
 
-**ModToolsSection.jsx** - Collapsible section wrapper
-- Consistent styling for all modtools sections
-- Collapse/expand with chevron icon
-- Optional help button integration
-- Keyboard accessible
-- All sections collapsed by default
+**ModToolsSection.jsx** (~60 lines)
+- Collapsible section wrapper with consistent styling
+- Header with collapse/expand chevron icon
+- Optional HelpButton integration via `helpContent` prop
+- Bilingual title support (`title` and `titleHe`)
+- Keyboard accessible (Enter/Space to toggle)
+- All sections collapsed by default (controlled via `collapsed` state)
 
-**HelpButton.jsx** - Help modal component
-- Question mark icon button
-- Opens modal with detailed documentation
-- ESC key support
-- Focus management for accessibility
+**HelpButton.jsx** (~70 lines)
+- Question mark icon button that opens modal with documentation
+- Modal overlay with close button and backdrop click to dismiss
+- ESC key support for accessibility
+- Focus trap management (focuses modal on open, returns focus on close)
+- Accepts `helpContent` prop with JSX documentation
 
-**StatusMessage.jsx** - Status message display
-- Consistent message styling
-- Type detection (success/error/warning/info)
-- Handles multiline messages
+**StatusMessage.jsx** (~30 lines)
+- Consistent message display with type-based styling
+- Auto-detects type from message content: "Error:", "Warning:", "Successfully", etc.
+- Handles multiline messages with preserved formatting
+- Shows nothing when message is empty
 
 #### 3. Field Metadata (static/js/modtools/constants/fieldMetadata.js)
 
-Defines metadata for all editable fields:
-- **VERSION_FIELD_METADATA**: Version fields (versionTitle, versionSource, license, etc.)
-- **INDEX_FIELD_METADATA**: Index fields (categories, authors, descriptions, etc.)
-- **BASE_TEXT_MAPPING_OPTIONS**: Commentary mapping algorithms
-- Each field includes: label, type, placeholder, help text, validation rules, direction (rtl/ltr)
+Centralized field configuration (~300 lines) for bulk editing operations:
+
+**VERSION_FIELD_METADATA** (lines 154-265)
+- Defines 14 Version model fields with metadata
+- Field types: text, textarea, select, number
+- Each field includes: label, type, placeholder, help text, direction (rtl/ltr)
+- Special fields:
+  - `status`: "locked" prevents non-staff edits (see tracker.py:33)
+  - Boolean fields: digitizedBySefaria, isPrimary, isSource (select with true/false/unspecified)
+  - URL fields: versionSource, purchaseInformationURL, purchaseInformationImage
+
+**INDEX_FIELD_METADATA** (lines 25-140)
+- Defines 16 Index model fields with metadata
+- Additional types: array (comma-separated), daterange (year or [start, end])
+- Auto-detection support: authors, dependence, base_text_titles, collective_title (use "auto" value)
+- Validation: toc_zoom must be integer 0-10
+
+**BASE_TEXT_MAPPING_OPTIONS** (lines 289-294)
+- 4 commentary mapping algorithms for auto-linking
+- Used by AutoLinkCommentaryTool (disabled)
+- Options: many_to_one_default_only, many_to_one, one_to_one_default_only, one_to_one
 
 ### Tests
 
@@ -172,16 +231,26 @@ During review, the following improvements were made:
 - ✅ Updated tests to match simplified API responses
 
 **Frontend:**
-- ✅ Modernized to Sefaria.apiRequestWithBody utility (removed jQuery dependency)
-- ✅ Automatic URL parameter building with URLSearchParams
-- ✅ Converted callback-based code to async/await
-- ✅ Removed emoji characters from user messages
-- ✅ Improved error handling with try/catch blocks
-- ✅ Consistent CSRF token and error management across all API calls
-- ✅ Extracted validation logic to pure function for better testability
+- ✅ Migrated to Sefaria API utilities
+  - Replaced jQuery (`$.ajax`, `$.getJSON`) and manual `fetch` with `Sefaria.apiRequestWithBody`
+  - Automatic URL parameter building via `URLSearchParams`
+  - Consistent CSRF token handling and error management
+  - Removed jQuery dependency from all components
+- ✅ Converted callback-based code to async/await pattern
+- ✅ Extracted validation logic to pure function (`getFieldValidationError`) for testability
+- ✅ Extracted duplicate API call logic into `performBulkEdit` helper function (~50 lines saved)
+- ✅ Improved error display
+  - Changed from semicolon-separated strings to bullet-list format with newlines
+  - Removed emoji characters from user messages
+  - Better readability for multiple errors
+- ✅ Response format simplification
+  - Frontend calculates counts from array lengths
+  - Backend no longer sends redundant `count`/`total` fields
+  - Reduced response size and naming confusion
+- ✅ Removed unnecessary fallback in `renderField` (all fields guaranteed to have metadata)
 
 **Bug Fixes:**
-- ✅ Removed versionTitle from editable fields (both frontend and backend whitelist)
+- ✅ Removed versionTitle from editable fields (both frontend FIELD_GROUPS and backend whitelist)
   - versionTitle is the search parameter - editing it would cause partial failures as the search key changes during bulk operations
   - Prevents data corruption where first edit succeeds but subsequent edits fail
   - Users should edit version titles individually, not in bulk
