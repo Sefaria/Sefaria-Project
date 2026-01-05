@@ -1,45 +1,44 @@
 /**
  * StatusMessage - Displays status messages with appropriate styling
  *
- * Automatically detects message type based on emoji prefix:
- * - ✅ = success (green)
- * - ❌ = error (red)
- * - ⚠️ = warning (yellow)
- * - default = info (blue)
+ * Accepts either:
+ * - A string message (defaults to MESSAGE_TYPES.INFO)
+ * - An object with { type, message } for explicit styling
  *
- * For AI agents: This component provides consistent feedback UX.
- * Always use emoji prefixes for automated type detection, or pass
- * the type prop explicitly.
+ * Types (from MESSAGE_TYPES):
+ * - SUCCESS = green
+ * - ERROR = red
+ * - WARNING = yellow/amber
+ * - INFO = light blue (default)
  */
-import React from 'react';
 import PropTypes from 'prop-types';
+import { MESSAGE_TYPES } from '../../constants/messageTypes';
 
-/**
- * Detect message type from emoji prefix
- */
-const detectType = (message) => {
-  if (!message) return 'info';
-  if (message.includes('✅')) return 'success';
-  if (message.includes('❌')) return 'error';
-  if (message.includes('⚠️')) return 'warning';
-  return 'info';
-};
-
-const StatusMessage = ({ message, type, className = '' }) => {
+const StatusMessage = ({ message, className = '' }) => {
   if (!message) return null;
 
-  const detectedType = type || detectType(message);
+  // Support both string and object formats
+  const messageObj = typeof message === 'string'
+    ? { type: MESSAGE_TYPES.INFO, message }
+    : message;
+
+  const { type = MESSAGE_TYPES.INFO, message: text } = messageObj;
 
   return (
-    <div className={`message ${detectedType} ${className}`.trim()}>
-      {message}
+    <div className={`message ${type} ${className}`.trim()}>
+      {text}
     </div>
   );
 };
 
 StatusMessage.propTypes = {
-  message: PropTypes.string,
-  type: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
+  message: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      type: PropTypes.oneOf(Object.values(MESSAGE_TYPES)).isRequired,
+      message: PropTypes.string.isRequired
+    })
+  ]),
   className: PropTypes.string
 };
 

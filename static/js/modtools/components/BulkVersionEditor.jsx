@@ -20,6 +20,7 @@
 import React, { useState, useCallback } from 'react';
 import Sefaria from '../../sefaria/sefaria';
 import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
+import { MESSAGE_TYPES } from '../constants/messageTypes';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
 import StatusMessage from './shared/StatusMessage';
@@ -218,13 +219,13 @@ const BulkVersionEditor = () => {
    */
   const load = async () => {
     if (!vtitle.trim()) {
-      setMsg("Please enter a version title");
+      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'Please enter a version title' });
       return;
     }
 
     setLoading(true);
     setSearched(true);
-    setMsg("Loading indices...");
+    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Loading indices...' });
 
     const urlParams = { versionTitle: vtitle };
     if (lang) {
@@ -239,12 +240,12 @@ const BulkVersionEditor = () => {
       setIndexMetadata(resultMetadata);
       setPick(new Set(resultIndices)); // Pre-select all
       if (resultIndices.length > 0) {
-        setMsg(`Found ${resultIndices.length} texts with version "${vtitle}"`);
+        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Found ${resultIndices.length} texts with version "${vtitle}"` });
       } else {
         setMsg(""); // No message for empty results - will show noResults box
       }
     } catch (error) {
-      setMsg(`Error: ${error.message || "Failed to load indices"}`);
+      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${error.message || "Failed to load indices"}` });
       setIndices([]);
       setIndexMetadata({});
       setPick(new Set());
@@ -337,18 +338,18 @@ const BulkVersionEditor = () => {
       const total = successCount + failureCount;
 
       if (data.status === "ok") {
-        setMsg(getSuccessMsg(successCount));
+        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: getSuccessMsg(successCount) });
         if (onSuccess) onSuccess();
       } else if (data.status === "partial") {
         const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        setMsg(getPartialMsg(successCount, total, failureList));
+        setMsg({ type: MESSAGE_TYPES.WARNING, message: getPartialMsg(successCount, total, failureList) });
       } else {
         const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
-        setMsg(getErrorMsg(failureCount, failureList));
+        setMsg({ type: MESSAGE_TYPES.ERROR, message: getErrorMsg(failureCount, failureList) });
       }
     } catch (error) {
       const errorMsg = error.message || "Unknown error";
-      setMsg(`Error: ${errorMsg}`);
+      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${errorMsg}` });
     } finally {
       setSaving(false);
     }
@@ -359,22 +360,22 @@ const BulkVersionEditor = () => {
    */
   const save = async () => {
     if (!pick.size) {
-      setMsg("No indices selected");
+      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'No indices selected' });
       return;
     }
 
     if (!Object.keys(updates).length && !fieldsToClear.size) {
-      setMsg("No fields to update or clear");
+      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'No fields to update or clear' });
       return;
     }
 
     // Check for validation errors
     if (Object.keys(validationErrors).length > 0) {
-      setMsg("Please fix validation errors before saving");
+      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'Please fix validation errors before saving' });
       return;
     }
 
-    setMsg("Saving changes...");
+    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Saving changes...' });
 
     // Convert boolean string values to actual booleans for the API
     const processedUpdates = { ...updates };
@@ -410,12 +411,12 @@ const BulkVersionEditor = () => {
    */
   const markForDeletion = async () => {
     if (!pick.size) {
-      setMsg("No texts selected");
+      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'No texts selected' });
       return;
     }
 
     setShowDeleteConfirm(false);
-    setMsg("Marking versions for deletion review...");
+    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Marking versions for deletion review...' });
 
     const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}] This version has been marked for deletion review.`;
 
