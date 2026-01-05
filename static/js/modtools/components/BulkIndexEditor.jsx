@@ -21,10 +21,10 @@
  *
  * Backend API: POST /api/v2/raw/index/{title}?update=1
  *
- * For AI agents:
- * - Index fields are defined in INDEX_FIELD_METADATA
- * - Use 'auto' value for fields that support auto-detection
- * - Term creation requires both English and Hebrew collective titles
+ * Documentation:
+ * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
+ * - Index fields are defined in ../constants/fieldMetadata.js
  */
 import { useState, useEffect, useCallback } from 'react';
 import $ from '../../sefaria/sefariaJquery';

@@ -61,7 +61,7 @@ sefaria/
 ├── views.py                   # Backend API handlers
 ├── urls.py                    # Route definitions
 └── model/
-    └── text.py                # Version (~line 1270), Index (~line 172)
+    └── text.py                # Version and Index models
 
 docs/modtools/
 ├── ARCHITECTURE.md            # Technical architecture

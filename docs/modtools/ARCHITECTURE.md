@@ -193,7 +193,7 @@ Edit titles of schema nodes within an Index.
 
 ## Data Models
 
-### Version Model (`sefaria/model/text.py:1270`)
+### Version Model (`sefaria/model/text.py`)
 
 **Collection**: `texts`
 
@@ -227,7 +227,7 @@ Edit titles of schema nodes within an Index.
 | `purchaseInformationImage` | string | Purchase image |
 | `direction` | string | Text direction override |
 
-### Index Model (`sefaria/model/text.py:172`)
+### Index Model (`sefaria/model/text.py`)
 
 **Collection**: `index`
 

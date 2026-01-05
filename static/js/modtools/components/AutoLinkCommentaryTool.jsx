@@ -22,9 +22,10 @@
  * - GET /admin/reset/{title} - Clear caches
  * - GET /admin/rebuild/auto-links/{title} - Rebuild commentary links
  *
- * For AI agents:
- * - The base_text_mapping algorithm determines how commentary refs map to base refs
- * - "many_to_one_default_only" is correct for most Tanakh/Mishnah commentaries
+ * Documentation:
+ * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
+ * - Mapping algorithms are defined in ../constants/fieldMetadata.js
  */
 import React, { useState, useCallback } from 'react';
 import $ from '../../sefaria/sefariaJquery';

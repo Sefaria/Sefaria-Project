@@ -15,7 +15,11 @@
  * - Auto-linking commentaries to base texts (AutoLinkCommentaryTool)
  * - Editing node titles in Index schemas (NodeTitleEditor)
  *
- * For AI agents: See /docs/modtools/AI_AGENT_GUIDE.md for detailed documentation.
+ * Documentation:
+ * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/ARCHITECTURE.md for system architecture
+ * - See /docs/modtools/COMPONENT_LOGIC.md for implementation details
+ * - See /docs/modtools/DESIGN_SYSTEM.md for UI/CSS documentation
  *
  * CSS: Styles are in /static/css/modtools.css
  */

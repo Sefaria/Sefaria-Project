@@ -1,8 +1,6 @@
 /**
  * BulkVersionEditor - Bulk edit Version metadata across multiple indices
  *
- * Primary focus of Shortcut #36475 (Kehati Tools).
- *
  * Workflow:
  * 1. User enters a versionTitle (e.g., "Kehati") and optionally filters by language
  * 2. Component loads all indices that have versions matching that versionTitle
@@ -14,10 +12,10 @@
  * - Returns detailed success/failure info for partial success handling
  * - See sefaria/views.py version_bulk_edit_api()
  *
- * For AI agents:
- * - Version fields are defined in VERSION_FIELD_METADATA
- * - "status: locked" prevents non-staff from editing (tracker.py:33)
- * - The API returns {status, successes, failures}
+ * Documentation:
+ * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
+ * - Version fields are defined in ../constants/fieldMetadata.js
  */
 import React, { useState, useCallback } from 'react';
 import $ from '../../sefaria/sefariaJquery';
@@ -104,7 +102,6 @@ const HELP_CONTENT = (
 
 /**
  * Field groupings for logical organization in the UI
- * Matches acceptance criteria: "Form groups related fields logically"
  */
 const FIELD_GROUPS = [
   {
