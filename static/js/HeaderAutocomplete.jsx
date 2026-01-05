@@ -490,7 +490,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     const renderItems =(suggestions, highlightedIndex, getItemProps, getInputProps) => {
 
         return(
-             <SuggestionsDispatcher
+             <SuggestionsDispatcher      
                 suggestions={suggestions}
                 getItemProps={getItemProps}
                 highlightedIndex={highlightedIndex}
@@ -501,9 +501,22 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         )
     };
 
-  console.log("Location:", window.location.pathname);   
-  console.log("First panel menuOpen:", firstPanel.menuOpen, "mode:", firstPanel.mode);  
-
+  const getPanelType = () => {
+    if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
+      return "TOC";
+    } else if (firstPanel.menuOpen === "topics") {
+      return "topics";
+    } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
+      return "reader";
+    } else if (firstPanel.mode === "Sheet") {
+      return "sheet";
+    } else if (firstPanel.menuOpen === "profile") {
+      return "profile";
+    } else {
+      return firstPanel.menuOpen || firstPanel.mode;
+    }
+  }
+  
   return (
       <GeneralAutocomplete
           containerClassString='search-container'
