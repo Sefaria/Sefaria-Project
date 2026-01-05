@@ -4,7 +4,7 @@ This document describes the architecture, data structures, and API contracts of 
 
 ## Related Documentation
 
-- **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Quick reference for AI agents and developers
+- **[MODTOOLS_AI_AGENT_GUIDE.md](./MODTOOLS_AI_AGENT_GUIDE.md)** - Quick reference for AI agents and developers
 - **[COMPONENT_LOGIC.md](./COMPONENT_LOGIC.md)** - Detailed logic flows and decision trees
 - **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - UI/CSS documentation and patterns
 
@@ -416,8 +416,7 @@ static/css/
 
 docs/modtools/
   ARCHITECTURE.md               # This file - technical architecture
-  AI_AGENT_GUIDE.md             # Quick reference for AI agents
+  MODTOOLS_AI_AGENT_GUIDE.md    # Quick reference for AI agents
   COMPONENT_LOGIC.md            # Detailed logic flows and state machines
   DESIGN_SYSTEM.md              # UI/CSS documentation
-  PROGRESS.md                   # Project tracking
 ```

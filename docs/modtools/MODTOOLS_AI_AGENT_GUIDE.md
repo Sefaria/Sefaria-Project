@@ -65,10 +65,9 @@ sefaria/
 
 docs/modtools/
 ├── ARCHITECTURE.md            # Technical architecture
-├── AI_AGENT_GUIDE.md          # This file
+├── MODTOOLS_AI_AGENT_GUIDE.md # This file
 ├── COMPONENT_LOGIC.md         # Detailed logic flows
-├── DESIGN_SYSTEM.md           # UI/CSS documentation
-└── PROGRESS.md                # Project tracking
+└── DESIGN_SYSTEM.md           # UI/CSS documentation
 ```
 
 ---
