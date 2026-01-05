@@ -501,28 +501,33 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         )
     };
 
-  const getPanelData = () => {
+  const getPanelData = async () => {
     let panel_type, panel_category, panel_name;
     if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
       panel_type = "TOC";
     } else if (firstPanel.menuOpen === "topics") {
       panel_type = "topics";
       panel_category = firstPanel.navigationTopicTitle.en || firstPanel.navigationTopicTitle.he;
+      panel_name = firstPanel.topicTitle.en || firstPanel.topicTitle.he;
+      console.log("Panel data:", { panel_type, panel_category, panel_name });
     } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
       const ref = firstPanel.currentlyVisibleRef || firstPanel.refs?.[0];
       const parsedRef = Sefaria.parseRef(ref);
       panel_category = Sefaria.index(parsedRef.index)?.primary_category;
       panel_type = "reader";
+      panel_name = Sefaria.index(parsedRef.index)?.primary_title;
+      console.log("Panel data:", { panel_type, panel_category, panel_name });
     } else if (firstPanel.mode === "Sheet") {
       panel_type = "sheet";
-    } else if (firstPanel.menuOpen === "profile") {
-      panel_type = "profile";
+      const sheet = await Sefaria.sheets.loadSheetByID(firstPanel.sheetID);
+      panel_name = sheet.title;
+      panel_category = null;
     } else {
-      panel_type = firstPanel.menuOpen || firstPanel.mode;
+      panel_type = "Other";
     }
     return { panel_type, panel_category, panel_name };
   }
-  
+  getPanelData();
   return (
       <GeneralAutocomplete
           containerClassString='search-container'
