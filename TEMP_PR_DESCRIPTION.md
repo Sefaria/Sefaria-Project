@@ -94,7 +94,6 @@ This is an **entirely new component** (~630 lines). The old ModeratorToolsPanel 
 - **`getFieldValidationError(field, value)` (lines 151-158)**: Pure validation function
   - Only validates URL fields (`versionSource`, `purchaseInformationURL`, `purchaseInformationImage`)
   - Returns error message string or null
-  - Extracted for testability
 
 - **`handleFieldChange(field, value)` (lines 245-268)**: Field change handler
   - Updates `updates` state (adds/removes based on value presence)
