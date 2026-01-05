@@ -266,6 +266,48 @@ const BulkVersionEditor = () => {
   }, []);
 
   /**
+   * Perform bulk edit API call and handle response
+   * @param {Object} updatesToApply - The updates object to send to the API
+   * @param {Function} getSuccessMsg - Function that takes successCount and returns success message
+   * @param {Function} getPartialMsg - Function that takes successCount, total, failureList and returns partial success message
+   * @param {Function} getErrorMsg - Function that takes failureCount, failureList and returns error message
+   * @param {Function} onSuccess - Optional callback to run on successful completion
+   */
+  const performBulkEdit = async (updatesToApply, getSuccessMsg, getPartialMsg, getErrorMsg, onSuccess) => {
+    setSaving(true);
+
+    try {
+      const payload = {
+        versionTitle: vtitle,
+        language: lang,
+        indices: Array.from(pick),
+        updates: updatesToApply
+      };
+
+      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
+      const successCount = data.successes?.length || 0;
+      const failureCount = data.failures?.length || 0;
+      const total = successCount + failureCount;
+
+      if (data.status === "ok") {
+        setMsg(getSuccessMsg(successCount));
+        if (onSuccess) onSuccess();
+      } else if (data.status === "partial") {
+        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        setMsg(getPartialMsg(successCount, total, failureList));
+      } else {
+        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+        setMsg(getErrorMsg(failureCount, failureList));
+      }
+    } catch (error) {
+      const errorMsg = error.message || "Unknown error";
+      setMsg(`Error: ${errorMsg}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /**
    * Save changes to selected versions
    */
   const save = async () => {
@@ -285,7 +327,6 @@ const BulkVersionEditor = () => {
       return;
     }
 
-    setSaving(true);
     setMsg("Saving changes...");
 
     // Convert boolean string values to actual booleans for the API
@@ -298,36 +339,16 @@ const BulkVersionEditor = () => {
       }
     });
 
-    try {
-      const payload = {
-        versionTitle: vtitle,
-        language: lang,
-        indices: Array.from(pick),
-        updates: processedUpdates
-      };
-
-      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
-      const successCount = data.successes?.length || 0;
-      const failureCount = data.failures?.length || 0;
-      const total = successCount + failureCount;
-
-      if (data.status === "ok") {
-        setMsg(`Successfully updated ${successCount} versions`);
+    await performBulkEdit(
+      processedUpdates,
+      (successCount) => `Successfully updated ${successCount} versions`,
+      (successCount, total, failureList) => `Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
+      (failureCount, failureList) => `All ${failureCount} updates failed:\n${failureList}`,
+      () => {
         setUpdates({});
         setValidationErrors({});
-      } else if (data.status === "partial") {
-        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        setMsg(`Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`);
-      } else {
-        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
-        setMsg(`All ${failureCount} updates failed:\n${failureList}`);
       }
-    } catch (error) {
-      const errorMsg = error.message || "Unknown error";
-      setMsg(`Error: ${errorMsg}`);
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
   /**
@@ -340,41 +361,17 @@ const BulkVersionEditor = () => {
       return;
     }
 
-    setSaving(true);
     setShowDeleteConfirm(false);
     setMsg("Marking versions for deletion review...");
 
     const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}] This version has been marked for deletion review.`;
 
-    try {
-      const payload = {
-        versionTitle: vtitle,
-        language: lang,
-        indices: Array.from(pick),
-        updates: {
-          versionNotes: deletionNote
-        }
-      };
-
-      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
-      const successCount = data.successes?.length || 0;
-      const failureCount = data.failures?.length || 0;
-
-      if (data.status === "ok") {
-        setMsg(`Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`);
-      } else if (data.status === "partial") {
-        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        setMsg(`Marked ${successCount}/${successCount + failureCount} versions.\n\nFailed:\n${failureList}`);
-      } else {
-        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
-        setMsg(`Failed to mark versions for deletion:\n${failureList}`);
-      }
-    } catch (error) {
-      const errorMsg = error.message || "Unknown error";
-      setMsg(`Error: ${errorMsg}`);
-    } finally {
-      setSaving(false);
-    }
+    await performBulkEdit(
+      { versionNotes: deletionNote },
+      (successCount) => `Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`,
+      (successCount, total, failureList) => `Marked ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
+      (failureCount, failureList) => `Failed to mark versions for deletion:\n${failureList}`
+    );
   };
 
   /**
