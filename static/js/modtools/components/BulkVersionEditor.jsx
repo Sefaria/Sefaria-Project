@@ -128,6 +128,8 @@ const FIELD_GROUPS = [
 
 /**
  * URL validation helper
+ * Validates URL format using native URL constructor
+ * Prevents invalid URLs from being saved to database
  */
 const isValidUrl = (string) => {
   if (!string) return true; // Empty is valid (not required)
@@ -140,7 +142,8 @@ const isValidUrl = (string) => {
 };
 
 /**
- * URL fields that need validation
+ * Fields that store URLs and require validation
+ * These become clickable links in the UI, so we validate format on input
  */
 const URL_FIELDS = ['versionSource', 'purchaseInformationURL', 'purchaseInformationImage'];
 
@@ -220,6 +223,8 @@ const BulkVersionEditor = () => {
 
   /**
    * Validate a field value
+   * Currently only validates URL fields to prevent invalid URLs from being saved
+   * Returns error message if invalid, null if valid
    */
   const validateField = useCallback((field, value) => {
     if (URL_FIELDS.includes(field) && value && !isValidUrl(value)) {
