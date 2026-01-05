@@ -376,24 +376,10 @@ const BulkVersionEditor = () => {
 
   /**
    * Render a field input based on its metadata
+   * All fields in FIELD_GROUPS are guaranteed to have metadata in VERSION_FIELD_METADATA
    */
   const renderField = (fieldName) => {
     const meta = VERSION_FIELD_METADATA[fieldName];
-    if (!meta) {
-      // Fallback for fields without metadata
-      return (
-        <div key={fieldName} className="fieldGroup">
-          <label>{fieldName}:</label>
-          <input
-            className="fieldInput"
-            type="text"
-            placeholder={fieldName}
-            onChange={e => handleFieldChange(fieldName, e.target.value)}
-          />
-        </div>
-      );
-    }
-
     const value = updates[fieldName] || "";
     const error = validationErrors[fieldName];
     const hasError = !!error;
