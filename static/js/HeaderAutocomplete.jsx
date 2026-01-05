@@ -501,34 +501,26 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         )
     };
 
-  const getPanelType = () => {
+  const getPanelData = () => {
+    let panel_type, panel_category, panel_name;
     if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
-      return "TOC";
+      panel_type = "TOC";
     } else if (firstPanel.menuOpen === "topics") {
-      return "topics";
+      panel_type = "topics";
+      panel_category = firstPanel.navigationTopicTitle.en || firstPanel.navigationTopicTitle.he;
     } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
-      return "reader";
-    } else if (firstPanel.mode === "Sheet") {
-      return "sheet";
-    } else if (firstPanel.menuOpen === "profile") {
-      return "profile";
-    } else {
-      return firstPanel.menuOpen || firstPanel.mode;
-    }
-  }
-  
-  const getPanelCategory = () => {
-    let panel_category = null;
-    if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
       const ref = firstPanel.currentlyVisibleRef || firstPanel.refs?.[0];
       const parsedRef = Sefaria.parseRef(ref);
       panel_category = Sefaria.index(parsedRef.index)?.primary_category;
-    } else if (firstPanel.menuOpen === "topics") {
-      panel_category = firstPanel.navigationTopicTitle.en || firstPanel.navigationTopicTitle.he;
+      panel_type = "reader";
+    } else if (firstPanel.mode === "Sheet") {
+      panel_type = "sheet";
+    } else if (firstPanel.menuOpen === "profile") {
+      panel_type = "profile";
     } else {
-      panel_category = null;
+      panel_type = firstPanel.menuOpen || firstPanel.mode;
     }
-    return panel_category;
+    return { panel_type, panel_category, panel_name };
   }
   
   return (
