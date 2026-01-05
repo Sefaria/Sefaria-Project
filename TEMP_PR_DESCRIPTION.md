@@ -93,13 +93,40 @@ This is an **entirely new component** (650 lines). The old ModeratorToolsPanel o
 
 ✅ **Error Display Improvement**:
 - Changed from semicolon-separated to bullet-list format with newlines
-- Removed emoji characters from messages
+- Removed emoji characters from user messages
 - Better readability for multiple errors
 
 ✅ **Response Format Simplification**:
 - Frontend calculates counts from array lengths
 - Backend no longer sends redundant `count`/`total` fields
 - Reduced response size and naming confusion
+
+#### 2. Shared Components (static/js/modtools/components/shared/)
+
+**IndexSelector.jsx** - Reusable index selection component
+- List-based display with checkboxes
+- Text search filtering (searches both title and categories)
+- Select All/Deselect All functionality
+- Category display for each index
+- Used by BulkVersionEditor, BulkIndexEditor, and AutoLinkCommentaryTool
+
+**ModToolsSection.jsx** - Collapsible section wrapper
+- Consistent styling for all modtools sections
+- Collapse/expand with chevron icon
+- Optional help button integration
+- Keyboard accessible
+- All sections collapsed by default
+
+**HelpButton.jsx** - Help modal component
+- Question mark icon button
+- Opens modal with detailed documentation
+- ESC key support
+- Focus management for accessibility
+
+**StatusMessage.jsx** - Status message display
+- Consistent message styling
+- Type detection (success/error/warning/info)
+- Handles multiline messages
 
 ### Tests
 
@@ -113,6 +140,8 @@ The following components were disabled in ModeratorToolsPanel but their backend 
 - **BulkIndexEditor**: Bulk edit index metadata (NOT version metadata)
 - **AutoLinkCommentaryTool**: Auto-link commentaries
 - **NodeTitleEditor**: Edit node titles with dependency checking
+
+**Note**: All disabled components have been modernized to use Sefaria API utilities for code consistency, even though they're not currently rendered in the UI.
 
 ## Code Quality Improvements
 
