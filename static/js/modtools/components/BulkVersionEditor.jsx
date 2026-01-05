@@ -247,15 +247,23 @@ const BulkVersionEditor = () => {
       return next;
     });
 
-    // Validate URL fields
-    const error = validateUrlField(field, value);
+    // Validate and update errors
     setValidationErrors(prev => {
       const next = { ...prev };
-      if (error) {
-        next[field] = error;
+
+      // Only validate URL fields
+      if (URL_FIELDS.includes(field) && value) {
+        const errorMessage = validateUrlField(field, value);
+        if (errorMessage) {
+          next[field] = errorMessage;
+        } else {
+          delete next[field];
+        }
       } else {
+        // Clear validation error for non-URL or empty fields
         delete next[field];
       }
+
       return next;
     });
   }, [validateUrlField]);
