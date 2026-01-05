@@ -27,8 +27,7 @@
  * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
  * - Mapping algorithms are defined in ../constants/fieldMetadata.js
  */
-import React, { useState, useCallback } from 'react';
-import $ from '../../sefaria/sefariaJquery';
+import React, { useState } from 'react';
 import Sefaria from '../../sefaria/sefaria';
 import { BASE_TEXT_MAPPING_OPTIONS } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
@@ -167,20 +166,20 @@ const AutoLinkCommentaryTool = () => {
   /**
    * Clear search and reset state
    */
-  const clearSearch = useCallback(() => {
+  const clearSearch = () => {
     setIndices([]);
     setIndexMetadata({});
     setPick(new Set());
     setMsg("");
     setSearched(false);
-  }, []);
+  };
 
   /**
    * Load indices that have " on " in their title (commentary pattern)
    */
-  const load = () => {
+  const load = async () => {
     if (!vtitle.trim()) {
-      setMsg("❌ Please enter a version title");
+      setMsg("Please enter a version title");
       return;
     }
 
@@ -188,34 +187,38 @@ const AutoLinkCommentaryTool = () => {
     setSearched(true);
     setMsg("Loading indices...");
 
-    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
-      .done(d => {
-        // Filter for commentary pattern
-        const comm = (d.indices || []).filter(t => t.includes(" on "));
-        // Build filtered metadata
-        const filteredMetadata = {};
-        comm.forEach(title => {
-          if (d.metadata?.[title]) {
-            filteredMetadata[title] = d.metadata[title];
-          }
-        });
-        setIndices(comm);
-        setIndexMetadata(filteredMetadata);
-        setPick(new Set(comm));
-        if (comm.length > 0) {
-          setMsg(`✅ Found ${comm.length} commentaries with version "${vtitle}"`);
-        } else {
-          setMsg("");
+    const urlParams = { versionTitle: vtitle };
+    if (lang) {
+      urlParams.language = lang;
+    }
+
+    try {
+      const data = await Sefaria.apiRequestWithBody('/api/version-indices', urlParams, null, 'GET');
+      // Filter for commentary pattern
+      const comm = (data.indices || []).filter(t => t.includes(" on "));
+      // Build filtered metadata
+      const filteredMetadata = {};
+      comm.forEach(title => {
+        if (data.metadata?.[title]) {
+          filteredMetadata[title] = data.metadata[title];
         }
-      })
-      .fail(xhr => {
-        const err = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
-        setMsg(`❌ Error: ${err}`);
-        setIndices([]);
-        setIndexMetadata({});
-        setPick(new Set());
-      })
-      .always(() => setLoading(false));
+      });
+      setIndices(comm);
+      setIndexMetadata(filteredMetadata);
+      setPick(new Set(comm));
+      if (comm.length > 0) {
+        setMsg(`Found ${comm.length} commentaries with version "${vtitle}"`);
+      } else {
+        setMsg("");
+      }
+    } catch (error) {
+      setMsg(`Error: ${error.message || "Failed to load indices"}`);
+      setIndices([]);
+      setIndexMetadata({});
+      setPick(new Set());
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -250,28 +253,45 @@ const AutoLinkCommentaryTool = () => {
           };
           delete patched._id;
 
-          const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
-          await $.post(url, { json: JSON.stringify(patched) });
+          const urlParams = { update: '1' };
+          const indexPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
+          const payload = { json: JSON.stringify(patched) };
 
-          // Clear caches
-          await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
+          // Update index via raw API
+          await Sefaria.apiRequestWithBody(`/api/v2/raw/index/${indexPath}`, urlParams, payload);
+
+          // Clear caches (non-JSON endpoint)
+          const resetResponse = await fetch(`/admin/reset/${encodeURIComponent(indexTitle)}`, {
+            method: 'GET',
+            credentials: 'same-origin'
+          });
+          if (!resetResponse.ok) {
+            throw new Error("Failed to reset cache");
+          }
         }
 
-        // 4. Rebuild links
+        // 4. Rebuild links (non-JSON endpoint)
         setMsg(`Building links for ${indexTitle}...`);
-        await $.get(`/admin/rebuild/auto-links/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}`);
+        const rebuildPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
+        const rebuildResponse = await fetch(`/admin/rebuild/auto-links/${rebuildPath}`, {
+          method: 'GET',
+          credentials: 'same-origin'
+        });
+        if (!rebuildResponse.ok) {
+          throw new Error("Failed to rebuild links");
+        }
 
         successCount++;
       } catch (e) {
-        const m = e.responseJSON?.error || e.statusText || e.message;
+        const m = e.message || "Unknown error";
         errors.push(`${indexTitle}: ${m}`);
       }
     }
 
     setMsg(
       errors.length
-        ? `⚠️ Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`
-        : `✅ Links built for all ${successCount} indices`
+        ? `Finished. Linked ${successCount}/${pick.size}. Errors: ${errors.join("; ")}`
+        : `Links built for all ${successCount} indices`
     );
     setLinking(false);
   };
