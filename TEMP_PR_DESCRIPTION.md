@@ -178,6 +178,13 @@ During review, the following improvements were made:
 - ✅ Removed emoji characters from user messages
 - ✅ Improved error handling with try/catch blocks
 - ✅ Consistent CSRF token and error management across all API calls
+- ✅ Extracted validation logic to pure function for better testability
+
+**Bug Fixes:**
+- ✅ Removed versionTitle from editable fields (both frontend and backend whitelist)
+  - versionTitle is the search parameter - editing it would cause partial failures as the search key changes during bulk operations
+  - Prevents data corruption where first edit succeeds but subsequent edits fail
+  - Users should edit version titles individually, not in bulk
 
 ## Testing
 
