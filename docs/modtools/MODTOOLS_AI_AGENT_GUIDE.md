@@ -142,6 +142,12 @@ docs/modtools/
 }
 ```
 
+**Field Clearing**:
+- Send `null` value for a field to completely remove it from the database
+- Backend uses `delattr(version, field_name)` to remove the attribute
+- Field is not saved to MongoDB (not set to empty string)
+- Example: `{"updates": {"purchaseInformationURL": null}}` removes the field entirely
+
 ### Index Model (`sefaria/model/text.py:172`)
 
 **Collection**: `index`
@@ -294,6 +300,87 @@ const NewTool = () => {
 };
 
 export default NewTool;
+```
+
+### Clearing Fields from Versions
+
+**Purpose**: Allow users to completely remove a field from all selected versions.
+
+**Implementation**:
+
+1. **Add state for tracking cleared fields**:
+```javascript
+const [fieldsToClear, setFieldsToClear] = useState(new Set());
+```
+
+2. **Add checkbox to renderField**:
+```javascript
+const renderField = (fieldName) => {
+  const isClearing = fieldsToClear.has(fieldName);
+
+  return (
+    <div className="fieldGroup">
+      <input disabled={isClearing} /* other props */ />
+
+      <div className="clearFieldOption">
+        <label>
+          <input
+            type="checkbox"
+            checked={isClearing}
+            onChange={e => handleClearToggle(fieldName, e.target.checked)}
+          />
+          Clear this field from all selected versions
+        </label>
+      </div>
+    </div>
+  );
+};
+```
+
+3. **Handle checkbox toggle**:
+```javascript
+const handleClearToggle = (field, checked) => {
+  setFieldsToClear(prev => {
+    const next = new Set(prev);
+    checked ? next.add(field) : next.delete(field);
+    return next;
+  });
+
+  // Clear any pending updates when marking for clearing
+  if (checked) {
+    setUpdates(prev => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+};
+```
+
+4. **Send null values for cleared fields**:
+```javascript
+const save = async () => {
+  const processedUpdates = { ...updates };
+
+  // Add cleared fields with null value
+  fieldsToClear.forEach(field => {
+    processedUpdates[field] = null;
+  });
+
+  // Send to API...
+};
+```
+
+5. **Backend handles null values**:
+```python
+# In sefaria/views.py:
+for field_name, field_value in updates.items():
+    if field_value is None:
+        # Remove field entirely from MongoDB
+        if hasattr(version, field_name):
+            delattr(version, field_name)
+    else:
+        setattr(version, field_name, field_value)
 ```
 
 ### Adding URL Validation
