@@ -294,11 +294,8 @@ class Util {
                 window.location.pathname + window.location.search;
     }
     static fullURL(relativePath, moduleTarget, params=null) {
-      if (!relativePath.startsWith("/")) {
-        return relativePath;
-      }
       const baseURL = Sefaria.getModuleURL(moduleTarget);
-      if (!baseURL) {
+      if (!relativePath.startsWith("/") || !baseURL) {
         return relativePath;
       }
       try {
