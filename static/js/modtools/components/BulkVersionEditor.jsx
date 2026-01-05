@@ -387,9 +387,7 @@ const BulkVersionEditor = () => {
     return (
       <div key={fieldName} className={`fieldGroup ${hasError ? 'hasError' : ''}`}>
         <label>
-          {meta.label}
-          {meta.required && <span className="requiredIndicator" title="Required field">*</span>}
-          :
+          {meta.label}:
         </label>
 
         {meta.help && (
