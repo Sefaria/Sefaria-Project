@@ -50,12 +50,15 @@ const HELP_CONTENT = (
     </ol>
 
     <h3>Available Fields</h3>
+    <p>
+      <strong>Note:</strong> The version title you searched for is used to identify which versions to update.
+      To rename a version, edit it individually (not in bulk).
+    </p>
     <table className="field-table">
       <thead>
         <tr><th>Field</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>versionTitle</code></td><td>The display name of this version (e.g., "Kehati", "JPS 1917")</td></tr>
         <tr><td><code>versionTitleInHebrew</code></td><td>Hebrew version of the title for Hebrew interface</td></tr>
         <tr><td><code>versionSource</code></td><td>URL where the original text was sourced from (must be valid URL)</td></tr>
         <tr><td><code>license</code></td><td>Copyright/license type (e.g., "Public Domain", "CC-BY")</td></tr>
@@ -107,7 +110,7 @@ const FIELD_GROUPS = [
   {
     id: 'identification',
     header: 'Version Identification',
-    fields: ['versionTitle', 'versionTitleInHebrew']
+    fields: ['versionTitleInHebrew']  // versionTitle is the search key, not editable
   },
   {
     id: 'source',

@@ -1653,8 +1653,9 @@ def version_indices_api(request):
 
 
 # Allowed fields for version bulk edit - prevents arbitrary attribute injection
+# Note: versionTitle is excluded - it's the search key used to find versions, not editable
 VERSION_BULK_EDIT_ALLOWED_FIELDS = {
-    "versionTitle", "versionTitleInHebrew", "versionSource", "license", "status",
+    "versionTitleInHebrew", "versionSource", "license", "status",
     "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
     "versionNotesInHebrew", "purchaseInformationURL", "purchaseInformationImage", "direction"
 }
