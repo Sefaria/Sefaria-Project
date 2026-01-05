@@ -1721,8 +1721,8 @@ def version_bulk_edit_api(request):
         return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
 
     try:
-        vtitle = data["versionTitle"]
-        lang = data["language"]
+        version_title = data["versionTitle"]
+        language = data["language"]
         indices = data["indices"]
         updates = data["updates"]
     except KeyError as e:
@@ -1740,25 +1740,25 @@ def version_bulk_edit_api(request):
     successes = []
     failures = []
 
-    for title in indices:
+    for index_title in indices:
         try:
-            v = Version().load({
-                "title": title,
-                "versionTitle": vtitle,
-                "language": lang
+            version = Version().load({
+                "title": index_title,
+                "versionTitle": version_title,
+                "language": language
             })
-            if not v:
-                failures.append({"index": title, "error": f'No Version "{vtitle}" found'})
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
                 continue
 
-            for k, val in updates.items():
-                setattr(v, k, val)
-            v.save()
-            successes.append(title)
+            for field_name, field_value in updates.items():
+                setattr(version, field_name, field_value)
+            version.save()
+            successes.append(index_title)
 
         except Exception as e:
             error_msg = str(e) if str(e) else type(e).__name__
-            failures.append({"index": title, "error": error_msg})
+            failures.append({"index": index_title, "error": error_msg})
 
     # Return detailed results
     result = {
