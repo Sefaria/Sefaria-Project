@@ -18,6 +18,7 @@
  * - Version fields are defined in ../constants/fieldMetadata.js
  */
 import React, { useState, useCallback } from 'react';
+import Sefaria from '../../sefaria/sefaria';
 import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
@@ -190,14 +191,13 @@ const BulkVersionEditor = () => {
     setSearched(true);
     setMsg("Loading indices...");
 
-    const url = `/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`;
+    const urlParams = { versionTitle: vtitle };
+    if (lang) {
+      urlParams.language = lang;
+    }
 
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await Sefaria.apiRequestWithBody('/api/version-indices', urlParams, null, 'GET');
       const resultIndices = data.indices || [];
       const resultMetadata = data.metadata || {};
       setIndices(resultIndices);
@@ -209,8 +209,7 @@ const BulkVersionEditor = () => {
         setMsg(""); // No message for empty results - will show noResults box
       }
     } catch (error) {
-      const errorMsg = error.message || "Failed to load indices";
-      setMsg(`Error: ${errorMsg}`);
+      setMsg(`Error: ${error.message || "Failed to load indices"}`);
       setIndices([]);
       setIndexMetadata({});
       setPick(new Set());
@@ -291,24 +290,14 @@ const BulkVersionEditor = () => {
     });
 
     try {
-      const response = await fetch("/api/version-bulk-edit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          versionTitle: vtitle,
-          language: lang,
-          indices: Array.from(pick),
-          updates: processedUpdates
-        })
-      });
+      const payload = {
+        versionTitle: vtitle,
+        language: lang,
+        indices: Array.from(pick),
+        updates: processedUpdates
+      };
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
       const successCount = data.successes?.length || 0;
       const failureCount = data.failures?.length || 0;
       const total = successCount + failureCount;
@@ -349,26 +338,16 @@ const BulkVersionEditor = () => {
     const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}] This version has been marked for deletion review.`;
 
     try {
-      const response = await fetch("/api/version-bulk-edit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          versionTitle: vtitle,
-          language: lang,
-          indices: Array.from(pick),
-          updates: {
-            versionNotes: deletionNote
-          }
-        })
-      });
+      const payload = {
+        versionTitle: vtitle,
+        language: lang,
+        indices: Array.from(pick),
+        updates: {
+          versionNotes: deletionNote
+        }
+      };
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
       const successCount = data.successes?.length || 0;
       const failureCount = data.failures?.length || 0;
 
