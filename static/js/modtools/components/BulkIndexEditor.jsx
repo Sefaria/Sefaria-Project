@@ -26,8 +26,7 @@
  * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
  * - Index fields are defined in ../constants/fieldMetadata.js
  */
-import { useState, useEffect, useCallback } from 'react';
-import $ from '../../sefaria/sefariaJquery';
+import { useState, useEffect } from 'react';
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
@@ -151,27 +150,21 @@ const createTermIfNeeded = async (enTitle, heTitle) => {
 
   try {
     // Check if term already exists
-    await $.ajax({
-      url: `/api/terms/${encodeURIComponent(enTitle)}`,
-      method: 'GET'
-    });
+    await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(enTitle)}`, null, null, 'GET');
     return true; // Term exists
   } catch (e) {
-    if (e.status === 404) {
+    if (e.message.includes('404') || e.message.includes('not found')) {
       // Create term
-      await $.ajax({
-        url: `/api/terms/${encodeURIComponent(enTitle)}`,
-        method: 'POST',
-        data: {
-          json: JSON.stringify({
-            name: enTitle,
-            titles: [
-              { lang: "en", text: enTitle, primary: true },
-              { lang: "he", text: heTitle, primary: true }
-            ]
-          })
-        }
-      });
+      const payload = {
+        json: JSON.stringify({
+          name: enTitle,
+          titles: [
+            { lang: "en", text: enTitle, primary: true },
+            { lang: "he", text: heTitle, primary: true }
+          ]
+        })
+      };
+      await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(enTitle)}`, null, payload);
       return true;
     }
     throw e;
@@ -200,42 +193,48 @@ const BulkIndexEditor = () => {
 
   // Load categories on mount
   useEffect(() => {
-    $.getJSON('/api/index', data => {
-      const cats = [];
-      const extractCategories = (node, path = []) => {
-        if (node.category) {
-          const fullPath = [...path, node.category].join(", ");
-          cats.push(fullPath);
-        }
-        if (node.contents) {
-          node.contents.forEach(item => {
-            extractCategories(item, node.category ? [...path, node.category] : path);
-          });
-        }
-      };
-      data.forEach(cat => extractCategories(cat));
-      setCategories(cats.sort());
-    });
+    const loadCategories = async () => {
+      try {
+        const data = await Sefaria.apiRequestWithBody('/api/index', null, null, 'GET');
+        const cats = [];
+        const extractCategories = (node, path = []) => {
+          if (node.category) {
+            const fullPath = [...path, node.category].join(", ");
+            cats.push(fullPath);
+          }
+          if (node.contents) {
+            node.contents.forEach(item => {
+              extractCategories(item, node.category ? [...path, node.category] : path);
+            });
+          }
+        };
+        data.forEach(cat => extractCategories(cat));
+        setCategories(cats.sort());
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      }
+    };
+    loadCategories();
   }, []);
 
   /**
    * Clear search and reset state
    */
-  const clearSearch = useCallback(() => {
+  const clearSearch = () => {
     setIndices([]);
     setIndexMetadata({});
     setPick(new Set());
     setUpdates({});
     setMsg("");
     setSearched(false);
-  }, []);
+  };
 
   /**
    * Load indices matching the version title
    */
-  const load = () => {
+  const load = async () => {
     if (!vtitle.trim()) {
-      setMsg("❌ Please enter a version title");
+      setMsg("Please enter a version title");
       return;
     }
 
@@ -243,27 +242,31 @@ const BulkIndexEditor = () => {
     setSearched(true);
     setMsg("Loading indices...");
 
-    $.getJSON(`/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`)
-      .done(d => {
-        const resultIndices = d.indices || [];
-        const resultMetadata = d.metadata || {};
-        setIndices(resultIndices);
-        setIndexMetadata(resultMetadata);
-        setPick(new Set(resultIndices));
-        if (resultIndices.length > 0) {
-          setMsg(`✅ Found ${resultIndices.length} indices with version "${vtitle}"`);
-        } else {
-          setMsg("");
-        }
-      })
-      .fail(xhr => {
-        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
-        setMsg(`❌ Error: ${errorMsg}`);
-        setIndices([]);
-        setIndexMetadata({});
-        setPick(new Set());
-      })
-      .always(() => setLoading(false));
+    const urlParams = { versionTitle: vtitle };
+    if (lang) {
+      urlParams.language = lang;
+    }
+
+    try {
+      const data = await Sefaria.apiRequestWithBody('/api/version-indices', urlParams, null, 'GET');
+      const resultIndices = data.indices || [];
+      const resultMetadata = data.metadata || {};
+      setIndices(resultIndices);
+      setIndexMetadata(resultMetadata);
+      setPick(new Set(resultIndices));
+      if (resultIndices.length > 0) {
+        setMsg(`Found ${resultIndices.length} indices with version "${vtitle}"`);
+      } else {
+        setMsg("");
+      }
+    } catch (error) {
+      setMsg(`Error: ${error.message || "Failed to load indices"}`);
+      setIndices([]);
+      setIndexMetadata({});
+      setPick(new Set());
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -307,7 +310,7 @@ const BulkIndexEditor = () => {
             try {
               processedUpdates[field] = JSON.parse(value);
             } catch (e) {
-              setMsg(`❌ Invalid date format for ${field}`);
+              setMsg(`Invalid date format for ${field}`);
               setSaving(false);
               return;
             }
@@ -316,7 +319,7 @@ const BulkIndexEditor = () => {
             if (!isNaN(year)) {
               processedUpdates[field] = year;
             } else {
-              setMsg(`❌ Invalid date format for ${field}`);
+              setMsg(`Invalid date format for ${field}`);
               setSaving(false);
               return;
             }
@@ -325,7 +328,7 @@ const BulkIndexEditor = () => {
         case 'number':
           const numValue = parseInt(value);
           if (isNaN(numValue)) {
-            setMsg(`❌ Invalid number format for ${field}`);
+            setMsg(`Invalid number format for ${field}`);
             setSaving(false);
             return;
           }
@@ -341,7 +344,7 @@ const BulkIndexEditor = () => {
       try {
         const authorSlugs = [];
         for (const authorName of processedUpdates.authors) {
-          const response = await $.ajax({ url: `/api/name/${authorName}`, method: 'GET' });
+          const response = await Sefaria.apiRequestWithBody(`/api/name/${authorName}`, null, null, 'GET');
           const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
           const exactMatch = matches.find(t => t.title.toLowerCase() === authorName.toLowerCase());
 
@@ -350,7 +353,7 @@ const BulkIndexEditor = () => {
             const msg = matches.length > 0
               ? `Invalid author "${authorName}". Did you mean: ${closestMatches.join(', ')}?`
               : `Invalid author "${authorName}". Make sure it exists in the Authors topic.`;
-            setMsg(`❌ ${msg}`);
+            setMsg(`Error: ${msg}`);
             setSaving(false);
             return;
           }
@@ -358,7 +361,7 @@ const BulkIndexEditor = () => {
         }
         processedUpdates.authors = authorSlugs;
       } catch (e) {
-        setMsg(`❌ Error validating authors`);
+        setMsg(`Error validating authors`);
         setSaving(false);
         return;
       }
@@ -416,7 +419,7 @@ const BulkIndexEditor = () => {
         // Handle authors auto-detection
         if (indexSpecificUpdates.authors === 'auto' && pattern?.commentaryName) {
           try {
-            const response = await $.ajax({ url: `/api/name/${pattern.commentaryName}`, method: 'GET' });
+            const response = await Sefaria.apiRequestWithBody(`/api/name/${pattern.commentaryName}`, null, null, 'GET');
             const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
             const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
             if (exactMatch) {
@@ -454,21 +457,33 @@ const BulkIndexEditor = () => {
           ...indexSpecificUpdates
         };
 
-        const url = `/api/v2/raw/index/${encodeURIComponent(indexTitle.replace(/ /g, "_"))}?update=1`;
-        await $.ajax({ url, type: 'POST', data: { json: JSON.stringify(postData) } });
-        await $.get(`/admin/reset/${encodeURIComponent(indexTitle)}`);
+        const urlParams = { update: '1' };
+        const indexPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
+        const payload = { json: JSON.stringify(postData) };
+
+        // Update index via raw API
+        await Sefaria.apiRequestWithBody(`/api/v2/raw/index/${indexPath}`, urlParams, payload);
+
+        // Clear caches (non-JSON endpoint)
+        const resetResponse = await fetch(`/admin/reset/${encodeURIComponent(indexTitle)}`, {
+          method: 'GET',
+          credentials: 'same-origin'
+        });
+        if (!resetResponse.ok) {
+          throw new Error("Failed to reset cache");
+        }
 
         successCount++;
       } catch (e) {
-        const errorMsg = e.responseJSON?.error || e.responseText || e.message || 'Unknown error';
+        const errorMsg = e.message || 'Unknown error';
         errors.push(`${indexTitle}: ${errorMsg}`);
       }
     }
 
     if (errors.length) {
-      setMsg(`⚠️ Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+      setMsg(`Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
     } else {
-      setMsg(`✅ Successfully updated ${successCount} indices`);
+      setMsg(`Successfully updated ${successCount} indices`);
       setUpdates({});
     }
     setSaving(false);
@@ -537,7 +552,7 @@ const BulkIndexEditor = () => {
     >
       {/* Warning box */}
       <div className="warningBox">
-        <strong>⚠️ Important Notes:</strong>
+        <strong>Important Notes:</strong>
         <ul>
           <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
           <li><strong>Collective Title:</strong> If Hebrew equivalent is provided, terms will be created automatically.</li>
