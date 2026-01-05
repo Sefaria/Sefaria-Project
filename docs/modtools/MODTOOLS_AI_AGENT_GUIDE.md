@@ -514,7 +514,6 @@ deps = library.get_dependant_indices("Genesis")
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - API contracts, data models
 - [COMPONENT_LOGIC.md](./COMPONENT_LOGIC.md) - Detailed logic flows
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) - UI/CSS documentation
-- [PROGRESS.md](./PROGRESS.md) - Project tracking
 
 ---
 

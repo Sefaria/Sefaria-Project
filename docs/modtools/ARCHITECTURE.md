@@ -7,7 +7,6 @@ This document describes the architecture, data structures, and API contracts of 
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Quick reference for AI agents and developers
 - **[COMPONENT_LOGIC.md](./COMPONENT_LOGIC.md)** - Detailed logic flows and decision trees
 - **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - UI/CSS documentation and patterns
-- **[PROGRESS.md](./PROGRESS.md)** - Project tracking and roadmap
 
 ## Overview
 
