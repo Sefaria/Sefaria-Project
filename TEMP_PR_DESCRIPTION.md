@@ -63,55 +63,40 @@ Updated deprecated MongoDB operations:
 
 #### 1. Main Component: BulkVersionEditor (static/js/modtools/components/BulkVersionEditor.jsx)
 
-This is an **entirely new component** (659 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
+This is an **entirely new component** (650 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
 
-**Component Workflow:**
+**User Workflow:**
 
-1. **Search Phase** (lines 187-220):
-   - User enters `versionTitle` (case-sensitive) and optional `language` filter
-   - Component calls `/api/version-indices` to find all indices with matching versions
-   - Results show which texts have this version
-   - All results pre-selected by default
+1. User enters a version title (e.g., "Kehati") and optionally filters by language
+2. Component fetches all indices that have matching versions via `/api/version-indices`
+3. User selects which indices to update (all pre-selected by default)
+4. User fills in metadata fields to change (empty fields are ignored)
+5. On save, POST to `/api/version-bulk-edit` updates all selected versions
+6. Results show which versions succeeded and which failed (partial success handling)
 
-2. **Selection Phase** (IndexSelector component):
-   - User can select/deselect specific indices to update
-   - Shows categories for each index (from metadata)
-   - Search and filter capabilities
+**Special Features:**
 
-3. **Edit Phase** (lines 235-258):
-   - User fills in fields they want to change (empty fields ignored)
-   - **URL validation**: `versionSource`, `purchaseInformationURL`, `purchaseInformationImage` validated in real-time
-   - **Boolean conversion**: String "true"/"false" → actual booleans for API (lines 283-291)
-   - Field groups: Identification, Source & License, Metadata, Notes
+- **Mark for Deletion**: Adds timestamped note to `versionNotes` instead of actually deleting (safety mechanism)
+- **URL Validation**: Real-time validation for URL fields prevents invalid data
+- **Partial Success**: If some versions fail, shows detailed error list while reporting successes
+- **Field Organization**: Fields grouped into Identification, Source & License, Metadata, Notes
 
-4. **Save Phase** (lines 263-327):
-   - Validates: selections exist, updates exist, no validation errors
-   - POST to `/api/version-bulk-edit` with selected indices and updates
-   - **Enhanced error display** (lines 313-314): Failures shown as bullet-list with newlines instead of semicolons
-   - **Partial success handling** (lines 308-318): Shows which succeeded and which failed
-   - **Frontend count calculation** (lines 304-306): Calculates counts from `successes`/`failures` array lengths
+**Code Modernization:**
 
-5. **Soft Delete Phase** (lines 333-378):
-   - "Mark for Deletion" button adds `[MARKED FOR DELETION - DATE]` note to `versionNotes`
-   - Requires confirmation dialog
-   - Does NOT actually delete - safety mechanism for review
-   - Uses same bulk edit API with prepared `versionNotes` value
+✅ **Migrated to Sefaria API utilities**:
+- Replaced jQuery (`$.ajax`, `$.getJSON`) and manual `fetch` with `Sefaria.apiRequestWithBody`
+- Automatic URL parameter building via `URLSearchParams`
+- Consistent CSRF token handling and error management
+- Converted callback-based code to async/await pattern
+- Removed jQuery dependency
+- Cleaner, more maintainable API call pattern
 
-**Key Features:**
-
-- **Field Grouping**: Logically organized into 4 groups (lines 109-130)
-- **URL Validation**: Real-time validation for URL fields (lines 225-230)
-- **Comprehensive Help**: Detailed help documentation with field descriptions, use cases, warnings (lines 32-102)
-- **Pre-selection**: All results selected by default for convenience (line 205)
-- **Clear Search**: Button to reset and start over (lines 174-182)
-
-**Changes Made During Code Review:**
-
-✅ **Error Display Improvement** (lines 313-314, 364):
+✅ **Error Display Improvement**:
 - Changed from semicolon-separated to bullet-list format with newlines
+- Removed emoji characters from messages
 - Better readability for multiple errors
 
-✅ **Response Format Simplification** (lines 304-306):
+✅ **Response Format Simplification**:
 - Frontend calculates counts from array lengths
 - Backend no longer sends redundant `count`/`total` fields
 - Reduced response size and naming confusion
@@ -132,6 +117,8 @@ The following components were disabled in ModeratorToolsPanel but their backend 
 ## Code Quality Improvements
 
 During review, the following improvements were made:
+
+**Backend:**
 - ✅ Improved variable naming across all endpoints (vtitle→version_title, lang→language, j→json_data)
 - ✅ Reordered functions to match URL endpoint order
 - ✅ Removed redundant imports
@@ -139,6 +126,14 @@ During review, the following improvements were made:
 - ✅ Fixed empty indices status code (500→400)
 - ✅ Updated docstrings to reflect actual behavior
 - ✅ Updated tests to match simplified API responses
+
+**Frontend:**
+- ✅ Modernized to Sefaria.apiRequestWithBody utility (removed jQuery dependency)
+- ✅ Automatic URL parameter building with URLSearchParams
+- ✅ Converted callback-based code to async/await
+- ✅ Removed emoji characters from user messages
+- ✅ Improved error handling with try/catch blocks
+- ✅ Consistent CSRF token and error management across all API calls
 
 ## Next Steps
 
