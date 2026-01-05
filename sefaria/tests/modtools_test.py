@@ -142,6 +142,138 @@ class TestVersionBulkEditAPI:
         assert data['status'] in ['error', 'partial']
         assert len(data['failures']) > 0
 
+    @pytest.mark.django_db
+    def test_bulk_edit_null_clears_field(self, staff_client):
+        """Sending null value should remove field from version entirely."""
+        from sefaria.model import VersionSet, Version
+
+        # Create a test version with purchaseInformationURL set
+        test_version = Version({
+            'versionTitle': 'TestVersionForClearing',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+            'purchaseInformationURL': 'https://example.com/buy'
+        })
+        test_version.save()
+
+        # Verify field exists before clearing
+        v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
+        assert hasattr(v, 'purchaseInformationURL'), "Field should exist before clearing"
+        assert v.purchaseInformationURL == 'https://example.com/buy'
+
+        # Send null value to clear the field
+        response = staff_client.post(
+            '/api/version-bulk-edit',
+            data=json.dumps({
+                'versionTitle': 'TestVersionForClearing',
+                'language': 'en',
+                'indices': ['Genesis'],
+                'updates': {'purchaseInformationURL': None}
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+        assert len(data['successes']) == 1
+
+        # Verify field was removed (not just set to null or empty string)
+        v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
+        assert not hasattr(v, 'purchaseInformationURL'), "Field should be completely removed after clearing"
+
+        # Cleanup
+        v.delete()
+
+    @pytest.mark.django_db
+    def test_bulk_edit_mixed_updates_and_clears(self, staff_client):
+        """Should handle both field updates and field clears in same request."""
+        from sefaria.model import VersionSet, Version
+
+        # Create a test version with multiple fields
+        test_version = Version({
+            'versionTitle': 'TestVersionMixed',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+            'license': 'PD',
+            'purchaseInformationURL': 'https://example.com/buy',
+            'versionNotes': 'Old notes'
+        })
+        test_version.save()
+
+        # Update some fields, clear others
+        response = staff_client.post(
+            '/api/version-bulk-edit',
+            data=json.dumps({
+                'versionTitle': 'TestVersionMixed',
+                'language': 'en',
+                'indices': ['Genesis'],
+                'updates': {
+                    'license': 'CC-BY',  # Update this field
+                    'purchaseInformationURL': None,  # Clear this field
+                    'versionNotes': 'New notes'  # Update this field
+                }
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        # Verify updates applied and field cleared
+        v = Version().load({'versionTitle': 'TestVersionMixed', 'language': 'en', 'title': 'Genesis'})
+        assert v.license == 'CC-BY', "License should be updated"
+        assert v.versionNotes == 'New notes', "Notes should be updated"
+        assert not hasattr(v, 'purchaseInformationURL'), "purchaseInformationURL should be removed"
+
+        # Cleanup
+        v.delete()
+
+    @pytest.mark.django_db
+    def test_bulk_edit_clear_nonexistent_field(self, staff_client):
+        """Clearing a field that doesn't exist should not error."""
+        from sefaria.model import VersionSet, Version
+
+        # Create a test version without purchaseInformationURL
+        test_version = Version({
+            'versionTitle': 'TestVersionNoField',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com'
+        })
+        test_version.save()
+
+        # Try to clear a field that doesn't exist
+        response = staff_client.post(
+            '/api/version-bulk-edit',
+            data=json.dumps({
+                'versionTitle': 'TestVersionNoField',
+                'language': 'en',
+                'indices': ['Genesis'],
+                'updates': {'purchaseInformationURL': None}
+            }),
+            content_type='application/json'
+        )
+
+        # Should succeed without error
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        # Verify version still exists and wasn't broken
+        v = Version().load({'versionTitle': 'TestVersionNoField', 'language': 'en', 'title': 'Genesis'})
+        assert v is not None
+        assert not hasattr(v, 'purchaseInformationURL')
+
+        # Cleanup
+        v.delete()
+
 
 class TestCheckIndexDependenciesAPI:
     """Tests for /api/check-index-dependencies endpoint."""

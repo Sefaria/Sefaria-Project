@@ -213,6 +213,10 @@ Centralized field configuration (~300 lines) for bulk editing operations:
 - Tests field whitelisting
 - Tests empty indices validation
 - Updated to match simplified API response format
+- **Field clearing tests**:
+  - `test_bulk_edit_null_clears_field`: Verifies null values remove fields entirely from MongoDB
+  - `test_bulk_edit_mixed_updates_and_clears`: Tests mixing field updates and clears in one request
+  - `test_bulk_edit_clear_nonexistent_field`: Ensures clearing nonexistent fields doesn't error
 
 **Frontend Tests** (static/js/modtools/tests/)
 - **fieldMetadata.test.js**: Validates field metadata structure
