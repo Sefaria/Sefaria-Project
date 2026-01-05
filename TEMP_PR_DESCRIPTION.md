@@ -128,11 +128,26 @@ This is an **entirely new component** (650 lines). The old ModeratorToolsPanel o
 - Type detection (success/error/warning/info)
 - Handles multiline messages
 
+#### 3. Field Metadata (static/js/modtools/constants/fieldMetadata.js)
+
+Defines metadata for all editable fields:
+- **VERSION_FIELD_METADATA**: Version fields (versionTitle, versionSource, license, etc.)
+- **INDEX_FIELD_METADATA**: Index fields (categories, authors, descriptions, etc.)
+- **BASE_TEXT_MAPPING_OPTIONS**: Commentary mapping algorithms
+- Each field includes: label, type, placeholder, help text, validation rules, direction (rtl/ltr)
+
 ### Tests
 
-#### Backend Tests (sefaria/tests/modtools_test.py)
+**Backend Tests** (sefaria/tests/modtools_test.py)
+- Tests for all three new API endpoints
+- Validates partial success handling
+- Tests field whitelisting
+- Tests empty indices validation
+- Updated to match simplified API response format
 
-TODO: Review test coverage
+**Frontend Tests** (static/js/modtools/tests/)
+- **fieldMetadata.test.js**: Validates field metadata structure
+- **stripHtmlTags.test.js**: Tests HTML sanitization utility
 
 ### Components Disabled
 
@@ -164,8 +179,16 @@ During review, the following improvements were made:
 - ✅ Improved error handling with try/catch blocks
 - ✅ Consistent CSRF token and error management across all API calls
 
-## Next Steps
+## Testing
 
-- [ ] Complete frontend component review
-- [ ] Review and document test coverage
-- [ ] Final integration testing
+The PR includes comprehensive test coverage:
+- Backend API endpoint tests with partial success scenarios
+- Field metadata structure validation
+- All tests pass with updated response formats
+
+## Ready for Review
+
+This PR is ready for review. Key areas to focus on:
+1. **Backend API design**: Partial success handling and field whitelisting
+2. **Frontend UX**: Workflow clarity and error messaging
+3. **Code modernization**: Sefaria API utility usage patterns
