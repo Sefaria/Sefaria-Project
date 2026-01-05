@@ -1615,48 +1615,6 @@ def text_upload_api(request):
     return jsonResponse({"status": "ok", "message": message})
 
 
-@staff_member_required
-def check_index_dependencies_api(request, title):
-    """
-    Check what dependencies exist for a given index title.
-    Used by NodeTitleEditor to warn about potential impacts of title changes.
-
-    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
-    This endpoint is not in active use but retained for future re-enablement.
-    """
-    if request.method != "GET":
-        return jsonResponse({"error": "GET required"})
-
-    try:
-        # Get dependent indices (commentaries, etc.)
-        dependent_indices = library.get_dependant_indices(title, full_records=False)
-
-        # Get version count
-        version_count = db.texts.count_documents({"title": title})
-
-        # Get link count (approximate)
-        # Inline import: this specific function is not exported via sefaria.model wildcard
-        from sefaria.model.text import prepare_index_regex_for_dependency_process
-        try:
-            index = library.get_index(title)
-            pattern = prepare_index_regex_for_dependency_process(index)
-            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
-        except Exception as e:
-            logger.debug(f"Failed to get link count for {title}: {e}")
-            link_count = 0
-
-        return jsonResponse({
-            "title": title,
-            "dependent_indices": dependent_indices,
-            "dependent_count": len(dependent_indices),
-            "version_count": version_count,
-            "link_count": link_count,
-            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
-        })
-
-    except Exception as e:
-        return jsonResponse({"error": str(e)})
-
 
 
 @staff_member_required
@@ -1670,26 +1628,26 @@ def version_indices_api(request):
     if request.method != "GET":
         return HttpResponseBadRequest("GET required")
 
-    vtitle = request.GET.get("versionTitle")
-    if not vtitle:
+    version_title = request.GET.get("versionTitle")
+    if not version_title:
         raise InputError("versionTitle is required")
-    lang = request.GET.get("language")
+    language = request.GET.get("language")
 
-    q = {"versionTitle": vtitle}
-    if lang:
-        q["language"] = lang
-    indices = db.texts.distinct("title", q)
+    query = {"versionTitle": version_title}
+    if language:
+        query["language"] = language
+    indices = db.texts.distinct("title", query)
     sorted_indices = sorted(indices)
 
     # Build metadata with categories for each index
     # Note: library.get_index() uses an in-memory cache, so this loop is efficient
     metadata = {}
-    for title in sorted_indices:
+    for index_title in sorted_indices:
         try:
-            idx = library.get_index(title)
-            metadata[title] = {"categories": getattr(idx, 'categories', [])}
+            index = library.get_index(index_title)
+            metadata[index_title] = {"categories": getattr(index, 'categories', [])}
         except Exception:
-            metadata[title] = {"categories": []}
+            metadata[index_title] = {"categories": []}
 
     return jsonResponse({"indices": sorted_indices, "metadata": metadata})
 
@@ -1768,6 +1726,46 @@ def version_bulk_edit_api(request):
     }
     return jsonResponse(result)
 
+
+@staff_member_required
+def check_index_dependencies_api(request, index_title):
+    """
+    Check what dependencies exist for a given index title.
+    Used by NodeTitleEditor to warn about potential impacts of title changes.
+
+    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
+    This endpoint is not in active use and should be reviewd when used but retained for future re-enablement.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+
+    try:
+        # Get dependent indices (commentaries, etc.)
+        dependent_indices = library.get_dependant_indices(index_title, full_records=False)
+
+        # Get version count
+        version_count = db.texts.count_documents({"title": index_title})
+
+        # Get link count (approximate)
+        from sefaria.model.text import prepare_index_regex_for_dependency_process    # Inline import: this specific function is not exported via sefaria.model wildcard
+        try:
+            index = library.get_index(index_title)
+            pattern = prepare_index_regex_for_dependency_process(index)
+            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
+        except Exception as e:
+            logger.debug(f"Failed to get link count for {index_title}: {e}")
+            link_count = 0
+
+        return jsonResponse({
+            "title": index_title,
+            "dependent_indices": dependent_indices,
+            "version_count": version_count,
+            "link_count": link_count,
+            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
+        })
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
 
 @staff_member_required
 def update_authors_from_sheet(request):

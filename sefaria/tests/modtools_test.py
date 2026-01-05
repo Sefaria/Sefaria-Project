@@ -159,7 +159,7 @@ class TestCheckIndexDependenciesAPI:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.content}"
         data = json.loads(response.content)
         assert 'has_dependencies' in data, "Response missing 'has_dependencies' field"
-        assert 'dependent_count' in data, "Response missing 'dependent_count' field"
+        assert 'dependent_indices' in data, "Response missing 'dependent_indices' field"
 
 
 # ============================================================================
