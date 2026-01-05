@@ -18,7 +18,6 @@
  * - Version fields are defined in ../constants/fieldMetadata.js
  */
 import React, { useState, useCallback } from 'react';
-import $ from '../../sefaria/sefariaJquery';
 import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
@@ -181,9 +180,9 @@ const BulkVersionEditor = () => {
   /**
    * Load indices that have versions matching the search criteria
    */
-  const load = () => {
+  const load = async () => {
     if (!vtitle.trim()) {
-      setMsg("❌ Please enter a version title");
+      setMsg("Please enter a version title");
       return;
     }
 
@@ -193,27 +192,31 @@ const BulkVersionEditor = () => {
 
     const url = `/api/version-indices?versionTitle=${encodeURIComponent(vtitle)}&language=${lang}`;
 
-    $.getJSON(url)
-      .done(d => {
-        const resultIndices = d.indices || [];
-        const resultMetadata = d.metadata || {};
-        setIndices(resultIndices);
-        setIndexMetadata(resultMetadata);
-        setPick(new Set(resultIndices)); // Pre-select all
-        if (resultIndices.length > 0) {
-          setMsg(`✅ Found ${resultIndices.length} texts with version "${vtitle}"`);
-        } else {
-          setMsg(""); // No message for empty results - will show noResults box
-        }
-      })
-      .fail(xhr => {
-        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Failed to load indices";
-        setMsg(`❌ Error: ${errorMsg}`);
-        setIndices([]);
-        setIndexMetadata({});
-        setPick(new Set());
-      })
-      .always(() => setLoading(false));
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      const resultIndices = data.indices || [];
+      const resultMetadata = data.metadata || {};
+      setIndices(resultIndices);
+      setIndexMetadata(resultMetadata);
+      setPick(new Set(resultIndices)); // Pre-select all
+      if (resultIndices.length > 0) {
+        setMsg(`Found ${resultIndices.length} texts with version "${vtitle}"`);
+      } else {
+        setMsg(""); // No message for empty results - will show noResults box
+      }
+    } catch (error) {
+      const errorMsg = error.message || "Failed to load indices";
+      setMsg(`Error: ${errorMsg}`);
+      setIndices([]);
+      setIndexMetadata({});
+      setPick(new Set());
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -257,20 +260,20 @@ const BulkVersionEditor = () => {
   /**
    * Save changes to selected versions
    */
-  const save = () => {
+  const save = async () => {
     if (!pick.size) {
-      setMsg("❌ No indices selected");
+      setMsg("No indices selected");
       return;
     }
 
     if (!Object.keys(updates).length) {
-      setMsg("❌ No fields to update");
+      setMsg("No fields to update");
       return;
     }
 
     // Check for validation errors
     if (Object.keys(validationErrors).length > 0) {
-      setMsg("❌ Please fix validation errors before saving");
+      setMsg("Please fix validation errors before saving");
       return;
     }
 
@@ -287,49 +290,55 @@ const BulkVersionEditor = () => {
       }
     });
 
-    $.ajax({
-      url: "/api/version-bulk-edit",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({
-        versionTitle: vtitle,
-        language: lang,
-        indices: Array.from(pick),
-        updates: processedUpdates
-      }),
-      success: d => {
-        const successCount = d.successes?.length || 0;
-        const failureCount = d.failures?.length || 0;
-        const total = successCount + failureCount;
+    try {
+      const response = await fetch("/api/version-bulk-edit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          versionTitle: vtitle,
+          language: lang,
+          indices: Array.from(pick),
+          updates: processedUpdates
+        })
+      });
 
-        if (d.status === "ok") {
-          setMsg(`✅ Successfully updated ${successCount} versions`);
-          setUpdates({});
-          setValidationErrors({});
-        } else if (d.status === "partial") {
-          const failureList = d.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-          setMsg(`⚠️ Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`);
-        } else {
-          const failureList = d.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
-          setMsg(`❌ All ${failureCount} updates failed:\n${failureList}`);
-        }
-        setSaving(false);
-      },
-      error: xhr => {
-        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Unknown error";
-        setMsg(`❌ Error: ${errorMsg}`);
-        setSaving(false);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    });
+
+      const data = await response.json();
+      const successCount = data.successes?.length || 0;
+      const failureCount = data.failures?.length || 0;
+      const total = successCount + failureCount;
+
+      if (data.status === "ok") {
+        setMsg(`Successfully updated ${successCount} versions`);
+        setUpdates({});
+        setValidationErrors({});
+      } else if (data.status === "partial") {
+        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        setMsg(`Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`);
+      } else {
+        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+        setMsg(`All ${failureCount} updates failed:\n${failureList}`);
+      }
+    } catch (error) {
+      const errorMsg = error.message || "Unknown error";
+      setMsg(`Error: ${errorMsg}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   /**
    * Mark selected versions for deletion (soft delete)
    * Adds a note to versionNotes marking them for review
    */
-  const markForDeletion = () => {
+  const markForDeletion = async () => {
     if (!pick.size) {
-      setMsg("❌ No texts selected");
+      setMsg("No texts selected");
       return;
     }
 
@@ -339,39 +348,45 @@ const BulkVersionEditor = () => {
 
     const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}] This version has been marked for deletion review.`;
 
-    $.ajax({
-      url: "/api/version-bulk-edit",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({
-        versionTitle: vtitle,
-        language: lang,
-        indices: Array.from(pick),
-        updates: {
-          versionNotes: deletionNote
-        }
-      }),
-      success: d => {
-        const successCount = d.successes?.length || 0;
-        const failureCount = d.failures?.length || 0;
+    try {
+      const response = await fetch("/api/version-bulk-edit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          versionTitle: vtitle,
+          language: lang,
+          indices: Array.from(pick),
+          updates: {
+            versionNotes: deletionNote
+          }
+        })
+      });
 
-        if (d.status === "ok") {
-          setMsg(`✅ Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`);
-        } else if (d.status === "partial") {
-          const failureList = d.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-          setMsg(`⚠️ Marked ${successCount}/${successCount + failureCount} versions.\n\nFailed:\n${failureList}`);
-        } else {
-          const failureList = d.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
-          setMsg(`❌ Failed to mark versions for deletion:\n${failureList}`);
-        }
-        setSaving(false);
-      },
-      error: xhr => {
-        const errorMsg = xhr.responseJSON?.error || xhr.responseText || "Unknown error";
-        setMsg(`❌ Error: ${errorMsg}`);
-        setSaving(false);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    });
+
+      const data = await response.json();
+      const successCount = data.successes?.length || 0;
+      const failureCount = data.failures?.length || 0;
+
+      if (data.status === "ok") {
+        setMsg(`Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`);
+      } else if (data.status === "partial") {
+        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        setMsg(`Marked ${successCount}/${successCount + failureCount} versions.\n\nFailed:\n${failureList}`);
+      } else {
+        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+        setMsg(`Failed to mark versions for deletion:\n${failureList}`);
+      }
+    } catch (error) {
+      const errorMsg = error.message || "Unknown error";
+      setMsg(`Error: ${errorMsg}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   /**
