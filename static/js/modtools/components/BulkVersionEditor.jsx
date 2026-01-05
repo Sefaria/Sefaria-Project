@@ -17,7 +17,7 @@
  * For AI agents:
  * - Version fields are defined in VERSION_FIELD_METADATA
  * - "status: locked" prevents non-staff from editing (tracker.py:33)
- * - The API now returns {status, count, total, successes, failures}
+ * - The API returns {status, successes, failures}
  */
 import React, { useState, useCallback } from 'react';
 import $ from '../../sefaria/sefariaJquery';
