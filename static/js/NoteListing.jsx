@@ -36,18 +36,18 @@ class NoteListing extends Component {
     // This helper function returns the a tag linking to the given ref of the note.  When the URL is to a ref in the library, 
     // returning the appropriate a tag is very simple, but when the ref is to a sheet, we need to modify the ref and set the data-target-module attribute to the voices module.
     // If the ref is to a sheet, the ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
-    let path, noteURL, module;
+    let path, noteURL, module, params;
     if (Sefaria.isSheetRef(ref)) {
       module = Sefaria.VOICES_MODULE;
       const parsedRef = Sefaria.parseRef(ref);
       path = `/sheets/${parsedRef.sections.join('.')}`;
-      noteURL = Sefaria.util.fullURL(path, module);
     }
     else {
       module = Sefaria.LIBRARY_MODULE;
       path = `/${ref}`;
-      noteURL = Sefaria.util.fullURL(path, module, {"with": "Notes"});  
+      params = {"with": "Notes"};  
     }
+    noteURL = Sefaria.util.fullURL(path, module, params);
     return <a className="noteRefTitle" href={noteURL} data-target-module={module}>
             <span>{ref}</span>
           </a>
