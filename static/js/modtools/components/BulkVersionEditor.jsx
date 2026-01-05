@@ -75,6 +75,20 @@ const HELP_CONTENT = (
       </tbody>
     </table>
 
+    <h3>Clearing Fields</h3>
+    <p>
+      Each field has a "Clear this field from all selected versions" checkbox below it.
+      When checked, that field will be completely removed from all selected versions (not set to empty string).
+    </p>
+    <p>
+      <strong>Use this when:</strong> You want to remove a field entirely from multiple versions.
+      For example, removing outdated <code>purchaseInformationURL</code> links from all versions in a series.
+    </p>
+    <p>
+      <strong>Note:</strong> When a field is marked for clearing, its input is disabled and any value you entered is ignored.
+      The field will be deleted from the database, not set to an empty value.
+    </p>
+
     <h3>Mark for Deletion</h3>
     <p>
       The "Mark for Deletion" button does NOT immediately delete versions. Instead, it adds
@@ -87,6 +101,7 @@ const HELP_CONTENT = (
       <ul>
         <li>Version titles are <strong>case-sensitive</strong>. "Kehati" and "kehati" are different.</li>
         <li>URL fields are validated. Invalid URLs will prevent saving.</li>
+        <li>Clearing a field removes it entirely from the database (not set to empty string).</li>
         <li>Setting <code>status: "locked"</code> prevents non-staff users from editing the version.</li>
         <li>Changes are applied immediately to production data. There is no undo.</li>
       </ul>
@@ -176,6 +191,7 @@ const BulkVersionEditor = () => {
   // Edit state
   const [updates, setUpdates] = useState({});
   const [validationErrors, setValidationErrors] = useState({});
+  const [fieldsToClear, setFieldsToClear] = useState(new Set());
 
   // UI state
   const [msg, setMsg] = useState("");
@@ -192,6 +208,7 @@ const BulkVersionEditor = () => {
     setPick(new Set());
     setUpdates({});
     setValidationErrors({});
+    setFieldsToClear(new Set());
     setMsg("");
     setSearched(false);
   }, []);
@@ -266,6 +283,36 @@ const BulkVersionEditor = () => {
   }, []);
 
   /**
+   * Handle clear checkbox toggle for a field
+   * When checked, field will be cleared (removed) from all selected versions
+   */
+  const handleClearToggle = useCallback((field, checked) => {
+    setFieldsToClear(prev => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(field);
+      } else {
+        next.delete(field);
+      }
+      return next;
+    });
+
+    // When clearing, remove any pending updates for this field
+    if (checked) {
+      setUpdates(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+      setValidationErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  }, []);
+
+  /**
    * Perform bulk edit API call and handle response
    * @param {Object} updatesToApply - The updates object to send to the API
    * @param {Function} getSuccessMsg - Function that takes successCount and returns success message
@@ -316,8 +363,8 @@ const BulkVersionEditor = () => {
       return;
     }
 
-    if (!Object.keys(updates).length) {
-      setMsg("No fields to update");
+    if (!Object.keys(updates).length && !fieldsToClear.size) {
+      setMsg("No fields to update or clear");
       return;
     }
 
@@ -339,6 +386,11 @@ const BulkVersionEditor = () => {
       }
     });
 
+    // Add cleared fields with null value (backend will delete them)
+    fieldsToClear.forEach(field => {
+      processedUpdates[field] = null;
+    });
+
     await performBulkEdit(
       processedUpdates,
       (successCount) => `Successfully updated ${successCount} versions`,
@@ -347,6 +399,7 @@ const BulkVersionEditor = () => {
       () => {
         setUpdates({});
         setValidationErrors({});
+        setFieldsToClear(new Set());
       }
     );
   };
@@ -383,6 +436,7 @@ const BulkVersionEditor = () => {
     const value = updates[fieldName] || "";
     const error = validationErrors[fieldName];
     const hasError = !!error;
+    const isClearing = fieldsToClear.has(fieldName);
 
     return (
       <div key={fieldName} className={`fieldGroup ${hasError ? 'hasError' : ''}`}>
@@ -400,6 +454,7 @@ const BulkVersionEditor = () => {
             value={value}
             onChange={e => handleFieldChange(fieldName, e.target.value)}
             style={{ direction: meta.dir || "ltr" }}
+            disabled={isClearing}
           >
             {meta.options.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -413,6 +468,7 @@ const BulkVersionEditor = () => {
             onChange={e => handleFieldChange(fieldName, e.target.value)}
             style={{ direction: meta.dir || "ltr" }}
             rows={3}
+            disabled={isClearing}
           />
         ) : meta.type === "number" ? (
           <input
@@ -422,6 +478,7 @@ const BulkVersionEditor = () => {
             value={value}
             onChange={e => handleFieldChange(fieldName, e.target.value)}
             step="0.1"
+            disabled={isClearing}
           />
         ) : (
           <input
@@ -431,12 +488,26 @@ const BulkVersionEditor = () => {
             value={value}
             onChange={e => handleFieldChange(fieldName, e.target.value)}
             style={{ direction: meta.dir || "ltr" }}
+            disabled={isClearing}
           />
         )}
 
         {hasError && (
           <div className="fieldError">{error}</div>
         )}
+
+        <div className="clearFieldOption">
+          <label>
+            <input
+              type="checkbox"
+              checked={isClearing}
+              onChange={e => handleClearToggle(fieldName, e.target.checked)}
+            />
+            <span className="clearFieldLabel">
+              Clear this field from all selected versions
+            </span>
+          </label>
+        </div>
       </div>
     );
   };

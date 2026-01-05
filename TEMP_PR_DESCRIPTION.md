@@ -31,6 +31,7 @@ Three new endpoints were added to support bulk version editing:
 - **Security**: Whitelisted fields (`VERSION_BULK_EDIT_ALLOWED_FIELDS`) prevent arbitrary attribute injection
 - **Partial success handling**: Processes all indices even if some fail, returning detailed success/failure arrays. This allows users to fix specific issues without re-running successful updates.
 - **Simplified response**: Removed redundant `count` and `total` fields - frontend calculates from array lengths
+- **Field clearing**: `null` values are treated as "delete this field" - backend uses `delattr` to remove from MongoDB (lines 1714-1718)
 
 **`/api/check-index-dependencies/<title>` (GET)** - Disabled in frontend
 - Checks dependencies before index title changes
@@ -95,10 +96,15 @@ This is an **entirely new component** (~630 lines). The old ModeratorToolsPanel 
   - Returns error message string or null
   - Extracted for testability
 
-- **`handleFieldChange(field, value)` (lines 243-266)**: Field change handler
+- **`handleFieldChange(field, value)` (lines 245-268)**: Field change handler
   - Updates `updates` state (adds/removes based on value presence)
   - Validates and updates `validationErrors` state
   - Uses useCallback for performance
+
+- **`handleClearToggle(field, checked)` (lines 274-298)**: Clear checkbox handler
+  - Toggles field in `fieldsToClear` Set
+  - When checked, disables input and clears any pending updates/errors
+  - Allows users to completely remove fields from versions
 
 - **`performBulkEdit(...)` (lines 276-308)**: Shared API call logic
   - Builds payload with versionTitle, language, indices, updates
@@ -133,6 +139,10 @@ Fields grouped in `FIELD_GROUPS` (lines 109-130):
 
 **Special Features:**
 
+- **Clear Fields**: Checkbox below each field to completely remove it from all selected versions
+  - Uses `null` as sentinel value sent to backend
+  - Backend uses `delattr` to remove field from MongoDB document
+  - Input is disabled when field is marked for clearing
 - **URL Validation**: Real-time validation for 3 URL fields using native URL constructor
 - **Partial Success Handling**: Shows detailed failure list while reporting successes
 - **Soft Delete**: Mark for deletion adds note instead of actually deleting

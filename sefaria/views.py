@@ -1711,7 +1711,13 @@ def version_bulk_edit_api(request):
                 continue
 
             for field_name, field_value in updates.items():
-                setattr(version, field_name, field_value)
+                if field_value is None:
+                    # None is sentinel value for "clear this field"
+                    # Remove the attribute entirely so it's not saved to MongoDB
+                    if hasattr(version, field_name):
+                        delattr(version, field_name)
+                else:
+                    setattr(version, field_name, field_value)
             version.save()
             successes.append(index_title)
 
