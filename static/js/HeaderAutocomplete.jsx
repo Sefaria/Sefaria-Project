@@ -517,6 +517,20 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     }
   }
   
+  const getPanelCategory = () => {
+    let panel_category = null;
+    if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
+      const ref = firstPanel.currentlyVisibleRef || firstPanel.refs?.[0];
+      const parsedRef = Sefaria.parseRef(ref);
+      panel_category = Sefaria.index(parsedRef.index)?.primary_category;
+    } else if (firstPanel.menuOpen === "topics") {
+      panel_category = firstPanel.navigationTopicTitle.en || firstPanel.navigationTopicTitle.he;
+    } else {
+      panel_category = null;
+    }
+    return panel_category;
+  }
+  
   return (
       <GeneralAutocomplete
           containerClassString='search-container'
