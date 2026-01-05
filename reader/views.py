@@ -1718,18 +1718,18 @@ def index_api(request, title, raw=False):
         return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
     def handle_post_request(request, title, raw):
-        j = json.loads(request.POST.get("json"))
-        if not j:
+        json_data = json.loads(request.POST.get("json"))
+        if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         user_type, uid = determine_user_type_and_id(request)
         if uid is None:
             return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
         elif user_type == CONTENT_TYPE:
-            return index_post(request, uid, j, "API", raw)
+            return index_post(request, uid, json_data, "API", raw)
         elif user_type == ADMIN_TYPE:
             admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, j, None, raw)
+            return admin_post(request, uid, json_data, None, raw)
 
     def determine_user_type_and_id(request):
         if request.user.is_staff:
@@ -1742,7 +1742,7 @@ def index_api(request, title, raw=False):
                     return CONTENT_TYPE, apikey["uid"]
         return None, None
 
-    def index_post(request, uid, j, method, raw):
+    def index_post(request, uid, json_data, method, raw):
         # NOTE: The enhanced error handling and new format support below was added for
         # NodeTitleEditor and BulkIndexEditor, which are currently disabled in ModeratorToolsPanel.
         # The changes are backward-compatible and provide better error messages for all callers.
@@ -1750,16 +1750,16 @@ def index_api(request, title, raw=False):
         #
         # Handle both old format (with 'update' key) and new format (direct index data)
         # If the JSON contains a 'title' field but no 'update' key, assume it's an update
-        is_update = 'update' in j or ('title' in j and j.get('title'))
-        func = tracker.update if is_update else tracker.add
+        is_update = 'update' in json_data or ('title' in json_data and json_data.get('title'))
+        tracker_func = tracker.update if is_update else tracker.add
 
         # For updates, ensure we have the proper data structure
-        if is_update and 'update' not in j:
+        if is_update and 'update' not in json_data:
             # This is direct index data from NodeTitleEditor - wrap it properly
-            update_data = j
+            update_data = json_data
         else:
             # This is the old format with explicit 'update' key
-            update_data = j
+            update_data = json_data
 
         try:
             # Check if this is a main title change that might have dependencies
@@ -1773,7 +1773,7 @@ def index_api(request, title, raw=False):
                         # The dependency system will handle the cascading updates
                         pass
 
-            result = func(uid, Index, update_data, raw=raw, method=method)
+            result = tracker_func(uid, Index, update_data, raw=raw, method=method)
             return jsonResponse(result.contents(raw=raw))
 
         except Exception as e:
