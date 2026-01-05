@@ -77,7 +77,7 @@ const HELP_CONTENT = (
 
     <h3>Clearing Fields</h3>
     <p>
-      Each field has a "Clear this field from all selected versions" checkbox below it.
+      Each field has a "Clear this field" checkbox below it.
       When checked, that field will be completely removed from all selected versions (not set to empty string).
     </p>
     <p>
@@ -504,7 +504,7 @@ const BulkVersionEditor = () => {
               onChange={e => handleClearToggle(fieldName, e.target.checked)}
             />
             <span className="clearFieldLabel">
-              Clear this field from all selected versions
+              Clear this field
             </span>
           </label>
         </div>
