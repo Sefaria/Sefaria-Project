@@ -370,7 +370,7 @@ const BulkVersionEditor = () => {
       { versionNotes: deletionNote },
       (successCount) => `Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`,
       (successCount, total, failureList) => `Marked ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
-      (failureCount, failureList) => `Failed to mark versions for deletion:\n${failureList}`
+      (failureCount, failureList) => `All ${failureCount} versions failed to be marked for deletion:\n${failureList}`
     );
   };
 
