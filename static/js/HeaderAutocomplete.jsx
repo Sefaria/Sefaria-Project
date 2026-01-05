@@ -209,7 +209,6 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       submitSearch(inputQuery);
     };
 
-
     const handleSearchButtonClick = (event) => {
       const inputQuery = getInputValue();
       if (inputQuery) {
@@ -362,7 +361,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
-export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
+export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, firstPanel, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
     const fetchSuggestions = async (inputValue) => {
@@ -502,6 +501,8 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         )
     };
 
+  console.log("Location:", window.location.pathname);   
+  console.log("First panel menuOpen:", firstPanel.menuOpen, "mode:", firstPanel.mode);  
 
   return (
       <GeneralAutocomplete
