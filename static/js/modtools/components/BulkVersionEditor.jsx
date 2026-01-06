@@ -239,11 +239,7 @@ const BulkVersionEditor = () => {
       setIndices(resultIndices);
       setIndexMetadata(resultMetadata);
       setPick(new Set(resultIndices)); // Pre-select all
-      if (resultIndices.length > 0) {
-        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Found ${resultIndices.length} texts with version "${vtitle}"` });
-      } else {
-        setMsg(""); // No message for empty results - will show noResults box
-      }
+      setMsg(""); // Clear loading message - result count shown in IndexSelector header
     } catch (error) {
       setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${error.message || "Failed to load indices"}` });
       setIndices([]);
@@ -359,19 +355,9 @@ const BulkVersionEditor = () => {
    * Save changes to selected versions
    */
   const save = async () => {
-    if (!pick.size) {
-      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'No indices selected' });
-      return;
-    }
-
-    if (!Object.keys(updates).length && !fieldsToClear.size) {
-      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'No fields to update or clear' });
-      return;
-    }
-
-    // Check for validation errors
-    if (Object.keys(validationErrors).length > 0) {
-      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'Please fix validation errors before saving' });
+    // Validation is handled proactively via getValidationState()
+    // Button is disabled when validation fails, so these are just safety checks
+    if (!pick.size || !hasChanges || hasValidationErrors) {
       return;
     }
 
@@ -410,10 +396,8 @@ const BulkVersionEditor = () => {
    * Adds a note to versionNotes marking them for review
    */
   const markForDeletion = async () => {
-    if (!pick.size) {
-      setMsg({ type: MESSAGE_TYPES.WARNING, message: 'No texts selected' });
-      return;
-    }
+    // Button only shows when pick.size > 0, but safety check anyway
+    if (!pick.size) return;
 
     setShowDeleteConfirm(false);
     setMsg({ type: MESSAGE_TYPES.INFO, message: 'Marking versions for deletion review...' });
@@ -513,8 +497,32 @@ const BulkVersionEditor = () => {
     );
   };
 
-  const hasChanges = Object.keys(updates).length > 0;
+  const hasChanges = Object.keys(updates).length > 0 || fieldsToClear.size > 0;
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
+
+  // Compute validation state message (shown proactively, not on click)
+  const getValidationState = () => {
+    // Don't show validation messages while saving or if there's an active result message
+    if (saving) return null;
+    if (msg && (msg.type === MESSAGE_TYPES.SUCCESS || msg.type === MESSAGE_TYPES.ERROR)) return msg;
+
+    // Show validation warnings proactively
+    if (indices.length > 0 && pick.size === 0) {
+      return { type: MESSAGE_TYPES.WARNING, message: 'No indices selected' };
+    }
+    if (pick.size > 0 && !hasChanges) {
+      return { type: MESSAGE_TYPES.WARNING, message: 'No fields to update or clear' };
+    }
+    if (hasValidationErrors) {
+      return { type: MESSAGE_TYPES.WARNING, message: 'Please fix validation errors before saving' };
+    }
+
+    return msg; // Show any other message (like success/error from API)
+  };
+
+  const currentMessage = getValidationState();
+  const isButtonDisabled = saving || hasValidationErrors ||
+    (currentMessage?.type === MESSAGE_TYPES.WARNING);
 
   return (
     <ModToolsSection
@@ -642,33 +650,26 @@ const BulkVersionEditor = () => {
             </div>
           )}
 
-          {/* Action buttons */}
+          {/* Status message - shows validation feedback, success/error results */}
+          <StatusMessage message={currentMessage} />
+
+          {/* Save button */}
           <div className="actionRow">
-            {/* Save button */}
             <button
               className="modtoolsButton"
               onClick={save}
-              disabled={!hasChanges || saving || hasValidationErrors}
+              disabled={isButtonDisabled}
             >
               {saving ? (
                 <><span className="loadingSpinner" />Saving...</>
-              ) : hasValidationErrors ? (
-                "Fix errors to save"
               ) : (
-                `Update ${pick.size} Selected Versions`
+                `Save Changes`
               )}
             </button>
-
-            {/* Delete button */}
-            <button
-              className="modtoolsButton danger"
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={saving}
-              type="button"
-            >
-              Mark for Deletion
-            </button>
           </div>
+
+          {/* Delete section - separated at bottom */}
+          <div className="deleteSectionSeparator" />
 
           {/* Delete confirmation dialog */}
           {showDeleteConfirm && (
@@ -700,11 +701,22 @@ const BulkVersionEditor = () => {
               </div>
             </div>
           )}
+
+          {/* Delete button - at very bottom */}
+          {!showDeleteConfirm && (
+            <div className="actionRow">
+              <button
+                className="modtoolsButton danger"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={saving}
+                type="button"
+              >
+                Mark for Deletion
+              </button>
+            </div>
+          )}
         </>
       )}
-
-      {/* Status message */}
-      <StatusMessage message={msg} />
     </ModToolsSection>
   );
 };

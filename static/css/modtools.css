@@ -406,6 +406,13 @@
   margin-top: var(--mt-space-lg);
 }
 
+/* Separator before delete section */
+.modTools .deleteSectionSeparator {
+  margin-top: var(--mt-space-xl);
+  margin-bottom: var(--mt-space-md);
+  border-top: 1px solid var(--mt-border);
+}
+
 /* Section intro text - for counts, descriptions */
 .modTools .sectionIntro {
   margin-bottom: var(--mt-space-md);
