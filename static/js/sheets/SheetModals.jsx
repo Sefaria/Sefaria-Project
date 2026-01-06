@@ -137,36 +137,60 @@ const SaveModal = ({historyObject, close}) => {
   return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={handleClose}/>;
 }
 
+// Error messages for different Google OAuth failure scenarios
+const GAUTH_ERROR_MESSAGES = {
+  access_denied: "You declined permission to connect with Google. Export requires Google Drive access.",
+  invalid_grant: "The authorization expired or was already used. Please try again.",
+  scope_mismatch: "There was a permission mismatch. Please try again.",
+};
+
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    exporting: {en: "Exporting to Google Docs...", he: "מייצא לגוגל דוקס..."},
-    exportComplete: {en: "Success!", he: "ייצוא הסתיים"}
+    exporting: "Exporting to Google Docs...",
+    exportComplete: "Success!",
   }
   const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
   const [googleDriveLink, setGoogleDriveLink] = useState("");
 
-  const currentlyExporting = () => googleDriveText.en === googleDriveState.exporting.en;
+  const currentlyExporting = () => googleDriveText === googleDriveState.exporting;
   const exportToDrive = async () => {
     if (currentlyExporting()) {
-      history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
-      try {
-        const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
-        if (response.status === 401) {
-          // couldn't authenticate, so forward to google authentication
-          window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
-          return;
+      // Parse the hash to check for gauth_error (error is passed in fragment to avoid makeHistoryState issues)
+      const hashParams = Sefaria.util.parseHash(window.location.hash);
+      const gauthError = hashParams.gauth_error;
+      
+      if (gauthError) {
+        // Found a gauth_error in the hash, get the appropriate error message
+        // Remove gauth_error from hash, keeping other hash params like afterLoading
+        delete hashParams.gauth_error;
+        const remainingHash = new URLSearchParams(hashParams).toString();
+        const newHash = remainingHash ? '#' + remainingHash : '';
+        history.replaceState("", document.title, window.location.pathname + window.location.search + newHash);
+        const errorMessage = GAUTH_ERROR_MESSAGES[gauthError];
+        setGoogleDriveText(errorMessage);
+      }
+      else {
+        // No gauth_error parameter, so proceed with export
+        history.replaceState("", document.title, window.location.pathname + window.location.search); // remove exportToDrive hash once it's used to trigger export
+        try {
+          const response = await Sefaria.apiRequestWithBody(`/api/sheets/${sheetID}/export_to_drive?language=${language}&layout=${layout}`, null, {}, "POST", false);
+          if (response.status === 401) {
+            // couldn't authenticate, so forward to google authentication
+            window.location.href = `/gauth?next=${encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search + "#afterLoading=exportToDrive")}`;
+            return;
+          }
+          const data = await response.json();
+          if ("error" in data) {
+            setGoogleDriveText(data.error.message);
+          } else {
+            // Export succeeded
+            setGoogleDriveLink(data.webViewLink);
+            setGoogleDriveText(googleDriveState.exportComplete);
+          }
+        } catch (error) {
+          setGoogleDriveText("A network error occurred. Please check your connection and try again.");
         }
-        const data = await response.json();
-        if ("error" in data) {
-          setGoogleDriveText(data.error.message);
-        } else {
-          // Export succeeded
-          setGoogleDriveLink(data.webViewLink);
-          setGoogleDriveText(googleDriveState.exportComplete);
-        }
-      } catch (error) {
-        setGoogleDriveText(error);
       }
     }
   }
@@ -175,14 +199,16 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
     exportToDrive();
   }, [googleDriveText]);
   const getExportMessage = () => {
-    if (currentlyExporting()) {
-      return <InterfaceText text={googleDriveText}/>;
-    } else {
+    if (!currentlyExporting() && googleDriveLink) {
+      // Success - show link
       return <>
-        <InterfaceText text={googleDriveText}/>&nbsp;
+        <InterfaceText>{googleDriveText}</InterfaceText>
         <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
           Docs</InterfaceText></a>
       </>
+    } else {
+      // Either currently exporting or error
+      return <InterfaceText>{googleDriveText}</InterfaceText>;
     }
   }
   const handleClose = () => {
