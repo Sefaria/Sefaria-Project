@@ -2,14 +2,28 @@
 
 ## Summary
 
-Adds bulk editing capabilities to the Moderator Tools panel for updating Version metadata across multiple indices at once.
+Adds bulk editing capabilities to the Moderator Tools panel, along with a complete UI overhaul introducing a shared component library and dedicated stylesheet.
 
-**What it does:**
+**Primary Feature - Bulk Version Editor:**
 - Search for versions by title (e.g., "Kehati") and see all indices containing that version
 - Select which indices to update and apply metadata changes in bulk
 - Partial success handling: if some updates fail, successful ones are preserved
 - Field clearing: remove fields entirely from versions
 - Soft delete: mark versions for deletion with a timestamped note
+
+**UI Overhaul:**
+- New shared component library (ModToolsSection, IndexSelector, HelpButton, StatusMessage)
+- All tools now use collapsible sections with integrated help modals
+- New dedicated stylesheet (`modtools.css`, ~1600 lines)
+- Consistent patterns for state management, validation, and error display
+
+**Backend:**
+- 3 new API endpoints for version bulk operations
+- PyMongo 4.x migration (deprecated `update()` → `update_many()`)
+- Enhanced error handling with categorized responses
+
+**Additional tools built but disabled** (pending future tickets):
+- BulkIndexEditor, AutoLinkCommentaryTool, NodeTitleEditor
 
 **How to test:**
 1. Navigate to `/admin/moderator-tools`
@@ -17,7 +31,7 @@ Adds bulk editing capabilities to the Moderator Tools panel for updating Version
 3. Enter a version title and click Search
 4. Select indices, modify fields, and save
 
-**Note:** This is internal moderator tooling. The code prioritizes functionality over polish and does not follow all typical frontend code standards (e.g., no extensive test coverage for UI components).
+**Note:** This is internal moderator tooling. Code prioritizes functionality over polish.
 
 ---
 
