@@ -295,20 +295,29 @@ The following components were disabled in ModeratorToolsPanel but their backend 
 
 ### ModeratorToolsPanel Refactoring (static/js/ModeratorToolsPanel.jsx)
 
-The existing ModeratorToolsPanel (~1372 lines) was refactored to integrate the new bulk editing tools:
+The existing ModeratorToolsPanel was refactored in two phases:
 
-**Changes Made:**
-- Added documentation comments explaining component purpose
-- Added `stripHtmlTags()` utility function for safer HTML rendering (replaces direct innerHTML usage with sanitized text extraction)
-- Wrapped existing tools in `ModToolsSection` components for consistent collapsible UI
-- Added help content constants for tool documentation
-- Imported and integrated `BulkVersionEditor` component
+**Phase 1 - UI Integration:**
+- Wrapped existing tools in `ModToolsSection` for consistent collapsible UI
+- Added help content constants for each tool
+- Integrated `BulkVersionEditor` component
 
-**Logic Preserved:**
-- All existing API calls remain unchanged
-- State management patterns preserved
-- Existing tools (version download, link management) work identically
-- No changes to business logic or data flow
+**Phase 2 - Component Extraction:**
+
+Extracted 6 pre-existing tools into separate component files (~1373 → ~98 lines):
+
+| Component | Source |
+|-----------|--------|
+| `BulkDownloadText.jsx` | Extracted from inline render, converted to functional component |
+| `BulkUploadCSV.jsx` | Extracted from inline render, converted to functional component |
+| `WorkflowyModeratorTool.jsx` | Extracted existing class component |
+| `UploadLinksFromCSV.jsx` | Extracted existing class component |
+| `DownloadLinks.jsx` | Extracted existing function (renamed from GetLinks) |
+| `RemoveLinksFromCsv.jsx` | Extracted existing function component |
+
+Also created `utils/stripHtmlTags.js` for shared HTML sanitization utility.
+
+**Logic Preserved:** All existing API calls and behavior unchanged.
 
 ### CSS Styles (static/css/modtools.css)
 
@@ -374,8 +383,14 @@ All files changed in this PR:
 - `sefaria/tests/modtools_test.py` - Backend tests
 
 **Frontend (React/JS):**
-- `static/js/ModeratorToolsPanel.jsx` - Refactored existing panel
+- `static/js/ModeratorToolsPanel.jsx` - Refactored (now imports extracted components)
 - `static/js/modtools/components/BulkVersionEditor.jsx` - New component
+- `static/js/modtools/components/BulkDownloadText.jsx` - Extracted from ModeratorToolsPanel
+- `static/js/modtools/components/BulkUploadCSV.jsx` - Extracted from ModeratorToolsPanel
+- `static/js/modtools/components/WorkflowyModeratorTool.jsx` - Extracted from ModeratorToolsPanel
+- `static/js/modtools/components/UploadLinksFromCSV.jsx` - Extracted from ModeratorToolsPanel
+- `static/js/modtools/components/DownloadLinks.jsx` - Extracted from ModeratorToolsPanel (was GetLinks)
+- `static/js/modtools/components/RemoveLinksFromCsv.jsx` - Extracted from ModeratorToolsPanel
 - `static/js/modtools/components/BulkIndexEditor.jsx` - Disabled component
 - `static/js/modtools/components/AutoLinkCommentaryTool.jsx` - Disabled component
 - `static/js/modtools/components/NodeTitleEditor.jsx` - Disabled component
@@ -385,6 +400,8 @@ All files changed in this PR:
 - `static/js/modtools/components/shared/StatusMessage.jsx` - Shared component
 - `static/js/modtools/components/shared/index.js` - Exports
 - `static/js/modtools/constants/fieldMetadata.js` - Field definitions
+- `static/js/modtools/utils/index.js` - Utils exports
+- `static/js/modtools/utils/stripHtmlTags.js` - Shared HTML sanitization utility
 - `static/js/modtools/index.js` - Exports
 - `static/js/modtools/tests/fieldMetadata.test.js` - Frontend tests
 - `static/js/modtools/tests/stripHtmlTags.test.js` - Frontend tests
