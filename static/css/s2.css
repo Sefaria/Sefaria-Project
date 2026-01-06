@@ -166,9 +166,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .readerPanel span.mediumGrey {
   color: var(--medium-grey);
 }
-.readerPanel span.heebo {
-  font-family: "Heebo", sans-serif;
-}
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
@@ -14638,10 +14635,7 @@ span.ref-link-color-3 {color: blue}
 }
 /* end css code for loading bezel */
 
-span.heebo,
-.heebo {
-  font-family: "Heebo", sans-serif !important;
-}
+/* ========== GUIDE OVERLAY COMPONENT STYLES - START ========== */
 
 .guideOverlay {
   position: absolute;
