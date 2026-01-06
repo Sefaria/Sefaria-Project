@@ -151,8 +151,8 @@ const AutoLinkCommentaryTool = () => {
   const [searched, setSearched] = useState(false);
 
   // Results state
+  // indices: Array of {title: string, categories?: string[]} objects
   const [indices, setIndices] = useState([]);
-  const [indexMetadata, setIndexMetadata] = useState({});
   const [pick, setPick] = useState(new Set());
 
   // Options state
@@ -168,7 +168,6 @@ const AutoLinkCommentaryTool = () => {
    */
   const clearSearch = () => {
     setIndices([]);
-    setIndexMetadata({});
     setPick(new Set());
     setMsg("");
     setSearched(false);
@@ -194,27 +193,24 @@ const AutoLinkCommentaryTool = () => {
 
     try {
       const data = await Sefaria.apiRequestWithBody('/api/version-indices', urlParams, null, 'GET');
-      // Filter for commentary pattern
-      const comm = (data.indices || []).filter(t => t.includes(" on "));
-      // Build filtered metadata
-      const filteredMetadata = {};
-      comm.forEach(title => {
-        if (data.metadata?.[title]) {
-          filteredMetadata[title] = data.metadata[title];
-        }
-      });
-      setIndices(comm);
-      setIndexMetadata(filteredMetadata);
-      setPick(new Set(comm));
-      if (comm.length > 0) {
-        setMsg(`Found ${comm.length} commentaries with version "${vtitle}"`);
+      const resultMetadata = data.metadata || {};
+      // Filter for commentary pattern and combine with metadata
+      const commentaryIndices = (data.indices || [])
+        .filter(title => title.includes(" on "))
+        .map(title => ({
+          title,
+          categories: resultMetadata[title]?.categories
+        }));
+      setIndices(commentaryIndices);
+      setPick(new Set(commentaryIndices.map(item => item.title))); // Set of title strings
+      if (commentaryIndices.length > 0) {
+        setMsg(`Found ${commentaryIndices.length} commentaries with version "${vtitle}"`);
       } else {
         setMsg("");
       }
     } catch (error) {
       setMsg(`Error: ${error.message || "Failed to load indices"}`);
       setIndices([]);
-      setIndexMetadata({});
       setPick(new Set());
     } finally {
       setLoading(false);
@@ -372,7 +368,6 @@ const AutoLinkCommentaryTool = () => {
             selectedIndices={pick}
             onSelectionChange={setPick}
             label="commentaries"
-            indexMetadata={indexMetadata}
           />
 
           {/* Mapping selector */}

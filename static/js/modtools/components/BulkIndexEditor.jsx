@@ -178,8 +178,8 @@ const BulkIndexEditor = () => {
   const [searched, setSearched] = useState(false);
 
   // Results state
+  // indices: Array of {title: string, categories?: string[]} objects
   const [indices, setIndices] = useState([]);
-  const [indexMetadata, setIndexMetadata] = useState({});
   const [pick, setPick] = useState(new Set());
   const [categories, setCategories] = useState([]);
 
@@ -222,7 +222,6 @@ const BulkIndexEditor = () => {
    */
   const clearSearch = () => {
     setIndices([]);
-    setIndexMetadata({});
     setPick(new Set());
     setUpdates({});
     setMsg("");
@@ -251,9 +250,13 @@ const BulkIndexEditor = () => {
       const data = await Sefaria.apiRequestWithBody('/api/version-indices', urlParams, null, 'GET');
       const resultIndices = data.indices || [];
       const resultMetadata = data.metadata || {};
-      setIndices(resultIndices);
-      setIndexMetadata(resultMetadata);
-      setPick(new Set(resultIndices));
+      // Combine indices and metadata into single array of objects
+      const combinedIndices = resultIndices.map(title => ({
+        title,
+        categories: resultMetadata[title]?.categories
+      }));
+      setIndices(combinedIndices);
+      setPick(new Set(resultIndices)); // Set of title strings
       if (resultIndices.length > 0) {
         setMsg(`Found ${resultIndices.length} indices with version "${vtitle}"`);
       } else {
@@ -262,7 +265,6 @@ const BulkIndexEditor = () => {
     } catch (error) {
       setMsg(`Error: ${error.message || "Failed to load indices"}`);
       setIndices([]);
-      setIndexMetadata({});
       setPick(new Set());
     } finally {
       setLoading(false);
@@ -624,7 +626,6 @@ const BulkIndexEditor = () => {
           selectedIndices={pick}
           onSelectionChange={setPick}
           label="indices"
-          indexMetadata={indexMetadata}
         />
       )}
 

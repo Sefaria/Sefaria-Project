@@ -9,20 +9,19 @@
  * - Text search filtering (searches both title and categories)
  * - Select All checkbox in header (toggles selection of filtered items)
  * - Visual distinction for selected items (highlighted background)
- * - Category display inline (when indexMetadata prop is provided)
+ * - Category display inline (when categories are provided in index objects)
  *
  * Props:
- * - indices: string[] - Array of index titles to display
- * - selectedIndices: Set<string> - Set of currently selected indices
+ * - indices: Array<{title: string, categories?: string[]}> - Array of index objects with title and optional categories
+ * - selectedIndices: Set<string> - Set of currently selected index titles
  * - onSelectionChange: (Set) => void - Callback when selection changes
  * - label: string - Label for the items (e.g., "texts", "indices", "commentaries")
- * - indexMetadata: object - Optional metadata for each index { title: { categories: [...] } }
  *
  * Parent components should:
- * - Pass indexMetadata from the /api/version-indices response to show categories
+ * - Transform API response to combine indices and metadata into single array
  * - Implement their own Clear Search button and searched state
  *
- * For AI agents: This component manages a Set of selected indices.
+ * For AI agents: This component manages a Set of selected index titles.
  * The onSelectionChange callback receives the new Set when selection changes.
  */
 import React, { useState, useMemo } from 'react';
@@ -33,59 +32,55 @@ const IndexSelector = ({
   selectedIndices,
   onSelectionChange,
   label = 'texts',
-  maxHeight = null, // Set to null to let page scroll; set value like '400px' for inner scroll
-  indexMetadata = {} // Optional: { indexTitle: { categories: [...], ... } }
+  maxHeight = null // Set to null to let page scroll; set value like '400px' for inner scroll
 }) => {
   const [searchFilter, setSearchFilter] = useState('');
 
-  // Filter indices based on search
+  // Filter indices based on search (searches both title and categories)
   const filteredIndices = useMemo(() => {
     if (!searchFilter.trim()) return indices;
     const search = searchFilter.toLowerCase();
-    return indices.filter(idx => {
-      const titleMatch = idx.toLowerCase().includes(search);
-      const meta = indexMetadata[idx];
-      const categoryMatch = meta?.categories?.some(cat =>
+    return indices.filter(item => {
+      const titleMatch = item.title.toLowerCase().includes(search);
+      const categoryMatch = item.categories?.some(cat =>
         cat.toLowerCase().includes(search)
       );
       return titleMatch || categoryMatch;
     });
-  }, [indices, searchFilter, indexMetadata]);
+  }, [indices, searchFilter]);
 
   if (!indices || indices.length === 0) return null;
 
   const selectAll = () => {
     // Select all currently filtered indices
     const toSelect = new Set(selectedIndices);
-    filteredIndices.forEach(idx => toSelect.add(idx));
+    filteredIndices.forEach(item => toSelect.add(item.title));
     onSelectionChange(toSelect);
   };
 
   const deselectAll = () => {
     // Deselect all currently filtered indices
     const toKeep = new Set(selectedIndices);
-    filteredIndices.forEach(idx => toKeep.delete(idx));
+    filteredIndices.forEach(item => toKeep.delete(item.title));
     onSelectionChange(toKeep);
   };
 
-  const toggleOne = (index, checked) => {
+  const toggleOne = (title, checked) => {
     const newSet = new Set(selectedIndices);
     if (checked) {
-      newSet.add(index);
+      newSet.add(title);
     } else {
-      newSet.delete(index);
+      newSet.delete(title);
     }
     onSelectionChange(newSet);
   };
 
-  const allFilteredSelected = filteredIndices.every(idx => selectedIndices.has(idx));
+  const allFilteredSelected = filteredIndices.every(item => selectedIndices.has(item.title));
 
-  // Get display category for an index
-  const getDisplayCategory = (indexTitle) => {
-    const meta = indexMetadata[indexTitle];
-    if (meta?.categories && meta.categories.length > 0) {
-      // Show first 2 categories joined
-      return meta.categories.slice(0, 2).join(' • ');
+  // Get display category for an index (first 2 categories joined)
+  const getDisplayCategory = (item) => {
+    if (item.categories && item.categories.length > 0) {
+      return item.categories.slice(0, 2).join(' • ');
     }
     return null;
   };
@@ -140,25 +135,25 @@ const IndexSelector = ({
             No {label} match "{searchFilter}"
           </div>
         ) : (
-          filteredIndices.map(idx => {
-            const isSelected = selectedIndices.has(idx);
-            const category = getDisplayCategory(idx);
+          filteredIndices.map(item => {
+            const isSelected = selectedIndices.has(item.title);
+            const category = getDisplayCategory(item);
 
             return (
               <div
-                key={idx}
+                key={item.title}
                 className={`indexListRow ${isSelected ? 'selected' : ''}`}
-                onClick={() => toggleOne(idx, !isSelected)}
+                onClick={() => toggleOne(item.title, !isSelected)}
               >
                 <input
                   type="checkbox"
                   checked={isSelected}
                   onChange={e => {
                     e.stopPropagation();
-                    toggleOne(idx, e.target.checked);
+                    toggleOne(item.title, e.target.checked);
                   }}
                 />
-                <span className="indexListTitle">{idx}</span>
+                <span className="indexListTitle">{item.title}</span>
                 {category && (
                   <span className="indexListCategory">{category}</span>
                 )}
@@ -172,12 +167,14 @@ const IndexSelector = ({
 };
 
 IndexSelector.propTypes = {
-  indices: PropTypes.arrayOf(PropTypes.string).isRequired,
+  indices: PropTypes.arrayOf(PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    categories: PropTypes.arrayOf(PropTypes.string)
+  })).isRequired,
   selectedIndices: PropTypes.instanceOf(Set).isRequired,
   onSelectionChange: PropTypes.func.isRequired,
   label: PropTypes.string,
-  maxHeight: PropTypes.string,
-  indexMetadata: PropTypes.object
+  maxHeight: PropTypes.string
 };
 
 export default IndexSelector;

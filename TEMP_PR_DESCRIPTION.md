@@ -190,12 +190,13 @@ Fields grouped in `FIELD_GROUPS` (lines 125-146):
 
 Four reusable components extracted for consistency across modtools:
 
-**IndexSelector.jsx** (~183 lines)
+**IndexSelector.jsx** (~180 lines)
 - List-based display with checkboxes for selecting multiple indices
 - Text search filtering (searches both title and categories)
 - Select All/Deselect All buttons
 - Shows category path for each index (e.g., "Tanakh > Torah")
-- Props: `indices`, `selectedIndices` (Set), `onSelectionChange`, `label`, `indexMetadata`
+- Props: `indices` (Array<{title: string, categories?: string[]}>), `selectedIndices` (Set of titles), `onSelectionChange`, `label`
+- Parent components transform API response to combine indices and metadata into single array
 - Used by: BulkVersionEditor, BulkIndexEditor (disabled), AutoLinkCommentaryTool (disabled)
 
 **ModToolsSection.jsx** (~137 lines)
@@ -318,6 +319,11 @@ During review, the following improvements were made:
 - ✅ Visual feedback for disabled fields
   - Clear field checkbox greys out the input
   - CSS styling for disabled state (background, opacity, cursor)
+- ✅ Simplified IndexSelector props interface
+  - Combined `indices` (string[]) and `indexMetadata` (object) into single `indices` prop (Array<{title, categories?}>)
+  - Eliminates potential mismatch between parallel data structures
+  - Parent components now transform API response before passing to IndexSelector
+  - Cleaner, more intuitive component API
 
 **Bug Fixes:**
 - ✅ Fixed `check_index_dependencies_api` parameter name mismatch
