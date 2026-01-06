@@ -226,6 +226,12 @@ Four reusable components extracted for consistency across modtools:
 
 **fieldMetadata.js** (~308 lines) - Centralized field configuration for bulk editing:
 
+**INDEX_FIELD_METADATA** (lines 25-140)
+- Defines 16 Index model fields with metadata
+- Additional types: array (comma-separated), daterange (year or [start, end])
+- Auto-detection support: authors, dependence, base_text_titles, collective_title (use "auto" value)
+- Validation: toc_zoom must be integer 0-10
+
 **VERSION_FIELD_METADATA** (lines 154-265)
 - Defines 14 Version model fields with metadata
 - Field types: text, textarea, select, number
@@ -235,16 +241,18 @@ Four reusable components extracted for consistency across modtools:
   - Boolean fields: digitizedBySefaria, isPrimary, isSource (select with true/false/unspecified)
   - URL fields: versionSource, purchaseInformationURL, purchaseInformationImage
 
-**INDEX_FIELD_METADATA** (lines 25-140)
-- Defines 16 Index model fields with metadata
-- Additional types: array (comma-separated), daterange (year or [start, end])
-- Auto-detection support: authors, dependence, base_text_titles, collective_title (use "auto" value)
-- Validation: toc_zoom must be integer 0-10
+**ALL_VERSION_FIELDS** (lines 273-281)
+- Simple array of all 14 version field names
+- Used for backward compatibility with original BulkVersionEditor implementation
 
 **BASE_TEXT_MAPPING_OPTIONS** (lines 289-294)
 - 4 commentary mapping algorithms for auto-linking
 - Used by AutoLinkCommentaryTool (disabled)
 - Options: many_to_one_default_only, many_to_one, one_to_one_default_only, one_to_one
+
+**LINK_TYPE_OPTIONS** (lines 301-308)
+- 6 valid link types for links upload/download tools
+- Options: commentary, quotation, related, mesorat hashas, ein mishpat, reference
 
 **messageTypes.js** (~11 lines) - Message type enum for StatusMessage:
 - Exports `MESSAGE_TYPES` enum with: SUCCESS, ERROR, WARNING, INFO
