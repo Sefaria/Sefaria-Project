@@ -323,7 +323,6 @@ const BulkVersionEditor = () => {
     try {
       const payload = {
         versionTitle: vtitle,
-        language: lang,
         indices: Array.from(pick),
         updates: updatesToApply
       };

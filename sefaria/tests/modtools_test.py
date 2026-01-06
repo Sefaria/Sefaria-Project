@@ -274,6 +274,55 @@ class TestVersionBulkEditAPI:
         # Cleanup
         v.delete()
 
+    @pytest.mark.django_db
+    def test_bulk_edit_without_language_parameter(self, staff_client):
+        """Language parameter should be optional since title+versionTitle is unique.
+
+        When user doesn't select a language filter in the UI, the frontend
+        doesn't send a language parameter. The API should still find and
+        update the version using just title + versionTitle.
+        """
+        from sefaria.model import Version
+
+        # Create a test version with Hebrew language
+        test_version = Version({
+            'versionTitle': 'TestVersionNoLang',
+            'language': 'he',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+            'versionNotes': 'Original notes'
+        })
+        test_version.save()
+
+        # Request without language parameter (as frontend now sends)
+        response = staff_client.post(
+            '/api/version-bulk-edit',
+            data=json.dumps({
+                'versionTitle': 'TestVersionNoLang',
+                # No language parameter
+                'indices': ['Genesis'],
+                'updates': {'versionNotes': 'Updated notes'}
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+
+        # Should succeed - title + versionTitle is sufficient to find the version
+        assert data['status'] == 'ok', f"Expected success, got: {data}"
+        assert len(data['successes']) == 1
+        assert len(data['failures']) == 0
+
+        # Verify the update was applied
+        v = Version().load({'versionTitle': 'TestVersionNoLang', 'title': 'Genesis'})
+        assert v is not None
+        assert v.versionNotes == 'Updated notes'
+
+        # Cleanup
+        v.delete()
+
 
 class TestCheckIndexDependenciesAPI:
     """Tests for /api/check-index-dependencies endpoint."""
