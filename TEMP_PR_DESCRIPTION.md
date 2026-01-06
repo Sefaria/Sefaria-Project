@@ -244,7 +244,6 @@ Four reusable components extracted for consistency across modtools:
 - Field types: text, textarea, select, number
 - Each field includes: label, type, placeholder, help text, direction (rtl/ltr)
 - Special fields:
-  - `status`: "locked" prevents non-staff edits (see tracker.py:33)
   - Boolean fields: digitizedBySefaria, isPrimary, isSource (select with true/false/unspecified)
   - URL fields: versionSource, purchaseInformationURL, purchaseInformationImage
 - Used by: BulkVersionEditor
