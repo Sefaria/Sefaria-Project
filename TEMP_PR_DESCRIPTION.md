@@ -328,17 +328,6 @@ Four documentation files (~2206 lines total) provide guidance for AI agents and 
 - **COMPONENT_LOGIC.md**: Detailed component behavior documentation
 - **DESIGN_SYSTEM.md**: UI/UX patterns and styling conventions
 
-### Other Changes in This Branch
-
-**static/js/s1/editor.js**
-- Added autosave helper feature (unrelated to modtools)
-- Saves drafts to localStorage during editing
-- Debounced at 800ms after keystrokes
-
-**static/css/s2.css**
-- Added heebo font class for reader panel
-- Exploratory font styling (unrelated to modtools)
-
 ## Code Quality Improvements
 
 During review, the following improvements were made:
@@ -438,9 +427,7 @@ All files changed in this PR:
 - `docs/modtools/DESIGN_SYSTEM.md`
 - `TEMP_PR_DESCRIPTION.md` - This file
 
-**Unrelated Changes (in this branch):**
-- `static/js/s1/editor.js` - Autosave helper
-- `static/css/s2.css` - Heebo font class
+**Configuration:**
 - `.gitignore` - Added CLAUDE.md to ignore list
 
 ## Ready for Review
