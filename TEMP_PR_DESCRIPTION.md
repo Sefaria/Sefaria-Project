@@ -321,12 +321,10 @@ New stylesheet (~1641 lines) for modtools components:
 
 ### Documentation (docs/modtools/)
 
-Four documentation files (~2206 lines total) provide guidance for AI agents and developers:
+Two documentation files provide guidance for developers:
 
-- **MODTOOLS_AI_AGENT_GUIDE.md**: Primary guide for AI agents working on modtools
-- **ARCHITECTURE.md**: System architecture overview
-- **COMPONENT_LOGIC.md**: Detailed component behavior documentation
-- **DESIGN_SYSTEM.md**: UI/UX patterns and styling conventions
+- **MODTOOLS_GUIDE.md**: Comprehensive guide covering overview, APIs, data models, common tasks, and patterns
+- **COMPONENT_LOGIC.md**: Detailed component behavior and logic flows
 
 ## Code Quality Improvements
 
@@ -421,10 +419,8 @@ All files changed in this PR:
 - `static/css/modtools.css` - New modtools styles
 
 **Documentation:**
-- `docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md`
-- `docs/modtools/ARCHITECTURE.md`
-- `docs/modtools/COMPONENT_LOGIC.md`
-- `docs/modtools/DESIGN_SYSTEM.md`
+- `docs/modtools/MODTOOLS_GUIDE.md` - Consolidated guide (overview, APIs, tasks)
+- `docs/modtools/COMPONENT_LOGIC.md` - Detailed logic flows
 - `TEMP_PR_DESCRIPTION.md` - This file
 
 **Configuration:**

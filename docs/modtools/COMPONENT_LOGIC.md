@@ -1,6 +1,8 @@
 # ModTools Component Logic Documentation
 
-This document provides detailed logic flows, decision trees, and implementation rationale for each ModTools component. It is designed to help developers understand how each tool works and make informed modifications.
+This document provides detailed logic flows, decision trees, and implementation rationale for each ModTools component.
+
+**Related**: [MODTOOLS_GUIDE.md](./MODTOOLS_GUIDE.md) - Overview, APIs, common tasks
 
 ---
 
