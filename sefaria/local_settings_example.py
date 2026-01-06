@@ -175,6 +175,7 @@ SEARCH_INDEX_NAME_SHEET = 'sheet'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
+FAIL_IF_NODE_SSR_UNAVAILABLE = False
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
@@ -351,3 +352,5 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+FAIL_IF_NODE_SSR_UNAVAILABLE = False
