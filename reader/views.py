@@ -228,6 +228,19 @@ def render_react_component(component, props):
     except Exception as e:
         # Catch timeouts, however they may come.
         if FAIL_IF_NODE_SSR_UNAVAILABLE:
+            # Log full error details before raising so they appear in logs for debugging
+            props_dict = json.loads(propsJSON) if isinstance(propsJSON, str) else propsJSON
+            logger.exception(
+                "Node SSR failed (FAIL_IF_NODE_SSR_UNAVAILABLE=True)",
+                component=component,
+                url=url,
+                error_type=type(e).__name__,
+                error_message=str(e),
+                initial_path=props_dict.get("initialPath"),
+                multi_panel=props_dict.get("multiPanel", True),
+                logged_in=props_dict.get("loggedIn", False),
+                interface_lang=props_dict.get("interfaceLang"),
+            )
             raise e
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             props = json.loads(props) if isinstance(props, str) else props

@@ -3597,7 +3597,7 @@ _media: {},
      * window resize events and triggers re-renders on breakpoint changes.
      * That means this function can reliably read the up-to-date breakpoint without needing its own hook or state.
      */
-    console.log("Sefaria._inBrowser:", Sefaria._inBrowser);
+
     // During SSR, return DESKTOP as default
     if (!Sefaria._inBrowser) {
       return Sefaria.breakpoints.DESKTOP;
