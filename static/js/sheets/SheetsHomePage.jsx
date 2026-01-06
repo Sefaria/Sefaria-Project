@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {NavSidebar, SidebarFooter} from "../NavSidebar";
 import {SheetsTopicsCalendar, SheetsTopicsTOC} from "./SheetsHomePageTopicsTOC";
 import {InterfaceText} from "../Misc";
+import Sefaria from '../sefaria/sefaria';
+
 const SheetsHeroBanner = ({title, message, videoOptions, posterImg}) => {
     /*
      * `title` and `message` are shown on top of the video. `posterImg` is shown while video is downloaded,
