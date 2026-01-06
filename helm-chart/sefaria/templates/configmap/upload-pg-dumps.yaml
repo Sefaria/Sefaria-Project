@@ -27,12 +27,22 @@ data:
 
     set -e
     if [ -f "pg.dump" ]; then
-        echo "uploading private dump"
+        # # Validate dump size before upload
+        # DUMP_SIZE=$(stat -c%s "pg.dump" 2>/dev/null || stat -f%z "pg.dump")
+        # MIN_SIZE=524288000  # 500MB minimum (database is ~636MB)
+        
+        # if [ "$DUMP_SIZE" -lt "$MIN_SIZE" ]; then
+        #     echo "ERROR: Refusing to upload incomplete dump (${DUMP_SIZE} bytes, expected at least ${MIN_SIZE})"
+        #     curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Backup Alert", "text": "⚠️ PostgreSQL backup FAILED: Dump is only '"${DUMP_SIZE}"' bytes (expected ~636MB). Refusing to upload incomplete backup.", "icon_emoji": ":warning:"}' ${SLACK_URL}
+        #     exit 1
+        # fi
+        
+        echo "uploading private dump (${DUMP_SIZE} bytes)"
         gsutil cp pg.dump "gs://${BUCKET}/${PREFIX}postgres_${today}.dump"
     else
         echo "Private dump missing"
         exit 1
     fi
 
-    curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Data Archiver", "text": "The production Postgres Database was routinely dumped to cloud storage: '"$(date)"'", "icon_emoji": ":cloud:"}' ${SLACK_URL}
+    curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Data Archiver", "text": "The production Postgres Database was routinely dumped to cloud storage: '"$(date)"' ('"${DUMP_SIZE}"' bytes)", "icon_emoji": ":cloud:"}' ${SLACK_URL}
 {{- end }}
