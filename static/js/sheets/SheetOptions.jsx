@@ -24,6 +24,10 @@ const modifyHistoryObjectForSheetOptions = (historyObject) => {
 }
 
 const getExportingStatus = () => {
+  // During SSR, window doesn't exist, so default to false
+  if (!Sefaria._inBrowser) {
+    return false;
+  }
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
   return urlHashObject === "exportToDrive";
 }
