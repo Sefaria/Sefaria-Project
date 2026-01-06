@@ -1,5 +1,9 @@
 {{- if and .Values.restore.enabled .Values.cronJobs.syncPostgresProductionData.enabled }}
 # Safety check: Only create cronjob if restore is enabled (indicating dedicated DB)
+#
+# Required GCS Permissions for serviceAccount:
+# - storage.objects.list (to list backup files and find the latest)
+# - storage.objects.get (to download the backup file)
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -15,21 +19,57 @@ spec:
       backoffLimit: 1
       template:
         spec:
-          serviceAccount: {{ .Values.restore.serviceAccount }}
+          serviceAccount: {{ .Values.backup.postgres.serviceAccount }}
+          volumes:
+            - name: shared-volume
+              emptyDir: {}
+          initContainers:
+            - name: postgres-backup-downloader
+              image: google/cloud-sdk
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
+              command: ["bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Finding latest PostgreSQL backup from production..."
+                  
+                  # List all postgres backup files and find the latest one by timestamp
+                  echo "Listing available backups..."
+                  # Use GCS timestamps for reliable sorting (column 2 is the timestamp)
+                  latest_backup=$(gsutil ls -l gs://sefaria-user-backup/ | \
+                    grep 'postgres_.*\.dump' | \
+                    sort -k2 | \
+                    tail -1 | \
+                    awk '{print $3}')
+                  
+                  if [ -z "$latest_backup" ]; then
+                    echo "ERROR: No PostgreSQL backup files found in bucket"
+                    exit 1
+                  fi
+                  
+                  echo "Found latest backup: $latest_backup"
+                  echo "Downloading backup..."
+                  gsutil cp "$latest_backup" /storage/pg.dump
+                  
+                  echo "Latest backup downloaded successfully"
           containers:
             - name: sync-postgres-production-data
               image: postgres:{{ .Values.backup.postgres.version }}
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
               command: ["/bin/bash"]
               args:
                 - -c
                 - |
                   set -e
                   echo "Starting sync of production PostgreSQL data to {{ .Values.deployEnv }}..."
-
-                  # Find and download latest PostgreSQL backup from production
-                  LATEST_DUMP=$(gsutil ls -l gs://sefaria-user-backup/ | grep postgres | sort -k2r | head -1 | awk '{print $3}')
-                  echo "Found latest backup: $LATEST_DUMP"
-                  gsutil -q cp "$LATEST_DUMP" pg.dump
+                  
+                  # Use the backup file downloaded by the init container
+                  echo "Using backup file downloaded by init container: /storage/pg.dump"
 
                   # Set PostgreSQL connection environment variables
                   export PGHOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
@@ -46,7 +86,7 @@ spec:
 
                   # Perform the restore with --clean to update existing tables
                   echo "Restoring PostgreSQL data (updating existing tables)..."
-                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" pg.dump
+                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
 
                   echo "Production PostgreSQL data sync completed successfully"
               envFrom:

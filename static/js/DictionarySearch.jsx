@@ -166,7 +166,7 @@ class DictionarySearch extends Component {
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(Sefaria.interfaceLang === 'english'){
-          const opacity = show ? 0.4 : 0;
+          const opacity = show ? 1 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }

@@ -53,69 +53,6 @@ a, a:hover {
   --sans-serif-h3-font-size: 22px;
   --sans-serif-body-font-size: 16px;
   --sans-serif-small-font-size: 14px;
-
-  /* colors */
-  --inline-link-blue: #4871bf;
-  --sefaria-blue: #18345D;
-  --highlight-blue: #DDEEFF;
-  --highlight-blue-light: #F0F7FF;
-  --beit-midrash-grey: #333333;
-  --darkest-grey: #333333;
-  --darker-grey: #575757;
-  --dark-grey: #666666;
-  --medium-grey: #6f6f6f;
-  --medium-grey-legacy: #999999;
-  --light-grey: #CCCCCC;
-  --lighter-grey: #EDEDEC;
-  --lightest-grey: #FBFBFA;
-  --black: #000000;
-  --commentary-blue: #4B71B7;
-  --essay-links-green: #3B5849;
-  --tanakh-teal: #004E5F;
-  --mishnah-blue: #5A99B7;
-  --talmud-gold: #CCB479;
-  --midrash-green: #5D956F;
-  --halakhah-red: #802F3E;
-  --kabbalah-purple: #594176;
-  --liturgy-rose: #AB4E66;
-  --philosophy-purple: #7F85A9;
-  --taanitic-green: #00827F;
-  --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
-  --responsa-red: #CB6158;
-  --apocrypha-pink: #C6A7B4;
-  --modern-works-blue: #B8D4D3;
-  --grammar-green: #B2B272;
-  --reference-orange: #D4896C;
-  --miscelaneous-green: #3B5849;
-  --selected-option: #000000;
-  --select-blue: #0056b3;
-}
-/* Font Family */
-body, .sans-serif {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --is-serif: initial; /* false */
-}
-.serif {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --is-serif: ; /* true */
-}
-.sans-serif-in-hebrew {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-}
-body, .en, .int-en, .englishWithinHebrew {
-  --is-hebrew: initial; /* false */
-}
-.he, .int-he {
-  unicode-bidi: plaintext;
-  --is-hebrew: ; /* true */
-}
-* {
-  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
-  font-family: var(--hebrew-font-conditional, var(--english-font));
 }
 
 .sr-only,
@@ -320,8 +257,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
-body:not(.inApp).nochrome #s2 .headerLinksSection,
 body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
@@ -447,135 +382,9 @@ input.noselect {
   height: 100%;
   top: 0;
 }
-.headerInner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background: white;
-  z-index: 1001;
-  box-sizing: border-box;
-  padding: 0 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.headerOnly .headerInner, .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.interface-hebrew .header {
-  direction: rtl;
-}
-.headerInner .headerNavSection {
-  display: flex;
-  justify-content: flex-start;
-}
-.headerInner .headerNavSection a, .header img.home {
-  font-size: 16px;
-  color: var(--dark-grey);
-  margin-inline-end: 30px;
-  font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-}
-.headerInner .headerLinksSection {
-	display: flex;
-	justify-content: flex-end;
-	min-width: 50%;
-	align-items: center;
-}
-.headerInner .headerLinksSection > * {
-  margin-inline-start: 3%;
-}
-.headerLinksSection .sefaria-common-button {
-  width: 67px;
-  height: 30px;
-  padding: 0;
-  line-height: 18px;
-  font-size: 14px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.header .header-nav {
-  margin-top: 1px;
-}
-.header .header-links {
-  margin-top: 1px;
-}
-.header .textLink,
-.header .home,
-.header .menuButton,
-.header .my-profile,
-.header .notifications,
-.header .readerNavMenuSearchButton {
-  cursor: pointer;
-}
-.header .textLink,
-.header .menuButton,
-.header .my-profile,
-.header .readerNavMenuSearchButton {
-  display: inline-block;
-  color: var(--medium-grey);
-  border: none;
-  background: transparent;
-  padding: 0;
-}
-.header .my-profile,
 .header .notifications,
 .header .mobile-notifications {
-  display: inline-block;
-  vertical-align: middle;
   position: relative;
-}
-.header .textLink,
-.header .menuButton,
-.header .my-profile {
-  font-size: 24px;
-  line-height: 24px;
-  margin-top: 2px;
-}
-.header .searchBox {
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  text-align: inherit;
-  background: #EDEDEC;
-  border-radius: 250px;
-  width: 250px;
-  height: 30px;
-}
-.header .searchBox.searchFocused {
-  width: 280px;
-}
-.header .searchBox input {
-  background-color: transparent; /*for firefox */
-  padding: 0;
-  flex: 1;
-  height: 100%;
-  margin-bottom: 1px;
-  font-size: var(--serif-body-font-size);
-}
-.header .searchBox input::placeholder {
-  font-style: normal;
-}
-.header .search {
-  outline: none;
-  border: none;
-  box-shadow: none;
-  color: black;
-  font-size:  18px;
-  margin: 0;
-  width: 100px;
-}
-.header .searchFocused .search {
-  width: 200px;
-}
-.header .search.hebrewSearch {
-  font-size: 18px;
 }
 .mobileNavMenu {
   position: fixed;
@@ -608,11 +417,14 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
 }
-.header .mobileNavMenu .searchBox,
-.header .mobileNavMenu .searchBox.searchFocused
 .header .mobileNavMenu .searchBox .search,
 .header .mobileNavMenu .searchBox.searchFocused .search {
   width: 100%;
+}
+.mobileNavMenu .searchBox {
+    display: flex;
+    width: 100%;
+    align-items: center;
 }
 .header.mobile .ui-autocomplete {
   width: 100% !important;
@@ -714,9 +526,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.interface-hebrew .header .home img {
-  width: 77px;
-}
 .header .accountLinks {
   display: flex;
   align-items: center;
@@ -737,27 +546,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   box-sizing: border-box;
   border-radius: 6px;
 }
-.accountLinks .help {
-  margin-inline-start: 23px;
-  margin-top: 3px;
-}
-.loggedIn .help {
-  margin-inline-start: 17px;
-}
-.loggedIn .help img {
-  height: 24px;
-  margin-bottom: 3px;
-}
-.accountLinks.anon .help {
-  margin-top: 6px;
-}
-.headerLinksSection .help {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin-top: 4px;
-}
 .headerDropdownMenu .languageHeader {
   padding-inline: 15px;
   font-size: 14px;
@@ -772,97 +560,12 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   border-bottom: 1px solid #CCCCCC;
 }
 
-.header .interfaceLinks {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #000000;
-  cursor: pointer;
-  -webkit-margin-start: 20px;
-  -moz-margin-start: 20px;
-  margin-inline-start: 10px;
-}
-.header .interfaceLinks img {
-  height: 18px;
-  width: 18px;
-  vertical-align: middle;
-  margin-inline-end: 2px;
-}
-.header .interfaceLinks a.interfaceLinks-button{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.header .interfaceLinks a.interfaceLinks-button::after {
-  display: inline-block;
-  background: no-repeat url("/static/icons/chevron-down.svg");
-  height: 10px;
-  width: 12px;
-  vertical-align: middle;
-  content: "";
-  transform: scale(0.75);
-}
-.header .interfaceLinks .interfaceLinks-menu {
-  top: 35px;
-  position: absolute;
-  z-index: 1;
-  width: 150px;
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
-  display:none;
-  overflow:hidden;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu {
-  top: 10px;
-  display: block;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
-  padding: 10px 17px 10px 17px;
-  font-weight: 700;
-  color: #000000;
-  height: 23px;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu .profile-menu-middle {
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-menu {
-  right: 0px;
-  min-width: 150px;
-  width: max-content;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
-  left: 0px;
-  min-width: 150px;
-  width: max-content;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-style: normal;
-  font-weight: normal;
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--medium-grey);
-  padding: 12px;
-  border-bottom: 1px solid #CCCCCC;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
-  border-top: 1px solid #CCC;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-family: "Heebo", sans-serif;
-}
-
 .interfaceLinks-options {
   display: flex;
   flex-direction: column;
   padding: 4px;
   max-width: 220px;
 }
-.header .interfaceLinks .interfaceLinks-option,
 .globeLanguageToggle .englishLanguageLink,
 .globeLanguageToggle .hebrewLanguageLink {
   display: flex;
@@ -875,50 +578,15 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 5px;
   direction: ltr;
 }
-.header .interfaceLinks .interfaceLinks-option:hover {
-  background-color: var(--highlight-blue);
-}
-.header .languageFlex .interfaceLinks-option:hover {
-  background-color: var(--lighter-grey);
-  text-decoration: none;
-}
 .dropdownItem[data-prevent-close="true"]:hover {
   text-decoration: none;
 }
-.header .interfaceLinks .interfaceLinks-menu.open {
-  display: block;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi,
 .interface-hebrew .globeLanguageToggle .englishLanguageLink,
 .interface-hebrew .globeLanguageToggle .hebrewLanguageLink {
   direction: rtl;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
-  direction: ltr;
-}
-.header .interfaceLinks .interfaceLinks-row {
-  align-items: center;
-  display: flex;
-  text-decoration: none;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px;
-  text-align: right;
-  color: #000000;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 5px 17px 5px 17px;
-  font-size: 14px;
-  text-decoration-color: var(--dark-grey);
-  height: 23px;
-}
-.header .interfaceLinks .interfaceLinks-row:hover {
-  background-color: var(--lighter-grey);
-}
 div.interfaceLinks-row a:hover {
   text-decoration: none;
-}
-.header .interfaceLinks .interfaceLinks-row.languages {
-  display: flex;
 }
 div.interfaceLinks-row a.active {
   color: #000000;
@@ -932,25 +600,6 @@ div.interfaceLinks-row a.active::after {
 div.interfaceLinks-row a {
   color: var(--dark-grey);
   display: flex;
-}
-.header .interfaceLinks .interfaceLinks-row.bottom {
-  font-size: 14px;
-  text-decoration-color: #000000;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu .interfaceLinks-hr {
-  border-top:  1px solid #CCCCCC;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-.header .interfaceLinks .interfaceLinks-row.logout {
-  font-size: 14px;
-  color: var(--dark-grey);
-  padding-top: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.header .profile-menu-he {
-  color: var(--dark-grey);
 }
 .header .interfaceLinks-option::before,
 .globeLanguageToggle .hebrewLanguageLink::before,
@@ -983,90 +632,11 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   content: "";
   padding: 0 15px;
 }
-@media screen and (max-width: 910px) {
-  .header .headerInner {
-    padding: 0 15px;
-  }
-  .header .accountLinks .login {
-    padding: 5px 5px;
-  }
-  .header .accountLinks {
-    margin-inline-start: 5px;
-  }
-}
-@media screen and (max-width: 780px) {
-  .header .donate {
-    display: none;
-  }
-}
-@media screen and (max-width: 700px) {
-  .multiPanel .header .home {
-    display: none;
-  }
-}
-@media screen and (max-width: 580px) {
-  .header .interfaceLinks,
-  .header .dropdownLinks,
-  .accountLinks .help,
-  .header .notifications {
-    display: none;
-  }
-}
-.header .mobile-notifications.mobile-unread::after,
-.header .notifications.unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  display: block;
-  top: 3px;
-  right: 1px;
-  position: absolute;
-}
-
-/* Mobile navigation menu notification styles */
-.mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 7px;
-  height: 7px;
-  border-radius: 4px;
-  display: block;
-  top: 20px;
-  position: absolute;
-}
-
-.interface-english .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  left: 15px;
-}
-
-.interface-hebrew .mobileNavMenu a.mobile-notifications.mobile-unread::after {
-  right: 15px;
-}
 .header .login {
   color: var(--dark-grey);
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
-}
-.header .headerInner.mobile {
-  padding: 0 15px;
-}
-.header .headerInner.mobile {
-  display: flex;
-}
-.header .headerInner.mobile div {
-  flex: 1;
-}
-.mobileHeaderCenter {
-  text-align: center;
-}
-.mobileHeaderCenter img.home {
-  margin-inline-end: 0;
-}
-.header .headerInner.mobile .mobileHeaderLanguageToggle {
-  text-align: end;
 }
 .mobileHeaderLanguageToggle.hebrew .en,
 .mobileHeaderLanguageToggle.english .he {
@@ -1378,23 +948,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
     color: var(--beit-midrash-grey);
 }
 
-.header .my-profile img {
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  display: block;
-}
-.header .readerNavMenuMenuButton {
-  margin: 0 8px 0 6px;
-  font-size: 17px;
-}
 .readerNavMenuSearchButton {
   position: relative;
   margin: 0 9px 0 7px;
   top: -2px;
-}
-.header .readerNavMenuSearchButton {
-  top: 2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
@@ -1402,19 +959,9 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerNavMenuSearchButton img {
   height: 18px;
   width: 18px;
-  opacity: 0.4;
 }
 .sidebarSearch .readerNavMenuSearchButton img {
   margin-top: 12px;
-}
-.header .headerNavContent {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  top: 0;
-  padding-top: 60px;
-  z-index: 1000;
 }
 .ui-autocomplete {
   position: absolute;
@@ -1748,6 +1295,12 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   flex-direction: row;
   align-items: center;
   justify-content: center;
+}
+/* Hide ToC language toggle on narrow screens where mobile header shows its own toggle */
+@media (max-width: 842px) {
+  .navTitle .languageToggle {
+    display: none;
+  }
 }
 .navTitleTab {
   margin-inline-end: 26px;
@@ -3978,7 +3531,7 @@ details .open-details::before {
   cursor: default;
 }
 .version-with-preview-title-line .selectButton:not(.currSelectButton) {
-  color: var(--select-blue);
+  color: var(--theme-select);
 }
 .version-with-preview-title-line .selectButton::before {
   content: "•";
@@ -4914,10 +4467,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
-.search-container {
-  position: relative; /* Ensure dropdown positions relative to this container */
-}
-
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
@@ -4928,29 +4477,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 0px 0px 6px 4px;
   z-index: 2;
 }
-.singlePanel .autocomplete-dropdown {
-  width: 0;
-  position: fixed;
-  top: 120px;
-  inset-inline-start: 0;
-  padding-bottom: 10px;
-  max-height: calc(100dvh - 120px);
-  overflow-y: auto;
-}
-.singlePanel .autocomplete-dropdown:has(*){
-  width: 100vw;
-}
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
   display: flex;
   align-items: start;
   padding-top: 5px;
   padding-bottom: 5px;
-}
-.singlePanel .search-group-suggestions{
-  border-bottom-width: 0;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 .search-group-suggestions-items{
   display: flex;
@@ -4964,17 +4496,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-suggestion-link-wrapper:hover{
   text-decoration: none;
-}
-.singlePanel .search-suggestion-link-wrapper{
-  border-bottom: 0;
-  padding: 0;
-}
-.singlePanel .search-suggestion-link-wrapper.search-override-wrapper {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-top: 0.766667px solid #EDEDEC;
-  border-bottom: 0.766667px solid #EDEDEC;
 }
 
 .search-suggestion {
@@ -4992,15 +4513,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     max-width: 100%;
     min-height: 10px;
 }
-.singlePanel .search-suggestion{
-  width: auto;
-}
 
 .search-suggestion-text{
   font-family: 'EB Garamond';
-}
-.singlePanel .search-suggestion-text{
-  color: #000000;
 }
 .search-suggestion-text.hebrew-result{
   font-family: "Taamey Frank";
@@ -5025,13 +4540,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: .4;
   height: 18px;
   width: 18px;
-  margin-top: 2px;
-}
-.singlePanel .autocomplete-dropdown .type-icon{
-  padding-inline-start: 2px;
-}
-
-.singlePanel .autocomplete-dropdown .type-icon.english-result{
   margin-top: 2px;
 }
 
@@ -5071,10 +4579,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 15px;
   margin-left: 114px;
 }
-.singlePanel .autocomplete-dropdown .type-title {
-  width: 0;
-  visibility: hidden;
-  padding-inline-end: 0;
+
+/* Mobile autocomplete styles */
+@media (max-width: 842px) {
+  .autocomplete-dropdown {
+    width: 0;
+    position: fixed;
+    top: 120px;
+    inset-inline-start: 0;
+    padding-bottom: 10px;
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+  }
+  .autocomplete-dropdown:has(*){
+    width: 100vw;
+  }
+  .search-group-suggestions{
+    border-bottom-width: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .search-suggestion-link-wrapper{
+    border-bottom: 0;
+    padding: 0;
+  }
+  .search-suggestion-link-wrapper.search-override-wrapper {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-top: 0.766667px solid #EDEDEC;
+    border-bottom: 0.766667px solid #EDEDEC;
+  }
+  .search-suggestion{
+    width: auto;
+  }
+  .search-suggestion-text{
+    color: #000000;
+  }
+  .autocomplete-dropdown .type-icon{
+    padding-inline-start: 2px;
+  }
+  .autocomplete-dropdown .type-icon.english-result{
+    margin-top: 2px;
+  }
+  .autocomplete-dropdown .type-title {
+    width: 0;
+    visibility: hidden;
+    padding-inline-end: 0;
+  }
 }
 
 .topic-landing-search-wrapper{
@@ -5160,6 +4712,14 @@ h1.topic-landing-header {
   font-family: Roboto;
   font-size: 14px;
   margin-top: 2px;
+}
+
+.search::placeholder,
+.topic-landing-search-input::placeholder,
+.readerSearch::placeholder,
+.searchFiltersInput::placeholder,
+.topicFilterInput::placeholder {
+  color: var(--dark-grey);
 }
 
 .topic-landing-search-suggestion{
@@ -5943,6 +5503,7 @@ big {
   display: flex;
   flex-direction: row;
   text-align: left;
+  align-items: center;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
@@ -6045,6 +5606,9 @@ big {
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.interface-hebrew .rightButtons .readerOptions{
+  margin-inline-end: 11px;
 }
 .readerOptions .int-en {
   margin-right: 4px;
@@ -6623,9 +6187,6 @@ big {
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
-.readerPanel.english .SheetSource .sheetItem.segment .en {
-  background-color: white;
-}
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
 .heLeft.bilingual .segment > p > .translation,
@@ -7026,6 +6587,7 @@ But not to use a display block directive that might break continuous mode for ot
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
 }
+
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   height: 20px;
@@ -8831,7 +8393,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
 }
 .saveProfileButton{
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .button.disabled{
   border: 1px solid var(--light-grey);
@@ -9329,7 +8891,7 @@ a .button:hover {
   margin-block-end: 40px;
 }
 a.sheetAuthorName {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -10273,10 +9835,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   float: right;
 }
 .searchBox .keyboardInputInitiator {
-    opacity: 0.4;
-    width: 22px;
-    height: 20px;
-    padding: 4px 7px 2px;
+    margin: 0 7px 0 0;
     position: initial;
     vertical-align: 0px;
 }
@@ -10297,9 +9856,6 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 }
 .searchBox.TopicSearchBox input.selected {
   color: var(--commentary-blue);
-}
-.header .searchBox .keyboardInputInitiator {
-    display: none;
 }
 body #keyboardInputMaster {
     opacity: 1;
@@ -10604,27 +10160,21 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 body:not(.user-is-tabbing) .dropdownItem:focus,
 body:not(.user-is-tabbing) .dropdownOption:focus,
 body:not(.user-is-tabbing) div[role="button"]:focus,
-body:not(.user-is-tabbing) .dropdownLinks-button img:focus,
-body:not(.user-is-tabbing) .header-dropdown-button:focus {
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus {
   outline: none;
 }
 
 /* Add browser-like focus outline for dropdown buttons when tabbing */
 body.user-is-tabbing div[role="button"]:focus,
-body.user-is-tabbing .dropdownLinks-button img:focus,
-body.user-is-tabbing .header-dropdown-button:focus {
+body.user-is-tabbing .dropdownLinks-button img:focus {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
 }
 
-/* Reset button styling for header dropdown buttons to match original image appearance */
-.header-dropdown-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  display: inline-block;
+/* Show focus outline on dropdown options when using keyboard navigation and listbox has focus */
+body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
 }
 
 .singlePanel .dropdown .dropdownList {
@@ -11103,7 +10653,7 @@ span.purim-emoji img{
   position: relative;
 }
 .sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetContentSidebar .largeFollowButton {
   --english-font: var(--english-sans-serif-font-family);
@@ -11262,6 +10812,9 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
+.sheetContent .SheetOutsideText.highlight .sheetItem.segment .sourceContentText {
+  margin-bottom: 12px;
+}
 .sheetContent h1,
 #sheet .outside h1,
 .sourceContentText h1 {
@@ -11275,7 +10828,10 @@ span.purim-emoji img{
 .sourceContentText h1 span {
   border-bottom: 4px solid var(--lighter-grey);
 }
-
+.interface-hebrew #aboutCover,
+.interface-hebrew .overlayTextOnSheetsHero {
+  direction: rtl;
+}
 #aboutCover {
   margin-top: -90px;
   height: 240px;
@@ -11323,6 +10879,17 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
+@media screen and (min-width: 801px) and (max-width: 950px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 40px;
+    top: 115px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 22px;
+    top: 175px;
+  }
+}
 @media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {
     margin-inline-start: 15%;
@@ -11347,23 +10914,28 @@ span.purim-emoji img{
   align-items: flex-end;
   width: 25px;
   height: 25px;
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
   border-radius: 50%;
   color: white;
   font-size: 30px;
   line-height: 1;
   cursor: pointer;
 }
+.addToSheetButton {
+  background-color: unset;
+  border: none;
+}
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
-  border: none;
-  background-color: white;
 }
-.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton {
   margin-block-start: -10px;
   margin-block-end: 30px;
+}
+.SheetOutsideText .addToSheetButton {
+  margin-block-end: 12px;
 }
 .sheetContent .addToSheetText {
   --english-font: var(--english-sans-serif-font-family);
@@ -11960,9 +11532,9 @@ background-color: white;
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en,
-section.SheetOutsideBiText .en {
-  background-color: #FBFBFA;
+.bilingual .SheetSource .en,
+.bilingual .SheetOutsideBiText .en {
+  background-color: var(--lightest-grey);
 }
 section.SheetSource,
 section.SheetOutsideBiText {
@@ -12038,9 +11610,9 @@ cursor: pointer;
 
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
-  border-top: 2px solid var(--select-blue);
-  border-bottom: 2px solid var(--select-blue);
-  border-inline-end: 2px solid var(--select-blue);
+  border-top: 2px solid var(--theme-select);
+  border-bottom: 2px solid var(--theme-select);
+  border-inline-end: 2px solid var(--theme-select);
   margin-top: 0;
   margin-bottom: 28px;
   margin-inline-end: -2px;
@@ -12167,7 +11739,7 @@ cursor: pointer;
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-.readerPanel.bilingual.heRight .SheetSource {
+.heRight .SheetSource {
   background-image:
   linear-gradient(
     to left,
@@ -12178,7 +11750,7 @@ cursor: pointer;
     #fff 100%
   );
 }
-.readerPanel.bilingual.heLeft .SheetSource {
+.heLeft .SheetSource {
   background-image:
   linear-gradient(
     to right,
@@ -12188,6 +11760,11 @@ cursor: pointer;
     #FBFBFA 100%,
     #fff 100%
   );
+}
+.sheetContent .highlight,
+.sheetContent .highlight .en {
+  background-image: unset;
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,
@@ -13053,7 +12630,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--midrash-green);;
+  background: var(--sheets-green);
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
@@ -13787,7 +13364,7 @@ body .homeFeedWrapper.userStats {
   color: var(--dark-grey);
   padding: 20px 0px;
   line-height: 1.5;
-  text-align: start;
+  font-size: 22px;
 }
 .collectionsWidgetCreate,
 .collectionsWidgetDone {
@@ -15035,10 +14612,10 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 .sheetsHomepage .button {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetsHomepage .sheetsHomepageSectionTitle {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -15233,13 +14810,9 @@ span.ref-link-color-3 {color: blue}
   padding-top: 0;
   margin-top: -7px;
 }
-.header .headerDropdownMenu {
-  display: block;
-  align-items: center;
-  margin-top: 2px;
-  margin-bottom: 4px;
-  color: var(--dark-grey);
-  position: relative;
+.header .headerDropdownMenu,
+.search-container {
+  position: relative; /* Ensure dropdown positions relative to this container */
 }
 .headerDropdownMenu .toolsButtonContainer {
   margin: revert;
@@ -15268,29 +14841,12 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   line-height: 0;
 }
-.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
+.sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
 }
 
-.interface-english .header .headerDropdownMenu img {
-  margin-inline-end: 2px;
-}
-
-.interface-hebrew .header .headerDropdownMenu img {
-  margin-inline-end: 6px;
-}
-
-/* .header .headerDropdownMenu .dropdownLinks-button::after {
-  display: inline-block;
-  background: no-repeat url("/static/icons/chevron-down.svg");
-  height: 10px;
-  width: 12px;
-  vertical-align: middle;
-  content: "";
-  transform: scale(0.75);
-} */
 .header .headerDropdownMenu .dropdownLinks-menu a {
   color: #000000;
 }
@@ -15826,29 +15382,6 @@ span.ref-link-color-3 {color: blue}
   align-items: end;
 }
 
-.librarySavedIcon{
-  width: 20px;
-  height: 20px;
-  margin-inline-start: 6px;
-  margin-top: 2px;
-}
-
-.sheetsNotificationsHeaderIcon {
-  width: 20px;
-  height: 18px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.sheetsNotificationsHeaderIcon img{
-  width: 100%;
-  height: 100%;
-}
-
-.librarySavedIcon img{
-  width: 100%;
-  height: 100%;
-}
 .languageFlex {
   display: flex;
   flex-direction: column;

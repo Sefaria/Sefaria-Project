@@ -16,9 +16,47 @@ spec:
       template:
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
+          volumes:
+            - name: shared-volume
+              emptyDir: {}
+          initContainers:
+            - name: mongo-backup-downloader
+              image: google/cloud-sdk
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
+              command: ["bash"]
+              args:
+                - -c
+                - |
+                  set -e
+                  echo "Finding latest MongoDB private dump from production..."
+                  
+                  # List all private dump files and find the latest one by timestamp
+                  echo "Listing available private dumps..."
+                  # Use GCS timestamps for reliable sorting (column 2 is the timestamp)
+                  # [0-9] ensures we only match private_dump_<digit>... and exclude private_dump_small_...
+                  latest_backup=$(gsutil ls -l gs://sefaria-mongo-backup/ | \
+                    grep 'private_dump_[0-9].*\.tar\.gz' | \
+                    sort -k2 | \
+                    tail -1 | \
+                    awk '{print $3}')
+                  
+                  if [ -z "$latest_backup" ]; then
+                    echo "ERROR: No private dump files found in bucket"
+                    exit 1
+                  fi
+                  
+                  echo "Found latest private dump: $latest_backup"
+                  echo "Downloading backup..."
+                  gsutil cp "$latest_backup" /storage/dump.tar.gz
+                  echo "Private dump downloaded successfully"
           containers:
             - name: sync-mongo-production-data
               image: mongo:4.4
+              volumeMounts:
+                - name: shared-volume
+                  mountPath: /storage
               command: ["/bin/bash"]
               args:
                 - -c
@@ -26,11 +64,8 @@ spec:
                   set -e
                   echo "Starting sync of production data to {{ .Values.deployEnv }}..."
 
-                  # Download latest backup from production
-                  gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
-
                   # Extract backup
-                  tar xzvf dump.tar.gz -C .
+                  tar xzvf /storage/dump.tar.gz -C /storage
 
                   # Build MongoDB URI
                   URI="mongodb://"
@@ -60,7 +95,7 @@ spec:
                   echo "Using MongoDB URI: ${URI//:*@/:***@}"
 
                   # Perform the restore
-                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=dump/sefaria
+                  mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
 
                   echo "Production data sync completed successfully"
               envFrom:

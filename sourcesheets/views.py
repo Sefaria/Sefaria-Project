@@ -35,10 +35,10 @@ from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.cache import django_cache
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, get_redirect_to_help_center
 from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import render_template, catchall, get_search_params
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -64,9 +64,11 @@ def annotate_user_links(sources):
 
 from django.utils.translation import ugettext as _
 from reader.views import menu_page
+
+@ensure_csrf_cookie
 def sheets_home_page(request):
-    title = _("Voices on Sefaria")
-    desc  = _("Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos.")
+    title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
+    desc  = _("Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos.")
     return menu_page(request, page="voices", title=title, desc=desc)
 
 @login_required
@@ -172,9 +174,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
-    lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
-    redirect_url = help_center_redirects.get(lang_code, {}).get(str(sheet_id))
+    redirect_url = get_redirect_to_help_center(request, sheet_id)
     if redirect_url:
         return redirect(redirect_url)
     
@@ -989,7 +989,7 @@ def sheets_with_ref(request, tref):
     }
     he_tref = Ref(tref).he_normal()
     normal_ref = tref if request.interfaceLang == "english" else he_tref
-    title = _(f"Sheets with ")+normal_ref+_(" on Sefaria")
+    title = get_page_title(f"Sheets with {normal_ref}", module=request.active_module)
     props["sheetsWithRef"] = {"en": tref, "he": he_tref}
     return menu_page(request, page="sheetsWithRef", title=title, props=props)
 

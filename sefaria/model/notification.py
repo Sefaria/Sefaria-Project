@@ -288,8 +288,8 @@ class Notification(abst.AbstractMongoRecord):
 
         def annotate_sheet(n, sheet_id):
             sheet_data = get_sheet_metadata(id=sheet_id)
-            n["content"]["sheet_title"] = strip_tags(sheet_data["title"], remove_new_lines=True)
-            n["content"]["summary"] = sheet_data["summary"]
+            n["content"]["sheet_title"] = strip_tags(sheet_data.get("title", ""), remove_new_lines=True)
+            n["content"]["summary"] = sheet_data.get("summary", "")
 
         def annotate_collection(n, collection_slug):
             try:

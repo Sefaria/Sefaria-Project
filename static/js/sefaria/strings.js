@@ -8,6 +8,15 @@ const Strings = {
     "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
+
+    // Module Names and Page Title Suffixes
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Sefaria Library": "ספריית ספריא",
+    "Sheets from Voices on Sefaria": "דפים מתוך חיבורים בספריא",
+    "Texts from the Sefaria Library": "מקורות מתוך ספריית ספריא",
+    "Voices on Sefaria Collection": "אוסף מתוך חיבורים בספריא",
+    "Untitled": "ללא כותרת",
+
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
@@ -320,6 +329,12 @@ const Strings = {
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
     "Text display options": "אפשרויות תצוגת טקסט",
+    "Source-translation toggle": "מעבר בין מקור לתרגום",
+    "Show Text as a paragraph": "הצגת טקסט כפיסקה",
+    "Show Text segmented": "הצגת טקסט מפוצל",
+    "Show Source & Translation Stacked": "הצגת מקור ותרגום זה מעל זה",
+    "Show RTL Text Right of LTR Text": "הצגת טקסט מימין לשמאל מימין לטקסט משמאל לימין",
+    "Show RTL Text Left of LTR Text": "הצגת טקסט מימין לשמאל משמאל לטקסט משמאל לימין",
 
     // Collections
     "Collections": "אסופות",
@@ -394,6 +409,8 @@ const Strings = {
 
     // Saved / History / Notifications
     "Saved": "שמורים",
+    "My Saved Content": "התוכן השמור שלי",
+    "My Reading History": "היסטוריית הקריאה שלי",
     "Notifications": "התראות",
     "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
     "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
@@ -424,6 +441,7 @@ const Strings = {
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
@@ -551,6 +569,7 @@ const Strings = {
     "Annual Report": 'דו"ח שנתי',
     "Terms of Use": "תנאי שימוש",
     "Privacy Policy": "מדיניות פרטיות",
+    "AI at Sefaria": "שימוש ב-AI בספריא",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
@@ -634,7 +653,8 @@ const Strings = {
     //Mobile Nav Header
     "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
-    "Saved & History": "היסטורית קריאה ושמורים",
+    "Saved & History": "שמורים והיסטוריה",
+    "Saved, History & Notes": "שמורים, היסטוריה והערות",
     "Sidebar navigation": "ניווט בסרגל הצד",
     "Site search": "חיפוש באתר",
     "Account menu": "תפריט חשבון",
@@ -711,6 +731,12 @@ const Strings = {
   },
 
   _i18nInterfaceStringsWithContext: {
+    "ModuleSwitcherPopover": {
+      "Looking for something?": "חיפשתם משהו?",
+      "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",
+      "Learn More": "למידע נוסף",
+      "Got it!": "הבנתי, תודה!",
+    },
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",
       "None": "ללא",
@@ -770,7 +796,6 @@ const Strings = {
     },
     "Header": {
       "Texts": "מקורות",
-      "Explore": "נושאים",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",

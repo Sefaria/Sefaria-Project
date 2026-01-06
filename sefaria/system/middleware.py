@@ -15,10 +15,10 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param
-from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
+from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
-from urllib.parse import quote, urlparse, urljoin
+from urllib.parse import quote, urljoin
 from sefaria.constants.model import LIBRARY_MODULE
 
 import structlog
@@ -186,6 +186,96 @@ class LanguageCookieMiddleware(MiddlewareMixin):
                 p.settings["interface_language"] = lang
                 p.save()
             return response
+
+
+class SessionCookieDomainMiddleware(MiddlewareMixin):
+    """
+    Dynamically sets session/CSRF cookie domain based on DOMAIN_MODULES configuration.
+    
+    Enables cross-subdomain cookie sharing within the same language domain,
+    allowing users to remain logged in when navigating between modules (e.g., library ↔ voices).
+    
+    Works by storing the cookie domain on the request object in process_request,
+    then applying it to cookies in process_response. This approach is thread-safe
+    as it avoids modifying global Django settings.
+    
+    Examples:
+        - www.sefaria.org, voices.sefaria.org → cookie domain '.sefaria.org'
+        - www.sefaria.org.il, chiburim.sefaria.org.il → cookie domain '.sefaria.org.il'
+    """
+    
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        self._approved_domains = self._build_approved_domains()
+    
+    def _get_cookie_domain_for_request(self, request):
+        """
+        Get the cookie domain for a request based on its hostname.
+        
+        Returns:
+            str or None: The cookie domain (e.g., '.sefaria.org') if hostname is approved,
+                        None otherwise.
+        """
+        hostname = get_hostname_without_port(request)
+        return self._approved_domains.get(hostname)
+    
+    def process_request(self, request):
+        """Determine cookie domain for this request and store it on the request object."""
+        request._cookie_domain = self._get_cookie_domain_for_request(request)
+    
+    def _build_approved_domains(self):
+        """
+        Build mapping of hostname -> cookie domain from DOMAIN_MODULES.
+        
+        Groups hostnames by language and finds the common domain suffix for each group,
+        enabling cookie sharing across all modules within that language.
+        
+        Returns:
+            dict: {hostname: cookie_domain}, e.g., {'www.sefaria.org': '.sefaria.org'}
+        """
+        approved = {}
+        domain_modules = getattr(settings, 'DOMAIN_MODULES', {})
+        
+        for lang_code, modules in domain_modules.items():
+            # Collect all hostnames for this language
+            hostnames = [
+                hostname
+                for url in modules.values()
+                if (hostname := urlparse(url).hostname)
+            ]
+            
+            if not hostnames:
+                continue
+            
+            # Get cookie domain using get_cookie_domain for this language
+            long_lang = short_to_long_lang_code(lang_code)
+            cookie_domain = get_cookie_domain(long_lang)
+            
+            # Map each hostname to the common suffix
+            if cookie_domain:
+                for hostname in hostnames:
+                    approved[hostname] = cookie_domain
+        
+        return approved
+    
+    def process_response(self, request, response):
+        """
+        Apply the cookie domain to session and CSRF cookies in the response.
+        
+        Uses the cookie domain stored on the request object by process_request.
+        """
+        cookie_domain = getattr(request, '_cookie_domain', None)
+        
+        if cookie_domain:
+            # Update session cookie domain if present
+            if settings.SESSION_COOKIE_NAME in response.cookies:
+                response.cookies[settings.SESSION_COOKIE_NAME]['domain'] = cookie_domain
+                
+            # Update CSRF cookie domain if present
+            if settings.CSRF_COOKIE_NAME in response.cookies:
+                response.cookies[settings.CSRF_COOKIE_NAME]['domain'] = cookie_domain
+        
+        return response
 
 
 class CORSDebugMiddleware(MiddlewareMixin):

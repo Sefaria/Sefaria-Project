@@ -45,7 +45,6 @@ restore:
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
-
 # config to backup environment DB
 backup:
   mongo:
@@ -225,6 +224,7 @@ tasks:
       ref: sentinel-password
   queues:
     llm: default-llm
+  nodeAffinity: {}
 
 # Takes the url of an NER server instance
 # Will automatically enable internal settings to communicate with the NER server
@@ -422,6 +422,8 @@ localSettings:
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
+  SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
@@ -435,7 +437,6 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
-  SESSION_COOKIE_DOMAIN: ".sefaria.org"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

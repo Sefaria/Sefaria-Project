@@ -104,7 +104,7 @@ tasks:
     limits:
       memory: "6Gi"
       cpu: "1000m"
-  replicaCount: 4
+  replicaCount: 6
   redis:
     url: ""
     port: "26379"
