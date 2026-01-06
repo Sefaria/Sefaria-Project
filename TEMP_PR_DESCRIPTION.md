@@ -441,6 +441,7 @@ All files changed in this PR:
 **Unrelated Changes (in this branch):**
 - `static/js/s1/editor.js` - Autosave helper
 - `static/css/s2.css` - Heebo font class
+- `.gitignore` - Added CLAUDE.md to ignore list
 
 ## Ready for Review
 
