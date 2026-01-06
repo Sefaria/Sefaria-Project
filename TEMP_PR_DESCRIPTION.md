@@ -31,7 +31,7 @@ Adds bulk editing capabilities to the Moderator Tools panel, along with a comple
 3. Enter a version title and click Search
 4. Select indices, modify fields, and save
 
-**Note:** This is internal moderator tooling. Code prioritizes functionality over polish.
+**Note:** This is internal moderator tooling. Code prioritizes functionality over polish. CSS and Tests weren't thoroughly reviewed. 
 
 ---
 
@@ -277,7 +277,6 @@ Four reusable components extracted for consistency across modtools:
 - Validates partial success handling
 - Tests field whitelisting
 - Tests empty indices validation
-- Updated to match simplified API response format
 - **Field clearing tests**:
   - `test_bulk_edit_null_clears_field`: Verifies null values remove fields entirely from MongoDB
   - `test_bulk_edit_mixed_updates_and_clears`: Tests mixing field updates and clears in one request
@@ -341,55 +340,15 @@ Two documentation files provide guidance for developers:
 
 ## Code Quality Improvements
 
-During review, the following improvements were made:
+**Changes outside ModTools:**
+- PyMongo 4.x migration: `update()` → `update_many()` in `history.py` and `helper/text.py`
+- Fixed `check_index_dependencies_api` parameter name mismatch (URL route vs function signature)
+- Enhanced `reader/views.py` Index API with categorized error responses
 
-**Backend:**
-- ✅ Improved variable naming across all endpoints (vtitle→version_title, lang→language, j→json_data)
-- ✅ Reordered functions to match URL endpoint order
-- ✅ Removed redundant imports
-- ✅ Added NOTE comments for disabled feature code
-- ✅ Fixed empty indices status code (500→400)
-- ✅ Updated docstrings to reflect actual behavior
-- ✅ Updated tests to match simplified API responses
-
-**Frontend:**
-- ✅ Migrated to Sefaria API utilities
-  - Replaced jQuery (`$.ajax`, `$.getJSON`) and manual `fetch` with `Sefaria.apiRequestWithBody`
-  - Automatic URL parameter building via `URLSearchParams`
-  - Consistent CSRF token handling and error management
-  - Removed jQuery dependency from all components
-- ✅ Converted callback-based code to async/await pattern
-- ✅ Extracted validation logic to pure function (`getFieldValidationError`) for testability
-- ✅ Extracted duplicate API call logic into `performBulkEdit` helper function (~50 lines saved)
-- ✅ Improved error display
-  - Changed from semicolon-separated strings to bullet-list format with newlines
-  - Removed emoji characters from user messages
-  - Better readability for multiple errors
-- ✅ Response format simplification
-  - Frontend calculates counts from array lengths
-  - Backend no longer sends redundant `count`/`total` fields
-  - Reduced response size and naming confusion
-- ✅ Removed unnecessary fallback in `renderField` (all fields guaranteed to have metadata)
-- ✅ Replaced emoji-based message system with MESSAGE_TYPES enum
-  - MESSAGE_TYPES exported from StatusMessage component (SUCCESS, ERROR, WARNING, INFO)
-  - StatusMessage accepts `{type, message}` objects for explicit styling
-  - More maintainable and type-safe than emoji prefix detection
-- ✅ Implemented proactive validation messages
-  - Validation state computed automatically from current state (not triggered on click)
-  - Save button disabled when validation fails (WARNING messages)
-  - Users see issues immediately without needing to click
-- ✅ Visual feedback for disabled fields
-  - Clear field checkbox greys out the input
-  - CSS styling for disabled state (background, opacity, cursor)
-
-**Bug Fixes:**
-- ✅ Fixed `check_index_dependencies_api` parameter name mismatch
-  - URL route used `(?P<title>.+)` but function expected `index_title`
-  - Changed function parameter from `index_title` to `title` to match route
-- ✅ Removed versionTitle from editable fields (both frontend FIELD_GROUPS and backend whitelist)
-  - versionTitle is the search parameter - editing it would cause partial failures as the search key changes during bulk operations
-  - Prevents data corruption where first edit succeeds but subsequent edits fail
-  - Users should edit version titles individually, not in bulk
+**Key patterns in new code:**
+- Uses `Sefaria.apiRequestWithBody` instead of jQuery/fetch (no jQuery dependency)
+- MESSAGE_TYPES enum for type-safe status messages
+- Proactive validation (button disabled when invalid, no click required)
 
 ## Testing
 
@@ -397,6 +356,8 @@ The PR includes comprehensive test coverage:
 - Backend API endpoint tests with partial success scenarios
 - Field metadata structure validation
 - All tests pass with updated response formats
+
+These tests are treated as a nice-to-have and haven't been reviewed. 
 
 ## Complete File List
 
@@ -438,10 +399,3 @@ All files changed in this PR:
 
 **Configuration:**
 - `.gitignore` - Added CLAUDE.md to ignore list
-
-## Ready for Review
-
-This PR is ready for review. Key areas to focus on:
-1. **Backend API design**: Partial success handling and field whitelisting
-2. **Frontend UX**: Workflow clarity and error messaging
-3. **Code modernization**: Sefaria API utility usage patterns
