@@ -20,10 +20,9 @@
 import React, { useState, useCallback } from 'react';
 import Sefaria from '../../sefaria/sefaria';
 import { VERSION_FIELD_METADATA } from '../constants/fieldMetadata';
-import { MESSAGE_TYPES } from '../constants/messageTypes';
 import ModToolsSection from './shared/ModToolsSection';
 import IndexSelector from './shared/IndexSelector';
-import StatusMessage from './shared/StatusMessage';
+import StatusMessage, { MESSAGE_TYPES } from './shared/StatusMessage';
 
 /**
  * Detailed help documentation for this tool

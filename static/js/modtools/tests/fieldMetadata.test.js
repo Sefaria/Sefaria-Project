@@ -7,9 +7,7 @@
 import {
   INDEX_FIELD_METADATA,
   VERSION_FIELD_METADATA,
-  ALL_VERSION_FIELDS,
-  BASE_TEXT_MAPPING_OPTIONS,
-  LINK_TYPE_OPTIONS
+  BASE_TEXT_MAPPING_OPTIONS
 } from '../constants/fieldMetadata';
 
 describe('INDEX_FIELD_METADATA', () => {
@@ -182,23 +180,6 @@ describe('VERSION_FIELD_METADATA', () => {
   });
 });
 
-describe('ALL_VERSION_FIELDS', () => {
-  it('is an array', () => {
-    expect(Array.isArray(ALL_VERSION_FIELDS)).toBe(true);
-  });
-
-  it('contains all VERSION_FIELD_METADATA keys', () => {
-    const metadataKeys = Object.keys(VERSION_FIELD_METADATA);
-    metadataKeys.forEach(key => {
-      expect(ALL_VERSION_FIELDS).toContain(key);
-    });
-  });
-
-  it('has correct length matching VERSION_FIELD_METADATA', () => {
-    expect(ALL_VERSION_FIELDS.length).toBe(Object.keys(VERSION_FIELD_METADATA).length);
-  });
-});
-
 describe('BASE_TEXT_MAPPING_OPTIONS', () => {
   it('is an array with expected options', () => {
     expect(Array.isArray(BASE_TEXT_MAPPING_OPTIONS)).toBe(true);
@@ -216,30 +197,5 @@ describe('BASE_TEXT_MAPPING_OPTIONS', () => {
     const option = BASE_TEXT_MAPPING_OPTIONS.find(o => o.value === 'many_to_one_default_only');
     expect(option).toBeDefined();
     expect(option.label).toContain('Mishnah');
-  });
-});
-
-describe('LINK_TYPE_OPTIONS', () => {
-  it('is an array with expected options', () => {
-    expect(Array.isArray(LINK_TYPE_OPTIONS)).toBe(true);
-  });
-
-  it('includes commentary link type', () => {
-    expect(LINK_TYPE_OPTIONS.find(o => o.value === 'commentary')).toBeDefined();
-  });
-
-  it('includes quotation link type', () => {
-    expect(LINK_TYPE_OPTIONS.find(o => o.value === 'quotation')).toBeDefined();
-  });
-
-  it('includes mesorat hashas link type', () => {
-    expect(LINK_TYPE_OPTIONS.find(o => o.value === 'mesorat hashas')).toBeDefined();
-  });
-
-  it('each option has value and label', () => {
-    LINK_TYPE_OPTIONS.forEach(option => {
-      expect(option).toHaveProperty('value');
-      expect(option).toHaveProperty('label');
-    });
   });
 });

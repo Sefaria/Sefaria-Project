@@ -265,22 +265,6 @@ export const VERSION_FIELD_METADATA = {
 };
 
 /**
- * ALL_VERSION_FIELDS
- *
- * Simple array of all version field names for backward compatibility
- * with the original BulkVersionEditor implementation.
- */
-export const ALL_VERSION_FIELDS = [
-  "versionTitle", "versionTitleInHebrew",
-  "versionSource", "license", "status",
-  "priority", "digitizedBySefaria",
-  "isPrimary", "isSource",
-  "versionNotes", "versionNotesInHebrew",
-  "purchaseInformationURL", "purchaseInformationImage",
-  "direction"
-];
-
-/**
  * BASE_TEXT_MAPPING_OPTIONS
  *
  * Options for the base_text_mapping field used in commentary linking.
@@ -291,18 +275,4 @@ export const BASE_TEXT_MAPPING_OPTIONS = [
   { value: "many_to_one", label: "many_to_one" },
   { value: "one_to_one_default_only", label: "one_to_one_default_only" },
   { value: "one_to_one", label: "one_to_one" }
-];
-
-/**
- * LINK_TYPE_OPTIONS
- *
- * Valid link types for the links upload/download tools.
- */
-export const LINK_TYPE_OPTIONS = [
-  { value: "commentary", label: "Commentary" },
-  { value: "quotation", label: "Quotation" },
-  { value: "related", label: "Related" },
-  { value: "mesorat hashas", label: "Mesorat HaShas" },
-  { value: "ein mishpat", label: "Ein Mishpat" },
-  { value: "reference", label: "Reference" }
 ];

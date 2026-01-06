@@ -12,7 +12,13 @@
  * - INFO = light blue (default)
  */
 import PropTypes from 'prop-types';
-import { MESSAGE_TYPES } from '../../constants/messageTypes';
+
+export const MESSAGE_TYPES = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info'
+};
 
 const StatusMessage = ({ message, className = '' }) => {
   if (!message) return null;

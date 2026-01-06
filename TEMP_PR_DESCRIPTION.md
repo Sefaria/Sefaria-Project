@@ -1,14 +1,29 @@
-<!--
-WORKING DOCUMENT - DO NOT COMMIT
-This is a temporary file for building the PR description as we review the code.
-We'll use this to understand all changes, then copy the final version to the actual PR.
-This file will be deleted after the PR description is complete.
--->
-
 # PR #2974: Bulk Version Metadata Editor for Moderator Tools
 
 ## Summary
-This PR adds bulk editing capabilities to the Moderator Tools panel, specifically for updating Version metadata across multiple indices at once. It also includes enhanced error handling for Index API operations, PyMongo 4.x compatibility fixes, and a UI overhaul.
+
+Adds bulk editing capabilities to the Moderator Tools panel for updating Version metadata across multiple indices at once.
+
+**What it does:**
+- Search for versions by title (e.g., "Kehati") and see all indices containing that version
+- Select which indices to update and apply metadata changes in bulk
+- Partial success handling: if some updates fail, successful ones are preserved
+- Field clearing: remove fields entirely from versions
+- Soft delete: mark versions for deletion with a timestamped note
+
+**How to test:**
+1. Navigate to `/admin/moderator-tools`
+2. Expand "Bulk Edit Version Metadata"
+3. Enter a version title and click Search
+4. Select indices, modify fields, and save
+
+**Note:** This is internal moderator tooling. The code prioritizes functionality over polish and does not follow all typical frontend code standards (e.g., no extensive test coverage for UI components).
+
+---
+
+## Detailed Technical Documentation
+
+The sections below provide a step-by-step walkthrough of all changes for code reviewers.
 
 ## Changes Overview
 
@@ -190,7 +205,7 @@ Fields grouped in `FIELD_GROUPS` (lines 125-146):
 
 Four reusable components extracted for consistency across modtools:
 
-**IndexSelector.jsx** (~180 lines)
+**IndexSelector.jsx** (~183 lines)
 - List-based display with checkboxes for selecting multiple indices
 - Text search filtering (searches both title and categories)
 - Select All/Deselect All buttons
@@ -214,23 +229,15 @@ Four reusable components extracted for consistency across modtools:
 - Focus trap management (focuses modal on open, returns focus on close)
 - Accepts `helpContent` prop with JSX documentation
 
-**StatusMessage.jsx** (~45 lines)
+**StatusMessage.jsx** (~51 lines)
 - Consistent message display with type-based styling
+- Exports `MESSAGE_TYPES` enum (SUCCESS, ERROR, WARNING, INFO)
 - Accepts string (defaults to 'info') or `{type, message}` object
-- Uses `MESSAGE_TYPES` enum from `constants/messageTypes.js`
-- Types: SUCCESS (green), ERROR (red), WARNING (yellow), INFO (blue)
-- Handles multiline messages with preserved formatting
 - Shows nothing when message is empty
 
 #### 3. Constants (static/js/modtools/constants/)
 
-**fieldMetadata.js** (~308 lines) - Centralized field configuration for bulk editing:
-
-**INDEX_FIELD_METADATA** (lines 25-140)
-- Defines 16 Index model fields with metadata
-- Additional types: array (comma-separated), daterange (year or [start, end])
-- Auto-detection support: authors, dependence, base_text_titles, collective_title (use "auto" value)
-- Validation: toc_zoom must be integer 0-10
+**fieldMetadata.js** (~278 lines) - Centralized field configuration for bulk editing:
 
 **VERSION_FIELD_METADATA** (lines 154-265)
 - Defines 14 Version model fields with metadata
@@ -240,24 +247,15 @@ Four reusable components extracted for consistency across modtools:
   - `status`: "locked" prevents non-staff edits (see tracker.py:33)
   - Boolean fields: digitizedBySefaria, isPrimary, isSource (select with true/false/unspecified)
   - URL fields: versionSource, purchaseInformationURL, purchaseInformationImage
+- Used by: BulkVersionEditor
 
-**ALL_VERSION_FIELDS** (lines 273-281)
-- Simple array of all 14 version field names
-- Used for backward compatibility with original BulkVersionEditor implementation
+**INDEX_FIELD_METADATA** (lines 25-140)
+- Defines 16 Index model fields with metadata
+- Used by: BulkIndexEditor (disabled)
 
-**BASE_TEXT_MAPPING_OPTIONS** (lines 289-294)
+**BASE_TEXT_MAPPING_OPTIONS** (lines 267-278)
 - 4 commentary mapping algorithms for auto-linking
-- Used by AutoLinkCommentaryTool (disabled)
-- Options: many_to_one_default_only, many_to_one, one_to_one_default_only, one_to_one
-
-**LINK_TYPE_OPTIONS** (lines 301-308)
-- 6 valid link types for links upload/download tools
-- Options: commentary, quotation, related, mesorat hashas, ein mishpat, reference
-
-**messageTypes.js** (~11 lines) - Message type enum for StatusMessage:
-- Exports `MESSAGE_TYPES` enum with: SUCCESS, ERROR, WARNING, INFO
-- Used by StatusMessage component and BulkVersionEditor for type-safe message handling
-- Replaces emoji-based type detection for better maintainability
+- Used by: AutoLinkCommentaryTool (disabled)
 
 ### Tests
 
@@ -273,7 +271,7 @@ Four reusable components extracted for consistency across modtools:
   - `test_bulk_edit_clear_nonexistent_field`: Ensures clearing nonexistent fields doesn't error
 
 **Frontend Tests** (static/js/modtools/tests/)
-- **fieldMetadata.test.js** (~245 lines): Validates field metadata structure
+- **fieldMetadata.test.js** (~201 lines): Validates field metadata structure
 - **stripHtmlTags.test.js** (~108 lines): Tests HTML sanitization utility
 
 ### Components Disabled
@@ -317,8 +315,8 @@ During review, the following improvements were made:
   - Reduced response size and naming confusion
 - ✅ Removed unnecessary fallback in `renderField` (all fields guaranteed to have metadata)
 - ✅ Replaced emoji-based message system with MESSAGE_TYPES enum
-  - Created `constants/messageTypes.js` with SUCCESS, ERROR, WARNING, INFO types
-  - StatusMessage now accepts `{type, message}` objects for explicit styling
+  - MESSAGE_TYPES exported from StatusMessage component (SUCCESS, ERROR, WARNING, INFO)
+  - StatusMessage accepts `{type, message}` objects for explicit styling
   - More maintainable and type-safe than emoji prefix detection
 - ✅ Implemented proactive validation messages
   - Validation state computed automatically from current state (not triggered on click)
@@ -327,11 +325,6 @@ During review, the following improvements were made:
 - ✅ Visual feedback for disabled fields
   - Clear field checkbox greys out the input
   - CSS styling for disabled state (background, opacity, cursor)
-- ✅ Simplified IndexSelector props interface
-  - Combined `indices` (string[]) and `indexMetadata` (object) into single `indices` prop (Array<{title, categories?}>)
-  - Eliminates potential mismatch between parallel data structures
-  - Parent components now transform API response before passing to IndexSelector
-  - Cleaner, more intuitive component API
 
 **Bug Fixes:**
 - ✅ Fixed `check_index_dependencies_api` parameter name mismatch
