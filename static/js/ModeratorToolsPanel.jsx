@@ -568,6 +568,7 @@ class UploadLinksFromCSV extends Component {
     return (
       <ModToolsSection
         title="Upload Links"
+        titleHe="העלאת קישורים"
         helpContent={UPLOAD_LINKS_HELP_CONTENT}
       >
         <div className="uploadLinksFromCSV">
@@ -740,6 +741,7 @@ const RemoveLinksFromCsv = () => {
   return (
     <ModToolsSection
       title="Remove Links"
+      titleHe="הסרת קישורים"
       helpContent={REMOVE_LINKS_HELP_CONTENT}
     >
       <div className="remove-links-csv">
@@ -993,6 +995,7 @@ function GetLinks() {
   return (
     <ModToolsSection
       title="Download Links"
+      titleHe="הורדת קישורים"
       helpContent={DOWNLOAD_LINKS_HELP_CONTENT}
     >
       <div className="getLinks">
