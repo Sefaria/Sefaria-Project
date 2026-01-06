@@ -634,6 +634,11 @@ const BulkVersionEditor = () => {
                     <strong>{VERSION_FIELD_METADATA[k]?.label || k}:</strong> "{v}"
                   </li>
                 ))}
+                {Array.from(fieldsToClear).map(field => (
+                  <li key={`clear-${field}`} className="clearItem">
+                    <strong>{VERSION_FIELD_METADATA[field]?.label || field}:</strong> <em>(clear)</em>
+                  </li>
+                ))}
               </ul>
             </div>
           )}
