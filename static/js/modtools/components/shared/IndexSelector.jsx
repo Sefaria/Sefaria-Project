@@ -1,7 +1,7 @@
 /**
  * IndexSelector - List-based display for selecting indices
  *
- * Shared component used by BulkVersionEditor, BulkIndexEditor, and AutoLinkCommentaryTool
+ * Shared component used by BulkVersionEditor, BulkIndexEditor (disabled), AutoLinkCommentaryTool (disabled)
  * to display indices in a compact list with filtering.
  *
  * Features:
