@@ -64,7 +64,7 @@ Updated deprecated MongoDB operations:
 
 #### 1. Main Component: BulkVersionEditor (static/js/modtools/components/BulkVersionEditor.jsx)
 
-This is an **entirely new component** (~630 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
+This is an **entirely new component** (~728 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
 
 **User Workflow:**
 
@@ -77,60 +77,95 @@ This is an **entirely new component** (~630 lines). The old ModeratorToolsPanel 
 
 **Key Implementation Details:**
 
-**State Management:**
-- `vtitle`, `lang`: Search parameters for finding versions
-- `indices`: List of index titles returned from API
-- `pick`: Set of selected indices for bulk edit
-- `updates`: Object mapping field names to new values
-- `validationErrors`: Object mapping field names to error messages
+**State Management (lines 183-201):**
+
+| State | Type | Purpose |
+|-------|------|---------|
+| `vtitle`, `lang` | string | Search parameters for finding versions |
+| `searched` | boolean | Whether a search has been performed |
+| `indices` | array | Index titles returned from API |
+| `indexMetadata` | object | Category paths for each index |
+| `pick` | Set | Selected indices for bulk edit |
+| `updates` | object | Field names → new values |
+| `validationErrors` | object | Field names → error messages |
+| `fieldsToClear` | Set | Fields marked for deletion |
+| `msg` | string/object | Current status message |
+| `loading`, `saving` | boolean | Loading states |
+| `showDeleteConfirm` | boolean | Delete confirmation dialog visibility |
+
+**Computed Values (lines 499-524):**
+
+- `hasChanges`: True if `updates` has entries OR `fieldsToClear` has entries
+- `hasValidationErrors`: True if `validationErrors` has entries
+- `getValidationState()`: Computes current message based on state (proactive validation)
+- `currentMessage`: Result of `getValidationState()`
+- `isButtonDisabled`: True if saving, has errors, or has WARNING message
+
+**Helper Functions (lines 153-178):**
+
+- **`isValidUrl(string)` (line 153)**: URL validation using native URL constructor
+- **`getFieldValidationError(field, value)` (line 173)**: Returns error message for URL fields
 
 **Core Functions:**
 
-- **`load()` (lines 203-235)**: Fetches indices with matching versions
-  - Calls `/api/version-indices` with URLSearchParams
+- **`clearSearch()` (line 206)**: Resets all state to initial values
+
+- **`load()` (lines 220-253)**: Fetches indices with matching versions
+  - Calls `/api/version-indices` with versionTitle and optional language
   - Auto-selects all returned indices
-  - Uses async/await with `Sefaria.apiRequestWithBody`
+  - Stores index metadata for category display
 
-- **`getFieldValidationError(field, value)` (lines 151-158)**: Pure validation function
-  - Only validates URL fields (`versionSource`, `purchaseInformationURL`, `purchaseInformationImage`)
-  - Returns error message string or null
-
-- **`handleFieldChange(field, value)` (lines 245-268)**: Field change handler
+- **`handleFieldChange(field, value)` (lines 257-283)**: Field change handler
   - Updates `updates` state (adds/removes based on value presence)
   - Validates and updates `validationErrors` state
   - Uses useCallback for performance
 
-- **`handleClearToggle(field, checked)` (lines 274-298)**: Clear checkbox handler
+- **`handleClearToggle(field, checked)` (lines 286-312)**: Clear checkbox handler
   - Toggles field in `fieldsToClear` Set
-  - When checked, disables input and clears any pending updates/errors
+  - When checked, clears pending updates/errors for that field
   - Allows users to completely remove fields from versions
 
-- **`performBulkEdit(...)` (lines 276-308)**: Shared API call logic
-  - Builds payload with versionTitle, language, indices, updates
+- **`performBulkEdit(...)` (lines 320-352)**: Shared API call logic
+  - Builds payload with versionTitle, indices, updates
   - Calls `/api/version-bulk-edit`
   - Handles ok/partial/error status responses
   - Takes message generator functions for flexibility
 
-- **`save()` (lines 313-352)**: Save user changes
-  - Validates: indices selected, fields to update, no validation errors
+- **`save()` (lines 356-393)**: Save user changes
+  - Safety checks (validation handled proactively by disabled button)
   - Converts boolean string values ("true"/"false") to actual booleans
+  - Adds cleared fields with `null` value
   - Delegates to `performBulkEdit` with custom messages
-  - Clears form on success
 
-- **`markForDeletion()` (lines 358-375)**: Soft delete feature
+- **`markForDeletion()` (lines 397-414)**: Soft delete feature
   - Adds timestamped note to `versionNotes` instead of deleting
   - Delegates to `performBulkEdit` with deletion note
-  - Safety mechanism to prevent accidental data loss
 
-- **`renderField(fieldName)` (lines 381-442)**: Dynamic field renderer
+- **`renderField(fieldName)` (lines 418-498)**: Dynamic field renderer
   - Reads metadata from `VERSION_FIELD_METADATA`
   - Renders select, textarea, number, or text/url inputs
   - Shows validation errors inline
-  - Handles RTL/LTR text direction
+  - Includes "Clear this field" checkbox
+
+**Render Sections (lines 526-725):**
+
+The JSX is organized into these sections:
+1. Info box - Usage instructions
+2. Search bar - Version title input with Search button
+3. Language filter - Dropdown for he/en filtering
+4. Clear button - Reset search
+5. No results message - Shown when search returns empty
+6. Index selector - Checkbox list of matching indices
+7. Field inputs - Grouped by FIELD_GROUPS
+8. Changes preview - Shows pending updates and clears
+9. Validation warning - Shows field validation errors
+10. Status message - Proactive feedback (warnings, success, errors)
+11. Save button - Disabled when validation fails
+12. Delete section - Separated at bottom with confirmation dialog
 
 **Field Organization:**
 
-Fields grouped in `FIELD_GROUPS` (lines 109-130):
+Fields grouped in `FIELD_GROUPS` (lines 125-146):
 - **Identification**: versionTitleInHebrew (versionTitle excluded - it's the search key)
 - **Source & License**: versionSource, license, purchaseInformationURL, purchaseInformationImage
 - **Metadata**: status, priority, digitizedBySefaria, isPrimary, isSource, direction
@@ -141,8 +176,12 @@ Fields grouped in `FIELD_GROUPS` (lines 109-130):
 - **Clear Fields**: Checkbox below each field to completely remove it from all selected versions
   - Uses `null` as sentinel value sent to backend
   - Backend uses `delattr` to remove field from MongoDB document
-  - Input is disabled when field is marked for clearing
-- **URL Validation**: Real-time validation for 3 URL fields using native URL constructor
+  - Input is greyed out when field is marked for clearing
+- **Proactive Validation**: Messages shown automatically based on state, not on click
+  - "No indices selected" when none checked
+  - "No fields to update or clear" when no changes
+  - Save button disabled when validation fails
+- **URL Validation**: Real-time validation for URL fields using native URL constructor
 - **Partial Success Handling**: Shows detailed failure list while reporting successes
 - **Soft Delete**: Mark for deletion adds note instead of actually deleting
 - **Boolean Conversion**: Converts "true"/"false" strings to booleans before API call
@@ -151,7 +190,7 @@ Fields grouped in `FIELD_GROUPS` (lines 109-130):
 
 Four reusable components extracted for consistency across modtools:
 
-**IndexSelector.jsx** (~80 lines)
+**IndexSelector.jsx** (~183 lines)
 - List-based display with checkboxes for selecting multiple indices
 - Text search filtering (searches both title and categories)
 - Select All/Deselect All buttons
@@ -159,7 +198,7 @@ Four reusable components extracted for consistency across modtools:
 - Props: `indices`, `selectedIndices` (Set), `onSelectionChange`, `label`, `indexMetadata`
 - Used by: BulkVersionEditor, BulkIndexEditor (disabled), AutoLinkCommentaryTool (disabled)
 
-**ModToolsSection.jsx** (~60 lines)
+**ModToolsSection.jsx** (~137 lines)
 - Collapsible section wrapper with consistent styling
 - Header with collapse/expand chevron icon
 - Optional HelpButton integration via `helpContent` prop
@@ -167,22 +206,24 @@ Four reusable components extracted for consistency across modtools:
 - Keyboard accessible (Enter/Space to toggle)
 - All sections collapsed by default (controlled via `collapsed` state)
 
-**HelpButton.jsx** (~70 lines)
+**HelpButton.jsx** (~98 lines)
 - Question mark icon button that opens modal with documentation
 - Modal overlay with close button and backdrop click to dismiss
 - ESC key support for accessibility
 - Focus trap management (focuses modal on open, returns focus on close)
 - Accepts `helpContent` prop with JSX documentation
 
-**StatusMessage.jsx** (~30 lines)
+**StatusMessage.jsx** (~45 lines)
 - Consistent message display with type-based styling
-- Auto-detects type from message content: "Error:", "Warning:", "Successfully", etc.
+- Accepts string (defaults to 'info') or `{type, message}` object
+- Uses `MESSAGE_TYPES` enum from `constants/messageTypes.js`
+- Types: SUCCESS (green), ERROR (red), WARNING (yellow), INFO (blue)
 - Handles multiline messages with preserved formatting
 - Shows nothing when message is empty
 
-#### 3. Field Metadata (static/js/modtools/constants/fieldMetadata.js)
+#### 3. Constants (static/js/modtools/constants/)
 
-Centralized field configuration (~300 lines) for bulk editing operations:
+**fieldMetadata.js** (~308 lines) - Centralized field configuration for bulk editing:
 
 **VERSION_FIELD_METADATA** (lines 154-265)
 - Defines 14 Version model fields with metadata
@@ -204,9 +245,14 @@ Centralized field configuration (~300 lines) for bulk editing operations:
 - Used by AutoLinkCommentaryTool (disabled)
 - Options: many_to_one_default_only, many_to_one, one_to_one_default_only, one_to_one
 
+**messageTypes.js** (~11 lines) - Message type enum for StatusMessage:
+- Exports `MESSAGE_TYPES` enum with: SUCCESS, ERROR, WARNING, INFO
+- Used by StatusMessage component and BulkVersionEditor for type-safe message handling
+- Replaces emoji-based type detection for better maintainability
+
 ### Tests
 
-**Backend Tests** (sefaria/tests/modtools_test.py)
+**Backend Tests** (sefaria/tests/modtools_test.py, ~569 lines)
 - Tests for all three new API endpoints
 - Validates partial success handling
 - Tests field whitelisting
@@ -218,8 +264,8 @@ Centralized field configuration (~300 lines) for bulk editing operations:
   - `test_bulk_edit_clear_nonexistent_field`: Ensures clearing nonexistent fields doesn't error
 
 **Frontend Tests** (static/js/modtools/tests/)
-- **fieldMetadata.test.js**: Validates field metadata structure
-- **stripHtmlTags.test.js**: Tests HTML sanitization utility
+- **fieldMetadata.test.js** (~245 lines): Validates field metadata structure
+- **stripHtmlTags.test.js** (~108 lines): Tests HTML sanitization utility
 
 ### Components Disabled
 
@@ -261,8 +307,22 @@ During review, the following improvements were made:
   - Backend no longer sends redundant `count`/`total` fields
   - Reduced response size and naming confusion
 - ✅ Removed unnecessary fallback in `renderField` (all fields guaranteed to have metadata)
+- ✅ Replaced emoji-based message system with MESSAGE_TYPES enum
+  - Created `constants/messageTypes.js` with SUCCESS, ERROR, WARNING, INFO types
+  - StatusMessage now accepts `{type, message}` objects for explicit styling
+  - More maintainable and type-safe than emoji prefix detection
+- ✅ Implemented proactive validation messages
+  - Validation state computed automatically from current state (not triggered on click)
+  - Save button disabled when validation fails (WARNING messages)
+  - Users see issues immediately without needing to click
+- ✅ Visual feedback for disabled fields
+  - Clear field checkbox greys out the input
+  - CSS styling for disabled state (background, opacity, cursor)
 
 **Bug Fixes:**
+- ✅ Fixed `check_index_dependencies_api` parameter name mismatch
+  - URL route used `(?P<title>.+)` but function expected `index_title`
+  - Changed function parameter from `index_title` to `title` to match route
 - ✅ Removed versionTitle from editable fields (both frontend FIELD_GROUPS and backend whitelist)
   - versionTitle is the search parameter - editing it would cause partial failures as the search key changes during bulk operations
   - Prevents data corruption where first edit succeeds but subsequent edits fail
