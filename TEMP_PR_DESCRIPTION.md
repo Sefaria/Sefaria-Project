@@ -32,7 +32,7 @@ Adds bulk editing capabilities to the Moderator Tools panel, along with a comple
 3. Enter a version title and click Search
 4. Select indices, modify fields, and save
 
-**Note:** This is internal moderator tooling. Code prioritizes functionality over polish. CSS and Tests weren't thoroughly reviewed. 
+**Note:** This is internal moderator tooling. Code prioritizes functionality over polish. CSS and Tests weren't thoroughly reviewed.
 
 ---
 
@@ -70,28 +70,7 @@ Three new endpoints were added to support bulk version editing:
 - Returns: dependent indices, version count, link count, has_dependencies flag
 - Retained for future re-enablement
 
-#### 2. Enhanced reader/views.py
-
-**Index API Error Handling:**
-Enhanced the `index_post` function with categorized error responses:
-- Supports both old format (`{update: {...}}`) and new format (direct index data)
-- Dependency pre-checks when renaming indices
-- Categorized errors: `dependency_error`, `validation_error`, `title_validation_error`, `general_error`
-- **Backward-compatible**: Works with both request formats
-- Currently only called by BulkIndexEditor (disabled), but enhancements would benefit any future Index API POST callers
-- **Enhanced error display**: Changed from semicolon-separated strings to bullet-list format with newlines for better readability
-
-**Version Metadata Logging:**
-Updated `flag_text_api` and `lock_text_api` to use `tracker.update_version_metadata()` for history logging (see section 4)
-
-#### 3. PyMongo 4.x Migration
-
-Updated deprecated MongoDB operations:
-- `sefaria/model/history.py:210`: `update()` → `update_many()`
-- `sefaria/helper/text.py:322`: `update()` → `update_many()`
-- Both maintain identical functionality with updated API
-
-#### 4. Activity Feed / History Logging
+#### 2. Activity Feed / History Logging
 
 Added audit logging for version metadata changes. Previously, metadata edits (license, status, priority, etc.) were not tracked anywhere in the system.
 
@@ -117,10 +96,26 @@ Changes are now logged to the MongoDB `history` collection and displayed on the 
 - `templates/activity.html` - Added "Version Metadata" filter option to dropdown
 - `sefaria/history.py` - Added `version_metadata` case to `filter_type_to_query()`
 
-**Design Decision:** Uses the tracker pattern (like `tracker.add()` for Index) rather than logging inside `Version.save()` because:
-1. `save()` lacks user context
-2. Not all saves should be logged (migrations, imports, internal operations)
-3. Explicit intent - code shows when logging should happen
+#### 3. Enhanced reader/views.py
+
+**Index API Error Handling:**
+Enhanced the `index_post` function with categorized error responses:
+- Supports both old format (`{update: {...}}`) and new format (direct index data)
+- Dependency pre-checks when renaming indices
+- Categorized errors: `dependency_error`, `validation_error`, `title_validation_error`, `general_error`
+- **Backward-compatible**: Works with both request formats
+- Currently only called by BulkIndexEditor (disabled), but enhancements would benefit any future Index API POST callers
+- **Enhanced error display**: Changed from semicolon-separated strings to bullet-list format with newlines for better readability
+
+**Version Metadata Logging:**
+Updated `flag_text_api` and `lock_text_api` to use `tracker.update_version_metadata()` for history logging (see section 2)
+
+#### 4. PyMongo 4.x Migration
+
+Updated deprecated MongoDB operations:
+- `sefaria/model/history.py:210`: `update()` → `update_many()`
+- `sefaria/helper/text.py:322`: `update()` → `update_many()`
+- Both maintain identical functionality with updated API
 
 #### 5. Minor Improvements
 - `sefaria/export.py`: Fixed missing `user_id` parameter in `import_versions_from_file()`
@@ -128,7 +123,38 @@ Changes are now logged to the MongoDB `history` collection and displayed on the 
 
 ### Frontend Changes
 
-#### 1. Main Component: BulkVersionEditor (static/js/modtools/components/BulkVersionEditor.jsx)
+#### 1. ModeratorToolsPanel Refactoring (static/js/ModeratorToolsPanel.jsx)
+
+The existing ModeratorToolsPanel was refactored in two phases:
+
+**Phase 1 - UI Integration:**
+- Wrapped existing tools in `ModToolsSection` for consistent collapsible UI
+- Added help content constants for each tool
+- Integrated `BulkVersionEditor` component
+
+**Phase 2 - Component Extraction:**
+
+Extracted 6 pre-existing tools into separate component files (~1373 → ~98 lines):
+
+| Component | Source |
+|-----------|--------|
+| `BulkDownloadText.jsx` | Extracted from inline render, converted to functional component |
+| `BulkUploadCSV.jsx` | Extracted from inline render, converted to functional component |
+| `WorkflowyModeratorTool.jsx` | Extracted existing class component |
+| `UploadLinksFromCSV.jsx` | Extracted existing class component |
+| `DownloadLinks.jsx` | Extracted existing function (renamed from GetLinks) |
+| `RemoveLinksFromCsv.jsx` | Extracted existing function component |
+
+Also created `utils/stripHtmlTags.js` for shared HTML sanitization utility.
+
+**Logic Preserved:** All existing API calls and behavior unchanged.
+
+**Key patterns in new code:**
+- Uses `Sefaria.apiRequestWithBody` instead of jQuery/fetch (no jQuery dependency)
+- MESSAGE_TYPES enum for type-safe status messages
+- Proactive validation (button disabled when invalid, no click required)
+
+#### 2. Main Component: BulkVersionEditor (static/js/modtools/components/BulkVersionEditor.jsx)
 
 This is an **entirely new component** (~728 lines). The old ModeratorToolsPanel only had version _download_ functionality, not editing.
 
@@ -252,7 +278,7 @@ Fields grouped in `FIELD_GROUPS` (lines 125-146):
 - **Soft Delete**: Mark for deletion adds note instead of actually deleting
 - **Boolean Conversion**: Converts "true"/"false" strings to booleans before API call
 
-#### 2. Shared Components (static/js/modtools/components/shared/)
+#### 3. Shared Components (static/js/modtools/components/shared/)
 
 Four reusable components extracted for consistency across modtools:
 
@@ -286,7 +312,7 @@ Four reusable components extracted for consistency across modtools:
 - Accepts string (defaults to 'info') or `{type, message}` object
 - Shows nothing when message is empty
 
-#### 3. Constants (static/js/modtools/constants/)
+#### 4. Constants (static/js/modtools/constants/)
 
 **fieldMetadata.js** (~278 lines) - Centralized field configuration for bulk editing:
 
@@ -307,6 +333,34 @@ Four reusable components extracted for consistency across modtools:
 - 4 commentary mapping algorithms for auto-linking
 - Used by: AutoLinkCommentaryTool (disabled)
 
+#### 5. Index/Export Files
+
+**static/js/modtools/index.js**
+- Exports all modtools components for convenient imports
+- Pattern: `export { default as ComponentName } from './components/ComponentName'`
+
+**static/js/modtools/components/shared/index.js**
+- Exports shared utility components (IndexSelector, ModToolsSection, HelpButton, StatusMessage)
+
+#### 6. Components Disabled
+
+The following components were disabled in ModeratorToolsPanel but their backend APIs remain functional:
+- **BulkIndexEditor**: Bulk edit index metadata (NOT version metadata)
+- **AutoLinkCommentaryTool**: Auto-link commentaries
+- **NodeTitleEditor**: Edit node titles with dependency checking
+
+### CSS Styles (static/css/modtools.css)
+
+New stylesheet (~1641 lines) for modtools components:
+- Styling for all shared components (ModToolsSection, IndexSelector, HelpButton, StatusMessage)
+- Form input styles with RTL support
+- Validation error display
+- Collapsible section animations
+- Modal overlay for help content
+- Field clearing visual feedback (greyed-out disabled inputs)
+
+**Note:** CSS has not been thoroughly reviewed as this is internal tooling. Styling prioritizes functionality over polish.
+
 ### Tests
 
 **Backend Tests** (sefaria/tests/modtools_test.py, ~569 lines)
@@ -323,59 +377,7 @@ Four reusable components extracted for consistency across modtools:
 - **fieldMetadata.test.js** (~201 lines): Validates field metadata structure
 - **stripHtmlTags.test.js** (~108 lines): Tests HTML sanitization utility
 
-### Components Disabled
-
-The following components were disabled in ModeratorToolsPanel but their backend APIs remain functional:
-- **BulkIndexEditor**: Bulk edit index metadata (NOT version metadata)
-- **AutoLinkCommentaryTool**: Auto-link commentaries
-- **NodeTitleEditor**: Edit node titles with dependency checking
-
-### ModeratorToolsPanel Refactoring (static/js/ModeratorToolsPanel.jsx)
-
-The existing ModeratorToolsPanel was refactored in two phases:
-
-**Phase 1 - UI Integration:**
-- Wrapped existing tools in `ModToolsSection` for consistent collapsible UI
-- Added help content constants for each tool
-- Integrated `BulkVersionEditor` component
-
-**Phase 2 - Component Extraction:**
-
-Extracted 6 pre-existing tools into separate component files (~1373 → ~98 lines):
-
-| Component | Source |
-|-----------|--------|
-| `BulkDownloadText.jsx` | Extracted from inline render, converted to functional component |
-| `BulkUploadCSV.jsx` | Extracted from inline render, converted to functional component |
-| `WorkflowyModeratorTool.jsx` | Extracted existing class component |
-| `UploadLinksFromCSV.jsx` | Extracted existing class component |
-| `DownloadLinks.jsx` | Extracted existing function (renamed from GetLinks) |
-| `RemoveLinksFromCsv.jsx` | Extracted existing function component |
-
-Also created `utils/stripHtmlTags.js` for shared HTML sanitization utility.
-
-**Logic Preserved:** All existing API calls and behavior unchanged.
-
-### CSS Styles (static/css/modtools.css)
-
-New stylesheet (~1641 lines) for modtools components:
-- Styling for all shared components (ModToolsSection, IndexSelector, HelpButton, StatusMessage)
-- Form input styles with RTL support
-- Validation error display
-- Collapsible section animations
-- Modal overlay for help content
-- Field clearing visual feedback (greyed-out disabled inputs)
-
-**Note:** CSS has not been thoroughly reviewed as this is internal tooling. Styling prioritizes functionality over polish.
-
-### Index/Export Files
-
-**static/js/modtools/index.js**
-- Exports all modtools components for convenient imports
-- Pattern: `export { default as ComponentName } from './components/ComponentName'`
-
-**static/js/modtools/components/shared/index.js**
-- Exports shared utility components (IndexSelector, ModToolsSection, HelpButton, StatusMessage)
+**Note:** Tests are treated as a nice-to-have and haven't been thoroughly reviewed.
 
 ### Documentation (docs/modtools/)
 
@@ -383,27 +385,6 @@ Two documentation files provide guidance for developers:
 
 - **MODTOOLS_GUIDE.md**: Comprehensive guide covering overview, APIs, data models, common tasks, and patterns
 - **COMPONENT_LOGIC.md**: Detailed component behavior and logic flows
-
-## Code Quality Improvements
-
-**Changes outside ModTools:**
-- PyMongo 4.x migration: `update()` → `update_many()` in `history.py` and `helper/text.py`
-- Fixed `check_index_dependencies_api` parameter name mismatch (URL route vs function signature)
-- Enhanced `reader/views.py` Index API with categorized error responses
-
-**Key patterns in new code:**
-- Uses `Sefaria.apiRequestWithBody` instead of jQuery/fetch (no jQuery dependency)
-- MESSAGE_TYPES enum for type-safe status messages
-- Proactive validation (button disabled when invalid, no click required)
-
-## Testing
-
-The PR includes comprehensive test coverage:
-- Backend API endpoint tests with partial success scenarios
-- Field metadata structure validation
-- All tests pass with updated response formats
-
-These tests are treated as a nice-to-have and haven't been reviewed. 
 
 ## Complete File List
 
