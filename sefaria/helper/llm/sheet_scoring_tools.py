@@ -1,12 +1,7 @@
-import sys
 from typing import List, Dict, Any, Iterable, Optional
 
-from bson import ObjectId
 from sefaria.system.database import db
 from sefaria.helper.llm.tasks.sheet_scoring import generate_and_save_sheet_scoring
-import pathlib
-import os
-import django
 import logging
 
 from sefaria.model import Ref  # adjust import if needed
