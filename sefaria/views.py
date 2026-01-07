@@ -65,6 +65,7 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
+from sefaria import tracker
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -1709,15 +1710,7 @@ def version_bulk_edit_api(request):
                 failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
                 continue
 
-            for field_name, field_value in updates.items():
-                if field_value is None:
-                    # None is sentinel value for "clear this field"
-                    # Remove the attribute entirely so it's not saved to MongoDB
-                    if hasattr(version, field_name):
-                        delattr(version, field_name)
-                else:
-                    setattr(version, field_name, field_value)
-            version.save()
+            tracker.update_version_metadata(request.user.id, version, updates)
             successes.append(index_title)
 
         except Exception as e:

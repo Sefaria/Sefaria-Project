@@ -2390,11 +2390,11 @@ def lock_text_api(request, title, lang, version):
     vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
 
     if request.GET.get("action", None) == "unlock":
-        vobj.status = None
+        updates = {"status": None}  # None signals deletion in tracker
     else:
-        vobj.status = "locked"
+        updates = {"status": "locked"}
 
-    vobj.save()
+    tracker.update_version_metadata(request.user.id, vobj, updates)
     return jsonResponse({"status": "ok"})
 
 
@@ -2410,23 +2410,28 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
-    def update_version(request, title, lang, version):
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+
+    def update_version(request, title, lang, version, user_id):
         flags = json.loads(request.POST.get("json"))
         title = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
+        # Build updates dict for tracker function
+        updates = {}
         if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
+            updates["versionTitle"] = flags.get("newVersionTitle")
         for flag in _attributes_to_save:
             if flag in flags:
                 if flag == 'license' and flags[flag] == "":
-                    delattr(vobj, flag)
+                    updates[flag] = None  # None signals deletion in tracker
                 else:
-                    setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+                    updates[flag] = flags[flag]
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+        if updates:
+            tracker.update_version_metadata(user_id, vobj, updates)
+        return jsonResponse({"status": "ok"})
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -2439,9 +2444,11 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        return update_version(request, title, lang, version)
+        return update_version(request, title, lang, version, apikey["uid"])
     elif request.user.is_staff:
-        protected_post = csrf_protect(update_version)
+        def update_version_with_user(request, title, lang, version):
+            return update_version(request, title, lang, version, request.user.id)
+        protected_post = csrf_protect(update_version_with_user)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})

@@ -21,6 +21,7 @@ Adds bulk editing capabilities to the Moderator Tools panel, along with a comple
 - 3 new API endpoints for version bulk operations
 - PyMongo 4.x migration (deprecated `update()` → `update_many()`)
 - Enhanced error handling with categorized responses
+- Activity feed logging for version metadata changes (new rev_type: `edit version_metadata`)
 
 **Additional tools built but disabled** (pending future tickets):
 - BulkIndexEditor, AutoLinkCommentaryTool, NodeTitleEditor
@@ -60,7 +61,8 @@ Three new endpoints were added to support bulk version editing:
 - **Security**: Whitelisted fields (`VERSION_BULK_EDIT_ALLOWED_FIELDS`) prevent arbitrary attribute injection
 - **Partial success handling**: Processes all indices even if some fail, returning detailed success/failure arrays. This allows users to fix specific issues without re-running successful updates.
 - **Simplified response**: Removed redundant `count` and `total` fields - frontend calculates from array lengths
-- **Field clearing**: `null` values are treated as "delete this field" - backend uses `delattr` to remove from MongoDB (lines 1714-1718)
+- **Field clearing**: `null` values are treated as "delete this field" - backend uses `delattr` to remove from MongoDB
+- **History logging**: Uses `tracker.update_version_metadata()` to log changes to activity feed
 
 **`/api/check-index-dependencies/<title>` (GET)** - Disabled in frontend
 - Checks dependencies before index title changes
@@ -68,8 +70,9 @@ Three new endpoints were added to support bulk version editing:
 - Returns: dependent indices, version count, link count, has_dependencies flag
 - Retained for future re-enablement
 
-#### 2. Enhanced Index API Error Handling (reader/views.py)
+#### 2. Enhanced reader/views.py
 
+**Index API Error Handling:**
 Enhanced the `index_post` function with categorized error responses:
 - Supports both old format (`{update: {...}}`) and new format (direct index data)
 - Dependency pre-checks when renaming indices
@@ -78,6 +81,9 @@ Enhanced the `index_post` function with categorized error responses:
 - Currently only called by BulkIndexEditor (disabled), but enhancements would benefit any future Index API POST callers
 - **Enhanced error display**: Changed from semicolon-separated strings to bullet-list format with newlines for better readability
 
+**Version Metadata Logging:**
+Updated `flag_text_api` and `lock_text_api` to use `tracker.update_version_metadata()` for history logging (see section 4)
+
 #### 3. PyMongo 4.x Migration
 
 Updated deprecated MongoDB operations:
@@ -85,7 +91,38 @@ Updated deprecated MongoDB operations:
 - `sefaria/helper/text.py:322`: `update()` → `update_many()`
 - Both maintain identical functionality with updated API
 
-#### 4. Minor Improvements
+#### 4. Activity Feed / History Logging
+
+Added audit logging for version metadata changes. Previously, metadata edits (license, status, priority, etc.) were not tracked anywhere in the system.
+
+**New rev_type: `edit version_metadata`**
+
+Changes are now logged to the MongoDB `history` collection and displayed on the `/activity` page.
+
+**Implementation:**
+
+| File | Addition |
+|------|----------|
+| `sefaria/model/history.py` | `log_version_metadata(user, old_dict, new_dict, **kwargs)` - Creates history entry with old/new values, title, version, language |
+| `sefaria/model/__init__.py` | Added `log_version_metadata` to exports |
+| `sefaria/tracker.py` | `update_version_metadata(user, version, updates, **kwargs)` - Centralized function: captures old state → applies updates → saves → logs to history |
+
+**Endpoints updated to use tracker:**
+- `version_bulk_edit_api` (sefaria/views.py) - The new bulk editor
+- `flag_text_api` (reader/views.py) - Flag text feature
+- `lock_text_api` (reader/views.py) - Lock/unlock text feature
+
+**Activity Feed Display:**
+- `templates/elements/activity_feed.html` - Added template block for version_metadata events
+- `templates/activity.html` - Added "Version Metadata" filter option to dropdown
+- `sefaria/history.py` - Added `version_metadata` case to `filter_type_to_query()`
+
+**Design Decision:** Uses the tracker pattern (like `tracker.add()` for Index) rather than logging inside `Version.save()` because:
+1. `save()` lacks user context
+2. Not all saves should be logged (migrations, imports, internal operations)
+3. Explicit intent - code shows when logging should happen
+
+#### 5. Minor Improvements
 - `sefaria/export.py`: Fixed missing `user_id` parameter in `import_versions_from_file()`
 - `sefaria/helper/link.py`: Added bytes decoding for CSV uploads (handles both bytes and str)
 
@@ -373,10 +410,13 @@ These tests are treated as a nice-to-have and haven't been reviewed.
 All files changed in this PR:
 
 **Backend (Python):**
-- `sefaria/views.py` - New API endpoints
-- `reader/views.py` - Enhanced Index API error handling
+- `sefaria/views.py` - New API endpoints, uses tracker for history logging
+- `reader/views.py` - Enhanced Index API error handling, flag_text_api and lock_text_api now use tracker
 - `sefaria/urls.py` - URL routing for new endpoints
-- `sefaria/model/history.py` - PyMongo 4.x migration
+- `sefaria/tracker.py` - New `update_version_metadata()` function for centralized version updates with history logging
+- `sefaria/model/history.py` - PyMongo 4.x migration, new `log_version_metadata()` function
+- `sefaria/model/__init__.py` - Added `log_version_metadata` export
+- `sefaria/history.py` - Added `version_metadata` filter type, updated docstring
 - `sefaria/helper/text.py` - PyMongo 4.x migration
 - `sefaria/helper/link.py` - CSV bytes handling
 - `sefaria/export.py` - user_id parameter fix
@@ -408,6 +448,10 @@ All files changed in this PR:
 
 **CSS:**
 - `static/css/modtools.css` - New modtools styles
+
+**Templates:**
+- `templates/elements/activity_feed.html` - Added version_metadata display block
+- `templates/activity.html` - Added "Version Metadata" filter option
 
 **Documentation:**
 - `docs/modtools/MODTOOLS_GUIDE.md` - Consolidated guide (overview, APIs, tasks)
