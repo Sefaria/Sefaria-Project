@@ -3940,23 +3940,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 665px;
 }
 
-
 .searchTopLineInner {
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
-.searchTopLineInner .ai-info-tooltip {
-  position: relative;
-  margin-left: 10px;
-  margin-top: -10px;
+.searchTopLineInner .ai-info-icon {
+  margin-top: 9px;
+  margin-inline-end: 1px;
 }
 
-.hebrewQuery ~ .ai-info-tooltip {
-  margin-left: 0;
-  margin-right: 10px; /* RTL spacing */
-}
 .searchResultList .topicTitle .int-en, .searchResultList .topicTitle .int-he {
   font-size: 24px;
 }
