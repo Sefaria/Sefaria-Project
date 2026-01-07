@@ -13,7 +13,7 @@
  * - See sefaria/views.py version_bulk_edit_api()
  *
  * Documentation:
- * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
  * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
  * - Version fields are defined in ../constants/fieldMetadata.js
  */

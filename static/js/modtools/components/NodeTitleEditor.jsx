@@ -21,7 +21,7 @@
  * Backend API: POST /api/v2/raw/index/{title}
  *
  * Documentation:
- * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
  * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
  */
 import React, { useState } from 'react';

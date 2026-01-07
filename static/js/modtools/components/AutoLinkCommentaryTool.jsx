@@ -23,7 +23,7 @@
  * - GET /admin/rebuild/auto-links/{title} - Rebuild commentary links
  *
  * Documentation:
- * - See /docs/modtools/MODTOOLS_AI_AGENT_GUIDE.md for quick reference
+ * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
  * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
  * - Mapping algorithms are defined in ../constants/fieldMetadata.js
  */
