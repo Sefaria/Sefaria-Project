@@ -1,5 +1,7 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
     <title>Sefaria Annual Report {{ reportYear }}</title>
     <meta charset="utf-8"/>
@@ -14,8 +16,42 @@
             position:absolute; left: 0; right: 0; bottom: 0; top: 0px;
         }
     </style>
+
+    <link rel="shortcut icon" href="{{ STATIC_PREFIX }}icons/library/favicon.ico?v=2" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/library/favicon.svg?v=2" sizes="any">
+    <link rel="icon" type="image/png" href="{{ STATIC_PREFIX }}icons/library/favicon.png?v=2" sizes="96x96">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/library/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="/site.webmanifest?v=2">
+    <meta name="theme-color" content="#18345D">
+    
+    <script>
+      const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const frame = document.getElementById('pdfFrame');
+        if (!frame) return;
+
+        // Create a button to open the annual report PDF in a separate tab/window
+        // PDFs don't work in iFrames on iOS
+        // Remove the broken inline frame
+        if (isIOS()) {
+          const link = document.createElement('a');
+          link.href = frame.src;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = 'Tap here to open the annual report (PDF)';
+          link.style.display = 'block';
+          link.style.padding = '3rem';
+          link.style.fontSize = '4rem';
+          link.style.textAlign = 'center';
+          frame.replaceWith(link);
+        }
+      });
+    </script>
 </head>
 <body>
-    <iframe style="border: 1px solid #777;" src="{{ pdfURL }}" width="100%" height="100%" frameborder="0" allowfullscreen=""></iframe>
+  <div id="content">
+    <iframe id="pdfFrame" style="border: 1px solid #777;" src="{{ pdfURL }}" width="100%" height="100%" frameborder="0" allowfullscreen=""></iframe>
+  </div>
 </body>
 </html>

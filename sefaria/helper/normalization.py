@@ -1,4 +1,4 @@
-import re
+import regex as re
 from typing import Dict, List, Callable
 from functools import reduce, lru_cache
 from bisect import bisect_right
@@ -367,6 +367,7 @@ class NormalizerFactory:
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
         "maqaf": ReplaceNormalizer('־', ' '),
         "itag": ITagNormalizer(' '),
+        "fn-marker": RegexNormalizer('<sup class="footnote-marker">(?:.*?)</sup>', ' '),
         "br-tag": ReplaceNormalizer('<br>', '<br/>'),
         "double-space": RegexNormalizer(r"\s+", " "),
     }

@@ -3,6 +3,7 @@ import {
 	InterfaceText,
 } from "./Misc"
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 
 
 const CollectionsModal = (props) => {
@@ -119,7 +120,14 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       <span className={"collectionsWidgetTitle"}>
         <InterfaceText>Collections</InterfaceText>
       </span>
-      <div className="collectionsWidgetClose" onClick={onClose}>×</div>
+      <div
+        className="collectionsWidgetClose"
+        onClick={onClose}
+        role="button"
+        tabIndex="0"
+        aria-label="Close collections"
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
+      >×</div>
     </div>
     <div className="collectionsWidgetList serif">
       {!dataLoaded ? null :
@@ -136,23 +144,35 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       {dataLoaded && collections.length == 0 ?
         <span className={"emptyMessage"}>
           <InterfaceText>
-            You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.
+          You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.
           </InterfaceText>
         </span> : null }
     </div>
     <div className="collectionsWidgetCreate">
       <span className="collectionsWidgetPlus">+</span>
       <div className="collectionsWidgetCreateInputBox">
-        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} value={newName} onChange={onNameChange} />
+        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} aria-label={Sefaria._("Create new collection")} type="text" value={newName} onChange={onNameChange} />
       </div>
-      {newName.length ?
-      <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
+       {newName.length ?
+      <div
+        className="button extraSmall white collectionsWidgetCreateButton"
+        role="button"
+        tabIndex="0"
+        onClick={onCreateClick}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onCreateClick)}
+      >
         <InterfaceText>Create</InterfaceText>
       </div>
       : null}
     </div>
     <div className="collectionsWidgetDone">
-       <div className="button large fillWidth" onClick={onClose}>
+       <div
+        className="button large fillWidth"
+        role="button"
+        tabIndex="0"
+        onClick={onClose}
+        onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
+       >
         <InterfaceText>Done</InterfaceText>
       </div>     
     </div>
