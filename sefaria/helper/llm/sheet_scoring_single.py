@@ -49,15 +49,3 @@ def run_on_ref(tref: str, force_update: bool = False) -> None:
         "Finished tref=%r: total=%d, scored/dispatched=%d, skipped=%d",
         tref, count, scored, skipped
     )
-
-
-
-if __name__ == "__main__":
-    # # --- quick-edit mode (uncomment one of the blocks) ---
-    # run on single sheet
-    # sheet_id = "1"
-    # run_on_single_sheet(sheet_id=sheet_id, force_update=True)
-
-    # run on single ref
-    tref = "Genesis 10:1"
-    run_on_ref(tref=tref, force_update=False)
