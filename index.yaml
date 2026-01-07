@@ -978,6 +978,21 @@ entries:
     version: 0.69.0-cache-busting-tag.1
   - apiVersion: v2
     appVersion: v6.43.0
+    created: "2026-01-07T10:03:53.833989958Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 56b844b04ebff3f118258ead2eb1579b23fc285fc4ad8c2499334bcd43f209a3
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.69.0-add-sheet-scoring-integration.2.tgz
+    version: 0.69.0-add-sheet-scoring-integration.2
+  - apiVersion: v2
+    appVersion: v6.43.0
     created: "2026-01-07T08:34:53.541969545Z"
     description: Chart to deploy complete Sefaria environment
     digest: a6cbcc4e650a2c1b477b70bf6682ddbe4ebd3e29165c185cfb3f222aad907e9d
@@ -12450,4 +12465,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-01-07T08:34:53.538602806Z"
+generated: "2026-01-07T10:03:53.831639796Z"
