@@ -1,7 +1,7 @@
 """
 Sheet scoring task for the LLM server
 """
-from typing import Dict
+from typing import Dict, Any
 from dataclasses import asdict
 from celery import signature
 from sefaria.settings import CELERY_QUEUES
@@ -16,7 +16,7 @@ def save_sheet_scoring(raw_output: dict):
     save_sheet_scoring_output(output)
 
 
-def generate_and_save_sheet_scoring(sheet_content: Dict[str, any]) -> object:
+def generate_and_save_sheet_scoring(sheet_content: Dict[str, Any]) -> object:
     sheet_scoring_input = make_sheet_scoring_input(sheet_content)
     generate_signature = signature('llm.score_sheet',
                                    args=(asdict(sheet_scoring_input),),
