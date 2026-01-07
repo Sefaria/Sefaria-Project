@@ -14,7 +14,7 @@ Usage (quick-edit mode):
         # run_on_ref(tref=tref, force_update=False)
 """
 
-from sheet_scoring_tools import _find_sheets_for_ref, _already_scored, _dispatch, run_on_single_sheet
+from sefaria.helper.llm.sheet_scoring_tools import _find_sheets_for_ref, _already_scored, _dispatch, run_on_single_sheet
 import logging
 
 
