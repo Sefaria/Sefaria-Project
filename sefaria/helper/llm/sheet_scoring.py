@@ -1,10 +1,7 @@
 import logging
-from typing import Any, Dict, Optional
-from dataclasses import asdict, is_dataclass
-from bson import ObjectId
+from typing import Any, Dict
 from sefaria.system.database import db
 from sefaria_llm_interface.sheet_scoring import SheetScoringInput, SheetScoringOutput
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 """
 Sheet scoring task for the LLM server
 """
-from typing import List, Dict
+from typing import Dict
 from dataclasses import asdict
 from celery import signature
 from sefaria.settings import CELERY_QUEUES
