@@ -37,7 +37,6 @@ from . import search
 from sefaria.google_storage_manager import GoogleStorageManager
 import re
 from django.http import Http404
-import math
 from typing import Iterable, Sequence, Union, List
 
 logger = structlog.get_logger(__name__)
