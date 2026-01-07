@@ -340,7 +340,6 @@ def order_tags_for_user(tag_counts, uid):
     profile   = UserProfile(id=uid)
     tag_order = getattr(profile, "tag_order", None)
     if tag_order:
-        empty_tags = tag_order[:]
         tags = [tag_count["slug"] for tag_count in tag_counts]
         empty_tags = [tag for tag in tag_order if tag not in tags]
 
