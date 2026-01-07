@@ -53,14 +53,6 @@ def _find_sheets_for_ref(tref: str) -> Iterable[Dict[str, Any]]:
     return db.sheets.find(query)
 
 
-def _find_all_sheets() -> Iterable[Dict[str, Any]]:
-    """
-    Stream all sheets (public + private). Uses a cursor to avoid loading into memory.
-    """
-    logger.debug("Querying all sheets cursor")
-    return db.sheets.find({})
-
-
 def _dispatch(sheet: Dict[str, Any]) -> None:
     """
     Call the actual worker function. It may return an AsyncResult (Celery),
