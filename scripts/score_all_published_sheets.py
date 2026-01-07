@@ -5,7 +5,7 @@ from sefaria.helper.llm.tasks.sheet_scoring import generate_and_save_sheet_scori
 from sefaria.system.database import db
 
 
-def rank_all_sheets(rerank=False):
+def score_all_sheets(rerank=False):
     query = {'status': 'public'}
     if not rerank:
         query['llm_scoring'] = {'$exists': False}
@@ -15,4 +15,4 @@ def rank_all_sheets(rerank=False):
 
 
 if __name__ == '__main__':
-    rank_all_sheets()
+    score_all_sheets()
