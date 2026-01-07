@@ -68,27 +68,30 @@ function ModeratorToolsPanel() {
   }
 
   return (
+    // Outer container is full-width; inner has max-width so side margins allow scrolling
     <div className="modTools">
-      {/* Download/Upload Tools */}
-      <BulkDownloadText />
-      <BulkUploadCSV />
-      <WorkflowyModeratorTool />
+      <div className="modToolsInner">
+        {/* Download/Upload Tools */}
+        <BulkDownloadText />
+        <BulkUploadCSV />
+        <WorkflowyModeratorTool />
 
-      {/* Links Management */}
-      <UploadLinksFromCSV />
-      <DownloadLinks />
-      <RemoveLinksFromCsv />
+        {/* Links Management */}
+        <UploadLinksFromCSV />
+        <DownloadLinks />
+        <RemoveLinksFromCsv />
 
-      {/* Bulk Editing Tools */}
-      {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
-      {/* <BulkIndexEditor /> */}
-      <BulkVersionEditor />
+        {/* Bulk Editing Tools */}
+        {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
+        {/* <BulkIndexEditor /> */}
+        <BulkVersionEditor />
 
-      {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
-      {/* <AutoLinkCommentaryTool /> */}
+        {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
+        {/* <AutoLinkCommentaryTool /> */}
 
-      {/* Schema Tools - temporarily disabled, open ticket to reintroduce */}
-      {/* <NodeTitleEditor /> */}
+        {/* Schema Tools - temporarily disabled, open ticket to reintroduce */}
+        {/* <NodeTitleEditor /> */}
+      </div>
     </div>
   );
 }

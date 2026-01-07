@@ -162,11 +162,9 @@
    ========================================================================== */
 .modTools {
   width: 100%;
-  max-width: var(--mt-max-width);
-  margin: 0 auto;
+  min-height: 100vh;
   padding: var(--mt-space-xl) var(--mt-space-lg);
   padding-bottom: 80px; /* Generous bottom margin */
-  min-height: 100vh;
   background: var(--mt-bg-page);
   font-family: var(--mt-font-body);
   font-size: var(--mt-text-base);
@@ -177,6 +175,16 @@
   box-sizing: border-box;
 }
 
+/*
+ * Inner container with max-width.
+ * The outer .modTools is full-width so users can scroll from the side margins
+ * without inner scrollable elements (like .indexList) capturing the scroll.
+ */
+.modTools .modToolsInner {
+  max-width: var(--mt-max-width);
+  margin: 0 auto;
+}
+
 .modTools *,
 .modTools *::before,
 .modTools *::after {
@@ -184,7 +192,7 @@
 }
 
 /* Page header */
-.modTools::before {
+.modTools .modToolsInner::before {
   content: "Moderator Tools";
   display: block;
   font-family: var(--mt-font-display);
