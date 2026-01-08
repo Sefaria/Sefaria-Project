@@ -707,6 +707,7 @@ const Strings = {
 
     "Toggle Reader Menu Display Settings": "הגדרות תצוגת תפריט קורא",
     "AI Info Icon": "סמל מידע AI",
+    'These sheet results are ranked by AI relevance.': 'תוצאות הדפים מסודרות לפי רלוונטיות על בסיס בינה מלאכותית.',
     "Not published": "לא פורסם",
     "Note author profile picture": "תמונת פרופיל כותב ההערה",
     "Open dropdown": "פתח תפריט נפתח",
