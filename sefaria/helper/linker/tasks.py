@@ -226,7 +226,10 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
     # a link should be deleted if it isn't backed by any MUTCs, either an alternate version of the target ref or for any ref that is linked to the target ref
     linked_mutcs = MarkedUpTextChunkSet({"ref": {"$in": list(existing_linked_trefs)}}, hint="ref_1")
     for mutc in linked_mutcs:
-        other_mutc_trefs.add(mutc.ref)
+        for span in mutc.spans:
+            if span['type'] == MUTCSpanType.CITATION.value and span.get('ref') == msg.ref:
+                # this is an MUTC that links back to the current ref implying we need to keep this link
+                other_mutc_trefs.add(mutc.ref)
 
     logger.info(f"LINKER: curr ref: {msg.ref} existing_linked_trefs: {existing_linked_trefs}")
     logger.info(f"LINKER: curr ref: {msg.ref} other_mutc_trefs: {other_mutc_trefs}")
