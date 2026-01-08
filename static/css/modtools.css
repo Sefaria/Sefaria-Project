@@ -1,0 +1,1649 @@
+/**
+ * ModTools Design System
+ * ======================
+ * A refined admin dashboard with scholarly character.
+ *
+ * STRUCTURE:
+ * 1. Design Tokens (CSS Variables)
+ * 2. Base & Reset
+ * 3. Layout Components (Section, Cards)
+ * 4. Form Elements (Inputs, Selects, Buttons)
+ * 5. Layout Patterns (SearchRow, FilterRow, ActionRow)
+ * 6. Data Display (IndexSelector, NodeList)
+ * 7. Feedback (Alerts, Messages, Status)
+ * 8. Utilities
+ * 9. Responsive
+ *
+ * NAMING CONVENTION:
+ * - All classes prefixed with context (e.g., .modTools .searchRow)
+ * - Variables prefixed with --mt- (mod tools)
+ * - BEM-lite: .component, .component-element, .component.modifier
+ */
+
+/* Google Fonts - Scholarly + Modern pairing */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ==========================================================================
+   1. DESIGN TOKENS
+   ========================================================================== */
+:root {
+  /*
+   * COLOR PALETTE
+   * Warm scholarly tones with clear semantic meaning
+   */
+
+  /* Background colors */
+  --mt-bg-page: #F8F7F4;      /* Main page background */
+  --mt-bg-card: #FFFFFF;       /* Card/section background */
+  --mt-bg-subtle: #F3F2EE;     /* Subtle background for groupings */
+  --mt-bg-input: #FAFAF8;      /* Input field background */
+  --mt-bg-hover: #F0EFEB;      /* Hover state background */
+
+  /* Brand colors */
+  --mt-primary: #1E3A5F;                    /* Primary actions, headings */
+  --mt-primary-hover: #152942;              /* Primary hover state */
+  --mt-primary-light: rgba(30, 58, 95, 0.08); /* Primary tint for backgrounds */
+  --mt-accent: #0891B2;                     /* Accent/links */
+  --mt-accent-hover: #0E7490;               /* Accent hover */
+  --mt-accent-light: rgba(8, 145, 178, 0.1); /* Accent tint */
+
+  /* Text colors */
+  --mt-text: #1A1A1A;           /* Primary text */
+  --mt-text-secondary: #5C5C5C; /* Secondary/supporting text */
+  --mt-text-muted: #8B8B8B;     /* Muted/placeholder text */
+  --mt-text-on-primary: #FFFFFF; /* Text on primary color */
+
+  /* Border colors */
+  --mt-border: #E5E3DD;         /* Default border */
+  --mt-border-hover: #C5C3BC;   /* Border on hover */
+  --mt-border-focus: var(--mt-primary); /* Border on focus */
+
+  /* Status colors - Success */
+  --mt-success: #059669;
+  --mt-success-bg: #ECFDF5;
+  --mt-success-border: #A7F3D0;
+  --mt-success-text: #065F46;
+
+  /* Status colors - Warning */
+  --mt-warning: #D97706;
+  --mt-warning-bg: #FFFBEB;
+  --mt-warning-border: #FDE68A;
+  --mt-warning-text: #92400E;
+
+  /* Status colors - Error */
+  --mt-error: #DC2626;
+  --mt-error-bg: #FEF2F2;
+  --mt-error-border: #FECACA;
+  --mt-error-text: #991B1B;
+
+  /* Status colors - Info */
+  --mt-info: #0891B2;
+  --mt-info-bg: #ECFEFF;
+  --mt-info-border: #A5F3FC;
+  --mt-info-text: #0E7490;
+
+  /*
+   * TYPOGRAPHY
+   */
+
+  /* Font families */
+  --mt-font-display: "Crimson Pro", "Georgia", serif;
+  --mt-font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --mt-font-hebrew: "Heebo", "Arial Hebrew", sans-serif;
+  --mt-font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Font sizes - Using a modular scale */
+  --mt-text-xs: 11px;   /* Small labels, badges */
+  --mt-text-sm: 13px;   /* Help text, meta */
+  --mt-text-base: 15px; /* Body text */
+  --mt-text-md: 16px;   /* Slightly larger body */
+  --mt-text-lg: 18px;   /* Section intros */
+  --mt-text-xl: 20px;   /* Mobile headings */
+  --mt-text-2xl: 24px;  /* Section titles */
+
+  /* Font weights */
+  --mt-font-normal: 400;
+  --mt-font-medium: 500;
+  --mt-font-semibold: 600;
+  --mt-font-bold: 700;
+
+  /* Line heights */
+  --mt-leading-tight: 1.3;
+  --mt-leading-normal: 1.5;
+  --mt-leading-relaxed: 1.6;
+
+  /*
+   * SPACING
+   * Based on 4px grid
+   */
+  --mt-space-xs: 4px;   /* Tight spacing */
+  --mt-space-sm: 8px;   /* Small gaps */
+  --mt-space-md: 16px;  /* Medium gaps, default padding */
+  --mt-space-lg: 24px;  /* Large gaps, section spacing */
+  --mt-space-xl: 32px;  /* Extra large, card padding */
+  --mt-space-2xl: 48px; /* Major section breaks */
+
+  /*
+   * BORDERS & EFFECTS
+   */
+
+  /* Border radius */
+  --mt-radius-sm: 6px;  /* Small elements, badges */
+  --mt-radius-md: 10px; /* Inputs, buttons */
+  --mt-radius-lg: 14px; /* Cards, sections */
+
+  /* Border width */
+  --mt-border-width: 1px;
+  --mt-border-width-thick: 1.5px;
+  --mt-border-width-heavy: 2px;
+
+  /* Shadows */
+  --mt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mt-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mt-shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --mt-shadow-focus: 0 0 0 4px var(--mt-primary-light);
+
+  /*
+   * ANIMATION
+   */
+  --mt-transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  --mt-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --mt-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /*
+   * LAYOUT
+   */
+  --mt-max-width: 1100px;
+  --mt-input-height: 48px; /* Standard input height (12px padding * 2 + line-height) */
+}
+
+/* ==========================================================================
+   2. BASE & RESET
+   ========================================================================== */
+.modTools {
+  width: 100%;
+  min-height: 100vh;
+  padding: var(--mt-space-xl) var(--mt-space-lg);
+  padding-bottom: 80px; /* Generous bottom margin */
+  background: var(--mt-bg-page);
+  font-family: var(--mt-font-body);
+  font-size: var(--mt-text-base);
+  line-height: var(--mt-leading-relaxed);
+  color: var(--mt-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+/*
+ * Inner container with max-width.
+ * The outer .modTools is full-width so users can scroll from the side margins
+ * without inner scrollable elements (like .indexList) capturing the scroll.
+ */
+.modTools .modToolsInner {
+  max-width: var(--mt-max-width);
+  margin: 0 auto;
+}
+
+.modTools *,
+.modTools *::before,
+.modTools *::after {
+  box-sizing: border-box;
+}
+
+/* Page header */
+.modTools .modToolsInner::before {
+  content: "Moderator Tools";
+  display: block;
+  font-family: var(--mt-font-display);
+  font-size: 28px;
+  font-weight: var(--mt-font-semibold);
+  color: var(--mt-primary);
+  padding: var(--mt-space-lg) 0;
+  margin-bottom: var(--mt-space-xl);
+  border-bottom: 2px solid var(--mt-border);
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   3. LAYOUT COMPONENTS
+   ========================================================================== */
+
+/* --- Section Cards --- */
+.modTools .modToolsSection {
+  background: var(--mt-bg-card);
+  border-radius: var(--mt-radius-lg);
+  padding: var(--mt-space-xl);
+  margin-bottom: var(--mt-space-lg);
+  box-shadow: var(--mt-shadow-card);
+  border: 1px solid var(--mt-border);
+  transition: box-shadow var(--mt-transition);
+  overflow: visible;
+}
+
+.modTools .modToolsSection:hover {
+  box-shadow: var(--mt-shadow-elevated);
+}
+
+/* Section Title */
+.modTools .dlSectionTitle {
+  font-family: var(--mt-font-display);
+  font-size: var(--mt-text-2xl);
+  font-weight: var(--mt-font-semibold);
+  color: var(--mt-primary);
+  margin: 0 0 var(--mt-space-sm) 0;
+  padding-bottom: var(--mt-space-md);
+  border-bottom: var(--mt-border-width-heavy) solid var(--mt-border);
+  letter-spacing: -0.01em;
+  line-height: var(--mt-leading-tight);
+}
+
+.modTools .dlSectionTitle .int-he {
+  font-family: var(--mt-font-hebrew);
+  margin-left: var(--mt-space-md);
+  font-size: var(--mt-text-lg);
+  color: var(--mt-text-secondary);
+}
+
+/* Section subtitle/description */
+.modTools .sectionDescription {
+  font-size: 14px;
+  color: var(--mt-text-secondary);
+  margin-bottom: var(--mt-space-lg);
+  line-height: var(--mt-leading-normal);
+}
+
+/* ==========================================================================
+   4. FORM ELEMENTS
+   ========================================================================== */
+
+/* --- Labels --- */
+.modTools label {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--mt-font-semibold);
+  color: var(--mt-text);
+  margin-bottom: var(--mt-space-sm);
+}
+
+/* --- Input Base Styles --- */
+.modTools .dlVersionSelect,
+.modTools input[type="text"],
+.modTools input[type="number"],
+.modTools input[type="url"],
+.modTools select,
+.modTools textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 16px;
+  margin-bottom: var(--mt-space-md);
+  font-family: var(--mt-font-body);
+  font-size: var(--mt-text-base);
+  line-height: var(--mt-leading-normal);
+  color: var(--mt-text);
+  background: var(--mt-bg-input);
+  border: var(--mt-border-width-thick) solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  transition: all var(--mt-transition);
+  box-sizing: border-box;
+}
+
+.modTools .dlVersionSelect::placeholder,
+.modTools input::placeholder,
+.modTools textarea::placeholder {
+  color: var(--mt-text-muted);
+}
+
+.modTools .dlVersionSelect:hover,
+.modTools input[type="text"]:hover,
+.modTools input[type="number"]:hover,
+.modTools input[type="url"]:hover,
+.modTools select:hover,
+.modTools textarea:hover {
+  border-color: var(--mt-border-hover);
+  background: var(--mt-bg-card);
+}
+
+.modTools .dlVersionSelect:focus,
+.modTools input[type="text"]:focus,
+.modTools input[type="number"]:focus,
+.modTools input[type="url"]:focus,
+.modTools select:focus,
+.modTools textarea:focus {
+  outline: none;
+  border-color: var(--mt-border-focus);
+  background: var(--mt-bg-card);
+  box-shadow: var(--mt-shadow-focus);
+}
+
+/* Select dropdowns - Clear arrow indicator */
+.modTools select,
+.modTools select.dlVersionSelect {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--mt-bg-input);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231E3A5F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px 14px;
+  padding-right: 44px !important;
+  cursor: pointer;
+}
+
+/* --- Textarea --- */
+.modTools textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  line-height: var(--mt-leading-relaxed);
+}
+
+/* ==========================================================================
+   5. LAYOUT PATTERNS
+   ========================================================================== */
+
+/* --- Input Row (legacy, stacked) --- */
+.modTools .inputRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+  margin-bottom: var(--mt-space-lg);
+}
+
+.modTools .inputRow input,
+.modTools .inputRow select {
+  margin-bottom: 0;
+}
+
+/* Search row - Input + Button inline */
+.modTools .searchRow {
+  display: flex;
+  gap: var(--mt-space-md);
+  align-items: flex-start;
+  margin-bottom: var(--mt-space-lg);
+}
+
+.modTools .searchRow input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.modTools .searchRow .modtoolsButton {
+  flex-shrink: 0;
+  white-space: nowrap;
+  /* Standard button sizing - not stretched */
+  padding: 12px 24px;
+  min-width: auto;
+  width: auto;
+}
+
+/* Filter row - label inline with dropdown */
+.modTools .filterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+  margin-bottom: var(--mt-space-lg);
+}
+
+.modTools .filterRow label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.modTools .filterRow select {
+  margin-bottom: 0;
+  max-width: 200px;
+}
+
+/* Clear search button - centered */
+.modTools .clearSearchRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--mt-space-lg);
+}
+
+/* Action button row - for primary action buttons */
+.modTools .actionRow {
+  display: flex;
+  gap: var(--mt-space-md);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--mt-space-lg);
+}
+
+/* Separator before delete section */
+.modTools .deleteSectionSeparator {
+  margin-top: var(--mt-space-xl);
+  margin-bottom: var(--mt-space-md);
+  border-top: 1px solid var(--mt-border);
+}
+
+/* Section intro text - for counts, descriptions */
+.modTools .sectionIntro {
+  margin-bottom: var(--mt-space-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+/* Subsection heading */
+.modTools .subsectionHeading {
+  margin-top: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+/* Option row - for single option with label */
+.modTools .optionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+  margin-bottom: var(--mt-space-md);
+}
+
+.modTools .optionRow label {
+  margin-bottom: 0;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.modTools .optionRow select,
+.modTools .optionRow input {
+  margin-bottom: 0;
+  flex: 1;
+  max-width: 300px;
+}
+
+/* Node list container - for scrollable lists */
+.modTools .nodeListContainer {
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-md);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-bg-card);
+}
+
+/* Node item - for individual editable items */
+.modTools .nodeItem {
+  margin-bottom: var(--mt-space-md);
+  padding: var(--mt-space-md);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-sm);
+  border: 1px solid var(--mt-border);
+  transition: all var(--mt-transition);
+}
+
+.modTools .nodeItem:last-child {
+  margin-bottom: 0;
+}
+
+.modTools .nodeItem.modified {
+  background: var(--mt-warning-bg);
+  border-color: var(--mt-warning-border);
+}
+
+.modTools .nodeItem .nodeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mt-space-md);
+}
+
+.modTools .nodeItem .nodeMeta {
+  margin-top: var(--mt-space-sm);
+  font-size: 12px;
+  color: var(--mt-text-muted);
+}
+
+.modTools .nodeItem .nodeSharedTitle {
+  margin-bottom: var(--mt-space-sm);
+  font-size: 13px;
+  color: var(--mt-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+}
+
+/* Small label for form fields */
+.modTools .fieldLabel {
+  font-size: 13px;
+  color: var(--mt-text-secondary);
+  margin-bottom: var(--mt-space-xs);
+  font-weight: 500;
+}
+
+/* Validation error on input */
+.modTools input.hasError,
+.modTools select.hasError {
+  border-color: var(--mt-error) !important;
+  background: var(--mt-error-bg);
+}
+
+.modTools .validationHint {
+  font-size: var(--mt-text-sm);
+  color: var(--mt-error);
+  margin-top: var(--mt-space-xs);
+}
+
+/* --- Two-column grid for related fields --- */
+.modTools .formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mt-space-md);
+}
+
+.modTools .formGrid.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   6. BUTTONS
+   ========================================================================== */
+
+/* --- Primary Button --- */
+.modTools .modtoolsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mt-space-sm);
+  padding: 12px 24px;
+  background: var(--mt-primary);
+  color: var(--mt-text-on-primary);
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--mt-radius-md);
+  cursor: pointer;
+  transition: all var(--mt-transition);
+  text-decoration: none;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.modTools .modtoolsButton:hover {
+  background: var(--mt-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--mt-shadow-sm);
+}
+
+.modTools .modtoolsButton:active {
+  transform: translateY(0);
+}
+
+.modTools .modtoolsButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary button */
+.modTools .modtoolsButton.secondary {
+  background: transparent;
+  color: var(--mt-primary);
+  border: 2px solid var(--mt-primary);
+  padding: 10px 22px;
+}
+
+.modTools .modtoolsButton.secondary:hover {
+  background: var(--mt-primary-light);
+}
+
+/* Danger button */
+.modTools .modtoolsButton.danger {
+  background: var(--mt-error);
+}
+
+.modTools .modtoolsButton.danger:hover {
+  background: #B91C1C;
+}
+
+/* Small button */
+.modTools .modtoolsButton.small {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Loading spinner in buttons */
+.modTools .loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: mt-spin 0.7s linear infinite;
+}
+
+@keyframes mt-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Button row */
+.modTools .buttonRow {
+  display: flex;
+  gap: var(--mt-space-md);
+  flex-wrap: wrap;
+  margin-top: var(--mt-space-lg);
+}
+
+/* --- File Upload Zones --- */
+.modTools input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-md);
+  background: var(--mt-bg-subtle);
+  border: 2px dashed var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  cursor: pointer;
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  color: var(--mt-text-secondary);
+}
+
+.modTools input[type="file"]:hover {
+  border-color: var(--mt-primary);
+  background: var(--mt-primary-light);
+}
+
+.modTools input[type="file"]::file-selector-button {
+  padding: 10px 20px;
+  margin-right: var(--mt-space-md);
+  background: var(--mt-primary);
+  color: white;
+  border: none;
+  border-radius: var(--mt-radius-sm);
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--mt-transition);
+}
+
+.modTools input[type="file"]::file-selector-button:hover {
+  background: var(--mt-primary-hover);
+}
+
+/* ==========================================================================
+   7. DATA DISPLAY COMPONENTS
+   ========================================================================== */
+
+/* --- Index Selector --- */
+.modTools .indexSelectorContainer {
+  margin-top: var(--mt-space-lg);
+  background: var(--mt-bg-card);
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-lg);
+  overflow: hidden;
+}
+
+/* Header */
+.modTools .indexSelectorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  background: var(--mt-bg-subtle);
+  border-bottom: 1px solid var(--mt-border);
+  flex-wrap: wrap;
+  gap: var(--mt-space-md);
+}
+
+.modTools .indexSelectorTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+.modTools .indexSelectorTitle .highlight {
+  color: var(--mt-primary);
+  font-weight: 700;
+}
+
+.modTools .indexSelectorActions {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-lg);
+}
+
+.modTools .selectionCount {
+  font-size: 14px;
+  color: var(--mt-text-secondary);
+}
+
+.modTools .selectAllToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mt-text);
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.modTools .selectAllToggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--mt-primary);
+  cursor: pointer;
+}
+
+/* Search input */
+.modTools .indexSearchWrapper {
+  position: relative;
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  background: var(--mt-bg-card);
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.modTools .indexSearchInput {
+  width: 100%;
+  padding: 10px 40px 10px 16px;
+  margin: 0;
+  font-size: 14px;
+  border: 1.5px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  background: var(--mt-bg-input);
+}
+
+.modTools .indexSearchInput:focus {
+  outline: none;
+  border-color: var(--mt-primary);
+  box-shadow: 0 0 0 3px var(--mt-primary-light);
+}
+
+.modTools .indexSearchClear {
+  position: absolute;
+  right: calc(var(--mt-space-lg) + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--mt-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.modTools .indexSearchClear:hover {
+  background: var(--mt-bg-subtle);
+  color: var(--mt-text);
+}
+
+/* Index List */
+.modTools .indexList {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  background: var(--mt-bg-card);
+}
+
+/* Custom scrollbar for index list */
+.modTools .indexList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modTools .indexList::-webkit-scrollbar-track {
+  background: var(--mt-bg-subtle);
+  border-radius: 4px;
+}
+
+.modTools .indexList::-webkit-scrollbar-thumb {
+  background: var(--mt-border);
+  border-radius: 4px;
+}
+
+.modTools .indexList::-webkit-scrollbar-thumb:hover {
+  background: #B5B3AC;
+}
+
+/* Index List Row */
+.modTools .indexListRow {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-md);
+  padding: var(--mt-space-sm) var(--mt-space-md);
+  border-bottom: 1px solid var(--mt-border);
+  cursor: pointer;
+  transition: background var(--mt-transition);
+}
+
+.modTools .indexListRow:last-child {
+  border-bottom: none;
+}
+
+.modTools .indexListRow:hover {
+  background: var(--mt-primary-light);
+}
+
+.modTools .indexListRow.selected {
+  background: rgba(30, 58, 95, 0.08);
+  box-shadow: inset 3px 0 0 var(--mt-primary);
+}
+
+.modTools .indexListRow input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--mt-primary);
+  cursor: pointer;
+}
+
+.modTools .indexListTitle {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mt-text);
+  line-height: 1.4;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modTools .indexListCategory {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--mt-text-muted);
+  padding: 2px 8px;
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-sm);
+}
+
+/* No results in search */
+.modTools .indexNoResults {
+  text-align: center;
+  padding: var(--mt-space-xl);
+  color: var(--mt-text-muted);
+  font-size: 14px;
+}
+
+/* Legacy indices list (fallback) */
+.modTools .selectionControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--mt-space-md);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-md) var(--mt-radius-md) 0 0;
+  border: 1px solid var(--mt-border);
+  border-bottom: none;
+}
+
+.modTools .selectionButtons {
+  display: flex;
+  gap: var(--mt-space-sm);
+}
+
+.modTools .indicesList {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--mt-border);
+  border-radius: 0 0 var(--mt-radius-md) var(--mt-radius-md);
+  padding: var(--mt-space-sm);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-bg-card);
+  scroll-behavior: smooth;
+}
+
+.modTools .indicesList label {
+  display: flex;
+  align-items: center;
+  padding: var(--mt-space-sm) var(--mt-space-md);
+  margin: 2px 0;
+  cursor: pointer;
+  border-radius: var(--mt-radius-sm);
+  transition: background var(--mt-transition);
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.modTools .indicesList label:hover {
+  background: var(--mt-bg-subtle);
+}
+
+.modTools .indicesList label.selected {
+  background: var(--mt-primary-light);
+  border-left: 3px solid var(--mt-primary);
+}
+
+.modTools .indicesList label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0 var(--mt-space-md) 0 0;
+}
+
+/* ==========================================================================
+   8. FIELD GROUPS
+   ========================================================================== */
+.modTools .fieldGroup {
+  margin-bottom: var(--mt-space-lg);
+}
+
+.modTools .fieldGroup label {
+  margin-bottom: var(--mt-space-xs);
+}
+
+.modTools .fieldGroup .fieldInput {
+  margin-bottom: var(--mt-space-xs);
+}
+
+.modTools .fieldGroup .fieldInput:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.modTools .fieldHelp {
+  font-size: 13px;
+  color: var(--mt-text-muted);
+  margin-bottom: var(--mt-space-sm);
+  line-height: 1.5;
+}
+
+/* Field group sections */
+.modTools .fieldGroupSection {
+  margin-bottom: var(--mt-space-xl);
+  padding: var(--mt-space-lg);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-md);
+  border: 1px solid var(--mt-border);
+}
+
+.modTools .fieldGroupHeader {
+  font-family: var(--mt-font-body);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--mt-text-muted);
+  margin-bottom: var(--mt-space-md);
+  padding-bottom: var(--mt-space-sm);
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.modTools .fieldGroupGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mt-space-lg) var(--mt-space-md);
+  align-items: end; /* Align inputs at bottom of each row */
+}
+
+.modTools .fieldGroupGrid .fieldGroup {
+  margin-bottom: 0;
+}
+
+.modTools .fieldGroup.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* Field name badge */
+.modTools .fieldNameBadge {
+  display: inline-block;
+  font-family: var(--mt-font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--mt-bg-subtle);
+  border: 1px solid var(--mt-border);
+  border-radius: 4px;
+  color: var(--mt-text-muted);
+  margin-left: var(--mt-space-sm);
+  vertical-align: middle;
+}
+
+/* Validation states */
+.modTools .fieldGroup.hasError input,
+.modTools .fieldGroup.hasError select {
+  border-color: var(--mt-error);
+  background: var(--mt-error-bg);
+}
+
+.modTools .fieldError {
+  font-size: var(--mt-text-sm);
+  color: var(--mt-error);
+  margin-top: var(--mt-space-xs);
+}
+
+.modTools .requiredIndicator {
+  color: var(--mt-error);
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* ==========================================================================
+   9. FEEDBACK & ALERTS
+   ========================================================================== */
+.modTools .message {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-top: var(--mt-space-md);
+  border-radius: var(--mt-radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.modTools .message.success {
+  background: var(--mt-success-bg);
+  color: var(--mt-success);
+  border: 1px solid var(--mt-success-border);
+}
+
+.modTools .message.warning {
+  background: var(--mt-warning-bg);
+  color: var(--mt-warning-text);
+  border: 1px solid var(--mt-warning-border);
+}
+
+.modTools .message.error {
+  background: var(--mt-error-bg);
+  color: var(--mt-error);
+  border: 1px solid var(--mt-error-border);
+}
+
+.modTools .message.info {
+  background: var(--mt-info-bg);
+  color: #0E7490;
+  border: 1px solid var(--mt-info-border);
+}
+
+/* Info/Warning/Danger boxes */
+.modTools .infoBox {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-info-bg);
+  border: 1px solid var(--mt-info-border);
+  border-radius: var(--mt-radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #0E7490;
+}
+
+.modTools .infoBox strong {
+  color: var(--mt-info);
+}
+
+.modTools .warningBox {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-warning-bg);
+  border: 1px solid var(--mt-warning-border);
+  border-radius: var(--mt-radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #92400E;
+}
+
+.modTools .warningBox strong {
+  display: block;
+  margin-bottom: var(--mt-space-sm);
+  color: var(--mt-warning);
+  font-size: 15px;
+}
+
+.modTools .warningBox ul {
+  margin: var(--mt-space-sm) 0 0;
+  padding-left: var(--mt-space-lg);
+}
+
+.modTools .warningBox li {
+  margin-bottom: var(--mt-space-sm);
+}
+
+.modTools .warningBox li:last-child {
+  margin-bottom: 0;
+}
+
+.modTools .warningBox li strong {
+  display: inline;
+  margin-bottom: 0;
+}
+
+.modTools .warningBox li p {
+  margin: var(--mt-space-xs) 0 0;
+}
+
+.modTools .dangerBox {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: var(--mt-error-bg);
+  border: 1px solid var(--mt-error-border);
+  border-radius: var(--mt-radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #991B1B;
+}
+
+.modTools .dangerBox strong {
+  color: var(--mt-error);
+}
+
+/* Changes preview box */
+.modTools .changesPreview {
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-lg);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(30, 58, 95, 0.06) 100%);
+  border: 1px solid rgba(8, 145, 178, 0.3);
+  border-radius: var(--mt-radius-md);
+  font-size: 14px;
+}
+
+.modTools .changesPreview strong {
+  display: block;
+  margin-bottom: var(--mt-space-sm);
+  color: var(--mt-primary);
+}
+
+.modTools .changesPreview ul {
+  margin: var(--mt-space-xs) 0 0 var(--mt-space-lg);
+  padding: 0;
+}
+
+.modTools .changesPreview li {
+  margin-bottom: var(--mt-space-xs);
+  color: var(--mt-text-secondary);
+}
+
+/* No results state */
+.modTools .noResults {
+  padding: var(--mt-space-xl);
+  text-align: center;
+  color: var(--mt-text-muted);
+  background: var(--mt-bg-subtle);
+  border-radius: var(--mt-radius-md);
+  margin-top: var(--mt-space-md);
+}
+
+.modTools .noResults strong {
+  display: block;
+  color: var(--mt-text);
+  margin-bottom: var(--mt-space-sm);
+  font-size: 16px;
+}
+
+/* ==========================================================================
+   Workflowy & Legacy Forms
+   ========================================================================== */
+.modTools .workflowy-tool {
+  width: 100%;
+}
+
+.modTools .workflowy-tool .workflowy-tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+}
+
+.modTools .workflowy-tool textarea {
+  width: 100%;
+  min-height: 200px;
+  font-family: var(--mt-font-mono);
+  font-size: 12px;
+}
+
+.modTools .getLinks,
+.modTools .uploadLinksFromCSV,
+.modTools .remove-links-csv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+}
+
+.modTools .getLinks form,
+.modTools .uploadLinksFromCSV form,
+.modTools .remove-links-csv form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mt-space-md);
+}
+
+.modTools .getLinks fieldset {
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-lg);
+  margin: 0;
+  background: var(--mt-bg-subtle);
+}
+
+.modTools .getLinks fieldset legend {
+  padding: 0 var(--mt-space-sm);
+  font-weight: 600;
+}
+
+/* Submit buttons in legacy forms */
+.modTools input[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: var(--mt-primary);
+  color: var(--mt-text-on-primary);
+  font-family: var(--mt-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--mt-radius-md);
+  cursor: pointer;
+  transition: all var(--mt-transition);
+  align-self: flex-start;
+}
+
+.modTools input[type="submit"]:hover {
+  background: var(--mt-primary-hover);
+}
+
+.modTools input[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Checkbox Styling
+   ========================================================================== */
+.modTools input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--mt-primary);
+}
+
+.modTools .checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mt-space-sm);
+  cursor: pointer;
+  padding: var(--mt-space-xs) 0;
+  font-weight: 400;
+}
+
+.modTools label:has(input[type="checkbox"]) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--mt-space-sm);
+  font-weight: 400;
+  cursor: pointer;
+  padding: var(--mt-space-sm) 0;
+}
+
+/* ==========================================================================
+   10. COLLAPSIBLE SECTIONS
+   ========================================================================== */
+
+/* Section header - clickable to toggle */
+.modTools .sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding-bottom: var(--mt-space-md);
+  margin-bottom: var(--mt-space-md);
+  border-bottom: var(--mt-border-width-heavy) solid var(--mt-border);
+  transition: all var(--mt-transition);
+}
+
+.modTools .sectionHeader:hover {
+  border-bottom-color: var(--mt-primary);
+}
+
+.modTools .sectionHeader:hover .dlSectionTitle {
+  color: var(--mt-primary-hover);
+}
+
+/* When section header exists, title shouldn't have its own border */
+.modTools .sectionHeader .dlSectionTitle {
+  margin: 0;
+  padding: 0; /* Reset legacy padding from s2.css */
+  border-bottom: none;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Left side: collapse toggle + title */
+.modTools .sectionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--mt-space-sm);
+}
+
+/* Right side: help button */
+.modTools .sectionHeaderRight {
+  flex-shrink: 0;
+}
+
+/* Collapse toggle indicator - on the left */
+.modTools .collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mt-bg-subtle);
+  border: 1.5px solid var(--mt-border);
+  color: var(--mt-text-secondary);
+  font-size: 14px;
+  transition: all var(--mt-transition);
+  flex-shrink: 0;
+}
+
+.modTools .sectionHeader:hover .collapseToggle {
+  background: var(--mt-primary-light);
+  border-color: var(--mt-primary);
+  color: var(--mt-primary);
+}
+
+.modTools .collapseToggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--mt-transition);
+}
+
+/* Collapsed state */
+.modTools .modToolsSection.collapsed .collapseToggle svg {
+  transform: rotate(-90deg);
+}
+
+.modTools .modToolsSection.collapsed .sectionHeader {
+  margin-bottom: 0;
+  padding-bottom: var(--mt-space-md);
+}
+
+/* Section content - animated collapse */
+.modTools .sectionContent {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+  max-height: 5000px; /* Large enough for any content */
+  opacity: 1;
+}
+
+.modTools .modToolsSection.collapsed .sectionContent {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   11. HELP BUTTON & MODAL
+   ========================================================================== */
+
+/* Help Button - in section header actions */
+.modTools .helpButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mt-bg-subtle);
+  border: 1.5px solid var(--mt-border);
+  color: var(--mt-text-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--mt-transition);
+  font-family: var(--mt-font-body);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.modTools .helpButton:hover {
+  background: var(--mt-primary);
+  border-color: var(--mt-primary);
+  color: var(--mt-text-on-primary);
+  transform: scale(1.05);
+}
+
+.modTools .helpButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--mt-primary-light);
+}
+
+/* Modal Overlay */
+.modTools .helpModal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: var(--mt-space-lg);
+  animation: mt-fadeIn 0.15s ease-out;
+}
+
+@keyframes mt-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.modTools .helpModal {
+  background: var(--mt-bg-card);
+  border-radius: var(--mt-radius-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-width: 680px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: mt-slideUp 0.2s ease-out;
+}
+
+@keyframes mt-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header */
+.modTools .helpModal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--mt-space-lg) var(--mt-space-xl);
+  border-bottom: 1px solid var(--mt-border);
+  flex-shrink: 0;
+}
+
+.modTools .helpModal-title {
+  font-family: var(--mt-font-display);
+  font-size: var(--mt-text-2xl);
+  font-weight: var(--mt-font-semibold);
+  color: var(--mt-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.modTools .helpModal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--mt-bg-subtle);
+  color: var(--mt-text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--mt-transition);
+}
+
+.modTools .helpModal-close:hover {
+  background: var(--mt-error-bg);
+  color: var(--mt-error);
+}
+
+/* Modal Body - Scrollable */
+.modTools .helpModal-body {
+  padding: var(--mt-space-xl);
+  overflow-y: auto;
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--mt-text);
+}
+
+/* Content styling within modal */
+.modTools .helpModal-body h3 {
+  font-family: var(--mt-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mt-primary);
+  margin: var(--mt-space-lg) 0 var(--mt-space-md) 0;
+  padding-bottom: var(--mt-space-sm);
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.modTools .helpModal-body h3:first-child {
+  margin-top: 0;
+}
+
+.modTools .helpModal-body p {
+  margin: 0 0 var(--mt-space-md) 0;
+}
+
+.modTools .helpModal-body ul,
+.modTools .helpModal-body ol {
+  margin: 0 0 var(--mt-space-md) 0;
+  padding-left: var(--mt-space-xl);
+}
+
+.modTools .helpModal-body li {
+  margin-bottom: var(--mt-space-sm);
+}
+
+.modTools .helpModal-body li:last-child {
+  margin-bottom: 0;
+}
+
+.modTools .helpModal-body strong {
+  font-weight: 600;
+  color: var(--mt-text);
+}
+
+.modTools .helpModal-body code {
+  font-family: var(--mt-font-mono);
+  font-size: 13px;
+  background: var(--mt-bg-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--mt-primary);
+}
+
+.modTools .helpModal-body .warning {
+  background: var(--mt-warning-bg);
+  border: 1px solid var(--mt-warning-border);
+  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-md);
+  margin: var(--mt-space-md) 0;
+  color: var(--mt-warning-text);
+}
+
+.modTools .helpModal-body .warning strong {
+  color: var(--mt-warning);
+}
+
+.modTools .helpModal-body .info {
+  background: var(--mt-info-bg);
+  border: 1px solid var(--mt-info-border);
+  border-radius: var(--mt-radius-md);
+  padding: var(--mt-space-md);
+  margin: var(--mt-space-md) 0;
+  color: var(--mt-info-text);
+}
+
+.modTools .helpModal-body .field-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--mt-space-md) 0;
+  font-size: 14px;
+}
+
+.modTools .helpModal-body .field-table th,
+.modTools .helpModal-body .field-table td {
+  text-align: left;
+  padding: var(--mt-space-sm) var(--mt-space-md);
+  border-bottom: 1px solid var(--mt-border);
+}
+
+.modTools .helpModal-body .field-table th {
+  background: var(--mt-bg-subtle);
+  font-weight: 600;
+  color: var(--mt-text);
+}
+
+.modTools .helpModal-body .field-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Modal Footer */
+.modTools .helpModal-footer {
+  padding: var(--mt-space-md) var(--mt-space-xl);
+  border-top: 1px solid var(--mt-border);
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+@media print {
+  .modTools {
+    background: white;
+  }
+
+  .modTools::before {
+    display: none;
+  }
+
+  .modTools .modToolsSection {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+
+  .modTools .modToolsSection.collapsed .sectionContent {
+    max-height: none;
+    opacity: 1;
+  }
+
+  .modTools .modtoolsButton {
+    display: none;
+  }
+
+  .modTools .helpButton,
+  .modTools .collapseToggle {
+    display: none;
+  }
+
+  .modTools .helpModal-overlay {
+    display: none;
+  }
+}
