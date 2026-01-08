@@ -12,6 +12,7 @@ Writes to MongoDB Collection: history
 "edit link"     done
 "edit note"     done
 "edit text"     done
+"edit version_metadata"  done
 "publish sheet"
 "revert text"
 "review"
@@ -84,6 +85,34 @@ def log_add(user, klass, new_dict, **kwargs):
     kind = klass.history_noun
     rev_type = "add {}".format(kind)
     return _log_general(user, kind, None, new_dict, rev_type, **kwargs)
+
+
+def log_version_metadata(user, old_dict, new_dict, **kwargs):
+    """
+    Log version metadata changes (license, status, priority, etc.).
+
+    Unlike log_update which uses klass.history_noun, this creates a distinct
+    'edit version_metadata' rev_type to differentiate from text content edits.
+
+    Args:
+        user: User ID making the change
+        old_dict: Version contents before changes
+        new_dict: Version contents after changes
+        **kwargs: Optional 'method' (defaults to "Site")
+    """
+    log = {
+        "user": user,
+        "old": old_dict,
+        "new": new_dict,
+        "rev_type": "edit version_metadata",
+        "date": datetime.now(),
+        # Queryable fields for filtering/display (following index pattern)
+        "title": new_dict.get("title"),
+        "version": new_dict.get("versionTitle"),
+        "language": new_dict.get("language"),
+        "method": kwargs.get("method", "Site"),
+    }
+    return History(log).save()
 
 
 def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
