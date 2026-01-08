@@ -141,11 +141,22 @@ data:
         DUMP_COUNT=0
       fi
 
-      # Calculate difference
+      # Calculate difference and percentage
       DIFF=$((DB_COUNT - DUMP_COUNT))
       
+      # Calculate percentage difference (allow 1% tolerance for changes during backup)
+      if [[ $DB_COUNT -gt 0 ]]; then
+        DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $DB_COUNT) * 100}")
+        ABS_DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", sqrt(($DIFF_PCT)^2)}")
+      else
+        ABS_DIFF_PCT=0
+      fi
+      
+      # Status logic: OK if exact match or within 1% tolerance
       if [[ $DIFF -eq 0 ]]; then
         STATUS="OK"
+      elif (( $(awk "BEGIN {print ($ABS_DIFF_PCT <= 1.0)}") )); then
+        STATUS="OK (±1%)"
       elif [[ $DIFF -gt 0 ]]; then
         STATUS="MISSING"
         MISMATCH=$((MISMATCH + 1))
@@ -167,13 +178,14 @@ data:
     # Final summary
     echo "=== Summary ==="
     echo "Tables checked: $(echo "$DUMP_TABLES" | wc -w)"
-    echo "Tables with mismatches: $MISMATCH"
+    echo "Tables with mismatches (>1%): $MISMATCH"
     echo ""
 
     if [[ $MISMATCH -eq 0 ]]; then
-      echo "SUCCESS: All row counts match! Dump is complete."
+      echo "SUCCESS: All row counts match within tolerance! Dump is complete."
+      echo "Note: Differences within 1% are allowed to account for changes during backup."
     else
-      echo "WARNING: Found $MISMATCH table(s) with row count differences"
+      echo "WARNING: Found $MISMATCH table(s) with row count differences >1%"
       echo "This could indicate data changes during dump or incomplete dump"
     fi
 
