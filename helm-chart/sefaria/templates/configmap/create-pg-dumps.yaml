@@ -9,196 +9,23 @@ metadata:
 data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
-    set -e
-
-    echo "=== PostgreSQL Backup Script ==="
-    echo "Started at: $(date)"
-    echo ""
 
     DATADIR="/pgdumps/shared_volume"
-    DUMP_FILE="$DATADIR/pg.dump"
-    LOG_FILE="$DATADIR/backup.log"
-    COUNTS_FILE="$DATADIR/row_counts.txt"
 
-    # Connection parameters
-    PG_HOST="${DATABASES_HOST}"
-    PG_PORT="${DATABASES_PORT:-5432}"
-    PG_USER="${DATABASES_USER}"
-    PG_DB="sefaria_auth"
-
-    echo "=== Connection Info ==="
-    echo "Host: $PG_HOST"
-    echo "Port: $PG_PORT"
-    echo "User: $PG_USER"
-    echo "Database: $PG_DB"
-    echo ""
-
-    # Set password
-    if [[ -n "$DATABASES_PASSWORD" ]]; then
+    DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST"
+    if [[ $DATABASES_PORT ]]; then
+      DUMPCMD+=" --port $DATABASES_PORT"
+    else
+      DUMPCMD+=" --port 5432"
+    fi
+    DUMP_CMD+=" --username $DATABASES_USER"
+    if [[ ! $DATABASES_PASSWORD ]]; then
+      DUMP_CMD+=" --no_password"
+    else
       export PGPASSWORD="${DATABASES_PASSWORD}"
-      echo "Password: ***SET***"
-    else
-      echo "Password: (not set)"
     fi
-    echo ""
+    DUMP_CMD+=" --verbose --format=c --no-owner --section=pre-data --section=data --no-privileges"
+    DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'"
 
-    # Count rows in all tables BEFORE dump
-    echo "=== Pre-Dump Row Counts ==="
-    echo "table_name,row_count" > "$COUNTS_FILE"
-    
-    TABLES=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -c "
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
-      ORDER BY table_name;
-    ")
-
-    TOTAL_ROWS=0
-    for TABLE in $TABLES; do
-      TABLE=$(echo "$TABLE" | xargs)
-      if [[ -n "$TABLE" ]]; then
-        COUNT=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -c \
-          "SELECT COUNT(*) FROM \"$TABLE\";" | xargs)
-        echo "$TABLE: $COUNT rows"
-        echo "$TABLE,$COUNT" >> "$COUNTS_FILE"
-        TOTAL_ROWS=$((TOTAL_ROWS + COUNT))
-      fi
-    done
-    echo "TOTAL: $TOTAL_ROWS rows"
-    echo ""
-
-    # Build and run dump command
-    echo "=== Starting pg_dump ==="
-    START_TIME=$(date +%s)
-
-    pg_dump \
-      --file="$DUMP_FILE" \
-      --host="$PG_HOST" \
-      --port="$PG_PORT" \
-      --username="$PG_USER" \
-      --verbose \
-      --format=c \
-      --no-owner \
-      --section=pre-data \
-      --section=data \
-      --no-privileges \
-      --no-tablespaces \
-      --no-unlogged-table-data \
-      "$PG_DB" 2>&1
-
-    DUMP_EXIT_CODE=${PIPESTATUS[0]}
-    END_TIME=$(date +%s)
-    DURATION=$((END_TIME - START_TIME))
-
-    echo ""
-    echo "=== Dump Complete ==="
-    echo "Exit code: $DUMP_EXIT_CODE"
-    echo "Duration: ${DURATION} seconds"
-
-    if [[ ! -f "$DUMP_FILE" ]]; then
-      echo "ERROR: Dump file was not created!"
-      exit 1
-    fi
-
-    DUMP_SIZE=$(ls -lh "$DUMP_FILE" | awk '{print $5}')
-    DUMP_SIZE_BYTES=$(stat -c%s "$DUMP_FILE" 2>/dev/null || stat -f%z "$DUMP_FILE" 2>/dev/null)
-    echo "File size: $DUMP_SIZE ($DUMP_SIZE_BYTES bytes)"
-    echo ""
-
-    # Verify dump contents - count rows in dump
-    echo "=== Verifying Dump Contents ==="
-    
-    # Get tables from dump
-    DUMP_TABLES=$(pg_restore --list "$DUMP_FILE" 2>/dev/null | grep "TABLE DATA" | awk '{print $6}')
-    
-    echo ""
-    printf "%-35s | %12s | %12s | %12s | %s\n" "Table" "DB Rows" "Dump Rows" "Diff" "Status"
-    printf "%-35s-|-%12s-|-%12s-|-%12s-|-%s\n" "-----------------------------------" "------------" "------------" "------------" "--------"
-
-    TOTAL_DB=0
-    TOTAL_DUMP=0
-    MISMATCH=0
-
-    for TABLE in $DUMP_TABLES; do
-      if [[ -z "$TABLE" ]]; then
-        continue
-      fi
-
-      # Get DB count (live query)
-      DB_COUNT=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -c \
-        "SELECT COUNT(*) FROM \"$TABLE\";" 2>/dev/null | xargs)
-      
-      if [[ -z "$DB_COUNT" ]]; then
-        DB_COUNT=0
-      fi
-
-      # Get dump count by extracting and counting rows
-      DUMP_COUNT=$(pg_restore --data-only --table="$TABLE" "$DUMP_FILE" 2>/dev/null | \
-        grep -v "^SET " | grep -v "^SELECT " | grep -v "^--" | grep -v "^$" | \
-        grep -v "^COPY " | grep -v "^\\\." | wc -l | xargs)
-      
-      if [[ -z "$DUMP_COUNT" ]]; then
-        DUMP_COUNT=0
-      fi
-
-      # Calculate difference and percentage
-      DIFF=$((DB_COUNT - DUMP_COUNT))
-      
-      # Calculate percentage difference (allow 1% tolerance for changes during backup)
-      if [[ $DB_COUNT -gt 0 ]]; then
-        DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $DB_COUNT) * 100}")
-        ABS_DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", sqrt(($DIFF_PCT)^2)}")
-      else
-        ABS_DIFF_PCT=0
-      fi
-      
-      # Status logic: OK if exact match or within 1% tolerance
-      if [[ $DIFF -eq 0 ]]; then
-        STATUS="OK"
-      elif (( $(awk "BEGIN {print ($ABS_DIFF_PCT <= 1.0)}") )); then
-        STATUS="OK (±1%)"
-      elif [[ $DIFF -gt 0 ]]; then
-        STATUS="MISSING"
-        MISMATCH=$((MISMATCH + 1))
-      else
-        STATUS="EXTRA"
-        MISMATCH=$((MISMATCH + 1))
-      fi
-
-      printf "%-35s | %12s | %12s | %12s | %s\n" "$TABLE" "$DB_COUNT" "$DUMP_COUNT" "$DIFF" "$STATUS"
-
-      TOTAL_DB=$((TOTAL_DB + DB_COUNT))
-      TOTAL_DUMP=$((TOTAL_DUMP + DUMP_COUNT))
-    done
-
-    echo ""
-    printf "%-35s | %12s | %12s | %12s |\n" "TOTAL" "$TOTAL_DB" "$TOTAL_DUMP" "$((TOTAL_DB - TOTAL_DUMP))"
-    echo ""
-
-    # Final summary
-    echo "=== Summary ==="
-    echo "Tables checked: $(echo "$DUMP_TABLES" | wc -w)"
-    echo "Tables with mismatches (>1%): $MISMATCH"
-    echo ""
-
-    if [[ $MISMATCH -eq 0 ]]; then
-      echo "SUCCESS: All row counts match within tolerance! Dump is complete."
-      echo "Note: Differences within 1% are allowed to account for changes during backup."
-    else
-      echo "WARNING: Found $MISMATCH table(s) with row count differences >1%"
-      echo "This could indicate data changes during dump or incomplete dump"
-    fi
-
-    echo ""
-    echo "=== Backup Script Complete ==="
-    echo "Finished at: $(date)"
-    echo "Dump file: $DUMP_FILE"
-    echo "Row counts saved to: $COUNTS_FILE"
-
-    # Exit with error if mismatches found (optional - comment out if you want to allow mismatches)
-    # if [[ $MISMATCH -gt 0 ]]; then
-    #   exit 1
-    # fi
-
-    exit $DUMP_EXIT_CODE
+    eval $DUMP_CMD
 {{- end }}

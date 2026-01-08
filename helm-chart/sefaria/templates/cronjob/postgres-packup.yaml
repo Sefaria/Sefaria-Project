@@ -33,9 +33,6 @@ spec:
           initContainers:
           - name: postgres-dumper
             image:  postgres:{{ .Values.backup.postgres.version }}
-            env:
-            - name: DATABASES_HOST
-              value: "postgres"
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
