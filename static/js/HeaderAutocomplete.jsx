@@ -243,7 +243,13 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
-      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue)
+      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue);
+      gtag("event", "search_defocus", {
+        "project": "Global Search",
+        "panel_type": panelData.panel_type,
+        "panel_category": panelData.panel_category,
+        "panel_name": panelData.panel_name
+      });
     };
 
     const inputClasses = classNames({
@@ -254,7 +260,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     });
 
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
-
+     
     return (
       <div id="searchBox"
            className={searchBoxClasses}
