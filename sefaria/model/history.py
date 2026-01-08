@@ -207,4 +207,4 @@ def process_version_title_change_in_history(ver, **kwargs):
         "version": kwargs["old"],
         "language": ver.language,
     }
-    db.history.update(query, {"$set": {"version": kwargs["new"]}}, upsert=False, multi=True)
+    db.history.update_many(query, {"$set": {"version": kwargs["new"]}})
