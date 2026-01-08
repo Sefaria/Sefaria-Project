@@ -183,7 +183,7 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
 
 const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
-                            submitSearch, redirectToObject}) => {
+                            submitSearch, redirectToObject, panelData}) => {
 
     const getInputValue = () =>{
         return otherDownShiftProps.value || getVirtualKeyboardInputValue();
@@ -477,6 +477,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
             setInputValue={setInputValue}
+            panelData={getPanelData()}
 
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
@@ -523,7 +524,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       panel_name = sheet.title;
       panel_category = null;
     } else {
-      panel_type = "Other";
+      panel_type = "other";
     }
     return { panel_type, panel_category, panel_name };
   }
