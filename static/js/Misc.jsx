@@ -2001,7 +2001,7 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  modalContent: PropTypes.object.isRequired,
+  modalContentKind: PropTypes.symbol,
 };
 
   /**

@@ -175,6 +175,7 @@ SEARCH_INDEX_NAME_SHEET = 'sheet'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
+FAIL_IF_NODE_SSR_UNAVAILABLE = False
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts

@@ -1,6 +1,7 @@
 import React, {useContext} from "react";
 import {InterfaceText} from "./Misc";
 import {ReaderPanelContext} from "./context";
+import Sefaria from './sefaria/sefaria';
 
 function FontSizeButtons() {
     const {setOption} = useContext(ReaderPanelContext);
