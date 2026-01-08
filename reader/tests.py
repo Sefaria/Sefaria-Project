@@ -20,7 +20,7 @@ from django.contrib.auth.models import User
 import sefaria.utils.testing_utils as tutils
 
 from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet
+    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet, WebPage, WebSite
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 import random as rand
@@ -1305,3 +1305,39 @@ class VersionAttrsPostTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
 '''
+
+
+class RelatedWebsitesApiTest(SefariaTestCase):
+    def setUp(self):
+        self.web_site = WebSite({"name": "Test Whitelisted Site", "domains": ["whitelisted.test"], "is_whitelisted": True})
+        self.web_site.save()
+        scache.in_memory_cache.set("websites_data", None)
+        self.webpage_data = {
+            "url": "https://whitelisted.test/api-page",
+            "title": "Whitelisted API Page",
+            "description": "Webpage for related websites API test",
+            "refs": ["Genesis 1:1"]
+        }
+        WebPage().add_or_update_from_linker(self.webpage_data)
+
+    def tearDown(self):
+        WebPage().load(self.webpage_data["url"]).delete()
+        self.web_site.delete()
+        scache.in_memory_cache.set("websites_data", None)
+
+    def test_related_websites_api(self):
+        response = c.get('/api/related/Genesis.1.1/websites')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(isinstance(data, list))
+        normalized_url = WebPage.normalize_url(self.webpage_data["url"])
+        urls = [item["url"] for item in data]
+        self.assertIn(normalized_url, urls)
+        matched = next(item for item in data if item["url"] == normalized_url)
+        self.assertEqual(matched["anchorRef"], "Genesis 1:1")
+        self.assertFalse("expandedRefs" in matched)
+
+    def test_related_websites_api_invalid_ref(self):
+        response = c.get('/api/related/NotARef/websites')
+        data = json.loads(response.content)
+        self.assertTrue("error" in data)

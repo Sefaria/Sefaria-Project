@@ -36,7 +36,8 @@ class WebPage(abst.AbstractMongoRecord):
         "linkerHits",
         'authors',
         'articleSource',
-        'type'
+        'type',
+        'whitelisted'
     ]
 
     def load(self, url_or_query):
@@ -337,24 +338,43 @@ def get_website_cache():
     return sites
 
 
-def get_webpages_for_ref(tref):
+def _get_whitelisted_domains():
+    domains = []
+    for site in get_website_cache():
+        if site.get("is_whitelisted"):
+            domains.extend(site.get("domains", []))
+    return sorted(set(domains))
+
+
+def _get_whitelisted_domain_regex():
+    whitelisted_domains = _get_whitelisted_domains()
+    if not whitelisted_domains:
+        return None
+    domain_pattern = "|".join(re.escape(domain) for domain in whitelisted_domains)
+    return r"^https?://([^/]*\.)?(?:{})($|/)".format(domain_pattern)
+
+
+def _get_webpages_for_segment_refs(oref, segment_refs):
     from pymongo.errors import OperationFailure
-    oref = text.Ref(tref)
-    segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
+    if not segment_refs:
+        return []
+    whitelist_regex = _get_whitelisted_domain_regex()
+    if not whitelist_regex:
+        return []
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs},
+                                 "url": {"$regex": whitelist_regex}, "title": {"$ne": ""}}, 
+                                 hint="expandedRefs_1", 
+                                 sort=None)
     try:
         results = results.array()
     except OperationFailure as e:
         # If documents are too large or there are too many results, fail gracefully
-        logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
+        logger.warn(f"WebPageSet for ref {oref.normal()} failed due to Error: {repr(e)}")
         return []
     webpage_objs = {}      # webpage_obj is an actual WebPage()
     webpage_results = {}  # webpage_results is dictionary that API returns
-    
+
     for webpage in results:
-        if not webpage.whitelisted or len(webpage.title) == 0:
-            continue
-          
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
         if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
@@ -368,6 +388,23 @@ def get_webpages_for_ref(tref):
                 webpage_results[webpage_key] = webpage_contents
 
     return list(webpage_results.values())
+
+
+def get_webpages_for_ref(tref):
+    oref = text.Ref(tref)
+    if oref.is_segment_level():
+        segment_refs = [oref.normal()]
+    elif oref.is_range() and oref.range_depth() == 1:
+        segment_refs = [r.normal() for r in oref.range_list()]
+    else:
+        raise InputError("Webpages API requires a segment-level ref.")
+    return _get_webpages_for_segment_refs(oref, segment_refs)
+
+
+def get_webpages_for_section_ref(tref):
+    oref = text.Ref(tref)
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    return _get_webpages_for_segment_refs(oref, segment_refs)
 
 
 def test_normalization():
@@ -679,4 +716,3 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete
-
