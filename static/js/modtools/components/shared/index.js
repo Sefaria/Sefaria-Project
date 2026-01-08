@@ -6,3 +6,4 @@
 export { default as ModToolsSection } from './ModToolsSection';
 export { default as HelpButton } from './HelpButton';
 export { default as StatusMessage, MESSAGE_TYPES } from './StatusMessage';
+export { default as IndexSelector } from './IndexSelector';
