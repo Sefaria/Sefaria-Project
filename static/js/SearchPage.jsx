@@ -28,7 +28,7 @@ class SearchPage extends Component {
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
     const showAiBadge =    this.props.type === 'sheet' &&
-        (this.props.searchState?.sortType === 'relevance' || this.props.searchState?.sortType?.toLowerCase?.() === 'relevance');
+        this.props.searchState?.sortType?.toLowerCase?.() === 'relevance';
     const aiBadgeTexts = {
       en: 'These sheet results are ranked by AI relevance.',
       he: 'תוצאות הדפים מסודרות לפי רלוונטיות על בסיס בינה מלאכותית.',
