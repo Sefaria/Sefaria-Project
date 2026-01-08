@@ -20,7 +20,7 @@ from django.contrib.auth.models import User
 import sefaria.utils.testing_utils as tutils
 
 from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet
+    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet, WebPage, WebSite
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 import random as rand

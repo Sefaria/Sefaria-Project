@@ -2967,7 +2967,7 @@
   },
     "/api/related/{tref}": {
       "summary": "The Related API",
-      "description": "The Related API returns all related links, sheets, notes, webpages, topics, manuscripts, and other connected media for a given `Ref`. ",
+      "description": "The Related API returns all related links, sheets, notes, topics, manuscripts, and other connected media for a given `Ref`. ",
       "get": {
         "operationId": "get-related",
         "tags": [
@@ -3488,7 +3488,6 @@
                         }
                       ],
                       "notes": [],
-                      "webpages": [],
                       "topics": [],
                       "manuscripts": [],
                       "media": []
@@ -3501,7 +3500,7 @@
           }
         },
         "summary": "Related",
-        "description": "A single API endpoint to return all of the content (links, sheets, notes, media, manuscripts, webpages and topics) related to the given `Ref` in the query. "
+        "description": "A single API endpoint to return all of the content (links, sheets, notes, media, manuscripts, and topics) related to the given `Ref` in the query. "
       },
       "parameters": [
         {
@@ -3512,6 +3511,69 @@
           },
           "name": "tref",
           "description": "A valid Sefaria textual `Ref`. ",
+          "schema": {
+            "$ref": "#/components/schemas/ref"
+          },
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/related/{tref}/websites": {
+      "summary": "Related Web Pages",
+      "description": "Returns webpages related to a segment-level `Ref`. ",
+      "get": {
+        "operationId": "get-related-websites",
+        "tags": [
+          "Related"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WebPagesJSON"
+                  }
+                },
+                "examples": {
+                  "Deuteronomy 1:2": {
+                    "value": [
+                      {
+                        "url": "https://etzion.org.il/en/mission-spies",
+                        "title": "The Mission of the Spies | vbm haretzion",
+                        "refs": ["Joshua 2:2-3", "I Samuel 26:9", "Deuteronomy 32:51", "Numbers 34:16-29", "Numbers 26:52-56", "Joshua 14", "Numbers 13", "Numbers 20:12", "Numbers 32:9", "Deuteronomy 9:1-2", "Numbers 13:20", "Genesis 13:17", "Numbers 13:21", "Numbers 13:22", "Deuteronomy 1:37", "Joshua 2:1", "Deuteronomy 1:22", "Deuteronomy 1", "Numbers 34", "Deuteronomy 1:21", "Numbers 32", "Deuteronomy 1:24", "Joshua 18:3-9"],
+                        "description": "Parshat HaShavua Yeshivat Har Etzion PARASHAT SHELACH The Mission of the Spies by Rav Yaakov Medan A  The Problem",
+                        "linkerHits": 283,
+                        "domain": "etzion.org.il",
+                        "siteName": "Torat Har Etzion",
+                        "favicon": "https://www.google.com/s2/favicons?domain=etzion.org.il",
+                        "authors": "",
+                        "articleSource": "",
+                        "anchorRef": "Deuteronomy 1:2",
+                        "anchorRefExpanded": ["Deuteronomy 1:2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "description": "Webpages related to the queried `Ref`. "
+          }
+        },
+        "summary": "Related Web Pages",
+        "description": "A single API endpoint to return the webpages related to a segment-level `Ref` in the query. "
+      },
+      "parameters": [
+        {
+          "examples": {
+            "Tanakh": {
+              "value": "Deuteronomy 1.2"
+            }
+          },
+          "name": "tref",
+          "description": "A valid segment-level Sefaria textual `Ref`. ",
           "schema": {
             "$ref": "#/components/schemas/ref"
           },
@@ -10759,29 +10821,6 @@
             "type": "array",
             "items": {}
           },
-          "webpages": {
-            "description": "Webpages related to the `Ref`. ",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebPagesJSON"
-            },
-            "example": [
-              {
-                "url": "https://etzion.org.il/en/mission-spies",
-                "title": "The Mission of the Spies | vbm haretzion",
-                "refs": ["Joshua 2:2-3", "I Samuel 26:9", "Deuteronomy 32:51", "Numbers 34:16-29", "Numbers 26:52-56", "Joshua 14", "Numbers 13", "Numbers 20:12", "Numbers 32:9", "Deuteronomy 9:1-2", "Numbers 13:20", "Genesis 13:17", "Numbers 13:21", "Numbers 13:22", "Deuteronomy 1:37", "Joshua 2:1", "Deuteronomy 1:22", "Deuteronomy 1", "Numbers 34", "Deuteronomy 1:21", "Numbers 32","Deuteronomy 1:24", "Joshua 18:3-9"],
-                "description": "Parshat HaShavua Yeshivat Har Etzion PARASHAT SHELACH The Mission of the Spies by Rav Yaakov Medan A  The Problem",
-                "linkerHits": 283,
-                "domain": "etzion.org.il",
-                "siteName": "Torat Har Etzion",
-                "favicon": "https://www.google.com/s2/favicons?domain=etzion.org.il",
-                "authors": "",
-                "articleSource": "",
-                "anchorRef": "Deuteronomy 1",
-                "anchorRefExpanded": ["Deuteronomy 1:2"]
-              }
-            ]
-          },
           "topics": {
             "description": "Topics related to a given `Ref`. ",
             "type": "array",
@@ -11374,7 +11413,6 @@
             }
           ],
           "notes": [],
-          "webpages": [],
           "topics": [],
           "manuscripts": [],
           "media": []

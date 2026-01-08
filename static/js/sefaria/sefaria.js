@@ -1994,6 +1994,31 @@ _media: {},
 
   _webpages: {},
   _processedWebpages: {},
+  webpagesLoaded: function(refs) {
+    if (typeof refs === "string") {
+      const ref = Sefaria.humanRef(refs);
+      const expandedRefs = Sefaria.splitRangingRef(ref);
+      return expandedRefs.every(expandedRef => expandedRef in this._webpages);
+    }
+    return refs.every(ref => this.webpagesLoaded(ref));
+  },
+  webpagesApi: function(ref, callback) {
+    ref = Sefaria.humanRef(ref);
+    const url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "/websites";
+    return this._api(url, data => {
+      if (!data || data.error) {
+        if (callback) { callback(data); }
+        return data;
+      }
+      this._saveItemsByRef(data, this._webpages);
+      if (!(ref in this._webpages)) {
+        this._webpages[ref] = [];
+      }
+      this._processedWebpages = {};
+      if (callback) { callback(data); }
+      return data;
+    });
+  },
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
@@ -2128,7 +2153,6 @@ _media: {},
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
-          webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
           media: this._saveItemsByRef(data.media, this._media),
           manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts),
@@ -2136,7 +2160,7 @@ _media: {},
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages", "media", "guides"].forEach(obj_type => {
+      ["links", "notes", "sheets", "media", "guides"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
