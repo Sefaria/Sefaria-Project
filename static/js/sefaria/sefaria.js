@@ -23,7 +23,7 @@ let Sefaria = Sefaria || {
   last_place: [],
   VOICES_MODULE,
   LIBRARY_MODULE,
-  apiHost: Sefaria?.domainModules?.[Sefaria._getShortInterfaceLang()]['library'] || "" 
+  apiHost: "" 
 };
 
 if (typeof window !== 'undefined') {
@@ -3598,6 +3598,11 @@ _media: {},
      * That means this function can reliably read the up-to-date breakpoint without needing its own hook or state.
      */
 
+    // During SSR, return DESKTOP as default
+    if (!Sefaria._inBrowser) {
+      return Sefaria.breakpoints.DESKTOP;
+    }
+    
     const rootStyles = getComputedStyle(document.documentElement);
     const tabletMin = parseInt(rootStyles.getPropertyValue('--bp-tablet-min'));
     const desktopMin = parseInt(rootStyles.getPropertyValue('--bp-desktop-min'));
@@ -3729,7 +3734,6 @@ Sefaria.unpackBaseProps = function(props){
       "following",
       "blocking",
       "calendars",
-      "notificationCount",
       "notifications",
       "saved",
       "userHistory",

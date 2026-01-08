@@ -144,7 +144,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       {dataLoaded && collections.length == 0 ?
         <span className={"emptyMessage"}>
           <InterfaceText>
-            You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.
+          You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.
           </InterfaceText>
         </span> : null }
     </div>

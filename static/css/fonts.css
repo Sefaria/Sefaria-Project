@@ -73,6 +73,43 @@
           "adobe-garamond-pro", /*English*/
           "Crimson Text", /*this font is loaded in base.html for only some latin letters with diacritics*/
           "Times New Roman", serif; /*fallbacks*/
+  --english-secondary-font-family: 'Miriam Libre', var(--english-sans-serif-font-family);
+  --hebrew-secondary-font-family: 'Miriam Libre', var(--hebrew-sans-serif-font-family);
+}
+
+body, .sans-serif {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.serif {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+}
+
+.sans-serif-in-hebrew {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.info-text {
+  --english-font: var(--english-secondary-font-family);
+  --hebrew-font: var(--hebrew-secondary-font-family);
+  font-size: var(--is-hebrew) 90%;
+}
+
+body, .en, .int-en, .englishWithinHebrew {
+  --is-hebrew: initial;
+}
+
+.he, .int-he {
+  unicode-bidi: plaintext;
+  --is-hebrew: ;
+}
+
+* {
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  font-family: var(--hebrew-font-conditional, var(--english-font));
 }
 
 /*# sourceMappingURL=fonts.css.map */

@@ -5,6 +5,7 @@ import {layoutOptions, layoutLabels} from "./constants";
 import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
 import RadioButton from "./common/RadioButton";
+import Sefaria from "./sefaria/sefaria";
 
 const calculateLayoutState = (language, textsData, panelMode) => {
     const primaryDir = textsData?.primaryDirection;

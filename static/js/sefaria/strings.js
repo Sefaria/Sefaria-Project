@@ -409,6 +409,8 @@ const Strings = {
 
     // Saved / History / Notifications
     "Saved": "שמורים",
+    "My Saved Content": "התוכן השמור שלי",
+    "My Reading History": "היסטוריית הקריאה שלי",
     "Notifications": "התראות",
     "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
     "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
@@ -567,6 +569,7 @@ const Strings = {
     "Annual Report": 'דו"ח שנתי',
     "Terms of Use": "תנאי שימוש",
     "Privacy Policy": "מדיניות פרטיות",
+    "AI at Sefaria": "שימוש ב-AI בספריא",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
@@ -725,14 +728,15 @@ const Strings = {
     "Click icon": "סמל לחיצה",
     "Collection Header Image": "תמונת כותרת אסופה",
     "image of maginfying glass": "תמונה של זכוכית מגדלת",
-
-    // Module Switcher Tooltip
-    "Looking for something?": "מחפשים משהו?",
-    "We made some changes to the structure of the Sefaria website. Click here to discover our new modules for learning, creating and extending digital Torah." : "ערכנו שינויים במבנה של ספריא. לחצו כאן כדי לגלות את המודולים החדשים בשביל לימוד, יצירה והרחבה של תורה דיגיטלית.",
-    "Got it!": "הבנתי",
   },
 
   _i18nInterfaceStringsWithContext: {
+    "ModuleSwitcherPopover": {
+      "Looking for something?": "חיפשתם משהו?",
+      "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",
+      "Learn More": "למידע נוסף",
+      "Got it!": "הבנתי, תודה!",
+    },
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",
       "None": "ללא",
@@ -792,7 +796,6 @@ const Strings = {
     },
     "Header": {
       "Texts": "מקורות",
-      "Explore": "נושאים",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",

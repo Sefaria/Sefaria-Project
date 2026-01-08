@@ -50,6 +50,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
         }
         basic_res = requests.post(access_token_url, headers=headers)
         basic_data = basic_res.json()
+        if 'access_token' not in basic_data:
+            raise Exception(f"Salesforce OAuth failed: {basic_data}")
         session = requests.Session()
         session.headers.update({
             'Authorization': 'Bearer %s' % basic_data['access_token']
@@ -157,9 +159,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
                         })
         try:
             return res.status_code == 201
-        except:
+        except Exception:
             return False
-        return res
 
     def get_available_lists(self) -> list[str]:
         try:

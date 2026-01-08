@@ -2001,7 +2001,7 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  modalContent: PropTypes.object.isRequired,
+  modalContentKind: PropTypes.symbol,
 };
 
   /**
@@ -2595,7 +2595,6 @@ class Dropdown extends Component {
                     role="option" 
                     aria-selected={!!isSelected}
                     data-index={index}
-                    style={isFocused ? {outline: `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--focus-blue')}`, outlineOffset: '2px'} : {}}
                   >{option.label}</div>
                 }.bind(this))}
               </div>

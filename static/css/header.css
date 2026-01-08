@@ -17,6 +17,7 @@
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
+  background: white;
 }
 @media (max-width: 842px) {
   .headerInner {
@@ -98,9 +99,12 @@
 .textLinks {
   font-size: 16px;
   font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-  padding-top: 6px;
+}
+.textLinks .int-en {
+  transform: translateY(0.15em);
+}
+.textLinks .int-he {
+  transform: translateY(0.1em);
 }
 
 .textLink,

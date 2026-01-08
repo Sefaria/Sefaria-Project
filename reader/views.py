@@ -19,6 +19,7 @@ import re
 import uuid
 from dataclasses import asdict
 
+from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -57,7 +58,7 @@ from sefaria.utils.domains_and_languages import current_domain_lang, get_redirec
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, FAIL_IF_NODE_SSR_UNAVAILABLE
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -199,6 +200,8 @@ def render_template(request, template_name='base.html', app_props=None, template
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
+    else:
+        template_context["renderStatic"] = True
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
@@ -224,6 +227,21 @@ def render_react_component(component, props):
         return html
     except Exception as e:
         # Catch timeouts, however they may come.
+        if FAIL_IF_NODE_SSR_UNAVAILABLE:
+            # Log full error details before raising so they appear in logs for debugging
+            props_dict = json.loads(propsJSON) if isinstance(propsJSON, str) else propsJSON
+            logger.exception(
+                "Node SSR failed (FAIL_IF_NODE_SSR_UNAVAILABLE=True)",
+                component=component,
+                url=url,
+                error_type=type(e).__name__,
+                error_message=str(e),
+                initial_path=props_dict.get("initialPath"),
+                multi_panel=props_dict.get("multiPanel", True),
+                logged_in=props_dict.get("loggedIn", False),
+                interface_lang=props_dict.get("interfaceLang"),
+            )
+            raise e
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             props = json.loads(props) if isinstance(props, str) else props
             logger.warning("Node timeout: {} / {} / {} / {}\n".format(
@@ -386,8 +404,12 @@ def catchall(request, tref, sheet=None):
             return reader_redirect(uref)
 
         return text_panels(request, ref=tref)
+    else:
+        help_center_redirect = get_redirect_to_help_center(request, tref)
+        if help_center_redirect:
+            return redirect(help_center_redirect)
 
-    return text_panels(request, ref=tref, sheet=sheet)
+        return text_panels(request, ref=tref, sheet=sheet)
 
 
 @ensure_csrf_cookie
@@ -612,6 +634,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
+    
 
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
@@ -923,6 +946,7 @@ def search(request):
         "noindex": True
     })
 
+@ensure_csrf_cookie
 def public_collections(request):
     props = base_props(request)
     props.update({
@@ -969,6 +993,7 @@ def sheets_redirect_to_getstarted(request):
     return redirect("/getstarted/", permanent=True)
 
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def collection_page(request, slug):
     """
@@ -2386,7 +2411,7 @@ def visualize_parasha_colors(request):
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file, "renderStatic": True})
+    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
@@ -3011,7 +3036,7 @@ def notifications_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
-    scope = str(request.GET.get("scope", LIBRARY_MODULE))
+    scope = str(request.GET.get("scope", VOICES_MODULE))
 
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page, scope=scope)
 
@@ -3033,10 +3058,12 @@ def notifications_read_api(request):
     """
     if request.method == "POST":
         notifications = request.POST.get("notifications")
+        scope = request.POST.get("scope", VOICES_MODULE)
+        
         if not notifications:
             return jsonResponse({"error": "'notifications' post parameter missing."})
         if notifications == "all":
-            notificationSet = NotificationSet().unread_for_user(request.user.id)
+            notificationSet = NotificationSet().unread_for_user(request.user.id, scope=scope)
             for notification in notificationSet:
                 notification.mark_read().save()
         else:
@@ -3048,9 +3075,11 @@ def notifications_read_api(request):
                     continue
                 notification.mark_read().save()
 
+        unread_count = UserProfile(user_obj=request.user).unread_notification_count(scope=scope)
+
         return jsonResponse({
                                 "status": "ok",
-                                "unreadCount": UserProfile(user_obj=request.user).unread_notification_count()
+                                "unreadCount": unread_count
                             })
 
     else:
@@ -3180,6 +3209,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     return jsonResponse(summary, callback=request.GET.get("callback", None))
 
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def topics_page(request):
     """
@@ -3199,6 +3229,7 @@ def topics_page(request):
 def topic_page_b(request, slug):
     return topic_page(request, slug, test_version="b")
 
+@ensure_csrf_cookie
 @sanitize_get_params
 def topic_page(request, slug, test_version=None):
     """
@@ -4107,7 +4138,6 @@ def edit_profile(request):
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
-      "renderStatic": True
     })
 
 
@@ -4254,7 +4284,6 @@ def dashboard(request):
 
     return render_template(request,'dashboard.html', None, {
         "states": states,
-        "renderStatic": True
     })
 
 
@@ -4267,7 +4296,6 @@ def metrics(request):
     metrics_json = dumps(metrics)
     return render_template(request,'metrics.html', None,{
         "metrics_json": metrics_json,
-        "renderStatic": True
     })
 
 

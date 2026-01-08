@@ -730,10 +730,8 @@ msgstr ""
 "דפי המקורות של ספריא"
 
 #: templates/static/ai.html:4
-#, fuzzy
-#| msgid "on Sefaria"
 msgid "AI on Sefaria"
-msgstr "בספריא"
+msgstr "השימוש בבינה מלאכותית בספריא"
 
 #: templates/static/ai.html:5 templates/static/en/about.html:5
 #: templates/static/he/about.html:6
@@ -892,7 +890,7 @@ msgstr ""
 
 #: templates/static/link-to-annual-report.html:4
 msgid "Annual Report"
-msgstr ""
+msgstr "דו\"ח שנתי"
 
 #: templates/static/linker.html:4
 msgid "Linker Plugin"
@@ -960,7 +958,7 @@ msgstr "מדיניות פרטיות"
 
 #: templates/static/products.html:5
 msgid "Products"
-msgstr ""
+msgstr "מוצרים"
 
 #: templates/static/products.html:7
 msgid "A catalogue of Sefaria's products and experiments"
@@ -1419,10 +1417,6 @@ msgstr ""
 #~ msgid "The email address is not valid."
 #~ msgstr "כתובת הדוא״ל הזו אינה תקינה"
 
-#, fuzzy
-#~| msgid "My Notes on Sefaria"
-#~ msgid "Voices on Sefaria"
-#~ msgstr "הרשומות שלי בספריא"
 
 #~ msgid "You must be logged in to create a new collection."
 #~ msgstr "כדי ליצור אסופה חדשה, יש להתחבר עם שם משתמש וסיסמה."
@@ -1633,10 +1627,6 @@ msgstr ""
 #: reader/views.py
 msgid "Voices on Sefaria"
 msgstr "חיבורים בספריא"
-
-#: reader/views.py
-msgid "Sefaria: a Living Library of Jewish Texts Online"
-msgstr "ספריא: ספריה יהודית דינמית"
 
 #: reader/views.py
 msgid "Sheets from Voices on Sefaria"
