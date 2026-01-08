@@ -232,6 +232,12 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const focusSearch = () => {
       setSearchFocused(true);
       showVirtualKeyboardIcon(true);
+      gtag("event", "search_focus", {
+        "project": "Global Search",
+        "panel_type": panelData.panel_type,
+        "panel_category": panelData.panel_category,
+        "panel_name": panelData.panel_name
+      });
     };
 
     const blurSearch = (e) => {
@@ -246,6 +252,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       !document.getElementById('keyboardInputMaster') && setInputValue(oldValue);
       gtag("event", "search_defocus", {
         "project": "Global Search",
+        "text": oldValue,
         "panel_type": panelData.panel_type,
         "panel_category": panelData.panel_category,
         "panel_name": panelData.panel_name
