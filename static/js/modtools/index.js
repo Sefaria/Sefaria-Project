@@ -12,11 +12,13 @@ export { default as WorkflowyModeratorTool } from './components/WorkflowyModerat
 export { default as UploadLinksFromCSV } from './components/UploadLinksFromCSV';
 export { default as DownloadLinks } from './components/DownloadLinks';
 export { default as RemoveLinksFromCsv } from './components/RemoveLinksFromCsv';
+export { default as BulkVersionEditor } from './components/BulkVersionEditor';
 
 // Shared UI components
 export {
     ModToolsSection,
     HelpButton,
     StatusMessage,
-    MESSAGE_TYPES
+    MESSAGE_TYPES,
+    IndexSelector
 } from './components/shared';

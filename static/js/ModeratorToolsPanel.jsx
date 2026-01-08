@@ -8,6 +8,7 @@
  * - CSV upload of texts
  * - Workflowy OPML outline upload
  * - Links management (upload/download/remove)
+ * - Bulk editing of Version metadata
  *
  * NOTE: The following tools are temporarily disabled (open tickets to reintroduce):
  * - Bulk editing of Index metadata (BulkIndexEditor)
@@ -32,6 +33,7 @@ import WorkflowyModeratorTool from './modtools/components/WorkflowyModeratorTool
 import UploadLinksFromCSV from './modtools/components/UploadLinksFromCSV';
 import DownloadLinks from './modtools/components/DownloadLinks';
 import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
+import BulkVersionEditor from './modtools/components/BulkVersionEditor';
 
 // TODO: The following tools are temporarily disabled. There are open tickets to reintroduce them:
 // - BulkIndexEditor: Bulk edit index metadata
@@ -49,6 +51,9 @@ import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
  * Tools are organized in logical order:
  * 1. Download/Upload (bulk operations)
  * 2. Links management
+ * 3. Bulk editing (Index, Version)
+ * 4. Commentary tools
+ * 5. Schema tools
  */
 function ModeratorToolsPanel() {
   // Check moderator access
@@ -76,8 +81,10 @@ function ModeratorToolsPanel() {
         <DownloadLinks />
         <RemoveLinksFromCsv />
 
-        {/* Bulk Editing Tools - temporarily disabled, open ticket to reintroduce */}
+        {/* Bulk Editing Tools */}
+        {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
         {/* <BulkIndexEditor /> */}
+        <BulkVersionEditor />
 
         {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
         {/* <AutoLinkCommentaryTool /> */}
