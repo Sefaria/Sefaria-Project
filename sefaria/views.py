@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -1551,6 +1550,7 @@ def bulk_download_versions_api(request):
     return response
 
 
+
 def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
@@ -1597,7 +1597,6 @@ def _get_text_version_file(format, title, lang, versionTitle):
     return content
 
 
-
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
@@ -1615,6 +1614,8 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
 
 
 @staff_member_required
@@ -1732,7 +1733,7 @@ def check_index_dependencies_api(request, title):
     Used by NodeTitleEditor to warn about potential impacts of title changes.
 
     NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
-    This endpoint is not in active use and should be reviewed when used but retained for future re-enablement.
+    This endpoint is not in active use and should be reviewd when used but retained for future re-enablement.
     """
     if request.method != "GET":
         return jsonResponse({"error": "GET required"})
@@ -1764,7 +1765,6 @@ def check_index_dependencies_api(request, title):
 
     except Exception as e:
         return jsonResponse({"error": str(e)})
-
 
 @staff_member_required
 def update_authors_from_sheet(request):
@@ -1800,7 +1800,7 @@ def modtools_upload_workflowy(request):
     # Handle checkbox parameters
     c_index = request.POST.get("c_index", "").lower() == "true"
     c_version = request.POST.get("c_version", "").lower() == "true"
-    
+
     delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
     term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 

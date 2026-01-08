@@ -1,9 +1,22 @@
 /**
- * Shared components for ModeratorToolsPanel
+ * Shared components barrel export
  *
- * See docs/modtools/MODTOOLS_GUIDE.md for full documentation.
+ * These components provide consistent UI patterns across all modtools.
  */
 export { default as ModToolsSection } from './ModToolsSection';
-export { default as HelpButton } from './HelpButton';
-export { default as StatusMessage, MESSAGE_TYPES } from './StatusMessage';
+export { default as StatusMessage } from './StatusMessage';
 export { default as IndexSelector } from './IndexSelector';
+export { default as HelpButton } from './HelpButton';
+
+// Utility function for safe HTML text extraction (re-exported for convenience)
+export const stripHtmlTags = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .trim();
+};
