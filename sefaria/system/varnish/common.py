@@ -32,8 +32,6 @@ def purge_url(url):
                                                                                   "?" + url.query if url.query else '',
                                                                                   url.hostname,
                                                                                   response.status))
-    else:
-        logger.info('Purge of {}{} on host {} succeeded'.format(path, "?" + url.query if url.query else '', url.hostname))
     return response
 
 
