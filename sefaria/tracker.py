@@ -140,6 +140,38 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
     count_segments(version.get_index())
 
 
+def update_version_metadata(user: int, version: model.Version, updates: dict, **kwargs) -> model.Version:
+    """
+    Update version metadata fields and log the change to history.
+
+    Use this for metadata-only changes (license, status, priority, etc.) that should
+    be tracked separately from text content changes. Creates 'edit version_metadata'
+    history records.
+
+    Args:
+        user: User ID making the change
+        version: Loaded Version object to update
+        updates: dict of {field_name: new_value}, use None to delete a field
+        **kwargs: Optional 'method' (defaults to "Site") for history record
+
+    Returns:
+        The updated Version object
+    """
+    old_dict = version.contents()
+
+    for field_name, field_value in updates.items():
+        if field_value is None:
+            # None is sentinel for "delete this field"
+            if hasattr(version, field_name):
+                delattr(version, field_name)
+        else:
+            setattr(version, field_name, field_value)
+
+    version.save()
+    model.log_version_metadata(user, old_dict, version.contents(), **kwargs)
+    return version
+
+
 def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
     model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
     if USE_VARNISH:
