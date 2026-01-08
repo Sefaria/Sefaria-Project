@@ -2,6 +2,7 @@
 
 from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunkSet
 from sefaria.model.schema import DictionaryNode
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
@@ -704,12 +705,21 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
     print('Updating Topic Links')
     generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
+    generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
     print('Updating Garden Stops')
     generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
     print('Updating Sheets')
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print('Updating Alternate Structs')
     update_alt_structs(ref_identifier.index)
+    print('Updating Marked Up Text Chunks')
+    generic_rewrite(MarkedUpTextChunkSet(construct_query('ref', identifier)))
+    print('Updating Manuscripts')
+    generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
+    generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
+    print('Updating WebPages')
+    generic_rewrite(WebPageSet(construct_query('refs', identifier)))
+    generic_rewrite(ManuscriptSet(construct_query('expandedRefs', identifier)))
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))

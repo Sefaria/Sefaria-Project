@@ -109,13 +109,19 @@ class Link(abst.AbstractMongoRecord):
                 if oref0.is_range() and oref0.all_segment_refs() == section0.all_segment_refs():
                     samelink = Link().load({"$and": [{"refs": section0.normal()}, {"refs": self.refs[1]}]})
                 elif oref0.is_section_level():
-                    ranged0 = text.Ref(f"{oref0.all_segment_refs()[0].normal()}-{oref0.all_segment_refs()[-1].normal()}") #without nomalizing the first ref can have '<d>' which cause invalid ranged ref
-                    samelink = Link().load({"$and": [{"refs": ranged0.normal()}, {"refs": self.refs[1]}]})
+                    try:
+                        ranged0 = text.Ref(f"{oref0.all_segment_refs()[0].normal()}-{oref0.all_segment_refs()[-1].normal()}") #without nomalizing the first ref can have '<d>' which cause invalid ranged ref
+                        samelink = Link().load({"$and": [{"refs": ranged0.normal()}, {"refs": self.refs[1]}]})
+                    except IndexError:
+                        pass
                 elif oref1.is_range() and oref1.all_segment_refs() == section1.all_segment_refs():
                     samelink = Link().load({"$and": [{"refs": section1.normal()}, {"refs": self.refs[0]}]})
                 elif oref1.is_section_level():
-                    ranged1 = text.Ref(f"{oref1.all_segment_refs()[0].normal()}-{oref1.all_segment_refs()[-1].normal()}")
-                    samelink = Link().load({"$and": [{"refs": ranged1.normal()}, {"refs": self.refs[0]}]})
+                    try:
+                        ranged1 = text.Ref(f"{oref1.all_segment_refs()[0].normal()}-{oref1.all_segment_refs()[-1].normal()}")
+                        samelink = Link().load({"$and": [{"refs": ranged1.normal()}, {"refs": self.refs[0]}]})
+                    except IndexError:
+                        pass
 
             if samelink:
                 if hasattr(self, 'score') and hasattr(self, 'charLevelData'):
