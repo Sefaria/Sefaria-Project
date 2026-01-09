@@ -183,7 +183,7 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
 
 const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
-                            submitSearch, redirectToObject}) => {
+                            submitSearch, redirectToObject, panelData}) => {
 
     const getInputValue = () =>{
         return otherDownShiftProps.value || getVirtualKeyboardInputValue();
@@ -199,6 +199,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const handleSearchKeyDown = (event) => {
       onKeyDown(event);
       if (event.keyCode !== 13) return;
+      console.log("feature_name:Nav To by Keyboard", "text:", getInputValue());
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem);
@@ -208,7 +209,6 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       if (!inputQuery) return;
       submitSearch(inputQuery);
     };
-
 
     const handleSearchButtonClick = (event) => {
       const inputQuery = getInputValue();
@@ -233,6 +233,12 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const focusSearch = () => {
       setSearchFocused(true);
       showVirtualKeyboardIcon(true);
+      gtag("event", "search_focus", {
+        "project": "Global Search",
+        "panel_type": panelData.panel_type,
+        "panel_category": panelData.panel_category,
+        "panel_name": panelData.panel_name
+      });
     };
 
     const blurSearch = (e) => {
@@ -244,7 +250,14 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
-      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue)
+      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue);
+      gtag("event", "search_defocus", {
+        "project": "Global Search",
+        "text": oldValue,
+        "panel_type": panelData.panel_type,
+        "panel_category": panelData.panel_category,
+        "panel_name": panelData.panel_name
+      });
     };
 
     const inputClasses = classNames({
@@ -255,7 +268,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     });
 
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
-
+     
     return (
       <div id="searchBox"
            className={searchBoxClasses}
@@ -278,7 +291,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
-                                            submitSearch, redirectToObject}) => {
+                                            submitSearch, redirectToObject, inputValue}) => {
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -295,7 +308,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                         key={object.type}
                         suggestions={object.items}
                         initialIndexForGroup={initialIndexForGroup}
-
+                        inputValue={inputValue}
                         submitSearch={submitSearch}
                         redirectToObject={redirectToObject}
                     />
@@ -306,7 +319,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 }
 
 
-const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
+const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputValue, ...props }) => {
     const _type_component_map = {
         search: {
             onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
@@ -319,14 +332,17 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...prop
     };
 
     const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
-
+    const handleClick = (e) => {
+      console.log("feature_name:Nav To by Mouse", "to:", props.label, "text:", inputValue);
+      onSuggestionClick(e);
+    }
     return (
-        <SuggestionComponent onClick={onSuggestionClick} type={type} {...props} />
+        <SuggestionComponent onClick={handleClick} type={type} {...props} />
     );
 }
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
-                                    submitSearch, redirectToObject}) => {
+                                    submitSearch, redirectToObject, inputValue}) => {
 
     const type = suggestions[0].type;
     const title = type_title_map[type];
@@ -352,6 +368,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             universalIndex = {universalIndex}
                             highlightedIndex = {highlightedIndex}
                             getItemProps = {getItemProps}
+                            inputValue={inputValue}
                             submitSearch={submitSearch}
                             redirectToObject={redirectToObject}
                         />
@@ -362,7 +379,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
-export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
+export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, firstPanel, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
     const fetchSuggestions = async (inputValue) => {
@@ -407,6 +424,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
   const search = (onChange, query) => {
       //   Execute the actions for searching the query string
       Sefaria.track.event("Search", "Search Box Search", query);
+      console.log("feature_name:Search Results", "text:", query);
       showSearchWrapper(query);
       clearSearchBox(onChange);
   }
@@ -414,19 +432,22 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
           if (queryType === 'Ref') {
+              console.log("feature_name:Autolink", "text:", query);
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
+              console.log("feature_name:Autolink", "text:", query);
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-                const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
-                redirectToObject(onChange, item);
+              console.log("feature_name:Autolink", "text:", query);
+              const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
+              redirectToObject(onChange, item);
           } else {
               search(onChange, query);
           }
@@ -460,6 +481,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
+        console.log("link_type:", type_title_map[item.type]);
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
@@ -478,6 +500,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
             setInputValue={setInputValue}
+            panelData={getPanelData()}
 
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
@@ -489,20 +512,52 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     };
 
     const renderItems =(suggestions, highlightedIndex, getItemProps, getInputProps) => {
+        const inputValue = getInputProps().value || '';
 
         return(
-             <SuggestionsDispatcher
+             <SuggestionsDispatcher      
                 suggestions={suggestions}
                 getItemProps={getItemProps}
                 highlightedIndex={highlightedIndex}
-                getInputProps={getInputProps}
+                inputValue={inputValue}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
                 redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
               />
         )
     };
 
-
+  const getPanelData = async () => {
+    let panel_type, panel_category, panel_name;
+    if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
+      panel_type = "TOC";
+    } else if (firstPanel.menuOpen === "topics") {
+      if (firstPanel.navigationTopicCategory) {
+        panel_type = "Topic TOC";
+      } else if (firstPanel.navigationTopic) {
+        panel_type = `${menuOpen}_${tab}`;
+      }
+      panel_type = "topics";
+      panel_category = firstPanel?.navigationTopicTitle?.en || firstPanel?.navigationTopicTitle?.he;
+      panel_name = firstPanel?.topicTitle?.en || firstPanel?.topicTitle?.he;
+    } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
+      const ref = firstPanel.currentlyVisibleRef || firstPanel.refs?.[0];
+      const parsedRef = Sefaria.parseRef(ref);
+      panel_category = "|".join(Sefaria.index(parsedRef.index)?.categories);
+      panel_type = "reader";
+      panel_name = Sefaria.index(parsedRef.index)?.primary_title;
+      // console.log("Panel data:", { panel_type, panel_category, panel_name });
+    } else if (firstPanel.mode === "Sheet") {
+      panel_type = "sheet";
+      const sheet = await Sefaria.sheets.loadSheetByID(firstPanel.sheetID);
+      panel_name = sheet.title;
+      panel_category = null;
+    } else {
+      panel_type = "other";
+    }
+    // console.log("Panel data:", { panel_type, panel_category, panel_name });
+    return { panel_type, panel_category, panel_name };
+  }
+  getPanelData();
   return (
       <GeneralAutocomplete
           containerClassString='search-container'
