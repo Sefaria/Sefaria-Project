@@ -443,25 +443,6 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
     sheetPath: '/sheets/477118?lang=en',
     zendeskUrl: 'https://help.sefaria.org/hc/en-us/sections/18472260943900-Sefaria-101-Quick-Guides-and-Sefaria-Basics'
   },
-  // Deprecated / removed in modularization
-  // {
-  //   category: 'Sheets',
-  //   sheetTitle: 'Making a Source Sheet (old editor)',
-  //   includedTopics: [
-  //     'Link to new editor help sheet',
-  //     'Overview of sheet',
-  //     'Start and save sheet',
-  //     'adding to sheet',
-  //     'Locating your sheet',
-  //     'Formatting sheet',
-  //     'Delete/Print/Export to Google',
-  //     'Sharing sheet'
-  //   ],
-  //   sheetPath: '/sheets/212911?lang=bi',
-  //   zendeskUrl: 'https://help.sefaria.org/hc/en-us/sections/20094783356956-All-About-Source-Sheets',
-  //   upToDate: 'yes',
-  //   views: 7231
-  // },
   {
     category: '',
     sheetTitle: 'Instructions for Using Sefaria for Google Docs',
