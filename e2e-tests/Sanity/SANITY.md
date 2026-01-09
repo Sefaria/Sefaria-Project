@@ -129,7 +129,7 @@ Located in `Sanity/Go Live Temp/`, these tests were migrated from the `Misc/` di
 
 **Purpose**: Validates the complete sheet lifecycle from creation through deletion, covering all major sheet operations users perform.
 
-**Note**: This test suite uses serial execution with shared state. Test 8a creates a single sheet that tests 8b-8h operate on.
+**Note**: This test suite uses serial execution with shared state. Test 8a creates a single sheet that tests 8b-8j operate on.
 
 **Test Cases**:
 
@@ -151,35 +151,97 @@ Located in `Sanity/Go Live Temp/`, these tests were migrated from the `Misc/` di
    - Confirms source appears in sheet with correct content
    - Tests in-editor source addition workflow
 
-4. **Sanity 8d: Add source from Library reader to sheet**
+4. **Sanity 8d: Add image to sheet**
+   - Tests image upload functionality in sheet editor
+   - Validates file upload dialog and image selection process
+   - Confirms uploaded image displays correctly in sheet
+   - Tests rich media integration for visual content
+
+5. **Sanity 8e: Add YouTube video to sheet**
+   - Tests YouTube video embedding functionality
+   - Validates media link input and embed generation
+   - Uses test video URL: https://youtu.be/oRXVtpUCSGM
+   - Confirms YouTube player container renders correctly
+   - Tests multimedia content integration in sheets
+
+6. **Sanity 8f: Add source from Library reader to sheet**
    - Tests adding source from Library reader's connections panel
    - Validates cross-module source addition: from Library to Voices sheet
    - Confirms source appears in sheet after navigation back
    - Tests real-world workflow: reading text, adding to existing sheet
 
-5. **Sanity 8e: Publish sheet with metadata**
+7. **Sanity 8g: Publish sheet with metadata**
    - Tests complete sheet publishing workflow
    - Validates publish form accepts title, description, and tags
    - Confirms sheet transitions to published state
    - Verifies Unpublish option appears in menu after publishing
 
-6. **Sanity 8f: Unpublish sheet**
+8. **Sanity 8h: Unpublish sheet**
    - Tests sheet unpublishing functionality
    - Validates sheet returns to draft/unpublished state
    - Confirms Publish button reappears after unpublishing
    - Tests state transition: published to unpublished
 
-7. **Sanity 8g: Add sheet to a new collection**
+9. **Sanity 8i: Add sheet to a new collection**
    - Tests collection creation and sheet association
    - Validates new collection creation with unique name
    - Confirms sheet appears in collection (checkbox checked in modal)
    - Tests collections feature integration with sheets
 
-8. **Sanity 8h: Delete sheet**
+10. **Sanity 8j: Delete sheet**
    - Tests complete sheet deletion workflow
    - Validates deletion confirmation and execution
    - Confirms redirect to user profile after deletion
    - Verifies sheet no longer appears in user's profile sheet list
+
+---
+
+### search-sanity.spec.ts
+
+**Purpose**: Validates critical search functionality across Library and Voices modules, ensuring users can discover content through search suggestions and search results.
+
+**Test Cases**:
+
+1. **Sanity 9a: Library - Click search suggestion and arrive at destination**
+   - Tests autocomplete suggestion functionality in Library module
+   - User types search term (e.g., "abraham") and clicks on a topic suggestion
+   - Validates navigation to correct topic page after clicking suggestion
+   - Ensures search suggestions are clickable and lead to appropriate destinations
+
+2. **Sanity 9b: Library - Submit search and get results**
+   - Tests full-text search submission in Library module
+   - User types search query (e.g., "avraham") and presses Enter
+   - Validates navigation to search results page with correct query parameter
+   - Confirms search results are displayed and visible to user
+   - Tests real-world search workflow: query submission and result display
+
+3. **Sanity 9c: Library - Search dropdown sections and icons validation**
+   - Validates Library-specific search dropdown UI elements
+   - Confirms presence of expected sections: Authors, Topics, Categories, Books
+   - Confirms absence of excluded sections: Users (Library doesn't show user results)
+   - Validates correct icons appear for each result type: AuthorTopic, Topic, TocCategory, ref
+   - Uses test term "mid" which reliably triggers all four Library sections
+
+4. **Sanity 9d: Voices - Click search suggestion and arrive at destination**
+   - Tests autocomplete suggestion functionality in Voices module
+   - User types search term (e.g., "rashi") and clicks on suggestion
+   - Validates navigation to correct topic or profile page
+   - Ensures Voices search suggestions work consistently with Library pattern
+
+5. **Sanity 9e: Voices - Submit search and get results**
+   - Tests full-text search submission in Voices module
+   - User types search query (e.g., "shabbat") and presses Enter
+   - Validates navigation to Voices search results page
+   - Confirms search results display correctly in Voices context
+   - Verifies Voices search results may include sheets, topics, and users
+
+6. **Sanity 9f: Voices - Search dropdown sections and icons validation**
+   - Validates Voices-specific search dropdown UI elements
+   - Confirms presence of expected sections: Topics, Authors, Users
+   - Confirms absence of excluded sections: Categories, Books (Voices doesn't show Library-specific results)
+   - Validates correct icons appear for each result type: Topic, AuthorTopic, User
+   - Uses test term "rashi" which reliably triggers all three Voices sections
+   - Demonstrates module-specific search behavior differences
 
 ---
 
@@ -291,6 +353,7 @@ npx playwright test Sanity
 npx playwright test Sanity/user-flow-sanity.spec.ts
 npx playwright test Sanity/cross-module-login.spec.ts
 npx playwright test Sanity/sheet-workflow-sanity.spec.ts
+npx playwright test Sanity/search-sanity.spec.ts
 ```
 
 ### Run Go Live Temp Tests
@@ -305,6 +368,7 @@ npx playwright test "Sanity/Go Live Temp"
 npx playwright test -g "User can login successfully"
 npx playwright test -g "Scenario 1"
 npx playwright test -g "Sanity 8a"
+npx playwright test -g "Sanity 9a"
 ```
 
 ---
