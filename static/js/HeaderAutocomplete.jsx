@@ -199,7 +199,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const handleSearchKeyDown = (event) => {
       onKeyDown(event);
       if (event.keyCode !== 13) return;
-      console.log("Nav to by keyboard enter");
+      console.log("feature_name:Nav To by Keyboard", "text:", getInputValue());
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem);
@@ -291,7 +291,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
-                                            submitSearch, redirectToObject}) => {
+                                            submitSearch, redirectToObject, inputValue}) => {
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -308,7 +308,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                         key={object.type}
                         suggestions={object.items}
                         initialIndexForGroup={initialIndexForGroup}
-
+                        inputValue={inputValue}
                         submitSearch={submitSearch}
                         redirectToObject={redirectToObject}
                     />
@@ -319,7 +319,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 }
 
 
-const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
+const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputValue, ...props }) => {
     const _type_component_map = {
         search: {
             onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
@@ -332,14 +332,17 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...prop
     };
 
     const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
-
+    const handleClick = (e) => {
+      console.log("feature_name:Nav To by Mouse", "to:", props.label, "text:", inputValue);
+      onSuggestionClick(e);
+    }
     return (
-        <SuggestionComponent onClick={onSuggestionClick} type={type} {...props} />
+        <SuggestionComponent onClick={handleClick} type={type} {...props} />
     );
 }
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
-                                    submitSearch, redirectToObject}) => {
+                                    submitSearch, redirectToObject, inputValue}) => {
 
     const type = suggestions[0].type;
     const title = type_title_map[type];
@@ -365,6 +368,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             universalIndex = {universalIndex}
                             highlightedIndex = {highlightedIndex}
                             getItemProps = {getItemProps}
+                            inputValue={inputValue}
                             submitSearch={submitSearch}
                             redirectToObject={redirectToObject}
                         />
@@ -507,13 +511,14 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     };
 
     const renderItems =(suggestions, highlightedIndex, getItemProps, getInputProps) => {
+        const inputValue = getInputProps().value || '';
 
         return(
              <SuggestionsDispatcher      
                 suggestions={suggestions}
                 getItemProps={getItemProps}
                 highlightedIndex={highlightedIndex}
-                getInputProps={getInputProps}
+                inputValue={inputValue}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
                 redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
               />
