@@ -691,11 +691,7 @@ class ReaderPanel extends Component {
       panel_type: this.getPanelType(),
       panel_number: this.getPanelNumber(),
       content_lang: this.getContentLanguageOverrideStateful(),
-      panel_name: this.getPanelName(),
-      current_ref: this.currentRef(),
-      current_book: this.currentBook(),
-      current_category: this.currentCategory(),
-      sheet_id: this.state.sheetID
+      panel_name: this.getPanelName()
     };
   }
   render() {

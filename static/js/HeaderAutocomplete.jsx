@@ -199,6 +199,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const handleSearchKeyDown = (event) => {
       onKeyDown(event);
       if (event.keyCode !== 13) return;
+      console.log("Nav to by keyboard enter");
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem);
@@ -419,6 +420,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
   const search = (onChange, query) => {
       //   Execute the actions for searching the query string
       Sefaria.track.event("Search", "Search Box Search", query);
+      console.log("feature_name:Search Results", "text:", query);
       showSearchWrapper(query);
       clearSearchBox(onChange);
   }
@@ -426,19 +428,22 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
           if (queryType === 'Ref') {
+              console.log("feature_name:Autolink", "text:", query);
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
+              console.log("feature_name:Autolink", "text:", query);
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-                const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
-                redirectToObject(onChange, item);
+              console.log("feature_name:Autolink", "text:", query);
+              const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
+              redirectToObject(onChange, item);
           } else {
               search(onChange, query);
           }
@@ -520,17 +525,21 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
       panel_type = "TOC";
     } else if (firstPanel.menuOpen === "topics") {
+      if (firstPanel.navigationTopicCategory) {
+        panel_type = "Topic TOC";
+      } else if (firstPanel.navigationTopic) {
+        panel_type = `${menuOpen}_${tab}`;
+      }
       panel_type = "topics";
-      panel_category = firstPanel.navigationTopicTitle.en || firstPanel.navigationTopicTitle.he;
-      panel_name = firstPanel.topicTitle.en || firstPanel.topicTitle.he;
-      console.log("Panel data:", { panel_type, panel_category, panel_name });
+      panel_category = firstPanel?.navigationTopicTitle?.en || firstPanel?.navigationTopicTitle?.he;
+      panel_name = firstPanel?.topicTitle?.en || firstPanel?.topicTitle?.he;
     } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
       const ref = firstPanel.currentlyVisibleRef || firstPanel.refs?.[0];
       const parsedRef = Sefaria.parseRef(ref);
-      panel_category = Sefaria.index(parsedRef.index)?.primary_category;
+      panel_category = "|".join(Sefaria.index(parsedRef.index)?.categories);
       panel_type = "reader";
       panel_name = Sefaria.index(parsedRef.index)?.primary_title;
-      console.log("Panel data:", { panel_type, panel_category, panel_name });
+      // console.log("Panel data:", { panel_type, panel_category, panel_name });
     } else if (firstPanel.mode === "Sheet") {
       panel_type = "sheet";
       const sheet = await Sefaria.sheets.loadSheetByID(firstPanel.sheetID);
@@ -539,6 +548,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     } else {
       panel_type = "other";
     }
+    // console.log("Panel data:", { panel_type, panel_category, panel_name });
     return { panel_type, panel_category, panel_name };
   }
   getPanelData();
