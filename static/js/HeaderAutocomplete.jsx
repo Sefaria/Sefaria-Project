@@ -481,6 +481,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
+        console.log("link_type:", type_title_map[item.type]);
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
