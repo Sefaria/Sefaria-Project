@@ -66,6 +66,7 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
+from sefaria import tracker
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -1614,6 +1615,155 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+@staff_member_required
+def version_indices_api(request):
+    """
+    Get indices that have versions matching a versionTitle.
+
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...], "metadata": {...}}
+    Returns indices and optional metadata (categories) for each index.
+    """
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+
+    version_title = request.GET.get("versionTitle")
+    if not version_title:
+        raise InputError("versionTitle is required")
+    language = request.GET.get("language")
+
+    query = {"versionTitle": version_title}
+    if language:
+        query["language"] = language
+    indices = db.texts.distinct("title", query)
+    sorted_indices = sorted(indices)
+
+    # Build metadata with categories for each index
+    # Note: library.get_index() uses an in-memory cache, so this loop is efficient
+    metadata = {}
+    for index_title in sorted_indices:
+        try:
+            index = library.get_index(index_title)
+            metadata[index_title] = {"categories": getattr(index, 'categories', [])}
+        except Exception:
+            metadata[index_title] = {"categories": []}
+
+    return jsonResponse({"indices": sorted_indices, "metadata": metadata})
+
+
+# Allowed fields for version bulk edit - prevents arbitrary attribute injection
+# Note: versionTitle is excluded - it's the search key used to find versions, not editable
+VERSION_BULK_EDIT_ALLOWED_FIELDS = {
+    "versionTitleInHebrew", "versionSource", "license", "status",
+    "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
+    "versionNotesInHebrew", "purchaseInformationURL", "purchaseInformationImage", "direction"
+}
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    """
+    Bulk update Version metadata for multiple indices.
+
+    Request:
+      POST {"versionTitle": "...", "language": "he", "indices": [...], "updates": {...}}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        indices = data["indices"]
+        updates = data["updates"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    # Validate that all update fields are allowed
+    disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
+    if disallowed_fields:
+        return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
+
+    # Track successes and failures for detailed reporting
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            # title + versionTitle uniquely identifies a version (pkeys in Version model)
+            version = Version().load({
+                "title": index_title,
+                "versionTitle": version_title,
+            })
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            tracker.update_version_metadata(request.user.id, version, updates)
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
+    # Return detailed results
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
+
+
+@staff_member_required
+def check_index_dependencies_api(request, title):
+    """
+    Check what dependencies exist for a given index title.
+    Used by NodeTitleEditor to warn about potential impacts of title changes.
+
+    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
+    This endpoint is not in active use and should be reviewed when used but retained for future re-enablement.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+
+    try:
+        # Get dependent indices (commentaries, etc.)
+        dependent_indices = library.get_dependant_indices(title, full_records=False)
+
+        # Get version count
+        version_count = db.texts.count_documents({"title": title})
+
+        # Get link count (approximate)
+        from sefaria.model.text import prepare_index_regex_for_dependency_process    # Inline import: this specific function is not exported via sefaria.model wildcard
+        try:
+            index = library.get_index(title)
+            pattern = prepare_index_regex_for_dependency_process(index)
+            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
+        except Exception as e:
+            logger.debug(f"Failed to get link count for {title}: {e}")
+            link_count = 0
+
+        return jsonResponse({
+            "title": title,
+            "dependent_indices": dependent_indices,
+            "version_count": version_count,
+            "link_count": link_count,
+            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
+        })
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
 
 
 @staff_member_required

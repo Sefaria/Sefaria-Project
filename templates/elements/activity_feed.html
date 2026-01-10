@@ -110,6 +110,14 @@
                 <pre>{{ event.old|pprint }}</pre>
             </div>
 
+        {% elif "version_metadata" in event.rev_type %}
+            <span class="topline">{{ event.user|user_link }}
+                {% trans "edited version metadata for" %}
+                {% if he %}{{ event.title|he_ref_link }}{% else %}{{ event.title|ref_link }}{% endif %}.
+                {% if event.method == "API" %} (via API) {% endif %}
+            </span>
+            <div class="versionLine">{% trans "Version" %}: {{ event.version }} ({{ event.language|lang_code }})</div>
+
         {% elif "term" in event.rev_type %}
             <span class="topline">{{ event.user|user_link }}  
             {% if event.rev_type == "add term" %}
