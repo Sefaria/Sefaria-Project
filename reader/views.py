@@ -57,7 +57,7 @@ from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAI
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER, ALLOWED_HOSTS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
+from sefaria.system.decorators import catch_error_as_json, cors_allow_all, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError, ComplexBookLevelRefError
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
@@ -4385,6 +4385,7 @@ def dummy_search_api(request):
 
 
 @csrf_exempt
+@cors_allow_all
 def search_wrapper_api(request, es6_compat=False):
     """
     @param request:
