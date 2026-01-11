@@ -337,15 +337,46 @@ def get_website_cache():
         return sites
     return sites
 
+def _webpage_client_contents_minimal(webpage):
+    site_data = getattr(webpage, "_site_data", {}) or {}
+    site_name = getattr(webpage, "site_name", "")
+    return {
+        "url": webpage.url,
+        "title": WebPage.clean_title(webpage.title, site_data, site_name),
+        "description": WebPage.clean_description(getattr(webpage, "description", "")),
+        "linkerHits": getattr(webpage, "linkerHits", 0),
+        "domain": webpage.domain,
+        "siteName": site_name,
+        "favicon": webpage.favicon,
+        "authors": getattr(webpage, "authors", None),
+        "articleSource": getattr(webpage, "articleSource", None),
+    }
+
 def _get_webpages_for_segment_refs(oref, segment_refs):
     from pymongo.errors import OperationFailure
     if not segment_refs:
         return []
+    segment_ref_objs = []
+    for tref in segment_refs:
+        try:
+            segment_ref_objs.append(text.Ref(tref))
+        except InputError:
+            continue
     # only get items that lastUpdated in last year
     results = WebPageSet(query={"expandedRefs": {"$in": segment_refs},
                                 "title": {"$ne": ""},
                                 "lastUpdated": {"$gte": datetime.now() - timedelta(days=365)}
                                 },
+                                 proj={
+                                     "url": 1,
+                                     "title": 1,
+                                     "refs": 1,
+                                     "lastUpdated": 1,
+                                     "description": 1,
+                                     "linkerHits": 1,
+                                     "authors": 1,
+                                     "articleSource": 1,
+                                 },
                                  hint="expandedRefs_1", 
                                  sort=None)
     try:
@@ -363,10 +394,26 @@ def _get_webpages_for_segment_refs(oref, segment_refs):
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
         if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
-            anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs,
-                                                                                 webpage.expandedRefs)
+            # Recompute anchor refs from segment refs + webpage refs to avoid loading/using expandedRefs.
+            # This is a reimplementation of the logic in Ref.get_all_anchor_refs to avoid loading Ref objects unnecessarily.
+            anchor_ref_list = []
+            anchor_ref_expanded_list = []
+            for tref in webpage.refs:
+                if not tref.startswith(oref.index.title):
+                    continue
+                try:
+                    document_ref = text.Ref(tref)
+                except InputError:
+                    continue
+                if not oref.overlaps(document_ref):
+                    continue
+                anchor_ref_list.append(document_ref)
+                anchor_ref_expanded_list.append(
+                    [segment_ref for segment_ref in segment_ref_objs if document_ref.overlaps(segment_ref)]
+                )
+            base_webpage_contents = _webpage_client_contents_minimal(webpage)
             for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
-                webpage_contents = webpage.client_contents()
+                webpage_contents = dict(base_webpage_contents)
                 webpage_contents["anchorRef"] = anchor_ref.normal()
                 webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
                 webpage_objs[webpage_key] = webpage
