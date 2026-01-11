@@ -551,25 +551,20 @@ Sefaria = extend(Sefaria, {
     return versionParamsString;
   },
   makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
-    const apiHost = Sefaria.apiHost || (typeof window !== 'undefined' ? window.location.origin : '');
-    const url = new URL(`${apiHost}/api/v3/texts/${Sefaria.normRef(ref)}`);
-    
+    const host = Sefaria.apiHost;
+    const endPoint = '/api/v3/texts/';
+
     const versions = requiredVersions.map(obj =>
       Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
     );
     versions.sort();
-    
-    versions.forEach(version => url.searchParams.append('version', version));
-    url.searchParams.set('fill_in_missing_segments', mergeText ? '1' : '0');
-    
-    if (return_format) {
-      url.searchParams.set('return_format', return_format);
-    }
-    if (Sefaria._debug_mode === "linker") {
-      url.searchParams.set('debug_mode', 'linker');
-    }
-    
-    return url.toString();
+      
+    const mergeTextInt = mergeText ? 1 : 0;
+    const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
+    const debug_mode_string = (Sefaria._debug_mode === "linker") ? '&debug_mode=linker' : '';
+    const encodedRef = Sefaria.normRef(ref);
+    const url = `${host}${endPoint}${encodedRef}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}${debug_mode_string}`;
+    return url;
   },
   _textsStore: {},
   _textsStoreSet: function(key, value) {
