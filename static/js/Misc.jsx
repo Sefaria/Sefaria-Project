@@ -1402,11 +1402,10 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   </div>
 )};
 
-const AiLearnMoreLink = ({lang}) => {
-  const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
+const AiLearnMoreLink = () => {
   return (
       <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
-        {text}
+        <InterfaceText context="AiInfoTooltip">Learn More</InterfaceText>
       </a>
   );
 };
@@ -1420,7 +1419,7 @@ const AiFeedbackLink = ({lang}) => {
   );
 }
 
-const AiInfoTooltip = () => {
+const AiInfoTooltip = ({ displayText = "Some of the text on this page has been AI generated." }) => {
   const [showMessage, setShowMessage] = useState(false);
   const aiInfoIcon = (
       <img
@@ -1431,18 +1430,14 @@ const AiInfoTooltip = () => {
           onMouseLeave={() => setShowMessage(false)}
       />
     );
+
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
-            <div className="ai-info-first-message">
-            <InterfaceText>
-                <EnglishText>{Sefaria._("The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.", "AiInfoTooltip")}
-                  &nbsp;<AiLearnMoreLink lang="english" />
-                </EnglishText>
-                <HebrewText>{Sefaria._("The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.", "AiInfoTooltip")}&nbsp;
-                  <AiLearnMoreLink lang="hebrew" />
-                </HebrewText>
+          <div className="ai-info-first-message">
+            <InterfaceText context="AiInfoTooltip">
+                {displayText}
             </InterfaceText>
-
+            <AiLearnMoreLink />
         </div>
         <hr className="ai-info-messages-hr" />
         <div className="ai-info-last-message">
