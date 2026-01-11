@@ -432,7 +432,6 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       stripItags: settings.stripItags || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
-      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
       firstAvailableRef: ("firstAvailableRef" in settings) ? settings.firstAvailableRef : 1,
@@ -549,21 +548,28 @@ Sefaria = extend(Sefaria, {
     } else if (language) {
         versionParamsString = language;
     }
-    return encodeURIComponent(versionParamsString);
+    return versionParamsString;
   },
   makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
-    const host = Sefaria.apiHost;
-    const endPoint = '/api/v3/texts/';
+    const apiHost = Sefaria.apiHost || (typeof window !== 'undefined' ? window.location.origin : '');
+    const url = new URL(`${apiHost}/api/v3/texts/${Sefaria.normRef(ref)}`);
+    
     const versions = requiredVersions.map(obj =>
-        Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
+      Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
     );
     versions.sort();
-
-    const mergeTextInt = mergeText ? 1 : 0;
-    const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
-    const encodedRef = Sefaria.normRef(ref);
-    const url = `${host}${endPoint}${encodedRef}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
-    return url;
+    
+    versions.forEach(version => url.searchParams.append('version', version));
+    url.searchParams.set('fill_in_missing_segments', mergeText ? '1' : '0');
+    
+    if (return_format) {
+      url.searchParams.set('return_format', return_format);
+    }
+    if (Sefaria._debug_mode === "linker") {
+      url.searchParams.set('debug_mode', 'linker');
+    }
+    
+    return url.toString();
   },
   _textsStore: {},
   _textsStoreSet: function(key, value) {
@@ -574,12 +580,82 @@ Sefaria = extend(Sefaria, {
     // requiredVersions is an array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
+    Sefaria._buildLinkerOutputMap(apiObject?.linker_output);
     return apiObject;
   },
   _makeV3VersionsUrlCacheKey: function(ref, versions) {
     versions.map(version => version.isPrimary ? { languageFamilyName: 'primary' } : version);
     return Sefaria.makeUrlForAPIV3Text(ref, versions, true, 'wrap_all_entities')
   },
+  _linkerOutputMap: {},
+  _buildLinkerOutputMap: function(linker_output = []) {
+      const getKey = (ref, language, charRange) => `${ref}|${language}|${charRange.join('-')}`;
+      for (let linkerOutput of linker_output) {
+          const {ref, language} = linkerOutput;
+          // reset arrays to keep track of ambiguous spans
+          for (let span of linkerOutput.spans) {
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)] = [];
+          }
+          for (let span of linkerOutput.spans) {
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push(span);
+          }
+      }
+  },
+  _makeLinkerDebugAlert(ref, lang, charRange, spans) {
+      let output = "";
+      const sampleSpan = spans[0];  // useful for info that is the same across spans
+      const successStatus = spans.length === 1 ? (spans[0].failed ? "FAILED" : "SUCCESS") : "AMBIGUOUS";
+      output += sampleSpan.type.toUpperCase() + " -- " + successStatus + "\n\n";
+      for (let span of spans) {
+          output += Sefaria._getLinkerDebugStrFromSpan(span) + "-----\n";
+      }
+      output += "See console for full debug info";
+      alert(output);
+      console.log(`Linker Debug Info for ${ref} [${lang}] chars ${charRange}:`, spans.length === 1 ? spans[0] : spans);
+  },
+  _getLinkerDebugStrFromSpan(span) {
+      let output = "";
+      if (span.type === 'citation') {
+          output += "Ref: " + span.ref + "\n";
+          output += "Input Ref Parts: " + span.inputRefParts.join(' | ') + "\n";
+          output += "Input Ref Part Types: " + span.inputRefPartTypes.join(' | ') + "\n";
+          if (span.contextType) {
+              output += "Context Ref: " + span.contextRef + "\n";
+              output += "Context Type: " + span.contextType + "\n";
+          }
+          output += `Test String: ${Sefaria._getLinkerTestString(span)}\n`;
+      } else if (span.type === 'named-entity') {
+          output += "Text: " + span.text + "\n";
+          output += "Topic Slug: " + span.topicSlug + "\n";
+      } else if (span.type === 'category') {
+          output += "Text: " + span.text + "\n";
+          output += "Category Path: " + span.categoryPath.join(' | ') + "\n";
+      }
+      return output;
+  },
+    _getLinkerTestString({text, inputRefParts, inputRefPartTypes}) {
+        /**
+         * Outputs a test string that can be pasted into linker_test.py to test the same input.
+         */
+      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
+        let testStr = "crrd([";
+        for (let i = 0; i < inputRefParts.length; i++) {
+            const part = inputRefParts[i];
+            const type = inputRefPartTypes[i];
+            const symbol = partTypeSymbolMap[type] || "?";
+            testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+            if (i < inputRefParts.length - 1) {
+                testStr += ", ";
+            }
+        }
+        testStr += "]";
+        if (Sefaria.hebrew.isHebrew(text)) {
+            testStr += ")";
+        } else {
+            testStr += ", lang='en')";
+        }
+        return testStr;
+    },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
@@ -692,7 +768,6 @@ Sefaria = extend(Sefaria, {
       store: this._bulkSheets
     });
   },
-  _guides: {},
   getGuide: function(guideKey = "editor") {
     return this._cachedApiPromise({
       url: `${Sefaria.apiHost}/api/guides/${guideKey}`,
@@ -734,7 +809,6 @@ Sefaria = extend(Sefaria, {
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
     "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
-    "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "ro": {"name": "Romanian", "nativeName": "română", "title": "Texte evreiești în limba română", "showTranslations": 1},
@@ -968,7 +1042,6 @@ Sefaria = extend(Sefaria, {
       context:    settings.context,
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks,
-      wrapNamedEntities: settings.wrapNamedEntities,
       multiple:   settings.multiple,
       stripItags: settings.stripItags,
       transLangPref: settings.translationLanguagePreference,
@@ -3529,7 +3602,8 @@ Sefaria.unpackBaseProps = function(props){
       "trendingTopics",
       "numLibraryTopics",
       "_siteSettings",
-      "_debug"
+      "_debug",
+      "_debug_mode",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import Mock
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, MapReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef
+from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
 from sefaria.model.text import Ref
 
 
@@ -49,6 +50,6 @@ zohar_first_daf_node = zohar_volume1_intro_node.get_children()[0]
 def test_contains(node_a: ReferenceableBookNode, node_b: ReferenceableBookNode, self_tref: str, other_tref: str, is_contained: bool):
     self_oref = self_tref and Ref(self_tref)
     other_oref = other_tref and Ref(other_tref)
-    rr_a = ResolvedRef(Mock(), Mock(), node_a, self_oref)
-    rr_b = ResolvedRef(Mock(), Mock(), node_b, other_oref)
+    rr_a = ResolvedRef(Mock(), [RefPartAndNodeMatch(tuple(), node_a, True)], self_oref)
+    rr_b = ResolvedRef(Mock(), [RefPartAndNodeMatch(tuple(), node_b, True)], other_oref)
     assert rr_a.contains(rr_b) == is_contained

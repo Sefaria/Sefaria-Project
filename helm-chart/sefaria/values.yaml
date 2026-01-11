@@ -194,11 +194,11 @@ tasks:
   enabled: false
   resources:
     requests:
-      memory: "100Mi"
-      cpu: "100m"
+      memory: "2Gi"
+      cpu: "500m"
     limits:
-      memory: "200Mi"
-      cpu: "400m"
+      memory: "4Gi"
+      cpu: "1000m"
   replicaCount: 1
   redis:
     url: "redis://127.0.0.1"

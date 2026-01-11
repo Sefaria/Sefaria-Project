@@ -3,6 +3,8 @@ from collections import defaultdict
 from functools import reduce
 from typing import List
 import django
+import re
+from sefaria.model.marked_up_text_chunk import get_mutc_class, LinkerOutput
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -20,11 +22,12 @@ class TextRequestAdapter:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default'):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default', debug_mode=None):
         self.versions_params = versions_params
         self.oref = oref
         self.fill_in_missing_segments = fill_in_missing_segments
         self.return_format = return_format
+        self.debug_mode = debug_mode
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -142,34 +145,47 @@ class TextRequestAdapter:
         if not inode.is_virtual:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
+    def _add_linker_output(self):
+        if self.debug_mode != "linker":
+            return
+
+        linker_output_list = []
+        for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+            for version in self.return_obj['versions']:
+                language = version['language']
+                version_title = version['versionTitle']
+                linker_output = LinkerOutput().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
+                if linker_output:
+                    linker_output_list.append(linker_output.contents())
+        self.return_obj["linker_output"] = linker_output_list
+
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
+        MUTCClass = get_mutc_class(self.debug_mode == "linker")
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
-        def make_named_entities_dict():
-            # Cache named entities per version to avoid repeated DB queries
-            cache_key = f"{version_title}_{language}"
-            if cache_key not in shared_data:
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in shared_data['all_segment_refs']]},
-                                                  "charLevelData.versionTitle": version_title,
-                                                  "charLevelData.language": language})
-                # assumption is that refTopicLinks are all to unranged refs
-                ne_by_secs = defaultdict(list)
-                for ne in named_entities:
-                    try:
-                        ne_ref = Ref(ne.ref)
-                    except InputError:
-                        continue
-                    ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
-                shared_data[cache_key] = ne_by_secs
-            return shared_data[cache_key]
+        def get_marked_up_text_chunk_queue():
+            from queue import Queue
+            q = Queue()
+            for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+                marked_up_chunk = MUTCClass().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
+                q.put(marked_up_chunk)
+            return q
 
-        def wrap_links(string):
-            link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
-                string, lang=language, citing_only=True)
-            return library.get_wrapped_refs_string(string, lang=language, citing_only=True,
-                                                   reg=link_wrapping_reg, title_nodes=title_nodes)
+        def mutc_wrapper(string, sections):
+            chunk: MUTCClass = chunks_queue.get()
+            if chunk:
+                string = chunk.apply_spans_to_text(string)
+            return string
 
         # Define text modification functions based on return format
         text_modification_funcs = []
@@ -179,9 +195,7 @@ class TextRequestAdapter:
 
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            text_modification_funcs = [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
-            if Link().load(query):
-                text_modification_funcs.append(lambda string, _: wrap_links(string))
+            text_modification_funcs.append(mutc_wrapper)
 
         elif self.return_format == 'text_only':
             text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
@@ -201,7 +215,7 @@ class TextRequestAdapter:
             if self.return_format == 'wrap_all_entities':
                 language = 'he' if version['direction'] == 'rtl' else 'en'
                 version_title = version['versionTitle']
-                ne_by_secs = make_named_entities_dict()
+                chunks_queue = get_marked_up_text_chunk_queue()
 
             ja = JaggedTextArray(version['text'])
             version['text'] = ja.modify_by_function(composed_func)
@@ -213,5 +227,6 @@ class TextRequestAdapter:
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()
         self._add_node_data_to_return_obj()
+        self._add_linker_output()
         self._format_text()
         return self.return_obj
