@@ -27,9 +27,8 @@ class SearchPage extends Component {
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
-    const showAiBadge =    this.props.type === 'sheet' &&
-        this.props.searchState?.sortType?.toLowerCase?.() === 'relevance';
-    const aiBadgeTexts = 'These sheet results are ranked by AI relevance.';
+    const {aiBadgeText} = this.props;
+    const showAiBadge = aiBadgeText != null;
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -88,8 +87,8 @@ class SearchPage extends Component {
                       <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
                     </h1>
                     {showAiBadge && <AiInfoTooltip
-                      enText={aiBadgeTexts}
-                      heText={Sefaria._(aiBadgeTexts)}
+                      enText={aiBadgeText}
+                      heText={Sefaria._(aiBadgeText)}
                     />}
                   </div>
                   <div className="searchTopMatter">
@@ -145,6 +144,7 @@ SearchPage.propTypes = {
   topics:                   PropTypes.array,
   totalResults:             PropTypes.object,
   sortTypeArray:            PropTypes.array,
+  aiBadgeText:              PropTypes.string,
 };
 
 

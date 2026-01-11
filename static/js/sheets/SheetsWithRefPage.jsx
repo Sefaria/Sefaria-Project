@@ -183,6 +183,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     sortedSheets = applySortOption(sortedSheets);
     sortedSheets = prepSheetsForDisplay(sortedSheets);
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
+    const aiBadgeText = searchState?.sortType?.toLowerCase?.() === 'relevance'
+        ? 'These sheet results are ranked by AI relevance.' : undefined;
     return <SearchPage
           key={"sheetsPage"}
           isQueryRunning={loading}
@@ -199,6 +201,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           updateAppliedFilter={updateAppliedFilter}
           updateAppliedOptionField={updateAppliedOptionField}
           updateAppliedOptionSort={updateAppliedOptionSort}
-          registerAvailableFilters={registerAvailableFilters}/>
+          registerAvailableFilters={registerAvailableFilters}
+          aiBadgeText={aiBadgeText}
+    />
 }
 export default SheetsWithRefPage;
