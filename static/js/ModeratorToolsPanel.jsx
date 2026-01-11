@@ -38,6 +38,9 @@ import BulkVersionEditor from './modtools/components/BulkVersionEditor';
 // - BulkIndexEditor: Bulk edit index metadata
 // - AutoLinkCommentaryTool: Auto-link commentaries to base texts
 // - NodeTitleEditor: Edit node titles within an Index schema
+// When re-enabling NodeTitleEditor/BulkIndexEditor, the index_post function in reader/views.py
+// will need enhanced error handling (dependency checks, categorized error responses).
+// See PR #2984 review comments for context.
 // import BulkIndexEditor from './modtools/components/BulkIndexEditor';
 // import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
 // import NodeTitleEditor from './modtools/components/NodeTitleEditor';
