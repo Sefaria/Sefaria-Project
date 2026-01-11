@@ -19,8 +19,6 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     const [refs, setRefs] = useState(srefs);
     const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray;
 
-    // const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray.filter(sortType => sortType.type !== 'relevance');
-
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
         // clone filters so that we can update the available filters docCounts
         // without modifying the original available filters (origAvailableFilters) docCounts
