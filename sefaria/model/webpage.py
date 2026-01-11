@@ -337,32 +337,15 @@ def get_website_cache():
         return sites
     return sites
 
-
-def _get_whitelisted_domains():
-    domains = []
-    for site in get_website_cache():
-        if site.get("is_whitelisted"):
-            domains.extend(site.get("domains", []))
-    return sorted(set(domains))
-
-
-def _get_whitelisted_domain_regex():
-    whitelisted_domains = _get_whitelisted_domains()
-    if not whitelisted_domains:
-        return None
-    domain_pattern = "|".join(re.escape(domain) for domain in whitelisted_domains)
-    return r"^https?://([^/]*\.)?(?:{})($|/)".format(domain_pattern)
-
-
 def _get_webpages_for_segment_refs(oref, segment_refs):
     from pymongo.errors import OperationFailure
     if not segment_refs:
         return []
-    whitelist_regex = _get_whitelisted_domain_regex()
-    if not whitelist_regex:
-        return []
+    # only get items that lastUpdated in last year
     results = WebPageSet(query={"expandedRefs": {"$in": segment_refs},
-                                 "url": {"$regex": whitelist_regex}, "title": {"$ne": ""}}, 
+                                "title": {"$ne": ""},
+                                "lastUpdated": {"$gte": datetime.now() - timedelta(days=365)}
+                                },
                                  hint="expandedRefs_1", 
                                  sort=None)
     try:
@@ -375,6 +358,8 @@ def _get_webpages_for_segment_refs(oref, segment_refs):
     webpage_results = {}  # webpage_results is dictionary that API returns
 
     for webpage in results:
+        if not webpage.whitelisted:
+            continue
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
         if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
