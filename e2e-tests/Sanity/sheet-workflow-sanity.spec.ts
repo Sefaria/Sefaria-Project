@@ -76,7 +76,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Add source via text lookup
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
     // BOOTLEG: Fix because plus button is not on bottom as it should be
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 9; i++) {
       await page.keyboard.press('ArrowDown');
     }
     await sheetEditorPage.addSampleSource(); // Genesis 1:1
@@ -87,9 +87,56 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   });
 
   // =================================================================
-  // TEST 4: Add Source from Library Reader
+  // TEST 4: Add Image to Sheet
   // =================================================================
-  test('Sanity 8d: Add source from Library reader to sheet', async ({ context }) => {
+  test('Sanity 8d: Add image to sheet', async ({ context }) => {
+    const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
+    await page.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(page);
+
+    const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
+
+    // Navigate to end of sheet
+    for (let i = 0; i < 9; i++) {
+      await page.keyboard.press('ArrowDown');
+    }
+
+    // Add image using the sample image method
+    await sheetEditorPage.addSampleImage();
+    await page.waitForTimeout(2000); // Extra wait for image upload and auto-save
+
+    // Verify image was added
+    await expect(sheetEditorPage.addedImage()).toBeVisible();
+  });
+
+  // =================================================================
+  // TEST 5: Add YouTube Video to Sheet
+  // =================================================================
+  test('Sanity 8e: Add YouTube video to sheet', async ({ context }) => {
+    const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
+    await page.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(page);
+
+    const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
+
+    // Navigate to end of sheet
+    for (let i = 0; i < 9; i++) {
+      await page.keyboard.press('ArrowDown');
+    }
+
+    // Add YouTube video
+    const youtubeUrl = 'https://youtu.be/oRXVtpUCSGM';
+    await sheetEditorPage.addSampleMedia(youtubeUrl);
+    await page.waitForTimeout(2000); // Extra wait for video embed and auto-save
+
+    // Verify YouTube video was added
+    await expect(sheetEditorPage.addedYoutube()).toBeVisible();
+  });
+
+  // =================================================================
+  // TEST 6: Add Source from Library Reader
+  // =================================================================
+  test('Sanity 8f: Add source from Library reader to sheet', async ({ context }) => {
     // Navigate to Library reader
     const page = await goToPageWithUser(context, '/Job.1.2?lang=bi&with=all&lang2=en', BROWSER_SETTINGS.enUser);
     // await page.waitForLoadState('networkidle');
@@ -101,8 +148,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Verify added (navigate back to sheet)
     await page.goto(sheetUrl);
     await page.waitForLoadState('networkidle');
+    await hideAllModalsAndPopups(page);
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 9; i++) {
       await page.keyboard.press('ArrowDown');
     }
     await expect(sheetEditorPage.addedSource().last()).toBeVisible();
@@ -110,9 +158,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   });
 
   // ================================================================
-  // TEST 5: Publish Sheet
+  // TEST 7: Publish Sheet
   // ================================================================
-  test('Sanity 8e: Publish sheet with metadata', async ({ context }) => {
+  test('Sanity 8g: Publish sheet with metadata', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
@@ -139,9 +187,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   });
 
   // =================================================================
-  // TEST 6: Unpublish Sheet
+  // TEST 8: Unpublish Sheet
   // =================================================================
-  test('Sanity 8f: Unpublish sheet', async ({ context }) => {
+  test('Sanity 8h: Unpublish sheet', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
@@ -158,9 +206,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   });
 
   // =================================================================
-  // TEST 7: Add Sheet to Collection
+  // TEST 9: Add Sheet to Collection
   // =================================================================
-  test('Sanity 8g: Add sheet to a new collection', async ({ context }) => {
+  test('Sanity 8i: Add sheet to a new collection', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
 
@@ -181,9 +229,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   });
 
   // =================================================================
-  // TEST 8: Delete Sheet
+  // TEST 10: Delete Sheet
   // =================================================================
-  test('Sanity 8h: Delete sheet', async ({ context }) => {
+  test('Sanity 8j: Delete sheet', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
@@ -202,21 +250,23 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
 /**
  * TEST SUMMARY:
  *
- * 7 sanity tests for complete sheet workflow:
+ * 10 sanity tests for complete sheet workflow:
  * 8a. Login and Create Sheet - Login to Voices and create sheet with unique ID
  * 8b. Title - Gives sheet a descriptive title
  * 8c. Add Source (Voices) - Add source via text lookup in Voices module
- * 8d. Add Source (Library) - Add source from Library reader
- * 8e. Publish - Publish sheet with metadata
- * 8f. Unpublish - Unpublish the sheet
- * 8g. Collections - Create and add sheet to a new collection
- * 8h. Delete - Delete the sheet
+ * 8d. Add Image - Upload and add an image to the sheet
+ * 8e. Add YouTube Video - Embed a YouTube video in the sheet
+ * 8f. Add Source (Library) - Add source from Library reader
+ * 8g. Publish - Publish sheet with metadata
+ * 8h. Unpublish - Unpublish the sheet
+ * 8i. Collections - Create and add sheet to a new collection
+ * 8j. Delete - Delete the sheet
  *
  * KEY FEATURES:
  * - Serial execution (test.describe.serial) ensures Test 8a runs first
  * - Each test uses { context } fixture from Playwright
  * - Test 8a creates ONE sheet with unique timestamp ID
- * - Tests 8b-8h reuse that same sheet via module-level variables
+ * - Tests 8b-8j reuse that same sheet via module-level variables
  * - Uses goToPageWithUser for authenticated navigation
  * - Starts in Voices module (where sheet creation happens)
  * - Extra modal handling after sheet creation

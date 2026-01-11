@@ -245,14 +245,20 @@ export class SheetEditorPage extends HelperBase {
     const imagePath = 'e2e-tests/fixtures/test-image.jpg';
     const fileInput = this.page.locator('#addImageFileSelector');
     await fileInput.setInputFiles(imagePath);
-    await this.page.waitForSelector('img');
-    await expect(this.addedImage()).toBeVisible();
+    // Wait for the image to be added to the sheet
+    await expect(this.addedImage()).toBeVisible({ timeout: 10000 });
   };
 
   async addSampleMedia(link: string) {
     await this.clickAddMedia();
-    await this.page.getByRole('textbox', { name: 'Paste a link to an image, video, or audio' }).fill(link);
-    await this.page.getByRole('button', { name: 'Add Media' }).click();
+    const mediaInput = this.page.getByRole('textbox', { name: 'Paste a link to an image, video, or audio' });
+    await mediaInput.fill(link);
+    // Wait for the "Add Media" button to appear (it only appears after valid URL is entered)
+    const addButton = this.page.getByRole('button', { name: 'Add Media' });
+    await expect(addButton).toBeVisible({ timeout: 5000 });
+    await addButton.click();
+    // Wait a moment for the media to be embedded
+    await this.page.waitForTimeout(500);
   };
 
   async moveCursorToEnd() {
@@ -413,7 +419,7 @@ export class SheetEditorPage extends HelperBase {
     const publishButton = this.page.locator('button')
       .filter({ hasText: /publish/i }).last();
     await publishButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     // Assert error saying please add a ... doesnt appear
     await expect(this.page.getByText('Please add a')).not.toBeVisible();
     // Assert that the popup Success! appears
@@ -437,7 +443,7 @@ export class SheetEditorPage extends HelperBase {
 
     const unpublishOption = this.page.getByText('Unpublish');
     await unpublishOption.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     // Assert that the popup Success! appears
     await expect(this.page.getByText('Success!')).toBeVisible();
   }
