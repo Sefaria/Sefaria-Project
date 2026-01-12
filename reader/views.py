@@ -1128,6 +1128,7 @@ def _get_user_calendar_params(request):
     return {"diaspora": request.diaspora, "custom": custom}
 
 
+@ensure_csrf_cookie
 def texts_list(request):
     title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
