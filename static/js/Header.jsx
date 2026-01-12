@@ -110,6 +110,7 @@ const Header = (props) => {
       boxShadow: props.hasBoxShadow,
       mobile: !props.multiPanel
     });
+    
     return (
       <div className={headerClasses} role="banner" ref={headerRef}>
         <div className={headerInnerClasses}>
