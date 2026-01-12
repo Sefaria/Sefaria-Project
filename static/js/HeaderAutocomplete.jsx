@@ -250,9 +250,8 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       showVirtualKeyboardIcon(true);
       gtag("event", "search_focus", {
         "project": "Global Search",
-        "panel_type": panelData.panel_type,
-        "panel_category": panelData.panel_category,
-        "panel_name": panelData.panel_name
+        "panel_type": getPanelType(),
+        "panel_name": Sefaria._inBrowser && document.title
       });
     };
 
@@ -269,9 +268,8 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       gtag("event", "search_defocus", {
         "project": "Global Search",
         "text": oldValue,
-        "panel_type": panelData.panel_type,
-        "panel_category": panelData.panel_category,
-        "panel_name": panelData.panel_name
+        "panel_type": getPanelType(),
+        "panel_name": Sefaria._inBrowser && document.title
       });
     };
 
