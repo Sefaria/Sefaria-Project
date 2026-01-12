@@ -214,9 +214,15 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const handleSearchKeyDown = (event) => {
       onKeyDown(event);
       if (event.keyCode !== 13) return;
-      console.log("event:search_navto", "feature_name:Nav To by Keyboard", "text:", getInputValue());
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
+        gtag("event", "search_navto", {
+          "project": "Global Search",
+          "panel_type": getPanelType(),
+          "feature_name": "Nav To by Keyboard",
+          "text": getInputValue(),
+          "to": highlightedItem.label || highlightedItem.type
+        });
         redirectToObject(highlightedItem);
         return;
       }
@@ -346,7 +352,13 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
 
     const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
     const handleClick = (e) => {
-      console.log("event:search_navto", "feature_name:Nav To by Mouse", "to:", props.label, "text:", inputValue);
+      gtag("event", "search_navto", {
+        "project": "Global Search",
+        "panel_type": null,
+        "feature_name": "Nav To by Mouse",
+        "to": props.label,
+        "text": inputValue
+      });
       onSuggestionClick(e);
     }
     return (
@@ -437,7 +449,12 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
   const search = (onChange, query) => {
       //   Execute the actions for searching the query string
       Sefaria.track.event("Search", "Search Box Search", query);
-      console.log("event: search_submit", "feature_name:Search Results", "text:", query);
+      gtag("event", "search_submit", {
+        "project": "Global Search",
+        "panel_type": null,
+        "feature_name": "Search Results",
+        "text": query
+      });
       showSearchWrapper(query);
       clearSearchBox(onChange);
   }
@@ -445,20 +462,38 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
           if (queryType === 'Ref') {
-              console.log("event:search_navto", "feature_name:Autolink", "text:", query);
+              gtag("event", "search_navto", {
+                "project": "Global Search",
+                "panel_type": null,
+                "feature_name": "Autolink",
+                "text": query,
+                "to": queryId
+              });
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
-              console.log("event:search_navto", "feature_name:Autolink", "text:", query);
+              gtag("event", "search_navto", {
+                "project": "Global Search",
+                "panel_type": null,
+                "feature_name": "Autolink",
+                "text": query,
+                "to": queryId
+              });
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-              console.log("event:search_navto", "feature_name:Autolink", "text:", query);
+              gtag("event", "search_navto", {
+                "project": "Global Search",
+                "panel_type": null,
+                "feature_name": "Autolink",
+                "text": query,
+                "to": queryId
+              });
               const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
               redirectToObject(onChange, item);
           } else {
@@ -494,7 +529,13 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-        console.log("event:search_navto","link_type:", type_title_map[item.type]);
+        gtag("event", "search_navto", {
+          "project": "Global Search",
+          "panel_type": null,
+          "link_type": type_title_map[item.type],
+          "to": item.label || item.key,
+          "text": item.key
+        });
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
