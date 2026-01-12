@@ -114,14 +114,14 @@
 
   /*
    * SPACING
-   * Based on 4px grid
+   * Based on 4px grid - Compact design
    */
-  --mt-space-xs: 4px;   /* Tight spacing */
-  --mt-space-sm: 8px;   /* Small gaps */
-  --mt-space-md: 16px;  /* Medium gaps, default padding */
-  --mt-space-lg: 24px;  /* Large gaps, section spacing */
-  --mt-space-xl: 32px;  /* Extra large, card padding */
-  --mt-space-2xl: 48px; /* Major section breaks */
+  --mt-space-xs: 2px;   /* Tight spacing */
+  --mt-space-sm: 4px;   /* Small gaps */
+  --mt-space-md: 8px;   /* Medium gaps, default padding */
+  --mt-space-lg: 12px;  /* Large gaps, section spacing */
+  --mt-space-xl: 16px;  /* Extra large, card padding */
+  --mt-space-2xl: 24px; /* Major section breaks */
 
   /*
    * BORDERS & EFFECTS
@@ -154,7 +154,7 @@
    * LAYOUT
    */
   --mt-max-width: 1100px;
-  --mt-input-height: 48px; /* Standard input height (12px padding * 2 + line-height) */
+  --mt-input-height: 36px; /* Standard input height - compact */
 }
 
 /* ==========================================================================
@@ -163,12 +163,12 @@
 .modTools {
   width: 100%;
   min-height: 100vh;
-  padding: var(--mt-space-xl) var(--mt-space-lg);
-  padding-bottom: 80px; /* Generous bottom margin */
+  padding: var(--mt-space-lg) var(--mt-space-md);
+  padding-bottom: 40px; /* Bottom margin */
   background: var(--mt-bg-page);
   font-family: var(--mt-font-body);
-  font-size: var(--mt-text-base);
-  line-height: var(--mt-leading-relaxed);
+  font-size: var(--mt-text-sm);
+  line-height: var(--mt-leading-normal);
   color: var(--mt-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -196,11 +196,11 @@
   content: "Moderator Tools";
   display: block;
   font-family: var(--mt-font-display);
-  font-size: 28px;
+  font-size: 22px;
   font-weight: var(--mt-font-semibold);
   color: var(--mt-primary);
-  padding: var(--mt-space-lg) 0;
-  margin-bottom: var(--mt-space-xl);
+  padding: var(--mt-space-md) 0;
+  margin-bottom: var(--mt-space-lg);
   border-bottom: 2px solid var(--mt-border);
   letter-spacing: -0.01em;
 }
@@ -212,10 +212,10 @@
 /* --- Section Cards --- */
 .modTools .modToolsSection {
   background: var(--mt-bg-card);
-  border-radius: var(--mt-radius-lg);
-  padding: var(--mt-space-xl);
-  margin-bottom: var(--mt-space-lg);
-  box-shadow: var(--mt-shadow-card);
+  border-radius: var(--mt-radius-sm);
+  padding: var(--mt-space-md) var(--mt-space-lg);
+  margin-bottom: var(--mt-space-sm);
+  box-shadow: var(--mt-shadow-sm);
   border: 1px solid var(--mt-border);
   transition: box-shadow var(--mt-transition);
   overflow: visible;
@@ -228,11 +228,11 @@
 /* Section Title */
 .modTools .dlSectionTitle {
   font-family: var(--mt-font-display);
-  font-size: var(--mt-text-2xl);
+  font-size: var(--mt-text-lg);
   font-weight: var(--mt-font-semibold);
   color: var(--mt-primary);
-  margin: 0 0 var(--mt-space-sm) 0;
-  padding-bottom: var(--mt-space-md);
+  margin: 0 0 var(--mt-space-xs) 0;
+  padding-bottom: var(--mt-space-sm);
   border-bottom: var(--mt-border-width-heavy) solid var(--mt-border);
   letter-spacing: -0.01em;
   line-height: var(--mt-leading-tight);
@@ -247,9 +247,9 @@
 
 /* Section subtitle/description */
 .modTools .sectionDescription {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--mt-text-secondary);
-  margin-bottom: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-md);
   line-height: var(--mt-leading-normal);
 }
 
@@ -260,10 +260,10 @@
 /* --- Labels --- */
 .modTools label {
   display: block;
-  font-size: 14px;
-  font-weight: var(--mt-font-semibold);
+  font-size: 13px;
+  font-weight: var(--mt-font-medium);
   color: var(--mt-text);
-  margin-bottom: var(--mt-space-sm);
+  margin-bottom: var(--mt-space-xs);
 }
 
 /* --- Input Base Styles --- */
@@ -276,15 +276,15 @@
   display: block;
   width: 100%;
   max-width: 100%;
-  padding: 12px 16px;
-  margin-bottom: var(--mt-space-md);
+  padding: 6px 10px;
+  margin-bottom: var(--mt-space-sm);
   font-family: var(--mt-font-body);
-  font-size: var(--mt-text-base);
+  font-size: var(--mt-text-sm);
   line-height: var(--mt-leading-normal);
   color: var(--mt-text);
   background: var(--mt-bg-input);
-  border: var(--mt-border-width-thick) solid var(--mt-border);
-  border-radius: var(--mt-radius-md);
+  border: 1px solid var(--mt-border);
+  border-radius: var(--mt-radius-sm);
   transition: all var(--mt-transition);
   box-sizing: border-box;
 }
@@ -375,7 +375,7 @@
   flex-shrink: 0;
   white-space: nowrap;
   /* Standard button sizing - not stretched */
-  padding: 12px 24px;
+  padding: 6px 14px;
   min-width: auto;
   width: auto;
 }
@@ -549,15 +549,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--mt-space-sm);
-  padding: 12px 24px;
+  gap: var(--mt-space-xs);
+  padding: 6px 14px;
   background: var(--mt-primary);
   color: var(--mt-text-on-primary);
   font-family: var(--mt-font-body);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   border: none;
-  border-radius: var(--mt-radius-md);
+  border-radius: 4px;
   cursor: pointer;
   transition: all var(--mt-transition);
   text-decoration: none;
@@ -586,7 +586,7 @@
   background: transparent;
   color: var(--mt-primary);
   border: 2px solid var(--mt-primary);
-  padding: 10px 22px;
+  padding: 6px 14px;
 }
 
 .modTools .modtoolsButton.secondary:hover {
@@ -604,8 +604,8 @@
 
 /* Small button */
 .modTools .modtoolsButton.small {
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
 /* Loading spinner in buttons */
@@ -635,14 +635,14 @@
 .modTools input[type="file"] {
   display: block;
   width: 100%;
-  padding: var(--mt-space-lg);
-  margin-bottom: var(--mt-space-md);
+  padding: var(--mt-space-md);
+  margin-bottom: var(--mt-space-sm);
   background: var(--mt-bg-subtle);
   border: 2px dashed var(--mt-border);
-  border-radius: var(--mt-radius-md);
+  border-radius: var(--mt-radius-sm);
   cursor: pointer;
   font-family: var(--mt-font-body);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--mt-text-secondary);
 }
 
@@ -652,14 +652,14 @@
 }
 
 .modTools input[type="file"]::file-selector-button {
-  padding: 10px 20px;
-  margin-right: var(--mt-space-md);
+  padding: 6px 12px;
+  margin-right: var(--mt-space-sm);
   background: var(--mt-primary);
   color: white;
   border: none;
   border-radius: var(--mt-radius-sm);
   font-family: var(--mt-font-body);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: background var(--mt-transition);
@@ -931,7 +931,7 @@
    8. FIELD GROUPS
    ========================================================================== */
 .modTools .fieldGroup {
-  margin-bottom: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-sm);
 }
 
 .modTools .fieldGroup label {
@@ -1228,14 +1228,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  padding: 6px 14px;
   background: var(--mt-primary);
   color: var(--mt-text-on-primary);
   font-family: var(--mt-font-body);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   border: none;
-  border-radius: var(--mt-radius-md);
+  border-radius: 4px;
   cursor: pointer;
   transition: all var(--mt-transition);
   align-self: flex-start;
@@ -1254,8 +1254,8 @@
    Checkbox Styling
    ========================================================================== */
 .modTools input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   margin: 0;
   cursor: pointer;
   accent-color: var(--mt-primary);
@@ -1264,20 +1264,22 @@
 .modTools .checkboxLabel {
   display: inline-flex;
   align-items: center;
-  gap: var(--mt-space-sm);
+  gap: var(--mt-space-xs);
   cursor: pointer;
-  padding: var(--mt-space-xs) 0;
+  padding: 0;
   font-weight: 400;
+  font-size: 13px;
 }
 
 .modTools label:has(input[type="checkbox"]) {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: var(--mt-space-sm);
+  gap: var(--mt-space-xs);
   font-weight: 400;
   cursor: pointer;
-  padding: var(--mt-space-sm) 0;
+  padding: var(--mt-space-xs) 0;
+  font-size: 13px;
 }
 
 /* ==========================================================================
