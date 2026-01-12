@@ -958,10 +958,10 @@
 
 /* Field group sections */
 .modTools .fieldGroupSection {
-  margin-bottom: var(--mt-space-xl);
-  padding: var(--mt-space-lg);
+  margin-bottom: var(--mt-space-md);
+  padding: var(--mt-space-sm) var(--mt-space-md);
   background: var(--mt-bg-subtle);
-  border-radius: var(--mt-radius-md);
+  border-radius: var(--mt-radius-sm);
   border: 1px solid var(--mt-border);
 }
 
@@ -1199,7 +1199,7 @@
 .modTools .remove-links-csv {
   display: flex;
   flex-direction: column;
-  gap: var(--mt-space-md);
+  gap: var(--mt-space-xs);
 }
 
 .modTools .getLinks form,
@@ -1207,20 +1207,21 @@
 .modTools .remove-links-csv form {
   display: flex;
   flex-direction: column;
-  gap: var(--mt-space-md);
+  gap: var(--mt-space-xs);
 }
 
 .modTools .getLinks fieldset {
   border: 1px solid var(--mt-border);
-  border-radius: var(--mt-radius-md);
-  padding: var(--mt-space-lg);
+  border-radius: var(--mt-radius-sm);
+  padding: var(--mt-space-sm) var(--mt-space-md);
   margin: 0;
   background: var(--mt-bg-subtle);
 }
 
 .modTools .getLinks fieldset legend {
-  padding: 0 var(--mt-space-sm);
+  padding: 0 var(--mt-space-xs);
   font-weight: 600;
+  font-size: 12px;
 }
 
 /* Submit buttons in legacy forms */

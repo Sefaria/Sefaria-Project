@@ -127,19 +127,19 @@ const HELP_CONTENT = (
  * Reference input field with validation
  */
 const InputRef = ({ id, value, handleChange, handleBlur, error }) => (
-  <label>
-    Ref{id}
+  <div className="fieldGroup">
+    <label>Ref{id}</label>
     <input
       type="text"
       name={`ref${id}`}
       value={value}
       onChange={handleChange}
       onBlur={handleBlur}
-      style={error ? { backgroundColor: "rgba(255, 0, 0, 0.5)" } : {}}
+      className={error ? 'hasError' : ''}
       placeholder={id === 2 ? 'all library, limited to 15k links' : null}
     />
-    <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>{(error) ? "Not a valid ref" : ""}</p>
-  </label>
+    {error && <span className="fieldError">Not a valid ref</span>}
+  </div>
 );
 
 InputRef.propTypes = {
@@ -154,8 +154,8 @@ InputRef.propTypes = {
  * Generic text input field
  */
 const InputNonRef = ({ name, value, handleChange }) => (
-  <label>
-    {name.charAt(0).toUpperCase() + name.slice(1)}
+  <div className="fieldGroup">
+    <label>{name.charAt(0).toUpperCase() + name.slice(1)}</label>
     <input
       type="text"
       name={name}
@@ -163,7 +163,7 @@ const InputNonRef = ({ name, value, handleChange }) => (
       onChange={handleChange}
       placeholder="any"
     />
-  </label>
+  </div>
 );
 
 InputNonRef.propTypes = {
@@ -245,28 +245,25 @@ function DownloadLinks() {
       titleHe="הורדת קישורים"
       helpContent={HELP_CONTENT}
     >
-      <div className="getLinks">
-        <form id="download-links-form">
-          <fieldset>
-            <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
-            <label>
-              <input
-                type="checkbox"
-                checked={bySegment}
-                onChange={handleCheck}
-              />
-              iterate by segments (include empties)
-            </label>
-          </fieldset>
-          <br />
-          <InputRef id={2} value={refs.ref2} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref2} />
-          <br />
-          <InputNonRef name='type' value={type} handleChange={(e) => setType(e.target.value)} />
-          <br />
-          <InputNonRef name='generated_by' value={generatedBy} handleChange={(e) => setGeneratedBy(e.target.value)} />
-        </form>
-        {formReady() ? <a href={linksDownloadLink()} download><DownloadButton /></a> : <DownloadButton />}
-      </div>
+      <form id="download-links-form">
+        <div className="fieldGroupSection">
+          <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
+          <label>
+            <input
+              type="checkbox"
+              checked={bySegment}
+              onChange={handleCheck}
+            />
+            iterate by segments (include empties)
+          </label>
+        </div>
+        <InputRef id={2} value={refs.ref2} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref2} />
+        <InputNonRef name='type' value={type} handleChange={(e) => setType(e.target.value)} />
+        <InputNonRef name='generated_by' value={generatedBy} handleChange={(e) => setGeneratedBy(e.target.value)} />
+        <div className="buttonRow">
+          {formReady() ? <a href={linksDownloadLink()} download><DownloadButton /></a> : <DownloadButton />}
+        </div>
+      </form>
     </ModToolsSection>
   );
 }
