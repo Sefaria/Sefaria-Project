@@ -185,6 +185,21 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
                         setSearchFocused, searchFocused,
                             submitSearch, redirectToObject, panelData}) => {
 
+    const getPanelType = async () => {
+      let panel_type = null;
+      if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
+        panel_type = "TOC";
+      } else if (firstPanel.menuOpen === "topics") {
+        panel_type = "topics";
+      } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
+        panel_type = "reader";
+      } else if (firstPanel.mode === "Sheet") {
+        panel_type = "sheet";
+      } else {
+        panel_type = "other";
+      }
+      return panel_type;
+    }
     const getInputValue = () =>{
         return otherDownShiftProps.value || getVirtualKeyboardInputValue();
     }
@@ -500,7 +515,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
             setInputValue={setInputValue}
-            panelData={getPanelData()}
+            panel={firstPanel}
 
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
@@ -526,38 +541,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         )
     };
 
-  const getPanelData = async () => {
-    let panel_type, panel_category, panel_name;
-    if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
-      panel_type = "TOC";
-    } else if (firstPanel.menuOpen === "topics") {
-      if (firstPanel.navigationTopicCategory) {
-        panel_type = "Topic TOC";
-      } else if (firstPanel.navigationTopic) {
-        panel_type = `${menuOpen}_${tab}`;
-      }
-      panel_type = "topics";
-      panel_category = firstPanel?.navigationTopicTitle?.en || firstPanel?.navigationTopicTitle?.he;
-      panel_name = firstPanel?.topicTitle?.en || firstPanel?.topicTitle?.he;
-    } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
-      const ref = firstPanel.currentlyVisibleRef || firstPanel.refs?.[0];
-      const parsedRef = Sefaria.parseRef(ref);
-      panel_category = "|".join(Sefaria.index(parsedRef.index)?.categories);
-      panel_type = "reader";
-      panel_name = Sefaria.index(parsedRef.index)?.primary_title;
-      // console.log("Panel data:", { panel_type, panel_category, panel_name });
-    } else if (firstPanel.mode === "Sheet") {
-      panel_type = "sheet";
-      const sheet = await Sefaria.sheets.loadSheetByID(firstPanel.sheetID);
-      panel_name = sheet.title;
-      panel_category = null;
-    } else {
-      panel_type = "other";
-    }
-    // console.log("Panel data:", { panel_type, panel_category, panel_name });
-    return { panel_type, panel_category, panel_name };
-  }
-  getPanelData();
   return (
       <GeneralAutocomplete
           containerClassString='search-container'
