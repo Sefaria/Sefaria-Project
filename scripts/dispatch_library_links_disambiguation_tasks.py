@@ -15,9 +15,9 @@ from collections import defaultdict
 from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
-import structlog
-
-logger = structlog.get_logger(__name__)
+from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
+from sefaria.celery_setup.app import app
+from celery import signature
 
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
@@ -49,9 +49,9 @@ def find_ambiguous_resolutions():
             'ambiguous_refs': [str, str, ...]
         }
     """
-    logger.info("Loading LinkerOutputs with ambiguous resolutions...")
+    print("Loading LinkerOutputs with ambiguous resolutions...")
     if DEBUG_MODE:
-        logger.info(f"DEBUG MODE: Limiting to {DEBUG_LIMIT} documents")
+        print(f"DEBUG MODE: Limiting to {DEBUG_LIMIT} documents")
 
     # Find all LinkerOutputs that have at least one ambiguous span
     query = {
@@ -99,7 +99,7 @@ def find_ambiguous_resolutions():
                     'ambiguous_refs': ambiguous_refs
                 })
 
-    logger.info(f"Found {len(ambiguous_groups)} ambiguous resolution groups")
+    print(f"Found {len(ambiguous_groups)} ambiguous resolution groups")
     return ambiguous_groups
 
 
@@ -120,9 +120,9 @@ def find_non_segment_level_resolutions():
             'ref_level': str  # e.g., 'book', 'chapter', 'section'
         }
     """
-    logger.info("Loading LinkerOutputs with non-segment-level resolutions...")
+    print("Loading LinkerOutputs with non-segment-level resolutions...")
     if DEBUG_MODE:
-        logger.info(f"DEBUG MODE: Limiting to {DEBUG_LIMIT} documents")
+        print(f"DEBUG MODE: Limiting to {DEBUG_LIMIT} documents")
 
     # Query for LinkerOutputs that have at least one citation span
     # We'll filter for non-segment-level in Python since that requires Ref logic
@@ -180,96 +180,80 @@ def find_non_segment_level_resolutions():
                         'ref_level': ref_level
                     })
                 except Exception as e:
-                    logger.warning(f"Error processing ref {ref_str}: {e}")
+                    print(f"Warning: Error processing ref {ref_str}: {e}")
 
-    logger.info(f"Found {len(non_segment_resolutions)} non-segment-level resolutions")
+    print(f"Found {len(non_segment_resolutions)} non-segment-level resolutions")
     return non_segment_resolutions
 
 
-def print_sample_results(results, title, max_samples=10):
-    """Pretty print a sample of results"""
-    print(f"\n{'='*80}")
-    print(f"{title}")
-    print(f"{'='*80}")
-    print(f"Total count: {len(results)}")
+def enqueue_ambiguous_resolution(resolution_data: dict):
+    """Enqueue an ambiguous resolution task following the codebase pattern"""
+    sig = app.signature(
+        "linker.process_ambiguous_resolution",
+        args=(resolution_data,),
+        options={"queue": CELERY_QUEUES["tasks"]}
+    )
+    return sig.apply_async()
 
-    if results:
-        print(f"\nShowing first {min(max_samples, len(results))} results:\n")
-        for i, result in enumerate(results[:max_samples], 1):
-            print(f"\n{i}. {result.get('ref', 'N/A')}")
-            print(f"   Version: {result.get('versionTitle', 'N/A')} ({result.get('language', 'N/A')})")
-            print(f"   Text: \"{result.get('text', 'N/A')}\"")
-            print(f"   Char Range: {result.get('charRange', 'N/A')}")
 
-            if 'ambiguous_refs' in result:
-                print(f"   Ambiguous Options ({len(result['ambiguous_refs'])}):")
-                for ref in result['ambiguous_refs']:
-                    print(f"     - {ref}")
-
-            if 'resolved_ref' in result:
-                print(f"   Resolved To: {result['resolved_ref']}")
-                print(f"   Ref Level: {result['ref_level']}")
-    else:
-        print("\nNo results found.")
+def enqueue_non_segment_resolution(resolution_data: dict):
+    """Enqueue a non-segment resolution task following the codebase pattern"""
+    sig = app.signature(
+        "linker.process_non_segment_resolution",
+        args=(resolution_data,),
+        options={"queue": CELERY_QUEUES["tasks"]}
+    )
+    return sig.apply_async()
 
 
 def main():
-    """Main execution function"""
-    print("="*80)
-    print("Library Links Disambiguation Tasks Dispatcher")
+    """Main execution function - find and dispatch tasks"""
+    print("Starting Library Links Disambiguation Tasks Dispatcher")
     if DEBUG_MODE:
-        print(f"*** DEBUG MODE: Limited to {DEBUG_LIMIT} documents ***")
-    print("="*80)
+        print(f"DEBUG MODE: Limited to {DEBUG_LIMIT} documents")
 
-    # 1. Find ambiguous resolutions
+    # Check if Celery is enabled
+    if not CELERY_ENABLED:
+        print("\n" + "="*80)
+        print("ERROR: CELERY_ENABLED is False in settings")
+        print("="*80)
+        print("Celery is disabled in your local_settings.py")
+        print("To enable Celery:")
+        print("  1. Make sure Redis or RabbitMQ is running")
+        print("  2. Set CELERY_ENABLED = True in local_settings.py")
+        print("  3. Start a Celery worker with: celery -A sefaria.celery_setup.app worker")
+        print("="*80 + "\n")
+        return
+
+    # Find ambiguous resolutions
     ambiguous_resolutions = find_ambiguous_resolutions()
-    print_sample_results(
-        ambiguous_resolutions,
-        "AMBIGUOUS RESOLUTIONS (grouped by char range)",
-        max_samples=10
-    )
 
-    # 2. Find non-segment-level resolutions
+    # Find non-segment-level resolutions
     non_segment_resolutions = find_non_segment_level_resolutions()
-    print_sample_results(
-        non_segment_resolutions,
-        "NON-SEGMENT-LEVEL RESOLUTIONS",
-        max_samples=10
-    )
 
-    # Summary statistics
-    print(f"\n{'='*80}")
-    print("SUMMARY")
-    print(f"{'='*80}")
-    print(f"Total ambiguous resolution groups: {len(ambiguous_resolutions)}")
-    print(f"Total non-segment-level resolutions: {len(non_segment_resolutions)}")
-
-    # Group non-segment resolutions by level
-    if non_segment_resolutions:
-        level_counts = defaultdict(int)
-        for resolution in non_segment_resolutions:
-            level_counts[resolution['ref_level']] += 1
-
-        print(f"\nNon-segment resolutions by level:")
-        for level, count in sorted(level_counts.items(), key=lambda x: x[1], reverse=True):
-            print(f"  {level}: {count}")
-
-    # Group ambiguous resolutions by number of options
-    if ambiguous_resolutions:
-        option_counts = defaultdict(int)
+    # Dispatch ambiguous resolution tasks
+    print(f"Dispatching {len(ambiguous_resolutions)} ambiguous resolution tasks...")
+    try:
         for resolution in ambiguous_resolutions:
-            num_options = len(resolution['ambiguous_refs'])
-            option_counts[num_options] += 1
+            enqueue_ambiguous_resolution(resolution)
+        print(f"Dispatched {len(ambiguous_resolutions)} ambiguous resolution tasks")
+    except Exception as e:
+        print(f"\nERROR dispatching ambiguous tasks: {e}")
+        print("Make sure the Celery broker (Redis/RabbitMQ) is running and accessible.")
+        return
 
-        print(f"\nAmbiguous resolutions by number of options:")
-        for num_options, count in sorted(option_counts.items()):
-            print(f"  {num_options} options: {count} cases")
+    # Dispatch non-segment resolution tasks
+    print(f"Dispatching {len(non_segment_resolutions)} non-segment resolution tasks...")
+    try:
+        for resolution in non_segment_resolutions:
+            enqueue_non_segment_resolution(resolution)
+        print(f"Dispatched {len(non_segment_resolutions)} non-segment resolution tasks")
+    except Exception as e:
+        print(f"\nERROR dispatching non-segment tasks: {e}")
+        print("Make sure the Celery broker (Redis/RabbitMQ) is running and accessible.")
+        return
 
-    print(f"\n{'='*80}")
-    print("Analysis complete!")
-    print(f"{'='*80}\n")
-
-    return ambiguous_resolutions, non_segment_resolutions
+    print("Task dispatch complete!")
 
 
 if __name__ == "__main__":

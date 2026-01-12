@@ -303,3 +303,61 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
         options={"queue": CELERY_QUEUES["tasks"]}
     )
     return sig.apply_async()
+
+
+@app.task(name="linker.process_ambiguous_resolution")
+def process_ambiguous_resolution(resolution_data: dict) -> None:
+    """
+    Process an ambiguous resolution from LinkerOutput.
+    For now, just prints the input. Will add actual functionality later.
+
+    @param resolution_data: dict with structure:
+        {
+            'ref': str,
+            'versionTitle': str,
+            'language': str,
+            'charRange': [int, int],
+            'text': str,
+            'ambiguous_refs': [str, str, ...]
+        }
+    """
+    logger.info("=== Processing Ambiguous Resolution ===")
+    logger.info(f"Ref: {resolution_data.get('ref')}")
+    logger.info(f"Version: {resolution_data.get('versionTitle')} ({resolution_data.get('language')})")
+    logger.info(f"Text: '{resolution_data.get('text')}'")
+    logger.info(f"Char Range: {resolution_data.get('charRange')}")
+    logger.info(f"Ambiguous Options ({len(resolution_data.get('ambiguous_refs', []))}): {resolution_data.get('ambiguous_refs')}")
+    logger.info("=====================================")
+
+    # TODO: Add actual disambiguation logic here
+    print(f"[TASK] Ambiguous resolution: {resolution_data}")
+
+
+@app.task(name="linker.process_non_segment_resolution")
+def process_non_segment_resolution(resolution_data: dict) -> None:
+    """
+    Process a non-segment-level resolution from LinkerOutput.
+    For now, just prints the input. Will add actual functionality later.
+
+    @param resolution_data: dict with structure:
+        {
+            'ref': str,
+            'versionTitle': str,
+            'language': str,
+            'charRange': [int, int],
+            'text': str,
+            'resolved_ref': str,
+            'ref_level': str  # e.g., 'book', 'chapter', 'section'
+        }
+    """
+    print("HIHIIHIHIIH")
+    logger.info("=== Processing Non-Segment Resolution ===")
+    logger.info(f"Ref: {resolution_data.get('ref')}")
+    logger.info(f"Version: {resolution_data.get('versionTitle')} ({resolution_data.get('language')})")
+    logger.info(f"Text: '{resolution_data.get('text')}'")
+    logger.info(f"Char Range: {resolution_data.get('charRange')}")
+    logger.info(f"Resolved To: {resolution_data.get('resolved_ref')} (level: {resolution_data.get('ref_level')})")
+    logger.info("=========================================")
+
+    # TODO: Add actual resolution logic here
+    print(f"[TASK] Non-segment resolution: {resolution_data}")
