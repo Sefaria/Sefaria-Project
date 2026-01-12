@@ -22,6 +22,7 @@ import django
 django.setup()
 
 import structlog
+import sys
 from elasticsearch.client import IndicesClient
 from elasticsearch.exceptions import NotFoundError
 
@@ -30,7 +31,26 @@ from sefaria.search import index_all, get_new_and_current_index_names, index_cli
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import update_pagesheetrank
 
-# Configure structured logging
+# Configure structured logging to stdout for Kubernetes visibility
+# This ensures logs are visible via kubectl logs
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.JSONRenderer(),
+    ],
+    context_class=dict,
+    logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),  # Explicitly use stdout
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
 logger = structlog.get_logger(__name__)
 
 
