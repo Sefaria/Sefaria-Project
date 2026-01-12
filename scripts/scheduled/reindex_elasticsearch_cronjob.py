@@ -45,6 +45,11 @@ class ReindexingResult:
         self.warnings = []
         self.text_index_name = None
         self.sheet_index_name = None
+        
+        # Detailed failure tracking
+        self.failed_text_versions = []
+        self.failed_sheets = []
+        self.skipped_text_versions = []
     
     def complete_step(self, step_name: str, details: str = None):
         """Mark a step as completed."""
@@ -111,6 +116,56 @@ class ReindexingResult:
                 lines.append(f"  ✗ {failure['step']}: {failure['error']}")
         
         lines.append("=" * 60)
+        return "\n".join(lines)
+    
+    def detailed_failure_report(self) -> str:
+        """Generate detailed report of all failures."""
+        if not self.failed_text_versions and not self.failed_sheets:
+            return ""
+        
+        lines = [
+            "\n" + "=" * 80,
+            "DETAILED FAILURE REPORT",
+            "=" * 80,
+        ]
+        
+        if self.failed_text_versions:
+            lines.append(f"\nFailed Text Versions: {len(self.failed_text_versions)}")
+            lines.append("-" * 40)
+            for i, failure in enumerate(self.failed_text_versions[:50], 1):
+                title = failure.get('title', 'Unknown')
+                version = failure.get('version', 'Unknown')
+                lang = failure.get('lang', 'Unknown')
+                error_type = failure.get('error_type', 'Unknown')
+                error = failure.get('error', 'Unknown error')[:100]
+                lines.append(f"{i}. {title} ({version}, {lang})")
+                lines.append(f"   Error: {error_type}: {error}")
+            
+            if len(self.failed_text_versions) > 50:
+                lines.append(f"... and {len(self.failed_text_versions) - 50} more")
+        
+        if self.failed_sheets:
+            lines.append(f"\nFailed Sheets: {len(self.failed_sheets)}")
+            lines.append("-" * 40)
+            for i, sheet_id in enumerate(self.failed_sheets[:50], 1):
+                lines.append(f"{i}. Sheet ID: {sheet_id}")
+            
+            if len(self.failed_sheets) > 50:
+                lines.append(f"... and {len(self.failed_sheets) - 50} more")
+        
+        if self.skipped_text_versions:
+            lines.append(f"\nSkipped Text Versions: {len(self.skipped_text_versions)}")
+            lines.append("-" * 40)
+            for i, skip in enumerate(self.skipped_text_versions[:20], 1):
+                title = skip.get('title', 'Unknown')
+                version = skip.get('version', 'Unknown')
+                reason = skip.get('reason', 'Unknown')
+                lines.append(f"{i}. {title} ({version}) - {reason}")
+            
+            if len(self.skipped_text_versions) > 20:
+                lines.append(f"... and {len(self.skipped_text_versions) - 20} more")
+        
+        lines.append("=" * 80)
         return "\n".join(lines)
 
 
@@ -202,11 +257,29 @@ def run_pagesheetrank_update(result: ReindexingResult) -> bool:
 
 
 def run_index_all(result: ReindexingResult) -> bool:
-    """Run full index with error handling."""
+    """Run full index with error handling and failure capture."""
     logger.info("Starting full index rebuild")
     try:
         index_all()
-        result.complete_step("index_all", "Text and sheet indexes rebuilt successfully")
+        
+        # Capture failures from TextIndexer class after indexing
+        from sefaria.search import TextIndexer
+        result.failed_text_versions = TextIndexer._failed_versions.copy()
+        result.skipped_text_versions = TextIndexer._skipped_versions.copy()
+        
+        # Log failure counts
+        text_failures = len(result.failed_text_versions)
+        text_skipped = len(result.skipped_text_versions)
+        
+        if text_failures > 0:
+            logger.warning("Text indexing completed with failures",
+                          failed_count=text_failures,
+                          skipped_count=text_skipped)
+            result.complete_step("index_all", 
+                               f"Completed with {text_failures} text failures, {text_skipped} skipped")
+        else:
+            result.complete_step("index_all", "Text and sheet indexes rebuilt successfully")
+        
         return True
     except Exception as e:
         result.fail_step("index_all", str(e), traceback.format_exc())
@@ -352,6 +425,23 @@ def main():
     # Final summary
     print("\n")
     print(result.summary())
+    
+    # Print detailed failure report if there are failures
+    detailed_report = result.detailed_failure_report()
+    if detailed_report:
+        print(detailed_report)
+        
+        # Save detailed report to file
+        try:
+            report_file = f"/tmp/reindex_failures_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            with open(report_file, 'w') as f:
+                f.write(result.summary())
+                f.write("\n\n")
+                f.write(detailed_report)
+            print(f"\n📄 Detailed failure report saved to: {report_file}")
+            logger.info("Saved detailed failure report", path=report_file)
+        except Exception as e:
+            logger.warning("Could not save failure report to file", error=str(e))
     
     # Log final index states
     logger.info("Final index states:")
