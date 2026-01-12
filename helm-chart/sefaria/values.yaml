@@ -63,6 +63,14 @@ backup:
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
 
+# PostgreSQL configuration - can be overridden per environment
+postgres:
+  # host: defaults to DATABASES_HOST from secret if not specified
+  db: "sefaria_auth"
+  restore: false
+  sync: false
+
+
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
   localsettings:
