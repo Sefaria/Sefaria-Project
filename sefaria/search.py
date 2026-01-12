@@ -111,67 +111,60 @@ def index_sheet(index_name, id):
     """
     sheet = db.sheets.find_one({"id": id})
     if not sheet:
-        print(f"WARNING: Sheet not found in database - sheet_id: {id}")
-        return False
-
-    # Log the sheet being indexed (with title for context)
-    sheet_title = sheet.get("title") or "(no title)"
+        return False  # Sheet not found - tracked as failed
+    
+    # Validate all critical fields upfront
     owner_id = sheet.get("owner")
-    print(f"DEBUG: Indexing sheet - sheet_id: {id}, sheet_title: {sheet_title[:100] if sheet_title else 'None'}, owner_id: {owner_id}")
-
-    # Validate required owner field
-    if not owner_id:
-        print(f"WARNING: Sheet missing required owner field - sheet_id: {id}, sheet_title: {sheet_title[:50]}")
-        return False
-
-    # Get user data with null-safety
+    sheet_title = sheet.get("title")
+    summary = sheet.get("summary")
+    datePublished = sheet.get("datePublished")
+    dateCreated = sheet.get("dateCreated")
+    dateModified = sheet.get("dateModified")
+    
+    if not all([owner_id, sheet_title, summary is not None, datePublished is not None, 
+                dateCreated is not None, dateModified is not None]):
+        return False  # Missing critical sheet fields - tracked as failed
+    
     pud = public_user_data(owner_id)
     if not pud:
-        print(f"WARNING: Could not get public user data for sheet owner - sheet_id: {id}, owner_id: {owner_id}, sheet_title: {sheet_title[:50]}")
-        pud = {"name": "", "imageUrl": "", "profileUrl": ""}
+        return False  # Could not get user data - tracked as failed
+    
+    owner_name = pud.get("name")
+    owner_image = pud.get("imageUrl")
+    profile_url = pud.get("profileUrl")
+    owner_link = user_link(owner_id)
+    
+    if not all([owner_name, owner_image, profile_url, owner_link]):
+        return False  # Missing critical user fields - tracked as failed
     
     topics = make_sheet_topics(sheet)
     collections = CollectionSet({"sheets": id, "listed": True})
     collection_names = [c.name for c in collections]
-    
-    # Null-safety for title - this was causing the NoneType + str error
-    sheet_title = sheet.get("title")
-    if sheet_title is None:
-        print(f"WARNING: Sheet has null title, using empty string - sheet_id: {id}, owner_id: {owner_id}")
-        sheet_title = ""
-    
-    # Null-safety for user_link
-    owner_link = user_link(owner_id)
-    if owner_link is None:
-        print(f"WARNING: user_link returned None for owner - sheet_id: {id}, owner_id: {owner_id}")
-        owner_link = ""
     
     try:
         doc = {
             "title": strip_tags(sheet_title),
             "content": make_sheet_text(sheet, pud),
             "owner_id": owner_id,
-            "owner_name": pud.get("name", ""),
-            "owner_image": pud.get("imageUrl", ""),
-            "profile_url": pud.get("profileUrl", ""),
+            "owner_name": owner_name,
+            "owner_image": owner_image,
+            "profile_url": profile_url,
             "version": "Source Sheet by " + owner_link,
             "topic_slugs": [topic_obj.slug for topic_obj in topics],
             "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
             "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
             "sheetId": id,
-            "summary": sheet.get("summary", None),
+            "summary": summary,
             "collections": collection_names,
-            "datePublished": sheet.get("datePublished", None),
-            "dateCreated": sheet.get("dateCreated", None),
-            "dateModified": sheet.get("dateModified", None),
+            "datePublished": datePublished,
+            "dateCreated": dateCreated,
+            "dateModified": dateModified,
             "views": sheet.get("views", 0)
         }
         es_client.create(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
-        print(f"ERROR: Error indexing sheet - sheet_id: {id}, owner_id: {sheet.get('owner')}, error: {str(e)}")
-        import traceback
-        print(f"Traceback:\n{traceback.format_exc()}")
+        # Error indexing - skip silently, will be tracked as failed
         return False
 
 def make_sheet_text(sheet, pud):
@@ -180,9 +173,13 @@ def make_sheet_text(sheet, pud):
     :param sheet: The sheet record
     :param pud: Public User Database record for the author
     """
-    # Null-safety for title - handle None values gracefully
-    title = sheet.get("title") or ""
-    summary = sheet.get("summary") or ""
+    # Validate critical fields - title and summary are required
+    title = sheet.get("title")
+    summary = sheet.get("summary")
+    if not title or not summary:
+        # Critical fields missing - raise exception to be caught and tracked as failed
+        raise ValueError(f"Missing critical fields: title={title is not None}, summary={summary is not None}")
+    
     text = f"{title}\n{summary}"
     
     # Null-safety for author name
@@ -616,27 +613,39 @@ class TextIndexer(object):
             try:
                 cls.curr_index = vlist[0].get_index()
             except Exception as e:
-                print(f"ERROR: Failed to get index for version - title: {title[0]}, language: {title[1]}, error: {str(e)}")
                 failed += len(vlist)
                 for v in vlist:
                     cls._failed_versions.append({
-                        'title': v.title,
-                        'version': v.versionTitle,
-                        'lang': v.language,
+                        'title': getattr(v, 'title', 'Unknown'),
+                        'version': getattr(v, 'versionTitle', 'Unknown'),
+                        'lang': getattr(v, 'language', 'Unknown'),
                         'error': f"Failed to get index: {str(e)}",
                         'error_type': type(e).__name__
                     })
                 continue
                 
             if cls.curr_index is None:
-                print(f"WARNING: curr_index is None, skipping - title: {title[0]}, language: {title[1]}")
-                skipped += len(vlist)
+                failed += len(vlist)
                 for v in vlist:
-                    cls._skipped_versions.append({
-                        'title': v.title,
-                        'version': v.versionTitle,
-                        'lang': v.language,
-                        'reason': 'curr_index is None'
+                    cls._failed_versions.append({
+                        'title': getattr(v, 'title', title[0]) or title[0] or 'Unknown',
+                        'version': getattr(v, 'versionTitle', 'Unknown') or 'Unknown',
+                        'lang': getattr(v, 'language', title[1]) or title[1] or 'Unknown',
+                        'error': 'Index is None',
+                        'error_type': 'ValidationError'
+                    })
+                continue
+            
+            # Validate that index has a title
+            if not hasattr(cls.curr_index, 'title') or not cls.curr_index.title:
+                failed += len(vlist)
+                for v in vlist:
+                    cls._failed_versions.append({
+                        'title': getattr(v, 'title', title[0]) or title[0] or 'Unknown',
+                        'version': getattr(v, 'versionTitle', 'Unknown') or 'Unknown',
+                        'lang': getattr(v, 'language', title[1]) or title[1] or 'Unknown',
+                        'error': 'Index missing title',
+                        'error_type': 'ValidationError'
                     })
                 continue
                 
@@ -644,18 +653,33 @@ class TextIndexer(object):
                 cls._bulk_actions = []
                 try:
                     cls.best_time_period = cls.curr_index.best_time_period()
-                except ValueError:
-                    cls.best_time_period = None
-                except AttributeError:
-                    print(f"WARNING: Could not get best_time_period - title: {title[0]}")
-                    cls.best_time_period = None
+                except (ValueError, AttributeError) as e:
+                    # best_time_period is required - mark all versions as failed
+                    failed += len(vlist)
+                    for v in vlist:
+                        cls._failed_versions.append({
+                            'title': getattr(v, 'title', 'Unknown'),
+                            'version': getattr(v, 'versionTitle', 'Unknown'),
+                            'lang': getattr(v, 'language', 'Unknown'),
+                            'error': f"Failed to get best_time_period: {str(e)}",
+                            'error_type': type(e).__name__
+                        })
+                    continue
                     
-            # Log when starting a new title/index
-            print(f"Starting to index text - title: {title[0]}, language: {title[1]}, version_count: {len(vlist)}")
-            
             for v in vlist:
+                # Validate critical fields
+                if not v.title or not v.versionTitle or not v.language:
+                    failed += 1
+                    cls._failed_versions.append({
+                        'title': v.title if hasattr(v, 'title') and v.title else 'Unknown',
+                        'version': v.versionTitle if hasattr(v, 'versionTitle') and v.versionTitle else 'Unknown',
+                        'lang': v.language if hasattr(v, 'language') and v.language else 'Unknown',
+                        'error': 'Missing critical field (title, versionTitle, or language)',
+                        'error_type': 'ValidationError'
+                    })
+                    continue
+                
                 if cls.excluded_from_search(v):
-                    print(f"DEBUG: Skipping excluded version - title: {v.title}, version_title: {v.versionTitle}")
                     skipped += 1
                     cls._skipped_versions.append({
                         'title': v.title,
@@ -666,12 +690,9 @@ class TextIndexer(object):
                     continue
 
                 try:
-                    # Log individual version being indexed
-                    print(f"DEBUG: Indexing version - title: {v.title}, version_title: {v.versionTitle}, language: {v.language}")
                     cls.index_version(v, action=action)
                     vcount += 1
                 except Exception as e:
-                    print(f"ERROR: Failed to index version - title: {v.title}, version_title: {v.versionTitle}, language: {v.language}, error: {str(e)}")
                     failed += 1
                     cls._failed_versions.append({
                         'title': v.title,
@@ -680,43 +701,56 @@ class TextIndexer(object):
                         'error': str(e),
                         'error_type': type(e).__name__
                     })
-                
-                # Log progress with current title
-                if vcount % PROGRESS_LOG_EVERY_N == 0 or vcount == total_versions:
-                    elapsed = datetime.now() - start_time
-                    rate = vcount / elapsed.total_seconds() if elapsed.total_seconds() > 0 else 0
-                    eta = (total_versions - vcount) / rate if rate > 0 else 0
-                    print(f"Text indexing progress - indexed: {vcount}, total: {total_versions}, percent: {round(vcount / total_versions * 100, 1)}, current_title: {v.title}, current_version: {v.versionTitle}, current_language: {v.language}, skipped: {skipped}, failed: {failed}, elapsed_seconds: {round(elapsed.total_seconds(), 1)}, rate_per_second: {round(rate, 2)}, eta_seconds: {round(eta, 1)}")
-                    print(f"Indexed Version {vcount}/{total_versions} - Current: {v.title} ({v.versionTitle}, {v.language})")
                     
             if for_es:
                 bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
         
         elapsed = datetime.now() - start_time
-        print(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        # Only print if there are failures or skips
+        if failed > 0 or skipped > 0:
+            print(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
+        # Validate critical fields before processing
+        if not version.title or not version.versionTitle or not version.language:
+            cls._failed_versions.append({
+                'title': getattr(version, 'title', 'Unknown') or 'Unknown',
+                'version': getattr(version, 'versionTitle', 'Unknown') or 'Unknown',
+                'lang': getattr(version, 'language', 'Unknown') or 'Unknown',
+                'error': 'Missing critical field (title, versionTitle, or language)',
+                'error_type': 'ValidationError'
+            })
+            return
+        
         if not action:
             action = cls._cache_action
         try:
+            # Validate curr_index has required attributes
+            if not cls.curr_index or not hasattr(cls.curr_index, 'get_title') or not hasattr(cls.curr_index, 'schema'):
+                cls._failed_versions.append({
+                    'title': version.title,
+                    'version': version.versionTitle,
+                    'lang': version.language,
+                    'error': 'Index missing required attributes (get_title or schema)',
+                    'error_type': 'ValidationError'
+                })
+                return
             version.walk_thru_contents(action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
         except pymongo.errors.AutoReconnect as e:
             # Adding this because there is a mongo call for dictionary words in walk_thru_contents()
             if tries < MAX_RETRY_ATTEMPTS:
                 pytime.sleep(RETRY_SLEEP_SECONDS)
-                if tries % 10 == 0:  # Log every 10 retries
-                    print(f"WARNING: MongoDB AutoReconnect, retrying version indexing - title: {version.title}, version_title: {version.versionTitle}, attempt: {tries}")
+                # Retry silently - no logging for retries
                 cls.index_version(version, tries+1)
             else:
-                print(f"ERROR: Failed to index version after max retries - title: {version.title}, version_title: {version.versionTitle}, attempts: {tries}")
+                # Max retries exceeded - will be caught and tracked as failed
                 raise e
         except StopIteration:
-            print(f"WARNING: Could not find dictionary node in version - title: {version.title}, version_title: {version.versionTitle}")
+            # Dictionary node not found - will be caught and tracked as failed
+            raise
         except Exception as e:
-            print(f"ERROR: Unexpected error indexing version - title: {version.title}, version_title: {version.versionTitle}, error: {str(e)}")
-            import traceback
-            print(f"Traceback:\n{traceback.format_exc()}")
+            # Unexpected error - will be caught and tracked as failed
             raise
 
     @classmethod
@@ -750,10 +784,23 @@ class TextIndexer(object):
         is_primary = version.isPrimary
         hebrew_version_title = getattr(version, 'versionTitleInHebrew', None)
         
+        # Validate critical fields - if missing, track as failure and continue
+        if not version.title or not vtitle or not vlang:
+            # Critical field missing - track as failed and continue
+            cls._failed_versions.append({
+                'title': getattr(version, 'title', 'Unknown') or 'Unknown',
+                'version': vtitle or 'Unknown',
+                'lang': vlang or 'Unknown',
+                'error': 'Missing critical field (title, versionTitle, or language)',
+                'error_type': 'ValidationError',
+                'ref': tref
+            })
+            return
+        
         # Safe access to version_priority_map
         version_key = (version.title, vtitle, vlang)
         if version_key not in cls.version_priority_map:
-            print(f"WARNING: Version not in priority map, skipping - title: {version.title}, version_title: {vtitle}, language: {vlang}, ref: {tref}")
+            # Version not in priority map - skip silently, will be tracked as skipped
             return
         
         try:
@@ -762,7 +809,7 @@ class TextIndexer(object):
             doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories, hebrew_version_title, language_family_name, is_primary)
             # print doc
         except Exception as e:
-            print(f"ERROR: Error making index document {tref} / {vtitle} / {vlang} : {str(e)}")
+            # Error making document - skip silently, will be tracked as failed
             return
 
         if doc:
@@ -775,7 +822,8 @@ class TextIndexer(object):
                     }
                 ]
             except Exception as e:
-                print(f"ERROR: indexing {tref} / {vtitle} / {vlang} : {e}")
+                # Error indexing - skip silently, will be tracked as failed
+                pass
 
     @classmethod
     def remove_footnotes(cls, content):
@@ -878,11 +926,9 @@ def index_sheets_by_timestamp(timestamp):
         else:
             failed.append(id)
         
-        # Log progress every N sheets
-        if (i + 1) % PROGRESS_LOG_EVERY_N == 0:
-            print(f"Sheet timestamp indexing progress - indexed: {i + 1}, total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, percent: {round((i + 1) / total * 100, 1)}")
-
-    print(f"Completed index_sheets_by_timestamp - total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, failed_ids: {failed[:20] if failed else []}")
+    # Only print if there are failures
+    if len(failed) > 0:
+        print(f"Completed index_sheets_by_timestamp - total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, failed_ids: {failed[:20] if failed else []}")
     
     return {"succeeded": {"num": len(succeeded), "ids": succeeded}, "failed": {"num": len(failed), "ids": failed}}
 
@@ -904,20 +950,8 @@ def index_public_sheets(index_name):
     succeeded = 0
     failed = 0
     failed_ids = []
-    current_sheet_id = None
-    current_sheet_title = None
     
     for i, id in enumerate(ids):
-        current_sheet_id = id
-        
-        # Get sheet title for logging (with caching to avoid repeated lookups)
-        if (i + 1) % PROGRESS_LOG_EVERY_N == 0:  # Only fetch title every N sheets for logging
-            try:
-                sheet = db.sheets.find_one({"id": id}, {"title": 1})
-                current_sheet_title = sheet.get("title") if sheet else "Unknown"
-            except:
-                current_sheet_title = "Unknown"
-        
         result = index_sheet(index_name, id)
         if result:
             succeeded += 1
@@ -925,15 +959,10 @@ def index_public_sheets(index_name):
             failed += 1
             failed_ids.append(id)
         
-        # Log progress every 1000 sheets or at 10% intervals
-        if (i + 1) % 1000 == 0 or (i + 1) == total:
-            elapsed = datetime.now() - start_time
-            rate = (i + 1) / elapsed.total_seconds() if elapsed.total_seconds() > 0 else 0
-            eta_seconds = (total - i - 1) / rate if rate > 0 else 0
-            print(f"Sheet indexing progress - indexed: {i + 1}, total: {total}, percent: {round((i + 1) / total * 100, 1)}, current_sheet_id: {current_sheet_id}, current_sheet_title: {current_sheet_title}, succeeded: {succeeded}, failed: {failed}, elapsed_seconds: {round(elapsed.total_seconds(), 1)}, rate_per_second: {round(rate, 2)}, eta_seconds: {round(eta_seconds, 1)}")
-    
     elapsed = datetime.now() - start_time
-    print(f"Completed index_public_sheets - index_name: {index_name}, total: {total}, succeeded: {succeeded}, failed: {failed}, elapsed: {elapsed}, failed_ids_sample: {failed_ids[:20] if failed_ids else []}")
+    # Only print if there are failures
+    if failed > 0:
+        print(f"Completed index_public_sheets - index_name: {index_name}, total: {total}, succeeded: {succeeded}, failed: {failed}, elapsed: {elapsed}, failed_ids_sample: {failed_ids[:20] if failed_ids else []}")
     
     return failed_ids
 

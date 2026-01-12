@@ -304,7 +304,6 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
                         return False
             
             # Success!
-            print(f"sheets-by-timestamp API completed successfully - response: {r.text[:200]}")
             result.complete_step("sheets_by_timestamp", f"Response: {r.text[:200]}")
             return True
             
@@ -383,14 +382,15 @@ def main():
     
     run_sheets_by_timestamp(last_sheet_timestamp, result)
     
-    # Final summary
-    print("\n")
-    print(result.summary())
-    
-    # Print detailed failure report if there are failures
-    detailed_report = result.detailed_failure_report()
-    if detailed_report:
-        print(detailed_report)
+    # Only print summary and detailed report if there are failures or skips
+    if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
+        print("\n")
+        print(result.summary())
+        
+        # Print detailed failure report if there are failures
+        detailed_report = result.detailed_failure_report()
+        if detailed_report:
+            print(detailed_report)
         
         # Save detailed report to file
         try:
@@ -403,17 +403,25 @@ def main():
         except Exception as e:
             print(f"WARNING: Could not save failure report to file - error: {str(e)}")
     
-    # Log final index states
-    print("Final index states:")
-    try:
-        log_index_state('text', result)
-        log_index_state('sheet', result)
-    except Exception as e:
-        print(f"WARNING: Failed to log final index states - error: {str(e)}")
+    # Only log final index states if there were failures
+    if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
+        print("Final index states:")
+        try:
+            log_index_state('text', result)
+            log_index_state('sheet', result)
+        except Exception as e:
+            print(f"WARNING: Failed to log final index states - error: {str(e)}")
     
     # Exit with appropriate code
     if result.is_success():
-        print("Reindexing completed successfully!")
+        # Print success message
+        if result.failed_text_versions or result.skipped_text_versions:
+            print("Reindexing completed with some failures (see summary above).")
+        else:
+            print("=" * 60)
+            print("Reindexing completed successfully!")
+            print(f"Duration: {result.duration}")
+            print("=" * 60)
         sys.exit(0)
     else:
         print("ERROR: Reindexing completed with errors. See summary above.")
