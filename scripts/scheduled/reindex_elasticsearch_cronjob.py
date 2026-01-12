@@ -388,10 +388,10 @@ def main():
     """Main entry point for the reindexing cronjob."""
     result = ReindexingResult()
     
-    print("=" * 60)
-    print("ELASTICSEARCH REINDEXING CRONJOB")
-    print(f"Started at: {result.start_time.isoformat()}")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("ELASTICSEARCH REINDEXING CRONJOB")
+    logger.info(f"Started at: {result.start_time.isoformat()}")
+    logger.info("=" * 60)
     
     # Store timestamp before we start (sheets created after this will be caught by API)
     last_sheet_timestamp = datetime.now().isoformat()
@@ -403,7 +403,7 @@ def main():
     # 1. Check Elasticsearch connection
     if not check_elasticsearch_connection():
         result.fail_step("preflight_elasticsearch", "Cannot connect to Elasticsearch")
-        print(result.summary())
+        logger.info(result.summary())
         sys.exit(1)
     result.complete_step("preflight_elasticsearch", "Elasticsearch connection verified")
     
@@ -414,7 +414,7 @@ def main():
         result.complete_step("preflight_index_check", "Index states logged")
     except Exception as e:
         result.fail_step("preflight_index_check", str(e), traceback.format_exc())
-        print(result.summary())
+        logger.info(result.summary())
         sys.exit(1)
     
     # Step 1: Update PageSheetRank
@@ -443,13 +443,13 @@ def main():
     run_sheets_by_timestamp(last_sheet_timestamp, result)
     
     # Final summary
-    print("\n")
-    print(result.summary())
+    logger.info("\n")
+    logger.info(result.summary())
     
     # Print detailed failure report if there are failures
     detailed_report = result.detailed_failure_report()
     if detailed_report:
-        print(detailed_report)
+        logger.info(detailed_report)
         
         # Save detailed report to file
         try:
@@ -458,8 +458,7 @@ def main():
                 f.write(result.summary())
                 f.write("\n\n")
                 f.write(detailed_report)
-            print(f"\n📄 Detailed failure report saved to: {report_file}")
-            logger.info("Saved detailed failure report", path=report_file)
+            logger.info(f"Detailed failure report saved to: {report_file}")
         except Exception as e:
             logger.warning("Could not save failure report to file", error=str(e))
     
@@ -473,10 +472,10 @@ def main():
     
     # Exit with appropriate code
     if result.is_success():
-        print("\n✓ Reindexing completed successfully!")
+        logger.info("Reindexing completed successfully!")
         sys.exit(0)
     else:
-        print("\n✗ Reindexing completed with errors. See summary above.")
+        logger.error("Reindexing completed with errors. See summary above.")
         sys.exit(1)
 
 
@@ -490,6 +489,4 @@ if __name__ == "__main__":
         logger.error("Unexpected error in reindexing cronjob", 
                     error=str(e), 
                     traceback=traceback.format_exc())
-        print(f"\n✗ FATAL ERROR: {str(e)}")
-        print(traceback.format_exc())
         sys.exit(1)

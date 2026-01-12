@@ -242,7 +242,6 @@ data:
             'default': {
                 "class": "logging.StreamHandler",
                 "formatter": "json_formatter",
-                "stream": "ext://sys.stdout",  # Explicitly use stdout for Kubernetes visibility
             },
         },
         'loggers': {
