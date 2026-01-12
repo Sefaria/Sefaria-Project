@@ -4,19 +4,13 @@ search.py - full-text search for Sefaria using ElasticSearch
 
 Writes to MongoDB Collection: index_queue
 """
-import os
 from datetime import datetime, timedelta
 import re
 import bleach
 import pymongo
 
-
-import structlog
-import logging
-from logging import NullHandler
 from collections import defaultdict
 import time as pytime
-logger = structlog.get_logger(__name__)
 
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
@@ -37,13 +31,6 @@ import sefaria.model.queue as qu
 es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
 
-tracer = structlog.get_logger(__name__)
-tracer.setLevel(logging.CRITICAL)
-#tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
-tracer.addHandler(NullHandler())
-
-doc_count = 0
-
 # Constants for retry logic and progress logging
 MAX_RETRY_ATTEMPTS = 200
 RETRY_SLEEP_SECONDS = 5
@@ -52,12 +39,12 @@ PROGRESS_LOG_EVERY_N = 100
 
 def delete_text(oref, version, lang):
     try:
-        curr_index = get_new_and_current_index_names('text')['current']
+        curr_index = get_new_and_current_index_names('text').get('current')
 
         id = make_text_doc_id(oref.normal(), version, lang)
         es_client.delete(index=curr_index, id=id)
     except Exception as e:
-        logger.error(f"ERROR deleting {oref.normal()} / {version} / {lang} : {e}")
+        print(f"ERROR: deleting {oref.normal()} / {version} / {lang} : {e}")
 
 
 def delete_version(index, version, lang):
@@ -65,7 +52,7 @@ def delete_version(index, version, lang):
 
     refs = []
 
-    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+    if SITE_SETTINGS.get("TORAH_SPECIFIC"):
         all_gemara_indexes = library.get_indexes_in_category("Bavli")
         davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
         if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
@@ -81,7 +68,7 @@ def delete_sheet(index_name, id):
     try:
         es_client.delete(index=index_name, id=id)
     except Exception as e:
-        logger.error(f"ERROR deleting sheet {id}")
+        print(f"ERROR: deleting sheet {id}")
 
 
 def make_text_doc_id(ref, version, lang):
@@ -112,7 +99,7 @@ def unicode_number(u):
 def make_sheet_topics(sheet):
     topics = []
     for t in sheet.get('topics', []):
-        topic_obj = Topic.init(t['slug'])
+        topic_obj = Topic.init(t.get('slug'))
         if not topic_obj:
             continue
         topics += [topic_obj]
@@ -124,29 +111,23 @@ def index_sheet(index_name, id):
     """
     sheet = db.sheets.find_one({"id": id})
     if not sheet:
-        logger.warning("Sheet not found in database", sheet_id=id)
+        print(f"WARNING: Sheet not found in database - sheet_id: {id}")
         return False
 
     # Log the sheet being indexed (with title for context)
     sheet_title = sheet.get("title") or "(no title)"
     owner_id = sheet.get("owner")
-    logger.debug("Indexing sheet", 
-                sheet_id=id, 
-                sheet_title=sheet_title[:100] if sheet_title else None,  # Truncate long titles
-                owner_id=owner_id)
+    print(f"DEBUG: Indexing sheet - sheet_id: {id}, sheet_title: {sheet_title[:100] if sheet_title else 'None'}, owner_id: {owner_id}")
 
     # Validate required owner field
     if not owner_id:
-        logger.warning("Sheet missing required owner field", sheet_id=id, sheet_title=sheet_title[:50])
+        print(f"WARNING: Sheet missing required owner field - sheet_id: {id}, sheet_title: {sheet_title[:50]}")
         return False
 
     # Get user data with null-safety
     pud = public_user_data(owner_id)
     if not pud:
-        logger.warning("Could not get public user data for sheet owner", 
-                      sheet_id=id, 
-                      owner_id=owner_id,
-                      sheet_title=sheet_title[:50])
+        print(f"WARNING: Could not get public user data for sheet owner - sheet_id: {id}, owner_id: {owner_id}, sheet_title: {sheet_title[:50]}")
         pud = {"name": "", "imageUrl": "", "profileUrl": ""}
     
     topics = make_sheet_topics(sheet)
@@ -156,15 +137,13 @@ def index_sheet(index_name, id):
     # Null-safety for title - this was causing the NoneType + str error
     sheet_title = sheet.get("title")
     if sheet_title is None:
-        logger.warning("Sheet has null title, using empty string", 
-                      sheet_id=id, owner_id=owner_id)
+        print(f"WARNING: Sheet has null title, using empty string - sheet_id: {id}, owner_id: {owner_id}")
         sheet_title = ""
     
     # Null-safety for user_link
     owner_link = user_link(owner_id)
     if owner_link is None:
-        logger.warning("user_link returned None for owner", 
-                      sheet_id=id, owner_id=owner_id)
+        print(f"WARNING: user_link returned None for owner - sheet_id: {id}, owner_id: {owner_id}")
         owner_link = ""
     
     try:
@@ -188,15 +167,11 @@ def index_sheet(index_name, id):
             "views": sheet.get("views", 0)
         }
         es_client.create(index=index_name, id=id, body=doc)
-        global doc_count
-        doc_count += 1
         return True
     except Exception as e:
-        logger.error("Error indexing sheet", 
-                    sheet_id=id, 
-                    owner_id=sheet.get("owner"),
-                    error=str(e),
-                    exc_info=True)
+        print(f"ERROR: Error indexing sheet - sheet_id: {id}, owner_id: {sheet.get('owner')}, error: {str(e)}")
+        import traceback
+        print(f"Traceback:\n{traceback.format_exc()}")
         return False
 
 def make_sheet_text(sheet, pud):
@@ -241,7 +216,7 @@ def source_text(source):
     text = " ".join([strip_tags(c) for c in content])
 
     if "subsources" in source:
-        for s in source["subsources"]:
+        for s in source.get("subsources", []):
             text += source_text(s)
 
     return text
@@ -274,7 +249,7 @@ def create_index(index_name, type, force=False):
     :param type: Type of index ('text' or 'sheet')
     :param force: If False, will not recreate an index with documents (safety check)
     """
-    logger.info("Creating new Elasticsearch index", index_name=index_name, type=type, force=force)
+    print(f"Creating new Elasticsearch index - index_name: {index_name}, type: {type}, force: {force}")
     
     # Check if index already exists and has documents
     exists_before = index_client.exists(index=index_name)
@@ -285,18 +260,14 @@ def create_index(index_name, type, force=False):
             
             if doc_count > 0 and not force:
                 error_msg = f"Index {index_name} already exists with {doc_count} documents. Use force=True to recreate."
-                logger.error("Refusing to recreate index with existing data", 
-                           index_name=index_name, 
-                           doc_count=doc_count)
+                print(f"ERROR: Refusing to recreate index with existing data - index_name: {index_name}, doc_count: {doc_count}")
                 raise ValueError(error_msg)
             
-            logger.warning("Index exists with documents, will be cleared", 
-                         index_name=index_name, 
-                         doc_count=doc_count)
+            print(f"WARNING: Index exists with documents, will be cleared - index_name: {index_name}, doc_count: {doc_count}")
         except Exception as e:
             if "ValueError" in str(type(e)):
                 raise
-            logger.warning("Could not get index stats", index_name=index_name, error=str(e))
+            print(f"WARNING: Could not get index stats - index_name: {index_name}, error: {str(e)}")
     
     clear_index(index_name)
 
@@ -320,29 +291,28 @@ def create_index(index_name, type, force=False):
         }
     }
     
-    logger.info("Creating index with settings", index_name=index_name)
+    print(f"Creating index with settings - index_name: {index_name}")
     print(f'Creating index {index_name}')
     
     try:
         index_client.create(index=index_name, settings=settings)
-        logger.info("Successfully created index", index_name=index_name)
+        print(f"Successfully created index - index_name: {index_name}")
     except Exception as e:
-        logger.error("Failed to create index", 
-                    index_name=index_name, 
-                    error=str(e),
-                    exc_info=True)
+        print(f"ERROR: Failed to create index - index_name: {index_name}, error: {str(e)}")
+        import traceback
+        print(f"Traceback:\n{traceback.format_exc()}")
         raise
 
     if type == 'text':
-        logger.info("Applying text mapping to index", index_name=index_name)
+        print(f"Applying text mapping to index - index_name: {index_name}")
         put_text_mapping(index_name)
-        logger.info("Text mapping applied successfully", index_name=index_name)
+        print(f"Text mapping applied successfully - index_name: {index_name}")
     elif type == 'sheet':
-        logger.info("Applying sheet mapping to index", index_name=index_name)
+        print(f"Applying sheet mapping to index - index_name: {index_name}")
         put_sheet_mapping(index_name)
-        logger.info("Sheet mapping applied successfully", index_name=index_name)
+        print(f"Sheet mapping applied successfully - index_name: {index_name}")
     else:
-        logger.warning("Unknown type, no mapping applied", type=type, index_name=index_name)
+        print(f"WARNING: Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
 
 
 def put_text_mapping(index_name):
@@ -516,7 +486,7 @@ class TextIndexer(object):
 
     @classmethod
     def create_version_priority_map(cls):
-        logger.info("Creating version priority map from TOC")
+        print("Creating version priority map from TOC")
         start_time = datetime.now()
         toc = library.get_toc()
         cls.version_priority_map = {}
@@ -527,55 +497,48 @@ class TextIndexer(object):
                 for t in mini_toc:
                     traverse(t)
             elif "contents" in mini_toc:
-                for t in mini_toc["contents"]:
+                for t in mini_toc.get("contents", []):
                     traverse(t)
             elif "title" in mini_toc and not mini_toc.get("isCollection", False):
-                title = mini_toc["title"]
+                title = mini_toc.get("title")
                 try:
                     r = Ref(title)
                 except InputError:
                     parse_errors.append(title)
-                    logger.debug("Failed to parse ref", title=title)
+                    print(f"DEBUG: Failed to parse ref - title: {title}")
                     return
                 vlist = cls.get_ref_version_list(r)
                 vpriorities = defaultdict(lambda: 0)
                 for i, v in enumerate(vlist):
                     lang = v.language
-                    cls.version_priority_map[(title, v.versionTitle, lang)] = (vpriorities[lang], mini_toc["categories"])
+                    cls.version_priority_map[(title, v.versionTitle, lang)] = (vpriorities[lang], mini_toc.get("categories", []))
                     vpriorities[lang] += 1
 
         traverse(toc)
         elapsed = datetime.now() - start_time
-        logger.info("Completed version priority map creation",
-                   total_versions=len(cls.version_priority_map),
-                   parse_errors=len(parse_errors),
-                   elapsed=str(elapsed))
+        print(f"Completed version priority map creation - total_versions: {len(cls.version_priority_map)}, parse_errors: {len(parse_errors)}, elapsed: {elapsed}")
 
     @staticmethod
     def get_ref_version_list(oref, tries=0):
         try:
             return oref.index.versionSet().array()
         except InputError as e:
-            logger.warning("InputError getting version list", ref=oref.normal(), error=str(e))
+            print(f"WARNING: InputError getting version list - ref: {oref.normal()}, error: {str(e)}")
             return []
         except pymongo.errors.AutoReconnect as e:
             if tries < MAX_RETRY_ATTEMPTS:
                 if tries % 10 == 0:  # Log every 10 retries
-                    logger.warning("MongoDB AutoReconnect, retrying", 
-                                  ref=oref.normal(), 
-                                  attempt=tries)
+                    print(f"WARNING: MongoDB AutoReconnect, retrying - ref: {oref.normal()}, attempt: {tries}")
                 pytime.sleep(RETRY_SLEEP_SECONDS)
                 return TextIndexer.get_ref_version_list(oref, tries+1)
             else:
-                logger.error("get_ref_version_list failed after max retries", 
-                            ref=oref.normal(), 
-                            attempts=tries)
+                print(f"ERROR: get_ref_version_list failed after max retries - ref: {oref.normal()}, attempts: {tries}")
                 raise e
 
     @classmethod
     def get_all_versions(cls, tries=0, versions=None, page=0):
         if page == 0:
-            logger.info("Starting to fetch all versions from database")
+            print("Starting to fetch all versions from database")
         versions = versions or []
         try:
             version_limit = 10
@@ -588,21 +551,17 @@ class TextIndexer(object):
                 first_run = False
                 # Log progress every 100 pages
                 if page % PROGRESS_LOG_EVERY_N == 0:
-                    logger.debug("Fetching versions", page=page, total_so_far=len(versions))
-            logger.info("Completed fetching all versions", total=len(versions))
+                    print(f"DEBUG: Fetching versions - page: {page}, total_so_far: {len(versions)}")
+            print(f"Completed fetching all versions - total: {len(versions)}")
             return versions
         except pymongo.errors.AutoReconnect as e:
             if tries < MAX_RETRY_ATTEMPTS:
                 if tries % 10 == 0:
-                    logger.warning("MongoDB AutoReconnect while fetching versions, retrying",
-                                  attempt=tries, 
-                                  versions_so_far=len(versions))
+                    print(f"WARNING: MongoDB AutoReconnect while fetching versions, retrying - attempt: {tries}, versions_so_far: {len(versions)}")
                 pytime.sleep(RETRY_SLEEP_SECONDS)
                 return cls.get_all_versions(tries+1, versions, page)
             else:
-                logger.error("get_all_versions failed after max retries",
-                            attempts=tries, 
-                            versions_retrieved=len(versions))
+                print(f"ERROR: get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}")
                 raise e
 
     @staticmethod
@@ -617,21 +576,18 @@ class TextIndexer(object):
         start_time = datetime.now()
         cls.index_name = index_name
         
-        logger.info("TextIndexer.index_all starting", 
-                   index_name=index_name, 
-                   debug=debug, 
-                   for_es=for_es)
+        print(f"TextIndexer.index_all starting - index_name: {index_name}, debug: {debug}, for_es: {for_es}")
         
         # Create priority map and terms dict
         cls.create_version_priority_map()
-        logger.info("Created terms dictionary")
+        print("Created terms dictionary")
         cls.create_terms_dict()
         
-        logger.info("Clearing Ref cache to save RAM")
+        print("Clearing Ref cache to save RAM")
         Ref.clear_cache()
 
         # Get and sort versions
-        logger.info("Sorting versions by priority")
+        print("Sorting versions by priority")
         versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
         versions_by_index = {}
         
@@ -645,9 +601,7 @@ class TextIndexer(object):
         
         total_versions = len(versions)
         total_indexes = len(versions_by_index)
-        logger.info("Beginning text indexing", 
-                   total_versions=total_versions,
-                   total_indexes=total_indexes)
+        print(f"Beginning text indexing - total_versions: {total_versions}, total_indexes: {total_indexes}")
         print(f"Beginning index of {total_versions} versions.")
         
         vcount = 0
@@ -662,10 +616,7 @@ class TextIndexer(object):
             try:
                 cls.curr_index = vlist[0].get_index()
             except Exception as e:
-                logger.error("Failed to get index for version", 
-                            title=title[0], 
-                            language=title[1],
-                            error=str(e))
+                print(f"ERROR: Failed to get index for version - title: {title[0]}, language: {title[1]}, error: {str(e)}")
                 failed += len(vlist)
                 for v in vlist:
                     cls._failed_versions.append({
@@ -678,9 +629,7 @@ class TextIndexer(object):
                 continue
                 
             if cls.curr_index is None:
-                logger.warning("curr_index is None, skipping", 
-                              title=title[0], 
-                              language=title[1])
+                print(f"WARNING: curr_index is None, skipping - title: {title[0]}, language: {title[1]}")
                 skipped += len(vlist)
                 for v in vlist:
                     cls._skipped_versions.append({
@@ -698,21 +647,15 @@ class TextIndexer(object):
                 except ValueError:
                     cls.best_time_period = None
                 except AttributeError:
-                    logger.warning("Could not get best_time_period", 
-                                  title=title[0])
+                    print(f"WARNING: Could not get best_time_period - title: {title[0]}")
                     cls.best_time_period = None
                     
             # Log when starting a new title/index
-            logger.info("Starting to index text",
-                       title=title[0],
-                       language=title[1],
-                       version_count=len(vlist))
+            print(f"Starting to index text - title: {title[0]}, language: {title[1]}, version_count: {len(vlist)}")
             
             for v in vlist:
                 if cls.excluded_from_search(v):
-                    logger.debug("Skipping excluded version", 
-                                title=v.title,
-                                version_title=v.versionTitle)
+                    print(f"DEBUG: Skipping excluded version - title: {v.title}, version_title: {v.versionTitle}")
                     skipped += 1
                     cls._skipped_versions.append({
                         'title': v.title,
@@ -724,18 +667,11 @@ class TextIndexer(object):
 
                 try:
                     # Log individual version being indexed
-                    logger.debug("Indexing version",
-                                title=v.title,
-                                version_title=v.versionTitle,
-                                language=v.language)
+                    print(f"DEBUG: Indexing version - title: {v.title}, version_title: {v.versionTitle}, language: {v.language}")
                     cls.index_version(v, action=action)
                     vcount += 1
                 except Exception as e:
-                    logger.error("Failed to index version",
-                                title=v.title,
-                                version_title=v.versionTitle,
-                                language=v.language,
-                                error=str(e))
+                    print(f"ERROR: Failed to index version - title: {v.title}, version_title: {v.versionTitle}, language: {v.language}, error: {str(e)}")
                     failed += 1
                     cls._failed_versions.append({
                         'title': v.title,
@@ -750,29 +686,14 @@ class TextIndexer(object):
                     elapsed = datetime.now() - start_time
                     rate = vcount / elapsed.total_seconds() if elapsed.total_seconds() > 0 else 0
                     eta = (total_versions - vcount) / rate if rate > 0 else 0
-                    logger.info("Text indexing progress",
-                               indexed=vcount,
-                               total=total_versions,
-                               percent=round(vcount / total_versions * 100, 1),
-                               current_title=v.title,
-                               current_version=v.versionTitle,
-                               current_language=v.language,
-                               skipped=skipped,
-                               failed=failed,
-                               elapsed_seconds=round(elapsed.total_seconds(), 1),
-                               rate_per_second=round(rate, 2),
-                               eta_seconds=round(eta, 1))
+                    print(f"Text indexing progress - indexed: {vcount}, total: {total_versions}, percent: {round(vcount / total_versions * 100, 1)}, current_title: {v.title}, current_version: {v.versionTitle}, current_language: {v.language}, skipped: {skipped}, failed: {failed}, elapsed_seconds: {round(elapsed.total_seconds(), 1)}, rate_per_second: {round(rate, 2)}, eta_seconds: {round(eta, 1)}")
                     print(f"Indexed Version {vcount}/{total_versions} - Current: {v.title} ({v.versionTitle}, {v.language})")
                     
             if for_es:
                 bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
         
         elapsed = datetime.now() - start_time
-        logger.info("TextIndexer.index_all completed",
-                   total_indexed=vcount,
-                   total_skipped=skipped,
-                   total_failed=failed,
-                   elapsed=str(elapsed))
+        print(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
@@ -785,27 +706,17 @@ class TextIndexer(object):
             if tries < MAX_RETRY_ATTEMPTS:
                 pytime.sleep(RETRY_SLEEP_SECONDS)
                 if tries % 10 == 0:  # Log every 10 retries
-                    logger.warning("MongoDB AutoReconnect, retrying version indexing",
-                                  title=version.title,
-                                  version_title=version.versionTitle,
-                                  attempt=tries)
+                    print(f"WARNING: MongoDB AutoReconnect, retrying version indexing - title: {version.title}, version_title: {version.versionTitle}, attempt: {tries}")
                 cls.index_version(version, tries+1)
             else:
-                logger.error("Failed to index version after max retries",
-                            title=version.title,
-                            version_title=version.versionTitle,
-                            attempts=tries)
+                print(f"ERROR: Failed to index version after max retries - title: {version.title}, version_title: {version.versionTitle}, attempts: {tries}")
                 raise e
         except StopIteration:
-            logger.warning("Could not find dictionary node in version",
-                          title=version.title,
-                          version_title=version.versionTitle)
+            print(f"WARNING: Could not find dictionary node in version - title: {version.title}, version_title: {version.versionTitle}")
         except Exception as e:
-            logger.error("Unexpected error indexing version",
-                        title=version.title,
-                        version_title=version.versionTitle,
-                        error=str(e),
-                        exc_info=True)
+            print(f"ERROR: Unexpected error indexing version - title: {version.title}, version_title: {version.versionTitle}, error: {str(e)}")
+            import traceback
+            print(f"Traceback:\n{traceback.format_exc()}")
             raise
 
     @classmethod
@@ -842,11 +753,7 @@ class TextIndexer(object):
         # Safe access to version_priority_map
         version_key = (version.title, vtitle, vlang)
         if version_key not in cls.version_priority_map:
-            logger.warning("Version not in priority map, skipping",
-                          title=version.title,
-                          version_title=vtitle,
-                          language=vlang,
-                          ref=tref)
+            print(f"WARNING: Version not in priority map, skipping - title: {version.title}, version_title: {vtitle}, language: {vlang}, ref: {tref}")
             return
         
         try:
@@ -855,7 +762,7 @@ class TextIndexer(object):
             doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories, hebrew_version_title, language_family_name, is_primary)
             # print doc
         except Exception as e:
-            logger.error(f"Error making index document {tref} / {vtitle} / {vlang} : {str(e)}")
+            print(f"ERROR: Error making index document {tref} / {vtitle} / {vlang} : {str(e)}")
             return
 
         if doc:
@@ -868,7 +775,7 @@ class TextIndexer(object):
                     }
                 ]
             except Exception as e:
-                logger.error(f"ERROR indexing {tref} / {vtitle} / {vlang} : {e}")
+                print(f"ERROR: indexing {tref} / {vtitle} / {vlang} : {e}")
 
     @classmethod
     def remove_footnotes(cls, content):
@@ -945,22 +852,19 @@ def index_sheets_by_timestamp(timestamp):
     """
     :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
     """
-    logger.info("Starting index_sheets_by_timestamp", timestamp=timestamp)
+    print(f"Starting index_sheets_by_timestamp - timestamp: {timestamp}")
     
     name_dict = get_new_and_current_index_names('sheet', debug=False)
-    curr_index_name = name_dict['current']
-    logger.info("Using sheet index", index_name=curr_index_name)
+    curr_index_name = name_dict.get('current')
+    print(f"Using sheet index - index_name: {curr_index_name}")
     
     try:
         ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
-        logger.info("Found sheets to index by timestamp", 
-                   count=len(ids), 
-                   timestamp=timestamp)
+        print(f"Found sheets to index by timestamp - count: {len(ids)}, timestamp: {timestamp}")
     except Exception as e:
-        logger.error("Error querying sheets by timestamp", 
-                    timestamp=timestamp, 
-                    error=str(e),
-                    exc_info=True)
+        print(f"ERROR: Error querying sheets by timestamp - timestamp: {timestamp}, error: {str(e)}")
+        import traceback
+        print(f"Traceback:\n{traceback.format_exc()}")
         return str(e)
 
     succeeded = []
@@ -976,18 +880,9 @@ def index_sheets_by_timestamp(timestamp):
         
         # Log progress every N sheets
         if (i + 1) % PROGRESS_LOG_EVERY_N == 0:
-            logger.info("Sheet timestamp indexing progress", 
-                       indexed=i + 1, 
-                       total=total,
-                       succeeded=len(succeeded),
-                       failed=len(failed),
-                       percent=round((i + 1) / total * 100, 1))
+            print(f"Sheet timestamp indexing progress - indexed: {i + 1}, total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, percent: {round((i + 1) / total * 100, 1)}")
 
-    logger.info("Completed index_sheets_by_timestamp", 
-               total=total,
-               succeeded=len(succeeded), 
-               failed=len(failed),
-               failed_ids=failed[:20] if failed else [])  # Log first 20 failed IDs
+    print(f"Completed index_sheets_by_timestamp - total: {total}, succeeded: {len(succeeded)}, failed: {len(failed)}, failed_ids: {failed[:20] if failed else []}")
     
     return {"succeeded": {"num": len(succeeded), "ids": succeeded}, "failed": {"num": len(failed), "ids": failed}}
 
@@ -1000,11 +895,11 @@ def index_public_sheets(index_name):
         list: List of failed sheet IDs
     """
     start_time = datetime.now()
-    logger.info("Starting index_public_sheets", index_name=index_name)
+    print(f"Starting index_public_sheets - index_name: {index_name}")
     
     ids = db.sheets.find({"status": "public"}).distinct("id")
     total = len(ids)
-    logger.info("Found public sheets to index", total=total, first_10_ids=ids[:10] if ids else [])
+    print(f"Found public sheets to index - total: {total}, first_10_ids: {ids[:10] if ids else []}")
     
     succeeded = 0
     failed = 0
@@ -1035,26 +930,10 @@ def index_public_sheets(index_name):
             elapsed = datetime.now() - start_time
             rate = (i + 1) / elapsed.total_seconds() if elapsed.total_seconds() > 0 else 0
             eta_seconds = (total - i - 1) / rate if rate > 0 else 0
-            logger.info("Sheet indexing progress", 
-                       indexed=i + 1, 
-                       total=total,
-                       percent=round((i + 1) / total * 100, 1),
-                       current_sheet_id=current_sheet_id,
-                       current_sheet_title=current_sheet_title,
-                       succeeded=succeeded,
-                       failed=failed,
-                       elapsed_seconds=round(elapsed.total_seconds(), 1),
-                       rate_per_second=round(rate, 2),
-                       eta_seconds=round(eta_seconds, 1))
+            print(f"Sheet indexing progress - indexed: {i + 1}, total: {total}, percent: {round((i + 1) / total * 100, 1)}, current_sheet_id: {current_sheet_id}, current_sheet_title: {current_sheet_title}, succeeded: {succeeded}, failed: {failed}, elapsed_seconds: {round(elapsed.total_seconds(), 1)}, rate_per_second: {round(rate, 2)}, eta_seconds: {round(eta_seconds, 1)}")
     
     elapsed = datetime.now() - start_time
-    logger.info("Completed index_public_sheets", 
-               index_name=index_name,
-               total=total,
-               succeeded=succeeded, 
-               failed=failed,
-               elapsed=str(elapsed),
-               failed_ids_sample=failed_ids[:20] if failed_ids else [])
+    print(f"Completed index_public_sheets - index_name: {index_name}, total: {total}, succeeded: {succeeded}, failed: {failed}, elapsed: {elapsed}, failed_ids_sample: {failed_ids[:20] if failed_ids else []}")
     
     return failed_ids
 
@@ -1072,18 +951,18 @@ def clear_index(index_name):
     """
     Delete the search index.
     """
-    logger.info("Attempting to delete Elasticsearch index", index_name=index_name)
+    print(f"Attempting to delete Elasticsearch index - index_name: {index_name}")
     try:
         # Check if index exists before trying to delete
         if index_client.exists(index=index_name):
             index_client.delete(index=index_name)
-            logger.info("Successfully deleted Elasticsearch index", index_name=index_name)
+            print(f"Successfully deleted Elasticsearch index - index_name: {index_name}")
         else:
-            logger.info("Index does not exist, nothing to delete", index_name=index_name)
+            print(f"Index does not exist, nothing to delete - index_name: {index_name}")
     except NotFoundError:
-        logger.warning("Index not found when attempting to delete", index_name=index_name)
+        print(f"WARNING: Index not found when attempting to delete - index_name: {index_name}")
     except Exception as e:
-        logger.error("Error deleting Elasticsearch index", 
+        print(f"ERROR: Error deleting Elasticsearch index", 
                     index_name=index_name, 
                     error=str(e),
                     exc_info=True)
@@ -1108,14 +987,14 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    index_name = get_new_and_current_index_names('text')['current']
+    index_name = get_new_and_current_index_names('text').get('current')
     queue = db.index_queue.find()
     for item in queue:
         try:
-            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"], item['languageFamilyName'], item['isPrimary'])
+            TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
             db.index_queue.remove(item)
         except Exception as e:
-            logging.error(f"Error indexing from queue ({item['ref']} / {item['version']} / {item['lang']}) : {e}")
+            print(f"ERROR: Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {e}")
 
 
 def add_recent_to_queue(ndays):
@@ -1131,7 +1010,7 @@ def add_recent_to_queue(ndays):
     activity = db.history.find(query)
     refs = set()
     for a in activity:
-        refs.add((a["ref"], a["version"], a["language"]))
+        refs.add((a.get("ref"), a.get("version"), a.get("language")))
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
@@ -1147,7 +1026,7 @@ def get_new_and_current_index_names(type, debug=False):
     alias_name = f"{base_index_name_dict[type]}{debug_suffix}"
     aliases = index_client.get_alias()
     try:
-        a_alias = aliases[index_name_a]['aliases']
+        a_alias = aliases.get(index_name_a, {}).get('aliases', {})
         choose_a = alias_name not in a_alias
     except KeyError:
         choose_a = True
@@ -1166,55 +1045,49 @@ def index_all(skip=0, debug=False):
     Fully create the search index from scratch.
     """
     start = datetime.now()
-    logger.info("=" * 60)
-    logger.info("STARTING FULL ELASTICSEARCH REINDEX", 
-               skip=skip, 
-               debug=debug,
-               start_time=start.isoformat())
-    logger.info("=" * 60)
+    print("=" * 60)
+    print(f"STARTING FULL ELASTICSEARCH REINDEX - skip: {skip}, debug: {debug}, start_time: {start.isoformat()}")
+    print("=" * 60)
     print("\n" + "=" * 80)
     print("STARTING FULL REINDEX")
     print("=" * 80)
     
     # Index texts
     text_start = datetime.now()
-    logger.info("Starting text indexing phase")
+    print("Starting text indexing phase")
     try:
         index_all_of_type('text', skip=skip, debug=debug)
         text_elapsed = datetime.now() - text_start
-        logger.info("Completed text indexing phase", elapsed=str(text_elapsed))
+        print(f"Completed text indexing phase - elapsed: {text_elapsed}")
     except Exception as e:
-        logger.error("Text indexing phase failed", 
-                    error=str(e), 
-                    exc_info=True)
+        print(f"ERROR: Text indexing phase failed - error: {str(e)}")
+        import traceback
+        print(f"Traceback:\n{traceback.format_exc()}")
         raise
     
     # Index sheets
     sheet_start = datetime.now()
-    logger.info("Starting sheet indexing phase")
+    print("Starting sheet indexing phase")
     try:
         index_all_of_type('sheet', skip=skip, debug=debug)
         sheet_elapsed = datetime.now() - sheet_start
-        logger.info("Completed sheet indexing phase", elapsed=str(sheet_elapsed))
+        print(f"Completed sheet indexing phase - elapsed: {sheet_elapsed}")
     except Exception as e:
-        logger.error("Sheet indexing phase failed", 
-                    error=str(e), 
-                    exc_info=True)
+        print(f"ERROR: Sheet indexing phase failed - error: {str(e)}")
+        import traceback
+        print(f"Traceback:\n{traceback.format_exc()}")
         raise
     
     # Clear index queue
-    logger.info("Clearing stale index queue")
+    print("Clearing stale index queue")
     deleted = db.index_queue.delete_many({})
-    logger.info("Cleared index queue", deleted_count=deleted.deleted_count)
+    print(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
     
     end = datetime.now()
     total_elapsed = end - start
-    logger.info("=" * 60)
-    logger.info("COMPLETED FULL ELASTICSEARCH REINDEX", 
-               elapsed=str(total_elapsed),
-               text_elapsed=str(text_elapsed),
-               sheet_elapsed=str(sheet_elapsed))
-    logger.info("=" * 60)
+    print("=" * 60)
+    print(f"COMPLETED FULL ELASTICSEARCH REINDEX - elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}")
+    print("=" * 60)
     print(f"Elapsed time: {total_elapsed}")
 
 
@@ -1225,72 +1098,52 @@ def index_all_of_type(type, skip=0, debug=False):
     """
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
     
-    logger.info("=" * 40)
-    logger.info(f"Starting index_all_of_type for '{type}'",
-               type=type,
-               new_index=index_names_dict['new'],
-               current_index=index_names_dict['current'],
-               alias=index_names_dict['alias'],
-               skip=skip,
-               debug=debug)
+    print("=" * 40)
+    print(f"Starting index_all_of_type for '{type}' - type: {type}, new_index: {index_names_dict.get('new')}, current_index: {index_names_dict.get('current')}, alias: {index_names_dict.get('alias')}, skip: {skip}, debug: {debug}")
     
     # Check if new index already exists
-    new_exists = index_client.exists(index=index_names_dict['new'])
+    new_exists = index_client.exists(index=index_names_dict.get('new'))
     if new_exists:
         try:
-            stats = index_client.stats(index=index_names_dict['new'])
+            stats = index_client.stats(index=index_names_dict.get('new'))
             doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.warning("New index already exists, will be recreated",
-                          index=index_names_dict['new'],
-                          existing_doc_count=doc_count)
+            print(f"WARNING: New index already exists, will be recreated - index: {index_names_dict.get('new')}, existing_doc_count: {doc_count}")
         except Exception:
-            logger.warning("New index already exists, will be recreated",
-                          index=index_names_dict['new'])
+            print(f"WARNING: New index already exists, will be recreated - index: {index_names_dict.get('new')}")
     
     # Countdown (keeping for backwards compatibility, but logging instead of just printing)
-    logger.info("Starting countdown before indexing...")
+    print("Starting countdown before indexing...")
     for i in range(10):
         remaining = 10 - i
         print(f'STARTING IN T-MINUS {remaining}')
-        logger.debug("Countdown", seconds_remaining=remaining)
+        print(f"DEBUG: Countdown - seconds_remaining: {remaining}")
         pytime.sleep(1)
 
     # Perform the actual indexing
-    logger.info("Beginning indexing operation", 
-               type=type, 
-               index_name=index_names_dict['new'])
-    index_all_of_type_by_index_name(type, index_names_dict['new'], skip, debug)
+    print(f"Beginning indexing operation - type: {type}, index_name: {index_names_dict.get('new')}")
+    index_all_of_type_by_index_name(type, index_names_dict.get('new'), skip, debug)
 
     # Switch aliases
-    logger.info("Switching aliases after indexing")
+    print("Switching aliases after indexing")
     try:
-        index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
-        logger.info("Successfully deleted alias from old index", 
-                   alias=index_names_dict['alias'], 
-                   old_index=index_names_dict['current'])
+        index_client.delete_alias(index=index_names_dict.get('current'), name=index_names_dict.get('alias'))
+        print(f"Successfully deleted alias from old index - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
     except NotFoundError:
-        logger.warning("Alias not found on old index (may be first run)", 
-                      alias=index_names_dict['alias'], 
-                      old_index=index_names_dict['current'])
+        print(f"WARNING: Alias not found on old index (may be first run) - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
 
     # Clear any index with the alias name
-    clear_index(index_names_dict['alias'])
+    clear_index(index_names_dict.get('alias'))
 
     # Create new alias
-    index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
-    logger.info("Successfully created alias for new index", 
-               alias=index_names_dict['alias'], 
-               new_index=index_names_dict['new'])
+    index_client.put_alias(index=index_names_dict.get('new'), name=index_names_dict.get('alias'))
+    print(f"Successfully created alias for new index - alias: {index_names_dict.get('alias')}, new_index: {index_names_dict.get('new')}")
 
     # Cleanup old index
-    if index_names_dict['new'] != index_names_dict['current']:
-        logger.info("Cleaning up old index", old_index=index_names_dict['current'])
-        clear_index(index_names_dict['current'])
+    if index_names_dict.get('new') != index_names_dict.get('current'):
+        print(f"Cleaning up old index - old_index: {index_names_dict.get('current')}")
+        clear_index(index_names_dict.get('current'))
     
-    logger.info(f"Completed index_all_of_type for '{type}'",
-               type=type,
-               final_index=index_names_dict['new'],
-               alias=index_names_dict['alias'])
+    print(f"Completed index_all_of_type for '{type}' - type: {type}, final_index: {index_names_dict.get('new')}, alias: {index_names_dict.get('alias')}")
 
 
 def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force_recreate=True):
@@ -1303,12 +1156,7 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
     :param debug: Debug mode
     :param force_recreate: If True, will recreate index even if it has documents
     """
-    logger.info("Starting index_all_of_type_by_index_name",
-               type=type,
-               index_name=index_name,
-               skip=skip,
-               debug=debug,
-               force_recreate=force_recreate)
+    print(f"Starting index_all_of_type_by_index_name - type: {type}, index_name: {index_name}, skip: {skip}, debug: {debug}, force_recreate: {force_recreate}")
     
     # Check if index exists and validate
     index_exists = index_client.exists(index=index_name)
@@ -1316,35 +1164,29 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
         try:
             stats = index_client.stats(index=index_name)
             doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.warning("Index already exists before creation",
-                         index_name=index_name,
-                         existing_doc_count=doc_count,
-                         will_recreate=force_recreate)
+            print(f"WARNING: Index already exists before creation - index_name: {index_name}, existing_doc_count: {doc_count}, will_recreate: {force_recreate}")
         except Exception as e:
-            logger.warning("Could not check existing index stats", 
-                         index_name=index_name, 
-                         error=str(e))
+            print(f"WARNING: Could not check existing index stats - index_name: {index_name}, error: {str(e)}")
     
     if skip == 0:
-        logger.info("Creating fresh index (skip=0)", index_name=index_name, type=type)
+        print(f"Creating fresh index (skip=0) - index_name: {index_name}, type: {type}")
         create_index(index_name, type, force=force_recreate)
     else:
-        logger.info("Skipping index creation (resuming)", index_name=index_name, skip=skip)
+        print(f"Skipping index creation (resuming) - index_name: {index_name}, skip: {skip}")
         if not index_exists:
-            logger.error("Cannot resume - index does not exist", 
-                        index_name=index_name)
+            print(f"ERROR: Cannot resume - index does not exist - index_name: {index_name}")
             raise ValueError(f"Cannot resume indexing - index {index_name} does not exist")
     
     if type == 'text':
-        logger.info("Clearing TextIndexer cache")
+        print("Clearing TextIndexer cache")
         TextIndexer.clear_cache()
-        logger.info("Starting TextIndexer.index_all")
+        print("Starting TextIndexer.index_all")
         TextIndexer.index_all(index_name, debug=debug)
-        logger.info("Completed TextIndexer.index_all")
+        print("Completed TextIndexer.index_all")
     elif type == 'sheet':
-        logger.info("Starting sheet indexing")
+        print("Starting sheet indexing")
         index_public_sheets(index_name)
-        logger.info("Completed sheet indexing")
+        print("Completed sheet indexing")
     else:
-        logger.error("Unknown index type", type=type)
+        print(f"ERROR: Unknown index type - type: {type}")
         raise ValueError(f"Unknown index type: {type}")
