@@ -206,7 +206,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
           "panel_type": panelType,
           "feature_name": "Nav To by Keyboard",
           "text": getInputValue(),
-          "to": highlightedItem.label || highlightedItem.type
+          "to": highlightedItem.label
         });
         return;
       }
@@ -337,14 +337,13 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
 
     const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
     const handleClick = (e) => {
-      gtag("event", "search_navto", {
+      onSuggestionClick(e, {
         "project": "Global Search",
         "panel_type": panelType,
         "feature_name": "Nav To by Mouse",
         "to": props.label,
         "text": inputValue
       });
-      onSuggestionClick(e);
     }
     return (
         <SuggestionComponent onClick={handleClick} type={type} {...props} />
@@ -489,15 +488,14 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               openTopic(queryId);
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-              gtag("event", "search_navto", {
+              const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
+              redirectToObject(onChange, item, anl={
                 "project": "Global Search",
                 "panel_type": getPanelType(),
                 "feature_name": "Autolink",
                 "text": query,
                 "to": queryId
               });
-              const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
-              redirectToObject(onChange, item);
           } else {
               search(onChange, query);
           }
@@ -534,9 +532,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         gtag("event", "search_navto", {...anl,
           "project": "Global Search",
           "panel_type": getPanelType(),
-          "link_type": type_title_map[item.type],
-          "to": item.label || item.key,
-          "text": item.key
+          "link_type": type_title_map[item.type]
         });
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
