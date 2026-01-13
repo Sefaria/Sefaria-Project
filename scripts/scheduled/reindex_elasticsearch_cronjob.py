@@ -5,13 +5,18 @@ Elasticsearch Reindexing Cronjob
 
 This script performs a full reindex of Elasticsearch indexes for text and sheet content.
 It includes:
-- Verbose logging for better debugging
+- Print-based logging (instead of Python logging) for Kubernetes stdout/stderr capture
 - Pre-flight checks for index existence
 - Graceful failure handling (continues on individual failures, reports at end)
 - Retry logic for transient errors
+
+Note: We use print() statements instead of Python's logging module because Kubernetes
+captures stdout/stderr for `kubectl logs`, making print() the most reliable way to
+ensure logs are visible in the Kubernetes environment.
 """
 
 from datetime import datetime
+import json
 import requests
 import traceback
 import sys
@@ -25,6 +30,10 @@ from sefaria.search import index_all, get_new_and_current_index_names, index_cli
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import update_pagesheetrank
 
+# Constants for consistent formatting
+SEPARATOR_LINE = "=" * 60
+SUBSECTION_LINE = "=" * 40
+
 
 class ReindexingResult:
     """Track reindexing results and failures."""
@@ -32,6 +41,7 @@ class ReindexingResult:
     def __init__(self):
         self.start_time = datetime.now()
         self.end_time = None
+        self.duration = None
         self.steps_completed = []
         self.steps_failed = []
         self.warnings = []
@@ -40,70 +50,82 @@ class ReindexingResult:
         self.failed_text_versions = []
         self.skipped_text_versions = []
     
-    def complete_step(self, step_name: str, details: str = None):
-        """Mark a step as completed."""
-        entry = {"step": step_name, "time": datetime.now().isoformat()}
-        if details:
-            entry["details"] = details
-        self.steps_completed.append(entry)
-        print(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
+    def record_step_success(self, step_name: str, details: str = None):
+        """Record a step that completed successfully."""
+        try:
+            entry = {"step": step_name, "time": datetime.now().isoformat()}
+            if details:
+                entry["details"] = details
+            self.steps_completed.append(entry)
+            print(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
+        except Exception as e:
+            print(f"WARNING: Failed to record step success - step: {step_name}, error: {str(e)}")
     
-    def fail_step(self, step_name: str, error: str):
-        """Mark a step as failed."""
-        entry = {
-            "step": step_name, 
-            "time": datetime.now().isoformat(),
-            "error": error
-        }
-        self.steps_failed.append(entry)
-        print(f"ERROR: Step failed: {step_name} - {error}")
+    def record_step_failure(self, step_name: str, message: str):
+        """Record a step that failed."""
+        try:
+            entry = {
+                "step": step_name, 
+                "time": datetime.now().isoformat(),
+                "message": message
+            }
+            self.steps_failed.append(entry)
+            print(f"ERROR: Step failed: {step_name} - {message}")
+        except Exception as e:
+            print(f"WARNING: Failed to record step failure - step: {step_name}, error: {str(e)}")
     
     def add_warning(self, message: str, details: str = None):
         """Add a warning (non-fatal issue)."""
-        entry = {"message": message, "time": datetime.now().isoformat()}
-        if details:
-            entry["details"] = details
-        self.warnings.append(entry)
-        print(f"WARNING: {message}" + (f" - {details}" if details else ""))
-    
-    def finalize(self):
-        """Finalize the result and calculate duration."""
-        self.end_time = datetime.now()
-        self.duration = self.end_time - self.start_time
+        try:
+            entry = {"message": message, "time": datetime.now().isoformat()}
+            if details:
+                entry["details"] = details
+            self.warnings.append(entry)
+            print(f"WARNING: {message}" + (f" - {details}" if details else ""))
+        except Exception as e:
+            print(f"WARNING: Failed to add warning - message_preview: {message[:50]}, error: {str(e)}")
     
     def is_success(self) -> bool:
         """Return True if no critical failures occurred."""
         return len(self.steps_failed) == 0
     
-    def summary(self) -> str:
-        """Generate a human-readable summary."""
-        self.finalize()
-        lines = [
-            "=" * 60,
-            "ELASTICSEARCH REINDEXING SUMMARY",
-            "=" * 60,
-            f"Start Time: {self.start_time.isoformat()}",
-            f"End Time:   {self.end_time.isoformat()}",
-            f"Duration:   {self.duration}",
-            f"Status:     {'SUCCESS' if self.is_success() else 'FAILED'}",
-            "",
-            f"Steps Completed: {len(self.steps_completed)}",
-        ]
-        for step in self.steps_completed:
-            lines.append(f"  ✓ {step['step']}")
+    def get_summary(self) -> str:
+        """Generate a human-readable summary and finalize timings."""
+        # Finalize timing calculations
+        if self.end_time is None:
+            self.end_time = datetime.now()
+        if self.duration is None:
+            self.duration = self.end_time - self.start_time
         
-        if self.warnings:
-            lines.append(f"\nWarnings: {len(self.warnings)}")
-            for warning in self.warnings:
-                lines.append(f"  ⚠ {warning['message']}")
-        
-        if self.steps_failed:
-            lines.append(f"\nFailures: {len(self.steps_failed)}")
-            for failure in self.steps_failed:
-                lines.append(f"  ✗ {failure['step']}: {failure['error']}")
-        
-        lines.append("=" * 60)
-        return "\n".join(lines)
+        try:
+            lines = [
+                SEPARATOR_LINE,
+                "ELASTICSEARCH REINDEXING SUMMARY",
+                SEPARATOR_LINE,
+                f"Start Time: {self.start_time.isoformat()}",
+                f"End Time:   {self.end_time.isoformat()}",
+                f"Duration:   {self.duration}",
+                f"Status:     {'SUCCESS' if self.is_success() else 'FAILED'}",
+                "",
+                f"Steps Completed: {len(self.steps_completed)}",
+            ]
+            for step in self.steps_completed:
+                lines.append(f"  ✓ {step['step']}")
+            
+            if self.warnings:
+                lines.append(f"\nWarnings: {len(self.warnings)}")
+                for warning in self.warnings:
+                    lines.append(f"  ⚠ {warning['message']}")
+            
+            if self.steps_failed:
+                lines.append(f"\nFailures: {len(self.steps_failed)}")
+                for failure in self.steps_failed:
+                    lines.append(f"  ✗ {failure['step']}: {failure.get('message', 'No message')}")
+            
+            lines.append(SEPARATOR_LINE)
+            return "\n".join(lines)
+        except Exception as e:
+            return f"ERROR: Failed to generate summary - {str(e)}"
     
     def detailed_failure_report(self) -> str:
         """Generate detailed report of all failures."""
@@ -147,16 +169,28 @@ class ReindexingResult:
         return "\n".join(lines)
 
 
+def safe_print(message: str):
+    """Safely print a message, catching any exceptions to prevent logging from breaking the script."""
+    try:
+        print(message)
+    except Exception as e:
+        # Last resort - try to print error without using variables
+        try:
+            print(f"WARNING: Failed to print log message: {str(e)}")
+        except:
+            pass  # If even this fails, give up silently
+
+
 def check_elasticsearch_connection() -> bool:
     """Verify Elasticsearch is reachable."""
     try:
         info = es_client.info()
         cluster_name = info.get('cluster_name')
         version = info.get('version', {}).get('number')
-        print(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
+        safe_print(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
         return True
     except Exception as e:
-        print(f"ERROR: Failed to connect to Elasticsearch - {str(e)}")
+        safe_print(f"ERROR: Failed to connect to Elasticsearch - {str(e)}")
         return False
 
 
@@ -164,10 +198,10 @@ def check_index_exists(index_name: str) -> bool:
     """Check if an Elasticsearch index exists."""
     try:
         exists = index_client.exists(index=index_name)
-        print(f"DEBUG: Index existence check - index: {index_name}, exists: {exists}")
+        safe_print(f"DEBUG: Index existence check - index: {index_name}, exists: {exists}")
         return exists
     except Exception as e:
-        print(f"WARNING: Failed to check index existence - index: {index_name}, error: {str(e)}")
+        safe_print(f"WARNING: Failed to check index existence - index: {index_name}, error: {str(e)}")
         return False
 
 
@@ -180,7 +214,7 @@ def get_index_doc_count(index_name: str) -> int:
         doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
         return doc_count
     except Exception as e:
-        print(f"WARNING: Failed to get doc count - index: {index_name}, error: {str(e)}")
+        safe_print(f"WARNING: Failed to get doc count - index: {index_name}, error: {str(e)}")
         return -1
 
 
@@ -188,15 +222,23 @@ def log_index_state(index_type: str, result: ReindexingResult):
     """Log the current state of indexes for a given type."""
     try:
         names = get_new_and_current_index_names(index_type, debug=False)
-        current_index = names['current']
-        new_index = names['new']
-        alias = names['alias']
+        if not names:
+            safe_print(f"ERROR: Could not get index names for type {index_type}")
+            raise ValueError(f"get_new_and_current_index_names returned None for {index_type}")
+        
+        current_index = names.get('current')
+        new_index = names.get('new')
+        alias = names.get('alias')
+        
+        if not all([current_index, new_index, alias]):
+            safe_print(f"ERROR: Missing required index name fields - current: {current_index}, new: {new_index}, alias: {alias}")
+            raise ValueError(f"Missing required index name fields for {index_type}")
         
         current_count = get_index_doc_count(current_index)
         new_exists = check_index_exists(new_index)
         new_count = get_index_doc_count(new_index) if new_exists else 0
         
-        print(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
+        safe_print(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
               f"current_doc_count: {current_count}, new_index: {new_index}, "
               f"new_index_exists: {new_exists}, new_doc_count: {new_count}")
         
@@ -207,7 +249,7 @@ def log_index_state(index_type: str, result: ReindexingResult):
                 f"Index {new_index} will be deleted and recreated"
             )
     except Exception as e:
-        print(f"ERROR: Failed to get index state for {index_type} - {str(e)}")
+        safe_print(f"ERROR: Failed to get index state for {index_type} - {str(e)}")
         raise
 
 
@@ -216,10 +258,10 @@ def run_pagesheetrank_update(result: ReindexingResult) -> bool:
     print("Starting pagesheetrank update")
     try:
         update_pagesheetrank()
-        result.complete_step("pagesheetrank_update", "PageSheetRank values updated successfully")
+        result.record_step_success("pagesheetrank_update", "PageSheetRank values updated successfully")
         return True
     except Exception as e:
-        result.fail_step("pagesheetrank_update", str(e))
+        result.record_step_failure("pagesheetrank_update", str(e))
         return False
 
 
@@ -239,16 +281,16 @@ def run_index_all(result: ReindexingResult) -> bool:
         text_skipped = len(result.skipped_text_versions)
         
         if text_failures > 0:
-            print(f"WARNING: Text indexing completed with failures - "
+            safe_print(f"WARNING: Text indexing completed with failures - "
                   f"failed_count: {text_failures}, skipped_count: {text_skipped}")
-            result.complete_step("index_all", 
+            result.record_step_success("index_all", 
                                f"Completed with {text_failures} text failures, {text_skipped} skipped")
         else:
-            result.complete_step("index_all", "Text and sheet indexes rebuilt successfully")
+            result.record_step_success("index_all", "Text and sheet indexes rebuilt successfully")
         
         return True
     except Exception as e:
-        result.fail_step("index_all", str(e))
+        result.record_step_failure("index_all", str(e))
         return False
 
 
@@ -258,13 +300,13 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
     
     This catches sheets created/modified during the reindexing process.
     """
-    print(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
+    safe_print(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
     
     url = "https://www.sefaria.org/admin/index-sheets-by-timestamp"
     
     for attempt in range(1, max_retries + 1):
         try:
-            print(f"DEBUG: API attempt {attempt}/{max_retries} - url: {url}")
+            safe_print(f"DEBUG: API attempt {attempt}/{max_retries} - url: {url}")
             
             r = requests.post(
                 url,
@@ -275,16 +317,16 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
             # Check for HTTP errors
             if r.status_code != 200:
                 error_msg = f"HTTP {r.status_code}: {r.text[:500]}"
-                print(f"WARNING: API returned non-200 status - attempt: {attempt}, "
+                safe_print(f"WARNING: API returned non-200 status - attempt: {attempt}, "
                       f"status_code: {r.status_code}, response_preview: {r.text[:200]}")
                 
                 if attempt < max_retries:
-                    wait_time = attempt * 30  # Exponential backoff
-                    print(f"Retrying in {wait_time} seconds...")
+                    wait_time = attempt * 30  # Linear backoff (30s, 60s, 90s)
+                    safe_print(f"Retrying in {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
                 else:
-                    result.fail_step("sheets_by_timestamp", error_msg)
+                    result.record_step_failure("sheets_by_timestamp", error_msg)
                     return False
             
             # Check for error in response body
@@ -292,35 +334,37 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
                 # Try to parse as JSON first
                 try:
                     response_json = r.json()
-                    if "error" in response_json:
+                    if "error" in response_json.get("error", "").lower():
                         error_msg = response_json["error"]
-                        result.fail_step("sheets_by_timestamp", f"API error: {error_msg}")
+                        result.record_step_failure("sheets_by_timestamp", f"API error: {error_msg}")
                         return False
-                except:
+                except json.JSONDecodeError:
                     # If it's HTML (like a 500 error page), that's a failure
                     if "<html" in r.text.lower():
-                        result.fail_step("sheets_by_timestamp", 
+                        result.record_step_failure("sheets_by_timestamp", 
                                         f"API returned HTML error page instead of JSON: {r.text[:1000]}")
                         return False
+                except Exception as e:
+                    safe_print(f"WARNING: Error parsing response JSON - error: {str(e)}")
             
             # Success!
-            result.complete_step("sheets_by_timestamp", f"Response: {r.text[:200]}")
+            result.record_step_success("sheets_by_timestamp", f"Response: {r.text[:200]}")
             return True
             
         except requests.exceptions.Timeout:
-            print(f"WARNING: API request timed out - attempt: {attempt}")
+            safe_print(f"WARNING: API request timed out - attempt: {attempt}")
             if attempt < max_retries:
                 time.sleep(attempt * 30)
                 continue
-            result.fail_step("sheets_by_timestamp", "Request timed out after all retries")
+            result.record_step_failure("sheets_by_timestamp", "Request timed out after all retries")
             return False
             
         except requests.exceptions.RequestException as e:
-            print(f"WARNING: API request failed - attempt: {attempt}, error: {str(e)}")
+            safe_print(f"WARNING: API request failed - attempt: {attempt}, error: {str(e)}")
             if attempt < max_retries:
                 time.sleep(attempt * 30)
                 continue
-            result.fail_step("sheets_by_timestamp", f"Request failed: {str(e)}")
+            result.record_step_failure("sheets_by_timestamp", f"Request failed: {str(e)}")
             return False
 
 
@@ -328,80 +372,80 @@ def main():
     """Main entry point for the reindexing cronjob."""
     result = ReindexingResult()
     
-    print("=" * 60)
+    print(SEPARATOR_LINE)
     print("ELASTICSEARCH REINDEXING CRONJOB")
-    print(f"Started at: {result.start_time.isoformat()}")
-    print("=" * 60)
+    safe_print(f"Started at: {result.start_time.isoformat()}")
+    print(SEPARATOR_LINE)
     
     # Store timestamp before we start (sheets created after this will be caught by API)
     last_sheet_timestamp = datetime.now().isoformat()
-    print(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
+    safe_print(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
     
     # Pre-flight checks
     print("Running pre-flight checks...")
     
     # 1. Check Elasticsearch connection
     if not check_elasticsearch_connection():
-        result.fail_step("preflight_elasticsearch", "Cannot connect to Elasticsearch")
-        print(result.summary())
+        result.record_step_failure("preflight_elasticsearch", "Cannot connect to Elasticsearch")
+        safe_print(result.get_summary())
         sys.exit(1)
-    result.complete_step("preflight_elasticsearch", "Elasticsearch connection verified")
+    result.record_step_success("preflight_elasticsearch", "Elasticsearch connection verified")
     
     # 2. Log current index states
     try:
         log_index_state('text', result)
         log_index_state('sheet', result)
-        result.complete_step("preflight_index_check", "Index states logged")
+        result.record_step_success("preflight_index_check", "Index states logged")
     except Exception as e:
-        result.fail_step("preflight_index_check", str(e))
-        print(result.summary())
+        result.record_step_failure("preflight_index_check", str(e))
+        safe_print(result.get_summary())
         sys.exit(1)
     
     # Step 1: Update PageSheetRank
-    print("=" * 40)
+    print(SUBSECTION_LINE)
     print("STEP 1: PageSheetRank Update")
-    print("=" * 40)
+    print(SUBSECTION_LINE)
     
     if not run_pagesheetrank_update(result):
         # PageSheetRank failure is not critical - continue with warning
         result.add_warning("PageSheetRank update failed, continuing anyway")
     
     # Step 2: Full index rebuild
-    print("=" * 40)
+    print(SUBSECTION_LINE)
     print("STEP 2: Full Index Rebuild")
-    print("=" * 40)
+    print(SUBSECTION_LINE)
     
     if not run_index_all(result):
         # This is critical - but we still try the sheets API
         result.add_warning("Full index rebuild failed")
     
     # Step 3: Catch-up sheets by timestamp
-    print("=" * 40)
+    print(SUBSECTION_LINE)
     print("STEP 3: Sheets Catch-up by Timestamp")
-    print("=" * 40)
+    print(SUBSECTION_LINE)
     
     run_sheets_by_timestamp(last_sheet_timestamp, result)
     
     # Only print summary and detailed report if there are failures or skips
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
         print("\n")
-        print(result.summary())
+        safe_print(result.get_summary())
         
         # Print detailed failure report if there are failures
         detailed_report = result.detailed_failure_report()
         if detailed_report:
-            print(detailed_report)
+            safe_print(detailed_report)
         
         # Save detailed report to file
         try:
             report_file = f"/tmp/reindex_failures_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
             with open(report_file, 'w') as f:
-                f.write(result.summary())
+                f.write(result.get_summary())
                 f.write("\n\n")
                 f.write(detailed_report)
-            print(f"Detailed failure report saved to: {report_file}")
+            safe_print(f"Detailed failure report saved to: {report_file}")
         except Exception as e:
-            print(f"WARNING: Could not save failure report to file - error: {str(e)}")
+            safe_print(f"WARNING: Could not save failure report to file - error: {str(e)}")
     
     # Only log final index states if there were failures
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
@@ -410,7 +454,7 @@ def main():
             log_index_state('text', result)
             log_index_state('sheet', result)
         except Exception as e:
-            print(f"WARNING: Failed to log final index states - error: {str(e)}")
+            safe_print(f"WARNING: Failed to log final index states - error: {str(e)}")
     
     # Exit with appropriate code
     if result.is_success():
@@ -418,10 +462,10 @@ def main():
         if result.failed_text_versions or result.skipped_text_versions:
             print("Reindexing completed with some failures (see summary above).")
         else:
-            print("=" * 60)
+            print(SEPARATOR_LINE)
             print("Reindexing completed successfully!")
-            print(f"Duration: {result.duration}")
-            print("=" * 60)
+            safe_print(f"Duration: {result.duration}")
+            print(SEPARATOR_LINE)
         sys.exit(0)
     else:
         print("ERROR: Reindexing completed with errors. See summary above.")
@@ -435,6 +479,6 @@ if __name__ == "__main__":
         print("WARNING: Reindexing interrupted by user")
         sys.exit(130)
     except Exception as e:
-        print(f"ERROR: Unexpected error in reindexing cronjob - error: {str(e)}")
-        print(f"Traceback:\n{traceback.format_exc()}")
+        safe_print(f"ERROR: Unexpected error in reindexing cronjob - error: {str(e)}")
+        safe_print(f"Traceback:\n{traceback.format_exc()}")
         sys.exit(1)

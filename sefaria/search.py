@@ -39,12 +39,22 @@ PROGRESS_LOG_EVERY_N = 100
 
 def delete_text(oref, version, lang):
     try:
-        curr_index = get_new_and_current_index_names('text').get('current')
+        index_names = get_new_and_current_index_names('text')
+        if not index_names:
+            print(f"ERROR: Could not get index names for text - ref: {oref.normal()}, version: {version}, lang: {lang}")
+            return
+        
+        curr_index = index_names.get('current')
+        if not curr_index:
+            print(f"ERROR: No current index found for text - ref: {oref.normal()}, version: {version}, lang: {lang}")
+            return
 
         id = make_text_doc_id(oref.normal(), version, lang)
         es_client.delete(index=curr_index, id=id)
+    except NotFoundError:
+        print(f"WARNING: Document not found when deleting - ref: {oref.normal()}, version: {version}, lang: {lang}")
     except Exception as e:
-        print(f"ERROR: deleting {oref.normal()} / {version} / {lang} : {e}")
+        print(f"ERROR: Failed to delete text - ref: {oref.normal()}, version: {version}, lang: {lang}, error: {e}")
 
 
 def delete_version(index, version, lang):
@@ -121,8 +131,7 @@ def index_sheet(index_name, id):
     dateCreated = sheet.get("dateCreated")
     dateModified = sheet.get("dateModified")
     
-    if not all([owner_id, sheet_title, summary is not None, datePublished is not None, 
-                dateCreated is not None, dateModified is not None]):
+    if any(x is None for x in [summary, datePublished, dateCreated, dateModified]) or not (owner_id and sheet_title):
         return False  # Missing critical sheet fields - tracked as failed
     
     pud = public_user_data(owner_id)
@@ -240,11 +249,15 @@ def get_stemmed_english_analyzer():
 
 def create_index(index_name, type, force=False):
     """
-    Clears the indexes and creates it fresh with the below settings.
+    Creates a new Elasticsearch index with appropriate settings and mappings.
+    
+    If the index already exists and contains documents:
+    - If force=False (default): Raises a ValueError to prevent accidental data loss
+    - If force=True: Clears the existing index and recreates it
     
     :param index_name: Name of the index to create
     :param type: Type of index ('text' or 'sheet')
-    :param force: If False, will not recreate an index with documents (safety check)
+    :param force: If False (default), will not recreate an index with documents (safety check)
     """
     print(f"Creating new Elasticsearch index - index_name: {index_name}, type: {type}, force: {force}")
     
@@ -261,9 +274,10 @@ def create_index(index_name, type, force=False):
                 raise ValueError(error_msg)
             
             print(f"WARNING: Index exists with documents, will be cleared - index_name: {index_name}, doc_count: {doc_count}")
+        except ValueError:
+            # Re-raise ValueError (from the safety check above) to caller
+            raise
         except Exception as e:
-            if "ValueError" in str(type(e)):
-                raise
             print(f"WARNING: Could not get index stats - index_name: {index_name}, error: {str(e)}")
     
     clear_index(index_name)
@@ -289,7 +303,6 @@ def create_index(index_name, type, force=False):
     }
     
     print(f"Creating index with settings - index_name: {index_name}")
-    print(f'Creating index {index_name}')
     
     try:
         index_client.create(index=index_name, settings=settings)
@@ -461,8 +474,8 @@ def get_search_categories(oref, categories):
 class TextIndexer(object):
     
     # Class-level failure tracking
-    _failed_versions = []
-    _skipped_versions = []
+    _failed_versions = None
+    _skipped_versions = None
 
     @classmethod
     def clear_cache(cls):
@@ -472,6 +485,30 @@ class TextIndexer(object):
         cls.best_time_period = None
         cls._failed_versions = []
         cls._skipped_versions = []
+    
+    @classmethod
+    def _add_failed_version(cls, version, error_message, error_type=None):
+        """Helper method to consistently add failed versions to tracking list."""
+        if cls._failed_versions is None:
+            cls._failed_versions = []
+        cls._failed_versions.append({
+            'title': getattr(version, 'title', 'Unknown'),
+            'version': getattr(version, 'versionTitle', 'Unknown'),
+            'lang': getattr(version, 'language', 'Unknown'),
+            'error': error_message,
+            'error_type': error_type or 'Exception'
+        })
+    
+    @classmethod
+    def _add_skipped_version(cls, version, reason):
+        """Helper method to consistently add skipped versions to tracking list."""
+        if cls._skipped_versions is None:
+            cls._skipped_versions = []
+        cls._skipped_versions.append({
+            'title': getattr(version, 'title', 'Unknown'),
+            'version': getattr(version, 'versionTitle', 'Unknown'),
+            'reason': reason
+        })
 
 
     @classmethod
@@ -615,38 +652,20 @@ class TextIndexer(object):
             except Exception as e:
                 failed += len(vlist)
                 for v in vlist:
-                    cls._failed_versions.append({
-                        'title': getattr(v, 'title', 'Unknown'),
-                        'version': getattr(v, 'versionTitle', 'Unknown'),
-                        'lang': getattr(v, 'language', 'Unknown'),
-                        'error': f"Failed to get index: {str(e)}",
-                        'error_type': type(e).__name__
-                    })
+                    cls._add_failed_version(v, f"Failed to get index: {str(e)}", type(e).__name__)
                 continue
                 
             if cls.curr_index is None:
                 failed += len(vlist)
                 for v in vlist:
-                    cls._failed_versions.append({
-                        'title': getattr(v, 'title', title[0]) or title[0] or 'Unknown',
-                        'version': getattr(v, 'versionTitle', 'Unknown') or 'Unknown',
-                        'lang': getattr(v, 'language', title[1]) or title[1] or 'Unknown',
-                        'error': 'Index is None',
-                        'error_type': 'ValidationError'
-                    })
+                    cls._add_failed_version(v, 'Index is None', 'ValidationError')
                 continue
             
             # Validate that index has a title
             if not hasattr(cls.curr_index, 'title') or not cls.curr_index.title:
                 failed += len(vlist)
                 for v in vlist:
-                    cls._failed_versions.append({
-                        'title': getattr(v, 'title', title[0]) or title[0] or 'Unknown',
-                        'version': getattr(v, 'versionTitle', 'Unknown') or 'Unknown',
-                        'lang': getattr(v, 'language', title[1]) or title[1] or 'Unknown',
-                        'error': 'Index missing title',
-                        'error_type': 'ValidationError'
-                    })
+                    cls._add_failed_version(v, 'Index missing title', 'ValidationError')
                 continue
                 
             if for_es:
@@ -657,36 +676,19 @@ class TextIndexer(object):
                     # best_time_period is required - mark all versions as failed
                     failed += len(vlist)
                     for v in vlist:
-                        cls._failed_versions.append({
-                            'title': getattr(v, 'title', 'Unknown'),
-                            'version': getattr(v, 'versionTitle', 'Unknown'),
-                            'lang': getattr(v, 'language', 'Unknown'),
-                            'error': f"Failed to get best_time_period: {str(e)}",
-                            'error_type': type(e).__name__
-                        })
+                        cls._add_failed_version(v, f"Failed to get best_time_period: {str(e)}", type(e).__name__)
                     continue
                     
             for v in vlist:
                 # Validate critical fields
                 if not v.title or not v.versionTitle or not v.language:
                     failed += 1
-                    cls._failed_versions.append({
-                        'title': v.title if hasattr(v, 'title') and v.title else 'Unknown',
-                        'version': v.versionTitle if hasattr(v, 'versionTitle') and v.versionTitle else 'Unknown',
-                        'lang': v.language if hasattr(v, 'language') and v.language else 'Unknown',
-                        'error': 'Missing critical field (title, versionTitle, or language)',
-                        'error_type': 'ValidationError'
-                    })
+                    cls._add_failed_version(v, 'Missing critical field (title, versionTitle, or language)', 'ValidationError')
                     continue
                 
                 if cls.excluded_from_search(v):
                     skipped += 1
-                    cls._skipped_versions.append({
-                        'title': v.title,
-                        'version': v.versionTitle,
-                        'lang': v.language,
-                        'reason': 'excluded_from_search'
-                    })
+                    cls._add_skipped_version(v, 'excluded_from_search')
                     continue
 
                 try:
@@ -694,13 +696,7 @@ class TextIndexer(object):
                     vcount += 1
                 except Exception as e:
                     failed += 1
-                    cls._failed_versions.append({
-                        'title': v.title,
-                        'version': v.versionTitle,
-                        'lang': v.language,
-                        'error': str(e),
-                        'error_type': type(e).__name__
-                    })
+                    cls._add_failed_version(v, str(e), type(e).__name__)
                     
             if for_es:
                 bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
@@ -714,13 +710,7 @@ class TextIndexer(object):
     def index_version(cls, version, tries=0, action=None):
         # Validate critical fields before processing
         if not version.title or not version.versionTitle or not version.language:
-            cls._failed_versions.append({
-                'title': getattr(version, 'title', 'Unknown') or 'Unknown',
-                'version': getattr(version, 'versionTitle', 'Unknown') or 'Unknown',
-                'lang': getattr(version, 'language', 'Unknown') or 'Unknown',
-                'error': 'Missing critical field (title, versionTitle, or language)',
-                'error_type': 'ValidationError'
-            })
+            cls._add_failed_version(version, 'Missing critical field (title, versionTitle, or language)', 'ValidationError')
             return
         
         if not action:
@@ -728,13 +718,7 @@ class TextIndexer(object):
         try:
             # Validate curr_index has required attributes
             if not cls.curr_index or not hasattr(cls.curr_index, 'get_title') or not hasattr(cls.curr_index, 'schema'):
-                cls._failed_versions.append({
-                    'title': version.title,
-                    'version': version.versionTitle,
-                    'lang': version.language,
-                    'error': 'Index missing required attributes (get_title or schema)',
-                    'error_type': 'ValidationError'
-                })
+                cls._add_failed_version(version, 'Index missing required attributes (get_title or schema)', 'ValidationError')
                 return
             version.walk_thru_contents(action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
         except pymongo.errors.AutoReconnect as e:
@@ -787,14 +771,7 @@ class TextIndexer(object):
         # Validate critical fields - if missing, track as failure and continue
         if not version.title or not vtitle or not vlang:
             # Critical field missing - track as failed and continue
-            cls._failed_versions.append({
-                'title': getattr(version, 'title', 'Unknown') or 'Unknown',
-                'version': vtitle or 'Unknown',
-                'lang': vlang or 'Unknown',
-                'error': 'Missing critical field (title, versionTitle, or language)',
-                'error_type': 'ValidationError',
-                'ref': tref
-            })
+            cls._add_failed_version(version, f'Missing critical field (title, versionTitle, or language) - ref: {tref}', 'ValidationError')
             return
         
         # Safe access to version_priority_map
@@ -951,13 +928,13 @@ def index_public_sheets(index_name):
     failed = 0
     failed_ids = []
     
-    for i, id in enumerate(ids):
-        result = index_sheet(index_name, id)
+    for i, _id in enumerate(ids):
+        result = index_sheet(index_name, _id)
         if result:
             succeeded += 1
         else:
             failed += 1
-            failed_ids.append(id)
+            failed_ids.append(_id)
         
     elapsed = datetime.now() - start_time
     # Only print if there are failures
@@ -989,12 +966,10 @@ def clear_index(index_name):
         else:
             print(f"Index does not exist, nothing to delete - index_name: {index_name}")
     except NotFoundError:
-        print(f"WARNING: Index not found when attempting to delete - index_name: {index_name}")
+        # Index doesn't exist (race condition or double-check), which is fine
+        print(f"Index not found when attempting to delete - index_name: {index_name}")
     except Exception as e:
-        print(f"ERROR: Error deleting Elasticsearch index", 
-                    index_name=index_name, 
-                    error=str(e),
-                    exc_info=True)
+        print(f"ERROR: Error deleting Elasticsearch index - index_name: {index_name} - error: {str(e)}")
 
 
 def add_ref_to_index_queue(ref, version, lang):
@@ -1077,9 +1052,10 @@ def index_all(skip=0, debug=False):
     print("=" * 60)
     print(f"STARTING FULL ELASTICSEARCH REINDEX - skip: {skip}, debug: {debug}, start_time: {start.isoformat()}")
     print("=" * 60)
-    print("\n" + "=" * 80)
-    print("STARTING FULL REINDEX")
-    print("=" * 80)
+    
+    # Initialize elapsed time variables
+    text_elapsed = None
+    sheet_elapsed = None
     
     # Index texts
     text_start = datetime.now()
@@ -1089,7 +1065,8 @@ def index_all(skip=0, debug=False):
         text_elapsed = datetime.now() - text_start
         print(f"Completed text indexing phase - elapsed: {text_elapsed}")
     except Exception as e:
-        print(f"ERROR: Text indexing phase failed - error: {str(e)}")
+        text_elapsed = datetime.now() - text_start
+        print(f"ERROR: Text indexing phase failed after {text_elapsed} - error: {str(e)}")
         import traceback
         print(f"Traceback:\n{traceback.format_exc()}")
         raise
@@ -1102,7 +1079,8 @@ def index_all(skip=0, debug=False):
         sheet_elapsed = datetime.now() - sheet_start
         print(f"Completed sheet indexing phase - elapsed: {sheet_elapsed}")
     except Exception as e:
-        print(f"ERROR: Sheet indexing phase failed - error: {str(e)}")
+        sheet_elapsed = datetime.now() - sheet_start
+        print(f"ERROR: Sheet indexing phase failed after {sheet_elapsed} - error: {str(e)}")
         import traceback
         print(f"Traceback:\n{traceback.format_exc()}")
         raise
@@ -1115,9 +1093,8 @@ def index_all(skip=0, debug=False):
     end = datetime.now()
     total_elapsed = end - start
     print("=" * 60)
-    print(f"COMPLETED FULL ELASTICSEARCH REINDEX - elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}")
+    print(f"COMPLETED FULL ELASTICSEARCH REINDEX - total_elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}")
     print("=" * 60)
-    print(f"Elapsed time: {total_elapsed}")
 
 
 def index_all_of_type(type, skip=0, debug=False):
