@@ -16,6 +16,7 @@ from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRe
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.linker import LinkedDoc
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
+from sefaria.helper.linker.disambiguator import disambiguate_ambiguous_ref, disambiguate_non_segment_ref
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
 import structlog
@@ -309,7 +310,7 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
 def process_ambiguous_resolution(resolution_data: dict) -> None:
     """
     Process an ambiguous resolution from LinkerOutput.
-    For now, just prints the input. Will add actual functionality later.
+    Uses LLM to disambiguate between multiple possible references.
 
     @param resolution_data: dict with structure:
         {
@@ -327,17 +328,56 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
     logger.info(f"Text: '{resolution_data.get('text')}'")
     logger.info(f"Char Range: {resolution_data.get('charRange')}")
     logger.info(f"Ambiguous Options ({len(resolution_data.get('ambiguous_refs', []))}): {resolution_data.get('ambiguous_refs')}")
+
+    try:
+        result = disambiguate_ambiguous_ref(resolution_data)
+        if result:
+            resolved_ref = result['resolved_ref']
+            print(f"\n{'='*80}")
+            print(f"AMBIGUOUS RESOLUTION SUCCESS")
+            print(f"{'='*80}")
+            print(f"Citing Ref: {resolution_data['ref']}")
+            print(f"Version: {resolution_data['versionTitle']} ({resolution_data['language']})")
+            print(f"Citation Text: '{resolution_data['text']}'")
+            print(f"Char Range: {resolution_data['charRange']}")
+            print(f"Ambiguous Options: {resolution_data['ambiguous_refs']}")
+            print(f"→ RESOLVED TO: {resolved_ref}")
+            print(f"  Confidence: {result['confidence']}")
+            print(f"  Method: {result['method']}")
+            if 'matched_segment' in result and result['matched_segment']:
+                print(f"  Matched Segment: {result['matched_segment']}")
+            print(f"{'='*80}\n")
+
+            logger.info(f"✓ Resolved to: {resolved_ref} (confidence: {result['confidence']}, method: {result['method']})")
+            # TODO: Update LinkerOutput with the resolved reference
+            # TODO: Create/update Link records if needed
+        else:
+            print(f"\n{'='*80}")
+            print(f"AMBIGUOUS RESOLUTION FAILED")
+            print(f"{'='*80}")
+            print(f"Citing Ref: {resolution_data['ref']}")
+            print(f"Citation Text: '{resolution_data['text']}'")
+            print(f"Ambiguous Options: {resolution_data['ambiguous_refs']}")
+            print(f"{'='*80}\n")
+            logger.warning("✗ Could not resolve ambiguous reference")
+    except Exception as e:
+        print(f"\n{'='*80}")
+        print(f"AMBIGUOUS RESOLUTION ERROR")
+        print(f"{'='*80}")
+        print(f"Citing Ref: {resolution_data['ref']}")
+        print(f"Error: {e}")
+        print(f"{'='*80}\n")
+        logger.error(f"✗ Error during disambiguation: {e}", exc_info=True)
+
     logger.info("=====================================")
 
-    # TODO: Add actual disambiguation logic here
-    print(f"[TASK] Ambiguous resolution: {resolution_data}")
 
 
 @app.task(name="linker.process_non_segment_resolution")
 def process_non_segment_resolution(resolution_data: dict) -> None:
     """
     Process a non-segment-level resolution from LinkerOutput.
-    For now, just prints the input. Will add actual functionality later.
+    Uses LLM to resolve to a specific segment.
 
     @param resolution_data: dict with structure:
         {
@@ -350,14 +390,51 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
             'ref_level': str  # e.g., 'book', 'chapter', 'section'
         }
     """
-    print("HIHIIHIHIIH")
     logger.info("=== Processing Non-Segment Resolution ===")
     logger.info(f"Ref: {resolution_data.get('ref')}")
     logger.info(f"Version: {resolution_data.get('versionTitle')} ({resolution_data.get('language')})")
     logger.info(f"Text: '{resolution_data.get('text')}'")
     logger.info(f"Char Range: {resolution_data.get('charRange')}")
     logger.info(f"Resolved To: {resolution_data.get('resolved_ref')} (level: {resolution_data.get('ref_level')})")
+
+    try:
+        result = disambiguate_non_segment_ref(resolution_data)
+        if result:
+            resolved_ref = result['resolved_ref']
+            print(f"\n{'='*80}")
+            print(f"NON-SEGMENT RESOLUTION SUCCESS")
+            print(f"{'='*80}")
+            print(f"Citing Ref: {resolution_data['ref']}")
+            print(f"Version: {resolution_data['versionTitle']} ({resolution_data['language']})")
+            print(f"Citation Text: '{resolution_data['text']}'")
+            print(f"Char Range: {resolution_data['charRange']}")
+            print(f"Original Non-Segment Ref: {resolution_data['resolved_ref']} (level: {resolution_data['ref_level']})")
+            print(f"→ RESOLVED TO SEGMENT: {resolved_ref}")
+            print(f"  Confidence: {result['confidence']}")
+            print(f"  Method: {result['method']}")
+            print(f"{'='*80}\n")
+
+            logger.info(f"✓ Resolved to segment: {resolved_ref} (confidence: {result['confidence']}, method: {result['method']})")
+            # TODO: Update LinkerOutput with the resolved reference
+            # TODO: Create/update Link records if needed
+        else:
+            print(f"\n{'='*80}")
+            print(f"NON-SEGMENT RESOLUTION FAILED")
+            print(f"{'='*80}")
+            print(f"Citing Ref: {resolution_data['ref']}")
+            print(f"Citation Text: '{resolution_data['text']}'")
+            print(f"Non-Segment Ref: {resolution_data['resolved_ref']}")
+            print(f"{'='*80}\n")
+            logger.warning("✗ Could not resolve to segment level")
+    except Exception as e:
+        print(f"\n{'='*80}")
+        print(f"NON-SEGMENT RESOLUTION ERROR")
+        print(f"{'='*80}")
+        print(f"Citing Ref: {resolution_data['ref']}")
+        print(f"Non-Segment Ref: {resolution_data['resolved_ref']}")
+        print(f"Error: {e}")
+        print(f"{'='*80}\n")
+        logger.error(f"✗ Error during resolution: {e}", exc_info=True)
+
     logger.info("=========================================")
 
-    # TODO: Add actual resolution logic here
-    print(f"[TASK] Non-segment resolution: {resolution_data}")
