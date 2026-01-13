@@ -40,6 +40,7 @@ class TextRange extends Component {
     if (!Sefaria.areBothVersionsEqual(this.props.currVersions, nextProps.currVersions)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
+    if (this.props.loadLinks !== nextProps.loadLinks)         { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -63,6 +64,9 @@ class TextRange extends Component {
     }
     if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       this.setData();
+    }
+    if (!prevProps.loadLinks && this.props.loadLinks && this.state.data) {
+      this._prefetchLinksAndNotes(this.state.data);
     }
     // Place segment numbers again if update affected layout
     if ((this.props.basetext || this.props.segmentNumber) &&
