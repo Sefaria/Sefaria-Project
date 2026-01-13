@@ -267,7 +267,7 @@ def annotate_user_collections(sheets, user_id):
 	that `user_id` has put that sheet in.
 	"""
 	sheet_ids = [sheet["id"] for sheet in sheets]
-	user_collections = CollectionSet({"sheets": {"$in": sheet_ids}})
+	user_collections = CollectionSet({"sheets": {"$in": sheet_ids}, "$or": [{"admins": int(user_id)}, {"members": int(user_id)}]})
 	for sheet in sheets:
 		sheet["collections"] = []
 		for collection in user_collections:
