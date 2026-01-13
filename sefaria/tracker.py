@@ -145,8 +145,13 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
     Update version metadata fields and log the change to history.
 
     Use this for metadata-only changes (license, status, priority, etc.) that should
-    be tracked separately from text content changes. Creates 'edit version_metadata'
-    history records.
+    be tracked separately from text content changes. Logs via log_update with
+    history_noun="version_metadata" to create 'edit version_metadata' history records.
+
+    This function exists to centralize:
+    1. Sparse updates (only fields in `updates` dict are modified)
+    2. Field deletion (None values trigger delattr)
+    3. Consistent history logging for metadata changes
 
     Args:
         user: User ID making the change
@@ -168,7 +173,7 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
             setattr(version, field_name, field_value)
 
     version.save()
-    model.log_version_metadata(user, old_dict, version.contents(), **kwargs)
+    model.log_update(user, model.Version, old_dict, version.contents(), history_noun="version_metadata", **kwargs)
     return version
 
 
