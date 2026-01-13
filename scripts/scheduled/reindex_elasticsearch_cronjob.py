@@ -15,6 +15,7 @@ in `kubectl logs`. This allows search.py to use proper logging while still being
 visible in Kubernetes.
 """
 
+import argparse
 from datetime import datetime
 import json
 import logging
@@ -23,20 +24,14 @@ import traceback
 import sys
 import time
 
-# Configure logging to output to stdout/stderr for Kubernetes visibility
-# This must be done BEFORE django.setup() to ensure all modules use this config
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout,
-    force=True  # Override any existing logging configuration
-)
+# Note: Logging is configured via sefaria.search.setup_logging()
+# called in main() after argparse, or automatically on import.
 
 import django
 django.setup()
 
 from sefaria.model import *
-from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client, TextIndexer
+from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client, TextIndexer, setup_logging
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import update_pagesheetrank
 
@@ -70,7 +65,7 @@ class ReindexingResult:
             if details:
                 entry["details"] = details
             self.steps_completed.append(entry)
-            logger.info(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
+            logger.debug(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
         except Exception as e:
             logger.warning(f"Failed to record step success - step: {step_name}, error: {str(e)}")
     
@@ -188,7 +183,7 @@ def check_elasticsearch_connection() -> bool:
         info = es_client.info()
         cluster_name = info.get('cluster_name')
         version = info.get('version', {}).get('number')
-        logger.info(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
+        logger.debug(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
         return True
     except Exception as e:
         logger.error(f"Failed to connect to Elasticsearch - {str(e)}")
@@ -239,7 +234,7 @@ def log_index_state(index_type: str, result: ReindexingResult):
         new_exists = check_index_exists(new_index)
         new_count = get_index_doc_count(new_index) if new_exists else 0
         
-        logger.info(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
+        logger.debug(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
               f"current_doc_count: {current_count}, new_index: {new_index}, "
               f"new_index_exists: {new_exists}, new_doc_count: {new_count}")
         
@@ -256,7 +251,7 @@ def log_index_state(index_type: str, result: ReindexingResult):
 
 def run_pagesheetrank_update(result: ReindexingResult) -> bool:
     """Run pagesheetrank update with error handling."""
-    logger.info("Starting pagesheetrank update")
+    logger.debug("Starting pagesheetrank update")
     try:
         update_pagesheetrank()
         result.record_step_success("pagesheetrank_update", "PageSheetRank values updated successfully")
@@ -268,7 +263,7 @@ def run_pagesheetrank_update(result: ReindexingResult) -> bool:
 
 def run_index_all(result: ReindexingResult) -> bool:
     """Run full index with error handling and failure capture."""
-    logger.info("Starting full index rebuild")
+    logger.debug("Starting full index rebuild")
     try:
         index_all()
         
@@ -300,7 +295,7 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
     
     This catches sheets created/modified during the reindexing process.
     """
-    logger.info(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
+    logger.debug(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
     
     url = "https://www.sefaria.org/admin/index-sheets-by-timestamp"
     
@@ -322,7 +317,7 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
                 
                 if attempt < max_retries:
                     wait_time = attempt * 30  # Linear backoff (30s, 60s, 90s)
-                    logger.info(f"Retrying in {wait_time} seconds...")
+                    logger.debug(f"Retrying in {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
                 else:
@@ -370,6 +365,13 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
 
 def main():
     """Main entry point for the reindexing cronjob."""
+    parser = argparse.ArgumentParser(description="Elasticsearch Reindexing Cronjob")
+    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging")
+    args = parser.parse_args()
+
+    # Apply centralized logging configuration with the specified debug level
+    setup_logging(args.debug)
+
     result = ReindexingResult()
     
     logger.info(SEPARATOR_LINE)
@@ -379,10 +381,10 @@ def main():
     
     # Store timestamp before we start (sheets created after this will be caught by API)
     last_sheet_timestamp = datetime.now().isoformat()
-    logger.info(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
+    logger.debug(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
     
     # Pre-flight checks
-    logger.info("Running pre-flight checks...")
+    logger.debug("Running pre-flight checks...")
     
     # 1. Check Elasticsearch connection
     if not check_elasticsearch_connection():
@@ -449,7 +451,7 @@ def main():
     
     # Only log final index states if there were failures
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
-        logger.info("Final index states:")
+        logger.debug("Final index states:")
         try:
             log_index_state('text', result)
             log_index_state('sheet', result)
