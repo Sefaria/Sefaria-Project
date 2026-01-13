@@ -66,7 +66,7 @@ data:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv("DATABASES_NAME", 'sefaria_auth'),
+            'NAME': 'load-sheets',
             'USER': os.getenv("DATABASES_USER"),
             'PASSWORD': os.getenv("DATABASES_PASSWORD"),
             'HOST': os.getenv("DATABASES_HOST"),
