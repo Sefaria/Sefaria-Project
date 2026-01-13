@@ -7,19 +7,13 @@ import structlog
 import os
 import re
 import requests
-import time
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from sefaria.model.text import Ref
 
 logger = structlog.get_logger(__name__)
-
-try:
-    from langchain_anthropic import ChatAnthropic
-    from langchain_core.prompts import ChatPromptTemplate
-    HAS_LANGCHAIN = True
-except ImportError:
-    HAS_LANGCHAIN = False
-    logger.warning("LangChain not available - disambiguators will not work")
 
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
@@ -32,21 +26,17 @@ WINDOW_WORDS = 120
 
 def _get_llm():
     """Get configured LLM instance."""
-    if not HAS_LANGCHAIN:
-        raise RuntimeError("LangChain is required but not installed")
-
-    model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
+        raise RuntimeError("OPENAI_API_KEY environment variable is required")
 
-    return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+    return ChatOpenAI(model=model, temperature=0, max_tokens=1024, api_key=api_key)
 
 
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
     """Get text for a reference."""
     try:
-        from sefaria.model.text import Ref
         oref = Ref(ref_str)
 
         if vtitle:
@@ -143,7 +133,6 @@ def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
     }
 
     try:
-        from sefaria.model.text import Ref
         target_oref = Ref(target_ref)
     except Exception:
         logger.warning(f"Could not create Ref for target: {target_ref}")
@@ -180,7 +169,6 @@ def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
                 continue
 
             try:
-                from sefaria.model.text import Ref
                 oref = Ref(normalized)
                 if not oref.is_segment_level():
                     continue
@@ -211,7 +199,6 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
     ref_part = match.group(1)
 
     try:
-        from sefaria.model.text import Ref
         return Ref(ref_part).normal()
     except Exception:
         return None
@@ -220,7 +207,6 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
 def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> Optional[Dict[str, Any]]:
     """Query Sefaria search API for matching segments."""
     try:
-        from sefaria.model.text import Ref
         target_oref = Ref(target_ref)
         path_regex = _path_regex_for_ref(target_ref)
     except Exception:
@@ -273,7 +259,6 @@ def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> O
             continue
 
         try:
-            from sefaria.model.text import Ref
             cand_oref = Ref(normalized)
             if not cand_oref.is_segment_level():
                 continue
@@ -306,7 +291,6 @@ def _extract_ref_from_search_hit(hit: Dict[str, Any]) -> Optional[str]:
         if not c:
             continue
         try:
-            from sefaria.model.text import Ref
             return Ref(c).normal()
         except Exception:
             continue
@@ -317,7 +301,6 @@ def _extract_ref_from_search_hit(hit: Dict[str, Any]) -> Optional[str]:
 def _path_regex_for_ref(ref_str: str) -> Optional[str]:
     """Generate path regex for Sefaria search filtering."""
     try:
-        from sefaria.model.text import Ref
         oref = Ref(ref_str)
         book = oref.index.title
         # Simple regex: just the book name
@@ -328,26 +311,58 @@ def _path_regex_for_ref(ref_str: str) -> Optional[str]:
 
 def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
-    if not HAS_LANGCHAIN:
-        return []
-
     llm = _get_llm()
+
+    # Create context with citation redacted
+    context_redacted = re.sub(r'<citation>.*?</citation>', '[REDACTED]', marked_text, flags=re.DOTALL)
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"\n\nBase text being commented on ({base_ref}):\n{base_text[:1000]}"
+        base_block = f"Base text being commented on ({base_ref}):\n{base_text[:1000]}\n\n"
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Extract 1-3 Hebrew keyword phrases for searching. Return one phrase per line."),
-        ("human", f"Text with citation marked:\n{marked_text[:2000]}{base_block}")
+        ("system", "You are extracting a concise citation phrase to search for parallels."),
+        ("human",
+         "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+         "Context with citation redacted:\n{context}\n\n"
+         "{base_block}"
+         "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
+         "outside the citation span.\n"
+         "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
+         "- Include at least one 2-3 word query.\n"
+         "- Do NOT copy words that appear inside <citation>...</citation>.\n"
+         "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'."
+        )
     ])
 
     chain = prompt | llm
     try:
-        response = chain.invoke({})
+        response = chain.invoke({
+            "citing": marked_text[:2000],
+            "context": context_redacted[:2000],
+            "base_block": base_block
+        })
         content = getattr(response, 'content', '')
-        queries = [line.strip() for line in content.split('\n') if line.strip()]
-        return queries[:3]  # Max 3 queries
+
+        # Check for NONE response
+        if content.strip().upper() == 'NONE':
+            logger.info("LLM returned NONE - no suitable queries found")
+            return []
+
+        # Parse numbered queries
+        queries = []
+        for line in content.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            # Match patterns like "1) query text" or "1. query text"
+            match = re.match(r'^\d+[\)\.]\s*(.+)$', line)
+            if match:
+                query = match.group(1).strip()
+                if query:
+                    queries.append(query)
+
+        return queries[:6]  # Max 6 queries
     except Exception as e:
         logger.warning(f"LLM query generation failed: {e}")
         return []
@@ -356,8 +371,6 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
     """Use LLM to confirm if a candidate is the correct resolution."""
-    if not HAS_LANGCHAIN:
-        return False, "LLM not available"
 
     llm = _get_llm()
 
@@ -384,49 +397,255 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         return False, str(e)
 
 
-def _llm_choose_best_candidate(marked_text: str, candidates: List[Dict[str, Any]],
-                               base_ref: str = None, base_text: str = None) -> Optional[Dict[str, Any]]:
-    """Use LLM to choose the best candidate from multiple options."""
-    if not HAS_LANGCHAIN or len(candidates) < 2:
-        return candidates[0] if candidates else None
+def _llm_choose_best_candidate(
+    marked_text: str,
+    candidates: List[Dict[str, Any]],
+    base_ref: Optional[str] = None,
+    base_text: Optional[str] = None,
+    lang: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Use LLM to choose the best candidate from multiple options.
 
-    llm = _get_llm()
+    Deduplicates candidates by resolved_ref (keeping highest score),
+    presents them with text previews, and uses LLM to select the best match.
+    """
+    if not candidates:
+        return None
 
-    options = []
-    for i, cand in enumerate(candidates, 1):
-        ref = cand['resolved_ref']
-        text = _get_ref_text(ref)
-        preview = (text or '')[:300]
-        if text and len(text) > 300:
-            preview += '...'
-        score_info = f"(score: {cand.get('score', 'N/A')})" if 'score' in cand else ""
-        options.append(f"{i}) {ref} {score_info}\n   {preview}")
+    # Deduplicate by resolved_ref, keeping highest score
+    unique: Dict[str, Dict[str, Any]] = {}
+    for c in candidates:
+        r = c.get("resolved_ref")
+        if not r:
+            continue
+        if r not in unique:
+            unique[r] = c
+        else:
+            prev_score = unique[r].get("score")
+            new_score = c.get("score")
+            if new_score is not None and (prev_score is None or new_score > prev_score):
+                unique[r] = c
 
+    if len(unique) == 0:
+        return None
+
+    if len(unique) == 1:
+        # Only one unique candidate, return it
+        return list(unique.values())[0]
+
+    # Build numbered candidate list with text previews
+    numbered: List[str] = []
+    payloads: List[Tuple[int, Dict[str, Any]]] = []
+
+    for i, (ref, cand) in enumerate(unique.items(), 1):
+        txt = _get_ref_text(ref, lang=lang)
+        preview = (txt or "").strip()[:400]
+        if txt and len(txt) > 400:
+            preview += "..."
+
+        score_str = f"(score={cand.get('score')})" if cand.get('score') is not None else ""
+        numbered.append(f"{i}) {ref} {score_str}\n{preview}")
+        payloads.append((i, cand))
+
+    # Build base text block if available
     base_block = ""
     if base_ref and base_text:
-        base_block = f"\n\nBase text ({base_ref}):\n{base_text[:1000]}"
+        base_block = f"Base text of commentary target ({base_ref}):\n{base_text[:2000]}\n\n"
 
+    # Create LLM prompt
+    llm = _get_llm()
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Choose the single best candidate. Respond with a number."),
-        ("human",
-         f"Citing text:\n{marked_text[:2000]}{base_block}\n\n"
-         f"Candidates:\n{chr(10).join(options)}\n\n"
-         "Format: Reason: <explanation>\nChoice: <number>")
+        (
+            "system",
+            "You choose the single best candidate ref that the citing text most directly quotes/paraphrases. "
+            "You must respond with an actual number, not a placeholder or variable."
+        ),
+        (
+            "human",
+            "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+            f"{base_block}"
+            "Candidate refs:\n{candidates}\n\n"
+            "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
+            "Output format (replace with actual content, do NOT use placeholders):\n"
+            "Reason: Your brief explanation here\n"
+            "Choice: 1\n\n"
+            "Now provide your answer:"
+        )
     ])
 
     chain = prompt | llm
     try:
-        response = chain.invoke({})
-        content = getattr(response, 'content', '')
-        match = re.search(r'choice\s*:\s*(\d+)', content, re.IGNORECASE)
-        if match:
-            choice = int(match.group(1))
-            if 1 <= choice <= len(candidates):
-                return candidates[choice - 1]
-    except Exception as e:
-        logger.warning(f"LLM candidate selection failed: {e}")
+        resp = chain.invoke({
+            "citing": marked_text[:6000],
+            "candidates": "\n\n".join(numbered)
+        })
+        content = getattr(resp, "content", "")
+    except Exception as exc:
+        logger.warning(f"LLM choose-best failed: {exc}")
+        return None
 
+    # Parse the choice from LLM response
+    m = re.search(r"choice\s*:\s*(\d+)", content, re.IGNORECASE)
+    if not m:
+        # Fallback: extract first number found in response
+        nums = re.findall(r"\d+", content or "")
+        if not nums:
+            logger.warning(f"Could not parse choice from LLM response: {content}")
+            return None
+        choice = int(nums[0])
+    else:
+        choice = int(m.group(1))
+
+    # Find the selected candidate
+    for idx, cand in payloads:
+        if idx == choice:
+            # Add LLM reasoning to the candidate
+            cand["llm_choice_reason"] = content
+
+            # Log matched text if available (from Dicta results)
+            raw = cand.get("raw", {})
+            if isinstance(raw, dict):
+                base_matched = raw.get("baseMatchedText")
+                comp_matched = raw.get("compMatchedText")
+                if base_matched or comp_matched:
+                    logger.info("Selected candidate matched text:")
+                    if base_matched:
+                        logger.info(f"  baseMatchedText: {base_matched}")
+                    if comp_matched:
+                        logger.info(f"  compMatchedText: {comp_matched}")
+
+            logger.info(f"LLM chose candidate {choice}: {cand.get('resolved_ref')}")
+            return cand
+
+    logger.warning(f"LLM chose index {choice} but no matching candidate found")
     return None
+
+
+def _dedupe_candidates_by_ref(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Deduplicate candidates by resolved_ref, keeping the one with highest score."""
+    seen = {}
+    for cand in candidates:
+        ref = cand.get('resolved_ref')
+        if not ref:
+            continue
+
+        # Keep the candidate with the highest score, or first if no score
+        if ref not in seen:
+            seen[ref] = cand
+        else:
+            old_score = seen[ref].get('score', 0)
+            new_score = cand.get('score', 0)
+            if new_score > old_score:
+                seen[ref] = cand
+
+    return list(seen.values())
+
+
+def _fallback_search_pipeline(
+    marked_citing_text: str,
+    citing_text: str,
+    span: Optional[dict],
+    non_segment_ref: str,
+    citing_ref: Optional[str] = None,
+    lang: Optional[str] = None,
+    vtitle: Optional[str] = None,
+    base_ref: Optional[str] = None,
+    base_text: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Run a multi-stage search pipeline with LLM-generated queries.
+
+    Pipeline stages:
+    A) Normal window queries (text-only)
+    B) Base-text seeded queries (if base_text available)
+    C) Expanded window queries (if no candidates yet)
+    D) Expanded base-seeded queries (if base_text available and no candidates)
+
+    Returns the best candidate after deduplication and LLM selection.
+    """
+    searched: set = set()
+    candidates: List[Dict[str, Any]] = []
+
+    def run_queries(queries: List[str], label: str) -> None:
+        """Run a list of queries and collect candidates."""
+        for q in queries:
+            q = (q or "").strip()
+            if not q or q in searched:
+                continue
+            searched.add(q)
+
+            logger.info(f"Trying {label} query: '{q}'")
+            hit = _query_sefaria_search(q, non_segment_ref)
+
+            if hit:
+                logger.info(f"Sefaria search {label} succeeded: '{q}' -> {hit.get('resolved_ref')}")
+                candidates.append(hit)
+                continue
+
+            # One retry for failed queries
+            logger.info(f"Sefaria search {label} failed: '{q}', retrying once...")
+            retry = _query_sefaria_search(q, non_segment_ref)
+
+            if retry:
+                logger.info(f"Sefaria search {label} retry succeeded: '{q}' -> {retry.get('resolved_ref')}")
+                candidates.append(retry)
+
+    # A) Normal window queries (text-only)
+    logger.info("Stage A: Normal window text-only queries")
+    q1 = _llm_form_search_query(marked_citing_text) or []
+    run_queries(q1, label="(text-only)")
+
+    # B) Base-text seeded queries
+    if base_text:
+        logger.info("Stage B: Base-text seeded queries")
+        q2 = _llm_form_search_query(marked_citing_text, base_ref=base_ref, base_text=base_text) or []
+        run_queries(q2, label="(base-seeded)")
+
+    # C) Expanded window queries (if no candidates yet)
+    if not candidates:
+        logger.info("Stage C: Expanded window queries")
+        expanded_words = max(WINDOW_WORDS * 2, WINDOW_WORDS + 1)
+        expanded_window, expanded_span = _window_around_span(citing_text, span, expanded_words)
+        expanded_marked = _mark_citation(expanded_window, expanded_span)
+
+        q3 = _llm_form_search_query(expanded_marked) or []
+        run_queries(q3, label="(expanded text-only)")
+
+        # D) Expanded base-seeded queries
+        if base_text:
+            logger.info("Stage D: Expanded base-seeded queries")
+            q4 = _llm_form_search_query(expanded_marked, base_ref=base_ref, base_text=base_text) or []
+            run_queries(q4, label="(expanded base-seeded)")
+
+    if not candidates:
+        logger.info("No candidates found in search pipeline")
+        return None
+
+    # Dedupe candidates
+    deduped = _dedupe_candidates_by_ref(candidates)
+    logger.info(f"Found {len(candidates)} candidates, {len(deduped)} after deduplication")
+
+    if len(deduped) == 1:
+        logger.info(f"Single candidate after deduplication: {deduped[0].get('resolved_ref')}")
+        return deduped[0]
+
+    # Use LLM to choose best candidate
+    logger.info(f"Multiple candidates ({len(deduped)}), using LLM to choose best")
+    chosen = _llm_choose_best_candidate(
+        marked_citing_text,
+        deduped,
+        base_ref=base_ref,
+        base_text=base_text,
+        lang=lang,
+    )
+
+    if chosen:
+        logger.info(f"LLM chose {chosen.get('resolved_ref')} from {len(deduped)} candidates")
+    else:
+        logger.warning("LLM failed to choose a candidate")
+
+    return chosen
 
 
 def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -456,7 +675,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
         Dict with resolved reference or None if resolution failed
     """
     try:
-        from sefaria.model.text import Ref
 
         citing_ref = resolution_data['ref']
         citing_text_snippet = resolution_data['text']
@@ -565,7 +783,15 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
             if len(dicta_candidates) == 1:
                 candidate = dicta_candidates[0]
             else:
-                candidate = _llm_choose_best_candidate(marked_text, dicta_candidates)
+                # Get base context for LLM selection
+                base_ref_temp, base_text_temp = _get_commentary_base_context(citing_ref)
+                candidate = _llm_choose_best_candidate(
+                    marked_text,
+                    dicta_candidates,
+                    base_ref=base_ref_temp,
+                    base_text=base_text_temp,
+                    lang=citing_lang,
+                )
 
             if candidate:
                 resolved_ref = candidate['resolved_ref']
@@ -583,29 +809,40 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 else:
                     logger.info(f"Dicta candidate {resolved_ref} rejected by LLM: {reason}")
 
-        # Fallback: Sefaria search with LLM-generated queries
-        logger.info("Falling back to Sefaria search...")
-        search_queries = _llm_form_search_query(marked_text)
+        # Fallback: Sefaria search pipeline with LLM-generated queries
+        logger.info("Falling back to Sefaria search pipeline...")
 
-        for query in search_queries:
-            logger.info(f"Trying search query: {query}")
-            result = _query_sefaria_search(query, non_segment_ref_str)
+        # Get base text context if available
+        base_ref, base_text = _get_commentary_base_context(citing_ref)
 
-            if result:
-                resolved_ref = result['resolved_ref']
-                candidate_text = _get_ref_text(resolved_ref, citing_lang)
+        # Run the search pipeline
+        search_result = _fallback_search_pipeline(
+            marked_citing_text=marked_text,
+            citing_text=citing_text_full,
+            span={'charRange': resolution_data['charRange'], 'text': citing_text_snippet},
+            non_segment_ref=non_segment_ref_str,
+            citing_ref=citing_ref,
+            lang=citing_lang,
+            vtitle=vtitle,
+            base_ref=base_ref,
+            base_text=base_text,
+        )
 
-                # Confirm with LLM
-                ok, reason = _llm_confirm_candidate(marked_text, resolved_ref, candidate_text)
-                if ok:
-                    logger.info(f"Search candidate {resolved_ref} confirmed by LLM")
-                    return {
-                        'resolved_ref': resolved_ref,
-                        'confidence': 0.8,
-                        'method': 'search_llm_confirmed'
-                    }
-                else:
-                    logger.info(f"Search candidate {resolved_ref} rejected by LLM: {reason}")
+        if search_result:
+            resolved_ref = search_result['resolved_ref']
+            candidate_text = _get_ref_text(resolved_ref, citing_lang)
+
+            # Confirm with LLM
+            ok, reason = _llm_confirm_candidate(marked_text, resolved_ref, candidate_text, base_ref, base_text)
+            if ok:
+                logger.info(f"Search candidate {resolved_ref} confirmed by LLM")
+                return {
+                    'resolved_ref': resolved_ref,
+                    'confidence': 0.8,
+                    'method': 'search_llm_confirmed'
+                }
+            else:
+                logger.info(f"Search candidate {resolved_ref} rejected by LLM: {reason}")
 
         logger.info("No resolution found via Dicta or Search")
         return None
@@ -640,7 +877,6 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
         Dict with resolved reference or None if resolution failed
     """
     try:
-        from sefaria.model.text import Ref
 
         citing_ref = resolution_data['ref']
         citing_text_snippet = resolution_data['text']
@@ -694,7 +930,14 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
 
         # Step 1: Try Dicta to find match among candidates
         logger.info("Trying Dicta to find match among ambiguous candidates...")
-        dicta_match = _try_dicta_for_candidates(windowed_text, valid_candidates, citing_lang)
+        dicta_match = _try_dicta_for_candidates(
+            windowed_text,
+            valid_candidates,
+            marked_text=marked_text,
+            lang=citing_lang,
+            base_ref=base_ref,
+            base_text=base_text,
+        )
 
         if dicta_match:
             match_ref = dicta_match.get('resolved_ref', dicta_match['ref'])
@@ -747,7 +990,6 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
 def _get_commentary_base_context(citing_ref: str) -> Tuple[Optional[str], Optional[str]]:
     """Get the base text context if citing ref is a commentary."""
     try:
-        from sefaria.model.text import Ref
         oref = Ref(citing_ref)
 
         # Check if this is a commentary
@@ -771,7 +1013,14 @@ def _get_commentary_base_context(citing_ref: str) -> Tuple[Optional[str], Option
         return None, None
 
 
-def _try_dicta_for_candidates(query_text: str, candidates: List[Dict[str, Any]], lang: str = None) -> Optional[Dict[str, Any]]:
+def _try_dicta_for_candidates(
+    query_text: str,
+    candidates: List[Dict[str, Any]],
+    marked_text: Optional[str] = None,
+    lang: Optional[str] = None,
+    base_ref: Optional[str] = None,
+    base_text: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
     """Query Dicta and check if any results match the candidates."""
     # Get Dicta results
     all_dicta_results = _query_dicta_raw(query_text)
@@ -785,7 +1034,6 @@ def _try_dicta_for_candidates(query_text: str, candidates: List[Dict[str, Any]],
         result_ref = result['resolved_ref']
 
         try:
-            from sefaria.model.text import Ref
             result_oref = Ref(result_ref)
 
             # Check if this result is contained within any candidate
@@ -819,7 +1067,20 @@ def _try_dicta_for_candidates(query_text: str, candidates: List[Dict[str, Any]],
     if len(deduped_matches) == 1:
         return deduped_matches[0]
 
-    # Multiple matches - use LLM to choose (simplified for now - just return first)
+    # Multiple matches - use LLM to choose best
+    if marked_text:
+        logger.info(f"Dicta found {len(deduped_matches)} unique segments, using LLM to choose best")
+        chosen = _llm_choose_best_candidate(
+            marked_text,
+            deduped_matches,
+            base_ref=base_ref,
+            base_text=base_text,
+            lang=lang,
+        )
+        if chosen:
+            return chosen
+
+    # Fallback: return first if no marked_text provided or LLM failed
     logger.info(f"Dicta found {len(deduped_matches)} unique segments, returning first")
     return deduped_matches[0]
 
@@ -865,7 +1126,6 @@ def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
                 continue
 
             try:
-                from sefaria.model.text import Ref
                 oref = Ref(normalized)
                 if oref.is_segment_level():
                     results.append({
@@ -904,7 +1164,6 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
             continue
 
         try:
-            from sefaria.model.text import Ref
             result_oref = Ref(search_ref)
 
             if not result_oref.is_segment_level():
@@ -942,8 +1201,21 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
     if len(deduped_matches) == 1:
         return deduped_matches[0]
 
-    # Multiple matches - use LLM to choose (simplified for now - just return first)
-    logger.info(f"Search found {len(deduped_matches)} unique segments, returning first")
+    # Multiple matches - use LLM to choose best
+    logger.info(f"Search found {len(deduped_matches)} unique segments, using LLM to choose best")
+    chosen = _llm_choose_best_candidate(
+        marked_text,
+        deduped_matches,
+        base_ref=base_ref,
+        base_text=base_text,
+        lang=lang,
+    )
+
+    if chosen:
+        return chosen
+
+    # Fallback: return first if LLM failed
+    logger.warning(f"LLM failed to choose, returning first of {len(deduped_matches)} segments")
     return deduped_matches[0]
 
 
@@ -992,7 +1264,6 @@ def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[
             continue
 
         try:
-            from sefaria.model.text import Ref
             cand_oref = Ref(normalized)
             if cand_oref.is_segment_level():
                 return {
