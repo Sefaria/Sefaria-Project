@@ -141,9 +141,9 @@ class ReindexingResult:
             return ""
         
         lines = [
-            "\n" + "=" * 80,
+            "\n" + SEPARATOR_LINE,
             "DETAILED FAILURE REPORT",
-            "=" * 80,
+            SEPARATOR_LINE,
         ]
         
         if self.failed_text_versions:
@@ -173,7 +173,7 @@ class ReindexingResult:
             if len(self.skipped_text_versions) > 20:
                 lines.append(f"... and {len(self.skipped_text_versions) - 20} more")
         
-        lines.append("=" * 80)
+        lines.append(SEPARATOR_LINE)
         return "\n".join(lines)
 
 
@@ -289,6 +289,30 @@ def run_index_all(result: ReindexingResult) -> bool:
         return False
 
 
+def should_retry_with_backoff(attempt: int, max_retries: int, context: str = "") -> bool:
+    """
+    Sleep with backoff and determine if operation should be retried.
+    
+    Args:
+        attempt: Current attempt number (1-indexed)
+        max_retries: Maximum number of retry attempts
+        context: Optional context string for logging
+        
+    Returns:
+        True if should retry (after sleeping), False if max retries exceeded
+    """
+    if attempt >= max_retries:
+        return False
+    
+    wait_time = attempt * 30  # Linear backoff (30s, 60s, 90s)
+    log_msg = f"Retrying in {wait_time} seconds..."
+    if context:
+        log_msg = f"{context} - {log_msg}"
+    logger.debug(log_msg)
+    time.sleep(wait_time)
+    return True
+
+
 def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retries: int = 3) -> bool:
     """
     Call the sheets-by-timestamp API with retry logic.
@@ -315,10 +339,7 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
                 logger.warning(f"API returned non-200 status - attempt: {attempt}, "
                       f"status_code: {r.status_code}, response_preview: {r.text[:200]}")
                 
-                if attempt < max_retries:
-                    wait_time = attempt * 30  # Linear backoff (30s, 60s, 90s)
-                    logger.debug(f"Retrying in {wait_time} seconds...")
-                    time.sleep(wait_time)
+                if should_retry_with_backoff(attempt, max_retries, f"HTTP {r.status_code}"):
                     continue
                 else:
                     result.record_step_failure("sheets_by_timestamp", error_msg)
@@ -348,16 +369,14 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
             
         except requests.exceptions.Timeout:
             logger.warning(f"API request timed out - attempt: {attempt}")
-            if attempt < max_retries:
-                time.sleep(attempt * 30)
+            if should_retry_with_backoff(attempt, max_retries, "Timeout"):
                 continue
             result.record_step_failure("sheets_by_timestamp", "Request timed out after all retries")
             return False
             
         except requests.exceptions.RequestException as e:
             logger.warning(f"API request failed - attempt: {attempt}, error: {str(e)}")
-            if attempt < max_retries:
-                time.sleep(attempt * 30)
+            if should_retry_with_backoff(attempt, max_retries, "RequestException"):
                 continue
             result.record_step_failure("sheets_by_timestamp", f"Request failed: {str(e)}")
             return False

@@ -913,12 +913,12 @@ def index_sheets_by_timestamp(timestamp):
     failed = []
     total = len(ids)
 
-    for i, id in enumerate(ids):
-        did_succeed = index_sheet(curr_index_name, id)
+    for i, _id in enumerate(ids):
+        did_succeed = index_sheet(curr_index_name, _id)
         if did_succeed:
-            succeeded.append(id)
+            succeeded.append(_id)
         else:
-            failed.append(id)
+            failed.append(_id)
         
     # Only log if there are failures
     if len(failed) > 0:
@@ -983,7 +983,7 @@ def clear_index(index_name):
         else:
             logger.debug(f"Index does not exist, nothing to delete - index_name: {index_name}")
     except NotFoundError:
-        # Index doesn't exist (race condition or double-check), which is fine
+        # Index doesn't exist - handle race condition where index is deleted between exists() check and delete() call
         logger.debug(f"Index not found when attempting to delete - index_name: {index_name}")
     except Exception as e:
         logger.error(f"Error deleting Elasticsearch index - index_name: {index_name} - error: {str(e)}")
