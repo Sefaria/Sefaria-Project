@@ -24,8 +24,8 @@ except ImportError:
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
 SEFARIA_SEARCH_URL = os.getenv("SEFARIA_SEARCH_URL", "https://www.sefaria.org/api/search/text/_search")
-MIN_THRESHOLD = 7.0
-MAX_DISTANCE = 4.0
+MIN_THRESHOLD = 1.0
+MAX_DISTANCE = 8.0
 REQUEST_TIMEOUT = 30
 WINDOW_WORDS = 120
 
@@ -159,9 +159,12 @@ def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
         )
         resp.raise_for_status()
 
-        # Handle BOM
-        text = resp.text.lstrip('\ufeff')
-        data = resp.json() if resp.headers.get('content-type', '').startswith('application/json') else eval(text)
+        # Handle UTF-8 BOM by decoding with utf-8-sig
+        text = resp.content.decode('utf-8-sig')
+
+        # Parse JSON
+        import json
+        data = json.loads(text)
     except Exception as e:
         logger.warning(f"Dicta API request failed: {e}")
         return []
@@ -843,8 +846,12 @@ def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
         )
         resp.raise_for_status()
 
-        text = resp.text.lstrip('\ufeff')
-        data = resp.json() if resp.headers.get('content-type', '').startswith('application/json') else eval(text)
+        # Handle UTF-8 BOM by decoding with utf-8-sig
+        text = resp.content.decode('utf-8-sig')
+
+        # Parse JSON
+        import json
+        data = json.loads(text)
     except Exception as e:
         logger.warning(f"Dicta API request failed: {e}")
         return []
