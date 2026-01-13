@@ -5,34 +5,47 @@ Elasticsearch Reindexing Cronjob
 
 This script performs a full reindex of Elasticsearch indexes for text and sheet content.
 It includes:
-- Print-based logging (instead of Python logging) for Kubernetes stdout/stderr capture
+- Logging configured to output to stdout/stderr for Kubernetes visibility
 - Pre-flight checks for index existence
 - Graceful failure handling (continues on individual failures, reports at end)
 - Retry logic for transient errors
 
-Note: We use print() statements instead of Python's logging module because Kubernetes
-captures stdout/stderr for `kubectl logs`, making print() the most reliable way to
-ensure logs are visible in the Kubernetes environment.
+Note: Logging is configured to output to stdout/stderr so that logs are visible
+in `kubectl logs`. This allows search.py to use proper logging while still being
+visible in Kubernetes.
 """
 
 from datetime import datetime
 import json
+import logging
 import requests
 import traceback
 import sys
 import time
 
+# Configure logging to output to stdout/stderr for Kubernetes visibility
+# This must be done BEFORE django.setup() to ensure all modules use this config
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout,
+    force=True  # Override any existing logging configuration
+)
+
 import django
 django.setup()
 
 from sefaria.model import *
-from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client
+from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client, TextIndexer
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import update_pagesheetrank
 
 # Constants for consistent formatting
 SEPARATOR_LINE = "=" * 60
 SUBSECTION_LINE = "=" * 40
+
+# Set up logger for this module
+logger = logging.getLogger(__name__)
 
 
 class ReindexingResult:
@@ -57,9 +70,9 @@ class ReindexingResult:
             if details:
                 entry["details"] = details
             self.steps_completed.append(entry)
-            print(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
+            logger.info(f"Step completed: {step_name}" + (f" - {details}" if details else ""))
         except Exception as e:
-            print(f"WARNING: Failed to record step success - step: {step_name}, error: {str(e)}")
+            logger.warning(f"Failed to record step success - step: {step_name}, error: {str(e)}")
     
     def record_step_failure(self, step_name: str, message: str):
         """Record a step that failed."""
@@ -70,9 +83,9 @@ class ReindexingResult:
                 "message": message
             }
             self.steps_failed.append(entry)
-            print(f"ERROR: Step failed: {step_name} - {message}")
+            logger.error(f"Step failed: {step_name} - {message}")
         except Exception as e:
-            print(f"WARNING: Failed to record step failure - step: {step_name}, error: {str(e)}")
+            logger.warning(f"Failed to record step failure - step: {step_name}, error: {str(e)}")
     
     def add_warning(self, message: str, details: str = None):
         """Add a warning (non-fatal issue)."""
@@ -81,9 +94,9 @@ class ReindexingResult:
             if details:
                 entry["details"] = details
             self.warnings.append(entry)
-            print(f"WARNING: {message}" + (f" - {details}" if details else ""))
+            logger.warning(f"{message}" + (f" - {details}" if details else ""))
         except Exception as e:
-            print(f"WARNING: Failed to add warning - message_preview: {message[:50]}, error: {str(e)}")
+            logger.warning(f"Failed to add warning - message_preview: {message[:50]}, error: {str(e)}")
     
     def is_success(self) -> bool:
         """Return True if no critical failures occurred."""
@@ -169,28 +182,16 @@ class ReindexingResult:
         return "\n".join(lines)
 
 
-def safe_print(message: str):
-    """Safely print a message, catching any exceptions to prevent logging from breaking the script."""
-    try:
-        print(message)
-    except Exception as e:
-        # Last resort - try to print error without using variables
-        try:
-            print(f"WARNING: Failed to print log message: {str(e)}")
-        except:
-            pass  # If even this fails, give up silently
-
-
 def check_elasticsearch_connection() -> bool:
     """Verify Elasticsearch is reachable."""
     try:
         info = es_client.info()
         cluster_name = info.get('cluster_name')
         version = info.get('version', {}).get('number')
-        safe_print(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
+        logger.info(f"Elasticsearch connection verified - cluster: {cluster_name}, version: {version}")
         return True
     except Exception as e:
-        safe_print(f"ERROR: Failed to connect to Elasticsearch - {str(e)}")
+        logger.error(f"Failed to connect to Elasticsearch - {str(e)}")
         return False
 
 
@@ -198,10 +199,10 @@ def check_index_exists(index_name: str) -> bool:
     """Check if an Elasticsearch index exists."""
     try:
         exists = index_client.exists(index=index_name)
-        safe_print(f"DEBUG: Index existence check - index: {index_name}, exists: {exists}")
+        logger.debug(f"Index existence check - index: {index_name}, exists: {exists}")
         return exists
     except Exception as e:
-        safe_print(f"WARNING: Failed to check index existence - index: {index_name}, error: {str(e)}")
+        logger.warning(f"Failed to check index existence - index: {index_name}, error: {str(e)}")
         return False
 
 
@@ -214,7 +215,7 @@ def get_index_doc_count(index_name: str) -> int:
         doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
         return doc_count
     except Exception as e:
-        safe_print(f"WARNING: Failed to get doc count - index: {index_name}, error: {str(e)}")
+        logger.warning(f"Failed to get doc count - index: {index_name}, error: {str(e)}")
         return -1
 
 
@@ -223,7 +224,7 @@ def log_index_state(index_type: str, result: ReindexingResult):
     try:
         names = get_new_and_current_index_names(index_type, debug=False)
         if not names:
-            safe_print(f"ERROR: Could not get index names for type {index_type}")
+            logger.error(f"Could not get index names for type {index_type}")
             raise ValueError(f"get_new_and_current_index_names returned None for {index_type}")
         
         current_index = names.get('current')
@@ -231,14 +232,14 @@ def log_index_state(index_type: str, result: ReindexingResult):
         alias = names.get('alias')
         
         if not all([current_index, new_index, alias]):
-            safe_print(f"ERROR: Missing required index name fields - current: {current_index}, new: {new_index}, alias: {alias}")
+            logger.error(f"Missing required index name fields - current: {current_index}, new: {new_index}, alias: {alias}")
             raise ValueError(f"Missing required index name fields for {index_type}")
         
         current_count = get_index_doc_count(current_index)
         new_exists = check_index_exists(new_index)
         new_count = get_index_doc_count(new_index) if new_exists else 0
         
-        safe_print(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
+        logger.info(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
               f"current_doc_count: {current_count}, new_index: {new_index}, "
               f"new_index_exists: {new_exists}, new_doc_count: {new_count}")
         
@@ -249,13 +250,13 @@ def log_index_state(index_type: str, result: ReindexingResult):
                 f"Index {new_index} will be deleted and recreated"
             )
     except Exception as e:
-        safe_print(f"ERROR: Failed to get index state for {index_type} - {str(e)}")
+        logger.error(f"Failed to get index state for {index_type} - {str(e)}")
         raise
 
 
 def run_pagesheetrank_update(result: ReindexingResult) -> bool:
     """Run pagesheetrank update with error handling."""
-    print("Starting pagesheetrank update")
+    logger.info("Starting pagesheetrank update")
     try:
         update_pagesheetrank()
         result.record_step_success("pagesheetrank_update", "PageSheetRank values updated successfully")
@@ -267,12 +268,11 @@ def run_pagesheetrank_update(result: ReindexingResult) -> bool:
 
 def run_index_all(result: ReindexingResult) -> bool:
     """Run full index with error handling and failure capture."""
-    print("Starting full index rebuild")
+    logger.info("Starting full index rebuild")
     try:
         index_all()
         
         # Capture failures from TextIndexer class after indexing
-        from sefaria.search import TextIndexer
         result.failed_text_versions = TextIndexer._failed_versions.copy()
         result.skipped_text_versions = TextIndexer._skipped_versions.copy()
         
@@ -281,7 +281,7 @@ def run_index_all(result: ReindexingResult) -> bool:
         text_skipped = len(result.skipped_text_versions)
         
         if text_failures > 0:
-            safe_print(f"WARNING: Text indexing completed with failures - "
+            logger.warning(f"Text indexing completed with failures - "
                   f"failed_count: {text_failures}, skipped_count: {text_skipped}")
             result.record_step_success("index_all", 
                                f"Completed with {text_failures} text failures, {text_skipped} skipped")
@@ -300,13 +300,13 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
     
     This catches sheets created/modified during the reindexing process.
     """
-    safe_print(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
+    logger.info(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
     
     url = "https://www.sefaria.org/admin/index-sheets-by-timestamp"
     
     for attempt in range(1, max_retries + 1):
         try:
-            safe_print(f"DEBUG: API attempt {attempt}/{max_retries} - url: {url}")
+            logger.debug(f"API attempt {attempt}/{max_retries} - url: {url}")
             
             r = requests.post(
                 url,
@@ -317,12 +317,12 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
             # Check for HTTP errors
             if r.status_code != 200:
                 error_msg = f"HTTP {r.status_code}: {r.text[:500]}"
-                safe_print(f"WARNING: API returned non-200 status - attempt: {attempt}, "
+                logger.warning(f"API returned non-200 status - attempt: {attempt}, "
                       f"status_code: {r.status_code}, response_preview: {r.text[:200]}")
                 
                 if attempt < max_retries:
                     wait_time = attempt * 30  # Linear backoff (30s, 60s, 90s)
-                    safe_print(f"Retrying in {wait_time} seconds...")
+                    logger.info(f"Retrying in {wait_time} seconds...")
                     time.sleep(wait_time)
                     continue
                 else:
@@ -345,14 +345,14 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
                                         f"API returned HTML error page instead of JSON: {r.text[:1000]}")
                         return False
                 except Exception as e:
-                    safe_print(f"WARNING: Error parsing response JSON - error: {str(e)}")
+                    logger.warning(f"Error parsing response JSON - error: {str(e)}")
             
             # Success!
             result.record_step_success("sheets_by_timestamp", f"Response: {r.text[:200]}")
             return True
             
         except requests.exceptions.Timeout:
-            safe_print(f"WARNING: API request timed out - attempt: {attempt}")
+            logger.warning(f"API request timed out - attempt: {attempt}")
             if attempt < max_retries:
                 time.sleep(attempt * 30)
                 continue
@@ -360,7 +360,7 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
             return False
             
         except requests.exceptions.RequestException as e:
-            safe_print(f"WARNING: API request failed - attempt: {attempt}, error: {str(e)}")
+            logger.warning(f"API request failed - attempt: {attempt}, error: {str(e)}")
             if attempt < max_retries:
                 time.sleep(attempt * 30)
                 continue
@@ -372,22 +372,22 @@ def main():
     """Main entry point for the reindexing cronjob."""
     result = ReindexingResult()
     
-    print(SEPARATOR_LINE)
-    print("ELASTICSEARCH REINDEXING CRONJOB")
-    safe_print(f"Started at: {result.start_time.isoformat()}")
-    print(SEPARATOR_LINE)
+    logger.info(SEPARATOR_LINE)
+    logger.info("ELASTICSEARCH REINDEXING CRONJOB")
+    logger.info(f"Started at: {result.start_time.isoformat()}")
+    logger.info(SEPARATOR_LINE)
     
     # Store timestamp before we start (sheets created after this will be caught by API)
     last_sheet_timestamp = datetime.now().isoformat()
-    safe_print(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
+    logger.info(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
     
     # Pre-flight checks
-    print("Running pre-flight checks...")
+    logger.info("Running pre-flight checks...")
     
     # 1. Check Elasticsearch connection
     if not check_elasticsearch_connection():
         result.record_step_failure("preflight_elasticsearch", "Cannot connect to Elasticsearch")
-        safe_print(result.get_summary())
+        logger.info(result.get_summary())
         sys.exit(1)
     result.record_step_success("preflight_elasticsearch", "Elasticsearch connection verified")
     
@@ -398,43 +398,43 @@ def main():
         result.record_step_success("preflight_index_check", "Index states logged")
     except Exception as e:
         result.record_step_failure("preflight_index_check", str(e))
-        safe_print(result.get_summary())
+        logger.info(result.get_summary())
         sys.exit(1)
     
     # Step 1: Update PageSheetRank
-    print(SUBSECTION_LINE)
-    print("STEP 1: PageSheetRank Update")
-    print(SUBSECTION_LINE)
+    logger.info(SUBSECTION_LINE)
+    logger.info("STEP 1: PageSheetRank Update")
+    logger.info(SUBSECTION_LINE)
     
     if not run_pagesheetrank_update(result):
         # PageSheetRank failure is not critical - continue with warning
         result.add_warning("PageSheetRank update failed, continuing anyway")
     
     # Step 2: Full index rebuild
-    print(SUBSECTION_LINE)
-    print("STEP 2: Full Index Rebuild")
-    print(SUBSECTION_LINE)
+    logger.info(SUBSECTION_LINE)
+    logger.info("STEP 2: Full Index Rebuild")
+    logger.info(SUBSECTION_LINE)
     
     if not run_index_all(result):
         # This is critical - but we still try the sheets API
         result.add_warning("Full index rebuild failed")
     
     # Step 3: Catch-up sheets by timestamp
-    print(SUBSECTION_LINE)
-    print("STEP 3: Sheets Catch-up by Timestamp")
-    print(SUBSECTION_LINE)
+    logger.info(SUBSECTION_LINE)
+    logger.info("STEP 3: Sheets Catch-up by Timestamp")
+    logger.info(SUBSECTION_LINE)
     
     run_sheets_by_timestamp(last_sheet_timestamp, result)
     
-    # Only print summary and detailed report if there are failures or skips
+    # Only log summary and detailed report if there are failures or skips
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
-        print("\n")
-        safe_print(result.get_summary())
+        logger.info("\n")
+        logger.info(result.get_summary())
         
-        # Print detailed failure report if there are failures
+        # Log detailed failure report if there are failures
         detailed_report = result.detailed_failure_report()
         if detailed_report:
-            safe_print(detailed_report)
+            logger.info(detailed_report)
         
         # Save detailed report to file
         try:
@@ -443,32 +443,32 @@ def main():
                 f.write(result.get_summary())
                 f.write("\n\n")
                 f.write(detailed_report)
-            safe_print(f"Detailed failure report saved to: {report_file}")
+            logger.info(f"Detailed failure report saved to: {report_file}")
         except Exception as e:
-            safe_print(f"WARNING: Could not save failure report to file - error: {str(e)}")
+            logger.warning(f"Could not save failure report to file - error: {str(e)}")
     
     # Only log final index states if there were failures
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
-        print("Final index states:")
+        logger.info("Final index states:")
         try:
             log_index_state('text', result)
             log_index_state('sheet', result)
         except Exception as e:
-            safe_print(f"WARNING: Failed to log final index states - error: {str(e)}")
+            logger.warning(f"Failed to log final index states - error: {str(e)}")
     
     # Exit with appropriate code
     if result.is_success():
-        # Print success message
+        # Log success message
         if result.failed_text_versions or result.skipped_text_versions:
-            print("Reindexing completed with some failures (see summary above).")
+            logger.info("Reindexing completed with some failures (see summary above).")
         else:
-            print(SEPARATOR_LINE)
-            print("Reindexing completed successfully!")
-            safe_print(f"Duration: {result.duration}")
-            print(SEPARATOR_LINE)
+            logger.info(SEPARATOR_LINE)
+            logger.info("Reindexing completed successfully!")
+            logger.info(f"Duration: {result.duration}")
+            logger.info(SEPARATOR_LINE)
         sys.exit(0)
     else:
-        print("ERROR: Reindexing completed with errors. See summary above.")
+        logger.error("Reindexing completed with errors. See summary above.")
         sys.exit(1)
 
 
@@ -476,9 +476,8 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("WARNING: Reindexing interrupted by user")
+        logger.warning("Reindexing interrupted by user")
         sys.exit(130)
     except Exception as e:
-        safe_print(f"ERROR: Unexpected error in reindexing cronjob - error: {str(e)}")
-        safe_print(f"Traceback:\n{traceback.format_exc()}")
+        logger.error(f"Unexpected error in reindexing cronjob - error: {str(e)}", exc_info=True)
         sys.exit(1)
