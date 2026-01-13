@@ -167,14 +167,16 @@ spec:
             port: 80
           # initialDelaySeconds: 120
           periodSeconds: 60
-          timeoutSeconds: 60
+          timeoutSeconds: 120
+          failureThreshold: 20
         readinessProbe:
           httpGet:
             path: /healthz
             port: 80
           # initialDelaySeconds: 120
           periodSeconds: 60
-          timeoutSeconds: 60
+          timeoutSeconds: 120
+          failureThreshold: 20
         volumeMounts:
         # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
         - mountPath: /app/sefaria/local_settings.py
