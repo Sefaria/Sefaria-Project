@@ -1022,6 +1022,14 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
 		for topic in topic_list:
+			# DEBUG: Check if topic has required 'slug' field
+			if 'slug' not in topic:
+				import logging
+				logger = logging.getLogger(__name__)
+				logger.error(f"DEBUG: Topic missing 'slug' field. Topic data: {topic}")
+				print(f"DEBUG: Topic missing 'slug' field. Topic data: {topic}")
+				# Skip this malformed topic
+				continue
 			# Fall back on `asTyped` if no data is in mapping yet. If neither `asTyped` nor mapping data is availble fail safe by reconstructing a title from a slug (HACK currently affecting trending topics if a new topic isn't in cache yet)
 			default_title = topic['asTyped'] if use_as_typed else topic['slug'].replace("-", " ").title()
 			topic_titles = topic_map.get(topic['slug'], {"en": default_title, "he": default_title})
