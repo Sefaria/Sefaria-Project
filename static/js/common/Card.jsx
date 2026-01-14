@@ -3,7 +3,7 @@ import React from "react";
 import Util from "../sefaria/util";
 import Sefaria from "../sefaria/sefaria";
 
-const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl, analyticsEventName, analyticsLinkType, additionalContent=null}) => {
+const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl, analyticsEventName, analyticsLinkType, additionalContent: AdditionalContent=null}) => {
     return <div className="card">
                 <a href={cardTitleHref}
                 className="cardTitle" onClick={oncardTitleClick}
@@ -29,7 +29,7 @@ const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkT
                       </a>
                     </div>
                 }
-                {additionalContent && <additionalContent/>}
+                {AdditionalContent && <AdditionalContent/>}
             </div>
     }
 
