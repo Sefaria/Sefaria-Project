@@ -5644,18 +5644,6 @@ big {
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.hebrew .readerControls .readerTextToc {
-  direction: rtl;
-}
-.english .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-english .bilingual .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-hebrew .bilingual .readerControls .readerTextToc {
-  direction: rtl;
-}
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -5977,7 +5965,6 @@ big {
   direction: ltr;
 }
 .interface-english .readerPanel.rtl .textRange,
-.interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
@@ -6353,18 +6340,18 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel .segment .segmentNumber .he {
   text-align: center;
 }
-.readerPanel.english .segment .segmentNumber {
+.readerPanel.ltr .segment .segmentNumber {
   left: -48px;
 }
-.readerPanel.hebrew .segment .segmentNumber,
+.readerPanel.rtl .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
   right: -46px;
 }
-.readerPanel.hebrew .segment .linkCount,
+.readerPanel.rtl .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
   left: -48px;
 }
-.readerPanel.english .segment .linkCount {
+.readerPanel.ltr .segment .linkCount {
   right: -46px;
   left: auto;
 }
@@ -6378,21 +6365,21 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel.heRight.bilingual .segment .linkCount {
   visibility: hidden;
 }
-.singlePanel .readerPanel.english .segment .segmentNumber {
+.singlePanel .readerPanel.ltr .segment .segmentNumber {
   left: -30px;
 }
-.singlePanel .readerPanel.hebrew .segment .segmentNumber,
+.singlePanel .readerPanel.rtl .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
   right: -30px;
 }
-.singlePanel .readerPanel.english .segment .linkCount {
+.singlePanel .readerPanel.ltr .segment .linkCount {
   right: -30px;
 }
-.singlePanel .readerPanel.hebrew .segment .linkCount,
+.singlePanel .readerPanel.rtl .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
   left: -30px;
 }
-.singlePanel .readerPanel.english .sheetItem.segment .linkCount {
+.singlePanel .readerPanel.ltr .sheetItem.segment .linkCount {
   left: auto;
   right: -30px;
 }
@@ -6430,6 +6417,31 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
   border-bottom-color: var(--dark-grey);
+}
+.mutc {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    padding: 0 3px 0 3px;
+    border-top: none;
+    border-bottom: none;
+}
+.mutc.refLink {
+    border-color: #1e88e5;
+}
+.mutc.namedEntityLink {
+    border-color: #8e24aa;
+}
+.mutc.categoryLink {
+    border-color: #fb8c00;
+}
+.mutc.spanSucceeded {
+    background: #e8f5e9;
+}
+.mutc.spanFailed {
+    background: #ffebee;
+}
+.mutc.spanAmbiguous {
+    background: #fff8e1;
 }
 .textRange .actionLinks {
   text-align: right;
@@ -7577,7 +7589,7 @@ But not to use a display block directive that might break continuous mode for ot
   align-self: flex-start;
 }
 
-.toolsButtonContainer.highlighted .experimentLabel {
+.experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 11px;
@@ -10490,6 +10502,16 @@ body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
   border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guideBox .guideHeader .guideHeaderTags {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 .guideBox .guideHeader i {
@@ -10507,6 +10529,7 @@ body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
   line-height: 29px;
   color: #000000;
 }
+
 .guideBox .guidePromptBox {
   direction: ltr;
   margin-bottom: 20px;
@@ -15696,6 +15719,5 @@ span.ref-link-color-3 {color: blue}
 .interface-hebrew .guideOverlayFooter {
   direction: rtl;
 }
-
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */

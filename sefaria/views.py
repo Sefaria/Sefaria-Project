@@ -5,7 +5,9 @@ import zipfile
 import json
 import re
 import bleach
+import requests
 from datetime import datetime, timedelta
+from typing import Optional, Union, List, Any
 from dataclasses import asdict
 from urllib.parse import urlparse
 from collections import defaultdict
@@ -14,8 +16,8 @@ from celery.result import AsyncResult
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect, resolve_url
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -43,7 +45,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
@@ -233,6 +235,7 @@ def accounts(request):
     })
 
 
+@csrf_exempt
 def generic_subscribe_to_newsletter_api(request, org, email):
     """
     Generic view for subscribing a user to a newsletter
@@ -260,6 +263,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+@csrf_exempt
 def subscribe_sefaria_newsletter_view(request, email):
     return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
 
@@ -902,16 +906,39 @@ def cache_stats(request):
     import resource
     from sefaria.utils.util import get_size
     from sefaria.model.user_profile import public_user_data_cache
+    from sefaria.model import library
+    from reader.templatetags.sefaria_tags import ref_link_cache, he_ref_link_cache
     # from sefaria.sheets import last_updated
+    
+    index_tref_map = model.Ref._RefCacheType__index_tref_map
+    
     resp = {
         'ref_cache_size': f'{model.Ref.cache_size():,}',
-        # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
+        'index_tref_map_size': f'{len(index_tref_map):,}',
         'public_user_data_size': f'{len(public_user_data_cache):,}',
-        'public_user_data_bytes': f'{get_size(public_user_data_cache):,}',
-        # 'sheets_last_updated_size': len(last_updated),
-        # 'sheets_last_updated_bytes': get_size(last_updated),
-        'memory usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}'
+        'ref_link_cache_size': f'{len(ref_link_cache):,}',
+        'he_ref_link_cache_size': f'{len(he_ref_link_cache):,}',
+        'memory_usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}',
+        "library_cache_stats": {
+            name: {
+                'size': f'{len(cache):,}',
+            }
+            for name, cache in model.library.__dict__.items()
+            if isinstance(cache, dict)
+        }
     }
+
+    if request.GET.get("bytes") == "1":
+        resp['ref_cache_bytes'] = model.Ref.cache_size_bytes()
+        resp['index_tref_map_bytes'] = f'{get_size(index_tref_map):,}'
+        resp['he_ref_link_cache_bytes'] = f'{get_size(he_ref_link_cache):,}'
+        resp['ref_link_cache_bytes'] = f'{get_size(ref_link_cache):,}'
+        resp['public_user_data_bytes'] = f'{get_size(public_user_data_cache):,}'
+
+        for name, cache in model.library.__dict__.items():
+            if (resp["library_cache_stats"].get(name)):
+                resp["library_cache_stats"][name]['bytes'] = f'{get_size(cache):,}'
+
     return jsonResponse(resp)
 
 
@@ -921,6 +948,44 @@ def cache_dump(request):
         'ref_cache_dump': model.Ref.cache_dump()
     }
     return jsonResponse(resp)
+
+
+@staff_member_required
+def memory_summary(request):
+    """
+    API endpoint that returns a summary of memory usage by object type.
+    Accepts an optional 'limit' GET parameter to limit the number of object types returned.
+    Returns:
+        JSON response containing a list of object types with their count and size in bytes.
+    Example:
+        {
+            "memory_summary": [
+                {"type": "list", "count": 1500, "size": 240000},
+                {"type": "dict", "count": 800, "size": 160000},
+                ...
+            ]
+        }
+    Example:
+        /memory_summary?limit=10
+    """
+    from pympler import muppy, summary
+
+    limit_param = request.GET.get("limit")
+    try:
+        limit = int(limit_param) if limit_param is not None else None
+    except ValueError:
+        return jsonResponse({"error": "limit must be an integer"}, status=400)
+
+    all_objects = muppy.get_objects()
+    summarized = summary.summarize(all_objects)
+    if limit is not None:
+        summarized = summarized[:limit]
+
+    data = [
+        {"type": type_name, "count": int(count), "size": int(size)}
+        for type_name, count, size in summarized
+    ]
+    return jsonResponse({"memory_summary": data})
 
 
 @staff_member_required
@@ -1317,6 +1382,149 @@ def index_sheets_by_timestamp(request):
         return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
+
+@csrf_exempt
+def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
+    """
+    Cache mediator for Strapi GraphQL queries with date parameters.
+    POST request with start_date, end_date GET params and GraphQL query in body.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with GraphQL data or error message
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+
+    try:
+
+        # Parse request parameters from URL query string
+        # Request parameters are used, because the parameters act as cache configuration for the request
+        start_date_raw: Union[str, List[str], None] = request.GET.get("start_date")
+        end_date_raw: Union[str, List[str], None] = request.GET.get("end_date")
+
+        # Validate that parameters are single strings, not lists or None
+        if not start_date_raw or isinstance(start_date_raw, list):
+            return jsonResponse(
+                {"error": "start_date parameter must be a single value"}, status=400
+            )
+        if not end_date_raw or isinstance(end_date_raw, list):
+            return jsonResponse(
+                {"error": "end_date parameter must be a single value"}, status=400
+            )
+
+        # They are strings!
+        start_date: str = start_date_raw
+        end_date: str = end_date_raw
+
+        # Validate date format (YYYY-MM-DD)
+        try:
+            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+        except ValueError:
+            return jsonResponse(
+                {"error": "Dates must be in YYYY-MM-DD format"}, status=400
+            )
+
+        # Validate that start_date is less than end_date
+        if start_date_obj >= end_date_obj:
+            return jsonResponse(
+                {"error": "start_date must be less than end_date"}, status=400
+            )
+
+        # Get GraphQL query from request body
+        # For simplicity, the GraphQL query is accepted as plain text instead of JSON, so client doesn't need to send a formatted
+        query: str = request.body.decode("utf-8")
+        if not query:
+            return jsonResponse(
+                {"error": "GraphQL query required in request body"}, status=400
+            )
+
+        # Create cache key from the specified dates. The query structure will be static while using the dates in its body
+        cache_key: str = f"strapi_graphql_{start_date}_{end_date}"
+
+        # Try to get from cache first
+        # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
+        cached_result: Optional[str] = get_cache_elem(cache_key, cache_type="default")
+        if cached_result:
+            return HttpResponse(cached_result, content_type="application/json")
+
+        # If not the query is not found in the cache, fetch from Strapi
+
+        if settings.STRAPI_LOCATION is None or settings.STRAPI_PORT is None:
+            return jsonResponse(
+                {"error": "Strapi environment variables are not configured"}, status=500
+            )
+        else:
+            strapi_url = f"{settings.STRAPI_LOCATION}:{settings.STRAPI_PORT}"
+
+        # Make request to Strapi GraphQL endpoint
+        response = requests.post(
+            f"{strapi_url}/graphql",
+            json={"query": query},
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+
+        if response.status_code != 200:
+            return jsonResponse(
+                {"error": f"Strapi request failed with status {response.status_code}"},
+                status=500,
+            )
+
+        result_json = response.text
+
+        # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
+        set_cache_elem(
+            cache_key, result_json, timeout=7 * 24 * 60 * 60, cache_type="default"
+        )
+
+        return HttpResponse(result_json, content_type="application/json")
+
+    except Exception as e:
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
+
+
+@csrf_exempt
+@webhook_auth_or_staff_required
+def strapi_cache_invalidate(request: HttpRequest) -> HttpResponse:
+    """
+    Webhook endpoint to invalidate Strapi GraphQL cache when content changes on Strapi.
+    Strapi will call this endpoint with the correct token
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with success/error message and cache invalidation count
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+
+    try:
+        # Use the utility function to handle cache invalidation
+        result = invalidate_cache_by_pattern("*strapi_graphql*", cache_type="default")
+
+        if result["success"]:
+            if "warning" in result:
+                return jsonResponse({
+                    "success": result["message"],
+                    "warning": result["warning"]
+                })
+            else:
+                return jsonResponse({"success": result["message"]})
+        else:
+            if result["method"] == "critical_error":
+                return jsonResponse({"error": result["message"]}, status=500)
+            else:
+                return jsonResponse({"success": result["message"]})
+
+    except Exception as e:
+        logger.error(f"Error in strapi_cache_invalidate: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")

@@ -17,9 +17,10 @@ $(function() {
         new Sentry.BrowserTracing(),
         new Sentry.Replay(),
       ],
-      tracesSampleRate: 0.0,
-      replaysSessionSampleRate: 0.01, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-      replaysOnErrorSampleRate: 0.01, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
+      tracesSampleRate: remoteConfig?.sentry?.tracesSampleRate || 0.0,
+      sampleRate: remoteConfig?.sentry?.sampleRate || 0.0,
+      replaysSessionSampleRate: remoteConfig?.sentry?.replaysSessionSampleRate || 0.0,
+      replaysOnErrorSampleRate: remoteConfig?.sentry?.replaysOnErrorSampleRate || 0.0,
     });
   }
 

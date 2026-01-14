@@ -41,6 +41,7 @@ class TextRange extends Component {
     if (!Sefaria.areBothVersionsEqual(this.props.currVersions, nextProps.currVersions)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
+    if (this.props.loadLinks !== nextProps.loadLinks)         { return true; }
     // todo: figure out when and if this component receives settings at all
     if (nextProps.settings && this.props.settings &&
         (nextProps.settings.language !== this.props.settings.language ||
@@ -64,6 +65,9 @@ class TextRange extends Component {
     }
     if (!Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
       this.setData();
+    }
+    if (!prevProps.loadLinks && this.props.loadLinks && this.state.data) {
+      this._prefetchLinksAndNotes(this.state.data);
     }
     // Place segment numbers again if update affected layout
     if ((this.props.basetext || this.props.segmentNumber) &&
@@ -274,8 +278,8 @@ class TextRange extends Component {
 
     // [\.\!\?\:\,\u05F4]+                                                                      # Match (and remove) one or more punctuation or gershayim
     //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
-    // |—\s;                                                                                    # OR match (and remove) an mdash followed by a space
-    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s/g;
+    // |[—–]\s;                                                                                 # OR match (and remove) an em/en dash followed by a space
+    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|[—–]\s/g;
 
     const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
@@ -312,11 +316,13 @@ class TextRange extends Component {
           );
         }
       }
-      for (const pattern of [strip_vowels_re, strip_punctuation_re]) {
-        if (pattern) {
-          segment.he = segment.he.replace(pattern, "");
-          segment.en = segment.en?.replace(pattern, "");
-        }
+      // Strip vowels/cantillation from both he/en (when enabled), but keep punctuation stripping Hebrew-only
+      if (strip_vowels_re) {
+        segment.he = segment.he.replace(strip_vowels_re, "");
+        segment.en = segment.en?.replace(strip_vowels_re, "");
+      }
+      if (strip_punctuation_re) {
+        segment.he = segment.he.replace(strip_punctuation_re, "");
       }
 
       return (
@@ -324,8 +330,6 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
-            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en?.versionTitle)[1] : 'en'}
-            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             primaryDirection={data.primaryDirection}
@@ -494,6 +498,18 @@ class TextSegment extends Component {
     return x?.attr('data-ref') && x?.prop('tagName') === 'A';
   }
   handleClick(event) {
+    const mutcTarget = event.target.closest("a.mutc");
+    if (mutcTarget) {
+        const charRange = mutcTarget.getAttribute('data-range');
+        const contentSpan = mutcTarget.closest('.contentSpan');
+        const lang = contentSpan?.classList.contains('he') ? 'he' : 'en';
+        const key = `${this.props.sref}|${lang}|${charRange}`;
+        const spans = Sefaria._linkerOutputMap[key];
+        Sefaria._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
