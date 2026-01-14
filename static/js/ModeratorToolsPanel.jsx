@@ -8,10 +8,8 @@
  * - CSV upload of texts
  * - Workflowy OPML outline upload
  * - Links management (upload/download/remove)
- * - Bulk editing of Version metadata
- *
- * NOTE: The following tool is temporarily disabled (open ticket to reintroduce):
  * - Bulk editing of Index metadata (BulkIndexEditor)
+ * - Bulk editing of Version metadata
  *
  * Documentation:
  * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
@@ -31,13 +29,7 @@ import UploadLinksFromCSV from './modtools/components/UploadLinksFromCSV';
 import DownloadLinks from './modtools/components/DownloadLinks';
 import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
 import BulkVersionEditor from './modtools/components/BulkVersionEditor';
-
-// TODO: The following tool is temporarily disabled. There is an open ticket to reintroduce it:
-// - BulkIndexEditor: Bulk edit index metadata
-// When re-enabling BulkIndexEditor, the index_post function in reader/views.py
-// will need enhanced error handling (dependency checks, categorized error responses).
-// See PR #2984 review comments for context.
-// import BulkIndexEditor from './modtools/components/BulkIndexEditor';
+import BulkIndexEditor from './modtools/components/BulkIndexEditor';
 
 
 /**
@@ -78,15 +70,8 @@ function ModeratorToolsPanel() {
         <RemoveLinksFromCsv />
 
         {/* Bulk Editing Tools */}
-        {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
-        {/* <BulkIndexEditor /> */}
+        <BulkIndexEditor />
         <BulkVersionEditor />
-
-        {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
-        {/* <AutoLinkCommentaryTool /> */}
-
-        {/* Schema Tools - temporarily disabled, open ticket to reintroduce */}
-        {/* <NodeTitleEditor /> */}
       </div>
     </div>
   );
