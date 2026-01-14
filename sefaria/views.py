@@ -1731,9 +1731,6 @@ def check_index_dependencies_api(request, title):
     """
     Check what dependencies exist for a given index title.
     Used by NodeTitleEditor to warn about potential impacts of title changes.
-
-    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
-    This endpoint is not in active use and should be reviewd when used but retained for future re-enablement.
     """
     if request.method != "GET":
         return jsonResponse({"error": "GET required"})

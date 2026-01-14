@@ -9,8 +9,6 @@
  * - Workflowy OPML outline upload
  * - Links management (upload/download/remove)
  * - Bulk editing of Version metadata
- *
- * NOTE: The following tool is temporarily disabled (open ticket to reintroduce):
  * - Editing node titles in Index schemas (NodeTitleEditor)
  *
  * Documentation:
@@ -31,13 +29,7 @@ import UploadLinksFromCSV from './modtools/components/UploadLinksFromCSV';
 import DownloadLinks from './modtools/components/DownloadLinks';
 import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
 import BulkVersionEditor from './modtools/components/BulkVersionEditor';
-
-// TODO: The following tool is temporarily disabled. There is an open ticket to reintroduce it:
-// - NodeTitleEditor: Edit node titles within an Index schema
-// When re-enabling NodeTitleEditor, the index_post function in reader/views.py
-// will need enhanced error handling (dependency checks, categorized error responses).
-// See PR #2984 review comments for context.
-// import NodeTitleEditor from './modtools/components/NodeTitleEditor';
+import NodeTitleEditor from './modtools/components/NodeTitleEditor';
 
 
 /**
@@ -82,11 +74,8 @@ function ModeratorToolsPanel() {
         {/* <BulkIndexEditor /> */}
         <BulkVersionEditor />
 
-        {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
-        {/* <AutoLinkCommentaryTool /> */}
-
-        {/* Schema Tools - temporarily disabled, open ticket to reintroduce */}
-        {/* <NodeTitleEditor /> */}
+        {/* Schema Tools */}
+        <NodeTitleEditor />
       </div>
     </div>
   );
