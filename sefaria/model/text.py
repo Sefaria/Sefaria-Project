@@ -4189,17 +4189,17 @@ class Ref(object, metaclass=RefCacheType):
 
             for r in normals:
                 sections = re.sub(r"^%s" % re.escape(self.book), '', r)
-                patterns.append(r"%s$" % sections)   # exact match
-                patterns.append(r"%s:" % sections)   # more granular, exact match followed by :
-                patterns.append(r"%s \d" % sections) # extra granularity following space
+                patterns.append(r"^%s$" % sections)   # exact match
+                patterns.append(r"^%s:" % sections)   # more granular, exact match followed by :
+                patterns.append(r"^%s \d" % sections) # extra granularity following space
         else:
             sections = re.sub(r"^%s" % re.escape(self.book), '', self.normal())
-            patterns.append(r"%s$" % sections)   # exact match
+            patterns.append(r"^%s$" % sections)   # exact match
             if self.index_node.has_titled_continuation():
-                patterns.append(r"{}({}).".format(sections, "|".join(self.index_node.title_separators)))
+                patterns.append(r"^{}({}).".format(sections, "|".join(self.index_node.title_separators)))
             if self.index_node.has_numeric_continuation():
-                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
-                patterns.append(r"%s \d" % sections) # extra granularity following space
+                patterns.append(r"^%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(r"^%s \d" % sections) # extra granularity following space
 
         escaped_book = re.escape(self.book)
         if anchored:
@@ -4209,9 +4209,9 @@ class Ref(object, metaclass=RefCacheType):
                 return r"^%s(%s)" % (escaped_book, "|".join(patterns))
         else:
             if as_list:
-                return [r"{}{}".format(escaped_book, p) for p in patterns]
+                return [r"^{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return r"%s(%s)" % (escaped_book, "|".join(patterns))
+                return r"^%s(%s)" % (escaped_book, "|".join(patterns))
 
     def ref_regex_query(self):
         """
