@@ -29,34 +29,34 @@
 :root {
   /*
    * COLOR PALETTE
-   * Warm scholarly tones with clear semantic meaning
+   * Using Sefaria design system colors from s2.css
    */
 
   /* Background colors */
-  --mt-bg-page: #F8F7F4;      /* Main page background */
-  --mt-bg-card: #FFFFFF;       /* Card/section background */
-  --mt-bg-subtle: #F3F2EE;     /* Subtle background for groupings */
-  --mt-bg-input: #FAFAF8;      /* Input field background */
-  --mt-bg-hover: #F0EFEB;      /* Hover state background */
+  --mt-bg-page: var(--lightest-grey);    /* Main page background */
+  --mt-bg-card: #FFFFFF;                  /* Card/section background */
+  --mt-bg-subtle: var(--lighter-grey);    /* Subtle background for groupings */
+  --mt-bg-input: var(--lightest-grey);    /* Input field background */
+  --mt-bg-hover: var(--lighter-grey);     /* Hover state background */
 
   /* Brand colors */
-  --mt-primary: #1E3A5F;                    /* Primary actions, headings */
-  --mt-primary-hover: #152942;              /* Primary hover state */
-  --mt-primary-light: rgba(30, 58, 95, 0.08); /* Primary tint for backgrounds */
-  --mt-accent: #0891B2;                     /* Accent/links */
-  --mt-accent-hover: #0E7490;               /* Accent hover */
-  --mt-accent-light: rgba(8, 145, 178, 0.1); /* Accent tint */
+  --mt-primary: var(--sefaria-blue);                    /* Primary actions, headings */
+  --mt-primary-hover: #122B4A;                          /* Primary hover state (darker sefaria-blue) */
+  --mt-primary-light: rgba(24, 52, 93, 0.08);           /* Primary tint for backgrounds */
+  --mt-accent: var(--inline-link-blue);                 /* Accent/links */
+  --mt-accent-hover: #3A5FA6;                           /* Accent hover */
+  --mt-accent-light: rgba(72, 113, 191, 0.1);           /* Accent tint */
 
   /* Text colors */
-  --mt-text: #1A1A1A;           /* Primary text */
-  --mt-text-secondary: #5C5C5C; /* Secondary/supporting text */
-  --mt-text-muted: #8B8B8B;     /* Muted/placeholder text */
-  --mt-text-on-primary: #FFFFFF; /* Text on primary color */
+  --mt-text: var(--darkest-grey);         /* Primary text */
+  --mt-text-secondary: var(--dark-grey);  /* Secondary/supporting text */
+  --mt-text-muted: var(--medium-grey);    /* Muted/placeholder text */
+  --mt-text-on-primary: #FFFFFF;          /* Text on primary color */
 
   /* Border colors */
-  --mt-border: #E5E3DD;         /* Default border */
-  --mt-border-hover: #C5C3BC;   /* Border on hover */
-  --mt-border-focus: var(--mt-primary); /* Border on focus */
+  --mt-border: var(--lighter-grey);       /* Default border */
+  --mt-border-hover: var(--light-grey);   /* Border on hover */
+  --mt-border-focus: var(--mt-primary);   /* Border on focus */
 
   /* Status colors - Success */
   --mt-success: #059669;
@@ -324,7 +324,7 @@
   -moz-appearance: none;
   appearance: none;
   background-color: var(--mt-bg-input);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231E3A5F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2318345D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 14px 14px;
@@ -831,7 +831,7 @@
 }
 
 .modTools .indexListRow.selected {
-  background: rgba(30, 58, 95, 0.08);
+  background: rgba(24, 52, 93, 0.08);
   box-shadow: inset 3px 0 0 var(--mt-primary);
 }
 
@@ -1135,8 +1135,8 @@
 .modTools .changesPreview {
   padding: var(--mt-space-md) var(--mt-space-lg);
   margin-bottom: var(--mt-space-lg);
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(30, 58, 95, 0.06) 100%);
-  border: 1px solid rgba(8, 145, 178, 0.3);
+  background: linear-gradient(135deg, rgba(72, 113, 191, 0.08) 0%, rgba(24, 52, 93, 0.06) 100%);
+  border: 1px solid rgba(72, 113, 191, 0.3);
   border-radius: var(--mt-radius-md);
   font-size: 14px;
 }
