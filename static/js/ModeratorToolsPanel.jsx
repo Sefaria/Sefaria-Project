@@ -9,8 +9,6 @@
  * - Workflowy OPML outline upload
  * - Links management (upload/download/remove)
  * - Bulk editing of Version metadata
- *
- * NOTE: The following tool is temporarily disabled (open ticket to reintroduce):
  * - Auto-linking commentaries to base texts (AutoLinkCommentaryTool)
  *
  * Documentation:
@@ -31,10 +29,7 @@ import UploadLinksFromCSV from './modtools/components/UploadLinksFromCSV';
 import DownloadLinks from './modtools/components/DownloadLinks';
 import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
 import BulkVersionEditor from './modtools/components/BulkVersionEditor';
-
-// TODO: The following tool is temporarily disabled. There is an open ticket to reintroduce it:
-// - AutoLinkCommentaryTool: Auto-link commentaries to base texts
-// import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
+import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
 
 
 /**
@@ -75,15 +70,10 @@ function ModeratorToolsPanel() {
         <RemoveLinksFromCsv />
 
         {/* Bulk Editing Tools */}
-        {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
-        {/* <BulkIndexEditor /> */}
         <BulkVersionEditor />
 
-        {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
-        {/* <AutoLinkCommentaryTool /> */}
-
-        {/* Schema Tools - temporarily disabled, open ticket to reintroduce */}
-        {/* <NodeTitleEditor /> */}
+        {/* Commentary Tools */}
+        <AutoLinkCommentaryTool />
       </div>
     </div>
   );
