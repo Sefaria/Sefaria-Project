@@ -16,7 +16,7 @@ export const TopicLandingCalendar = ({ header, title, description, link, childre
             cardTitle={title}
             cardText={description}
             analyticsEventName = "navto_topic"
-            learnMoreComponent={TopicLandingSeasonal}
+            additionalContent={TopicLandingSeasonal}
           />
         </span>
       {children && <div className="calendar-children">{children}</div>}
