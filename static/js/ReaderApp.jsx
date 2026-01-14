@@ -209,6 +209,7 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -238,6 +239,7 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -1132,6 +1134,179 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (handled) {
       e.preventDefault();
     }
+  }
+  handleBootstrapUrlEvent(event) {
+    if (!event || !event.detail) { return; }
+    const detail = event.detail;
+    const url = (typeof detail === "string") ? detail : detail.url;
+    if (!url) { return; }
+    const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
+    this.bootstrapUrl(url, {replaceHistory: replaceHistory});
+  }
+  bootstrapUrl(href, options) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
+    let url;
+    try {
+      url = new URL(href, window.location.href);
+    } catch {
+      return false;
+    }
+    const hostname = url.hostname || "";
+    if (hostname && hostname !== window.location.hostname && hostname.indexOf("sefaria.org") === -1) {
+      return false;
+    }
+    const path = decodeURI(url.pathname);
+    const params = url.searchParams;
+    const ref = path.slice(1).replace(/%3F/g, '?');
+    if (Sefaria.isRef(ref)) {
+      return this.bootstrapTextUrl(ref, params, options);
+    }
+    return this.openURL(path + url.search, true);
+  }
+  bootstrapTextUrl(ref, params, options) {
+    const opts = options || {};
+    const lang = this._normalizePanelLanguage(params.get("lang"), true);
+    const withParam = params.get("with");
+    const filter = this._parseWithParam(withParam);
+    const hasConnections = withParam !== null;
+    const {connectionsMode, connectionsCategory, webPagesFilter, filter: normalizedFilter} =
+      this._getConnectionsModeFromFilter(filter || []);
+
+    const currVersions = {
+      en: this._parseVersionParam(params.get("ven")),
+      he: this._parseVersionParam(params.get("vhe")),
+    };
+    const versionFilterParam = params.get("vside");
+    const versionFilter = versionFilterParam ? [Sefaria.util.decodeVtitle(versionFilterParam)] : [];
+
+    let settings = lang ? {language: lang} : null;
+    const aliyotParam = params.get("aliyot");
+    if (aliyotParam !== null) {
+      settings = settings || {};
+      settings.aliyotTorah = (parseInt(aliyotParam, 10) === 1) ? "aliyotOn" : "aliyotOff";
+    }
+    settings = this._mergePanelSettings(settings);
+
+    const humanRef = Sefaria.humanRef(ref);
+    const highlightedRefs = hasConnections ? [Sefaria.normRef(ref)] : [];
+    const showHighlight = hasConnections;
+    const basePanelProps = {
+      mode: (!this.props.multiPanel && hasConnections) ? "TextAndConnections" : "Text",
+      refs: [humanRef],
+      currVersions: currVersions,
+      filter: normalizedFilter || [],
+      recentFilters: normalizedFilter || [],
+      connectionsMode: connectionsMode || null,
+      connectionsCategory: connectionsCategory,
+      webPagesFilter: webPagesFilter,
+      versionFilter: versionFilter,
+      highlightedRefs: highlightedRefs,
+      showHighlight: showHighlight,
+      settings: settings,
+      selectedWords: params.get("lookup"),
+      sidebarSearchQuery: params.get("sbsq"),
+      selectedNamedEntity: params.get("namedEntity"),
+      selectedNamedEntityText: params.get("namedEntityText"),
+    };
+    const basePanel = this.makePanelState(basePanelProps);
+    basePanel.currentlyVisibleRef = humanRef;
+
+    const panels = [basePanel];
+    if (hasConnections && this.props.multiPanel) {
+      const connectionsLang = this._getConnectionsPanelLanguage(params.get("lang2"), lang);
+      const connectionsSettings = this._mergePanelSettings({language: connectionsLang});
+      const connectionsPanelProps = {
+        ...basePanelProps,
+        mode: "Connections",
+        settings: connectionsSettings,
+        connectionsMode: connectionsMode || (filter && filter.length ? "TextList" : null),
+      };
+      const connectionsPanel = this.makePanelState(connectionsPanelProps);
+      panels.push(connectionsPanel);
+    }
+
+    if (opts.replaceHistory) {
+      this.replaceHistory = true;
+    }
+    this.setState({panels: panels});
+    if (opts.saveLastPlace !== false) {
+      this.saveLastPlace(basePanel, 1, hasConnections && this.props.multiPanel);
+    }
+    return true;
+  }
+  _normalizePanelLanguage(langParam, allowBilingual) {
+    if (!langParam) { return null; }
+    const normalized = langParam.toLowerCase();
+    if (normalized === "bi" || normalized === "bilingual") {
+      return allowBilingual ? "bilingual" : null;
+    } else if (normalized === "en" || normalized === "english") {
+      return "english";
+    } else if (normalized === "he" || normalized === "hebrew") {
+      return "hebrew";
+    }
+    return null;
+  }
+  _getConnectionsPanelLanguage(lang2Param, baseLang) {
+    const lang2 = this._normalizePanelLanguage(lang2Param, false);
+    if (lang2) { return lang2; }
+    if (baseLang === "english" || baseLang === "hebrew") { return baseLang; }
+    return (Sefaria.interfaceLang === "hebrew") ? "hebrew" : "english";
+  }
+  _parseWithParam(param) {
+    if (param === null || typeof param === "undefined") { return null; }
+    const normalized = param.replace(/_/g, " ");
+    let filter = normalized.split("+").map(x => x.trim()).filter(Boolean);
+    if (filter.length === 1 && filter[0] === "all") {
+      filter = [];
+    }
+    return filter;
+  }
+  _parseVersionParam(param) {
+    if (!param) { return null; }
+    const parts = param.split("|");
+    return {
+      languageFamilyName: parts[0] || null,
+      versionTitle: parts[1] ? Sefaria.util.decodeVtitle(parts[1]) : null,
+    };
+  }
+  _getConnectionsModeFromFilter(filter) {
+    if (!filter || !filter.length) {
+      return {connectionsMode: null, connectionsCategory: null, webPagesFilter: null, filter: filter};
+    }
+    const sidebarModes = [
+      "Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open",
+      "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide",
+    ];
+    const first = filter[0];
+    if (sidebarModes.includes(first)) {
+      return {connectionsMode: first, connectionsCategory: null, webPagesFilter: null, filter: []};
+    }
+    if (first.endsWith(" ConnectionsList")) {
+      const cleaned = filter.map(x => x.replace(" ConnectionsList", ""));
+      return {
+        connectionsMode: "ConnectionsList",
+        connectionsCategory: cleaned.length === 1 ? cleaned[0] : null,
+        webPagesFilter: null,
+        filter: cleaned,
+      };
+    }
+    if (first.startsWith("WebPage:")) {
+      return {
+        connectionsMode: "WebPagesList",
+        connectionsCategory: null,
+        webPagesFilter: first.replace("WebPage:", ""),
+        filter: filter,
+      };
+    }
+    return {connectionsMode: "TextList", connectionsCategory: null, webPagesFilter: null, filter: filter};
+  }
+  _mergePanelSettings(settings) {
+    if (!settings) { return null; }
+    return extend(Sefaria.util.clone(this.getDefaultPanelSettings()), settings);
   }
   openURL(href, replace=true, overrideContentLang=false) {
     if (this.shouldAlertBeforeCloseEditor()) {
