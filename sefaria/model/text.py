@@ -3746,7 +3746,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
 
-        :return: Bool True is there is not text at this ref in any language
+        :return: Bool True is there is no text at this ref in any language
         """
 
         # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
