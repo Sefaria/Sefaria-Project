@@ -1,6 +1,7 @@
 import React from 'react';
 import {InterfaceText} from "../Misc";
 import {Card} from "../common/Card";
+import { TopicLandingSeasonal } from './TopicLandingSeasonal';
 
 
 export const TopicLandingCalendar = ({ header, title, description, link, children }) => {
@@ -15,6 +16,7 @@ export const TopicLandingCalendar = ({ header, title, description, link, childre
             cardTitle={title}
             cardText={description}
             analyticsEventName = "navto_topic"
+            learnMoreComponent={TopicLandingSeasonal}
           />
         </span>
       {children && <div className="calendar-children">{children}</div>}
