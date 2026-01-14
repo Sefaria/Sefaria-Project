@@ -1351,14 +1351,14 @@
   color: var(--mt-primary);
 }
 
-.modTools .collapseToggle svg {
+.modTools .collapseToggle img {
   width: 14px;
   height: 14px;
   transition: transform var(--mt-transition);
 }
 
 /* Collapsed state */
-.modTools .modToolsSection.collapsed .collapseToggle svg {
+.modTools .modToolsSection.collapsed .collapseToggle img {
   transform: rotate(-90deg);
 }
 
