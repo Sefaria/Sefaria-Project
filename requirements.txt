@@ -74,6 +74,7 @@ pytest-django==4.9.*
 redis==5.2.1
 Pympler==1.1
 
+
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
 #opentelemetry-propagator-b3
