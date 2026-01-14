@@ -199,7 +199,6 @@ class TestTopics(object):
         dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
         assert dt1.en_title == ts['1'].get_primary_title('en')
 
-    @pytest.mark.django_db
     def test_pools(self, topic_graph, topic_pool):
         ts = topic_graph['topics']
         t1 = ts['1']
