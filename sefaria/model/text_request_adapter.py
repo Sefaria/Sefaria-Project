@@ -183,7 +183,7 @@ class TextRequestAdapter:
 
         def mutc_wrapper(string, sections):
             try:
-                chunk: MUTCClass = chunks_queue.get()
+                chunk: MUTCClass = chunks_queue.get(block=False)
             except Empty:
                 chunk = None
             if chunk:
