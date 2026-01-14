@@ -1,9 +1,6 @@
 /**
  * NodeTitleEditor - Edit node titles within an Index schema
  *
- * NOTE: This component is currently DISABLED in ModeratorToolsPanel.
- * It is retained for future re-enablement but not rendered in the UI.
- *
  * Allows editing English and Hebrew titles for individual nodes in a text's
  * schema structure. Useful for fixing title errors or adding missing translations.
  *
