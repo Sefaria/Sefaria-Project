@@ -2650,7 +2650,8 @@ const EditorSaveStateIndicator = ({ state }) => {
         "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
         };
 
-    const path = window.location.pathname + window.location.search;
+    // During SSR, window doesn't exist, so use empty string as fallback
+    const path = Sefaria._inBrowser ? (window.location.pathname + window.location.search) : "";
     const stateToMessage = {
         "connectionLost": "Trying to connect…",
         "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,

@@ -58,7 +58,7 @@ from sefaria.utils.domains_and_languages import current_domain_lang, get_redirec
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, FAIL_IF_NODE_SSR_UNAVAILABLE
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -227,6 +227,21 @@ def render_react_component(component, props):
         return html
     except Exception as e:
         # Catch timeouts, however they may come.
+        if FAIL_IF_NODE_SSR_UNAVAILABLE:
+            # Log full error details before raising so they appear in logs for debugging
+            props_dict = json.loads(propsJSON) if isinstance(propsJSON, str) else propsJSON
+            logger.exception(
+                "Node SSR failed (FAIL_IF_NODE_SSR_UNAVAILABLE=True)",
+                component=component,
+                url=url,
+                error_type=type(e).__name__,
+                error_message=str(e),
+                initial_path=props_dict.get("initialPath"),
+                multi_panel=props_dict.get("multiPanel", True),
+                logged_in=props_dict.get("loggedIn", False),
+                interface_lang=props_dict.get("interfaceLang"),
+            )
+            raise e
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             props = json.loads(props) if isinstance(props, str) else props
             logger.warning("Node timeout: {} / {} / {} / {}\n".format(
@@ -1113,6 +1128,7 @@ def _get_user_calendar_params(request):
     return {"diaspora": request.diaspora, "custom": custom}
 
 
+@ensure_csrf_cookie
 def texts_list(request):
     title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
