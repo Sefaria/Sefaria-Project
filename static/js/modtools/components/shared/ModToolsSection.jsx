@@ -28,22 +28,6 @@ import PropTypes from 'prop-types';
 import HelpButton from './HelpButton';
 
 /**
- * Chevron icon component for collapse indicator
- */
-const ChevronIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
-);
-
-/**
  * ModToolsSection component
  *
  * @param {string} title - English section title
@@ -100,7 +84,7 @@ const ModToolsSection = ({
         >
           <div className="sectionHeaderLeft">
             <div className="collapseToggle" aria-hidden="true">
-              <ChevronIcon />
+              <img src="/static/icons/chevron-down.svg" alt="" />
             </div>
             <div className="dlSectionTitle">
               {title && <span className="int-en">{title}</span>}
