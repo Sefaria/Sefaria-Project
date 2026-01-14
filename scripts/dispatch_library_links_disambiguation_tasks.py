@@ -20,8 +20,8 @@ from sefaria.celery_setup.app import app
 
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
-DEBUG_LIMIT = 10  # Number of random examples to fetch in debug mode
-DEBUG_SEED = 42  # Seed for reproducible random sampling
+DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
+DEBUG_SEED = 43  # Seed for reproducible random sampling
 
 
 def is_segment_level_ref(ref_str):

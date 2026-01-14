@@ -386,23 +386,37 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"\n\nBase text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}"
-
-    # Escape curly braces in text content to prevent template variable interpretation
-    escaped_marked_text = _escape_template_braces(marked_text[:2000])
-    escaped_candidate_text = _escape_template_braces(candidate_text[:500])
+        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}\n\n"
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Is the candidate passage the one being cited? Respond YES or NO with brief reason."),
-        ("human",
-         f"Citing text (citation in <citation> tags):\n{escaped_marked_text}{base_block}\n\n"
-         f"Candidate ({candidate_ref}):\n{escaped_candidate_text}\n\n"
-         "Format: YES/NO\nReason: <explanation>")
+        (
+            "system",
+            "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific target segment. "
+            "Be strict in your evaluation."
+        ),
+        (
+            "human",
+            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+            "{citing}\n\n"
+            "{base_block}"
+            "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
+            "Candidate segment text:\n{candidate_text}\n\n"
+            "Determine whether the citing passage is actually referring to this candidate segment.\n"
+            "If base text is provided, consider whether the commentary is discussing that base passage.\n\n"
+            "Answer in exactly two lines (no preamble):\n"
+            "Reason: <brief rationale>\n"
+            "Verdict: YES or NO",
+        ),
     ])
 
     chain = prompt | llm
     try:
-        response = chain.invoke({})
+        response = chain.invoke({
+            "citing": _escape_template_braces(marked_text[:2000]),
+            "base_block": base_block,
+            "candidate_ref": candidate_ref,
+            "candidate_text": _escape_template_braces(candidate_text[:500])
+        })
         content = getattr(response, 'content', '')
         verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
         return verdict == "YES", content
@@ -962,7 +976,7 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
             logger.info(f"Dicta found match: {dicta_match['ref']} → {match_ref}, confirming with LLM...")
 
             candidate_text = _get_ref_text(match_ref, citing_lang)
-            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text, is_ambiguous=True)
+            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text)
 
             if ok:
                 logger.info(f"LLM confirmed Dicta match: {match_ref}")
@@ -984,7 +998,7 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
             logger.info(f"Search found match: {search_match['ref']} → {match_ref}, confirming with LLM...")
 
             candidate_text = _get_ref_text(match_ref, citing_lang)
-            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text, is_ambiguous=True)
+            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text)
 
             if ok:
                 logger.info(f"LLM confirmed search match: {match_ref}")
@@ -1168,12 +1182,25 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
 
     logger.info(f"Generated {len(queries)} search queries: {queries}")
 
+    # Extract unique books from candidates to filter search
+    candidate_books = set()
+    for cand in candidates:
+        try:
+            oref = cand.get('oref')
+            if oref:
+                candidate_books.add(oref.index.title)
+        except Exception:
+            continue
+
+    if candidate_books:
+        logger.info(f"Filtering search to books: {list(candidate_books)}")
+
     matching_candidates = []
     seen_refs = set()
 
     for query in queries:
-        # Query search (without target ref filter)
-        result = _query_sefaria_search_raw(query)
+        # Query search filtered by candidate books
+        result = _query_sefaria_search_with_books(query, list(candidate_books) if candidate_books else None)
         if not result:
             continue
 
@@ -1242,6 +1269,69 @@ def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[
     bool_query = {
         'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
     }
+
+    payload = {
+        'from': 0,
+        'size': 500,
+        'highlight': {
+            'pre_tags': ['<b>'],
+            'post_tags': ['</b>'],
+            'fields': {'naive_lemmatizer': {'fragment_size': 200}}
+        },
+        'query': {
+            'function_score': {
+                'field_value_factor': {'field': 'pagesheetrank', 'missing': 0.04},
+                'query': {'bool': bool_query}
+            }
+        }
+    }
+
+    headers = {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept': 'application/json',
+        'Origin': 'https://www.sefaria.org',
+        'Referer': 'https://www.sefaria.org/texts'
+    }
+
+    try:
+        resp = requests.post(SEFARIA_SEARCH_URL, json=payload, headers=headers, timeout=REQUEST_TIMEOUT)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        logger.warning(f"Sefaria search API request failed: {e}")
+        return None
+
+    hits = (data.get('hits') or {}).get('hits', [])
+
+    for entry in hits:
+        normalized = _extract_ref_from_search_hit(entry)
+        if not normalized:
+            continue
+
+        try:
+            cand_oref = Ref(normalized)
+            if cand_oref.is_segment_level():
+                return {
+                    'resolved_ref': normalized,
+                    'raw': entry
+                }
+        except Exception:
+            continue
+
+    return None
+
+
+def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> Optional[Dict[str, Any]]:
+    """Query Sefaria search with optional filtering by list of books."""
+    bool_query = {
+        'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
+    }
+
+    # Add book filter if provided
+    if books:
+        # Create regex patterns for each book
+        book_regexes = [f".*{re.escape(book)}.*" for book in books]
+        bool_query['filter'] = {'bool': {'should': [{'regexp': {'path': regex}} for regex in book_regexes]}}
 
     payload = {
         'from': 0,
