@@ -425,7 +425,7 @@ class TextColumn extends Component {
         hideTitle={isDictionary}
         basetext={true}
         withContext={true}
-        loadLinks={this.props.loadLinks}
+        loadLinks={true}
         prefetchNextPrev={true}
         prefetchMultiple={isDictionary?20:0}
         showParashahHeaders={true}
@@ -508,8 +508,5 @@ TextColumn.propTypes = {
   navigatePanel:          PropTypes.func,
 };
 
-TextColumn.defaultProps = {
-  loadLinks: true,
-};
 
 export default TextColumn;

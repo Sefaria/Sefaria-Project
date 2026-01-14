@@ -733,7 +733,6 @@ class ReaderPanel extends Component {
     const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
-      const shouldLoadLinks = this.props.hasSidebar || this.state.mode === "TextAndConnections";
       const oref  = Sefaria.parseRef(this.state.refs[0]);
       const showHighlight = this.state.showHighlight || (this.state.highlightedRefs.length > 1);
       const index = oref && oref.index ? Sefaria.index(oref.index) : null;
@@ -750,7 +749,7 @@ class ReaderPanel extends Component {
           bookTitle={textColumnBookTitle}
           heBookTitle={heTextColumnBookTitle}
           withContext={true}
-          loadLinks={shouldLoadLinks}
+          loadLinks={true}
           prefetchNextPrev={true}
           multiPanel={this.props.multiPanel}
           mode={this.state.mode}
@@ -778,7 +777,6 @@ class ReaderPanel extends Component {
       );
     }
     if (this.state.mode === "Sheet") {
-      const shouldLoadLinks = this.props.hasSidebar || this.state.mode === "SheetAndConnections";
       menu = <Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
@@ -792,7 +790,6 @@ class ReaderPanel extends Component {
           openSheet={this.openSheet}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          loadLinks={shouldLoadLinks}
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
           style={style}
