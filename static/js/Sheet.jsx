@@ -34,6 +34,11 @@ class Sheet extends Component {
     gtag("event", "select_content", params)
 
   }
+  componentDidUpdate(prevProps) {
+    if (!prevProps.loadLinks && this.props.loadLinks) {
+      this.preloadConnections();
+    }
+  }
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }
@@ -56,6 +61,7 @@ class Sheet extends Component {
     }
   }
   preloadConnections() {
+    if (!this.props.loadLinks) { return; }
     const data = this.getSheetFromCache();
     if (!data) {return; }
     for (let i = 0; i < data.sources.length; i++) {

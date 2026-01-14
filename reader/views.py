@@ -1740,6 +1740,7 @@ def index_api(request, title, raw=False):
                 apikey = db.apikeys.find_one({"key": key})
                 if apikey:
                     return CONTENT_TYPE, apikey["uid"]
+                
         return None, None
 
     def index_post(request, uid, j, method, raw):
