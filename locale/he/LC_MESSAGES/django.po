@@ -1361,17 +1361,21 @@ msgstr ""
 #~ msgid "Admin Password"
 #~ msgstr "סיסמא"
 
-#~ msgid "First Name"
-#~ msgstr "שם פרטי"
+#: forms.py
+msgid "First Name"
+msgstr "שם פרטי"
 
-#~ msgid "Last Name"
-#~ msgstr "שם משפחה"
+#: forms.py
+msgid "Last Name"
+msgstr "שם משפחה"
 
-#~ msgid "I am an educator"
-#~ msgstr "אני מחנך/ מחנכת"
+#: forms.py
+msgid "I am an educator"
+msgstr "אני מחנך/ מחנכת"
 
-#~ msgid "A user with that email already exists."
-#~ msgstr "משתמש עם כתובת הדוא״ל לעיל כבר קיים"
+#: forms.py
+msgid "A user with that email already exists."
+msgstr "משתמש עם כתובת הדוא״ל לעיל כבר קיים"
 
 #~ msgid "Incorrect mobile_app_key provided"
 #~ msgstr "מפתח איות נייד לא תקין"
