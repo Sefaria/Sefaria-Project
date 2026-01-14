@@ -1,12 +1,10 @@
 import copy
 from collections import defaultdict
 from functools import reduce
-from queue import Empty, Queue
 from typing import List
 import django
 import re
-from sefaria.model.marked_up_text_chunk import get_mutc_set_class, LinkerOutput, MarkedUpTextChunkSet
-
+from sefaria.model.marked_up_text_chunk import get_mutc_class, LinkerOutput
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -168,21 +166,23 @@ class TextRequestAdapter:
     def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
-        MUTCSetClass = get_mutc_set_class(self.debug_mode == "linker")
+        MUTCClass = get_mutc_class(self.debug_mode == "linker")
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
         def get_marked_up_text_chunk_queue():
+            from queue import Queue
             q = Queue()
-            marked_up_chunk_set = MUTCSetClass({"versionTitle": version_title, "language": language, "ref": {"$in": [seg_ref.normal() for seg_ref in self.oref.all_segment_refs()]}}, hint="ref_versionTitle_language")
-            for marked_up_chunk in marked_up_chunk_set:
+            for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+                marked_up_chunk = MUTCClass().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
                 q.put(marked_up_chunk)
             return q
 
         def mutc_wrapper(string, sections):
-            try:
-                chunk = chunks_queue.get(block=False)
-            except Empty:
-                chunk = None
+            chunk: MUTCClass = chunks_queue.get()
             if chunk:
                 string = chunk.apply_spans_to_text(string)
             return string

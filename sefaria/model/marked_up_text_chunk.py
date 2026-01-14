@@ -342,16 +342,6 @@ def get_mutc_class(debug=False) -> type[MarkedUpTextChunk]:
     return LinkerOutput if debug else MarkedUpTextChunk
 
 
-def get_mutc_set_class(debug=False) -> type[MarkedUpTextChunkSet]:
-    """
-    Returns the appropriate MarkedUpTextChunkSet class based on debug flag.
-    If debug is True, returns LinkerOutputSet class; otherwise, returns MarkedUpTextSet
-    :param debug: 
-    :return: 
-    """
-    return LinkerOutputSet if debug else MarkedUpTextChunkSet
-
-
 def process_index_title_change(indx, **kwargs):
     print("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
 
