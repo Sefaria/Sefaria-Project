@@ -387,3 +387,32 @@ class TestRefTopicLink(object):
         with pytest.raises(DuplicateRecordError):
             l2.save()
         l1.delete()
+
+
+class TestMockTopicPools:
+    """Tests to verify mock topic pools are correctly returned"""
+
+    def test_mock_get_pools_returns_correct_values(self):
+        """Verify get_pools returns the correct mock values for each topic slug"""
+        from sefaria.conftest import mock_topics_pool
+
+        for slug, expected_pools in mock_topics_pool.items():
+            topic = Topic()
+            topic.slug = slug
+            assert topic.get_pools() == expected_pools, f"Failed for slug: {slug}"
+
+    def test_mock_get_pools_returns_empty_for_unknown_topic(self):
+        """Verify get_pools returns empty list for topics not in mock"""
+        topic = Topic()
+        topic.slug = 'unknown_topic'
+        assert topic.get_pools() == []
+
+    def test_mock_pools_has_pool(self):
+        """Verify has_pool works correctly for all mock topics"""
+        from sefaria.conftest import mock_topics_pool
+
+        for slug, pools in mock_topics_pool.items():
+            topic = Topic()
+            topic.slug = slug
+            for pool in pools:
+                assert topic.has_pool(pool), f"Expected {slug} to have pool {pool}"
