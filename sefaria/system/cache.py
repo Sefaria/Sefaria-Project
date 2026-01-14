@@ -3,9 +3,12 @@ import hashlib
 import sys
 from datetime import datetime
 from functools import wraps
+from typing import Optional, Any, Union
 
 from django.http import HttpRequest
 from django.core.cache import DEFAULT_CACHE_ALIAS
+from django.core.cache.backends.base import BaseCache
+from django.conf import settings as django_settings
 
 from sefaria import settings
 
@@ -25,7 +28,16 @@ LONG_TERM_CACHE_ALIAS = getattr(settings, 'LONG_TERM_CACHE_ALIAS', DEFAULT_CACHE
 # New cache instance reconnect-apparently
 
 
-def get_cache_factory(cache_type):
+def get_cache_factory(cache_type: Optional[str]) -> BaseCache:
+    """
+    Get a Django cache instance by cache type.
+    
+    Args:
+        cache_type: The cache backend type to retrieve. Defaults to 'default' if None.
+        
+    Returns:
+        BaseCache: The Django cache backend instance.
+    """
     if cache_type is None:
         cache_type = 'default'
     return caches[cache_type]
@@ -102,7 +114,17 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
 #-------------------------------------------------------------#
 
 
-def get_cache_elem(key, cache_type=None):
+def get_cache_elem(key: str, cache_type: Optional[str] = None) -> Any:
+    """
+    Retrieve an element from the cache.
+    
+    Args:
+        key: The cache key to retrieve.
+        cache_type: The cache backend type to use. Defaults to 'default' if None.
+        
+    Returns:
+        Any: The cached value, or None if not found.
+    """
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.get(key)
 
@@ -111,7 +133,19 @@ def get_shared_cache_elem(key):
     return get_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
-def set_cache_elem(key, value, timeout = None, cache_type=None):
+def set_cache_elem(key: str, value: Any, timeout: Optional[int] = None, cache_type: Optional[str] = None) -> bool:
+    """
+    Set an element in the cache.
+    
+    Args:
+        key: The cache key to set.
+        value: The value to cache.
+        timeout: Cache timeout in seconds. None means use default timeout.
+        cache_type: The cache backend type to use. Defaults to 'default' if None.
+        
+    Returns:
+        bool: True if the value was successfully cached, False otherwise.
+    """
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.set(key, value, timeout)
 
@@ -169,3 +203,78 @@ class InMemoryCache():
 
 
 in_memory_cache = InMemoryCache()
+
+
+def invalidate_cache_by_pattern(pattern: str, cache_type: Optional[str] = None) -> dict:
+    """
+    Invalidate cache entries matching a pattern using the most appropriate method for the cache backend.
+
+    Args:
+        pattern: The pattern to match cache keys against (e.g., "*strapi_graphql*")
+        cache_type: The cache backend type to use. Defaults to 'default' if None.
+
+    Returns:
+        dict: Result dictionary with success message and count, or error details
+
+    Examples:
+        # Invalidate all Strapi GraphQL cache entries
+        result = invalidate_cache_by_pattern("*strapi_graphql*")
+
+        # Invalidate specific cache type
+        result = invalidate_cache_by_pattern("*user_data*", cache_type="shared")
+    """
+    try:
+        # Get cache instance
+        cache_instance = get_cache_factory(cache_type)
+
+        # Check cache backend type using settings-based approach
+        cache_backend_config = django_settings.CACHES.get(cache_type or 'default', {})
+        cache_backend = cache_backend_config.get('BACKEND', '')
+
+        # For Redis cache backend using django-redis
+        try:
+            if hasattr(cache_instance, "delete_pattern"):
+                # django-redis provides delete_pattern method for Redis
+                deleted_count = cache_instance.delete_pattern(pattern)
+                logger.info(f"Invalidated {deleted_count} cache entries via Redis pattern deletion: {pattern}")
+                return {
+                    "success": True,
+                    "method": "pattern_deletion",
+                    "backend": cache_backend,
+                    "count": deleted_count,
+                    "message": f"Invalidated {deleted_count} cache entries matching pattern '{pattern}'"
+                }
+
+            else:
+                # Fallback for other cache backends (FileBasedCache, etc.)
+                # Pattern deletion not supported - caller can manually call clear() if needed
+                logger.info(f"Pattern deletion not supported for {cache_backend}")
+                return {
+                    "success": False,
+                    "method": "not_supported",
+                    "backend": cache_backend,
+                    "count": 0,
+                    "message": f"Pattern deletion not supported for {cache_backend}. Use cache.clear() manually if full invalidation is needed."
+                }
+
+        except Exception as cache_error:
+            logger.error(f"Error during cache invalidation: {str(cache_error)}")
+            # Don't fail the webhook request if cache invalidation has issues
+            return {
+                "success": True,
+                "method": "error_handled",
+                "backend": cache_backend,
+                "count": 0,
+                "message": f"Cache invalidation attempted",
+                "warning": str(cache_error)
+            }
+
+    except Exception as e:
+        logger.error(f"Error in invalidate_cache_by_pattern: {str(e)}")
+        return {
+            "success": False,
+            "method": "critical_error",
+            "backend": "unknown",
+            "count": 0,
+            "message": "Internal server error"
+        }

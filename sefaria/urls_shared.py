@@ -3,10 +3,12 @@ from django.contrib import admin
 from sefaria.settings import ADMIN_PATH
 import reader.views as reader_views
 import sourcesheets.views as sheets_views
+import remote_config.views as remote_config_views
 import api.views as api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
+from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -225,9 +227,7 @@ shared_patterns = [
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
     url(r'^api/text-upload$', sefaria_views.text_upload_api),
     url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
-
     url(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
-
     url(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     url(r'^admin/reset/cache$', sefaria_views.reset_cache),
     url(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),
@@ -247,6 +247,8 @@ shared_patterns = [
     url(r'^admin/rebuild/shared-cache', sefaria_views.rebuild_shared_cache),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
     url(r'^admin/cache/stats', sefaria_views.cache_stats),
+    url(r'^admin/memory/summary', sefaria_views.memory_summary),
+    url(r'^admin/heapdump/$', heapdump_view, name="heapdump"),
     url(r'^admin/cache/dump', sefaria_views.cache_dump),
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
@@ -265,8 +267,9 @@ shared_patterns = [
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
     url(fr'^{ADMIN_PATH}/?', include(admin.site.urls)),
-
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
+    url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
+    url(r'^api/async/(?P<task_id>.+)$', sefaria_views.async_task_status_api),
 ]
 
 shared_patterns += site_urlpatterns
