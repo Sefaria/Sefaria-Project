@@ -1,7 +1,6 @@
 import React from 'react';
 import {InterfaceText} from "../Misc";
 import {Card} from "../common/Card";
-import { TopicLandingSeasonal } from './TopicLandingSeasonal';
 
 
 export const TopicLandingCalendar = ({ header, title, description, link, children }) => {
