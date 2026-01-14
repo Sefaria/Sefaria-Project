@@ -13,10 +13,8 @@
  * - RemoveLinksFromCsv: Delete links from CSV
  * - BulkVersionEditor: Edit Version metadata across multiple indices
  *
- * NOTE: The following components are temporarily disabled (open tickets to reintroduce):
+ * NOTE: The following component is temporarily disabled (open ticket to reintroduce):
  * - BulkIndexEditor: Edit Index metadata across multiple indices
- * - AutoLinkCommentaryTool: Create links between commentaries and base texts
- * - NodeTitleEditor: Edit node titles within an Index schema
  *
  * For AI agents:
  * - See /docs/modtools/AI_AGENT_GUIDE.md for detailed documentation
@@ -36,10 +34,8 @@ export { default as DownloadLinks } from './components/DownloadLinks';
 export { default as RemoveLinksFromCsv } from './components/RemoveLinksFromCsv';
 export { default as BulkVersionEditor } from './components/BulkVersionEditor';
 
-// TODO: The following exports are temporarily disabled - open tickets to reintroduce:
+// TODO: The following export is temporarily disabled - open ticket to reintroduce:
 // export { default as BulkIndexEditor } from './components/BulkIndexEditor';
-// export { default as AutoLinkCommentaryTool } from './components/AutoLinkCommentaryTool';
-// export { default as NodeTitleEditor } from './components/NodeTitleEditor';
 
 // Shared components
 export * from './components/shared';

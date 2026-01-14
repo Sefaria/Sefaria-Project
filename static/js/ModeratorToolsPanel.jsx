@@ -10,10 +10,8 @@
  * - Links management (upload/download/remove)
  * - Bulk editing of Version metadata
  *
- * NOTE: The following tools are temporarily disabled (open tickets to reintroduce):
+ * NOTE: The following tool is temporarily disabled (open ticket to reintroduce):
  * - Bulk editing of Index metadata (BulkIndexEditor)
- * - Auto-linking commentaries to base texts (AutoLinkCommentaryTool)
- * - Editing node titles in Index schemas (NodeTitleEditor)
  *
  * Documentation:
  * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
@@ -34,16 +32,12 @@ import DownloadLinks from './modtools/components/DownloadLinks';
 import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
 import BulkVersionEditor from './modtools/components/BulkVersionEditor';
 
-// TODO: The following tools are temporarily disabled. There are open tickets to reintroduce them:
+// TODO: The following tool is temporarily disabled. There is an open ticket to reintroduce it:
 // - BulkIndexEditor: Bulk edit index metadata
-// - AutoLinkCommentaryTool: Auto-link commentaries to base texts
-// - NodeTitleEditor: Edit node titles within an Index schema
-// When re-enabling NodeTitleEditor/BulkIndexEditor, the index_post function in reader/views.py
+// When re-enabling BulkIndexEditor, the index_post function in reader/views.py
 // will need enhanced error handling (dependency checks, categorized error responses).
 // See PR #2984 review comments for context.
 // import BulkIndexEditor from './modtools/components/BulkIndexEditor';
-// import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
-// import NodeTitleEditor from './modtools/components/NodeTitleEditor';
 
 
 /**
