@@ -5,7 +5,7 @@ Script to dispatch library links disambiguation tasks for:
 1. Ambiguous resolutions - group by char range
 2. Non-segment-level resolutions
 
-Set DEBUG_MODE = True at the top of the script to limit to 100 docs for debug.
+Set DEBUG_MODE = True at the top of the script to limit to 10 random docs for debug.
 """
 
 import django
@@ -17,11 +17,11 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
 from sefaria.celery_setup.app import app
-from celery import signature
 
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
-DEBUG_LIMIT = 100
+DEBUG_LIMIT = 10  # Number of random examples to fetch in debug mode
+DEBUG_SEED = 42  # Seed for reproducible random sampling
 
 
 def is_segment_level_ref(ref_str):
@@ -51,7 +51,7 @@ def find_ambiguous_resolutions():
     """
     print("Loading LinkerOutputs with ambiguous resolutions...")
     if DEBUG_MODE:
-        print(f"DEBUG MODE: Limiting to {DEBUG_LIMIT} documents")
+        print(f"DEBUG MODE: Fetching {DEBUG_LIMIT} random examples with seed {DEBUG_SEED}")
 
     # Find all LinkerOutputs that have at least one ambiguous span
     query = {
@@ -64,9 +64,15 @@ def find_ambiguous_resolutions():
     }
 
     # Use db cursor directly for efficiency
-    cursor = db.linker_output.find(query)
     if DEBUG_MODE:
-        cursor = cursor.limit(DEBUG_LIMIT)
+        # Use aggregation pipeline for random sampling with seed
+        pipeline = [
+            {"$match": query},
+            {"$sample": {"size": DEBUG_LIMIT}}
+        ]
+        cursor = db.linker_output.aggregate(pipeline)
+    else:
+        cursor = db.linker_output.find(query)
 
     ambiguous_groups = []
 
@@ -122,7 +128,7 @@ def find_non_segment_level_resolutions():
     """
     print("Loading LinkerOutputs with non-segment-level resolutions...")
     if DEBUG_MODE:
-        print(f"DEBUG MODE: Limiting to {DEBUG_LIMIT} documents")
+        print(f"DEBUG MODE: Fetching {DEBUG_LIMIT} random examples with seed {DEBUG_SEED}")
 
     # Query for LinkerOutputs that have at least one citation span
     # We'll filter for non-segment-level in Python since that requires Ref logic
@@ -138,9 +144,15 @@ def find_non_segment_level_resolutions():
     }
 
     # Use db cursor directly for efficiency
-    cursor = db.linker_output.find(query)
     if DEBUG_MODE:
-        cursor = cursor.limit(DEBUG_LIMIT)
+        # Use aggregation pipeline for random sampling with seed
+        pipeline = [
+            {"$match": query},
+            {"$sample": {"size": DEBUG_LIMIT}}
+        ]
+        cursor = db.linker_output.aggregate(pipeline)
+    else:
+        cursor = db.linker_output.find(query)
 
     non_segment_resolutions = []
 

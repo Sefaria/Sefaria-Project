@@ -34,6 +34,16 @@ def _get_llm():
     return ChatOpenAI(model=model, temperature=0, max_tokens=1024, api_key=api_key)
 
 
+def _escape_template_braces(text: str) -> str:
+    """
+    Escape curly braces in text to prevent them from being interpreted as template variables.
+    This is needed when embedding text content directly into ChatPromptTemplate strings.
+    """
+    if not text:
+        return text
+    return text.replace('{', '{{').replace('}', '}}')
+
+
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
     """Get text for a reference."""
     try:
@@ -338,9 +348,9 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
     chain = prompt | llm
     try:
         response = chain.invoke({
-            "citing": marked_text[:2000],
-            "context": context_redacted[:2000],
-            "base_block": base_block
+            "citing": _escape_template_braces(marked_text[:2000]),
+            "context": _escape_template_braces(context_redacted[:2000]),
+            "base_block": _escape_template_braces(base_block)
         })
         content = getattr(response, 'content', '')
 
@@ -376,13 +386,17 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"\n\nBase text ({base_ref}):\n{base_text[:1000]}"
+        base_block = f"\n\nBase text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}"
+
+    # Escape curly braces in text content to prevent template variable interpretation
+    escaped_marked_text = _escape_template_braces(marked_text[:2000])
+    escaped_candidate_text = _escape_template_braces(candidate_text[:500])
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", "Is the candidate passage the one being cited? Respond YES or NO with brief reason."),
         ("human",
-         f"Citing text (citation in <citation> tags):\n{marked_text[:2000]}{base_block}\n\n"
-         f"Candidate ({candidate_ref}):\n{candidate_text[:500]}\n\n"
+         f"Citing text (citation in <citation> tags):\n{escaped_marked_text}{base_block}\n\n"
+         f"Candidate ({candidate_ref}):\n{escaped_candidate_text}\n\n"
          "Format: YES/NO\nReason: <explanation>")
     ])
 
@@ -451,7 +465,7 @@ def _llm_choose_best_candidate(
     # Build base text block if available
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text of commentary target ({base_ref}):\n{base_text[:2000]}\n\n"
+        base_block = f"Base text of commentary target ({base_ref}):\n{_escape_template_braces(base_text[:2000])}\n\n"
 
     # Create LLM prompt
     llm = _get_llm()
@@ -477,8 +491,8 @@ def _llm_choose_best_candidate(
     chain = prompt | llm
     try:
         resp = chain.invoke({
-            "citing": marked_text[:6000],
-            "candidates": "\n\n".join(numbered)
+            "citing": _escape_template_braces(marked_text[:6000]),
+            "candidates": _escape_template_braces("\n\n".join(numbered))
         })
         content = getattr(resp, "content", "")
     except Exception as exc:
@@ -733,14 +747,18 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
 
             # Ask LLM to pick
             llm = _get_llm()
+            # Escape curly braces in candidate previews
             candidate_list = "\n\n".join([
-                f"{c['index']}) {c['resolved_ref']}\n   {c['preview']}"
+                f"{c['index']}) {c['resolved_ref']}\n   {_escape_template_braces(c['preview'])}"
                 for c in candidates
             ])
 
+            # Escape curly braces in marked_text
+            escaped_marked_text = _escape_template_braces(marked_text)
+
             prompt = ChatPromptTemplate.from_messages([
                 ("system", "Choose the segment being cited."),
-                ("human", f"Citing text:\n{marked_text}\n\nSegments:\n{candidate_list}\n\n"
+                ("human", f"Citing text:\n{escaped_marked_text}\n\nSegments:\n{candidate_list}\n\n"
                          "Format: Reason: <explanation>\nChoice: <number>")
             ])
 
@@ -944,7 +962,7 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
             logger.info(f"Dicta found match: {dicta_match['ref']} → {match_ref}, confirming with LLM...")
 
             candidate_text = _get_ref_text(match_ref, citing_lang)
-            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text)
+            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text, is_ambiguous=True)
 
             if ok:
                 logger.info(f"LLM confirmed Dicta match: {match_ref}")
@@ -966,7 +984,7 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
             logger.info(f"Search found match: {search_match['ref']} → {match_ref}, confirming with LLM...")
 
             candidate_text = _get_ref_text(match_ref, citing_lang)
-            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text)
+            ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text, is_ambiguous=True)
 
             if ok:
                 logger.info(f"LLM confirmed search match: {match_ref}")
