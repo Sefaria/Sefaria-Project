@@ -160,6 +160,8 @@ const Strings = {
     "Make a Sheet": "יצירת דף מקורות",
     "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספריה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
     "A Living Library of Torah": "ספריה יהודית דינמית",
+    'Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.': 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מקורות מדיה מגוונים. השתמשו בכלים המוצעים כדי לכתוב מחשבות ותובנות אודות המקורות שבספרייה, להוסיף קטעי וידאו ואודיו, לצטט מהמקורות שבספרייה.',
+    'Use a computer to mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary. The Voices Editor is not supported on mobile devices.': 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מיני מדיה מגוונים. לא ניתן ליצור או לערוך דפים באמצעות המכשיר הנייד. על מנת לגשת לעורך הדפים של ספריא, יש להיכנס לאתר האינטרנט ״חיבורים״ במחשב.',
 
     // Search
     "Results for": "תוצאות עבור",
