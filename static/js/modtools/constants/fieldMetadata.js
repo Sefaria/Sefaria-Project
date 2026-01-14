@@ -1,5 +1,5 @@
 /**
- * Field metadata definitions for Index and Version editing tools.
+ * Field metadata definitions for Version editing tools.
  *
  * This file centralizes the field configuration for bulk editing operations,
  * making it easier to maintain consistency across the modtools components.
@@ -10,134 +10,10 @@
  * - select: Dropdown with predefined options
  * - array: Comma-separated list that converts to array
  * - number: Numeric input with optional min/max
- * - daterange: Date or date range (year or [start, end] format)
  *
  * For AI agents: When adding new fields, ensure the backend model
  * (sefaria/model/text.py) supports the field as an optional_attr.
  */
-
-/**
- * INDEX_FIELD_METADATA
- *
- * Defines editable fields for Index records (text metadata).
- * These correspond to fields in the Index model (sefaria/model/text.py).
- */
-export const INDEX_FIELD_METADATA = {
-  "enDesc": {
-    label: "English Description",
-    type: "textarea",
-    placeholder: "A description of the text in English"
-  },
-  "enShortDesc": {
-    label: "Short English Description",
-    type: "textarea",
-    placeholder: "Brief description (1-2 sentences)"
-  },
-  "heDesc": {
-    label: "Hebrew Description",
-    type: "textarea",
-    placeholder: "תיאור הטקסט בעברית",
-    dir: "rtl"
-  },
-  "heShortDesc": {
-    label: "Hebrew Short Description",
-    type: "textarea",
-    placeholder: "תיאור קצר (משפט או שניים)",
-    dir: "rtl"
-  },
-  "categories": {
-    label: "Category",
-    type: "array",
-    placeholder: "Select category...",
-    help: "The category path determines where this text appears in the library"
-  },
-  "authors": {
-    label: "Authors",
-    type: "array",
-    placeholder: "Author names (one per line or comma-separated)",
-    help: "Enter author names. Backend expects a list of strings. Use 'auto' to detect from title.",
-    auto: true
-  },
-  "compDate": {
-    label: "Composition Date",
-    type: "daterange",
-    placeholder: "[1040, 1105] or 1105 or -500",
-    help: "Year or range [start, end]. Negative for BCE. Arrays auto-convert to single year if identical."
-  },
-  "compPlace": {
-    label: "Composition Place",
-    type: "text",
-    placeholder: "e.g., 'Troyes, France'"
-  },
-  "heCompPlace": {
-    label: "Hebrew Composition Place",
-    type: "text",
-    placeholder: "למשל: 'טרואה, צרפת'",
-    dir: "rtl"
-  },
-  "pubDate": {
-    label: "Publication Date",
-    type: "daterange",
-    placeholder: "[1475, 1475] or 1475",
-    help: "First publication year or range"
-  },
-  "pubPlace": {
-    label: "Publication Place",
-    type: "text",
-    placeholder: "e.g., 'Venice, Italy'"
-  },
-  "hePubPlace": {
-    label: "Hebrew Publication Place",
-    type: "text",
-    placeholder: "למשל: 'ונציה, איטליה'",
-    dir: "rtl"
-  },
-  "toc_zoom": {
-    label: "TOC Zoom Level",
-    type: "number",
-    placeholder: "0-10",
-    help: "Controls how deep the table of contents displays by default (0=fully expanded). Must be an integer.",
-    validate: (value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      const num = parseInt(value);
-      return !isNaN(num) && num >= 0 && num <= 10;
-    }
-  },
-  "dependence": {
-    label: "Dependence Type",
-    type: "select",
-    placeholder: "Select dependence type",
-    help: "Is this text dependent on another text? (e.g., Commentary on a base text)",
-    options: [
-      { value: "", label: "None" },
-      { value: "Commentary", label: "Commentary" },
-      { value: "Targum", label: "Targum" },
-      { value: "auto", label: "Auto-detect from title" }
-    ],
-    auto: true
-  },
-  "base_text_titles": {
-    label: "Base Text Titles",
-    type: "array",
-    placeholder: "Base text names (one per line or comma-separated)",
-    help: "Enter base text names that this commentary depends on. Use 'auto' to detect from title (e.g., 'Genesis' for 'Rashi on Genesis'). Backend expects a list of strings.",
-    auto: true
-  },
-  "collective_title": {
-    label: "English Collective Title",
-    type: "text",
-    placeholder: "Collective title or 'auto' for auto-detection",
-    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis'). If Hebrew equivalent is provided, term will be created automatically.",
-    auto: true
-  },
-  "he_collective_title": {
-    label: "Hebrew Collective Title (Term)",
-    type: "text",
-    placeholder: "Hebrew equivalent of collective title",
-    help: "Hebrew equivalent of the collective title. If the term doesn't exist, it will be created automatically with both English and Hebrew titles.",
-    dir: "rtl"
-  }
-};
 
 /**
  * VERSION_FIELD_METADATA
@@ -263,16 +139,3 @@ export const VERSION_FIELD_METADATA = {
     ]
   }
 };
-
-/**
- * BASE_TEXT_MAPPING_OPTIONS
- *
- * Options for the base_text_mapping field used in commentary linking.
- * See sefaria/model/link.py for implementation details.
- */
-export const BASE_TEXT_MAPPING_OPTIONS = [
-  { value: "many_to_one_default_only", label: "many_to_one_default_only (Mishnah / Tanakh)" },
-  { value: "many_to_one", label: "many_to_one" },
-  { value: "one_to_one_default_only", label: "one_to_one_default_only" },
-  { value: "one_to_one", label: "one_to_one" }
-];

@@ -324,25 +324,6 @@ class TestVersionBulkEditAPI:
         v.delete()
 
 
-class TestCheckIndexDependenciesAPI:
-    """Tests for /api/check-index-dependencies endpoint."""
-
-    @pytest.mark.django_db
-    def test_check_dependencies_requires_staff(self, regular_client):
-        """Non-staff users should be denied access."""
-        response = regular_client.get('/api/check-index-dependencies/Genesis')
-        assert response.status_code in [302, 403]
-
-    @pytest.mark.django_db
-    def test_check_dependencies_returns_info(self, staff_client):
-        """Should return dependency information for valid index."""
-        response = staff_client.get('/api/check-index-dependencies/Genesis')
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.content}"
-        data = json.loads(response.content)
-        assert 'has_dependencies' in data, "Response missing 'has_dependencies' field"
-        assert 'dependent_indices' in data, "Response missing 'dependent_indices' field"
-
-
 # ============================================================================
 # Legacy Modtools API Tests (Priority 1 - Write Operations)
 # ============================================================================
