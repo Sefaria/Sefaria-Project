@@ -5105,8 +5105,7 @@ h1.topic-landing-header {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .topic-landing-seasonal .seasonal-bottom-section{
-  position: absolute;
-  top: calc(100% - 128px);;
+  margin-top: 10px;
 }
 .singlePanel .topic-landing-seasonal .seasonal-bottom-section{
   position: unset;
