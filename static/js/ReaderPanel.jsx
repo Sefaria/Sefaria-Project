@@ -691,7 +691,7 @@ class ReaderPanel extends Component {
       panel_type: this.getPanelType(),
       panel_number: this.getPanelNumber(),
       content_lang: this.getContentLanguageOverrideStateful(),
-      panel_name: this.getPanelName()
+      panel_name: this.getPanelName(),
     };
   }
   render() {
