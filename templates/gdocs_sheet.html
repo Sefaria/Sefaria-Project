@@ -4,7 +4,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <title>{{ title|striptags|strip_html_entities }}</title>
@@ -2214,7 +2214,7 @@ a {
 			<img src="{% static 'img/fb-og-image.png' %}">
 			<div>
 				Made with the Sefaria Source Sheet Builder<br>
-				www.sefaria.org/sheets
+				sheets.sefaria.org/sheets
 			</div>
 		</div> -->
 	</div>

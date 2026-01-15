@@ -7,7 +7,15 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
-  DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
+  # Automatic domain configuration - single source of truth
+  DOMAIN_MODULES: {{ include "config.domainModules" . | fromYaml | toJson | quote }}
+  # Session cookie settings for cross-subdomain support within this cauldron
+  SESSION_COOKIE_SECURE: "true"
+  SESSION_COOKIE_HTTPONLY: "true"
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_SECURE: "true"
+  CSRF_COOKIE_HTTPONLY: "false"
+  CSRF_COOKIE_SAMESITE: "Lax"
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
   FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
@@ -28,6 +36,8 @@ data:
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}
   SEARCH_SSL_ENABLE: {{ .Values.nginx.SEARCH_SSL_ENABLE | quote }}
+  SEARCH_INDEX_NAME_TEXT: {{ .Values.localSettings.SEARCH_INDEX_NAME_TEXT | quote }}
+  SEARCH_INDEX_NAME_SHEET: {{ .Values.localSettings.SEARCH_INDEX_NAME_SHEET | quote }}
   {{- if .Values.tasks.enabled }}
   REDIS_URL: {{ .Values.tasks.redis.url }}
   REDIS_PORT: {{ .Values.tasks.redis.port | quote }}

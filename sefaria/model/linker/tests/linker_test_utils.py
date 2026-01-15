@@ -1,8 +1,11 @@
 import pytest
 from typing import List
 from functools import reduce
+from copy import deepcopy
+from ne_span import NEDoc, RefPartType
 from sefaria.model.text import Ref, library
-from sefaria.model.linker.ref_part import RefPartType, RawRef, RawRefPart
+from sefaria.model.linker.ref_part import RawRef, RawRefPart
+from sefaria.model.linker.ref_resolver import ResolutionThoroughness, PossiblyAmbigResolvedRef
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
@@ -55,16 +58,13 @@ class EncodedPart:
             if part_type == temp_part_type: return symbol
 
     @staticmethod
-    def convert_to_raw_encoded_part_list(lang, text, span_inds, part_types):
-        nlp = library.get_linker(lang).get_ner().raw_ref_part_model
-        doc = nlp.make_doc(text)
-        span = doc[0:]
+    def convert_to_raw_encoded_part_list(lang, text, span_slices, part_types):
         raw_encoded_part_list = []
 
-        for part_type, span_ind in zip(part_types, span_inds):
-            subspan = span[span_ind]
+        for part_type, span_slice in zip(part_types, span_slices):
+            subtext = text[span_slice]
             symbol = EncodedPart.get_symbol_by_part_type(part_type)
-            raw_encoded_part_list += [f"{symbol}{subspan.text}"]
+            raw_encoded_part_list += [f"{symbol}{subtext}"]
 
         return raw_encoded_part_list
 
@@ -102,23 +102,22 @@ class EncodedPartList:
     @property
     def span(self):
         if not self._span:
-            nlp = library.get_linker(self.lang).get_ner().raw_ref_part_model
-            doc = nlp.make_doc(self.input_str)
-            self._span = doc[0:]
+            doc = NEDoc(self.input_str)
+            self._span = doc.subspan(slice(0, None))
         return self._span
 
     @property
-    def span_indexes(self):
-        span_inds = []
+    def span_slices(self):
+        span_slices = []
         for char_start, char_end in self._get_char_inds():
-            subspan = self.span.char_span(char_start, char_end)
-            span_inds += [slice(subspan.start, subspan.end)]
-        return span_inds
+            subspan = self.span.subspan(slice(char_start, char_end))
+            span_slices += [slice(*subspan.range)]
+        return span_slices
 
     @property
     def raw_ref_parts(self):
         try:
-            part_spans = [self.span[index] for index in self.span_indexes]
+            part_spans = [self.span.subspan(span_slice) for span_slice in self.span_slices]
         except IndexError as e:
             self.print_debug_info()
             raise e
@@ -133,7 +132,7 @@ class EncodedPartList:
 
     def print_debug_info(self):
         print('Input:', self.input_str)
-        print('Span indexes:', self.span_indexes)
+        print('Span indexes:', self.span_slices)
         print('Spans:')
         for i, subspan in enumerate(self.span):
             print(f'{i}) {subspan.text}')
@@ -154,3 +153,50 @@ def print_spans(raw_ref: RawRef):
     print('Spans:')
     for i, part in enumerate(raw_ref.raw_ref_parts):
         print(f'{i}) {part.text}')
+        
+        
+def get_matches_from_resolver_data(resolver_data) -> PossiblyAmbigResolvedRef:
+    raw_ref, context_ref, lang, prev_trefs = resolver_data
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.reset_ibid_history()  # reset from previous test runs
+    if prev_trefs:
+        for prev_tref in prev_trefs:
+            if prev_tref is None:
+                ref_resolver.reset_ibid_history()
+            else:
+                ref_resolver._ibid_history.last_refs = Ref(prev_tref)
+    print_spans(raw_ref)
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+    return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+
+
+
+_MISSING = object()
+
+
+def attach_context_mutations(target_ref: Ref, mutations, *, append: bool = False):
+    if not isinstance(target_ref, Ref):
+        raise TypeError("attach_context_mutations expects a Ref target")
+    node = target_ref.index_node
+    original = getattr(node, "ref_resolver_context_mutations", _MISSING)
+
+    mutations_list = list(mutations)
+    if not mutations_list and (not append or original is _MISSING):
+        return node, original
+
+    if append and original is not _MISSING and original is not None:
+        new_value = deepcopy(original) + deepcopy(mutations_list)
+    else:
+        new_value = deepcopy(mutations_list)
+
+    node.ref_resolver_context_mutations = new_value
+    return node, original
+
+
+def restore_context_mutations(node, original):
+    if original is _MISSING:
+        if hasattr(node, "ref_resolver_context_mutations"):
+            delattr(node, "ref_resolver_context_mutations")
+    else:
+        node.ref_resolver_context_mutations = original

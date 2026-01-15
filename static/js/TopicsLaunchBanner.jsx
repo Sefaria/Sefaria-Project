@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import TopicsLaunchBannerGraphics from "./TopicsLaunchBannerGraphics";
 import TopicsLaunchBannerMobileGraphics from "./TopicsLaunchBannerMobileGraphics";
 import { OnInView } from "./Misc";
+import Sefaria from './sefaria/sefaria';
 
 const TopicsLaunchBanner = ({ onClose }) => {
   const bannerName = "2025-topics_launch";
@@ -140,7 +141,7 @@ const TopicsLaunchBanner = ({ onClose }) => {
           />
         </div>
         <div id="topicsLaunchBannerMessageClose" onClick={() => closeBanner("close_clicked")}>
-          <img src="/static/img/topics-launch-banner-close-button-final.svg" />
+          <img src="/static/img/topics-launch-banner-close-button-final.svg" alt={Sefaria._("Close banner")} />
         </div>
       </div>
     </OnInView>

@@ -119,6 +119,7 @@ def ensure_indices(active_db=None):
         ('parshiot', ["date"],{}),
         ('place', [[("point", pymongo.GEOSPHERE)]],{}),
         ('place', [[("area", pymongo.GEOSPHERE)]],{}),
+        ('place', ["key"],{}),
         ('person', ["key"],{}),
         ('profiles', ["slug"],{}),
         ('profiles', ["id"],{}),
@@ -170,6 +171,7 @@ def ensure_indices(active_db=None):
         ('trend', ["uid"],{}),
         ('webpages', ["refs"],{}),
         ('webpages', ["expandedRefs"],{}),
+        ('websites', ["domains"], {}),
         ('manuscript_pages', ['expanded_refs'], {}),
         ('manuscript_pages', [[("manuscript_slug", pymongo.ASCENDING), ("page_id", pymongo.ASCENDING)]], {'unique': True}),
         ('manuscripts', ['slug'], {}),
@@ -177,6 +179,9 @@ def ensure_indices(active_db=None):
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
         ('vstate', ["title"], {}),
         ('vstate', ["flags.enComplete"], {}),
+        ('guide', ["expanded_refs"], {}),
+        ('topics', ["parasha"], {}),
+
     ]
 
     for col, args, kwargs in indices:

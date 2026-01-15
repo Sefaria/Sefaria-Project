@@ -105,7 +105,7 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
-  const props = JSON.parse(req.body.propsJSON);
+  const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
   req.input_props = {               // For logging
     initialRefs: props.panels ? props.panels[0].refs : null,
     initialMenu: props.initialMenu,
@@ -137,7 +137,7 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
 });
 
 router.post('/Footer/:cachekey', function(req, res) {
-  const props = JSON.parse(req.body.propsJSON);
+  const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
   SefariaReact.unpackDataFromProps(props);
   const html  = ReactDOMServer.renderToString(React.createElement(SefariaReact.Footer));
   res.send(html);

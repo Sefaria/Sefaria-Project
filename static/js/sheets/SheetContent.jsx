@@ -2,6 +2,7 @@ import Component from "react-class";
 import $ from "../sefaria/sefariaJquery";
 import ReactDOM from "react-dom";
 import Sefaria from "../sefaria/sefaria";
+import Util from "../sefaria/util";
 import {AddToSourceSheetModal} from "./SheetModals";
 import { SheetOptions } from "./SheetOptions";
 import {
@@ -144,7 +145,7 @@ class SheetContent extends Component {
         key={source.node}
         source={source}
         sheetSourceClick={() => sheetSourceClick(source)}
-        handleKeyPress={(e) => e.charCode === 13 && sheetSourceClick(e)}
+        handleKeyDown={(e) => Util.handleKeyboardClick(e, () => sheetSourceClick(source))}
         highlighted={highlighted}
         addToSheetButton={addToSheetButton}/>;
     });
@@ -171,8 +172,8 @@ class SheetContent extends Component {
         </div>
 
         <div id="printFooter" style={{display:"none"}}>
-          <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
-          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
+          <span className="int-en">Created with <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
+          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
         </div>
       </div>
     )

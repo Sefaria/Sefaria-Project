@@ -1,9 +1,23 @@
+"""
+DEPRECATED: NationBuilder CRM integration is deprecated.
+This module is no longer used in production. The CrmFactory routes
+NATIONBUILDER CRM_TYPE to DummyConnectionManager instead.
+For new CRM integrations, use SalesforceConnectionManager.
+"""
+import warnings
+warnings.warn(
+    "NationbuilderConnectionManager is deprecated and will be removed in a future release. "
+    "Use SalesforceConnectionManager or DummyConnectionManager instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
 import json
 
-from sefaria import settings as sls
+from django.conf import settings as sls
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 
 base_url = "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com"
@@ -55,23 +69,26 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         if last_name:
             post["person"]["last_name"] = last_name
 
-        r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
-                             data=json.dumps(post),
-                             params={'format': 'json'},
-                             headers={'content-type': 'application/json'})
+        try:
+            r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
+                                 data=json.dumps(post),
+                                 params={'format': 'json'},
+                                 headers={'content-type': 'application/json'})
+        except Exception:
+            return False
 
         try:  # add nationbuilder id to user profile
             nationbuilder_user = r.json()
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
                 nationbuilder_user["id"]
             return nationbuilder_id
-        except:
+        except Exception:
             return False
 
         return True
 
-    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
-        CrmConnectionManager.subscribe_to_lists(self,email, first_name, last_name, lang, educator)
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, educator=False, lang="en", mailing_lists=None):
+        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang, mailing_lists)
         return self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):

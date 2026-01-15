@@ -1,0 +1,22 @@
+name: QA Testing Status Notification
+
+on:
+  workflow_dispatch:
+
+jobs:
+  notify-slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.QA_SLACK_WEBHOOK_URL }}
+        run: |
+          if [ "${{ vars.TESTING }}" == "true" ]; then
+            MESSAGE="Testing is Started - Merges are blocked"
+          else
+            MESSAGE="Testing is Ended - Merges are available"
+          fi
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \"${MESSAGE}\"}" \
+            "$SLACK_WEBHOOK_URL"

@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import Component from 'react-class'
 
 class DictionarySearch extends Component {
@@ -125,13 +126,11 @@ class DictionarySearch extends Component {
       this.submitSearch(query, true);
     }
   }
-  handleSearchKeyUp(event) {
-    if (event.keyCode === 13) {
-      const query = $(event.target).val();
-      if (query) {
-        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
-        this.submitSearch(query, true);
-      }
+  handleSearchEnter(event) {
+    const query = $(event.target).val();
+    if (query) {
+      $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
+      this.submitSearch(query, true);
     }
   }
   displayWord(word) {
@@ -167,7 +166,7 @@ class DictionarySearch extends Component {
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(Sefaria.interfaceLang === 'english'){
-          const opacity = show ? 0.4 : 0;
+          const opacity = show ? 1 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
@@ -176,11 +175,11 @@ class DictionarySearch extends Component {
 
     return (
         <div className = "searchBox dictionarySearchBox ui-front">
-          <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt="image of maginfying glass"/>
+          <img className="dictionarySearchButton" src="/static/icons/magnifier.svg" onClick={this.handleSearchButtonClick} role="button" alt={Sefaria._("image of maginfying glass")}/>
           <input className={inputClasses}
             id="searchInput"
             placeholder={Sefaria._("Search Dictionary")}
-            onKeyUp={this.handleSearchKeyUp}
+            onKeyUp={Util.handleEnterKey(this.handleSearchEnter)}
             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
             maxLength={75}

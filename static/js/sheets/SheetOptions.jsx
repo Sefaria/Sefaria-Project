@@ -8,9 +8,11 @@ import {
 import { SaveButtonWithText } from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 import Button from "../common/Button";
+
 import { SignUpModalKind } from "../sefaria/signupModalContent";
 import { ShareModal, SaveModal, GoogleDocExportModal, CollectionsModal, CopyModal, DeleteModal } from "./SheetModals";
 import PublishModal from "./PublishMenu";
+import { InterfaceText } from "../Misc";
 
 const modifyHistoryObjectForSheetOptions = (historyObject) => {
   // we want the 'ref' property to be for the sheet itself and not its segments, as in "Sheet 3" not "Sheet 3:4"
@@ -22,6 +24,10 @@ const modifyHistoryObjectForSheetOptions = (historyObject) => {
 }
 
 const getExportingStatus = () => {
+  // During SSR, window doesn't exist, so default to false
+  if (!Sefaria._inBrowser) {
+    return false;
+  }
   const urlHashObject = Sefaria.util.parseHash(Sefaria.util.parseUrl(window.location).hash).afterLoading;
   return urlHashObject === "exportToDrive";
 }
@@ -95,11 +101,11 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button className="small publish" onClick={() => setPublishingMode(true)}>Publish</Button>;
+  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
   return (
         <>
         {editable && status === 'unlisted' && publishModalButton}
-          <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt="Options"/>}>
+          <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt={Sefaria._("Options")}/>}>
             <div className="dropdownLinks-options">
               <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
                 <SaveButtonWithText historyObject={historyObjectForSheet}/>

@@ -393,7 +393,7 @@ def calculate_sheetrank():
         return temp_sources_count
 
     sheetrank_dict = defaultdict(int)
-    len_sheets = db.sheets.find().count()
+    len_sheets = db.sheets.count_documents({})
     sheets = get_all_sheets()
     sources_count = 0
     for i, sheet in enumerate(sheets):

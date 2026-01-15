@@ -1,7 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {goToPageWithLang, goToPageWithUser} from '../utils';
-import {LANGUAGES, testAdminUser} from "../globals";
-import * as assert from "node:assert";
+import {LANGUAGES, BROWSER_SETTINGS} from "../globals";
 
 
 test('Go to topic page', async ({ context }) => {
@@ -19,7 +18,7 @@ test('Check source', async ({ context }) => {
 });
 
 test('Check admin tab', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics', testAdminUser);
+  const page = await goToPageWithUser(context, '/topics', BROWSER_SETTINGS.enAdmin);
   await page.getByRole('link', { name: 'Jewish Calendar', exact: true }).click();
   await page.getByRole('link', { name: 'Shabbat' }).first().click();
   await page.getByRole('link', { name: 'Notable Sources' }).first().isVisible();
@@ -47,9 +46,8 @@ test('Check redirection for sourceless topic', async ({ context }) => {
 });
 
 test('Check no redirection when user is admin', async ({ context }) => {
-  const page = await goToPageWithUser(context, '/topics/Monkey', testAdminUser);
+  const page = await goToPageWithUser(context, '/topics/Monkey', BROWSER_SETTINGS.enAdmin);
   await page.waitForSelector('span:has-text("Admin")')
-
 });
 
 test('Footer is sticky on topic page', async ({ context }) => {
@@ -65,18 +63,13 @@ test('Footer is sticky on topic page', async ({ context }) => {
 
 test('Filter topics', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/all/a');
-  // wait for getByText('Loading...') to disappear
   await page.waitForSelector('text=Loading...', { state: 'detached' });
   await page.getByPlaceholder('Search Topics').fill('Rosh Hashanah');
   await page.locator('div').filter({ hasText: /^Rosh HashanahRosh Hashanah and Yom Kippur Prayers$/ }).getByRole('link', { name: 'Rosh Hashanah', exact: true }).isVisible();
   await page.getByPlaceholder('Search Topics').fill('Shabbat');
   await page.locator('div').filter({ hasText: /^Rosh HashanahRosh Hashanah and Yom Kippur Prayers$/ }).getByRole('link', { name: 'Rosh Hashanah', exact: true }).isHidden();
   await page.getByRole('link', { name: 'Shabbat', exact: true }).first().click();
-  // wait for getByText('Loading...') to disappear
   await page.waitForSelector('text=Loading...', { state: 'detached' });
   await page.getByRole('link', { name: 'Kiddush', exact: true }).isVisible();
 });
  
-test('Toggle sources and sheets', async ({ context }) => {
-  // fill in test
-})

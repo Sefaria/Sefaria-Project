@@ -54,9 +54,9 @@ const SourcesSheetsDiv = (props) => {
 const SearchTopic = (props) => {
     const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
     const topicTitle = <div className="topicTitle">
-                          <h1>
+                          <h2>
                           <a href={props.topic.url} onClick={() => Sefaria.track.event("Search", "topic in search click", props.topic.analyticCat+"|"+props.topic.title)}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
-                          </h1>
+                          </h2>
                         </div>;
     const topicCategory = <div className="topicCategory sectionTitleText">
                             <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
@@ -206,7 +206,11 @@ SearchSortBox.propTypes = {
 
 
 const SearchFilterButton = ({openMobileFilters, nFilters}) => (
-  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} onClick={openMobileFilters}>
+  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} 
+       onClick={openMobileFilters} 
+       role="button" 
+       tabIndex="0" 
+       aria-label={`Open filters${nFilters ? ` (${nFilters} active)` : ''}`}>
     <InterfaceText>Filter</InterfaceText>
     {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>

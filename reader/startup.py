@@ -33,6 +33,7 @@ def init_library_cache():
     if settings.ENABLE_LINKER:
         logger.info("Initializing Linker")
         library.build_linker('he')
+        library.build_linker('en')
 
     if server_coordinator:
         server_coordinator.connect()

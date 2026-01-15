@@ -1,5 +1,5 @@
 from sefaria.model import *
-from sefaria.model.text_reuqest_adapter import TextRequestAdapter
+from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
 from django.views import View
@@ -45,15 +45,19 @@ class Text(View):
     def get(self, request, *args, **kwargs):
         if self.oref.is_empty() and not self.oref.index_node.is_virtual:
             return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=404)
+
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['primary']
+
         versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
         fill_in_missing_segments = bool(int(request.GET.get('fill_in_missing_segments', False)))
         return_format = request.GET.get('return_format', 'default')
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
-        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
+
+        debug_mode = request.GET.get('debug_mode', None)
+        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format, debug_mode)
 
         try:
             data = text_manager.get_versions_for_query()

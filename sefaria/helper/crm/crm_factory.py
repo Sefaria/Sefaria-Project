@@ -1,5 +1,4 @@
-from sefaria import settings as sls
-from sefaria.helper.crm.nationbuilder import NationbuilderConnectionManager
+from django.conf import settings as sls
 from sefaria.helper.crm.salesforce import SalesforceConnectionManager
 from sefaria.helper.crm.dummy_crm import DummyConnectionManager
 
@@ -10,7 +9,8 @@ class CrmFactory(object):
 
     def get_connection_manager(self):
         if self.crm_type == "NATIONBUILDER":
-            return NationbuilderConnectionManager()
+            # NationBuilder is deprecated, use DummyConnectionManager instead
+            return DummyConnectionManager()
         elif self.crm_type == "SALESFORCE":
             return SalesforceConnectionManager()
         elif self.crm_type == "NONE" or not self.crm_type:

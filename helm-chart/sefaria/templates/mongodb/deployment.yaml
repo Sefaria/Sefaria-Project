@@ -1,0 +1,22 @@
+{{- if .Values.mongo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.deployEnv }}-mongo
+  name: {{ .Values.deployEnv }}-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.deployEnv }}-mongo
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.deployEnv }}-mongo
+    spec:
+      containers:
+      - image: {{ .Values.mongo.image.registry }}/{{ .Values.mongo.image.image }}:{{.Values.mongo.image.tag }}
+        name: mongo
+{{- end }}

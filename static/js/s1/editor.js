@@ -635,7 +635,7 @@ $(function() {
 
 	$("#newTextOK").click(function(){
         var ref = $("#newTextName").val();
-		Sefaria.getName(ref, undefined, 'ref')
+		Sefaria.getName(ref, undefined, ['ref'])
 			   .then(function(q) {
 					if(!q.is_ref) {
 						// This is an unknown text

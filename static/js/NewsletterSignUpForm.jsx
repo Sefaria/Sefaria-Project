@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 
 export function NewsletterSignUpForm({
                                          contextName,
@@ -14,12 +15,6 @@ export function NewsletterSignUpForm({
     const [educatorCheck, setEducatorCheck] = useState(false);
     const [subscribeMessage, setSubscribeMessage] = useState(null);
     const [showNameInputs, setShowNameInputs] = useState(false);
-
-    function handleSubscribeKeyUp(e) {
-        if (e.keyCode === 13) {
-            handleSubscribe();
-        }
-    }
 
     function handleSubscribe() {
         if (showNameInputs === true) { // submit
@@ -49,56 +44,68 @@ export function NewsletterSignUpForm({
         <input
             className="newsletterInput"
             placeholder={emailPlaceholder.en}
+            aria-label={Sefaria._("Email address")}
+            type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
             <span className="int-he">
         <input
             className="newsletterInput"
             placeholder={emailPlaceholder.he}
+            aria-label="כתובת אימייל"
+            type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
-            {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/> : null}
+            {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
                 <><span className="int-en">
         <input
             className="newsletterInput firstNameInput"
             placeholder="First Name"
+            aria-label={Sefaria._("First Name")}
+            type="text"
             value={firstName}
             autoFocus
             onChange={e => setFirstName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     <span className="int-he">
         <input
             className="newsletterInput firstNameInput"
             placeholder="שם פרטי"
+            aria-label="שם פרטי"
+            type="text"
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     <span className="int-en">
         <input
             className="newsletterInput"
             placeholder="Last Name"
+            aria-label={Sefaria._("Last Name")}
+            type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     <span className="int-he">
         <input
             className="newsletterInput"
             placeholder="שם משפחה"
+            aria-label="שם משפחה"
+            type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
+            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck}/> : null}
-                    <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
+                    <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>
                 </>
                 : null}
             {subscribeMessage ?
@@ -116,17 +123,19 @@ const EducatorCheckbox = ({educatorCheck, setEducatorCheck}) => {
             <input
                 type="checkbox"
                 className="educatorNewsletterInput"
+                id="educator-check-en"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> I am an educator</span>
+            <label htmlFor="educator-check-en"> I am an educator</label>
           </span>
             <span className="int-he">
             <input
                 type="checkbox"
                 className="educatorNewsletterInput"
+                id="educator-check-he"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> מורים/ אנשי הוראה</span>
+            <label htmlFor="educator-check-he"> מורים/ אנשי הוראה</label>
           </span>
         </div>
     );

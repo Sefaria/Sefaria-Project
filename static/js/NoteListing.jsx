@@ -38,7 +38,7 @@ class NoteListing extends Component {
 
     return (<div className="noteListing">
               <div className="actionButtons">
-                <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} />
+                <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} alt={Sefaria._("Delete note")} />
               </div>
               <a className="noteRefTitle" href={url}>
                 <span>{data.ref}</span>

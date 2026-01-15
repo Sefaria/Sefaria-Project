@@ -216,7 +216,23 @@ class AbstractMongoRecord(object):
 
     def _set_derived_attributes(self):
         pass
-
+    
+    def __set_allow_unknown_false(self, schema=None) -> None:
+        """
+        Recurse on the cerberus schema, setting every field that is type "dict" to not allow unknown fields
+        This is to counter the fact that we do allow unknown fields in the root (since the cerberus schema doesn't need to include all root fields)
+        :param schema: 
+        :return: 
+        """
+        is_root = schema is None
+        schema = schema or self.attr_schemas
+        if not is_root and schema['type'] == 'dict':
+            schema['allow_unknown'] = schema.get('allow_unknown', False)
+        for key in schema:
+            if isinstance(schema[key], dict):
+                if 'schema' in schema[key]:
+                    self.__set_allow_unknown_false(schema[key]['schema'])
+ 
     def _validate(self):
         """
         Test self for validity
@@ -244,10 +260,8 @@ class AbstractMongoRecord(object):
                              " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
                 return False
         """
-        schema = self.attr_schemas
-        for key in schema:
-            schema[key]['allow_unknown'] = schema[key].get('allow_unknown', False)  # allow unknowns only in the root
-        v = Validator(schema, allow_unknown=True)
+        self.__set_allow_unknown_false()
+        v = Validator(self.attr_schemas, allow_unknown=True)
         if not v.validate(self._saveable_attrs()):
             raise InputError(v.errors)
         return True

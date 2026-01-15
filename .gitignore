@@ -59,6 +59,12 @@ node_modules
 /.vscode
 *.code-workspace
 
+# AI Tools #
+##########
+.cursor/
+.claude/
+CLAUDE.md
+
 # pystest cache #
 #####################
 /.pytest_cache
@@ -128,14 +134,24 @@ static/sheetrank.json
 
 /random_files
 
+# Testings #
+e2e-tests/playwright_auth_*.json
+e2e-tests/auth_*.json
+e2e-tests/e2e-test-logs/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/playwright-profile/
+
+# Storybook #
+*storybook.log
+*storybook-static/
+
 # Miscellaneous #
 #################
 
+.env
 env/*
 dump/*
-/test-results/
-/playwright-report/
-/playwright/.cache/
-/test-results/
-/playwright-report/
-/playwright/.cache/
+.env
+static_collected/*

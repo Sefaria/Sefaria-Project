@@ -19,6 +19,7 @@ import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import { NavSidebar, SidebarModules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock/VersionBlock';
@@ -169,11 +170,19 @@ class BookPage extends Component {
 
     const readButton = !this.state.indexDetails || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
-        <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
+        <a 
+          className="button small readButton" 
+          href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
+        >
           <InterfaceText>Continue Reading</InterfaceText>
         </a>
         :
-        <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
+        <a 
+          className="button small readButton" 
+          href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
+        >
           <InterfaceText>Start Reading</InterfaceText>
         </a>
 

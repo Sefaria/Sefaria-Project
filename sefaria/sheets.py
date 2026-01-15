@@ -211,7 +211,7 @@ def sheet_to_dict(sheet):
 	profile = public_user_data(sheet["owner"])
 	sheet_dict = {
 		"id": sheet["id"],
-		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled",
 		"summary": sheet.get("summary", None),
 		"status": sheet["status"],
 		"author": sheet["owner"],
@@ -354,8 +354,7 @@ def order_tags_for_user(tag_counts, uid):
 
 	return tag_counts
 
-@django_cache(timeout=6 * 60 * 60)
-def trending_topics(days=7, ntags=14):
+def trending_topics(days=30, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
 	"""
@@ -373,12 +372,13 @@ def trending_topics(days=7, ntags=14):
 			{"$group": {"_id": "$topics.slug", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
 			{"$project": {"_id": 0, "slug": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
 
-	topics_list = list(topics)
 	results = add_langs_to_topics([{
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],
 		"author_count": len(topic['authors']),
-	} for topic in filter(lambda x: len(x["authors"]) > 1, topics_list)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	for i, topic in enumerate(results):
+		results[i]['primaryTitle'] = {'en': topic.pop('en'), 'he': topic.pop('he')}   
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
@@ -452,6 +452,7 @@ def rebuild_sheet_nodes(sheet):
 
 
 def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
+	from pathlib import Path
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -534,7 +535,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				nextNode += 1
 			if "media" in source and source["media"].startswith(GoogleStorageManager.BASE_URL):
 				old_file = (re.findall(r"/([^/]+)$", source["media"])[0])
-				to_file = f"{user_id}-{uuid.uuid1()}.{source['media'][-3:].lower()}"
+				source_path = source['media']
+				path_suffix = Path(source_path).suffix.strip(".")
+				to_file = f"{user_id}-{uuid.uuid1()}.{path_suffix}"
 				bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
 				duped_image_url = GoogleStorageManager.duplicate_file(old_file, to_file, bucket_name)
 				source["media"] = duped_image_url
@@ -653,7 +656,7 @@ def test():
 	for s in ss:
 		lang = get_sheet_language(s)
 		if lang == "some hebrew":
-			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+			print("{}\thttps://sheets.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
 
 
 
@@ -878,7 +881,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"assignerName":	   sheet.get("assignerName", None),
 				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
 				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
-				"ownerProfileUrl": "/sheets/profile/" + ownerData["slug"],
+				"ownerProfileUrl": "/profile/" + ownerData["slug"],
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
@@ -1036,6 +1039,22 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
 		for topic in topic_list:
+			# TEMPORARY FIX (2026-01-13): Check if topic has required 'slug' field
+			# WARNING: This is a workaround to prevent KeyError crashes when topics are saved without slugs.
+			# Root cause: Frontend allows users to create custom topics via ReactTags (allowNew=true) which
+			# creates tags without slugs. These bypass update_sheet_topics() when saving via POST /api/sheets/.
+			# TODO: Proper fix needed:
+			#   1. Fix frontend to filter out tags without slugs before sending, OR
+			#   2. Always run topics through update_sheet_topics() which adds slugs, OR
+			#   3. Add migration to fix existing sheets with slugless topics
+			# See: topic_slug_issue_analysis.md for full analysis
+			if not topic.get('slug'):
+				import logging
+				logger = logging.getLogger(__name__)
+				logger.error(f"Topic missing 'slug' field. Sheet topic data: {topic}")
+				print(f"Topic missing 'slug' field. Sheet topic data: {topic}")
+				# Skip this malformed topic to prevent crash
+				continue
 			# Fall back on `asTyped` if no data is in mapping yet. If neither `asTyped` nor mapping data is availble fail safe by reconstructing a title from a slug (HACK currently affecting trending topics if a new topic isn't in cache yet)
 			default_title = topic['asTyped'] if use_as_typed else topic['slug'].replace("-", " ").title()
 			topic_titles = topic_map.get(topic['slug'], {"en": default_title, "he": default_title})

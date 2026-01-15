@@ -15,36 +15,60 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+
+/* Skip Link for Accessibility - Override Button positioning to hide off-screen by default */
+/* Using element selector (a.) for higher specificity to avoid needing !important */
+a.sefaria-common-button.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 10px;
+  z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+/* Show skip link when focused - let Button handle the blue border and styling */
+a.sefaria-common-button.skip-link:focus {
+  top: 10px;
+}
+
+/* Prevent any hover color changes for skip link */
+a.sefaria-common-button.skip-link:hover {
+  color: var(--theme-button-text);
+}
+
 a, a:hover {
   color: inherit;
 }
 
-/* Font Family */
-body, .sans-serif {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --is-serif: initial; /* false */
+:root {
+  /* font stacks */
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
+  --serif-small-font-size: 14px;
+
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
 }
-.serif {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --is-serif: ; /* true */
+
+.sr-only,
+.layout-button label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
-.sans-serif-in-hebrew {
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-}
-body, .en, .int-en {
-  --is-hebrew: initial; /* false */
-}
-.he, .int-he {
-  unicode-bidi: plaintext;
-  --is-hebrew: ; /* true */
-}
-* {
-  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
-  font-family: var(--hebrew-font-conditional, var(--english-font));
-}
+
 
 .he {
   font-size: 122%;
@@ -62,12 +86,10 @@ body, .en, .int-en {
   direction: rtl;
 }
 .btn, .btn-sm, .btn-xs {
-  display: inline-block;
-  color: white;
   display: flex;
+  color: white;
   justify-content: center;
-  align-content: center;
-  flex-direction: column;
+  align-items: center;
   margin: 10px 20px;
   background-color: var(--sefaria-blue);
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -75,7 +97,7 @@ body, .en, .int-en {
   cursor: pointer;
   font-size: 16px;
   box-sizing: border-box;
-  line-height: 19px;
+  line-height: 1;
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -133,7 +155,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: #666;
+  color: var(--dark-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -142,7 +164,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .systemText .int-en,
 .systemText .int-he.enInHe {
@@ -186,7 +208,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
-  color: #666;
+  color: var(--dark-grey);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -195,7 +217,7 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   font-family: "Heebo", sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: #999;
+  color: var(--dark-grey);
 }
 .systemText .int-he,
 .systemText .int-en.heInEn {
@@ -235,8 +257,6 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   width: 100%;
   height: 100%;
 }
-body:not(.inApp).nochrome #s2 .headerNavSection a:not(.home),
-body:not(.inApp).nochrome #s2 .headerLinksSection,
 body:not(.inApp).nochrome #footerContainer {
   display: none;
 }
@@ -264,14 +284,6 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .interface-hebrew #bannerMessage {
   direction: rtl;
-}
-.genericBanner #bannerMessageClose {
-  font-size: 40px;
-  opacity: revert;
-  inset-inline-end: 60px;
-  top: revert;
-  border: none;
-  background: none;
 }
 #bannerMessageClose {
   position: absolute;
@@ -370,126 +382,14 @@ input.noselect {
   height: 100%;
   top: 0;
 }
-.headerInner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background: white;
-  z-index: 1001;
-  box-sizing: border-box;
-  padding: 0 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.headerOnly .headerInner, .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-.interface-hebrew .header {
-  direction: rtl;
-}
-.headerInner .headerNavSection {
-  display: flex;
-  justify-content: flex-start;
-}
-.headerInner .headerNavSection a, .header img.home {
-  font-size: 16px;
-  color: #666;
-  margin-inline-end: 30px;
-  font-weight: 500;
-  line-height: 26px;
-  vertical-align: middle;
-}
-.headerInner .headerLinksSection {
-	display: flex;
-	justify-content: flex-end;
-	min-width: 50%;
-	align-items: center;
-}
-.headerInner .headerLinksSection > * {
-  margin-inline-start: 2%;
-}
-.header .header-nav {
-  margin-top: 1px;
-}
-.header .header-links {
-  margin-top: 1px;
-}
-.header .textLink,
-.header .home,
-.header .menuButton,
-.header .my-profile,
 .header .notifications,
-.header .readerNavMenuSearchButton {
-  cursor: pointer;
-}
-.header .textLink,
-.header .menuButton,
-.header .my-profile,
-.header .readerNavMenuSearchButton {
-  display: inline-block;
-  color: #999;
-  border: none;
-  background: transparent;
-  padding: 0;
-}
-.header .my-profile,
-.header .notifications {
-  display: inline-block;
-  vertical-align: middle;
-}
-.header .textLink,
-.header .menuButton,
-.header .my-profile {
-  font-size: 24px;
-  line-height: 24px;
-  margin-top: 2px;
-}
-.header .searchBox {
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  text-align: inherit;
-  background: #EDEDEC;
-  border-radius: 250px;
-  width: 250px;
-  height: 30px;
-}
-.header .searchBox.searchFocused {
-  width: 280px;
-}
-.header .searchBox input {
-  background-color: transparent; /*for firefox */
-  padding: 0;
-  flex: 1;
-  height: 100%;
-  margin-bottom: 1px;
-  font-size: var(--serif-body-font-size);
-}
-.header .searchBox input::placeholder {
-  font-style: normal;
-}
-.header .search {
-  outline: none;
-  border: none;
-  box-shadow: none;
-  color: black;
-  font-size:  18px;
-  margin: 0;
-  width: 100px;
-}
-.header .searchFocused .search {
-  width: 200px;
-}
-.header .search.hebrewSearch {
-  font-size: 18px;
+.header .mobile-notifications {
+  position: relative;
 }
 .mobileNavMenu {
   position: fixed;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 60px); /* fallback for browsers that don't support dvh */
+  height: calc(100dvh - 60px);
   box-sizing: border-box;
   top: 60px;
   width: 100%;
@@ -517,11 +417,14 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
 }
-.header .mobileNavMenu .searchBox,
-.header .mobileNavMenu .searchBox.searchFocused
 .header .mobileNavMenu .searchBox .search,
 .header .mobileNavMenu .searchBox.searchFocused .search {
   width: 100%;
+}
+.mobileNavMenu .searchBox {
+    display: flex;
+    width: 100%;
+    align-items: center;
 }
 .header.mobile .ui-autocomplete {
   width: 100% !important;
@@ -529,9 +432,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
   display: block;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   padding: 15px;
+  position: relative;
 }
 .mobileNavMenu hr {
   border: none;
@@ -607,10 +511,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-size: 13px;
 }
 .mobileInterfaceLanguageToggle .inactive {
-  color: #999;
+  color: var(--medium-grey);
 }
 .mobileNavMenu .logout {
-  color: #999;
+  color: var(--medium-grey);
 }
 .ui-autocomplete .ui-menu-item.search-override {
   border-bottom: solid 1px #ccc;
@@ -622,15 +526,12 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
 }
-.interface-hebrew .header .home img {
-  width: 77px;
-}
 .header .accountLinks {
   display: flex;
   align-items: center;
   font-size: 16px;
   margin-top: 2px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .header .accountLinks > * {
   margin-inline-start: 17px;
@@ -645,109 +546,18 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   box-sizing: border-box;
   border-radius: 6px;
 }
-.accountLinks .help {
-  margin-inline-start: 23px;
-  margin-top: 3px;
-}
-.loggedIn .help {
-  margin-inline-start: 17px;
-}
-.loggedIn .help img {
-  height: 24px;
-  margin-bottom: 3px;
-}
-.accountLinks.anon .help {
-  margin-top: 6px;
-}
-.headerLinksSection .help {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  margin-top: 4px;
-}
-.header .interfaceLinks {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #666;
-  cursor: pointer;
-  -webkit-margin-start: 20px;
-  -moz-margin-start: 20px;
-  margin-inline-start: 10px;
-}
-.header .interfaceLinks img {
-  height: 18px;
-  width: 18px;
-  vertical-align: middle;
-  margin-inline-end: 2px;
-}
-.header .interfaceLinks a.interfaceLinks-button{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.header .interfaceLinks a.interfaceLinks-button::after {
-  display: inline-block;
-  background: no-repeat url("/static/icons/chevron-down.svg");
-  height: 10px;
-  width: 12px;
-  vertical-align: middle;
-  content: "";
-  transform: scale(0.75);
-}
-.header .interfaceLinks .interfaceLinks-menu {
-  top: 35px;
-  position: absolute;
-  z-index: 1;
-  width: 150px;
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
-  display:none;
-  overflow:hidden;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu {
-  top: 10px;
-  display: block;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
-  padding: 10px 17px 10px 17px;
-  font-weight: 700;
-  color: #000000;
-  height: 23px;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu .profile-menu-middle {
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-menu {
-  right: 0px;
-  min-width: 150px;
-  width: max-content;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
-  left: 0px;
-  min-width: 150px;
-  width: max-content;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-style: normal;
-  font-weight: normal;
+.headerDropdownMenu .languageHeader {
+  padding-inline: 15px;
   font-size: 14px;
+  font-weight: 400;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey);
+  padding-block-start: 5px;
+  padding-block-end: 2px;
+}
+.globeLanguageToggle .languageHeader {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
-  border-top: 1px solid #CCC;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
-  font-family: "Heebo", sans-serif;
 }
 
 .interfaceLinks-options {
@@ -756,52 +566,27 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 4px;
   max-width: 220px;
 }
-.header .interfaceLinks .interfaceLinks-option {
+.globeLanguageToggle .englishLanguageLink,
+.globeLanguageToggle .hebrewLanguageLink {
   display: flex;
   text-decoration: none;
   font-style: normal;
   font-weight: normal;
   font-size: 16px;
   line-height: 23px;
-  color: #666666;
+  color: var(--black);
   padding: 5px;
   direction: ltr;
 }
-.header .interfaceLinks .interfaceLinks-option:hover {
-  background-color: var(--lighter-grey);
-}
-.header .interfaceLinks .interfaceLinks-menu.open {
-  display: block;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
-  direction: rtl;
-}
-.interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
-  direction: ltr;
-}
-.header .interfaceLinks .interfaceLinks-row {
-  align-items: center;
-  display: flex;
+.dropdownItem[data-prevent-close="true"]:hover {
   text-decoration: none;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px;
-  text-align: right;
-  color: #000000;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 5px 17px 5px 17px;
-  font-size: 14px;
-  text-decoration-color: #666666;
-  height: 23px;
 }
-.header .interfaceLinks .interfaceLinks-row:hover {
-  background-color: var(--lighter-grey);
+.interface-hebrew .globeLanguageToggle .englishLanguageLink,
+.interface-hebrew .globeLanguageToggle .hebrewLanguageLink {
+  direction: rtl;
 }
 div.interfaceLinks-row a:hover {
   text-decoration: none;
-}
-.header .interfaceLinks .interfaceLinks-row.languages {
-  display: flex;
 }
 div.interfaceLinks-row a.active {
   color: #000000;
@@ -813,32 +598,15 @@ div.interfaceLinks-row a.active::after {
   padding: 0 4px;
 }
 div.interfaceLinks-row a {
-  color: #666666;
+  color: var(--dark-grey);
   display: flex;
 }
-.header .interfaceLinks .interfaceLinks-row.bottom {
-  font-size: 14px;
-  text-decoration-color: #000000;
-}
-.header .interfaceLinks .interfaceLinks-menu.profile-menu .interfaceLinks-hr {
-  border-top:  1px solid #CCCCCC;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-.header .interfaceLinks .interfaceLinks-row.logout {
-  font-size: 14px;
-  color: #666666;
-  padding-top: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.header .profile-menu-he {
-  color: #666666;
-}
-.header .interfaceLinks-option::before {
+.header .interfaceLinks-option::before,
+.globeLanguageToggle .hebrewLanguageLink::before,
+.globeLanguageToggle .englishLanguageLink::before {
   content: "";
   font-family: FontAwesome;
-  color: #999;
+  color: var(--dark-grey);
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
@@ -846,70 +614,29 @@ div.interfaceLinks-row a {
 .header  .interfaceLinks-option.active {
   order: -1;
 }
-.header .interfaceLinks-option.active::before {
+a.interfaceLinks-option.int-bi.inactive {
+  display: flex;
+}
+a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
+  padding: 7px;
+}
+.header .interfaceLinks-option.active::before,
+.globeLanguageToggle .hebrewLanguageLink.active::before,
+.globeLanguageToggle .englishLanguageLink.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
-@media screen and (max-width: 910px) {
-  .header .headerInner {
-    padding: 0 15px;
-  }
-  .header .accountLinks .login {
-    padding: 5px 5px;
-  }
-  .header .accountLinks {
-    margin-inline-start: 5px;
-  }
-}
-@media screen and (max-width: 780px) {
-  .header .donate {
-    display: none;
-  }
-}
-@media screen and (max-width: 700px) {
-  .multiPanel .header .home {
-    display: none;
-  }
-}
-@media screen and (max-width: 580px) {
-  .header .interfaceLinks,
-  .header .dropdownLinks,
-  .accountLinks .help,
-  .header .notifications {
-    display: none;
-  }
-}
-.header .notifications.unread::after {
-  content:"";
-  background-color: #CB6158;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  display: block;
-  top: 3px;
-  right: 1px;
-  position: absolute;
+.header .interfaceLinks-option.inactive::before,
+.globeLanguageToggle .hebrewLanguageLink::before,
+.globeLanguageToggle .englishLanguageLink::before {
+  content: "";
+  padding: 0 15px;
 }
 .header .login {
-  color: #666;
+  color: var(--dark-grey);
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
-}
-.header .headerInner.mobile {
-  padding: 0 15px;
-}
-.header .headerInner.mobile {
-  display: flex;
-}
-.header .headerInner.mobile div {
-  flex: 1;
-}
-.mobileHeaderCenter {
-  text-align: center;
-}
-.header .headerInner.mobile .mobileHeaderLanguageToggle {
-  text-align: end;
 }
 .mobileHeaderLanguageToggle.hebrew .en,
 .mobileHeaderLanguageToggle.english .he {
@@ -976,7 +703,7 @@ div.interfaceLinks-row a {
   border: 1px solid #E6E6E6;
   background-color: #FBFBFA;
   text-align: center;
-  color: #666;
+  color: var(--dark-grey);
 }
 #interruptingMessage.sefariaModalContentBox {
   background-color: var(--sefaria-blue);
@@ -1095,7 +822,7 @@ div.interfaceLinks-row a {
 }
 .sefariaModalBottomContent {
   font-size: 16px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .sefariaModalContent .button {
   width: 100%;
@@ -1221,23 +948,10 @@ div.interfaceLinks-row a {
     color: var(--beit-midrash-grey);
 }
 
-.header .my-profile img {
-  height: 24px;
-  width: 24px;
-  border-radius: 50%;
-  display: block;
-}
-.header .readerNavMenuMenuButton {
-  margin: 0 8px 0 6px;
-  font-size: 17px;
-}
 .readerNavMenuSearchButton {
   position: relative;
   margin: 0 9px 0 7px;
   top: -2px;
-}
-.header .readerNavMenuSearchButton {
-  top: 2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
@@ -1245,19 +959,9 @@ div.interfaceLinks-row a {
 .readerNavMenuSearchButton img {
   height: 18px;
   width: 18px;
-  opacity: 0.4;
 }
 .sidebarSearch .readerNavMenuSearchButton img {
   margin-top: 12px;
-}
-.header .headerNavContent {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  top: 0;
-  padding-top: 60px;
-  z-index: 1000;
 }
 .ui-autocomplete {
   position: absolute;
@@ -1381,7 +1085,7 @@ div.interfaceLinks-row a {
 .textColumn .loadingMessage.base,
 .sheetsInPanel .loadingMessage {
   margin: 30px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 16px;
   font-style: normal;
   text-align: center;
@@ -1534,6 +1238,9 @@ div.interfaceLinks-row a {
 .bookPage.compare .content {
   padding: 30px 10px;
 }
+.singlePanel .readerNavMenu .content .contentInner {
+  min-height: revert;
+}
 .readerNavMenu .content .contentInner {
   width: 725px;
   margin: 0 auto;
@@ -1589,23 +1296,32 @@ div.interfaceLinks-row a {
   align-items: center;
   justify-content: center;
 }
+/* Hide ToC language toggle on narrow screens where mobile header shows its own toggle */
+@media (max-width: 842px) {
+  .navTitle .languageToggle {
+    display: none;
+  }
+}
 .navTitleTab {
   margin-inline-end: 26px;
-  color: #999;
+  color: var(--medium-grey-legacy);
 }
 .navTitleTab:hover {
   color: inherit;
   text-decoration: none;
 }
 .navTitleTab.current {
-  color: inherit;
+  color: var(--dark-grey);
   pointer-events: none;
 }
 .readerNavMenu h1 .navTitleTab img {
   height: 14px;
   margin-inline-end: 6px;
+  filter: brightness(1.5); /* Lightens #666666 to #999999 (--medium-grey-legacy) when not focused */
 }
-.readerNavMenu h1 .navTitleTab.current img {filter: brightness(0.5);}
+.readerNavMenu h1 .navTitleTab.current img {
+  filter: brightness(1); /* Keep at #666666 (--dark-grey) when tab is focused*/
+}
 .sidebarLayout {
   display: flex;
   flex-direction: row;
@@ -1657,7 +1373,7 @@ div.interfaceLinks-row a {
 
 .navSidebarModule {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 34px;
   padding: 0 44px;
 }
@@ -1682,6 +1398,7 @@ div.interfaceLinks-row a {
   padding-inline: 10px 10px;
   margin-inline: -15px -15px;
   margin-block: -5px -5px;
+  padding-bottom: 10px;
 }
 .singlePanel .recentlyViewed ul {
   display: revert;
@@ -1792,7 +1509,7 @@ div.interfaceLinks-row a {
   color: black;
 }
 .navSidebarLink.gray a {
-  color: #666;
+  color: var(--dark-grey);
 }
 
 .navSidebarLink > ul, .sheetTopicsList > ul {
@@ -1832,7 +1549,7 @@ div.interfaceLinks-row a {
 
 .navSidebarLink.language {
   font-size: 18px;
-  margin-top: 16px;
+  margin-top: 6px;
   display: flex;
   flex-wrap:wrap;
 }
@@ -1861,14 +1578,17 @@ div.interfaceLinks-row a {
   filter: none;
   opacity: .6;
 }
-.navSidebar .button.appButton.white img {
+.navSidebar .appButton.white img {
   opacity: 1;
 }
-.navSidebar .button.appButton.ios img {
+.navSidebar .appButton.ios img {
   margin-top: -5px;
 }
 .navSidebar .button + .button {
   margin-inline-start: 7px;
+}
+.navSidebar button {
+  margin-block-start: 15px;
 }
 .navSidebar .button.get-start {
   height: 39px;
@@ -1878,6 +1598,7 @@ div.interfaceLinks-row a {
   justify-content: center;
   margin-left: 0;
   margin-right: 0;
+  margin-top: 22px;
 }
 .navSidebar .button .get-start {
   white-space: nowrap;
@@ -1894,7 +1615,7 @@ div.interfaceLinks-row a {
   display: block;
 }
 .navSidebar a.allLink {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
 }
 .navSidebar a.moreLink:hover {
@@ -2001,7 +1722,7 @@ div.interfaceLinks-row a {
 .readerNavTop .readerOptions {
   text-align: left;
   box-sizing: border-box;
-  color: #999;
+  color: var(--dark-grey);
   float: left;
   font-size: 20px;
   cursor: pointer;
@@ -2088,7 +1809,7 @@ div.interfaceLinks-row a {
   border-bottom-color: rgb(204, 204, 204);
   border-bottom-style: solid;
   border-bottom-width: 0.833333px;
-  color: #666666;
+  color: var(--dark-grey);
   cursor: default;
   font-size: 14px;
   font-style: normal;
@@ -2127,7 +1848,7 @@ div.interfaceLinks-row a {
   align-items: center;
   display: flex;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 2px 12px 2px 12px;
   font-size: 14px;
@@ -2195,7 +1916,7 @@ div.interfaceLinks-row a {
 .readerNavMenu h1,
 .readerNavMenu h2.styledH1 {
   text-align: start;
-  color: #666;
+  color: var(--dark-grey);
   position: relative;
   font-size: 22px;
   font-weight: 500;
@@ -2232,7 +1953,7 @@ div.interfaceLinks-row a {
 }
 .topicPanel .readings .parasha-date > span:first-child::after {
   content: '•';
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   margin: 0 5px;
 }
@@ -2299,7 +2020,7 @@ div.interfaceLinks-row a {
 .topicPanel h2 span {
   font-size: 22px;
   font-weight: normal;
-  color: #666;
+  color: var(--dark-grey);
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
@@ -2327,7 +2048,7 @@ div.interfaceLinks-row a {
 }
 .topicPanel .sideColumn .sideList .topicMetaData .int-en,
 .topicPanel .sideColumn .sideList .topicMetaData .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 .topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -2340,7 +2061,7 @@ div.interfaceLinks-row a {
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .story .storyTitle {
   --english-font: var(--english-serif-font-family);
@@ -2388,7 +2109,7 @@ div.interfaceLinks-row a {
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
-  color: #666;
+  color: var(--dark-grey);
 }
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
@@ -2604,7 +2325,7 @@ h1 .languageToggle .he {
   margin-inline-end: 12px;
   display: inline-block;
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 13px;
   font-weight: lighter;
   cursor: pointer;
@@ -2619,7 +2340,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
-  color: #666;
+  color: var(--dark-grey);
   margin: 30px 0 0 0;
   font-weight: normal;
 }
@@ -2661,8 +2382,23 @@ input.resourcesLink {
   font-size: 14px;
   margin-inline-start: 10px;
 }
+.saveLine .timeStamp {
+  align-self: center;
+}
 .savedHistoryMessage {
   color: var(--dark-grey);
+}
+/* Mobile: Prevent horizontal scroll in Saved/History/Notes views */
+@media (max-width: 540px) {
+  /* Hide tooltips (they extend beyond viewport and don't work on mobile anyway) */
+  .savedHistoryList .saveButton.tooltip-toggle::before,
+  .noteListing .tooltip-toggle::before {
+    display: none;
+  }
+  /* Contain floated action buttons to prevent overflow */
+  .noteListing {
+    overflow: hidden;
+  }
 }
 .readerNavCategories {
   width: 100%;
@@ -2716,7 +2452,7 @@ a.navBlockTitle:hover {
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2739,10 +2475,14 @@ display: none;
   color: var(--light-grey);
 }
 
-div.sheetsWrapper :nth-child(1 of .card) {
+div.TOCCardsWrapper :nth-child(1 of .card) {
   border-top: 1px solid #EDEDEC;
 }
-.card {
+
+div.TOCCardsWrapper div.card:nth-last-child(1 of div.card):nth-child(2n+1 of div.card):not(:nth-child(1 of div.card)) {
+  flex: 0 0 45%;
+}
+div.card {
   flex: 1 1 45%;
   position: relative;
   padding-bottom: 12px;
@@ -2758,6 +2498,8 @@ div.sheetsWrapper :nth-child(1 of .card) {
   line-height: 1.3;
   flex: 1;
   font-weight: 400;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 a.cardTitle:hover {
   text-decoration: none;
@@ -2766,7 +2508,7 @@ a.cardTitle:hover {
 .cardDescription {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -2871,7 +2613,7 @@ a.cardTitle:hover {
 .readerPanel .communityPage h2 {
   text-transform: none;
   font-size: 22px;
-  color: #666;
+  color: var(--dark-grey);
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -2901,7 +2643,7 @@ a.cardTitle:hover {
   margin-top: 20px;
 }
 .communityPage .readingLinksHeader {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
   margin-bottom: 4px;
 }
@@ -2910,11 +2652,11 @@ a.cardTitle:hover {
 }
 .communityPage .calendarDate {
   font-size: 14px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 15px;
 }
 .featuredSheetHeading {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   margin-bottom: 10px;
 }
@@ -2986,12 +2728,12 @@ a.cardTitle:hover {
   border-radius: 7px;
 }
 .resourcesLink.faded {
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3004,7 +2746,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .resourcesLink .fa {
   margin: 0 6px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerNavMenu .resourcesLink img {
   width: 16px;
@@ -3034,7 +2776,7 @@ a.cardTitle:hover {
 }
 .readerNavCategoryMenu h2 {
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin: 0 0 20px;
 }
 .readerNavCategoryMenu .categoryDescription.top {
@@ -3049,7 +2791,7 @@ a.cardTitle:hover {
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;
   font-size: 14px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .readerNavCategoryMenu .categoryDescription.long {
   margin: -8px 0 20px 0;
@@ -3059,7 +2801,7 @@ a.cardTitle:hover {
   margin-bottom: 40px;
 }
 .readerNavCategoryMenu .categoryAttribution {
-  color: #666;
+  color: var(--dark-grey);
   text-align: start;
   font-size: 24px;
   font-style: italic;
@@ -3156,7 +2898,7 @@ a.cardTitle:hover {
 }
 .readerNavMenu .dedication {
   text-align: start;
-  color: #666;
+  color: var(--dark-grey);
   background-color: #FBFBFA;
   padding: 26px 19px;
   font-size: 18px;
@@ -3196,7 +2938,7 @@ a.cardTitle:hover {
   padding-bottom: 15px;
 }
 .bookPage .tocCategory{
-  color:#999;
+  color: var(--medium-grey);
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -3242,12 +2984,24 @@ a.cardTitle:hover {
   display: flex;
 }
 .sheetContentSidebar {
+  margin: 30px 0;
   width: 33%;
+}
+.singlePanel .sheetMetaDataBox .sidebarLayout {
+  flex-direction: row;
+}
+.singlePanel .sheetContent .dropdownLinks-button img {
+  max-width: revert;
+}
+.singlePanel .sheetContentSidebar {
+  padding-inline: 10%;
+  width: revert;
+  margin: revert;
 }
 .bookPage .currentSection,
 .bookPage .authorStatement {
   font-size: 17px;
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -3286,7 +3040,7 @@ a.cardTitle:hover {
 }
 .bookPage .sheetMeta {
   font-size: 14px;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3331,7 +3085,7 @@ a.cardTitle:hover {
 }
 .bookPage .moderatorSectionExpand, .bookPage .moderatorSectionCollapse {
   cursor: pointer;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
 }
 .bookPage.fullBookPage .moderatorSectionExpand, .bookPage.fullBookPage .moderatorSectionCollapse {
@@ -3358,7 +3112,7 @@ a.cardTitle:hover {
   font-size: 18px;
 }
 .bookPage .moderatorSection .button .fa {
-  color: #999;
+  color: var(--medium-grey);
   margin-right: 4px;
 }
 .bookPage .versionEditForm {
@@ -3405,7 +3159,7 @@ a.cardTitle:hover {
 .bookPage .versionEditForm #delete_button {
   float: right;
   background: white;
-  color: #999;
+  color: var(--dark-grey);
   border: 1px solid #999;
   width: 100px;
   margin: 0;
@@ -3413,7 +3167,7 @@ a.cardTitle:hover {
 .bookPage .versionTitle .fa,
 .bookPage .versionEditForm .fa {
   font-size: 10px;
-  color: #666;
+  color: var(--dark-grey);
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
@@ -3497,7 +3251,7 @@ a.cardTitle:hover {
   margin: 3px;
   text-align: center;
   background-color: #FBFBFA;
-  color: #666;
+  color: var(--dark-grey);
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
@@ -3533,7 +3287,7 @@ a.cardTitle:hover {
 .textTableOfContents .tocSection > .sectionName {
   font-size: 24px;
   margin: 0 3px 4px;
-  color: #666;
+  color: var(--dark-grey);
   display: block;
 }
 .bookPage .content .tab-view.largeTabs {
@@ -3678,7 +3432,7 @@ a.cardTitle:hover {
   direction: rtl;
 }
 .bookPage .button.allVersionsButton {
-  color: #999;
+  color: var(--medium-grey);
   text-transform: uppercase;
   font-size: 15px;
   padding: 12px 50px;
@@ -3777,13 +3531,14 @@ details .open-details::before {
   cursor: default;
 }
 .version-with-preview-title-line .selectButton:not(.currSelectButton) {
-  color: var(--select-blue);
+  color: var(--theme-select);
 }
 .version-with-preview-title-line .selectButton::before {
   content: "•";
   margin-inline-end: 5px;
   color: var(--medium-grey);
 }
+
 .version-block-with-preview-details {
   background-color: var(--lighter-grey);
   border-radius: 6px;
@@ -3833,7 +3588,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
   background: #EDEDEC;
   border-radius: 25px;
   padding: 5px 10px;
@@ -3853,7 +3608,7 @@ details .open-details::before {
   padding: 5px;
 }
 .versionBlock .versionBlockHeading .versionEditIcon.enabled:hover{
-  color: #666666;
+  color: var(--dark-grey);
   cursor: pointer;
 }
 .versionBlock .versionSelect{
@@ -3865,7 +3620,7 @@ details .open-details::before {
 .versionBlock .versionNotes a {
   font-style: normal;
   font-weight: normal;
-  color: #666666;
+  color: var(--dark-grey);
   text-decoration: underline;
 }
 .versionBlock .versionDetails {
@@ -3876,7 +3631,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 14px;
   line-height: 20px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .bookPage .versionBlock .versionDetails{
   line-height: 20px;
@@ -3909,7 +3664,7 @@ details .open-details::before {
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: #666666;
+  color: var(--dark-grey);
   margin: 10px 0;
   text-align: start;
 }
@@ -3951,7 +3706,7 @@ details .open-details::before {
 .modTools .dlSectionTitle,
 .bookPage .content h2 {
     text-transform: uppercase;
-    color: #999;
+    color: var(--medium-grey);
     padding: 10px 0;
     margin-bottom: 14px;
 }
@@ -4035,7 +3790,7 @@ select {
   color: black;
 }
 .modTools .workflowy-tool .modtoolsButton:hover{
-  background-color: #999;
+  background-color: var(--medium-grey);
 }
 .modTools .workflowy-tool textarea {
   width: 100%;
@@ -4122,18 +3877,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   font-size: 30px;
   color: #000;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   --english-font: var(--english-serif-font-family);
   --hebrew-font:  var(--hebrew-serif-font-family);
 }
-.searchContent h1.englishQuery {
-  font-size: 30px;
-}
-.searchContent h1.hebrewQuery {
-  font-family: var(--hebrew-serif-font-family);
-}
 .searchContent .searchTopLine {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 .searchContent .searchResultCount {
   color: var(--dark-grey);
@@ -4141,10 +3890,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
-  border-bottom: 1px solid var(--light-grey);
-  flex-direction: row;
   justify-content: space-between;
   align-items: center;
+}
+/* Add grey line under Filter button on mobile only */
+.singlePanel .searchContent .searchTopMatter {
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: 5px;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -4153,7 +3905,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchTopMatter .search-dropdown-button {
   font-size: 22px;
-  color: #999;
+  color: var(--medium-grey);
   cursor: pointer;
   padding: 10px 0;
   -webkit-touch-callout: none; /* iOS Safari */
@@ -4210,7 +3962,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-en,
 .searchResultList .searchTopic .topicSourcesSheets.systemText .int-he {
-  color: #666666;
+  color: var(--dark-grey);
 }
 
 @media (min-width: 701px) {
@@ -4241,7 +3993,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 12px;
   border: 1px solid #DADADA;
   font-size: 13px;
-  color: #666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -4260,7 +4012,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   padding-top: 5px;
@@ -4272,7 +4024,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: unset;
 }
 .dropdown-button {
-  color: #666;
+  color: var(--dark-grey);
   margin-left: 5px;
   margin-right: 5px;
   font-size: 18px;
@@ -4546,7 +4298,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mobileSearchFiltersHeader .readerNavMenuCloseButton {
   font-size: 45px;
-  color: var(--medium-grey);
+  color: var(--darker-grey); /* Override with accessible color for 3:1 contrast */
   height: 20px;
   display: block;
   line-height: 20px;
@@ -4592,7 +4344,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000000;
 }
 .sheetResult .snippet.en {
-  color: #666666;
+  color: var(--dark-grey);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4606,7 +4358,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content:flex-start;
   align-items: center;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   margin: 15px 0 5px;
 }
@@ -4617,13 +4369,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
 }
 .searchContent .sheetResult .ownerName {
-  color: var(--midrash-green);
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
 }
 .searchContent .sheetResult .date {
-  color: #999999;
+  color: var(--medium-grey-legacy);
   --english-font: var(--english-sans-serif-font-family);
   font-size: 14px;
   font-weight: 400;
@@ -4662,7 +4414,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .version,
 .sidebarSearch .result .version {
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   margin: 15px 0 5px;
@@ -4674,7 +4426,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .similar-trigger-box,
 .sidebarSearch .result .similar-trigger-box {
-  color: #999;
+  color: var(--medium-grey);
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -4708,27 +4460,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 0px 0px 6px 4px;
   z-index: 2;
 }
-.singlePanel .autocomplete-dropdown {
-  width: 0;
-  position: fixed;
-  top: 120px;
-  inset-inline-start: 0;
-  padding-bottom: 10px;
-}
-.singlePanel .autocomplete-dropdown:has(*){
-  width: 100vw;
-}
 .search-group-suggestions{
   border-bottom: 0.766667px solid rgb(204, 204, 204);
   display: flex;
   align-items: start;
   padding-top: 5px;
   padding-bottom: 5px;
-}
-.singlePanel .search-group-suggestions{
-  border-bottom-width: 0;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 .search-group-suggestions-items{
   display: flex;
@@ -4742,17 +4479,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-suggestion-link-wrapper:hover{
   text-decoration: none;
-}
-.singlePanel .search-suggestion-link-wrapper{
-  border-bottom: 0;
-  padding: 0;
-}
-.singlePanel .search-suggestion-link-wrapper.search-override-wrapper {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-top: 0.766667px solid #EDEDEC;
-  border-bottom: 0.766667px solid #EDEDEC;
 }
 
 .search-suggestion {
@@ -4770,15 +4496,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     max-width: 100%;
     min-height: 10px;
 }
-.singlePanel .search-suggestion{
-  width: auto;
-}
 
 .search-suggestion-text{
   font-family: 'EB Garamond';
-}
-.singlePanel .search-suggestion-text{
-  color: #000000;
 }
 .search-suggestion-text.hebrew-result{
   font-family: "Taamey Frank";
@@ -4796,20 +4516,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 3px;
 
   /* Dark Grey */
-  color: #666666;
+  color: var(--dark-grey);
 }
 .autocomplete-dropdown .type-icon{
   display: inline-block;
   opacity: .4;
   height: 18px;
   width: 18px;
-  margin-top: 2px;
-}
-.singlePanel .autocomplete-dropdown .type-icon{
-  padding-inline-start: 2px;
-}
-
-.singlePanel .autocomplete-dropdown .type-icon.english-result{
   margin-top: 2px;
 }
 
@@ -4836,7 +4549,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey-legacy);
   margin-top: 6px;
   width: 20%;
   padding-inline-end: 10px;
@@ -4849,10 +4562,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 15px;
   margin-left: 114px;
 }
-.singlePanel .autocomplete-dropdown .type-title {
-  width: 0;
-  visibility: hidden;
-  padding-inline-end: 0;
+
+/* Mobile autocomplete styles */
+@media (max-width: 842px) {
+  .autocomplete-dropdown {
+    width: 0;
+    position: fixed;
+    top: 120px;
+    inset-inline-start: 0;
+    padding-bottom: 10px;
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+  }
+  .autocomplete-dropdown:has(*){
+    width: 100vw;
+  }
+  .search-group-suggestions{
+    border-bottom-width: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .search-suggestion-link-wrapper{
+    border-bottom: 0;
+    padding: 0;
+  }
+  .search-suggestion-link-wrapper.search-override-wrapper {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-top: 0.766667px solid #EDEDEC;
+    border-bottom: 0.766667px solid #EDEDEC;
+  }
+  .search-suggestion{
+    width: auto;
+  }
+  .search-suggestion-text{
+    color: #000000;
+  }
+  .autocomplete-dropdown .type-icon{
+    padding-inline-start: 2px;
+  }
+  .autocomplete-dropdown .type-icon.english-result{
+    margin-top: 2px;
+  }
+  .autocomplete-dropdown .type-title {
+    width: 0;
+    visibility: hidden;
+    padding-inline-end: 0;
+  }
 }
 
 .topic-landing-search-wrapper{
@@ -4938,6 +4695,14 @@ h1.topic-landing-header {
   font-family: Roboto;
   font-size: 14px;
   margin-top: 2px;
+}
+
+.search::placeholder,
+.topic-landing-search-input::placeholder,
+.readerSearch::placeholder,
+.searchFiltersInput::placeholder,
+.topicFilterInput::placeholder {
+  color: var(--dark-grey);
 }
 
 .topic-landing-search-suggestion{
@@ -5327,7 +5092,7 @@ h1.topic-landing-header {
 .topic-landing-temporal .learn-more-prompt{
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5340,8 +5105,7 @@ h1.topic-landing-header {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .topic-landing-seasonal .seasonal-bottom-section{
-  position: absolute;
-  top: calc(100% - 128px);;
+  margin-top: 10px;
 }
 .singlePanel .topic-landing-seasonal .seasonal-bottom-section{
   position: unset;
@@ -5431,7 +5195,7 @@ h1.topic-landing-header {
 .topic-card-with-description .bottomCardLink {
   font-size: 14px;
   line-height: 18px;
-  color: #666;
+  color: var(--dark-grey);
   margin-inline-end: 20px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -5489,7 +5253,7 @@ h1.topic-landing-header {
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   margin-bottom: 6px;
   letter-spacing: 1px;
@@ -5500,7 +5264,7 @@ h1.topic-landing-header {
   unicode-bidi: plaintext;
 }
 .readerNavMenu .sheet .sheetViews {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -5549,6 +5313,14 @@ h1.topic-landing-header {
 }
 .readerNavMenuCloseButton {
   font-family: var(--english-serif-font-family);
+  color: var(--darker-grey);
+}
+
+/* Replacement for obsolete <big> tag - WCAG compliance */
+.big-text,
+big {
+  font-size: 1.2em;
+  line-height: 1.2;
 }
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
@@ -5576,7 +5348,7 @@ h1.topic-landing-header {
   margin-left: 10px;
 }
 .connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerControls .readerControlsInner {
   position: relative;
@@ -5603,7 +5375,7 @@ h1.topic-landing-header {
   align-items: center;
   line-height: initial;
   height: 100%;
-  color: #666;
+  color: var(--dark-grey);
 }
 .readerControls.transLangPrefSuggBann .transLangPrefCentered {
   display: flex;
@@ -5688,7 +5460,7 @@ h1.topic-landing-header {
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -5697,7 +5469,7 @@ h1.topic-landing-header {
 .readerControls .readerTextToc .categoryAttribution {
   font-style: italic;
   font-size: 15px;
-  color: #999;
+  color: var(--dark-grey);
   margin: 0 2px;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -5713,6 +5485,7 @@ h1.topic-landing-header {
   display: flex;
   flex-direction: row;
   text-align: left;
+  align-items: center;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
@@ -5737,6 +5510,7 @@ h1.topic-landing-header {
   height: 56px;
   cursor: pointer;
 }
+
 .saveButton img {
   height: 18px;
   width: 18px;
@@ -5749,6 +5523,31 @@ h1.topic-landing-header {
 .interface-hebrew .rightButtons .saveButton.tooltip-toggle::before {
   left: auto;
   right: -50px;
+}
+/* ArrowButton styles for navigation arrows */
+.arrowButton {
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.arrowButton img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+/* flip both arrows horizontally */
+.interface-hebrew .arrowButton img {
+  transform: scaleX(-1);
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
@@ -5785,10 +5584,13 @@ h1.topic-landing-header {
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #666666;
+  color: var(--dark-grey);
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.interface-hebrew .rightButtons .readerOptions{
+  margin-inline-end: 11px;
 }
 .readerOptions .int-en {
   margin-right: 4px;
@@ -5841,18 +5643,6 @@ h1.topic-landing-header {
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.hebrew .readerControls .readerTextToc {
-  direction: rtl;
-}
-.english .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-english .bilingual .readerControls .readerTextToc {
-  direction: ltr;
-}
-.interface-hebrew .bilingual .readerControls .readerTextToc {
-  direction: rtl;
-}
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -5881,10 +5671,10 @@ h1.topic-landing-header {
 }
 .readerControls .readerTextToc .readerTextVersion {
   font-size: 15px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerControls .readerTextToc .fa {
-  color: #999;
+  color: var(--medium-grey);
   font-weight: bold;
   margin: 0 7px;
   vertical-align: 0;
@@ -5923,7 +5713,7 @@ h1.topic-landing-header {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  color: #999;
+  color: var(--medium-grey);
 }
 .toggleSet {
   display: inline-block;
@@ -6159,7 +5949,7 @@ h1.topic-landing-header {
   padding: 0 6px 3px;
 }
 .dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
-  border-bottom: 4px solid #666;
+  border-bottom: 4px solid var(--dark-grey);
 }
 .bilingual .sheetContent .title .he {
   display: none;
@@ -6174,7 +5964,6 @@ h1.topic-landing-header {
   direction: ltr;
 }
 .interface-english .readerPanel.rtl .textRange,
-.interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .essayGroup,
 .interface-english .readerPanel.hebrew .structToggles,
@@ -6311,7 +6100,7 @@ h1.topic-landing-header {
 .stacked.bilingual .basetext .segment > .translation ,
 .stacked.bilingual .basetext .segment > p > .translation {
   margin: 10px 0 20px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .stacked.bilingual .basetext .segment > p > .he.translation {
   color: black;
@@ -6366,9 +6155,6 @@ h1.topic-landing-header {
 .readerPanel .sheetItem.enOnly > .en,
 .readerPanel .sheetItem.enOnly > p > .en {
   display: block;
-}
-.readerPanel.english .SheetSource .sheetItem.segment .en {
-  background-color: white;
 }
 .heLeft.bilingual .segment > .translation,
 .heRight.bilingual .segment > .primary,
@@ -6443,7 +6229,7 @@ h1.topic-landing-header {
   position: relative;
 }
 .textRange.lowlight .text {
-  color: #999;
+  color: var(--medium-grey);
 }
 .segment {
 }
@@ -6553,18 +6339,18 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel .segment .segmentNumber .he {
   text-align: center;
 }
-.readerPanel.english .segment .segmentNumber {
+.readerPanel.ltr .segment .segmentNumber {
   left: -48px;
 }
-.readerPanel.hebrew .segment .segmentNumber,
+.readerPanel.rtl .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
   right: -46px;
 }
-.readerPanel.hebrew .segment .linkCount,
+.readerPanel.rtl .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
   left: -48px;
 }
-.readerPanel.english .segment .linkCount {
+.readerPanel.ltr .segment .linkCount {
   right: -46px;
   left: auto;
 }
@@ -6578,21 +6364,21 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel.heRight.bilingual .segment .linkCount {
   visibility: hidden;
 }
-.singlePanel .readerPanel.english .segment .segmentNumber {
+.singlePanel .readerPanel.ltr .segment .segmentNumber {
   left: -30px;
 }
-.singlePanel .readerPanel.hebrew .segment .segmentNumber,
+.singlePanel .readerPanel.rtl .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
   right: -30px;
 }
-.singlePanel .readerPanel.english .segment .linkCount {
+.singlePanel .readerPanel.ltr .segment .linkCount {
   right: -30px;
 }
-.singlePanel .readerPanel.hebrew .segment .linkCount,
+.singlePanel .readerPanel.rtl .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
   left: -30px;
 }
-.singlePanel .readerPanel.english .sheetItem.segment .linkCount {
+.singlePanel .readerPanel.ltr .sheetItem.segment .linkCount {
   left: auto;
   right: -30px;
 }
@@ -6626,10 +6412,35 @@ But not to use a display block directive that might break continuous mode for ot
 .segment.showNamedEntityLinks .namedEntityLink:hover {
   /* only show named entity underline when class showNamedEntityLinks exists */
   cursor: pointer;
-  border-bottom: 2px dotted #666;
+  border-bottom: 2px dotted var(--dark-grey);
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
-  border-bottom-color: #666;
+  border-bottom-color: var(--dark-grey);
+}
+.mutc {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    padding: 0 3px 0 3px;
+    border-top: none;
+    border-bottom: none;
+}
+.mutc.refLink {
+    border-color: #1e88e5;
+}
+.mutc.namedEntityLink {
+    border-color: #8e24aa;
+}
+.mutc.categoryLink {
+    border-color: #fb8c00;
+}
+.mutc.spanSucceeded {
+    background: #e8f5e9;
+}
+.mutc.spanFailed {
+    background: #ffebee;
+}
+.mutc.spanAmbiguous {
+    background: #fff8e1;
 }
 .textRange .actionLinks {
   text-align: right;
@@ -6701,7 +6512,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #666;
+  color: var(--dark-grey);
   font-style: normal;
 }
 .segment img {
@@ -6770,6 +6581,7 @@ But not to use a display block directive that might break continuous mode for ot
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
 }
+
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   height: 20px;
@@ -6789,7 +6601,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 30px;
   text-align: left;
 }
@@ -6915,7 +6727,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: #EDEDED;
 }
 .topFilters .textFilter {
-  color: #999;
+  color: var(--medium-grey);
   display: inline-block;
   padding: 16px 8px;
 }
@@ -6938,7 +6750,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   margin: 6px 14px;
   background-color: transparent;
-  color: #999999;
+  color: var(--medium-grey);
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
@@ -6974,7 +6786,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
   padding: 5px;
   margin-bottom: 5px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
@@ -7006,7 +6818,7 @@ But not to use a display block directive that might break continuous mode for ot
   background-color: var(--category-color);
 }
 .connectionsPanel .toolsButton.more{
-  color: #666666;
+  color: var(--dark-grey);
 }
 .connectionsPanel .toolsButton.seeLess{
   margin-inline-start: 33px;
@@ -7014,7 +6826,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
-  color: #999999;
+  color: var(--medium-grey);
   align-items: center;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
@@ -7043,7 +6855,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-inline-end: 34px;
 }
 .connectionsCount {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -7054,7 +6866,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   align-self: flex-start;
-  color: #999;
+  color: var(--medium-grey);
   border: 1px solid #CCC;
   border-radius: 3px;
   font-size: 12px;
@@ -7125,10 +6937,10 @@ But not to use a display block directive that might break continuous mode for ot
   color: white;
 }
 .textFilter.lowlight {
-  color: #999;
+  color: var(--medium-grey);
 }
 .topFilters .textFilter.showMoreFilters {
-  color: #999;
+  color: var(--medium-grey);
 }
 .bilingual .textFilter .he,
 .bilingual .categoryFilter .he {
@@ -7137,7 +6949,7 @@ But not to use a display block directive that might break continuous mode for ot
 .textList .textListTop > .loadingMessage,
 .textList .texts .contentInner > .loadingMessage {
   padding: 22px 10px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 14px;
   text-align: center;
 }
@@ -7169,7 +6981,7 @@ But not to use a display block directive that might break continuous mode for ot
   border-bottom: 1px solid #eee;
 }
 .textList .texts .textRange .title {
-  color: #999;
+  color: var(--medium-grey);
 }
 .textList .texts .segment .queryTextHighlight {
   padding: 0;
@@ -7220,12 +7032,12 @@ But not to use a display block directive that might break continuous mode for ot
   vertical-align: -8px;
 }
 .textList .sheet .sheetViews {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 12px;
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   margin: auto 14px;
 }
@@ -7250,7 +7062,7 @@ But not to use a display block directive that might break continuous mode for ot
   flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
-  color: #999;
+  color: var(--dark-grey);
   text-align: left;
 }
 .textList .sheet .sheetTag {
@@ -7300,7 +7112,7 @@ But not to use a display block directive that might break continuous mode for ot
 .sheetTag.button:active {
   background-color: #EDEDED;
   border-color: #ccc;
-  color: #999;
+  color: var(--dark-grey);
   font-size: 14px;
   margin: 4px;
 }
@@ -7340,7 +7152,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
-  color: #666;
+  color: var(--dark-grey);
 	padding-bottom: 15px;
 }
 .mediaList .mediaTitle .he {
@@ -7351,7 +7163,7 @@ But not to use a display block directive that might break continuous mode for ot
   color: #000;
 }
 .mediaList .media a {
-	color: #999;
+	color: var(--medium-grey);
 }
 .mediaList .media .description {
 	margin: 10px 0;
@@ -7359,7 +7171,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   flex-flow: row;
   justify-content: space-between;
-  color: #666;
+  color: var(--dark-grey);
 }
 .mediaList .media .panel{
 	background: #e6e6e6;
@@ -7473,18 +7285,18 @@ But not to use a display block directive that might break continuous mode for ot
 .webpageList .webpage .domain {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
-  color: #666;
+  color: var(--dark-grey);
   margin-bottom: 10px;
 }
 .webpageList .webpage .description {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .webpageList .webpage .webpageMetadata,
 .mediaList .media .meta,
 .manuscript .meta {
   font-size: 13px;
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 5px;
 }
 .interface-hebrew .webpageList .webpage .webpageMetadata {
@@ -7513,7 +7325,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .webpageList .webpagesLinkerMessage {
   padding: 20px 0px;
-  color: #999;
+  color: var(--medium-grey);
   border-top: 1px solid #E5E5E5;
   font-size: 13px;
 }
@@ -7521,7 +7333,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 20px 34px;
 }
 .webpageList .webpagesLinkerMessage a {
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: underline;
 }
 
@@ -7558,7 +7370,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999
+  color: var(--medium-grey-legacy);
 }
 .manuscript {
   border-bottom: 1px solid #DDDDDD;
@@ -7607,14 +7419,14 @@ But not to use a display block directive that might break continuous mode for ot
   color: #4871bf;
 }
 .textRange.lowlight .numberLabel {
-  color: #999;
+  color: var(--medium-grey);
 }
 .readerPanel.bilingual .connectionsPanel .he {
   display: none;
 }
 .connectionsSummaryLoading {
   padding: 20px 34px;
-  color: #999;
+  color: var(--medium-grey);
 }
 .connectionsPanel .connectionPanelSectionHeader{
   margin-inline-start: 34px;
@@ -7631,7 +7443,7 @@ But not to use a display block directive that might break continuous mode for ot
   line-height: 18px;
   letter-spacing: 0em;
   text-align: justified;
-  color: #666666;
+  color: var(--dark-grey);
   text-transform: uppercase;
 
 }
@@ -7661,7 +7473,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--dark-grey);
   margin-inline-end: 15px;
   text-decoration: none;
   cursor: pointer;
@@ -7758,6 +7570,8 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 0;
   border: 0px;
   flex: 1 1 auto;
+  display: flex;
+  align-items: center;
 }
 
 .toolsButton ::before {
@@ -7774,7 +7588,7 @@ But not to use a display block directive that might break continuous mode for ot
   align-self: flex-start;
 }
 
-.toolsButtonContainer.highlighted .experimentLabel {
+.experimentLabel {
   --english-font: var(--english-sans-serif-font-family);
   color: var(--dark-grey);
   font-size: 11px;
@@ -7790,6 +7604,14 @@ But not to use a display block directive that might break continuous mode for ot
   height: var(--sans-serif-small-font-size);
   position: relative;
   top: 1px;
+}
+
+.toolsButtonSecondaryIcon {
+  height: 14px;
+  width: auto;
+  margin-inline-start: auto;
+  margin-inline-end: 4px;
+  flex-shrink: 0;
 }
 
 .toolsButtonContainer .toolsButton.greyColor {
@@ -7866,13 +7688,13 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: #999;
+  color: var(--dark-grey);
 }
 .topicButton .smallText .he {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
-  color: #999;
+  color: var(--medium-grey);
 }
 .toolsButton:hover {
   text-decoration: none;
@@ -7899,7 +7721,7 @@ But not to use a display block directive that might break continuous mode for ot
   filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 20px;
   width: 20px;
   margin-top: -1px;
@@ -7960,7 +7782,7 @@ But not to use a display block directive that might break continuous mode for ot
   box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   padding: 20px 20px;
   margin: 19px 33px;
 }
@@ -7971,7 +7793,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
   font-size: var(--sans-serif-body-font-size);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
+  color: var(--dark-grey);
   text-overflow: ellipsis;
 }
 
@@ -8066,11 +7888,11 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 18px;
   line-height: 25px;
   text-decoration-line: none;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .confirmAddToSheet.addToSourceSheetBox .message span a{
   text-decoration: underline;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .confirmAddToSheet .button {
   width: 100%;
@@ -8127,7 +7949,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .notePrivateButton.active,
 .connectionsPanel .notePublicButton.active {
   background-color: white;
-  color: #666;
+  color: var(--dark-grey);
 }
 .connectionsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
@@ -8150,7 +7972,7 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   cursor: pointer;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8177,7 +7999,8 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsPanel .editNoteButton {
   visibility: hidden;
 }
-.connectionsPanel .note:hover .editNoteButton {
+.connectionsPanel .note:hover .editNoteButton,
+.connectionsPanel .editNoteButton:focus {
   visibility: visible;
 }
 .connectionsPanel .noteButtons .fa {
@@ -8197,8 +8020,21 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;
-  color: #666666;
+  color: var(--dark-grey);
 }
+
+.divineNameDepricationNotification {
+  padding-top: 10px;
+}
+
+.divineNameDepricationNotification p a {
+  color: var(--inline-link-blue);
+}
+
+.divineNameDepricationNotification p a:hover {
+  text-decoration: underline;
+}
+
 
 .addConnectionBox {
   font-size: 18px;
@@ -8530,8 +8366,9 @@ But not to use a display block directive that might break continuous mode for ot
 .emptyDesktop {
   margin-top: 200px;
   text-align: center;
-  color: #999;
+  color: var(--medium-grey);
 }
+/* DEPRECATED: Use Button component from static/js/common/Button.jsx instead */
 .button {
   display: inline-block;
   color: white;
@@ -8550,7 +8387,7 @@ But not to use a display block directive that might break continuous mode for ot
   border: none;
 }
 .saveProfileButton{
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .button.disabled{
   border: 1px solid var(--light-grey);
@@ -8572,6 +8409,15 @@ a.button {
 a.button:hover {
   color: white;
   text-decoration: none;
+}
+
+/* Legacy Button Focus Styling */
+body.user-is-tabbing .button:focus,
+body.user-is-tabbing a.button:focus,
+body.user-is-tabbing div.button:focus,
+body.user-is-tabbing label.button:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
 }
 .button.white {
   background-color: white;
@@ -8597,7 +8443,7 @@ a.button.mini {
   float: left;
 }
 .button.transparent {
-  color: #666;
+  color: var(--dark-grey);
   background-color: transparent;
   border: 1px solid transparent;
 }
@@ -8627,14 +8473,6 @@ a .button:hover {
   width: -moz-fit-content;
   width: fit-content;
 }
-.button.small.publish {
-  color: #666666;
-  background-color: white;
-  font-weight: 500;
-  min-height: 31px;
-  height: 31px;
-  padding: 0 10px;
-}
 .headerWithAdminButtonsContainer{
   display: flex;
   justify-content: space-between;
@@ -8653,7 +8491,7 @@ a .button:hover {
   margin-inline-end: 7px;
 }
 .button.extraSmall.reviewState.reviewed {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
 
 }
 .button.extraSmall.reviewState.notReviewed {
@@ -8688,7 +8526,7 @@ a .button:hover {
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
   border-radius: revert;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .headerWithAdminButtons {
   display: flex;
@@ -8716,24 +8554,25 @@ a .button:hover {
   width: 14px;
   margin-top: -3px;
 }
-.button.appButton {
+.appButton {
   box-shadow: none;
-  border: 2px solid var(--sefaria-blue);
+  border: 1px solid var(--light-grey);
   color: var(--sefaria-blue);
 }
-.button.appButton img {
+.appButton img {
   margin-inline-end: 5px;
 }
-.button.appButton.iconOnly {
+.appButton.iconOnly {
   width: 40px;
   height: 40px;
   box-sizing: border-box;
   display: inline-flex;
   padding: 0;
+  margin-inline-end: 5px;
   justify-content: center;
   align-items: center;
 }
-.button.appButton.iconOnly img {
+.appButton.iconOnly img {
   width: 18px;
   height: 18px;
   margin: 0;
@@ -8769,7 +8608,7 @@ a .button:hover {
 }
 .named-entity-ambiguous .systemText .int-en,
 .named-entity-ambiguous .systemText .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 .named-entity-title-bar {
   display: flex;
@@ -8794,7 +8633,7 @@ a .button:hover {
 }
 .lexicon-results .named-entity-description .en,
 .lexicon-results .named-entity-description .he {
-  color: #666;
+  color: var(--dark-grey);
 }
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
@@ -8817,7 +8656,7 @@ a .button:hover {
 }
 .lexicon-results .entry .morphology {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
   display: inline;
   margin-right: 5px;
 }
@@ -8880,7 +8719,7 @@ a .button:hover {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  color: #666;
+  color: var(--dark-grey);
   font-weight: 300;
 }
 .splitHeader .en {
@@ -8951,7 +8790,7 @@ a .button:hover {
   display: none;
   float:right;
   cursor: pointer;
-  color: #999;
+  color: var(--medium-grey);
   text-decoration: none;
 }
 .sheetButton:hover {
@@ -8965,11 +8804,11 @@ a .button:hover {
 }
 .tagString a {
   text-decoration: none;
-  color: #999;
+  color: var(--medium-grey);
 }
 .tagString a:after {
   content: ", ";
-  color: #999;
+  color: var(--medium-grey);
 }
 .tagString a:last-child:after {
   content: "";
@@ -9029,6 +8868,9 @@ a .button:hover {
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+.singlePanel .sheetMetaDataBox {
+  margin-block-start: 75px;
+}
 .sheetMetaDataBox .profile-pic {
   width: 30px;
   height: 30px;
@@ -9043,7 +8885,7 @@ a .button:hover {
   margin-block-end: 40px;
 }
 a.sheetAuthorName {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
@@ -9061,10 +8903,36 @@ a.sheetAuthorName:hover {
 .sheetMetaDataBox .sidebarLayout .items {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+.singlePanel .sheetMetaDataBox .sidebarLayout .items {
+  align-items: flex-start;
+}
+.sheetMetaDataBox .guideButton {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-inline-end: 8px;
+}
+.sheetMetaDataBox .guideButton img {
+  height: 16px;
+  width: auto;
+  margin-top: 6px;
+}
+.sheetMetaDataBox .guideButton.tooltip-toggle::before {
+  font-weight: bold;
+}
+.interface-hebrew .sheetMetaDataBox .guideButton img {
+  height: 28px;
+  margin-top: 0;
 }
 .marginInlineIndent {
   margin-inline-start: 15px;
   margin-inline-end: 15px;
+}
+.singlePanel .marginInlineIndent {
+  margin-inline-start: 7px;
+  margin-inline-end: 7px;
 }
 .sheetMetaDataBox .texts-properties-menu {
   top: 40px;
@@ -9079,7 +8947,6 @@ a.sheetAuthorName:hover {
   font-weight: 500;
   line-height: 18.75px;
   color: var(--dark-grey);
-  margin-block-end: 25px;
   text-align: initial;
 }
 .sheetMetaDataBox .title {
@@ -9095,17 +8962,20 @@ a.sheetAuthorName:hover {
 
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
-  color: #999;
+  color: var(--medium-grey);
   position: relative;
   pointer-events: none;
   width: auto;
 }
 .sheetMetaDataBox .summary:empty:before {
   content: "Add a description...";
-  color: #999;
+  color: var(--medium-grey);
   position: relative;
   pointer-events: none;
   width: auto;
+}
+.interface-hebrew .sheetMetaDataBox .summary:empty:before {
+  content: "הוסף תיאור";
 }
 .interface-hebrew .sheetMetaDataBox .title:empty:before {
   content: "ללא שם";
@@ -9116,7 +8986,8 @@ a.sheetAuthorName:hover {
   padding: 10px 20px;
   max-width: 540px;
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
+  height: 520px;
 }
 .publishBox .publishLabel {
   --english-font: var(--english-sans-serif-font-family);
@@ -9138,7 +9009,7 @@ div.transparentBackground.publishBox {
 }
 
 .publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
-  color: #666;
+  color: var(--dark-grey);
 }
 .publishBox p.error {
   color: red;
@@ -9189,7 +9060,7 @@ div.transparentBackground.publishBox {
 .publishBox h3 {
   font-size: 22px;
   font-weight: 500;
-  color: #666;
+  color: var(--dark-grey);
   margin-top: 12px;
   margin-bottom: 14px;
   text-transform: none;
@@ -9203,7 +9074,7 @@ div.transparentBackground.publishBox {
   margin-top: 20px;
 }
 .publishBox .smallText {
-  color: #666666
+  color: var(--dark-grey)
 }
 .publishBox .react-tags {
   position: relative;
@@ -9214,7 +9085,7 @@ div.transparentBackground.publishBox {
   /* shared font styles */
   font-size: 16px;
   line-height: 1.2;
-  color: #666;
+  color: var(--dark-grey);
   /* clicking anywhere will focus the input */
   cursor: text;
 }
@@ -9284,7 +9155,7 @@ body.interface-hebrew .publishBox textarea::placeholder {
 .publishBox .publishButton .button.published {
   background-color: #EDEDEC;
   border: 1px solid #CCCCCC;
-  color: #666666
+  color: var(--dark-grey)
 }
 
 .publishBox .publishButton .button {
@@ -9338,7 +9209,8 @@ body.interface-hebrew .publishBox textarea::placeholder {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
-  min-width: 300px;
+  min-width: 150px;
+  max-width: 100%;
 }
 /* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
 RMN: 2021-04-22 */
@@ -9370,10 +9242,46 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   opacity: 0.5;
   cursor: auto;
 }
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
+.editorSaveStateIndicator{
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  z-index: 1;
+  background: white;
+  padding: 3px;
+}
+.interface-english .editorSaveStateIndicator.tooltip-toggle::before{
+  margin-inline-start: 75px;
+}
+.editorSaveStateIndicator .saveStateMessage{
+  font-family: Roboto;
+  margin-inline-start: 2px;
+  font-size: 16px;
+  width: max-content;
+}
+.editorSaveStateIndicator .saveStateMessage a{
+  font-family: Roboto;
+  color: #18345D;
+}
+.interface-hebrew .sheetContentSidebar .editorSaveStateIndicator.tooltip-toggle::before {
+  left: auto;
+}
+.floatingEditorIcons{
+  display: flex;
+  position: sticky;
+  flex-direction: row;
+  justify-content: space-between;
+  top: 80px;
+  z-index: 1;
+}
+.interface-hebrew .floatingEditorIcons{
+    flex-direction: row-reverse;
+}
+
 .editorSidebarToggle {
-  position: fixed;
-  top: 200px;
-  right: 30px;
   height: 30px;
   width: 30px;
   border-radius: 30px;
@@ -9393,9 +9301,8 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
-  position: absolute;
-  top: 7px;
-  left: 13px;
+  top: 2px;
+  position: relative;
 }
 .collectionListingImage {
   height: 100%;
@@ -9440,19 +9347,10 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 .interface-hebrew .collectionInfo .en {
   display: none;
 }
-.collectionPage h1 {
-  color: black;
-  font-size: 30px;
-  margin-bottom: 5px;
-  --hebrew-font: var(--hebrew-serif-font-family);
-  --english-font: var(--english-serif-font-family);
-}
-.collectionPage .navTitle {
-  margin-bottom: 5px;
-}
+
 .collectionPage .collectionLabel {
   text-transform: uppercase;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   letter-spacing: 2px;
   display: block;
@@ -9470,13 +9368,14 @@ body.interface-english .publishBox .react-tags__suggestions ul {
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   line-height: 1.3;
 }
 .collectionPage .collectionDescription .dedication {
   --hebrew-font: var(--hebrew-serif-font-family);
   --english-font: var(--english-serif-font-family);
 }
+
 .collectionPage .collectionDescription .en .dedication {
   font-style: italic;
   font-size: 18px;
@@ -9574,7 +9473,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   padding-bottom: 24px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
-  color: #666;
+  color: var(--dark-grey);
   display: flex;
   flex-direction: row;
   justify-content: start;
@@ -9620,7 +9519,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 15px;
   z-index: 1;
 }
@@ -9716,7 +9615,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: pointer;
   font-size: 16px;
   line-height: 26px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .topicPanel .sideColumnMore:hover {
   cursor: pointer;
@@ -9859,7 +9758,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 }
 .noteListing .textRange .title {
   font-size: 18px;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 10px;
 }
 .noteListing .textRange .title:hover {
@@ -9868,7 +9767,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 .noteListing .textRange .text {
   font-size: 18px;
   font-style: italic;
-  color: #999;
+  color: var(--medium-grey);
   margin-bottom: 18px;
 }
 .noteListing .textRange .text .he {
@@ -9930,10 +9829,7 @@ div.aboutSheetMetadata span:not(:first-child)::before{
   float: right;
 }
 .searchBox .keyboardInputInitiator {
-    opacity: 0.4;
-    width: 22px;
-    height: 20px;
-    padding: 4px 7px 2px;
+    margin: 0 7px 0 0;
     position: initial;
     vertical-align: 0px;
 }
@@ -9954,9 +9850,6 @@ div.aboutSheetMetadata span:not(:first-child)::before{
 }
 .searchBox.TopicSearchBox input.selected {
   color: var(--commentary-blue);
-}
-.header .searchBox .keyboardInputInitiator {
-    display: none;
 }
 body #keyboardInputMaster {
     opacity: 1;
@@ -9997,7 +9890,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .calendarRef {
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
   display: flex;
   margin: 2px 0;
 }
@@ -10006,6 +9899,102 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .calendarRef img {
   margin-top: 2px;
+}
+#editCollectionPage {
+  width: 90%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 80px 0 100px;
+}
+.onoffswitch {
+  position: relative;
+  width: 70px;
+  display: inline-block;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select: none;
+}
+.readerNavMenu .content #editCollectionPage .onoffswitch-checkbox {
+  display: none;
+}
+.readerNavMenu .content #editCollectionPage .onoffswitch-label {
+  display: block;
+  height: auto;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 20px;
+}
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.interface-hebrew .onoffswitch-inner {
+  margin-right: -100%;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 36px;
+  padding: 0;
+  line-height: 36px;
+  font-size: 14px;
+  color: white;
+  box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+  content: "Yes";
+  padding-left: 10px;
+  background-color: #212D4F;
+  color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+  content: "לא";
+  padding-right: 10px;
+}
+.onoffswitch-inner:after {
+  content: "No";
+  padding-right: 10px;
+  background-color: #212D4F;
+  color: #fff;
+  text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after {
+  text-align: left;
+  padding-left: 10px;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "כן";
+}
+.onoffswitch-switch {
+  display: block;
+  width: 31px;
+  margin: 1px;
+  background: #FFFFFF;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 30px;
+  right: 36px;
+  border: 2px solid #999999;
+  border-radius: 26px;
+  transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-right: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0px;
+}
+.readerNavMenu .content #editCollectionPage {
+  padding: 20px 0 40px;
+  min-height: auto;
+  overflow: visible;
 }
 #editCollectionPageContainerInner {
   position: relative;
@@ -10038,7 +10027,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .field > label {
   display: block;
   margin-bottom: 15px;
-  color: #666;
+  color: var(--dark-grey);
 }
 #editCollectionPage input,
 #editCollectionPage textarea {
@@ -10071,7 +10060,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
 }
 #editCollectionPage .helperText {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   width: 500px;
 }
@@ -10087,7 +10076,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editCollectionPage .deleteCollection {
   cursor: pointer;
   margin: 30px 10px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: right;
 }
 #editCollectionPage .deleteCollection:hover {
@@ -10147,7 +10136,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom-right-radius: 7px;
 }
 .dropdown .dropdownList {
-  color: #999;
+  color: var(--medium-grey);
   background-color: white;
   box-sizing: border-box;
   padding: 0;
@@ -10157,6 +10146,31 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom-left-radius: 7px;
   border-bottom-right-radius: 7px;
 }
+.dropdown .dropdownList:focus {
+  outline: none; /* hide focus ring on container; focus is shown on the active option */
+}
+
+/* Apply default browser focus outline to dropdown elements when tabbing - matches header dropdown pattern */
+body:not(.user-is-tabbing) .dropdownItem:focus,
+body:not(.user-is-tabbing) .dropdownOption:focus,
+body:not(.user-is-tabbing) div[role="button"]:focus,
+body:not(.user-is-tabbing) .dropdownLinks-button img:focus {
+  outline: none;
+}
+
+/* Add browser-like focus outline for dropdown buttons when tabbing */
+body.user-is-tabbing div[role="button"]:focus,
+body.user-is-tabbing .dropdownLinks-button img:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
+/* Show focus outline on dropdown options when using keyboard navigation and listbox has focus */
+body.user-is-tabbing .dropdownList:focus .dropdownOption.focused {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
@@ -10199,17 +10213,18 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 13px;
   line-height: 15px;
-  color: #999999;
+  color: var(--medium-grey);
   margin-bottom: 11px;
 }
 .addToSourceSheetBox .selectedRef{
-  padding: 16px 22px;
+  padding: 0;
   font-size: 16px;
   margin-bottom: 15px;
-  cursor: pointer;
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
+  cursor: default;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
   text-align: start;
 }
 .addToSourceSheetBox .selectedRef span{
@@ -10218,7 +10233,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 18px;
   line-height: 25px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .readerPanel.hebrew .addToSourceSheetBox .selectedRef span{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -10239,14 +10254,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: #999;
+  color: var(--medium-grey);
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
 }
 #footer a {
   display: block;
-  color: #666;
+  color: var(--dark-grey);
 }
 .interface-hebrew #footer{
   direction: rtl;
@@ -10350,10 +10365,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 4px;
 }
 #footer .section.connect .socialLinks a {
-  color: #666;
+  color: var(--dark-grey);
 }
 #footer #siteLanguageToggle {
-  color: #999;
+  color: var(--medium-grey);
   margin-top: 30px;
   font-size: 15px;
 }
@@ -10366,7 +10381,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer a#siteLanguageHebrew {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
-  color: #666;
+  color: var(--dark-grey);
   display: inline;
   margin: 0 3px;
 }
@@ -10394,7 +10409,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -10443,7 +10458,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
@@ -10486,6 +10501,16 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-bottom: solid 1px var(--light-grey);
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guideBox .guideHeader .guideHeaderTags {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 .guideBox .guideHeader i {
@@ -10503,6 +10528,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 29px;
   color: #000000;
 }
+
 .guideBox .guidePromptBox {
   direction: ltr;
   margin-bottom: 20px;
@@ -10583,7 +10609,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-weight: normal;
   font-size: 16px;
   line-height: 19px;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .interface-hebrew .versionsBox .versionLanguage {
   direction: rtl;
@@ -10592,13 +10618,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding-top: 25px;
 }
 .versionsBox .versionLanguage .versionCount {
-  color: #999;
+  color: var(--medium-grey);
 }
 .versionsBox a.selectButton:not(.version-with-preview-title-line .selectButton) {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
-  color: #666666;
+  color: var(--dark-grey);
   box-shadow: 0 1px 2px #999;
   padding: 2px 8px;
   background-color: white;
@@ -10624,7 +10650,6 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
-  font-size: 62.5%;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 100%;
@@ -10633,7 +10658,7 @@ span.purim-emoji img{
   position: relative;
 }
 .sheetContent .collectionsWidgetDone .button, .sheetContentSidebar .largeFollowButton {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetContentSidebar .largeFollowButton {
   --english-font: var(--english-sans-serif-font-family);
@@ -10659,11 +10684,11 @@ span.purim-emoji img{
 }
 .sheetContent .ref {
   cursor: pointer;
-  color: #999;
+  color: var(--medium-grey);
   font-size: 1em;
 }
 .sheetContent .ref a {
-  color: #999;
+  color: var(--medium-grey);
 }
 .sheetContent img {
   max-width: 100%;
@@ -10792,6 +10817,9 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
+.sheetContent .SheetOutsideText.highlight .sheetItem.segment .sourceContentText {
+  margin-bottom: 12px;
+}
 .sheetContent h1,
 #sheet .outside h1,
 .sourceContentText h1 {
@@ -10805,7 +10833,10 @@ span.purim-emoji img{
 .sourceContentText h1 span {
   border-bottom: 4px solid var(--lighter-grey);
 }
-
+.interface-hebrew #aboutCover,
+.interface-hebrew .overlayTextOnSheetsHero {
+  direction: rtl;
+}
 #aboutCover {
   margin-top: -90px;
   height: 240px;
@@ -10853,6 +10884,17 @@ span.purim-emoji img{
   line-height: 18px;
   top: 227px;
 }
+@media screen and (min-width: 801px) and (max-width: 950px) {
+  .overlayTextOnSheetsHero #title {
+    font-size: 40px;
+    top: 115px;
+    line-height: revert;
+  }
+  .overlayTextOnSheetsHero #message {
+    font-size: 22px;
+    top: 175px;
+  }
+}
 @media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {
     margin-inline-start: 15%;
@@ -10877,23 +10919,28 @@ span.purim-emoji img{
   align-items: flex-end;
   width: 25px;
   height: 25px;
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
   border-radius: 50%;
   color: white;
   font-size: 30px;
   line-height: 1;
   cursor: pointer;
 }
+.addToSheetButton {
+  background-color: unset;
+  border: none;
+}
 .SheetOutsideBiText .addToSheetButton, .SheetSource .addToSheetButton {
   margin-inline-start: 15px;
   padding-block-start: 10px;
   padding-block-end: 10px;
-  border: none;
-  background-color: white;
 }
-.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton, .SheetOutsideText .addToSheetButton {
+.SheetMedia .addToSheetButton, .SheetComment .addToSheetButton {
   margin-block-start: -10px;
   margin-block-end: 30px;
+}
+.SheetOutsideText .addToSheetButton {
+  margin-block-end: 12px;
 }
 .sheetContent .addToSheetText {
   --english-font: var(--english-sans-serif-font-family);
@@ -10910,7 +10957,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -10925,7 +10972,7 @@ span.purim-emoji img{
     display: flex;
     flex-direction: row;
   }
-  div.sheetsWrapper :nth-child(-n+2 of .card) {
+  div.TOCCardsWrapper :nth-child(-n+2 of .card) {
     border-top: 1px solid #EDEDEC;
   }
 }
@@ -11108,7 +11155,7 @@ span.purim-emoji img{
 }
 .sheetItem:only-of-type.empty .SheetOutsideText:before,
 .sheetContent .spacer:only-of-type.empty:before {
-  color: #999;
+  color: var(--medium-grey);
   position: absolute;
   pointer-events: none;
 }
@@ -11236,10 +11283,22 @@ background-color: white;
   position: relative;
 }
 
+.connectionsPanel .autocompleterPopups {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
 .addInterfaceInput .suggestionBoxContainer,
 .addInterfaceInput .textPreviewContainer {
   position: absolute;
   z-index: 1;
+}
+
+.editorContent .show-above .suggestionBoxContainer,
+.editorContent .show-above .textPreviewContainer {
+  top: auto;
+  bottom: 100%;
 }
 
 .addInterfaceInput .suggestionBox,
@@ -11411,7 +11470,7 @@ background-color: white;
 .editSheetNotice a {
   font-size: 12px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: var(--medium-grey);
 }
 .cookiesNotification {
   position: fixed;
@@ -11478,9 +11537,9 @@ background-color: white;
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en,
-section.SheetOutsideBiText .en {
-  background-color: #FBFBFA;
+.bilingual .SheetSource .en,
+.bilingual .SheetOutsideBiText .en {
+  background-color: var(--lightest-grey);
 }
 section.SheetSource,
 section.SheetOutsideBiText {
@@ -11556,9 +11615,9 @@ cursor: pointer;
 
 .sheetItem .SheetSource.selected.segment,
 .sheetItem .SheetOutsideBiText.selected.segment {
-  border-top: 2px solid var(--select-blue);
-  border-bottom: 2px solid var(--select-blue);
-  border-inline-end: 2px solid var(--select-blue);
+  border-top: 2px solid var(--theme-select);
+  border-bottom: 2px solid var(--theme-select);
+  border-inline-end: 2px solid var(--theme-select);
   margin-top: 0;
   margin-bottom: 28px;
   margin-inline-end: -2px;
@@ -11685,7 +11744,7 @@ cursor: pointer;
 .sheetItem .SheetMedia {
   margin-bottom: 14px;
 }
-.readerPanel.bilingual.heRight .SheetSource {
+.heRight .SheetSource {
   background-image:
   linear-gradient(
     to left,
@@ -11696,7 +11755,7 @@ cursor: pointer;
     #fff 100%
   );
 }
-.readerPanel.bilingual.heLeft .SheetSource {
+.heLeft .SheetSource {
   background-image:
   linear-gradient(
     to right,
@@ -11706,6 +11765,11 @@ cursor: pointer;
     #FBFBFA 100%,
     #fff 100%
   );
+}
+.sheetContent .highlight,
+.sheetContent .highlight .en {
+  background-image: unset;
+  background-color: var(--highlight-green-light);
 }
 
 .bilingual.heLeft .sheetContent .boxedSheetItem,
@@ -11720,7 +11784,10 @@ cursor: pointer;
 }
 
 .bilingual.heRight .sheetContent .sheetItem .SheetSource.segment {
-  flex-direction: row-reverse;
+  direction: rtl;
+}
+.bilingual.heLeft .sheetContent .sheetItem .SheetSource.segment {
+  direction: ltr;
 }
 
 .boxedSheetItem + .spacer {
@@ -11886,13 +11953,13 @@ cursor: pointer;
   margin: 0 6px 1px 0;
 }
 .tab-view .tab-list .applink a {
-    color: #666;
+    color: var(--dark-grey);
 }
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
 .tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
-    color: #666;
+    color: var(--dark-grey);
 }
 .tab-view.largeTabs .tab-list {
     border-bottom: 1px solid #CCC;
@@ -12017,7 +12084,7 @@ cursor: pointer;
 }
 .profile-page .textRange {
   font-size: 18px;
-  color: #666;
+  color: var(--dark-grey);
 }
 .profile-page .note-text {
   font-size: 18px;
@@ -12084,46 +12151,6 @@ cursor: pointer;
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
-#staticContentWrapper .editorToggleHeader {
-  margin: revert;
-}
-.editorToggleHeader, .genericBanner {
-  padding-inline: 10%;
-  background-color: var(--sefaria-blue);
-  color: white;
-  height: 72px;
-  font-size: 16px;
-  margin-top: -60px;
-  margin-bottom: 80px;
-  display: flex;
-  justify-content: center;
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
-  gap: 5px;
-  align-items: center;
-}
-
-.genericBanner {
-  margin-block: revert;
-}
-
-.interface-hebrew .editorToggleHeader, .interface-hebrew .genericBanner {
-  direction: rtl;
-}
-.editorToggleHeader .button, .genericBanner .button {
-  white-space: nowrap;
-  padding: 5px 8px;
-  height: 30px;
-  letter-spacing: 0;
-  margin-inline-end: 15px;
-}
-
-.editorToggleHeader .learnMore {
-  text-decoration: underline;
-  color: white;
-  white-space: nowrap;
-  margin-top: -5px;
-}
 .feedbackOverlay {
   position: fixed;
   width: 100%;
@@ -12178,7 +12205,7 @@ cursor: pointer;
 .feedbackOverlay textarea::placeholder {
   font-size: 16px;
   font-style: normal;
-  color: #666;
+  color: var(--dark-grey);
 }
 .feedbackOverlay a {
   color: #4871bf;
@@ -12201,7 +12228,7 @@ cursor: pointer;
   flex-direction: column;
 }
 .sheetList .sheet .sheetTags {
-  color: #999;
+  color: var(--medium-grey);
 }
 .sheetsProfileList .sheet .sheetTags .bullet {
   padding: 0 5px;
@@ -12229,7 +12256,7 @@ cursor: pointer;
 .default-profile-img {
   width: 175px;
   height: 175px;
-  background-color: #999;
+  background-color: var(--medium-grey);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -12279,11 +12306,11 @@ cursor: pointer;
   align-items: center;
 }
 .filterable-list .filter-bar-new .filter-input ::placeholder {
-  color: #999;
+  color: var(--medium-grey);
 }
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
@@ -12354,7 +12381,7 @@ cursor: pointer;
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {
-  color: #666;
+  color: var(--dark-grey);
   padding: 16px 15px;
 }
 .profile-page .profile-summary {
@@ -12411,9 +12438,6 @@ cursor: pointer;
   .profile-page .profile-pic .profile-pic-button {
     top: calc(-1 * ((87px/2) + (46px/2)));  /* height of .profile-img + height of .profile-pic-button */
   }
-  .profile-page .editorToggleHeader {
-    display: none !important;
-  }
   .profile-page .profile-summary .profile-img {
     width: 87px !important;
     height: 87px !important;
@@ -12435,7 +12459,7 @@ cursor: pointer;
 }
 
 .profile-page .profile-summary .follow {
-  color: #999;
+  color: var(--medium-grey);
   font-size: 13px;
   letter-spacing: 1px;
 }
@@ -12444,7 +12468,7 @@ cursor: pointer;
 }
 
 .profile-page .resourcesLink.faded {
-  color: #666;
+  color: var(--dark-grey);
 }
 .resourcesLink.blue {
   color: white;
@@ -12479,7 +12503,7 @@ cursor: pointer;
   padding-bottom: 10px;
 }
 .profile-page .follow-header .follow-count {
-  color: #999;
+  color: var(--medium-grey);
 }
 .profile-page .resourcesLink,
 .profile-pic-cropper-button.resourcesLink {
@@ -12500,7 +12524,7 @@ cursor: pointer;
 .profile-page .emptyList .emptyListText {
   font-size: 16px;
   margin: 30px 0;
-  color: #999;
+  color: var(--medium-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 1.5;
 }
@@ -12522,7 +12546,7 @@ cursor: pointer;
   font-size: 16px;
 }
 .profile-page .profile-summary .sub-sub-title {
-  color: #666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
 }
@@ -12542,7 +12566,7 @@ cursor: pointer;
   top: 0;
   transform: translateY(-35%);
   left: 30px;
-  color: #999;
+  color: var(--medium-grey);
   text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
@@ -12603,7 +12627,7 @@ cursor: pointer;
   color: black;
 }
 .largeFollowButton.following span {
-  color: #666;
+  color: var(--dark-grey);
 }
 .smallFollowButton {
   height: 20px;
@@ -12611,7 +12635,7 @@ cursor: pointer;
   width: min-content;
   text-align: center;
   cursor: pointer;
-  background: var(--midrash-green);;
+  background: var(--sheets-green);
   color: white;
   border-radius: 3px;
   margin-inline-start: 15px;
@@ -12797,7 +12821,7 @@ body .homeFeedWrapper .content {
 }
 
 .story .subHeading .int-en, .story .subHeading .int-he  {
-  color: #666;
+  color: var(--dark-grey);
 }
 .story .learningPrompt {
   padding: 20px 0 20px;
@@ -12919,7 +12943,6 @@ body .homeFeedWrapper .content {
   background-position-x: right;
 }
 
-
 .story .storyBody {
   clear: both;
   margin: 10px 0;
@@ -12936,7 +12959,6 @@ body .homeFeedWrapper .content {
 }
 .story .storySheetListItem > div.storyBody.sheetSummary > * {
   color: var(--dark-grey);
-  font-family: var(--english-sans-serif-font-family);
   font-size: 15px;
 }
 .story .storyBody .en {
@@ -12976,7 +12998,7 @@ body .homeFeedWrapper .content {
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
-  color: #999;
+  color: var(--medium-grey);
 }
 .authorByLine {
   display: flex;
@@ -13001,7 +13023,7 @@ body .homeFeedWrapper .content {
   bottom: 12px;
 }
 .authorOrganization {
-  color: #999;
+  color: var(--medium-grey);
 }
 .authorByLine.small {
   font-size: 14px;
@@ -13085,7 +13107,7 @@ body .homeFeedWrapper.userStats {
   padding: 10px;
 }
  .editTextInfo #newIndex .default::placeholder {
-   color: #666;
+   color: var(--dark-grey);
  }
 .button.small.deleteTopic {
   color: var(--dark-grey);
@@ -13213,7 +13235,7 @@ body .homeFeedWrapper.userStats {
   font-family: revert;
 }
 .editTextInfo #newIndex input::placeholder {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 16px;
 }
 .editTextInfo #newIndex #heTitle {
@@ -13250,7 +13272,7 @@ body .homeFeedWrapper.userStats {
 	margin: -5px 11px 0 -32px;
 }
 .editTextInfo #newIndex .headerWithButtons a {
-    color: #666;
+    color: var(--dark-grey);
 }
 .editTextInfo .nodeTemplate {
 	display: none;
@@ -13321,7 +13343,7 @@ body .homeFeedWrapper.userStats {
   font-size: 22px;
   vertical-align: middle;
   display: block;
-  color: #666;
+  color: var(--dark-grey);
 }
 .collectionsWidgetClose {
   font-size: 40px;
@@ -13344,10 +13366,10 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidgetList .emptyMessage {
   display: block;
-  color: #666;
+  color: var(--dark-grey);
   padding: 20px 0px;
   line-height: 1.5;
-  text-align: start;
+  font-size: 22px;
 }
 .collectionsWidgetCreate,
 .collectionsWidgetDone {
@@ -13367,7 +13389,7 @@ body .homeFeedWrapper.userStats {
 }
 
 .collectionsWidgetPlus {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 25px;
   margin-inline-end: 13px;
   margin-top: -5px;
@@ -13386,7 +13408,7 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-style: normal;
-  color: #666;
+  color: var(--dark-grey);
 }
 .interface-hebrew .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
   font-family: "Heebo", sans-serif;
@@ -13447,7 +13469,7 @@ body .homeFeedWrapper.userStats {
   text-align: center;
 }
 .userStats .statHeader span {
-  color: #666;
+  color: var(--dark-grey);
   letter-spacing: 0.7px;
   line-height: 23px;
 }
@@ -13481,7 +13503,7 @@ body .homeFeedWrapper.userStats {
 }
 .userStatModeButton {
   background-color: #fff;
-  color: #666;
+  color: var(--dark-grey);
   border-radius: 5px;
   height: 50px;
   width: 120px;
@@ -13533,7 +13555,7 @@ a.topicLexiconTitle.contentText {
   height: 30px;
   background: #fff;
   border: #ccc solid 1px;
-  color: #666;
+  color: var(--dark-grey);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   box-sizing: border-box;
@@ -13809,7 +13831,7 @@ span.ref-link-color-3 {color: blue}
   height: 30px;
   border-radius: 6px;
   z-index: 1;
-  background-color: #999999;
+  background-color: var(--medium-grey-legacy);
   opacity: 0.5;
   left: -8.5px;
   top: -3px;
@@ -13922,7 +13944,7 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: column;
   margin: 10px 30px;
-  border-top: 1px solid #999999;
+  border-top: 1px solid var(--light-grey);
 }
 
 .peopleInBeitMidrashInnerContainer {
@@ -14066,7 +14088,7 @@ span.ref-link-color-3 {color: blue}
     width: calc(100% - 22px);
     padding: 15px 11px;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    color: #666;
+    color: var(--dark-grey);
     font-style: normal;
     font-weight: normal;
     font-size: 16px;
@@ -14084,7 +14106,7 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
   padding-top: 20px;
   margin: 10px 30px 20px;
-  border-top: 1px solid #999999;
+  border-top: 1px solid var(--light-grey);
 
 }
 
@@ -14144,7 +14166,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .chatNameAndTime {
-  color: #999999;
+  color: var(--medium-grey-legacy);
   font-size: 14px;
   font-weight: 500px;
 }
@@ -14271,7 +14293,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 #acceptButton {
-  background-color: #5D956F;
+  background-color: var(--sheets-green);
   border-radius: 6px;
   color: white;
   border: 0px;
@@ -14546,7 +14568,7 @@ span.ref-link-color-3 {color: blue}
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: 100% 100%;
-  background-color: var(--medium-grey);
+  background-color: var(--dark-grey);
   cursor: pointer;
   appearance: unset;
   transition: border 0.3s ease, outline 0.3s ease, background-color 0.3s ease;
@@ -14595,10 +14617,10 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 .sheetsHomepage .button {
-  background-color: var(--midrash-green);
+  background-color: var(--sheets-green);
 }
 .sheetsHomepage .sheetsHomepageSectionTitle {
-  color: var(--midrash-green);
+  color: var(--sheets-green);
   font-family: 'Roboto', "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -14619,19 +14641,21 @@ span.ref-link-color-3 {color: blue}
 .sheetsHomepage .content .contentInner {
   width: 875px;
 }
-.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar, .sheetsHomepage .sidebarLayout .sheetsTopicTOC {
+.sheetsHomepage .sidebarLayout .sheetsTopicsCalendar,
+.sheetsHomepage .sidebarLayout .sheetsTopicTOC,
+.sheetsHomepage .sidebarLayout .voicesBodyTitle {
   margin-inline-start: 10%;
 }
 .sheetsHomepage .sidebarLayout .sheetsTopicsCalendar {
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicTOC .sheetsWrapper {
+.TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   column-gap: 20px;
 }
-.sheetsHomepage .sheetsTopicsCalendar .sheetsWrapper {
+.sheetsHomepage .sheetsTopicsCalendar .TOCCardsWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -14649,12 +14673,12 @@ span.ref-link-color-3 {color: blue}
 .singlePanel .sheetsHomepage .navSidebarModule {
   padding: 0 10%;
 }
-.singlePanel .sheetsHomepage .sheetsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
+.singlePanel .sheetsHomepage .TOCCardsWrapper, .singlePanel .sheetsHomepage .sheetsTopicsCalendar {
   flex-direction: column;
   margin-bottom: 10px;
 }
 .singlePanel .sheetsHomepage .sidebarLayout {
-  margin-top: revert;
+  margin-top: 15px;
 }
 
 .singlePanel .sheetsHomepage .sidebarLayout .sheetsTopics {
@@ -14674,7 +14698,6 @@ span.ref-link-color-3 {color: blue}
     width: revert;
     border-top: 40px solid #FBFBFA;
     margin-block-start: -40px;
-    border-bottom: 40px solid #FBFBFA;
   }
 }
 @media screen and (max-width: 700px) {
@@ -14738,8 +14761,34 @@ span.ref-link-color-3 {color: blue}
   color: var(--selected-option);
 }
 
+.dropdownDot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mobileAccountLinks .dropdownDot {
+  width: 16px;
+  height: 16px;
+}
+
+.mobileNavMenu .mobileAccountLinks .mobileModuleSwitcher {
+  display: flex;
+  align-items: center;
+}
+
+.mobileAccountLinks .dropdownDot {
+  margin-inline-end: 15px;
+}
+
+.interface-hebrew .mobileAccountLinks .chevron {
+  transform: rotate(180deg);
+}
+
 .dropdownHeaderText {
-  padding-left: 10px;
+  padding-inline-start: 10px;
 }
 
 .dropdownDesc {
@@ -14753,7 +14802,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .dropdownSeparator {
-  border: 1px solid var(--light-grey);
+  border-top: 1px solid var(--light-grey);
   margin-block: 5px;
 }
 .sheetMetaDataBox .dropdownLinks-button {
@@ -14762,13 +14811,13 @@ span.ref-link-color-3 {color: blue}
 .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
   padding-top: 3px;
 }
-.header .headerDropdownMenu {
-  display: block;
-  align-items: center;
-  margin-top: 2px;
-  margin-bottom: 4px;
-  color: #666;
-  position: relative;
+.singlePanel .sheetMetaDataBox .readerDropdownMenu .dropdownLinks-button {
+  padding-top: 0;
+  margin-top: -7px;
+}
+.header .headerDropdownMenu,
+.search-container {
+  position: relative; /* Ensure dropdown positions relative to this container */
 }
 .headerDropdownMenu .toolsButtonContainer {
   margin: revert;
@@ -14787,7 +14836,7 @@ span.ref-link-color-3 {color: blue}
   font-size: 14px;
   font-weight: 500;
   line-height: 18px;
-  color: #666666;
+  color: var(--dark-grey);
   margin-inline-start: 10px;
   padding: revert;
 }
@@ -14797,29 +14846,18 @@ span.ref-link-color-3 {color: blue}
   position: relative;
   line-height: 0;
 }
-.header .headerDropdownMenu img, .sheetsInPanel .headerDropdownMenu img {
+.sheetsInPanel .headerDropdownMenu img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
 }
 
-.interface-english .header .headerDropdownMenu img {
-  margin-inline-end: 2px;
+.header .headerDropdownMenu .dropdownLinks-menu a {
+  color: #000000;
 }
-
-.interface-hebrew .header .headerDropdownMenu img {
-  margin-inline-end: 6px;
+.header .headerDropdownMenu .dropdownLinks-menu .globeLanguageToggle a {
+  color: #666666;
 }
-
-/* .header .headerDropdownMenu .dropdownLinks-button::after {
-  display: inline-block;
-  background: no-repeat url("/static/icons/chevron-down.svg");
-  height: 10px;
-  width: 12px;
-  vertical-align: middle;
-  content: "";
-  transform: scale(0.75);
-} */
 .sheetsInPanel .headerDropdownMenu a.headerDropdownMenu::after {
   display: inline-block;
   height: 10px;
@@ -14832,14 +14870,20 @@ span.ref-link-color-3 {color: blue}
   top: 35px;
   position: absolute;
   z-index: 1;
-  width: 150px;
-  background: #FBFBFA;
+  width: 200px;
+  background: #FFFFFF;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   display:none;
   overflow:hidden;
 }
 
+.interface-english .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  right: 5px;
+}
+.interface-hebrew .singlePanel .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
+  left: 5px;
+}
 .dropdownItem {
   padding-inline: 15px;
   flex-direction: column;
@@ -14856,6 +14900,43 @@ span.ref-link-color-3 {color: blue}
 .dropdownItem:last-child {
   padding-block-start: 5px;
   padding-block-end: 10px;
+}
+
+.dropdownItem:hover {
+  background-color: var(--highlight-blue);
+  text-decoration: none;
+}
+
+.dropdownLogoItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header .headerDropdownMenu .dropdownLogo {
+  width: 100px;
+  height: 32px;
+}
+
+.dropdownMoreItem {
+  text-align: center;
+}
+
+/* Module switcher specific styles for seamless hover */
+.moduleDropdown .dropdownSeparator {
+  margin-block: 0;
+}
+
+.moduleDropdown a.dropdownItem.dropdownModuleItem {
+  padding-block: 15px;
+}
+
+.moduleDropdown > .dropdownItem:first-child {
+  padding-block: 15px;
+}
+
+.moduleDropdown > .dropdownItem:last-child {
+  padding-block: 15px;
 }
 
 .sheetsInPanel .dropdownItem {
@@ -14875,30 +14956,29 @@ span.ref-link-color-3 {color: blue}
 
 .interface-english .header .headerDropdownMenu .dropdownLinks-menu {
   right: 0px;
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .interface-english .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu {
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .interface-hebrew .header .headerDropdownMenu .dropdownLinks-menu {
   left: 0px;
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .interface-hebrew .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu  {
-  min-width: 150px;
-  width: max-content;
+  min-width: 200px;
+  width: 200px;
 }
 
 .dropdownLinks-options {
   display: flex;
   flex-direction: column;
-  max-width: 220px;
 }
 
 /*.dropdownLinks-options > * {*/
@@ -14916,6 +14996,7 @@ span.ref-link-color-3 {color: blue}
 .header .headerDropdownMenu .dropdownLinks-menu.open, .sheetsInPanel .headerDropdownMenu .dropdownLinks-menu.open {
   display: block;
 }
+
 
 .productsFlexWrapper {
   display: flex;
@@ -15088,7 +15169,7 @@ span.ref-link-color-3 {color: blue}
     font-weight: 400;
     font-size: 14px;
     line-height: 18px;
-    color: #666666;
+    color: var(--dark-grey);
 }
 
 @media (max-width: 480px) {
@@ -15157,24 +15238,12 @@ span.ref-link-color-3 {color: blue}
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding-top: 25px;
+  padding-top: 15px;
 }
 
 .footerContainer a {
-  padding: 3px 10px;
-}
-
-
-.footerContainer {
-  max-width: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding-top: 25px;
-}
-
-.footerContainer a {
-  padding: 3px 10px;
+  padding-top: 10px;
+  padding-inline-end: 16px;
 }
 
 .stickySidebarFooter {
@@ -15191,17 +15260,7 @@ span.ref-link-color-3 {color: blue}
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
-}
-
-.languageHeader {
-  padding-inline: 15px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 18px;
-  color: var(--medium-grey);
-  padding-block-start: 5px;
-  padding-block-end: 2px;
+  color: var(--dark-grey);
 }
 
 .dropdownLanguageToggle{
@@ -15211,6 +15270,24 @@ span.ref-link-color-3 {color: blue}
   line-height: 18px;
   height: 23px;
   padding-inline: 15px;
+  margin-top: 7px;
+}
+.globeLanguageToggle .dropdownLanguageToggle {
+  flex-direction: column;
+  align-items: unset;
+  height: unset;
+  padding: 4px 0;
+}
+.interface-hebrew .globeLanguageToggle .dropdownLanguageToggle {
+  flex-direction: column-reverse;
+}
+.globeLanguageToggle .englishLanguageLink:hover,
+.globeLanguageToggle .hebrewLanguageLink:hover {
+  background-color: var(--lighter-grey);
+}
+.interface-english .dropdownLanguageToggle a.hebrewLanguageLink,
+.interface-hebrew .dropdownLanguageToggle a.englishLanguageLink {
+  color: #666666;
 }
 
 .languageDot{
@@ -15218,11 +15295,14 @@ span.ref-link-color-3 {color: blue}
   padding: 10px 2px;
 }
 
-
-
 .englishLanguageButton::after {
   content: "•";
   padding: 6px;
+}
+
+.globeLanguageToggle .englishLanguageButton::after {
+  content: none;
+  padding: unset;
 }
 
 .profilePicAndButtonContainer {
@@ -15301,48 +15381,17 @@ span.ref-link-color-3 {color: blue}
   flex-direction: column;
 }
 
-<<<<<<< HEAD
 .mobileProfileFlexContainer {
   display: flex;
   flex-direction: row;
   align-items: end;
 }
 
-.mobileProfileFlexContainer {
-  display: flex;
-  flex-direction: row;
-  align-items: end;
-}
-
-.librarySavedIcon{
-  width: 20px;
-  height: 20px;
-  margin-inline-start: 6px;
-  margin-top: 2px;
-}
-
-.sheetsNotificationsHeaderIcon {
-  width: 20px;
-  height: 18px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.sheetsNotificationsHeaderIcon img{
-  width: 100%;
-  height: 100%;
-}
-
-.librarySavedIcon img{
-  width: 100%;
-  height: 100%;
-}
 .languageFlex {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
   direction:ltr;
+  margin-bottom: 10px;
 }
 
 @-webkit-keyframes load5 {
@@ -15366,3 +15415,308 @@ span.ref-link-color-3 {color: blue}
 87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
 }
 /* end css code for loading bezel */
+
+/* ========== GUIDE OVERLAY COMPONENT STYLES - START ========== */
+
+.guideOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 415px;
+  background-color: #fbfbfb;
+  box-shadow: 0px -1px 3px 0px #00000040;
+  border-top: 0.25px solid #CCCCCC;
+  z-index: 1000;
+  /* Force GuideOverlay to use sans-serif fonts in the contextual font system */
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.guideOverlayContent {
+  width: 100%;
+  height: 100%;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guideOverlayLoadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+}
+
+/* Shared container width for consistent layout */
+.guideOverlayHeader,
+.guideOverlayCenteredContent,
+.guideOverlayBody,
+.guideOverlayFooter {
+  width: 800px;
+}
+
+/* Header layout: title left, pagination center, close right */
+.guideOverlayHeader {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+/* Close button styles consolidated */
+.guideOverlayHeader .readerNavMenuCloseButton.circledX {
+  flex-shrink: 0;
+  height: 34px;
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guideOverlayHeader .readerNavMenuCloseButton.circledX img {
+  display: block;
+}
+
+/* Pagination and number styles */
+.guideOverlayPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 34px;
+}
+
+.cardsPaginationNumber {
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--dark-grey);
+  min-width: 40px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Title section and styles */
+.guideOverlayTitleSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  min-width: 180px;
+}
+
+.guideOverlayTitle {
+  margin: 0 !important; /* Remove inherited margin */
+  padding: 0 !important; /* Remove inherited padding */
+  display: flex;
+  align-items: center;
+  height: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.titlePrefix,
+.titleVariable {
+  font-size: 22px;
+  color: #333333;
+  display: inline-flex;
+  align-items: center;
+  text-transform: none;
+}
+
+.titlePrefix {
+  font-weight: 500;
+  margin-inline-end: 0.5rem;
+}
+
+.titleVariable {
+  font-weight: 300;
+}
+
+/* Main content layout */
+.guideOverlayCenteredContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guideOverlayBody {
+  display: flex;
+  gap: 20px;
+}
+
+/* Video and text containers */
+.guideOverlayVideoContainer {
+  width: 480px;
+  height: 270px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.guideOverlayVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guideOverlayTextContainer {
+  width: 300px;
+  height: 270px;
+  display: flex;
+  flex-direction: column;
+}
+
+.guideOverlayText {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #555555;
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 8px;
+  /* Modern scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Webkit scrollbar styles */
+.guideOverlayText::-webkit-scrollbar {
+  width: 6px;
+}
+
+.guideOverlayText::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.guideOverlayText::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.guideOverlayText::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Main text content styling */
+.guideOverlayText ul {
+  padding-inline-start: 18px;
+  margin: 16px 0;
+}
+
+/* Paragraph spacing - reduced from default 16px */
+.guideOverlayText p {
+  margin: 0 0 8px 0;
+}
+
+/* Tighter spacing between paragraphs and lists */
+.guideOverlayText p + ul {
+  margin-top: 4px;
+}
+
+.guideOverlayText p:last-child {
+  margin-bottom: 0;
+}
+
+.guideOverlayText li {
+  margin-bottom: 5px;
+}
+
+.guideOverlayText a {
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.guideOverlayText a:hover {
+  text-decoration: underline;
+}
+
+/* Footer with links */
+.guideOverlayFooter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 18px;
+}
+
+.guideOverlayFooterLink {
+  color: var(--dark-grey);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.guideOverlayFooterLink:hover {
+  text-decoration: underline;
+}
+
+.footerDivider {
+  font-size: 12px;
+}
+
+/* Loading state */
+.guideOverlay .loadingMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  font-size: 16px;
+  color: var(--dark-grey);
+}
+
+/* RTL/Hebrew interface support */
+.interface-hebrew .guideOverlayBody {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .guideOverlayHeader {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .guideOverlayPagination {
+  flex-direction: row-reverse;
+}
+
+.interface-hebrew .guideOverlayTitleSection {
+  direction: rtl;
+  text-align: right;
+}
+
+.interface-hebrew .guideOverlayTitle {
+  direction: rtl;
+  justify-content: flex-start;
+  text-align: start;
+  unicode-bidi: isolate;
+}
+
+.interface-hebrew .titlePrefix,
+.interface-hebrew .titleVariable {
+  direction: rtl;
+  text-align: right;
+  display: inline;
+}
+
+.interface-hebrew .guideOverlayText {
+  text-align: right;
+  direction: rtl;
+  padding-right: 0;
+  padding-left: 8px;
+}
+
+.interface-hebrew .guideOverlayFooter {
+  direction: rtl;
+}
+
+/* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */

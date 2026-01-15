@@ -1,0 +1,50 @@
+# NB: This assumes an already-functioning postgres instance.
+---
+{{- if .Values.restore.cleanup }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: destroy-postgres-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "10"
+spec:
+  template:
+    spec:
+      containers:
+      - name: destroy-postgres-{{ .Values.deployEnv }}
+        image: postgres:{{ .Values.backup.postgres.version }}
+        envFrom:
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-web-secrets-{{ .Values.deployEnv }}
+              optional: true
+        command: ["/script/destroy-postgres.sh"]
+        volumeMounts:
+        - name: script
+          mountPath: /script
+      restartPolicy: Never
+      volumes:
+      - name: script
+        configMap:
+          name: destroy-postgres-{{ .Values.deployEnv }}
+          defaultMode: 0755
+  ttlSecondsAfterFinished: 432000
+{{- end }}

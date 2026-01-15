@@ -2190,7 +2190,7 @@ text-align: left;width: 250px;display: inline-block;}
 	display: block;
 	font-size: 12px;
 	font-weight: normal;
-	color: #999;
+	color: var(--medium-grey);
 } 
 
 #profile #profileContact {

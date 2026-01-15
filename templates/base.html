@@ -1,10 +1,11 @@
+{% load i18n %}
 {% load render_bundle from webpack_loader %}
 {% load static %}
-{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
+{% load sefaria_tags %}
 
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8"/>
@@ -49,17 +50,24 @@
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-
-    <!-- https://realfavicongenerator.net -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}?v=xQzLlLp7oR">
-    <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
-    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
-    <link rel="shortcut icon" href="{% static 'icons/favicon.ico'%}?v=xQzLlLp7oR">
-    <meta name="theme-color" content="#273557">
-
+    
+    {% with lang=request.interfaceLang|default:"english" favicon_version=3 %}
+    <link rel="shortcut icon" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.ico?v={{ favicon_version }}" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.svg?v={{ favicon_version }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.png?v={{ favicon_version }}" sizes="96x96">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v={{ favicon_version }}">
+    <link rel="manifest" href="/site.webmanifest?v={{ favicon_version }}">
+    {# In the future in case there are more than 2 modules, define a custom filter with a dictionary that maps module names to colors/strings #}
+    <meta name="theme-color" content="{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}">
+    <meta name="apple-mobile-web-app-title"
+          content="{% if active_module == 'voices' %}
+                    {% trans 'Voices' %}
+                  {% else %}
+                    {% trans 'Library' %}
+                  {% endif %}">
+    {% endwith %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}
     <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
@@ -72,7 +80,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:100,200,300,400,500,600,700,800,900'],
-            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîїìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -80,7 +88,7 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:100,200,300,400,500,600,700,800,900', 'Heebo:100,200,300,400,500,600,700,800,900:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:100,200,300,400,500,600,700,800,900', 'Heebo:100,200,300,400,500,600,700,800,900:hebrew', 'Miriam Libre:400,500,600,700'] // The dotted h causes Heebo not to load.
           }
         });
         WebFont.load({
@@ -93,7 +101,11 @@
     <script src="https://www.gstatic.com/charts/loader.js"></script>
 
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/popover.css' %}">
+    <link rel="stylesheet" href="{% static 'css/breakpoints.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
         
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
@@ -104,7 +116,7 @@
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
-    <link rel="stylesheet" href="{%  static 'css/unbounce-banner.css' %}">
+    <link rel="stylesheet" href="{% static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
     {% if renderStatic %}
@@ -158,6 +170,15 @@
         })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
     {% endif %}
+    
+    <!-- Simple Analytics -->
+    {# Allow queuing of events in case embed script hasn't loaded yet when calling sa_event #}
+    <script>
+      window.sa_event = window.sa_event || function () {
+        const a = [].slice.call(arguments);
+        window.sa_event.q ? window.sa_event.q.push(a) : window.sa_event.q = [a];
+      };
+    </script>
 
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
@@ -200,11 +221,6 @@
         </div>
     </div>
 
-    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-            <div id="footerContainer">{% include "elements/footer.html" %}</div>
-        {% endif %}
-    {% endblock %}
     {% endif %}
 
     <div id="overlay"></div>
@@ -233,6 +249,9 @@
         props:         {{ propsJSON|default:"null" }},
         inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
       };
+
+      // Make remote config available globally
+      window.remoteConfig = DJANGO_VARS.props?.remoteConfig || {};
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}
           var STRAPI_INSTANCE =  "{{ STRAPI_LOCATION }}:{{ STRAPI_PORT }}";
@@ -266,5 +285,42 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+    
+    <!-- Default metadata for Simple Analytics -->
+    <script>
+      const SESSION_KEY = 'sa_custom_session_id';
+      if (sessionStorage.getItem(SESSION_KEY) === null) {
+        sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+      }
+      const SA_KEY = 'sa_id';
+      if (localStorage.getItem(SA_KEY) === null) {
+        localStorage.setItem(SA_KEY, crypto.randomUUID());
+      }
+      sa_metadata = {
+        logged_in: Boolean(DJANGO_VARS.props._uid),
+        interface_lang: DJANGO_VARS.props.interfaceLang === 'hebrew' ? 'he' : 'en',
+        device_type: DJANGO_VARS.props.multiPanel ? 'desktop' : 'mobile',
+        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
+        custom_session_id: sessionStorage.getItem(SESSION_KEY),
+        sefaria_id: localStorage.getItem(SA_KEY),
+        ...(DJANGO_VARS.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
+      };
+    </script>
+
+    {% if DEBUG %}
+    <script 
+      defer 
+      data-hostname="sa-dev.sefaria.org" 
+      data-collect-dnt="true" 
+      src="https://scripts.simpleanalyticscdn.com/latest.dev.js">
+    </script>
+    {% else %}
+    <script 
+      defer 
+      data-hostname="sefaria.org" 
+      data-collect-dnt="true" 
+      src="https://scripts.simpleanalyticscdn.com/latest.js">
+    </script>
+    {% endif %}
 </body>
 </html>

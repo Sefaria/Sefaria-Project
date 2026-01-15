@@ -34,10 +34,10 @@ web:
       gunicornThreadCount: 5
       resources:
         requests:
-          memory: "12Gi"
+          memory: "14Gi"
           cpu: "1500m"
         limits:
-          memory: "14Gi"
+          memory: "18Gi"
           cpu: "2"
   secrets:
     googleClient:
@@ -46,22 +46,6 @@ web:
       ref: logging-secret-production
     schoolLookup:
       ref: school-lookup-data-production
-linker:
-  resources:
-    web:
-      # gunicornWorkerCount: 1
-      # gunicornThreadCount: 1
-      resources:
-        requests:
-          memory: "3Gi"
-          cpu: "600m"
-        limits:
-          memory: "5Gi"
-          cpu: "2000m"
-  enabled: true
-  containerImage:
-    imageRegistry:
-    tag:
 redis:
   containerImage:
     imageRegistry: redis
@@ -74,6 +58,7 @@ redis:
     limits:
       memory: "1500Mi"
       cpu: "200m"
+gpuServer: "gpu-server.gpu-server.svc.cluster.local"
 nodejs:
   containerImage:
     imageRegistry:
@@ -119,7 +104,7 @@ tasks:
     limits:
       memory: "6Gi"
       cpu: "1000m"
-  replicaCount: 1
+  replicaCount: 6
   redis:
     url: ""
     port: "26379"
@@ -137,37 +122,10 @@ tasks:
 ingress:
   hosts:
     - host: "sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
+      tlsRef: origin-tls-prod2
     - host: "sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "www.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "www.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
+      tlsRef: origin-il-tls-prod2
+  # Deprecated but left in place for switchover.
   secrets:
     originTls:
       ref: origin-tls-prod2
@@ -245,6 +203,7 @@ localSettings:
     "https://www.sefaria.org": "english",
     "https://www.sefaria.org.il": "hebrew",
   }
+  DOMAIN_MODULES: {"library": "https://www.sefaria.org", "sheets": "https://sheets.sefaria.org"}
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
@@ -260,3 +219,11 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "SALESFORCE"
   FAIL_GRACEFULLY: "True"
+  SESSION_COOKIE_DOMAIN: ".sefaria.org"
+  SESSION_COOKIE_SECURE: true
+  SESSION_COOKIE_HTTPONLY: true
+  SESSION_COOKIE_SAMESITE: "Lax"
+  CSRF_COOKIE_SECURE: true
+  CSRF_COOKIE_HTTPONLY: false
+  CSRF_COOKIE_SAMESITE: "Lax"
+

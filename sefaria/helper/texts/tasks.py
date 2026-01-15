@@ -11,8 +11,9 @@ django.setup()
 from sefaria.model import *
 import sefaria.tracker as tracker
 from sefaria.client.wrapper import format_object_for_client
-from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
+from sefaria.settings import CELERY_ENABLED
 from sefaria.celery_setup.app import app
+from sefaria.celery_setup.config import CeleryQueue
 from sefaria.settings import USE_VARNISH
 from sefaria.helper.slack.send_message import send_message
 if USE_VARNISH:
@@ -27,8 +28,8 @@ def should_run_with_celery(from_api):
 def save_changes(changes, func, method, task_title=''):
     if should_run_with_celery(method == 'API'):
         main_task_id = str(uuid.uuid4())
-        tasks = [save_change.s(func.__name__, c).set(queue=CELERY_QUEUES['tasks']) for c in changes]
-        job = chord(tasks, inform.s(main_task_id=main_task_id, task_title=task_title).set(queue=CELERY_QUEUES['tasks']))(task_id=main_task_id)
+        tasks = [save_change.s(func.__name__, c).set(queue=CeleryQueue.TASKS.value) for c in changes]
+        job = chord(tasks, inform.s(main_task_id=main_task_id, task_title=task_title).set(queue=CeleryQueue.TASKS.value))(task_id=main_task_id)
         tasks_ids = [task.id for task in job.parent.results]
         return celeryResponse(job.id, tasks_ids)
     else:

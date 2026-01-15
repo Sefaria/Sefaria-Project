@@ -1,6 +1,7 @@
-from sefaria.model.linker.ref_part import RawRefPart, RefPartType
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode, NumberedReferenceableBookNode, MapReferenceableBookNode
-from sefaria.model.linker.resolved_ref_refiner import ResolvedRefRefinerForDefaultNode, ResolvedRefRefinerForNumberedPart, ResolvedRefRefinerForDiburHamatchilPart, ResolvedRefRefinerForRangedPart, ResolvedRefRefinerForNamedNode, ResolvedRefRefiner, ResolvedRefRefinerCatchAll
+from ne_span import RefPartType
+from sefaria.model.linker.ref_part import RawRefPart
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode, NumberedReferenceableBookNode, MapReferenceableBookNode, PassageNodeSet
+from sefaria.model.linker.resolved_ref_refiner import ResolvedRefRefinerForDefaultNode, ResolvedRefRefinerForNumberedPart, ResolvedRefRefinerForDiburHamatchilPart, ResolvedRefRefinerForRangedPart, ResolvedRefRefinerForNamedNode, ResolvedRefRefiner, ResolvedRefRefinerCatchAll, ResolvedRefRefinerForPassage
 
 
 class ResolvedRefRefinerFactoryKey:
@@ -53,6 +54,7 @@ def initialize_resolved_ref_refiner_factory() -> ResolvedRefRefinerFactory:
         (key(RefPartType.NAMED, node_class=NamedReferenceableBookNode), ResolvedRefRefinerForNamedNode),
         (key(RefPartType.NUMBERED, node_class=NamedReferenceableBookNode), ResolvedRefRefinerForNamedNode),
         (key(RefPartType.DH), ResolvedRefRefinerForDiburHamatchilPart),
+        (key(RefPartType.NAMED, node_class=PassageNodeSet), ResolvedRefRefinerForPassage),
         (key(), ResolvedRefRefinerCatchAll),
     ]
     for k, v in refiners_to_register:

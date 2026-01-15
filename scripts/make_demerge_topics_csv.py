@@ -43,7 +43,7 @@ def make_demerge_csv_sheets(slug_to_demerge, out_file):
         rows += [{
             "Id": str(sheet['id']),
             "Title": prettify_text(sheet['title']),
-            "URL": f'https://www.sefaria.org/sheets/{sheet["id"]}',
+            "URL": f'https://sheets.sefaria.org/sheets/{sheet["id"]}',
             "Topic Typed": " | ".join(topics)
         }]
     with open(out_file, 'w') as fout:
