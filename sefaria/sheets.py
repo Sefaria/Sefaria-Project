@@ -1048,7 +1048,7 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 			#   2. Always run topics through update_sheet_topics() which adds slugs, OR
 			#   3. Add migration to fix existing sheets with slugless topics
 			# See: topic_slug_issue_analysis.md for full analysis
-			if 'slug' not in topic:
+			if not topic.get('slug'):
 				import logging
 				logger = logging.getLogger(__name__)
 				logger.error(f"Topic missing 'slug' field. Sheet topic data: {topic}")
