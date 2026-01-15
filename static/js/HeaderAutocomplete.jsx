@@ -381,7 +381,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
-export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, firstPanel, hideHebrewKeyboard = false}) => {
+export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){

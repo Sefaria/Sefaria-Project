@@ -279,7 +279,6 @@ const Header = (props) => {
           showSearch={props.showSearch}
           openTopic={props.openTopic}
           openURL={props.openURL}
-          firstPanel={props.firstPanel}
         />
         
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
