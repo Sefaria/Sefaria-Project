@@ -1,28 +1,130 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-	<title>The Sefaria Project</title>
-	<style>
-		body {
-			text-align: center;
-			padding: 10%;
-		}
-		#maintenancePage svg {
-		  height: 120px;
-		  width: 330px;
-		}
-	</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sefaria | Maintenance</title>
+  <style>
+    :root {
+      --sefaria-blue: #18345D;
+      --accent: #DDEEFF;
+      --background: #F6F7FB;
+      --text: #1C2437;
+      --border: #DFE4EE;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 18px;
+      font-family: "Heebo", "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(180px 180px at 15% 20%, rgba(24, 52, 93, 0.12), transparent 60%),
+        radial-gradient(240px 240px at 85% 15%, rgba(24, 52, 93, 0.08), transparent 65%),
+        radial-gradient(200px 200px at 70% 80%, rgba(24, 52, 93, 0.07), transparent 70%),
+        var(--background);
+      color: var(--text);
+    }
+    #maintenancePage {
+      width: 100%;
+      max-width: 760px;
+    }
+    .panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(24, 52, 93, 0.12);
+      padding: 36px 42px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--sefaria-blue);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    .logo svg {
+      max-width: 260px;
+      height: auto;
+    }
+    h1 {
+      margin: 8px 0 0;
+      color: var(--sefaria-blue);
+      font-size: clamp(26px, 3vw, 32px);
+      line-height: 1.2;
+      font-weight: 700;
+    }
+    .message {
+      margin: 4px 0 0;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    .note {
+      margin: 0;
+      color: #4F5B74;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .meta {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      color: #4F5B74;
+      font-size: 15px;
+    }
+    a {
+      color: var(--sefaria-blue);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    a:hover,
+    a:focus {
+      text-decoration: underline;
+    }
+    @media (max-width: 640px) {
+      .panel {
+        padding: 28px 24px;
+      }
+      .message {
+        font-size: 17px;
+      }
+    }
+  </style>
 </head>
-
 <body>
-	<div id="maintenancePage">
-		{% include "elements/sefaria.logotype.svg" %}
-		<h2>
-			{% autoescape off %}
-				{{ message }}
-			{% endautoescape %}
-		</h2>
-	</div>
+  <main id="maintenancePage" role="main">
+    <div class="panel">
+      <div class="badge">Scheduled Maintenance</div>
+      <div class="logo" aria-label="Sefaria">
+        {% include "elements/sefaria.logotype.svg" %}
+      </div>
+      <h1>We&rsquo;ll be right back.</h1>
+      <p class="message">
+        {% autoescape off %}{{ message }}{% endautoescape %}
+      </p>
+      <p class="note">Thank you for your patience while we polish the library for you.</p>
+      <div class="meta">
+        <span>Need help?</span>
+        <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+      </div>
+    </div>
+  </main>
 </body>
-
 </html>

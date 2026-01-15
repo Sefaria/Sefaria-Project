@@ -35,7 +35,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
-from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
+from remote_config.keys import ENABLE_SITE_MAINTENANCE_MODE, SITE_MAINTENANCE_MESSAGE, ENABLE_WEBPAGES, CLIENT_REMOTE_CONFIG_JSON
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
@@ -96,6 +96,12 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
+# Maintenance Mode Check, due to the sensativity of this check - we check that the value is exactly VALIDATION_NUMBER
+MAINTENANCE_MODE_VALIDATION_NUMBER = 613
+
+def _is_maintenance_mode_enabled():
+    return (remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) and 
+            remoteConfigCache.get(ENABLE_SITE_MAINTENANCE_MODE) == MAINTENANCE_MODE_VALIDATION_NUMBER)
 
 def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
@@ -119,7 +125,11 @@ def render_template(request, template_name='base.html', app_props=None, template
     props["remoteConfig"] = remoteConfigCache.get(CLIENT_REMOTE_CONFIG_JSON, {})
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
-    if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
+    if _is_maintenance_mode_enabled() and not request.user.is_staff:
+        template_name = "static/maintenance.html"
+        template_context = {"message": remoteConfigCache.get(SITE_MAINTENANCE_MESSAGE)}
+        status = 503
+    if app_props: # We are rendering the ReaderApp in Node, otherwise its just a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
