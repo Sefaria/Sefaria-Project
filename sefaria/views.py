@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -1551,6 +1550,7 @@ def bulk_download_versions_api(request):
     return response
 
 
+
 def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
@@ -1597,7 +1597,6 @@ def _get_text_version_file(format, title, lang, versionTitle):
     return content
 
 
-
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
@@ -1615,6 +1614,8 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
 
 
 @staff_member_required
@@ -1726,47 +1727,6 @@ def version_bulk_edit_api(request):
 
 
 @staff_member_required
-def check_index_dependencies_api(request, title):
-    """
-    Check what dependencies exist for a given index title.
-    Used by NodeTitleEditor to warn about potential impacts of title changes.
-
-    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
-    This endpoint is not in active use and should be reviewed when used but retained for future re-enablement.
-    """
-    if request.method != "GET":
-        return jsonResponse({"error": "GET required"})
-
-    try:
-        # Get dependent indices (commentaries, etc.)
-        dependent_indices = library.get_dependant_indices(title, full_records=False)
-
-        # Get version count
-        version_count = db.texts.count_documents({"title": title})
-
-        # Get link count (approximate)
-        from sefaria.model.text import prepare_index_regex_for_dependency_process    # Inline import: this specific function is not exported via sefaria.model wildcard
-        try:
-            index = library.get_index(title)
-            pattern = prepare_index_regex_for_dependency_process(index)
-            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
-        except Exception as e:
-            logger.debug(f"Failed to get link count for {title}: {e}")
-            link_count = 0
-
-        return jsonResponse({
-            "title": title,
-            "dependent_indices": dependent_indices,
-            "version_count": version_count,
-            "link_count": link_count,
-            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
-        })
-
-    except Exception as e:
-        return jsonResponse({"error": str(e)})
-
-
-@staff_member_required
 def update_authors_from_sheet(request):
     from sefaria.helper.descriptions import update_authors_data
     res_text = update_authors_data()
@@ -1800,7 +1760,7 @@ def modtools_upload_workflowy(request):
     # Handle checkbox parameters
     c_index = request.POST.get("c_index", "").lower() == "true"
     c_version = request.POST.get("c_version", "").lower() == "true"
-    
+
     delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
     term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 
