@@ -4190,7 +4190,7 @@ class Ref(object, metaclass=RefCacheType):
             for r in normals:
                 sections = re.sub(r"^%s" % re.escape(self.book), '', r)
                 patterns.append(r"%s$" % sections)   # exact match
-                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(r"%s:" % sections)   # more granular, exact match followed by :
                 patterns.append(r"%s \d" % sections) # extra granularity following space
         else:
             sections = re.sub(r"^%s" % re.escape(self.book), '', self.normal())

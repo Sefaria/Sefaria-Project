@@ -3,6 +3,7 @@ from collections import defaultdict
 from functools import reduce
 from typing import List
 import django
+from queue import Queue, Empty
 import re
 from sefaria.model.marked_up_text_chunk import get_mutc_class, LinkerOutput
 django.setup()
@@ -170,7 +171,6 @@ class TextRequestAdapter:
 
         # In the next functions the vars `version_title` and `language` come from the outer scope
         def get_marked_up_text_chunk_queue():
-            from queue import Queue
             q = Queue()
             for i, segment_ref in enumerate(self.oref.all_segment_refs()):
                 marked_up_chunk = MUTCClass().load({
@@ -182,7 +182,10 @@ class TextRequestAdapter:
             return q
 
         def mutc_wrapper(string, sections):
-            chunk: MUTCClass = chunks_queue.get()
+            try:
+                chunk: MUTCClass = chunks_queue.get(block=False)
+            except Empty:
+                chunk = None
             if chunk:
                 string = chunk.apply_spans_to_text(string)
             return string
