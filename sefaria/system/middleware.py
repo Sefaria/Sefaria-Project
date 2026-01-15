@@ -20,6 +20,8 @@ from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urljoin
 from sefaria.constants.model import LIBRARY_MODULE
+from remote_config import remoteConfigCache
+from remote_config.keys import EXPIRE_LEGACY_COOKIES
 
 import structlog
 import json
@@ -258,23 +260,47 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         
         return approved
     
+    def _expire_legacy_cookie(self, response, cookie_name):
+        """
+        Add a Set-Cookie header to expire a legacy cookie (one without a Domain attribute).
+
+        This is needed because cookies with and without Domain are treated as different
+        cookies by browsers. When transitioning to domain-scoped cookies, we need to
+        expire the old domain-less cookies.
+
+        Uses a workaround for Django's limitation of not supporting multiple cookies
+        with the same name (see https://code.djangoproject.com/ticket/10554):
+        adds an extra header via _headers with a unique internal key.
+        """
+        expire_value = f'{cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/'
+        header_key = f'set-cookie-legacy-{cookie_name}'
+        response._headers[header_key] = ('Set-Cookie', expire_value)
+
     def process_response(self, request, response):
         """
         Apply the cookie domain to session and CSRF cookies in the response.
-        
+
         Uses the cookie domain stored on the request object by process_request.
+        When EXPIRE_LEGACY_COOKIES is enabled, also expires the old cookies
+        without a Domain attribute to ensure a clean transition.
         """
         cookie_domain = getattr(request, '_cookie_domain', None)
-        
+
         if cookie_domain:
+            expire_legacy = remoteConfigCache.get(EXPIRE_LEGACY_COOKIES, False)
+
             # Update session cookie domain if present
             if settings.SESSION_COOKIE_NAME in response.cookies:
                 response.cookies[settings.SESSION_COOKIE_NAME]['domain'] = cookie_domain
-                
+                if expire_legacy:
+                    self._expire_legacy_cookie(response, settings.SESSION_COOKIE_NAME)
+
             # Update CSRF cookie domain if present
             if settings.CSRF_COOKIE_NAME in response.cookies:
                 response.cookies[settings.CSRF_COOKIE_NAME]['domain'] = cookie_domain
-        
+                if expire_legacy:
+                    self._expire_legacy_cookie(response, settings.CSRF_COOKIE_NAME)
+
         return response
 
 

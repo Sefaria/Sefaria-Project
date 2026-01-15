@@ -1,9 +1,10 @@
 """
 Tests for SessionCookieDomainMiddleware.
 
-Tests that session and CSRF cookie domains are dynamically set based on 
+Tests that session and CSRF cookie domains are dynamically set based on
 an approved list derived from DOMAIN_MODULES.
 """
+from unittest.mock import patch
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
 from sefaria.system.middleware import SessionCookieDomainMiddleware
@@ -381,3 +382,130 @@ class TestEdgeCases:
         response = create_response_with_cookies()
         result = middleware.process_response(request, response)
         assert result.cookies['sessionid']['domain'] == '.sefaria.org.il'
+
+
+# ============================================================================
+# TESTS: LEGACY COOKIE EXPIRATION
+# ============================================================================
+
+class TestLegacyCookieExpiration:
+    """Test that legacy cookies (without Domain) are expired when feature is enabled."""
+
+    @override_settings(
+        DOMAIN_MODULES=LOCAL_CONFIG,
+        SESSION_COOKIE_NAME='sessionid',
+        CSRF_COOKIE_NAME='csrftoken',
+        ALLOWED_HOSTS=['*']
+    )
+    @patch('sefaria.system.middleware.remoteConfigCache')
+    def test_legacy_cookies_not_expired_when_feature_disabled(self, mock_cache):
+        """Test that legacy cookies are NOT expired when feature is disabled."""
+        mock_cache.get.return_value = False
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('localsefaria.xyz:8000')
+        response = create_response_with_cookies()
+
+        middleware.process_request(request)
+        result = middleware.process_response(request, response)
+
+        # No legacy cookie headers should be added
+        assert 'set-cookie-legacy-sessionid' not in result._headers
+        assert 'set-cookie-legacy-csrftoken' not in result._headers
+
+    @override_settings(
+        DOMAIN_MODULES=LOCAL_CONFIG,
+        SESSION_COOKIE_NAME='sessionid',
+        CSRF_COOKIE_NAME='csrftoken',
+        ALLOWED_HOSTS=['*']
+    )
+    @patch('sefaria.system.middleware.remoteConfigCache')
+    def test_legacy_cookies_expired_when_feature_enabled(self, mock_cache):
+        """Test that legacy cookies ARE expired when feature is enabled."""
+        mock_cache.get.return_value = True
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('localsefaria.xyz:8000')
+        response = create_response_with_cookies()
+
+        middleware.process_request(request)
+        result = middleware.process_response(request, response)
+
+        # Legacy cookie headers should be added
+        assert 'set-cookie-legacy-sessionid' in result._headers
+        assert 'set-cookie-legacy-csrftoken' in result._headers
+
+    @override_settings(
+        DOMAIN_MODULES=LOCAL_CONFIG,
+        SESSION_COOKIE_NAME='sessionid',
+        CSRF_COOKIE_NAME='csrftoken',
+        ALLOWED_HOSTS=['*']
+    )
+    @patch('sefaria.system.middleware.remoteConfigCache')
+    def test_legacy_cookie_header_format(self, mock_cache):
+        """Test that legacy cookie expiration header has correct format."""
+        mock_cache.get.return_value = True
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('localsefaria.xyz:8000')
+        response = create_response_with_cookies()
+
+        middleware.process_request(request)
+        result = middleware.process_response(request, response)
+
+        # Check the Set-Cookie header format for CSRF token
+        header_name, header_value = result._headers['set-cookie-legacy-csrftoken']
+        assert header_name == 'Set-Cookie'
+        assert 'csrftoken=' in header_value
+        assert 'expires=Thu, 01 Jan 1970 00:00:00 GMT' in header_value
+        assert 'Max-Age=0' in header_value
+        assert 'Path=/' in header_value
+        # Crucially, no Domain attribute
+        assert 'Domain=' not in header_value
+
+        # Check session cookie header
+        header_name, header_value = result._headers['set-cookie-legacy-sessionid']
+        assert header_name == 'Set-Cookie'
+        assert 'sessionid=' in header_value
+
+    @override_settings(
+        DOMAIN_MODULES=LOCAL_CONFIG,
+        SESSION_COOKIE_NAME='sessionid',
+        CSRF_COOKIE_NAME='csrftoken',
+        ALLOWED_HOSTS=['*']
+    )
+    @patch('sefaria.system.middleware.remoteConfigCache')
+    def test_legacy_cookies_not_expired_for_unapproved_domain(self, mock_cache):
+        """Test that legacy cookies are NOT expired for unapproved domains."""
+        mock_cache.get.return_value = True
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('random.example.com')
+        response = create_response_with_cookies()
+
+        middleware.process_request(request)
+        result = middleware.process_response(request, response)
+
+        # No legacy cookie headers should be added for unapproved domains
+        assert 'set-cookie-legacy-sessionid' not in result._headers
+        assert 'set-cookie-legacy-csrftoken' not in result._headers
+
+    @override_settings(
+        DOMAIN_MODULES=LOCAL_CONFIG,
+        SESSION_COOKIE_NAME='sessionid',
+        CSRF_COOKIE_NAME='csrftoken',
+        ALLOWED_HOSTS=['*']
+    )
+    @patch('sefaria.system.middleware.remoteConfigCache')
+    def test_legacy_expiration_only_for_cookies_present_in_response(self, mock_cache):
+        """Test that legacy expiration only happens for cookies actually in the response."""
+        mock_cache.get.return_value = True
+        middleware = SessionCookieDomainMiddleware(get_response=lambda r: HttpResponse())
+        request = create_request('localsefaria.xyz:8000')
+
+        # Response with only CSRF token, no session cookie
+        response = HttpResponse()
+        response.set_cookie('csrftoken', 'test-csrf-value')
+
+        middleware.process_request(request)
+        result = middleware.process_response(request, response)
+
+        # Only CSRF legacy header should be added
+        assert 'set-cookie-legacy-csrftoken' in result._headers
+        assert 'set-cookie-legacy-sessionid' not in result._headers

@@ -35,6 +35,7 @@ from django.contrib.auth.models import User
 from django import http
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.conf import settings
 from bson.objectid import ObjectId
 
 from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
@@ -61,7 +62,7 @@ from sefaria.utils.domains_and_languages import current_domain_lang, get_redirec
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, FAIL_IF_NODE_SSR_UNAVAILABLE
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -231,7 +232,7 @@ def render_react_component(component, props):
         return html
     except Exception as e:
         # Catch timeouts, however they may come.
-        if FAIL_IF_NODE_SSR_UNAVAILABLE:
+        if settings.FAIL_IF_NODE_SSR_UNAVAILABLE:
             # Log full error details before raising so they appear in logs for debugging
             props_dict = json.loads(propsJSON) if isinstance(propsJSON, str) else propsJSON
             logger.exception(
