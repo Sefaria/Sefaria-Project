@@ -183,7 +183,7 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
 
 const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
-                            submitSearch, redirectToObject, panelType}) => {
+                            submitSearch, redirectToObject}) => {
 
     const getInputValue = () =>{
         return otherDownShiftProps.value || getVirtualKeyboardInputValue();
@@ -203,7 +203,6 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       if (highlightedItem  && highlightedItem.type != 'search'){
         redirectToObject(highlightedItem, {
           "project": "Global Search",
-          "panel_type": panelType,
           "feature_name": "Nav To by Keyboard",
           "text": getInputValue(),
           "to": highlightedItem.label
@@ -240,8 +239,6 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       showVirtualKeyboardIcon(true);
       gtag("event", "search_focus", {
         "project": "Global Search",
-        "panel_type": panelType,
-        "panel_name": Sefaria._inBrowser && document.title
       });
     };
 
@@ -258,8 +255,6 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       gtag("event", "search_defocus", {
         "project": "Global Search",
         "text": oldValue,
-        "panel_type": panelType,
-        "panel_name": Sefaria._inBrowser && document.title
       });
     };
 
@@ -293,7 +288,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       </div>
     );
   };
-const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex, panelType,
+const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                                             submitSearch, redirectToObject, inputValue}) => {
 
     let groupedSuggestions = groupByType(suggestions);
@@ -310,7 +305,6 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex, pa
                         highlightedIndex={highlightedIndex}
                         key={object.type}
                         suggestions={object.items}
-                        panelType={panelType}
                         initialIndexForGroup={initialIndexForGroup}
                         inputValue={inputValue}
                         submitSearch={submitSearch}
@@ -323,7 +317,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex, pa
 }
 
 
-const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputValue, panelType, ...props }) => {
+const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputValue, ...props }) => {
     const _type_component_map = {
         search: {
             onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
@@ -339,7 +333,6 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
     const handleClick = (e) => {
       onSuggestionClick(e, {
         "project": "Global Search",
-        "panel_type": panelType,
         "feature_name": "Nav To by Mouse",
         "to": props.label,
         "text": inputValue
@@ -351,7 +344,7 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
 }
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
-                                    submitSearch, redirectToObject, inputValue, panelType}) => {
+                                    submitSearch, redirectToObject, inputValue}) => {
 
     const type = suggestions[0].type;
     const title = type_title_map[type];
@@ -369,7 +362,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                 return (
                         <SearchSuggestionFactory
                             key={suggestion.key}
-                            panelType={panelType}
                             value={suggestion.value}
                             type={suggestion.type}
                             label={suggestion.label}
@@ -391,23 +383,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, firstPanel, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
-    
-    const getPanelType = () => {
-      let panel_type = null;
-      if (firstPanel.menuOpen === "navigation" || firstPanel.menuOpen === "book toc") {
-        panel_type = "TOC";
-      } else if (firstPanel.menuOpen === "topics") {
-        panel_type = "topics";
-      } else if (firstPanel.mode === "Text" || firstPanel.mode === "TextAndConnections") {
-        panel_type = "reader";
-      } else if (firstPanel.mode === "Sheet") {
-        panel_type = "sheet";
-      } else {
-        panel_type = "other";
-      }
-      return panel_type;
-    }
-
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
           return[];
@@ -452,7 +427,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       Sefaria.track.event("Search", "Search Box Search", query);
       gtag("event", "search_submit", {
         "project": "Global Search",
-        "panel_type": getPanelType(),
         "feature_name": "Search Results",
         "text": query
       });
@@ -465,7 +439,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           if (queryType === 'Ref') {
               gtag("event", "search_navto", {
                 "project": "Global Search",
-                "panel_type": getPanelType(),
                 "feature_name": "Autolink",
                 "text": query,
                 "to": queryId
@@ -478,7 +451,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
           } else if (queryType === 'Topic') {
               gtag("event", "search_navto", {
                 "project": "Global Search",
-                "panel_type": getPanelType(),
                 "feature_name": "Autolink",
                 "text": query,
                 "to": queryId
@@ -491,7 +463,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
               redirectToObject(onChange, item, anl={
                 "project": "Global Search",
-                "panel_type": getPanelType(),
                 "feature_name": "Autolink",
                 "text": query,
                 "to": queryId
@@ -531,7 +502,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
         gtag("event", "search_navto", {...anl,
           "project": "Global Search",
-          "panel_type": getPanelType(),
           "link_type": type_title_map[item.type]
         });
         clearSearchBox(onChange);
@@ -556,7 +526,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
             searchFocused={searchFocused}
             submitSearch={submitSearch.bind(null, getInputProps().onChange)}
             redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
-            panelType={getPanelType()}
         />
         )
     };
@@ -570,7 +539,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
                 getItemProps={getItemProps}
                 highlightedIndex={highlightedIndex}
                 inputValue={inputValue}
-                panelType={getPanelType()}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
                 redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
               />
