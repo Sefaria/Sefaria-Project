@@ -527,25 +527,6 @@ class TestNamedEntityWrapping:
         })
         return link
 
-    def test_get_wrapped_named_entities_string(self):
-        import re
-        text = "A blah. BBB yoyo and C"
-        links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
-        wrapped = library.get_wrapped_named_entities_string(links, text)
-        wrapped_comp = """<a href="/topics/a" class="namedEntityLink" data-slug="a">A</a> blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
-        assert wrapped == wrapped_comp
-
-    def test_get_wrapped_named_entities_string_text_mismatch(self):
-        import re
-        text = "A blah. BBB yoyo and C"
-        links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
-        links[0].charLevelData['startChar'] += 1  # manual offset to make text mismatch
-        links[0].charLevelData['endChar'] += 1
-        wrapped = library.get_wrapped_named_entities_string(links, text)
-        wrapped_comp = """A blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
-        assert wrapped == wrapped_comp
-
-
 def test_get_en_text_titles():
     txts = ['Avot', 'Avoth', 'Daniel', 'Dan', 'Dan.'] # u"Me'or Einayim, Vayera"
     ctxts = ['Rashi on Exodus', 'Ramban on Genesis', 'Tosafot on Shabbat', 'Rashi on Gen.', 'Nachmanides on Exodus', 'Nachmanides on Ex.']

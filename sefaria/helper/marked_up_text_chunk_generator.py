@@ -1,10 +1,9 @@
 
+from typing import Optional
+
 import structlog
-from typing import List, Tuple
-from sefaria.model.text import Ref, TextChunk
-from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import link_segment_with_worker, LinkingArgs
-from dataclasses import asdict
+from sefaria.model.text import Ref, TextChunk, Version
+from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
 
 
 logger = structlog.get_logger(__name__)
@@ -13,9 +12,9 @@ logger = structlog.get_logger(__name__)
 class MarkedUpTextChunkGenerator:
 
 
-    def __init__(self):
-        """Initialize the generator with necessary components."""
-        pass
+    def __init__(self, user_id=None, **kwargs):
+        self.user_id = user_id
+        self.kwargs = kwargs
 
     ## Public methods:
 
@@ -43,11 +42,34 @@ class MarkedUpTextChunkGenerator:
             logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()}: {e}")
             raise
 
+    def generate_from_ref_and_version_id(self, ref: Ref, version_id: str) -> None:
+        try:
+            segment_refs = ref.all_segment_refs()
+            logger.info(f"Generating MarkedUpTextChunks for {len(segment_refs)} segment refs from {ref.normal()} and version ID {version_id}")
+
+            version = Version().load_by_id(version_id)
+            if not version:
+                logger.error(f"Version with ID {version_id} not found.")
+                return
+
+            lang = version.language
+            vtitle = version.versionTitle
+
+            for segment_ref in segment_refs:
+                self._generate_single_segment_version(segment_ref, lang, vtitle)
+
+        except Exception as e:
+            logger.error(f"Error generating MarkedUpTextChunks for {ref.normal()} and version ID {version_id}: {e}")
+            raise
+
     ##  Private methods:
 
     def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
-        linking_args = LinkingArgs(ref=segment_ref.normal(), text=text, lang=lang, vtitle=vtitle)
-        link_segment_with_worker.apply_async(args=[asdict(linking_args)], queue="linker")
+        kwargs = dict(self.kwargs)
+        linking_args = LinkingArgs(ref=segment_ref.normal(), text=text,
+                                   lang=lang, vtitle=vtitle,
+                                   user_id=self.user_id, kwargs=kwargs)
+        enqueue_linking_chain(linking_args)
 
 
     def _generate_all_versions_for_segment(self, segment_ref: Ref) -> None:

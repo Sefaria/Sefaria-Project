@@ -37,6 +37,9 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
+from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
+from remote_config import remoteConfigCache
+
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
@@ -195,6 +198,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     template_context = template_context if template_context else {}
     props = base_props(request)
     props.update(app_props)
+    props["remoteConfig"] = remoteConfigCache.get(CLIENT_REMOTE_CONFIG_JSON, {})
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
@@ -333,7 +337,8 @@ def base_props(request):
         },
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG
+        "_debug": DEBUG,
+        "_debug_mode": request.GET.get("debug_mode", None),
     })
     return user_data
 
@@ -1532,17 +1537,16 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
-        wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
         fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
-                                      wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
+                                      wrapLinks=wrapLinks, stripItags=stripItags,
                                       translationLanguagePreference=translationLanguagePreference,
                                       fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:
@@ -1876,6 +1880,7 @@ def index_api(request, title, raw=False):
                 apikey = db.apikeys.find_one({"key": key})
                 if apikey:
                     return CONTENT_TYPE, apikey["uid"]
+                
         return None, None
 
     def index_post(request, uid, j, method, raw):
@@ -2342,7 +2347,7 @@ def related_api(request, tref):
             "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
-            "webpages": get_webpages_for_ref(tref),
+            "webpages": get_webpages_for_ref(tref) if remoteConfigCache.get(ENABLE_WEBPAGES, True) else [],
             "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
