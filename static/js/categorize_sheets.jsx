@@ -45,6 +45,13 @@ class SheetCategorizer extends React.Component {
   }
 
   onTagAddition(tag) {
+    // DIAGNOSTIC LOGGING: Track what tag object ReactTags creates
+    console.log('[SLUGLESS_TOPIC_TRACKER] categorize_sheets.jsx onTagAddition(): Tag added by user:', tag);
+    if (!tag.slug) {
+      console.error('[SLUGLESS_TOPIC_TRACKER] categorize_sheets.jsx onTagAddition(): NEW TAG WITHOUT SLUG!', tag);
+      console.error('[SLUGLESS_TOPIC_TRACKER] categorize_sheets.jsx: This is likely a user-created tag via allowNew=true');
+    }
+
     const tags = [].concat(this.state.tags, tag);
     this.setState({ tags, previousTags: tags, noTags: false });
   }
@@ -70,6 +77,16 @@ class SheetCategorizer extends React.Component {
       asTyped: tag.name,
       slug: tag.slug,
     }));
+
+    // DIAGNOSTIC LOGGING: Track what topics are being sent from categorization
+    console.log('[SLUGLESS_TOPIC_TRACKER] categorize_sheets.jsx saveAndNext(): Sending topics to API:', topics);
+    topics.forEach((topic, idx) => {
+      if (!topic.slug) {
+        console.error(`[SLUGLESS_TOPIC_TRACKER] categorize_sheets.jsx: Topic at index ${idx} has NO SLUG! Topic:`, topic);
+        console.error('[SLUGLESS_TOPIC_TRACKER] categorize_sheets.jsx: Original tag from ReactTags:', this.state.tags[idx]);
+      }
+    });
+
     const currentCategories = this.state.categories;
     const keys = Object.keys(currentCategories);
     const categoriesToSend = keys.filter(x => currentCategories[x])

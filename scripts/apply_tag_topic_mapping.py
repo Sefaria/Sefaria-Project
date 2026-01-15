@@ -44,7 +44,21 @@ for sheet in db.sheets.find():
     if sheet.get('id', None) is None:
         print("Sheet id is None")
         continue
+
+    # DIAGNOSTIC LOGGING: Check for slugless topics before bulk write
+    import logging
+    logger = logging.getLogger(__name__)
+    for idx, topic in enumerate(topics):
+        if not topic.get("slug"):
+            logger.error(f"[SLUGLESS_TOPIC_TRACKER] apply_tag_topic_mapping.py: Sheet {sheet['id']} has topic without slug at index {idx}. Topic data: {topic}")
+            print(f"[SLUGLESS_TOPIC_TRACKER] apply_tag_topic_mapping.py: Sheet {sheet['id']}, topic index {idx}, data: {topic}")
+
     updates += [{'id': sheet['id'], 'topics': topics}]
+
+# DIAGNOSTIC LOGGING: Log bulk write operation
+logger.warning(f"[SLUGLESS_TOPIC_TRACKER] apply_tag_topic_mapping.py: About to bulk write {len(updates)} sheet topic updates")
+print(f"[SLUGLESS_TOPIC_TRACKER] Bulk writing {len(updates)} updates")
+
 db.sheets.bulk_write([
     UpdateOne({"id": l['id']}, {"$set": {"topics": l['topics']}}) for l in updates
 ])

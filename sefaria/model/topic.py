@@ -430,6 +430,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug, str(e)))
 
         # source sheets
+        # DIAGNOSTIC LOGGING: Track when topics are bulk-updated during merge
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"[SLUGLESS_TOPIC_TRACKER] Topic.merge(): Merging slug '{other_slug}' into '{self.slug}' via bulk update on sheets. This should preserve slugs but logging for safety.")
+        print(f"[SLUGLESS_TOPIC_TRACKER] Topic.merge(): {other_slug} -> {self.slug}")
         db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}}, array_filters=[{"element.slug": other_slug}])
 
         # indexes
