@@ -228,6 +228,16 @@ class SheetMetadata extends Component {
           slug: tag.slug,
         })
     )
+
+    // DIAGNOSTIC LOGGING: Track what topics are being sent from frontend
+    console.log('[SLUGLESS_TOPIC_TRACKER] SheetMetadata.jsx updateTopics(): Sending topics to API:', topics);
+    topics.forEach((topic, idx) => {
+      if (!topic.slug) {
+        console.error(`[SLUGLESS_TOPIC_TRACKER] SheetMetadata.jsx: Topic at index ${idx} has NO SLUG! Topic:`, topic);
+        console.error('[SLUGLESS_TOPIC_TRACKER] SheetMetadata.jsx: Original tag from ReactTags:', tags[idx]);
+      }
+    });
+
     updatedSheet.topics = topics;
     updatedSheet.lastModified = this.state.lastModified;
     delete updatedSheet._id;
@@ -244,6 +254,13 @@ class SheetMetadata extends Component {
   }
 
   onTagAddition(tag) {
+    // DIAGNOSTIC LOGGING: Track what tag object ReactTags creates
+    console.log('[SLUGLESS_TOPIC_TRACKER] SheetMetadata.jsx onTagAddition(): Tag added by user:', tag);
+    if (!tag.slug) {
+      console.error('[SLUGLESS_TOPIC_TRACKER] SheetMetadata.jsx onTagAddition(): NEW TAG WITHOUT SLUG!', tag);
+      console.error('[SLUGLESS_TOPIC_TRACKER] SheetMetadata.jsx: This is likely a user-created tag via allowNew=true');
+    }
+
     const tags = [].concat(this.state.tags, tag);
     this.setState({ tags });
     this.updateTopics(tags);

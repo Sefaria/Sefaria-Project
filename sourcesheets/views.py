@@ -418,6 +418,13 @@ def collections_inclusion_api(request, slug, action, sheet_id):
             collection.sheets.remove(sheet_id)
             if request.user.id == sheet["owner"] and sheet.get("displayedCollection", None) == collection.slug:
                 sheet["displayedCollection"] = None
+                # DIAGNOSTIC LOGGING: Track topics when sheet updated via collection removal
+                import logging
+                logger = logging.getLogger(__name__)
+                for idx, topic in enumerate(sheet.get("topics", [])):
+                    if not topic.get("slug"):
+                        logger.error(f"[SLUGLESS_TOPIC_TRACKER] collections_inclusion_api REMOVE: Sheet {sheet_id} has topic without slug at index {idx}. Topic data: {topic}. User: {request.user.id}")
+                        print(f"[SLUGLESS_TOPIC_TRACKER] collections_inclusion_api REMOVE: Sheet {sheet_id}, topic index {idx}, data: {topic}")
                 db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
         else:
             return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
@@ -428,6 +435,13 @@ def collections_inclusion_api(request, slug, action, sheet_id):
             # in another collection, set it to highlight this collection.
             if request.user.id == sheet["owner"] and not sheet.get("displayedCollection", None):
                 sheet["displayedCollection"] = collection.slug
+                # DIAGNOSTIC LOGGING: Track topics when sheet updated via collection addition
+                import logging
+                logger = logging.getLogger(__name__)
+                for idx, topic in enumerate(sheet.get("topics", [])):
+                    if not topic.get("slug"):
+                        logger.error(f"[SLUGLESS_TOPIC_TRACKER] collections_inclusion_api ADD: Sheet {sheet_id} has topic without slug at index {idx}. Topic data: {topic}. User: {request.user.id}")
+                        print(f"[SLUGLESS_TOPIC_TRACKER] collections_inclusion_api ADD: Sheet {sheet_id}, topic index {idx}, data: {topic}")
                 db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
     collection.save()
@@ -573,6 +587,15 @@ def save_sheet_api(request):
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
+
+        # DIAGNOSTIC LOGGING: Track slugless topics at API entry point
+        if "topics" in sheet:
+            import logging
+            logger = logging.getLogger(__name__)
+            for idx, topic in enumerate(sheet.get("topics", [])):
+                if not topic.get("slug"):
+                    logger.error(f"[SLUGLESS_TOPIC_TRACKER] API Entry Point: Sheet {sheet.get('id', 'NEW')} has topic without slug at index {idx}. Topic data: {topic}. Request user: {request.user.id if request.user.is_authenticated else 'API_KEY'}, Full topics array: {sheet['topics']}")
+                    print(f"[SLUGLESS_TOPIC_TRACKER] API Entry Point: Sheet {sheet.get('id', 'NEW')}, topic index {idx}, data: {topic}")
 
         if apikey:
             if "id" in sheet:

@@ -3090,12 +3090,28 @@ _media: {},
       }
       const sheet = this._loadSheetByID[id];
       if (sheet) {
+        // DIAGNOSTIC LOGGING: Check for slugless topics when loading from cache
+        if (sheet.topics) {
+          sheet.topics.forEach((topic, idx) => {
+            if (!topic.slug) {
+              console.error(`[SLUGLESS_TOPIC_TRACKER] sefaria.js loadSheetByID (CACHE): Sheet ${id} has topic without slug at index ${idx}. Topic:`, topic);
+            }
+          });
+        }
         if (callback) { callback(sheet); }
       } else if (callback) {
         const url = "/api/sheets/" + id +"?more_data=1";
          $.getJSON(url, data => {
             if ("error" in data) {
                 console.log(data["error"])
+            }
+            // DIAGNOSTIC LOGGING: Check for slugless topics when loading from API
+            if (data.topics) {
+              data.topics.forEach((topic, idx) => {
+                if (!topic.slug) {
+                  console.error(`[SLUGLESS_TOPIC_TRACKER] sefaria.js loadSheetByID (API): Sheet ${id} has topic without slug at index ${idx}. Topic:`, topic);
+                }
+              });
             }
             this._loadSheetByID[id] = data;
             callback(data);
@@ -3517,6 +3533,14 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
       }
       if (panel.sheet) {
+        // DIAGNOSTIC LOGGING: Check for slugless topics when caching sheet from panel data
+        if (panel.sheet.topics) {
+          panel.sheet.topics.forEach((topic, idx) => {
+            if (!topic.slug) {
+              console.error(`[SLUGLESS_TOPIC_TRACKER] sefaria.js _cacheServerData (PANEL): Sheet ${panel.sheet.id} has topic without slug at index ${idx}. Topic:`, topic);
+            }
+          });
+        }
         Sefaria.sheets._loadSheetByID[panel.sheet.id] = panel.sheet;
       }
   }

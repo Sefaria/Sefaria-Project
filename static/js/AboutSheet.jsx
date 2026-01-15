@@ -90,6 +90,16 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
             slug: tag.slug,
         })
         )
+
+        // DIAGNOSTIC LOGGING: Track what topics are being sent from frontend
+        console.log('[SLUGLESS_TOPIC_TRACKER] AboutSheet.jsx updateTopics(): Sending topics to API:', topics);
+        topics.forEach((topic, idx) => {
+            if (!topic.slug) {
+                console.error(`[SLUGLESS_TOPIC_TRACKER] AboutSheet.jsx: Topic at index ${idx} has NO SLUG! Topic:`, topic);
+                console.error('[SLUGLESS_TOPIC_TRACKER] AboutSheet.jsx: Original tag from ReactTags:', newTags[idx]);
+            }
+        });
+
         updatedSheet.topics = topics;
         updatedSheet.lastModified = lastModified;
         delete updatedSheet._id;
@@ -167,6 +177,13 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
 
 
     const onTagAddition = (tag) => {
+        // DIAGNOSTIC LOGGING: Track what tag object ReactTags creates
+        console.log('[SLUGLESS_TOPIC_TRACKER] AboutSheet.jsx onTagAddition(): Tag added by user:', tag);
+        if (!tag.slug) {
+            console.error('[SLUGLESS_TOPIC_TRACKER] AboutSheet.jsx onTagAddition(): NEW TAG WITHOUT SLUG!', tag);
+            console.error('[SLUGLESS_TOPIC_TRACKER] AboutSheet.jsx: This is likely a user-created tag via allowNew=true');
+        }
+
         const newTags = [].concat(tags, tag);
         setTags(newTags);
         updateTopics(newTags);

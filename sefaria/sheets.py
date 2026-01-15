@@ -57,6 +57,16 @@ def get_sheet(id=None):
 	s = db.sheets.find_one({"id": int(id)})
 	if not s:
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
+
+	# DIAGNOSTIC LOGGING: Check for slugless topics when loading from DB
+	import logging
+	logger = logging.getLogger(__name__)
+	raw_topics = s.get("topics", [])
+	for idx, topic in enumerate(raw_topics):
+		if not topic.get("slug"):
+			logger.error(f"[SLUGLESS_TOPIC_TRACKER] get_sheet() DB Load: Sheet {id} loaded from DB with topic without slug at index {idx}. Topic data: {topic}. This means slugless topic exists in MongoDB!")
+			print(f"[SLUGLESS_TOPIC_TRACKER] get_sheet() DB Load: Sheet {id}, topic index {idx}, data: {topic}")
+
 	s["topics"] = add_langs_to_topics(s.get("topics", []))
 	s["_id"] = str(s["_id"])
 	collections = CollectionSet({"sheets": id, "listed": True})
@@ -331,7 +341,17 @@ def sheet_topics_counts(query, sort_by="count"):
 		{"$group": {"_id": "$topics.slug", "count": {"$sum": 1}, "asTyped": {"$first": "$topics.asTyped"}}},
 		{"$sort": sort_query},
 		{"$project": {"_id": 0, "slug": "$_id", "count": "$count", "asTyped": "$asTyped"}}], cursor={})
-	return add_langs_to_topics(list(topics))
+
+	# DIAGNOSTIC LOGGING: Check if aggregation returned topics without slugs
+	import logging
+	logger = logging.getLogger(__name__)
+	topics_list = list(topics)
+	for idx, topic in enumerate(topics_list):
+		if not topic.get('slug') or topic.get('slug') is None:
+			logger.error(f"[SLUGLESS_TOPIC_TRACKER] sheet_topics_counts(): Aggregation returned topic without slug at index {idx}. Topic data: {topic}. Query: {query}. This means DB has sheets with topics.slug = null/missing")
+			print(f"[SLUGLESS_TOPIC_TRACKER] sheet_topics_counts(): Aggregation returned slugless topic: {topic}")
+
+	return add_langs_to_topics(topics_list)
 
 
 def order_tags_for_user(tag_counts, uid):
@@ -375,6 +395,15 @@ def trending_topics(days=7, ntags=14):
 			{"$project": {"_id": 0, "slug": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
 
 	topics_list = list(topics)
+
+	# DIAGNOSTIC LOGGING: Check if aggregation returned topics without slugs
+	import logging
+	logger = logging.getLogger(__name__)
+	for idx, topic in enumerate(topics_list):
+		if not topic.get('slug') or topic.get('slug') is None:
+			logger.error(f"[SLUGLESS_TOPIC_TRACKER] trending_topics(): Aggregation returned topic without slug at index {idx}. Topic data: {topic}. This means DB has sheets with topics.slug = null/missing")
+			print(f"[SLUGLESS_TOPIC_TRACKER] trending_topics(): Aggregation returned slugless topic: {topic}")
+
 	results = add_langs_to_topics([{
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],
@@ -457,6 +486,15 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
+	# DIAGNOSTIC LOGGING: Track slugless topics entering save_sheet
+	import logging
+	logger = logging.getLogger(__name__)
+	if "topics" in sheet:
+		for idx, topic in enumerate(sheet.get("topics", [])):
+			if not topic.get("slug"):
+				logger.error(f"[SLUGLESS_TOPIC_TRACKER] save_sheet() Entry: Sheet {sheet.get('id', 'NEW')} has topic without slug at index {idx}. Topic data: {topic}. User: {user_id}, rebuild_nodes: {rebuild_nodes}")
+				print(f"[SLUGLESS_TOPIC_TRACKER] save_sheet() Entry: Sheet {sheet.get('id', 'NEW')}, topic index {idx}, data: {topic}")
+
 	def next_sheet_id():
 		last_id = db.sheets.find().sort([['id', -1]]).limit(1)
 		if len(list(last_id.clone())):
@@ -573,6 +611,13 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		sheet = rebuild_sheet_nodes(sheet)
 
 	if new_sheet:
+		# DIAGNOSTIC LOGGING: Before inserting new sheet
+		if "topics" in sheet:
+			for idx, topic in enumerate(sheet.get("topics", [])):
+				if not topic.get("slug"):
+					logger.error(f"[SLUGLESS_TOPIC_TRACKER] Pre-INSERT: NEW sheet has topic without slug at index {idx}. Topic data: {topic}. User: {user_id}")
+					print(f"[SLUGLESS_TOPIC_TRACKER] Pre-INSERT: NEW sheet, topic index {idx}, data: {topic}")
+
 		# mongo enforces a unique sheet id, get a new id until a unique one has been found
 		while True:
 			try:
@@ -583,6 +628,13 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				pass
 
 	else:
+		# DIAGNOSTIC LOGGING: Before replacing existing sheet
+		if "topics" in sheet:
+			for idx, topic in enumerate(sheet.get("topics", [])):
+				if not topic.get("slug"):
+					logger.error(f"[SLUGLESS_TOPIC_TRACKER] Pre-REPLACE: Sheet {sheet['id']} has topic without slug at index {idx}. Topic data: {topic}. User: {user_id}")
+					print(f"[SLUGLESS_TOPIC_TRACKER] Pre-REPLACE: Sheet {sheet['id']}, topic index {idx}, data: {topic}")
+
 		db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
 	if len(topics_diff["added"]) or len(topics_diff["removed"]):
@@ -901,18 +953,32 @@ def update_sheet_topics(sheet_id, topics, old_topics):
 	containing fields `asTyped` and `slug`.
 	Performs some normalization of `asTyped` and creates new topic objects for new topics.
 	"""
+	# DIAGNOSTIC LOGGING: Track topics entering update_sheet_topics
+	import logging
+	logger = logging.getLogger(__name__)
+	for idx, topic in enumerate(topics):
+		if not topic.get("slug"):
+			logger.error(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_topics() Entry: Sheet {sheet_id} has topic without slug at index {idx}. Topic data: {topic}. Will attempt to create slug.")
+			print(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_topics() Entry: Sheet {sheet_id}, topic index {idx}, data: {topic}")
+
 	normalized_slug_title_pairs = set()
 
 	for topic in topics:
 	# Dedupe, normalize titles, create/choose topics for any missing slugs
 		title = normalize_new_topic_title(topic["asTyped"])
 		if "slug" not in topic:
+			logger.warning(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_topics(): Creating slug for topic. Sheet {sheet_id}, asTyped: '{topic['asTyped']}', normalized_title: '{title}'")
+			print(f"[SLUGLESS_TOPIC_TRACKER] Creating slug for: {topic['asTyped']}")
 			match = choose_existing_topic_for_title(title)
 			if match:
 				topic["slug"] = match.slug
+				logger.info(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_topics(): Matched existing topic '{match.slug}' for '{title}'")
+				print(f"[SLUGLESS_TOPIC_TRACKER] Matched existing: {match.slug}")
 			else:
 				new_topic = create_topic_from_title(title)
 				topic["slug"] = new_topic.slug
+				logger.info(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_topics(): Created NEW topic '{new_topic.slug}' for '{title}'")
+				print(f"[SLUGLESS_TOPIC_TRACKER] Created NEW topic: {new_topic.slug}")
 		normalized_slug_title_pairs.add((title, topic["slug"]))
 
 	normalized_topics = [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
@@ -1301,6 +1367,15 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
 
 
 def update_sheet_tags_categories(body, uid):
+	# DIAGNOSTIC LOGGING: Track topics coming through categorization endpoint
+	import logging
+	logger = logging.getLogger(__name__)
+	tags = body.get("tags", [])
+	for idx, tag in enumerate(tags):
+		if not tag.get("slug"):
+			logger.error(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_tags_categories(): Sheet {body['sheetId']} has topic without slug at index {idx}. Topic data: {tag}. User: {uid}, Full tags: {tags}")
+			print(f"[SLUGLESS_TOPIC_TRACKER] update_sheet_tags_categories(): Sheet {body['sheetId']}, topic index {idx}, data: {tag}")
+
 	update_sheet_topics(body['sheetId'], body["tags"], [])
 	time = datetime.now().isoformat()
 	noTags = time if body.get("noTags", False) else False
