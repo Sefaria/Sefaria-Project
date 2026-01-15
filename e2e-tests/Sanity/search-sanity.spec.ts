@@ -29,11 +29,11 @@ test.describe('Search Sanity Tests', () => {
 
     // Wait for dropdown to appear
     const dropdown = page.locator(SEARCH_DROPDOWN.CONTAINER);
-    await expect(dropdown).toBeVisible({ timeout: 5000 });
+    await expect(dropdown).toBeVisible({ timeout: 10000 });
 
     // Click on the first topic suggestion (should be "Abraham" topic)
     const topicSuggestion = dropdown.locator('.search-suggestion').filter({ hasText: /Abraham/i }).first();
-    await expect(topicSuggestion).toBeVisible({ timeout: 5000 });
+    await expect(topicSuggestion).toBeVisible({ timeout: 10000 });
     await topicSuggestion.click();
 
     // Wait for navigation

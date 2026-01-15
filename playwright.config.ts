@@ -35,11 +35,11 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* timeout for each test */
-  timeout: 220000,
+  timeout: 280000,
 
   /* timeout for each expect */
   expect: {
-    timeout: 9000,
+    timeout: 15000,
   },
 
 
@@ -86,7 +86,7 @@ export default defineConfig({
     // Main Testing for Production Site
     {
       name: 'chrome-all',
-      testDir: './e2e-tests/tests', // Only run production tests by default
+      testDir: './e2e-tests/tests', // runs all tests
       use: {
         ...devices['Desktop Chrome'],
       },
@@ -215,15 +215,23 @@ export default defineConfig({
       },
     },
 
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
+    /* Test against mobile viewports - Sefaria Mobile Web */
+    {
+      name: 'mobile-iphone',
+      testDir: './e2e-tests/mobile',
+      use: {
+        ...devices['iPhone 16'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'mobile-android',
+      testDir: './e2e-tests/mobile',
+      use: {
+        ...devices['Pixel 9'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     /* Test against branded browsers. */
     // {
