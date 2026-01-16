@@ -26,13 +26,14 @@ export default function NewsletterFormView({
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
+  onConfirmEmailChange,
   onNewsletterToggle,
   onSubmit,
 }) {
   const isSubmitting = formStatus.status === 'submitting';
   const hasError = formStatus.status === 'error';
-  const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBSCRIBE;
-  const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBSCRIBING;
+  const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
+  const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
 
   return (
     <div className="newsletterFormView"
@@ -79,76 +80,83 @@ export default function NewsletterFormView({
           </div>
         )}
 
-        {/* FIRST NAME FIELD (hidden for logged-in users) */}
+        {/* NAME SECTION (hidden for logged-in users) */}
         {!isLoggedIn && (
-          <div className="formField firstNameField">
-            <label htmlFor="firstName">
-              {renderBilingual(BILINGUAL_TEXT.FIRST_NAME)}
-              <span className="required">{BILINGUAL_TEXT.REQUIRED.en}</span>
-            </label>
-            <input
-              id="firstName"
-              type="text"
-              placeholder={Sefaria._('First Name')}
-              value={formData.firstName}
-              onChange={(e) => onFirstNameChange(e.target.value)}
-              disabled={isSubmitting}
-              data-anl-event="form_interaction:inputStart"
-              data-anl-form_name="newsletter_signup"
-            />
+          <div className="formSection nameSection">
+            <h3 className="sectionHeader">
+              {renderBilingual(BILINGUAL_TEXT.NAME_SECTION)}
+            </h3>
+            <div className="nameFieldsRow">
+              <div className="formField firstNameField">
+                <input
+                  id="firstName"
+                  type="text"
+                  placeholder={Sefaria._('First Name')}
+                  value={formData.firstName}
+                  onChange={(e) => onFirstNameChange(e.target.value)}
+                  disabled={isSubmitting}
+                  aria-label={Sefaria._('First Name')}
+                  data-anl-event="form_interaction:inputStart"
+                  data-anl-form_name="newsletter_signup"
+                />
+              </div>
+              <div className="formField lastNameField">
+                <input
+                  id="lastName"
+                  type="text"
+                  placeholder={Sefaria._('Last Name')}
+                  value={formData.lastName}
+                  onChange={(e) => onLastNameChange(e.target.value)}
+                  disabled={isSubmitting}
+                  aria-label={Sefaria._('Last Name')}
+                  data-anl-event="form_interaction:inputStart"
+                  data-anl-form_name="newsletter_signup"
+                />
+              </div>
+            </div>
           </div>
         )}
 
-        {/* LAST NAME FIELD (hidden for logged-in users) */}
+        {/* CONTACT SECTION (hidden for logged-in users) */}
         {!isLoggedIn && (
-          <div className="formField lastNameField">
-            <label htmlFor="lastName">
-              {renderBilingual(BILINGUAL_TEXT.LAST_NAME)}
-              <span className="optional">{BILINGUAL_TEXT.OPTIONAL.en}</span>
-            </label>
-            <input
-              id="lastName"
-              type="text"
-              placeholder={Sefaria._('Last Name')}
-              value={formData.lastName}
-              onChange={(e) => onLastNameChange(e.target.value)}
-              disabled={isSubmitting}
-              data-anl-event="form_interaction:inputStart"
-              data-anl-form_name="newsletter_signup"
-            />
-          </div>
-        )}
-
-        {/* EMAIL FIELD (hidden for logged-in users) */}
-        {!isLoggedIn && (
-          <div className="formField emailField">
-            <label htmlFor="email">
-              {renderBilingual(BILINGUAL_TEXT.EMAIL)}
-              <span className="required">{BILINGUAL_TEXT.REQUIRED.en}</span>
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder={Sefaria._('Email Address')}
-              value={formData.email}
-              onChange={(e) => onEmailChange(e.target.value)}
-              disabled={isSubmitting}
-              data-anl-event="form_interaction:inputStart"
-              data-anl-form_name="newsletter_signup"
-            />
+          <div className="formSection contactSection">
+            <h3 className="sectionHeader">
+              {renderBilingual(BILINGUAL_TEXT.CONTACT_SECTION)}
+            </h3>
+            <div className="formField emailField">
+              <input
+                id="email"
+                type="email"
+                placeholder={Sefaria._('Email Address')}
+                value={formData.email}
+                onChange={(e) => onEmailChange(e.target.value)}
+                disabled={isSubmitting}
+                aria-label={Sefaria._('Email Address')}
+                data-anl-event="form_interaction:inputStart"
+                data-anl-form_name="newsletter_signup"
+              />
+            </div>
+            <div className="formField confirmEmailField">
+              <input
+                id="confirmEmail"
+                type="email"
+                placeholder={Sefaria._('Confirm Email Address')}
+                value={formData.confirmEmail}
+                onChange={(e) => onConfirmEmailChange(e.target.value)}
+                disabled={isSubmitting}
+                aria-label={Sefaria._('Confirm Email Address')}
+                data-anl-event="form_interaction:inputStart"
+                data-anl-form_name="newsletter_signup"
+              />
+            </div>
           </div>
         )}
 
         {/* NEWSLETTER SELECTION SECTION */}
-        <div className="newsletterSelectionSection">
-          <div className="selectionHeader">
-            <h3 className="selectionTitle">
-              {renderBilingual(BILINGUAL_TEXT.WE_RECOMMEND)}
-            </h3>
-            <p className="selectionDescription">
-              {renderBilingual(BILINGUAL_TEXT.CHOOSE_NEWSLETTERS)}
-            </p>
-          </div>
+        <div className="formSection newsletterSelectionSection">
+          <h3 className="sectionHeader">
+            {renderBilingual(BILINGUAL_TEXT.SELECT_LISTS_SECTION)}
+          </h3>
 
           {/* CHECKBOXES */}
           <div className="newsletterCheckboxes">
@@ -164,17 +172,22 @@ export default function NewsletterFormView({
           </div>
         </div>
 
-        {/* SUBMIT BUTTON */}
-        <div className="formActions">
-          <button
-            type="submit"
-            className="submitButton primary"
-            disabled={isSubmitting}
-            data-anl-event="newsletter_action:click"
-            data-anl-action={isLoggedIn ? 'update_preferences' : 'subscribe'}
-            data-anl-form_name="newsletter_signup">
-            {isSubmitting ? renderBilingual(loadingText) : renderBilingual(buttonText)}
-          </button>
+        {/* FINISHED SECTION */}
+        <div className="formSection finishedSection">
+          <h3 className="sectionHeader">
+            {renderBilingual(BILINGUAL_TEXT.FINISHED_SECTION)}
+          </h3>
+          <div className="formActions">
+            <button
+              type="submit"
+              className="submitButton primary"
+              disabled={isSubmitting}
+              data-anl-event="newsletter_action:click"
+              data-anl-action={isLoggedIn ? 'update_preferences' : 'submit'}
+              data-anl-form_name="newsletter_signup">
+              {isSubmitting ? renderBilingual(loadingText) : renderBilingual(buttonText)}
+            </button>
+          </div>
         </div>
       </form>
 

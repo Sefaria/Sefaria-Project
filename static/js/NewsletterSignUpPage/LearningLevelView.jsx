@@ -75,7 +75,6 @@ export default function LearningLevelView({
                 data-anl-text={level.label.en}
                 data-anl-form_name="learning_level_survey"
               />
-              <span className="radioButtonCustom"></span>
               <span className="levelContent">
                 <span className="levelLabel">
                   {renderBilingual(level.label)}
@@ -83,6 +82,13 @@ export default function LearningLevelView({
                 <span className="levelDescription">
                   {renderBilingual(level.description)}
                 </span>
+              </span>
+              <span className="selectedCheckmark">
+                <img
+                  src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
               </span>
             </label>
           ))}

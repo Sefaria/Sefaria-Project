@@ -8,16 +8,16 @@ import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserS
 
 /**
  * NEWSLETTER CONFIGURATION
- * Defines available newsletters with metadata and emojis
+ * Defines available newsletters with metadata and icons
  * Labels are translatable using Sefaria._()
  */
 const NEWSLETTERS = [
-  { key: 'sefaria_news', labelKey: 'Sefaria News & Resources', emoji: '📚' },
-  { key: 'educator_resources', labelKey: 'Educator Resources', emoji: '🎓' },
-  { key: 'text_updates', labelKey: 'New Text Updates', emoji: '✨' },
-  { key: 'parashah_series', labelKey: 'Weekly Parashah Study Series', emoji: '📖' },
-  { key: 'tech_updates', labelKey: 'Technology and Developer Updates', emoji: '💻' },
-  { key: 'timeless_topics', labelKey: 'Timeless Topics', emoji: '⏳' },
+  { key: 'sefaria_news', labelKey: 'Sefaria News & Resources', icon: 'news-and-resources.svg' },
+  { key: 'educator_resources', labelKey: 'Educator Resources', icon: 'educator-resources.svg' },
+  { key: 'text_updates', labelKey: 'New Text Updates', icon: 'new-text-release-updates.svg' },
+  { key: 'parashah_series', labelKey: 'Weekly Parashah Study Series', icon: 'weekly-study-guide.svg' },
+  { key: 'tech_updates', labelKey: 'Technology and Developer Updates', icon: 'technology-updates.svg' },
+  { key: 'timeless_topics', labelKey: 'Timeless Topics', icon: 'timeless-topics.svg' },
 ];
 
 /**
@@ -99,6 +99,7 @@ export default function NewsletterSignUpPageForm() {
     firstName: '',
     lastName: '',
     email: '',
+    confirmEmail: '',
     selectedNewsletters: {},
     learningLevel: null,
   });
@@ -172,6 +173,14 @@ export default function NewsletterSignUpPageForm() {
 
   const handleEmailChange = (value) => {
     setFormData(prev => ({ ...prev, email: value }));
+    // Clear error on field change
+    if (formStatus.errorMessage) {
+      setFormStatus(prev => ({ ...prev, errorMessage: null }));
+    }
+  };
+
+  const handleConfirmEmailChange = (value) => {
+    setFormData(prev => ({ ...prev, confirmEmail: value }));
     // Clear error on field change
     if (formStatus.errorMessage) {
       setFormStatus(prev => ({ ...prev, errorMessage: null }));
@@ -311,6 +320,11 @@ export default function NewsletterSignUpPageForm() {
       return 'Please enter a valid email address.';
     }
 
+    // Check email confirmation matches (only for logged-out users)
+    if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
+      return 'Email addresses do not match.';
+    }
+
     // Check at least one newsletter is selected
     const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
     if (!hasSelection) {
@@ -344,6 +358,7 @@ export default function NewsletterSignUpPageForm() {
           onFirstNameChange={handleFirstNameChange}
           onLastNameChange={handleLastNameChange}
           onEmailChange={handleEmailChange}
+          onConfirmEmailChange={handleConfirmEmailChange}
           onNewsletterToggle={handleNewsletterToggle}
           onSubmit={handleSubscribeSubmit}
         />

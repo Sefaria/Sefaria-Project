@@ -150,7 +150,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
       });
 
       test('should maintain button accessibility', async ({ page }) => {
-        const submitButton = page.locator('button:has-text("Subscribe"), button:has-text("Update Preferences")').first();
+        const submitButton = page.locator('button:has-text("Submit"), button:has-text("Update Preferences")').first();
         await expect(submitButton).toBeVisible();
 
         // Button should have adequate size for clicking/tapping
@@ -184,14 +184,15 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
       });
 
       test('should have readable form labels', async ({ page }) => {
-        const labels = page.locator('form label').first();
-        const text = await labels.textContent();
+        // Check section headers are readable (form now uses section headers instead of input labels)
+        const sectionHeaders = page.locator('form h3.sectionHeader').first();
+        const headerText = await sectionHeaders.textContent();
 
-        expect(text).toBeTruthy();
-        expect(text.length).toBeGreaterThan(0);
+        expect(headerText).toBeTruthy();
+        expect(headerText.length).toBeGreaterThan(0);
 
-        // Label should not be too small to read
-        const fontSize = await labels.evaluate((el) => {
+        // Header should not be too small to read
+        const fontSize = await sectionHeaders.evaluate((el) => {
           const computed = window.getComputedStyle(el);
           return parseFloat(computed.fontSize);
         });
@@ -202,14 +203,15 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
       test('should display error messages properly at viewport size', async ({ page }) => {
         // Trigger an error
         const firstInput = page.locator('form input[type="text"]').first();
-        const emailInput = page.locator('input[type="email"]');
+        const emailInputs = page.locator('input[type="email"]');
         const checkbox = page.locator('label.newsletterCheckboxLabel').first();
 
         await firstInput.fill('');
-        await emailInput.fill('');
+        await emailInputs.nth(0).fill('');
+        await emailInputs.nth(1).fill('');
         await checkbox.click();
 
-        const submitButton = page.locator('button:has-text("Subscribe"), button:has-text("Update Preferences")').first();
+        const submitButton = page.locator('button:has-text("Submit"), button:has-text("Update Preferences")').first();
         await submitButton.click();
 
         await page.waitForTimeout(500);
@@ -232,15 +234,15 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
       });
 
       test('should fill and submit form at viewport size', async ({ page }) => {
-        // Fill form on this viewport
-        const inputs = page.locator('form input[type="text"], form input[type="email"]');
-        const firstInput = inputs.nth(0);
+        // Fill first name
+        const firstNameInput = page.locator('input#firstName');
+        await firstNameInput.fill('John');
 
-        await firstInput.fill('John');
-
-        if (await inputs.count() > 1) {
-          const emailInput = page.locator('input[type="email"]');
-          await emailInput.fill('john@example.com');
+        // Fill email and confirm email
+        const emailInputs = page.locator('input[type="email"]');
+        if (await emailInputs.count() >= 2) {
+          await emailInputs.nth(0).fill('john@example.com');
+          await emailInputs.nth(1).fill('john@example.com');
         }
 
         // Select a newsletter
@@ -248,7 +250,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         await checkbox.click();
 
         // Submit
-        const submitButton = page.locator('button:has-text("Subscribe"), button:has-text("Update Preferences")').first();
+        const submitButton = page.locator('button:has-text("Submit"), button:has-text("Update Preferences")').first();
         await submitButton.click();
 
         // Should respond (either move to next stage or show validation)

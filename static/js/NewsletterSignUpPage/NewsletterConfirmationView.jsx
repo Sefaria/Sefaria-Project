@@ -34,7 +34,13 @@ export default function NewsletterConfirmationView({
 
       {/* SUCCESS ICON AND HEADING */}
       <div className="confirmationContent">
-        <div className="successIcon">✓</div>
+        <div className="successIcon">
+          <img
+            src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
 
         <h2 className="confirmationTitle">
           {renderBilingual(BILINGUAL_TEXT.THANK_YOU)}

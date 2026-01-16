@@ -130,6 +130,10 @@ export const BILINGUAL_TEXT = {
     en: 'Email',
     he: 'דוא"ל',
   },
+  CONFIRM_EMAIL: {
+    en: 'Confirm Email',
+    he: 'אשר דוא"ל',
+  },
   REQUIRED: {
     en: '*',
     he: '*',
@@ -139,7 +143,25 @@ export const BILINGUAL_TEXT = {
     he: '(אופציונלי)',
   },
 
-  // Newsletter section
+  // Form section headers
+  NAME_SECTION: {
+    en: 'Name',
+    he: 'שם',
+  },
+  CONTACT_SECTION: {
+    en: 'Contact',
+    he: 'יצירת קשר',
+  },
+  SELECT_LISTS_SECTION: {
+    en: 'Select the lists you wish to subscribe to:',
+    he: 'בחר את הרשימות שאליהן ברצונך להירשם:',
+  },
+  FINISHED_SECTION: {
+    en: 'Finished?',
+    he: 'סיימת?',
+  },
+
+  // Newsletter section (legacy - keeping for compatibility)
   WE_RECOMMEND: {
     en: 'We recommend:',
     he: 'אנחנו ממליצים:',
@@ -150,6 +172,14 @@ export const BILINGUAL_TEXT = {
   },
 
   // Button text
+  SUBMIT: {
+    en: 'Submit',
+    he: 'שלח',
+  },
+  SUBMITTING: {
+    en: 'Submitting...',
+    he: 'שולח...',
+  },
   SUBSCRIBE: {
     en: 'Subscribe',
     he: 'הרשמו',

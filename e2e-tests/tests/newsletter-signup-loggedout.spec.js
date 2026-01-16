@@ -35,49 +35,44 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     const form = page.locator('form').first();
     await expect(form).toBeVisible();
 
-    // Verify input fields exist (first name, last name, email)
+    // Verify input fields exist (first name, last name, email, confirm email)
     const inputs = page.locator('form input[type="text"], form input[type="email"]');
     const inputCount = await inputs.count();
-    expect(inputCount).toBeGreaterThanOrEqual(2); // At least email and one text field
+    expect(inputCount).toBeGreaterThanOrEqual(3); // At least first name, email, and confirm email
 
     // Verify newsletter checkboxes exist (should be 6)
     const checkboxes = page.locator('form input[type="checkbox"]');
     const checkboxCount = await checkboxes.count();
     expect(checkboxCount).toBeGreaterThanOrEqual(5); // At least 5 newsletters
 
-    // Verify Subscribe button exists and is enabled
-    const subscribeButton = page.locator('button:has-text("Subscribe")').first();
-    await expect(subscribeButton).toBeVisible();
-    await expect(subscribeButton).toBeEnabled();
+    // Verify Submit button exists and is enabled
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await expect(submitButton).toBeVisible();
+    await expect(submitButton).toBeEnabled();
   });
 
   test('should fill form and submit successfully', async ({ page }) => {
-    // Get all text/email inputs
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    const inputCount = await inputs.count();
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
-    if (inputCount >= 2) {
-      // Fill first name (first text input)
-      await inputs.nth(0).fill('John');
-
-      // Fill last name if it exists (second text input)
-      if (inputCount >= 3) {
-        await inputs.nth(1).fill('Doe');
-        // Fill email (usually the email input)
-        const emailInput = page.locator('input[type="email"]');
-        await emailInput.fill('john@example.com');
-      } else {
-        // If only 2 inputs, second is probably email
-        await inputs.nth(1).fill('john@example.com');
-      }
+    // Fill last name (optional)
+    const lastNameInput = page.locator('input#lastName');
+    if (await lastNameInput.isVisible()) {
+      await lastNameInput.fill('Doe');
     }
+
+    // Fill email and confirm email (both required for logged-out users)
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john@example.com');  // email
+    await emailInputs.nth(1).fill('john@example.com');  // confirmEmail
 
     // Select first newsletter checkbox (click the label instead since input is hidden)
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     await checkboxLabels.nth(0).click();
 
     // Click Subscribe button
-    await page.click('button:has-text("Subscribe")');
+    await page.click('button:has-text("Submit")');
 
     // Wait for submission and navigation
     await page.waitForTimeout(2000);
@@ -91,19 +86,21 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   });
 
   test('should display confirmation page after submission', async ({ page }) => {
-    // Fill and submit form
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('Jane');
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('Jane');
 
-    const emailInput = page.locator('input[type="email"]').first();
-    await emailInput.fill('jane@example.com');
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('jane@example.com');  // email
+    await emailInputs.nth(1).fill('jane@example.com');  // confirmEmail
 
     // Select a checkbox (click the label instead since input is hidden)
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     await checkboxLabels.nth(0).click();
 
     // Submit
-    await page.click('button:has-text("Subscribe")');
+    await page.click('button:has-text("Submit")');
 
     // Wait for page to transition
     await page.waitForTimeout(2000);
@@ -120,16 +117,20 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   });
 
   test('should handle form with all fields populated', async ({ page }) => {
-    // Fill all fields
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('John');
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
-    if (await inputs.count() >= 3) {
-      await inputs.nth(1).fill('Doe');
+    // Fill last name (optional)
+    const lastNameInput = page.locator('input#lastName');
+    if (await lastNameInput.isVisible()) {
+      await lastNameInput.fill('Doe');
     }
 
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('john.doe@example.com');
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john.doe@example.com');  // email
+    await emailInputs.nth(1).fill('john.doe@example.com');  // confirmEmail
 
     // Select multiple newsletters (click the labels instead since inputs are hidden)
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
@@ -140,7 +141,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     }
 
     // Submit form
-    await page.click('button:has-text("Subscribe")');
+    await page.click('button:has-text("Submit")');
 
     // Wait for response
     await page.waitForTimeout(2000);
@@ -176,25 +177,35 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     expect(isChecked2).toBe(true);
   });
 
-  test('should allow entering text into email field', async ({ page }) => {
-    const emailInput = page.locator('input[type="email"]').first();
+  test('should allow entering text into email fields', async ({ page }) => {
+    const emailInputs = page.locator('input[type="email"]');
+    const emailInput = emailInputs.nth(0);
+    const confirmEmailInput = emailInputs.nth(1);
 
-    // Type email
+    // Type email in first field
     await emailInput.fill('test@example.com');
 
     // Verify it was entered
     const value = await emailInput.inputValue();
     expect(value).toBe('test@example.com');
 
-    // Clear and enter different email
+    // Type same email in confirm field
+    await confirmEmailInput.fill('test@example.com');
+    const confirmValue = await confirmEmailInput.inputValue();
+    expect(confirmValue).toBe('test@example.com');
+
+    // Clear and enter different emails
     await emailInput.fill('another@test.com');
+    await confirmEmailInput.fill('another@test.com');
     const newValue = await emailInput.inputValue();
+    const newConfirmValue = await confirmEmailInput.inputValue();
     expect(newValue).toBe('another@test.com');
+    expect(newConfirmValue).toBe('another@test.com');
   });
 
-  test('should have Subscribe button visible throughout form', async ({ page }) => {
+  test('should have Submit button visible throughout form', async ({ page }) => {
     // Button should be visible at start
-    const button = page.locator('button:has-text("Subscribe")').first();
+    const button = page.locator('button:has-text("Submit")').first();
     await expect(button).toBeVisible();
 
     // Fill some fields

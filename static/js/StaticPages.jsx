@@ -3179,6 +3179,7 @@ const EnhancedUserQuote = ({enText, heText, enImage, heImage, enName, heName}) =
 const NewsletterPage = () => (
     <StaticPage>
         <HeaderForNewsletterPage/>
+        <NewsletterSignUpPageForm />
         <GreyBox>
             <H2Block en="Learn about our weekly study emails to help you dive deeper into the texts." he="למדו על הדואר השבועי שלנו שעוזר לכם להעמיק בטקסטים."/>
         </GreyBox>
@@ -3230,7 +3231,7 @@ const NewsletterPage = () => (
                 he_href="https://donate.sefaria.org/he"
                 en="Donate"
                 he="לתרומה"
-                white={false}
+                white={true}
                 newTab={true}
             />
             <SimpleButton
@@ -3238,18 +3239,17 @@ const NewsletterPage = () => (
                 he_href="/testimonials"
                 en="Leave a Testimonial"
                 he="כתבו המלצה"
-                white={false}
+                white={true}
             />
             <SimpleButton
                 href="https://sponsor.sefaria.org"
                 he_href="https://sponsor.sefaria.org"
                 en="Claim Your Letter in the Torah"
                 he="הוסיפו את האות שלכם בתורה"
-                white={false}
+                white={true}
                 newTab={true}
             />
         </ButtonRow>
-        <NewsletterSignUpPageForm />
     </StaticPage>
 );
 

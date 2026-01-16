@@ -21,7 +21,13 @@ export default function SuccessView() {
 
       {/* SUCCESS MESSAGE */}
       <div className="successContent">
-        <div className="successIcon">✓</div>
+        <div className="successIcon">
+          <img
+            src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
 
         <h2 className="successTitle">
           {renderBilingual(BILINGUAL_TEXT.ALL_SET)}

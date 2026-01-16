@@ -22,19 +22,20 @@ test.describe('Newsletter Signup - Form Validation', () => {
   test('should show error when trying to submit without first name', async ({ page }) => {
     // Leave first name empty
     // Fill last name
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(1).fill('Doe'); // Last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
-    // Fill email
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('test@example.com');
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('test@example.com');
+    await emailInputs.nth(1).fill('test@example.com');
 
     // Select a newsletter
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     await checkboxLabels.nth(0).click();
 
     // Try to submit without first name
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error to appear
@@ -59,7 +60,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await checkboxLabels.nth(0).click();
 
     // Try to submit without email
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error
@@ -75,19 +76,20 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
   test('should show error for invalid email format', async ({ page }) => {
     // Fill first name
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('John');
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
-    // Fill with invalid email
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('not-an-email');
+    // Fill with invalid email in both fields
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('not-an-email');
+    await emailInputs.nth(1).fill('not-an-email');
 
     // Select a newsletter
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     await checkboxLabels.nth(0).click();
 
     // Try to submit with invalid email
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error
@@ -112,17 +114,18 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
   test('should show error when no newsletter is selected', async ({ page }) => {
     // Fill first name
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('John');
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
-    // Fill email
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('john@example.com');
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john@example.com');
+    await emailInputs.nth(1).fill('john@example.com');
 
     // Don't select any newsletter
 
     // Try to submit without selecting newsletters
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error
@@ -138,19 +141,18 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
   test('should clear error message when user corrects the field', async ({ page }) => {
     // Fill first name
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    const firstNameInput = inputs.nth(0);
+    const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
 
     // Leave email empty and try to submit
-    const emailInput = page.locator('input[type="email"]');
+    const emailInputs = page.locator('input[type="email"]');
 
     // Select a newsletter so the only error is email
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     await checkboxLabels.nth(0).click();
 
     // Submit to trigger error
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error to appear
@@ -158,8 +160,9 @@ test.describe('Newsletter Signup - Form Validation', () => {
     const errorMessage = page.locator('.newsletterErrorMessage');
     await expect(errorMessage).toBeVisible();
 
-    // Now fill in the email
-    await emailInput.fill('john@example.com');
+    // Now fill in the email and confirm email
+    await emailInputs.nth(0).fill('john@example.com');
+    await emailInputs.nth(1).fill('john@example.com');
 
     // Wait a moment and check if error is cleared
     await page.waitForTimeout(300);
@@ -193,19 +196,21 @@ test.describe('Newsletter Signup - Form Validation', () => {
       await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
       await page.waitForTimeout(500);
 
-      // Fill form with valid email
-      const inputs = page.locator('form input[type="text"], form input[type="email"]');
-      await inputs.nth(0).fill('John');
+      // Fill first name
+      const firstNameInput = page.locator('input#firstName');
+      await firstNameInput.fill('John');
 
-      const emailInput = page.locator('input[type="email"]');
-      await emailInput.fill(email);
+      // Fill email and confirm email with same valid email
+      const emailInputs = page.locator('input[type="email"]');
+      await emailInputs.nth(0).fill(email);
+      await emailInputs.nth(1).fill(email);
 
       // Select a newsletter
       const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
       await checkboxLabels.nth(0).click();
 
       // Submit form
-      const submitButton = page.locator('button:has-text("Subscribe")').first();
+      const submitButton = page.locator('button:has-text("Submit")').first();
       await submitButton.click();
 
       // Wait for response
@@ -243,19 +248,21 @@ test.describe('Newsletter Signup - Form Validation', () => {
       await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
       await page.waitForTimeout(500);
 
-      // Fill form with invalid email
-      const inputs = page.locator('form input[type="text"], form input[type="email"]');
-      await inputs.nth(0).fill('John');
+      // Fill first name
+      const firstNameInput = page.locator('input#firstName');
+      await firstNameInput.fill('John');
 
-      const emailInput = page.locator('input[type="email"]');
-      await emailInput.fill(email);
+      // Fill email and confirm email with same invalid email
+      const emailInputs = page.locator('input[type="email"]');
+      await emailInputs.nth(0).fill(email);
+      await emailInputs.nth(1).fill(email);
 
       // Select a newsletter
       const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
       await checkboxLabels.nth(0).click();
 
       // Submit form
-      const submitButton = page.locator('button:has-text("Subscribe")').first();
+      const submitButton = page.locator('button:has-text("Submit")').first();
       await submitButton.click();
 
       // Wait for error
@@ -275,17 +282,19 @@ test.describe('Newsletter Signup - Form Validation', () => {
   });
 
   test('should allow submission after fixing validation errors', async ({ page }) => {
-    // First attempt with error
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('John');
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('invalid-email');
+    // First attempt with invalid email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('invalid-email');
+    await emailInputs.nth(1).fill('invalid-email');
 
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     await checkboxLabels.nth(0).click();
 
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error
@@ -295,8 +304,9 @@ test.describe('Newsletter Signup - Form Validation', () => {
     let errorMessage = page.locator('.newsletterErrorMessage');
     const errorWasShown = await errorMessage.isVisible().catch(() => false);
 
-    // Fix the email
-    await emailInput.fill('john@example.com');
+    // Fix the email in both fields
+    await emailInputs.nth(0).fill('john@example.com');
+    await emailInputs.nth(1).fill('john@example.com');
 
     // Submit again
     await submitButton.click();
@@ -315,15 +325,15 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
   test('should maintain form data while showing errors', async ({ page }) => {
     // Fill form with some data
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    const firstNameInput = inputs.nth(0);
+    const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
 
-    const lastNameInput = inputs.nth(1);
+    const lastNameInput = page.locator('input#lastName');
     await lastNameInput.fill('Doe');
 
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('john@example.com');
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john@example.com');
+    await emailInputs.nth(1).fill('john@example.com');
 
     // Select two newsletters
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
@@ -334,7 +344,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await firstNameInput.fill('');
 
     // Try to submit
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error
@@ -343,13 +353,43 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Verify form data is preserved
     expect(await firstNameInput.inputValue()).toBe('');
     expect(await lastNameInput.inputValue()).toBe('Doe');
-    expect(await emailInput.inputValue()).toBe('john@example.com');
+    expect(await emailInputs.nth(0).inputValue()).toBe('john@example.com');
+    expect(await emailInputs.nth(1).inputValue()).toBe('john@example.com');
 
     // Check that previously selected newsletters are still selected
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
     const checkbox2 = page.locator('form input[type="checkbox"]').nth(1);
     expect(await checkbox1.isChecked()).toBe(true);
     expect(await checkbox2.isChecked()).toBe(true);
+  });
+
+  test('should show error when email addresses do not match', async ({ page }) => {
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
+
+    // Fill email and confirm email with DIFFERENT values
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john@example.com');
+    await emailInputs.nth(1).fill('different@example.com');
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Try to submit with mismatched emails
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await submitButton.click();
+
+    // Wait for error to appear
+    await page.waitForTimeout(500);
+
+    // Check for error message about email mismatch
+    const errorMessage = page.locator('.newsletterErrorMessage');
+    await expect(errorMessage).toBeVisible();
+
+    const errorText = await errorMessage.textContent();
+    expect(errorText.toLowerCase()).toContain('do not match');
   });
 
   test('should show/hide error message appropriately', async ({ page }) => {
@@ -367,7 +407,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     expect(isErrorVisible).toBe(false);
 
     // Try to submit incomplete form
-    const submitButton = page.locator('button:has-text("Subscribe")').first();
+    const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
     // Wait for error

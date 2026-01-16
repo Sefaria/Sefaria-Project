@@ -17,28 +17,65 @@
 
 import { test, expect } from '@playwright/test';
 
-// Mock Sefaria object setup for logged-in user
-const mockSefaria = {
-  uid: 123,
-  email: 'user@example.com',
-  interfaceLang: 'english',
-  _: (key) => key, // Mock translation function
-  util: {
-    isValidEmailAddress: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
-  },
+// Mock user data for simulating logged-in state
+const MOCK_USER = {
+  _uid: 123,
+  _email: 'user@example.com',
 };
 
 test.describe('Newsletter Signup - Logged-In User Flow', () => {
-  // Before each test, inject Sefaria mock and navigate to the newsletter page
+  // Before each test, inject auth data and navigate to the newsletter page
   test.beforeEach(async ({ page }) => {
     // Set viewport to test responsive design
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    // Inject Sefaria mock before page loads
-    // This simulates the server-side Sefaria object that would be loaded in actual application
-    await page.addInitScript(({ mockData }) => {
-      window.Sefaria = mockData;
-    }, { mockData: mockSefaria });
+    // Inject script that intercepts DJANGO_VARS before Sefaria initializes
+    // This simulates a logged-in user by setting _uid and _email
+    await page.addInitScript(({ mockUser }) => {
+      // Create a proxy to intercept DJANGO_VARS.props access
+      const originalDefineProperty = Object.defineProperty;
+
+      // Override DJANGO_VARS when it's created
+      Object.defineProperty(window, 'DJANGO_VARS', {
+        configurable: true,
+        set(value) {
+          // When DJANGO_VARS is set, ensure props has our mock user data
+          if (value && value.props) {
+            value.props._uid = mockUser._uid;
+            value.props._email = mockUser._email;
+          } else if (value) {
+            value.props = value.props || {};
+            value.props._uid = mockUser._uid;
+            value.props._email = mockUser._email;
+          }
+          // Store the modified value
+          Object.defineProperty(window, 'DJANGO_VARS', {
+            configurable: true,
+            writable: true,
+            value: value,
+          });
+        },
+        get() {
+          return undefined;
+        },
+      });
+
+      // Also intercept Sefaria object to ensure _uid and _email are set
+      let sefariaValue = undefined;
+      Object.defineProperty(window, 'Sefaria', {
+        configurable: true,
+        set(value) {
+          sefariaValue = value;
+          if (value) {
+            value._uid = mockUser._uid;
+            value._email = mockUser._email;
+          }
+        },
+        get() {
+          return sefariaValue;
+        },
+      });
+    }, { mockUser: MOCK_USER });
 
     // Navigate to newsletter page on local development server
     await page.goto('http://localhost:8000/newsletter');
@@ -60,18 +97,19 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
 
     // Verify email is displayed as text (not an input field for logged-in users)
     // Should see text like "Manage subscriptions for user@example.com"
-    const emailDisplay = page.locator('text=user@example.com');
+    // Use .first() because it appears in both English and Hebrew
+    const emailDisplay = page.locator('text=user@example.com').first();
     await expect(emailDisplay).toBeVisible();
 
-    // Verify first name and last name fields are NOT visible
-    const firstNameInput = page.locator('input[type="text"]').first();
-    const isFirstNameVisible = await firstNameInput.isVisible().catch(() => false);
-
-    // The exact visibility depends on form structure, but inputs should not be for name fields
-    // Check that we don't have 3+ text inputs (which would be first name, last name, and email)
+    // Verify first name and last name fields are NOT visible (hidden for logged-in users)
     const textInputs = page.locator('form input[type="text"]');
     const textInputCount = await textInputs.count();
-    expect(textInputCount).toBeLessThanOrEqual(1); // Should not have name input fields
+    expect(textInputCount).toBe(0); // Should not have name input fields for logged-in users
+
+    // Verify NO email input fields (hidden for logged-in users)
+    const emailInputs = page.locator('form input[type="email"]');
+    const emailInputCount = await emailInputs.count();
+    expect(emailInputCount).toBe(0); // Should not have email input fields for logged-in users
 
     // Verify newsletter checkboxes exist (should be 6)
     const checkboxes = page.locator('form input[type="checkbox"]');
@@ -101,22 +139,26 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
 
     expect(count).toBeGreaterThanOrEqual(5);
 
-    // Click first label to select checkbox
-    await checkboxLabels.nth(0).click();
+    // Get first checkbox and its initial state
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
-    const isChecked1 = await checkbox1.isChecked();
-    expect(isChecked1).toBe(true);
+    const initialState = await checkbox1.isChecked();
 
-    // Click it again to uncheck
+    // Click first label to toggle checkbox
     await checkboxLabels.nth(0).click();
-    const isUnchecked = await checkbox1.isChecked();
-    expect(isUnchecked).toBe(false);
+    const afterFirstClick = await checkbox1.isChecked();
+    expect(afterFirstClick).toBe(!initialState); // Should be opposite of initial
 
-    // Check another one
-    await checkboxLabels.nth(1).click();
+    // Click it again to toggle back
+    await checkboxLabels.nth(0).click();
+    const afterSecondClick = await checkbox1.isChecked();
+    expect(afterSecondClick).toBe(initialState); // Should be back to initial
+
+    // Toggle another one
     const checkbox2 = page.locator('form input[type="checkbox"]').nth(1);
-    const isChecked2 = await checkbox2.isChecked();
-    expect(isChecked2).toBe(true);
+    const initialState2 = await checkbox2.isChecked();
+    await checkboxLabels.nth(1).click();
+    const isToggled2 = await checkbox2.isChecked();
+    expect(isToggled2).toBe(!initialState2);
   });
 
   test('should submit preferences update for logged-in user', async ({ page }) => {
@@ -149,13 +191,25 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
     // Logged-in users should not have an email input field
     expect(emailInputCount).toBe(0);
 
-    // Email should be displayed as text instead
-    const emailText = page.locator('text=user@example.com');
+    // Email should be displayed as text instead (use .first() for bilingual display)
+    const emailText = page.locator('text=user@example.com').first();
     await expect(emailText).toBeVisible();
   });
 
   test('should require at least one newsletter selection for logged-in user', async ({ page }) => {
-    // Try to submit without selecting any newsletters
+    // First, uncheck all newsletters to ensure none are selected
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxes = page.locator('form input[type="checkbox"]');
+    const count = await checkboxes.count();
+
+    for (let i = 0; i < count; i++) {
+      const isChecked = await checkboxes.nth(i).isChecked();
+      if (isChecked) {
+        await checkboxLabels.nth(i).click();
+      }
+    }
+
+    // Try to submit without any newsletters selected
     const updateButton = page.locator('button:has-text("Update Preferences")').first();
     await updateButton.click();
 
@@ -163,13 +217,17 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
     await page.waitForTimeout(500);
 
     // Should see error about selecting at least one newsletter
-    const pageText = await page.textContent('body');
-    const hasError = pageText.includes('select at least one') ||
-                     pageText.includes('Choose');
+    const errorMessage = page.locator('.newsletterErrorMessage');
+    const isErrorVisible = await errorMessage.isVisible().catch(() => false);
 
-    // Either shows error or is still on same form
-    const stillOnForm = await page.locator('form').isVisible();
-    expect(hasError || stillOnForm).toBeTruthy();
+    if (isErrorVisible) {
+      const errorText = await errorMessage.textContent();
+      expect(errorText.toLowerCase()).toContain('select at least one');
+    } else {
+      // Form should still be visible (not submitted)
+      const stillOnForm = await page.locator('form').isVisible();
+      expect(stillOnForm).toBe(true);
+    }
   });
 
   test('should navigate through full flow for logged-in user', async ({ page }) => {
