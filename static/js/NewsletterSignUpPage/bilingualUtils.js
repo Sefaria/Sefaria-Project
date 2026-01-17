@@ -99,8 +99,8 @@ export const createBilingualText = (enText, heText) => ({
 export const BILINGUAL_TEXT = {
   // Header text
   SUBSCRIBE_TITLE: {
-    en: 'Subscribe to Our Newsletters',
-    he: 'הצטרף לניוזלטרים שלנו',
+    en: 'Sign Up for Emails',
+    he: 'הירשם לאימיילים',
   },
   MANAGE_TITLE: {
     en: 'Manage Your Subscriptions',
@@ -109,8 +109,8 @@ export const BILINGUAL_TEXT = {
 
   // Subtitle/description
   SUBSCRIBE_SUBTITLE: {
-    en: 'Stay updated with content curated just for you.',
-    he: 'הישאר עדכני עם תוכן שנקורט עבורך.',
+    en: 'You can now log into your Sefaria account on the mobile app to sync your reading history and saved texts on your mobile device.',
+    he: 'כעת תוכל להתחבר לחשבון Sefaria שלך באפליקציה הניידת כדי לסנכרן את היסטוריית הקריאה והטקסטים השמורים שלך במכשיר הנייד שלך.',
   },
   MANAGE_SUBTITLE: {
     en: 'Choose which newsletters you\'d like to receive.',
@@ -227,6 +227,10 @@ export const BILINGUAL_TEXT = {
   LEARNING_LEVEL_SUBTITLE: {
     en: 'To make sure we send you the most relevant content, please let us know your learning level. Help us get to know you better.',
     he: 'כדי לוודא שאנו שולחים לך את התוכן הרלוונטי ביותר, אנא הודע לנו את רמת הלמידה שלך. עזור לנו להכיר אותך טוב יותר.',
+  },
+  LEARNING_LEVEL_HEADER: {
+    en: 'In terms of your ability to study Jewish texts, select the statement below that best describes you:',
+    he: 'מבחינת היכולת שלך ללמוד טקסטים יהודיים, בחר את ההיגד למטה שמתאר אותך בצורה הטובה ביותר:',
   },
   SAVE_MY_LEVEL: {
     en: 'Save my level',

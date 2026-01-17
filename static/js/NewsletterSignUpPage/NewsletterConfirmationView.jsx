@@ -2,15 +2,14 @@ import React from 'react';
 import { renderBilingual, BILINGUAL_TEXT } from './bilingualUtils';
 
 /**
- * NewsletterConfirmationView - Stage 2a: Subscription Confirmation
+ * NewsletterConfirmationView - Stage 2: Subscription Confirmation with Learning Level
  *
- * Displays confirmation message after successful newsletter subscription.
- * Conditionally shows confirmation email message based on whether user
- * subscribed to the general "Sefaria News & Resources" list.
+ * Displays confirmation message after successful newsletter subscription,
+ * along with an embedded optional learning level form.
  *
  * Features:
  * - Clear single goal: acknowledge subscription success
- * - Progressive disclosure: only shows what's needed at this step
+ * - Embedded learning level survey (no separate stage)
  * - Conditional messaging based on newsletter selection
  * - Full bilingual support (English/Hebrew)
  * - Analytics tracking for confirmation view
@@ -19,11 +18,17 @@ export default function NewsletterConfirmationView({
   email,
   selectedNewsletters,
   selectedNewsletterLabels,
-  onContinue,
+  formStatus,
+  selectedLevel,
+  learningLevels,
+  onLevelSelect,
+  onSave,
+  onSkip,
 }) {
   // Check if user selected the general "Sefaria News & Resources" newsletter
   // (This is the list that triggers confirmation email + welcome series)
   const hasGeneralNewsletter = selectedNewsletters.sefaria_news === true;
+  const isSubmitting = formStatus.status === 'submitting';
 
   return (
     <div className="newsletterConfirmationView"
@@ -84,48 +89,116 @@ export default function NewsletterConfirmationView({
         )}
       </div>
 
-      {/* ACTION BUTTONS */}
-      <div className="confirmationActions">
-        <button
-          className="continueButton primary"
-          onClick={onContinue}
-          data-anl-event="confirmation_action:click"
-          data-anl-action="continue_to_learning_level"
-          data-anl-form_name="newsletter_confirmation">
-          <span className="int-en">Tell us about your learning level</span>
-          <span className="int-he">ספר לנו על רמת הלמידה שלך</span>
-        </button>
-      </div>
+      {/* EMBEDDED LEARNING LEVEL SECTION */}
+      <div className="embeddedLearningLevel"
+           data-anl-batch={JSON.stringify({
+             form_name: 'learning_level_survey',
+             engagement_type: 'optional_profile_data',
+           })}>
 
-      {/* SKIP OPTION */}
-      <p className="skipPrompt">
-        <span className="int-en">
-          Or <a href="#"
-                 className="skipLink"
-                 onClick={(e) => {
-                   e.preventDefault();
-                   onContinue();
-                 }}
-                 data-anl-event="confirmation_action:click"
-                 data-anl-action="skip_learning_level"
-                 data-anl-form_name="newsletter_confirmation">
-            skip this step
-          </a> and go straight to the homepage
-        </span>
-        <span className="int-he">
-          או <a href="#"
-                className="skipLink"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onContinue();
-                }}
-                data-anl-event="confirmation_action:click"
-                data-anl-action="skip_learning_level"
-                data-anl-form_name="newsletter_confirmation">
-            דלג על שלב זה
-          </a> ועבור ישירות לדף הבית
-        </span>
-      </p>
+        {/* HEADER WITH OPTIONAL INDICATOR */}
+        <div className="learningLevelHeaderWrapper">
+          <h3 className="learningLevelHeader">
+            {renderBilingual(BILINGUAL_TEXT.LEARNING_LEVEL_HEADER)}
+          </h3>
+          <span className="optionalLabel">
+            <span className="int-en">(Optional)</span>
+            <span className="int-he">(אופציונלי)</span>
+          </span>
+        </div>
+
+        {/* ERROR MESSAGE (if any) */}
+        {formStatus.status === 'error' && formStatus.errorMessage && (
+          <div className="learningLevelErrorMessage"
+               data-anl-event="form_error:displayed"
+               data-anl-engagement_type="error"
+               data-anl-form_name="learning_level_survey">
+            <span className="errorIcon">⚠️</span>
+            <span>{formStatus.errorMessage}</span>
+          </div>
+        )}
+
+        {/* RADIO OPTIONS */}
+        <form className="learningLevelForm" onSubmit={(e) => { e.preventDefault(); onSave(true); }}>
+          <div className="learningLevelOptions">
+            {learningLevels.map((level) => (
+              <label
+                key={level.value}
+                className={`learningLevelOption ${selectedLevel === level.value ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="learningLevel"
+                  value={level.value}
+                  checked={selectedLevel === level.value}
+                  onChange={() => onLevelSelect(level.value)}
+                  disabled={isSubmitting}
+                  data-anl-event="learning_level_selected:input"
+                  data-anl-text={level.label.en}
+                  data-anl-form_name="learning_level_survey"
+                />
+                <span className="levelContent">
+                  <span className="levelLabel">
+                    {renderBilingual(level.label)}
+                  </span>
+                  <span className="levelDescription">
+                    {renderBilingual(level.description)}
+                  </span>
+                </span>
+                <span className="selectedCheckmark">
+                  <img
+                    src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
+                    alt=""
+                    aria-hidden="true"
+                  />
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {/* ACTION BUTTONS */}
+          <div className="learningLevelActions">
+            <button
+              type="submit"
+              className="saveButton primary"
+              disabled={isSubmitting || selectedLevel === null}
+              data-anl-event="learning_level_action:click"
+              data-anl-action="save_learning_level"
+              data-anl-form_name="learning_level_survey">
+              {isSubmitting ? renderBilingual(BILINGUAL_TEXT.SUBMITTING) : renderBilingual(BILINGUAL_TEXT.SUBMIT)}
+            </button>
+
+            {/* SKIP OPTION */}
+            <p className="skipPrompt">
+              <span className="int-en">
+                Or <a href="#"
+                       className="skipLink"
+                       onClick={(e) => {
+                         e.preventDefault();
+                         onSkip();
+                       }}
+                       data-anl-event="learning_level_action:click"
+                       data-anl-action="skip_learning_level"
+                       data-anl-form_name="learning_level_survey">
+                  skip this step
+                </a> and go straight to the homepage
+              </span>
+              <span className="int-he">
+                או <a href="#"
+                      className="skipLink"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onSkip();
+                      }}
+                      data-anl-event="learning_level_action:click"
+                      data-anl-action="skip_learning_level"
+                      data-anl-form_name="learning_level_survey">
+                  דלג על שלב זה
+                </a> ועבור ישירות לדף הבית
+              </span>
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

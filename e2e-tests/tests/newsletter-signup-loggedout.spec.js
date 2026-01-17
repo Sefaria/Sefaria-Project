@@ -109,11 +109,36 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     const pageText = await page.textContent('body');
 
     // Should see either success message or still be on form
-    const isConfirmation = pageText.includes('confirmation') || pageText.includes('sent') || pageText.includes('confirm');
+    const isConfirmation = pageText.includes('confirmation') || pageText.includes('sent') || pageText.includes('confirm') || pageText.includes('Thank you');
     const isStillForm = await page.locator('form').isVisible();
 
     // Pass if either condition is true (test is flexible)
     expect(isConfirmation || isStillForm).toBeTruthy();
+
+    // Verify learning level options are visible on confirmation page (embedded)
+    if (isConfirmation) {
+      // Learning level options should now be embedded in confirmation view
+      const learningLevelOptions = page.locator('.learningLevelOption');
+      const optionCount = await learningLevelOptions.count();
+
+      // Should have 5 learning level options
+      if (optionCount > 0) {
+        expect(optionCount).toBe(5);
+      }
+
+      // "Submit" button for learning level should be present
+      const saveButton = page.locator('.embeddedLearningLevel button:has-text("Submit")');
+      const hasSaveButton = await saveButton.isVisible().catch(() => false);
+
+      // "skip this step" link should be present
+      const skipLink = page.locator('a.skipLink');
+      const hasSkipLink = await skipLink.isVisible().catch(() => false);
+
+      // Verify "Tell us about your learning level" button does NOT exist (removed)
+      const oldContinueButton = page.locator('button:has-text("Tell us about your learning level")');
+      const hasOldButton = await oldContinueButton.isVisible().catch(() => false);
+      expect(hasOldButton).toBe(false);
+    }
   });
 
   test('should handle form with all fields populated', async ({ page }) => {

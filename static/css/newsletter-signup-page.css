@@ -45,7 +45,15 @@
    HEADERS & TITLES (Extend existing typography)
    ============================================ */
 
-.newsletterFormView .newsletterFormHeader,
+.newsletterFormView .newsletterFormHeader {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.interface-hebrew .newsletterFormView .newsletterFormHeader {
+  text-align: right;
+}
+
 .newsletterConfirmationView .confirmationContent,
 .learningLevelView .learningLevelHeader,
 .successView .successContent {
@@ -392,6 +400,7 @@
 .newsletterConfirmationView .continueButton,
 .learningLevelView .saveButton,
 .successView .homepageLink {
+  width: 200px;
   min-width: 200px;
   padding: 12px 40px;
   height: 50px;
@@ -810,6 +819,292 @@
 
 .interface-hebrew .learningLevelView .levelContent {
   text-align: right;
+}
+
+/* ============================================
+   EMBEDDED LEARNING LEVEL (in Confirmation View)
+   ============================================ */
+
+.newsletterConfirmationView .embeddedLearningLevel {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid var(--lighter-grey);
+}
+
+/* Learning level header wrapper */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelHeaderWrapper {
+  margin-bottom: 20px;
+}
+
+/* Learning level section header - matches form section header styling */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelHeader {
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+  color: var(--darkest-grey);
+  margin: 0 0 8px 0;
+  font-family: var(--english-sans-serif-font-family);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelHeader {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+/* Optional label */
+.newsletterConfirmationView .embeddedLearningLevel .optionalLabel {
+  font-size: 14px;
+  color: var(--medium-grey);
+  font-weight: 400;
+  font-family: var(--english-sans-serif-font-family);
+  display: block;
+  text-align: left;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .optionalLabel {
+  font-family: var(--hebrew-sans-serif-font-family);
+  text-align: right;
+}
+
+/* Learning level radio options within confirmation view */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-family: var(--english-sans-serif-font-family);
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelOption {
+  font-family: var(--hebrew-sans-serif-font-family);
+  flex-direction: row-reverse;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption:hover {
+  background-color: var(--lightest-grey);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption.selected {
+  background-color: #E8E8E8;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption.selected:hover {
+  background-color: #DEDEDE;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+/* Hide native radio button */
+.newsletterConfirmationView .embeddedLearningLevel input[type="radio"] {
+  display: none;
+}
+
+/* Focus state for accessibility */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption:focus-within {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(11, 113, 231, 0.2);
+}
+
+/* Selected checkmark icon */
+.newsletterConfirmationView .embeddedLearningLevel .selectedCheckmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  visibility: hidden;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption.selected .selectedCheckmark {
+  visibility: visible;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .selectedCheckmark img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Hebrew interface - checkmark on left side */
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .selectedCheckmark {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* Level content (label + description) */
+.newsletterConfirmationView .embeddedLearningLevel .levelContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  width: 100%;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .levelContent {
+  text-align: right;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .levelLabel {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--darkest-grey);
+  font-weight: 600;
+  word-wrap: break-word;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .levelDescription {
+  font-size: 14px;
+  color: var(--dark-grey);
+  line-height: 1.5;
+  font-weight: 400;
+  word-wrap: break-word;
+}
+
+/* Error message within embedded learning level */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelErrorMessage {
+  background-color: #f2dede;
+  border: 1px solid #eed3d7;
+  color: #b94a48;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelErrorMessage {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelErrorMessage .errorIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Actions container - row layout with skip prompt on right */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+  flex-direction: row-reverse;
+}
+
+/* Submit button - same width as newsletter form submit button */
+.newsletterConfirmationView .embeddedLearningLevel .saveButton {
+  width: 200px;
+  min-width: 200px;
+  padding: 12px 40px;
+  height: 50px;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--sans-serif-body-font-size);
+  font-weight: 500;
+  font-family: var(--english-sans-serif-font-family);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--sefaria-blue);
+  color: white;
+  flex-shrink: 0;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .saveButton {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:hover:not(:disabled) {
+  background-color: #0f2647;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:disabled {
+  background-color: var(--light-grey);
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Skip prompt text - positioned to the right of button */
+.newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
+  text-align: left;
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  margin: 0;
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.6;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink {
+  color: var(--select-blue);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: text-decoration 0.2s ease;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink:hover {
+  text-decoration: underline;
+}
+
+/* Mobile responsive for embedded learning level */
+@media (max-width: 700px) {
+  .newsletterConfirmationView .embeddedLearningLevel {
+    margin-top: 30px;
+    padding-top: 25px;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .learningLevelOption {
+    padding: 12px;
+  }
+
+  /* Stack button and skip text on mobile */
+  .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .saveButton {
+    width: 100%;
+    min-width: unset;
+  }
 }
 
 /* ============================================

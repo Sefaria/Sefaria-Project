@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Sefaria from '../sefaria/sefaria';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
-import LearningLevelView from './LearningLevelView';
 import SuccessView from './SuccessView';
 import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions } from './newsletterApi';
 
@@ -106,7 +105,7 @@ export default function NewsletterSignUpPageForm() {
 
   // ========== FORM STATUS STATE (STATE MACHINE) ==========
   const [formStatus, setFormStatus] = useState({
-    currentStage: 'newsletter_selection', // 'newsletter_selection' | 'confirmation' | 'learning_level' | 'success'
+    currentStage: 'newsletter_selection', // 'newsletter_selection' | 'confirmation' | 'success'
     status: 'idle', // 'idle' | 'submitting' | 'success' | 'error'
     errorMessage: null,
     successMessage: null,
@@ -295,15 +294,6 @@ export default function NewsletterSignUpPageForm() {
     }));
   };
 
-  const handleMoveToLearningLevel = () => {
-    // Move from confirmation to learning level view
-    setFormStatus(prev => ({
-      ...prev,
-      currentStage: 'learning_level',
-      status: 'idle',
-    }));
-  };
-
   // ========== VALIDATION ==========
 
   const validateFormData = () => {
@@ -369,12 +359,6 @@ export default function NewsletterSignUpPageForm() {
           email={formData.email}
           selectedNewsletters={formData.selectedNewsletters}
           selectedNewsletterLabels={getSelectedNewsletterLabels()}
-          onContinue={handleMoveToLearningLevel}
-        />
-      )}
-
-      {formStatus.currentStage === 'learning_level' && (
-        <LearningLevelView
           formStatus={formStatus}
           selectedLevel={formData.learningLevel}
           learningLevels={LEARNING_LEVELS}
