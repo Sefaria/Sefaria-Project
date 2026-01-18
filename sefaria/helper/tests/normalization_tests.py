@@ -35,6 +35,13 @@ def test_itag_normalizer_deep_dive():
     (s1, e1), r1 = text_to_remove[0]
     assert (s1, e1) == (3, len(text)-1)
     
+    
+def test_fn_marker_normalizer():
+    text = 'Yo <sup class="footnote-marker">3</sup><i> Am </i>. 4:4</i>.'
+    fnn = NormalizerFactory.get('fn-marker')
+    norm_text = fnn.normalize(text)
+    assert norm_text == "Yo <i> Am </i>. 4:4</i>."
+
 
 def test_replace_normalizer():
     text = "Hello, what is up? You is nice"

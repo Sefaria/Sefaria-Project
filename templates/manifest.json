@@ -1,0 +1,34 @@
+{% load static %}
+{% load i18n %}
+{
+  "name": "{% if active_module == 'voices' %}Sefaria {% trans 'Voices' %}{% else %}Sefaria {% trans 'Library' %}{% endif %}",
+  "short_name": "{% if active_module == 'voices' %}{% trans 'Voices' %}{% else %}{% trans 'Library' %}{% endif %}",
+  "start_url": "{{ start_url }}",
+  "scope": "{{ scope }}",
+  "icons": [
+    {
+      "src": "{% static '' %}icons/{{ active_module }}/{{ active_module }}-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "{% static '' %}icons/{{ active_module }}/{{ active_module }}-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "{% static '' %}icons/{{ active_module }}/{{ active_module }}-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}",
+  "background_color": "{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}",
+  "display": "standalone",
+  "orientation": "portrait-primary"{% if is_hebrew %},
+  "dir": "rtl",
+  "lang": "he"{% else %},
+  "dir": "ltr",
+  "lang": "en"{% endif %}
+}

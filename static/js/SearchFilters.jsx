@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import SearchState from './sefaria/searchState';
 import classNames  from 'classnames';
@@ -195,26 +196,22 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
       return false;
     }
   }
-
-  const wordSelected = (item) => {
-    if (item.selected) {
-      return -1;
-    } else {
-      return 1;
-    }
+  
+  const sortFiltersBySelected = (filter1, filter2) => {
+   return filter2.selected - filter1.selected;
   }
 
   const updateFilters = text => {
-    if (text && text != "") {
+    if (text && text !== "") {
       if (!expandable) {
-        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(x => wordSelected(x)));
+        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(sortFiltersBySelected));
       } else { // don't sort
         setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
       }
       setShowClearInputButton(true);
     } else {
       if (!expandable) {
-        setFilters(filters.sort(x => wordSelected(x)));
+        setFilters(filters.sort(sortFiltersBySelected));
       } else {
         setFilters(filters);
       }
@@ -226,7 +223,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label="Clear input" onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
   const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
@@ -235,7 +232,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
         <InterfaceText context="SearchFilters">{name}</InterfaceText>
       </h2>
       {search}
-      {content}
+      <ul className="searchFilterList">{content}</ul>
     </div>
   );
 };
@@ -245,17 +242,12 @@ class SearchFilterExactBox extends Component {
   handleClick() {
     this.props.checkBoxClick();
   }
-  handleKeyPress(e) {
-    if (e.charCode == 13) { // enter
-      this.handleClick(e);
-    }
-  }
   render() {
     return (
       <li>
         <div className="checkboxAndText">
           <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-          <label tabIndex="0" onClick={this.handleClick} onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress}><span></span></label>
+          <label tabIndex="0" onClick={this.handleClick} onKeyDown={Util.handleEnterKey(this.handleClick)}><span></span></label>
         
          <span className={"filter-title"}>
             <InterfaceText>Exact Matches Only</InterfaceText>
@@ -309,16 +301,6 @@ class SearchFilter extends Component {
   toggleExpanded() {
     this.props.expandable && this.setState({expanded: !this.state.expanded});    
   }
-  handleKeyPress(e) {
-    if (e.charCode == 13) { // enter
-      this.handleFilterClick(e);
-    }
-  }
-  handleExpandKeyPress(e) {
-    if (e.charCode == 13) { // enter
-      this.toggleExpanded();
-    }
-  }
   autoExpand(filter) {
     return this.props.filterSearchValue !== undefined && this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable && filter.getLeafNodes(this.props.filterSearchValue).length > 0;
   }
@@ -336,15 +318,14 @@ class SearchFilter extends Component {
               onClick={this.handleFilterClick} 
               id={"label-for-"+this.props.filter.aggKey} 
               tabIndex="0"
-              onKeyDown={this.handleKeyDown} 
-              onKeyPress={this.handleKeyPress} 
+              onKeyDown={Util.handleEnterKey(this.handleFilterClick)} 
               aria-label={toggleMessage}>
               <span></span>
             </label>
             <span
               className="searchFilterTitle"
               onClick={expandable ? this.toggleExpanded : this.handleFilterClick}
-              onKeyPress={expandable ? this.handleExpandKeyPress : this.handleKeyPress}
+              onKeyDown={expandable ? Util.handleEnterKey(this.toggleExpanded) : Util.handleEnterKey(this.handleFilterClick)}
               tabIndex={expandable ? "0" : null}
               aria-label={expandable ? expandMessage : toggleMessage} >
               <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;
@@ -411,7 +392,7 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
     <>
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
-      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
+      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}} aria-label={Sefaria._("See More", "SearchFilters")}>
         <InterfaceText context="SearchFilters">See More</InterfaceText>
       </button>
       : null}
