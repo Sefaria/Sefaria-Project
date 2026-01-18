@@ -144,7 +144,7 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: "elasticsearch-es-http.elasticsearch.svc"
+  SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
   SEARCH_PORT: "9200"
   SEARCH_PATH: ""
   SEARCH_SSL_ENABLE: false
