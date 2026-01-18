@@ -67,3 +67,57 @@ class Text(View):
             return jsonResponse({'error': str(e)}, status=400)
 
         return jsonResponse(data)
+
+
+class RefView(View):
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
+        except InputError:
+            return jsonResponse({'is_ref': False})
+        except Exception as e:
+            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self):
+        oref = self.oref
+        index = oref.index
+        index_node = oref.index_node
+        return_object = {
+            'is_ref': True,
+            'normalized': oref.normal(),
+            'hebrew': oref.he_normal(),
+            'url_ref': oref.url(),
+            'index_title': index.title,
+            'is_commentary': oref.is_commentary(),
+            'node_type': type(index_node).__name__,
+            'has_default': oref.has_default_child(),
+            'categories': index.categories,
+        }
+
+        if return_object['is_commentary']:
+            return_object['base_text_titles'] = getattr(index, 'base_text_titles', [])
+
+        if return_object['node_type'] == 'SchemaNode':
+            return_object['schema_node_children'] = [child.get_primary_title() for child in index_node.children]  # TODO should deafult be an empry string?
+
+        if return_object['node_type'] == 'JaggedArrayNode' or index_node.has_default_child():
+            default_node = index_node.get_default_child() or index_node
+            return_object['jagged_array_metadata'] = {
+                'depth': default_node.depth,
+                'address_types': default_node.addressTypes,
+                'section_names': default_node.sectionNames,
+                'sections': oref.sections,
+                'to_sections': oref.toSections,
+            }
+
+        if return_object['node_type'] == 'SheetNode':
+            return_object['sheet_id'] = index_node.sheetId
+
+        if return_object['node_type'] == 'DictionaryEntryNode':
+            lexicon_entry = index_node.lexicon_entry
+            return_object['lexicon_name'] = lexicon_entry.parent_lexicon
+            return_object['headword'] = lexicon_entry.headword
+
+        return return_object
