@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n sefaria_tags %}
 
 {% block title %}{% trans "Log in to Sefaria" %}{% endblock %}
 
@@ -23,7 +23,6 @@
     </div>
 
 {% else %}
-
 	<div id="login" class="biReady registrationContent static">
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
