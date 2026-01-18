@@ -2,7 +2,7 @@
 
 # This regular expression represents the conventional commit format, including
 # support for custom semantic commits message parts, e.g., 'feat(custom-prefix-123): ...'.
-CONVENTIONAL_COMMIT_REGEX="^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|static|helm)(\([a-zA-Z0-9 \-]*\))?(\!)?\: .+)|(Merge .+)|(Revert .+)$"
+CONVENTIONAL_COMMIT_REGEX="^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|static|helm)(\([a-zA-Z0-9 _-]*\))?(\!)?\: .+)|(Merge .+)|(Revert .+)$"
 
 COMMIT_MSG=$(cat "$1")
 

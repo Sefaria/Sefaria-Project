@@ -2,17 +2,24 @@ import dataclasses
 import re2 as re
 from functools import reduce
 from collections import defaultdict
+
+from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.linker.ref_part import RawNamedEntity
+from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.model.topic import Topic
 from sefaria.utils.hebrew import strip_cantillation, get_matches_with_prefixes
 from sefaria.system.exceptions import InputError
 
 
-class ResolvedNamedEntity:
+class ResolvedNamedEntity(AbstractResolvedEntity):
 
     def __init__(self, raw_named_entity: RawNamedEntity, topics: list[Topic]):
-        self.raw_entity = raw_named_entity
+        self._raw_entity = raw_named_entity
         self.topics = topics
+        
+    @property
+    def raw_entity(self):
+        return self._raw_entity
 
     @property
     def topic(self):
@@ -23,11 +30,27 @@ class ResolvedNamedEntity:
 
     @property
     def is_ambiguous(self):
-        return len(self.topics) != 1
+        return len(self.topics) > 1
 
     @property
     def resolution_failed(self):
         return len(self.topics) == 0
+    
+    def get_debug_spans(self) -> list[dict]:
+        span = self._get_base_debug_span()
+        span["type"] = MUTCSpanType.NAMED_ENTITY.value
+
+        if len(self.topics) == 0:
+            span["topicSlug"] = None
+            return [span]
+        spans = []
+
+        for topic in self.topics:
+            cat_span = span.copy()
+            cat_span["topicSlug"] = topic.slug
+            spans.append(cat_span)
+        return spans
+        
 
 
 class TitleGenerator:
@@ -54,6 +77,7 @@ class PersonTitleGenerator(TitleGenerator):
         r'^Bar ': ['bar '],
         r'^Rabbi ': ['R. '],
         r'^Rebbi ': ['R. '],
+        r'^רבי ': ["ר' "],
     }
 
 
