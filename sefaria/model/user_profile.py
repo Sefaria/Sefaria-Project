@@ -10,6 +10,7 @@ from django.utils.translation import ugettext as _, ungettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
+from sefaria.constants.model import VOICES_MODULE
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
@@ -197,7 +198,7 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.delete()
 
     @staticmethod
-    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets_only=False, serialized=False, annotate=False, limit=0, skip=0):
         query = {}
         if uid is not None:
             query["uid"] = uid
@@ -207,14 +208,14 @@ class UserHistory(abst.AbstractMongoRecord):
             query["$or"] = ref_clauses
         if saved is not None:
             query["saved"] = saved
-        if sheets is not None:
-            query["is_sheet"] = sheets
+        query["is_sheet"] = sheets_only
         if secondary is not None:
             query["secondary"] = secondary
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
+            items = [uh.contents(for_api=True, annotate=annotate) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit, skip=skip)]
+            return items 
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit, skip=skip)
 
     @staticmethod
@@ -393,10 +394,6 @@ class UserProfile(object):
         self.nationbuilder_id = None
         self.sf_app_user_id = None
 
-        # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = True
-
         # Fundraising
         self.is_sustainer = False
 
@@ -411,6 +408,8 @@ class UserProfile(object):
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
             # while maintaining separate profiles (e.g. Sefaria and S4D).
+            self.show_editor_toggle = False
+            self.uses_new_editor = True
             self.assign_slug()
             self.save()
 
@@ -500,8 +499,9 @@ class UserProfile(object):
 
         d = self.to_mongo_dict()
         if self._id:
-            d["_id"] = self._id
-        db.profiles.save(d)
+            db.profiles.replace_one({'_id': self._id}, d, upsert=True)
+        else:
+            db.profiles.insert_one(d)
 
         # store name changes on Django User object
         if self._name_updated:
@@ -592,13 +592,14 @@ class UserProfile(object):
         """Returns true if this user is followed by uid"""
         return uid in self.followers.uids
 
-    def recent_notifications(self):
+    def recent_notifications(self, scope=VOICES_MODULE):
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().recent_for_user(self.id)
+        return NotificationSet().recent_for_user(self.id, scope=scope)
 
-    def unread_notification_count(self):
+    def unread_notification_count(self, scope=VOICES_MODULE):
+        # TODO: Why do we not need to scope the notifications to the module here?
         from sefaria.model.notification import NotificationSet
-        return NotificationSet().unread_for_user(self.id).count()
+        return NotificationSet().unread_for_user(self.id, scope=scope).count()
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
@@ -610,21 +611,21 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-    def get_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
+    def get_history(self, oref=None, saved=None, secondary=None, sheets_only=False, last_place=None, serialized=False, annotate=False, limit=0, skip=0):
         """
         personal user history
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
-        :param sheets: ditto
+        :param sheets_only: ditto
         :param serialized: for return from API call
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
         if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
-        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets_only=sheets_only, last_place=last_place, serialized=serialized, annotate=annotate, limit=limit, skip=skip)
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
@@ -672,8 +673,6 @@ class UserProfile(object):
             "nationbuilder_id":      self.nationbuilder_id,
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
         }
 
     def to_api_dict(self, basic=False):
@@ -705,8 +704,6 @@ class UserProfile(object):
             return dictionary
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
             "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)

@@ -129,7 +129,6 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
-	sheet["sheetNotice"] = present_sheet_notice(sheet.get("is_moderated", None))
 	if "displayedCollection" in sheet:
 		collection = Collection().load({"slug": sheet["displayedCollection"]})
 		if collection:
@@ -212,7 +211,7 @@ def sheet_to_dict(sheet):
 	profile = public_user_data(sheet["owner"])
 	sheet_dict = {
 		"id": sheet["id"],
-		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled",
 		"summary": sheet.get("summary", None),
 		"status": sheet["status"],
 		"author": sheet["owner"],
@@ -244,7 +243,7 @@ def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displ
         # in another collection, set it to highlight this collection.
         if is_sheet_owner and (not sheet.get("displayedCollection", None) or override_displayedCollection):
             sheet["displayedCollection"] = collection.slug
-            db.sheets.save(sheet)
+            db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 
 
 def change_sheet_owner(sheet_id, new_owner_id):
@@ -258,9 +257,8 @@ def change_sheet_owner(sheet_id, new_owner_id):
     if "ownerProfileUrl" in sheet:
         del sheet["ownerProfileUrl"]
     if "ownerOrganization" in sheet:
-        sheet["ownerOrganization"]
-    db.sheets.save(sheet)
-
+        del sheet["ownerOrganization"]
+    db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 
 def annotate_user_collections(sheets, user_id):
 	"""
@@ -356,8 +354,7 @@ def order_tags_for_user(tag_counts, uid):
 
 	return tag_counts
 
-@django_cache(timeout=6 * 60 * 60)
-def trending_topics(days=7, ntags=14):
+def trending_topics(days=30, ntags=14):
 	"""
 	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
 	"""
@@ -380,6 +377,8 @@ def trending_topics(days=7, ntags=14):
 		"count": topic['sheet_count'],
 		"author_count": len(topic['authors']),
 	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
+	for i, topic in enumerate(results):
+		results[i]['primaryTitle'] = {'en': topic.pop('en'), 'he': topic.pop('he')}   
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
@@ -453,12 +452,13 @@ def rebuild_sheet_nodes(sheet):
 
 
 def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
+	from pathlib import Path
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
 	def next_sheet_id():
 		last_id = db.sheets.find().sort([['id', -1]]).limit(1)
-		if last_id.count():
+		if len(list(last_id.clone())):
 			sheet_id = last_id.next()["id"] + 1
 		else:
 			sheet_id = 1
@@ -535,7 +535,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				nextNode += 1
 			if "media" in source and source["media"].startswith(GoogleStorageManager.BASE_URL):
 				old_file = (re.findall(r"/([^/]+)$", source["media"])[0])
-				to_file = f"{user_id}-{uuid.uuid1()}.{source['media'][-3:].lower()}"
+				source_path = source['media']
+				path_suffix = Path(source_path).suffix.strip(".")
+				to_file = f"{user_id}-{uuid.uuid1()}.{path_suffix}"
 				bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
 				duped_image_url = GoogleStorageManager.duplicate_file(old_file, to_file, bucket_name)
 				source["media"] = duped_image_url
@@ -654,7 +656,7 @@ def test():
 	for s in ss:
 		lang = get_sheet_language(s)
 		if lang == "some hebrew":
-			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+			print("{}\thttps://sheets.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
 
 
 
@@ -682,7 +684,7 @@ def add_source_to_sheet(id, source, note=None):
 	sheet["sources"].append(source)
 	if note:
 		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
-	db.sheets.save(sheet)
+	db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 	return {"status": "ok", "id": id, "source": source}
 
 
@@ -697,9 +699,8 @@ def add_ref_to_sheet(id, ref, request):
 		return jsonResponse({"error": "user can only add refs to their own sheet"})
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append({"ref": ref})
-	db.sheets.save(sheet)
+	db.sheets.replace_one({"_id": sheet["_id"]}, sheet, upsert=True)
 	return {"status": "ok", "id": id, "ref": ref}
-
 
 def refs_in_sources(sources, refine_refs=False):
 	"""
@@ -784,6 +785,22 @@ def get_top_sheets(limit=3):
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
 
+def annotate_sheets_with_collections(sheets):
+	"""
+	Annotate a list of `sheets` with a list of public collections that the sheet appears in.
+	"""
+	ids = list({int(s['id']) for s in sheets})
+	collections = CollectionSet({'sheets': {'$in': ids}, 'listed': True}, hint="sheets_listed") #Return every public collection that has a sheet in `ids`
+
+	sheet_id_to_collections = defaultdict(list)
+	for collection in collections:
+		for sheet_id in collection.sheets:
+			sheet_id_to_collections[sheet_id].append(collection)
+
+	for sheet in sheets:
+		collections = sheet_id_to_collections[int(sheet["id"])]
+		sheet["collections"] = [{'name': collection.name, 'slug': collection.slug} for collection in collections]
+	return sheets
 
 def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
@@ -806,8 +823,10 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
 		query["id"] = {"$in": sheets_ids}
 
-	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
+	projection = {"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1,
+		 "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1,
+		 "displayedCollection":1, "options":1}
+	sheetsObj = db.sheets.find(query, projection).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
@@ -873,8 +892,8 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
+				"dateCreated":	   sheet.get("dateCreated", None)
 			}
-
 			results.append(sheet_data)
 	return results
 
@@ -915,7 +934,7 @@ def update_sheet_topics(sheet_id, topics, old_topics):
 
 	normalized_topics = [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
 
-	db.sheets.update({"id": sheet_id}, {"$set": {"topics": normalized_topics}})
+	db.sheets.update_one({"id": sheet_id}, {"$set": {"topics": normalized_topics}})
 
 	update_sheet_topic_links(sheet_id, normalized_topics, old_topics)
 
@@ -1020,6 +1039,22 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
 		for topic in topic_list:
+			# TEMPORARY FIX (2026-01-13): Check if topic has required 'slug' field
+			# WARNING: This is a workaround to prevent KeyError crashes when topics are saved without slugs.
+			# Root cause: Frontend allows users to create custom topics via ReactTags (allowNew=true) which
+			# creates tags without slugs. These bypass update_sheet_topics() when saving via POST /api/sheets/.
+			# TODO: Proper fix needed:
+			#   1. Fix frontend to filter out tags without slugs before sending, OR
+			#   2. Always run topics through update_sheet_topics() which adds slugs, OR
+			#   3. Add migration to fix existing sheets with slugless topics
+			# See: topic_slug_issue_analysis.md for full analysis
+			if not topic.get('slug'):
+				import logging
+				logger = logging.getLogger(__name__)
+				logger.error(f"Topic missing 'slug' field. Sheet topic data: {topic}")
+				print(f"Topic missing 'slug' field. Sheet topic data: {topic}")
+				# Skip this malformed topic to prevent crash
+				continue
 			# Fall back on `asTyped` if no data is in mapping yet. If neither `asTyped` nor mapping data is availble fail safe by reconstructing a title from a slug (HACK currently affecting trending topics if a new topic isn't in cache yet)
 			default_title = topic['asTyped'] if use_as_typed else topic['slug'].replace("-", " ").title()
 			topic_titles = topic_map.get(topic['slug'], {"en": default_title, "he": default_title})
@@ -1287,8 +1322,3 @@ def update_sheet_tags_categories(body, uid):
 	time = datetime.now().isoformat()
 	noTags = time if body.get("noTags", False) else False
 	db.sheets.update_one({"id": body['sheetId']}, {"$set": {"categories": body['categories'], "noTags": noTags}, "$push": {"moderators": {"uid": uid, "time": time}}})
-
-
-def present_sheet_notice(is_moderated):
-	"""This method is here in case one day we will want to differentiate based on other logic on moderation"""
-	return is_moderated

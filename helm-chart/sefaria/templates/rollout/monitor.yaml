@@ -15,6 +15,7 @@ spec:
     blueGreen:
       activeService: monitor-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
         templates:
           # - templateName: rollout-readiness-{{ .Values.deployEnv }}
@@ -26,6 +27,7 @@ spec:
           #   value: "{{ .Values.deployEnv }}"
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
   selector:
     matchLabels:
       app: monitor-{{ .Values.deployEnv }}
@@ -65,6 +67,10 @@ spec:
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}

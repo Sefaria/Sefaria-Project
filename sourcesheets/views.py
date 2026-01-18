@@ -17,6 +17,7 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import ugettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -33,9 +34,11 @@ from sefaria.model.user_profile import *
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.utils.util import strip_tags
+from sefaria.system.cache import django_cache
+from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import render_template, catchall
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -45,6 +48,7 @@ import sefaria.model.dependencies
 
 
 from sefaria.gauth.decorators import gauth_required
+from reader.views import menu_page
 
 def annotate_user_links(sources):
     """
@@ -58,59 +62,39 @@ def annotate_user_links(sources):
 
     return sources
 
+from django.utils.translation import ugettext as _
+from reader.views import menu_page
+
+@ensure_csrf_cookie
+def sheets_home_page(request):
+    title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
+    desc  = _("Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos.")
+    return menu_page(request, page="voices", title=title, desc=desc)
+
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-	profile = UserProfile(id=request.user.id)
-	if getattr(profile, "uses_new_editor", False):
-		sheet = {
-				'status': 'unlisted',
-				'title': '',
-				'sources': [],
-				'nextNode': 1,
-				'options': {
-					'layout':    "stacked",
-					'boxed':  0,
-					'language':    "bilingual",
-					'numbered':    0,
-					'assignable':    0,
-					'divineNames':    "noSub",
-					'collaboration':    "none",
-					'highlightMode':    0,
-					'langLayout':    "heRight",
-					'bsd':    0,
-				}
-		}
+    profile = UserProfile(id=request.user.id)
+    sheet = {
+    'status': 'unlisted',
+    'title': '',
+    'sources': [],
+    'nextNode': 1,
+    'options': {
+        'layout':    "stacked",
+        'boxed':  0,
+        'language':    "bilingual",
+        'numbered':    0,
+        'assignable':    0,
+        'divineNames':    "noSub",
+        'collaboration':    "none",
+        'highlightMode':    0,
+        'langLayout':    "heRight",
+        'bsd':    0}
+    }
 
-		responseSheet = save_sheet(sheet, request.user.id)
-		return catchall(request, str(responseSheet["id"]), True)
-
-	"""
-	View an new, empty source sheet.
-	"""
-	if "assignment" in request.GET:
-		sheet_id  = int(request.GET["assignment"])
-
-		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
-		existingAssignment = db.sheets.find_one(query) or []
-		if "id" in existingAssignment:
-			return view_sheet(request,str(existingAssignment["id"]),True)
-
-		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
-			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
-				return assigned_sheet(request, sheet_id)
-
-	query         = {"owner": request.user.id or -1 }
-	hide_video    = db.sheets.count_documents(query) > 2
-
-	return render_template(request,'sheets.html', None, {
-        "can_edit": True,
-        "new_sheet": True,
-        "is_owner": True,
-        "hide_video": hide_video,
-        "current_url": request.get_full_path,
-    })
-
+    responseSheet = save_sheet(sheet, request.user.id)
+    return catchall(request, str(responseSheet["id"]), True)
 
 def can_edit(user, sheet):
     """
@@ -170,6 +154,7 @@ def make_sheet_class_string(sheet):
     """
     Returns a string of class names corresponding to the options of sheet.
     """
+
     o = sheet["options"]
     classes = []
     classes.append(o.get("language", "bilingual"))
@@ -184,27 +169,29 @@ def make_sheet_class_string(sheet):
 
     return " ".join(classes)
 
-
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    editor = request.GET.get('editor', '0')
+    redirect_url = get_redirect_to_help_center(request, sheet_id)
+    if redirect_url:
+        return redirect(redirect_url)
+    
     embed = request.GET.get('embed', '0')
-
-    if editor != '1' and embed !='1' and editorMode is False:
+    if embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
     sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
+
     if "error" in sheet and sheet["error"] != "Sheet updated.":
             return HttpResponse(sheet["error"])
 
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -267,7 +254,7 @@ def view_visual_sheet(request, sheet_id):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": int(sheet_id)}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
@@ -291,53 +278,6 @@ def view_visual_sheet(request, sheet_id):
         "is_public": sheet["status"] == "public",
         "current_url": request.get_full_path,
     })
-
-
-@ensure_csrf_cookie
-def assigned_sheet(request, assignment_id):
-    """
-    A new sheet prefilled with an assignment.
-    """
-    sheet = get_sheet(assignment_id)
-    if "error" in sheet:
-        return HttpResponse(sheet["error"])
-
-    sheet["sources"] = annotate_user_links(sheet["sources"])
-
-    # Remove keys from we don't want transferred
-    for key in ("id", "like", "views", "displayedCollection"):
-        if key in sheet:
-            del sheet[key]
-
-    assigner             = UserProfile(id=sheet["owner"])
-    assigner_id	         = assigner.id
-    sheet_class          = make_sheet_class_string(sheet)
-    can_edit_flag        = True
-    can_add_flag         = can_add(request.user, sheet)
-    embed_flag           = "embed" in request.GET
-    likes                = sheet.get("likes", [])
-    like_count           = len(likes)
-    viewer_is_liker      = request.user.id in likes
-
-    return render_template(request,'sheets.html', None, {
-        "sheetJSON": json.dumps(sheet),
-        "sheet": sheet,
-        "assignment_id": assignment_id,
-        "assigner_id": assigner_id,
-        "new_sheet": True,
-        "sheet_class": sheet_class,
-        "can_edit": can_edit_flag,
-        "can_add": can_add_flag,
-        "title": sheet["title"],
-        "is_owner": True,
-        "is_public": sheet["status"] == "public",
-        "sheet_collections": [],
-        "displayed_collection":  None,
-        "like_count": like_count,
-        "viewer_is_liker": viewer_is_liker,
-        "current_url": request.get_full_path,
-    })
-
 
 @csrf_exempt
 def delete_sheet_api(request, sheet_id):
@@ -368,7 +308,7 @@ def delete_sheet_api(request, sheet_id):
     if user.id != sheet["owner"]:
         return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
-    db.sheets.remove({"id": id})
+    db.sheets.delete_one({"id": id})
     process_sheet_deletion_in_collections(id)
     process_sheet_deletion_in_notifications(id)
 
@@ -636,14 +576,17 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
+                return jsonResponse(
+                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"},
+                    status=401
+                )
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
+                return jsonResponse({"error": "Unrecognized API key."}, status=401)
         else:
             apikey = None
 
-        j = request.POST.get("json")
+        j = request.POST.get("json") or request.body
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
@@ -682,6 +625,7 @@ def save_sheet_api(request):
 
         rebuild_nodes = request.POST.get('rebuildNodes', False)
         responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
+        responseSheet["topics"] = add_langs_to_topics(responseSheet.get("topics", [])) # add langs to topics for consistency.  GET requests already do this, but POST requests didn't before
         if "rebuild" in responseSheet and responseSheet["rebuild"]:
             # Don't bother adding user links if this data won't be used to rebuild the sheet
             responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
@@ -946,11 +890,16 @@ def user_tag_list_api(request, user_id):
     response["Cache-Control"] = "max-age=3600"
     return response
 
+@django_cache(timeout=6 * 60 * 60)
 def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
     """
-    response = trending_topics(ntags=18)
+    try:
+        ntags = int(request.GET.get('n', 10))
+    except ValueError:
+        return jsonResponse({"error": "Invalid value for parameter 'n'. It must be an integer."})
+    response = trending_topics(ntags=ntags)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -1020,8 +969,29 @@ def sheets_by_ref_api(request, ref):
     """
     API to get public sheets by ref.
     """
-    return jsonResponse(get_sheets_for_ref(ref))
+    include_collections = bool(int(request.GET.get("include_collections", 0)))
+    sheets = get_sheets_for_ref(ref)
+    if include_collections:
+        sheets = annotate_sheets_with_collections(sheets)
+    return jsonResponse(sheets)
 
+def sheets_with_ref(request, tref):
+    """
+    Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
+    """
+    search_params = get_search_params(request.GET)
+
+    props={
+        "initialSearchField": search_params["field"],
+        "initialSearchFilters": search_params["filters"],
+        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
+        "initialSearchSortType": search_params["sort"]
+    }
+    he_tref = Ref(tref).he_normal()
+    normal_ref = tref if request.interfaceLang == "english" else he_tref
+    title = get_page_title(f"Sheets with {normal_ref}", module=request.active_module)
+    props["sheetsWithRef"] = {"en": tref, "he": he_tref}
+    return menu_page(request, page="sheetsWithRef", title=title, props=props)
 
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
@@ -1053,8 +1023,6 @@ def sheet_to_html_string(sheet):
     Create the html string of sheet with sheet_id.
     """
     sheet["sources"] = annotate_user_links(sheet["sources"])
-    sheet = resolve_options_of_sources(sheet)
-
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
@@ -1079,23 +1047,6 @@ def sheet_to_html_string(sheet):
     return render_to_string('gdocs_sheet.html', context)
 
 
-def resolve_options_of_sources(sheet):
-    for source in sheet['sources']:
-        if 'text' not in source:
-            continue
-        options = source.setdefault('options', {})
-        if not options.get('sourceLanguage'):
-            source['options']['sourceLanguage'] = sheet['options'].get(
-                'language', 'bilingual')
-        if not options.get('sourceLayout'):
-            source['options']['sourceLayout'] = sheet['options'].get(
-                'layout', 'sideBySide')
-        if not options.get('sourceLangLayout'):
-            source['options']['sourceLangLayout'] = sheet['options'].get(
-                'langLayout', 'heRight')
-    return sheet
-
-
 
 @gauth_required(scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
 def export_to_drive(request, credential, sheet_id):
@@ -1105,16 +1056,18 @@ def export_to_drive(request, credential, sheet_id):
     # Using credentials in google-api-python-client.
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
-
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
         return jsonResponse({'error': {'message': sheet["error"]}})
+
+    options = {'language': request.GET.get("language", "bilingual"),
+               'layout': request.GET.get("layout", "heRight")}
+    sheet['options'] = sheet['options'] | options
 
     file_metadata = {
         'name': strip_tags(sheet['title'].strip()),
         'mimeType': 'application/vnd.google-apps.document'
     }
-
     html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
     media = MediaIoBaseUpload(

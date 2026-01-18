@@ -1,7 +1,6 @@
 import React from 'react';
 import {TopicLandingSearch} from "./TopicLandingSearch";
 import {NavSidebar} from "../NavSidebar";
-import Footer from "../Footer";
 import {FeaturedTopic} from "./FeaturedTopic";
 import {TopicSalad} from "./TopicSalad";
 import {TopicLandingParasha} from "./TopicLandingParasha";
@@ -15,12 +14,12 @@ import {RandomTopicCardWithDescriptionRow} from "./RandomTopicCardWithDescriptio
 export const TopicsLandingPage = ({openTopic}) => {
     const sidebarModules = [
         {type: "TopicLandingTopicCatList"},
-        {type: "TopicLandingTrendingTopics"},
+        {type: "TrendingTopics"},
         {type: "AZTopicsLink"},
     ];
     const pageTitle = "Explore by Topic"
     return (
-        <div className="readerNavMenu" key="0"
+        <div className="readerNavMenu topicLandingPanel" key="0"
              data-anl-project="topics"
              data-anl-panel_name={pageTitle}
              data-anl-panel_type="Topic Landing">
@@ -52,7 +51,6 @@ export const TopicsLandingPage = ({openTopic}) => {
                     </div>
                     <NavSidebar sidebarModules={sidebarModules} />
                 </div>
-                <Footer />
             </div>
         </div>
     )

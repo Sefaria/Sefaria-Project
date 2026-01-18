@@ -75,6 +75,7 @@ function StrapiDataProvider({ children }) {
                 showToNonSustainers
                 showToReturningVisitors
                 showToSustainers
+                showTo
                 updatedAt
               }
             }
@@ -115,6 +116,7 @@ function StrapiDataProvider({ children }) {
                 showToNonSustainers
                 showToReturningVisitors
                 showToSustainers
+                showTo
                 updatedAt
               }
             }
@@ -176,17 +178,17 @@ function StrapiDataProvider({ children }) {
           }
         }
         `;
-        const result = fetch(STRAPI_INSTANCE + "/graphql", {
+        // Use the new cache endpoint instead of calling Strapi directly to minimize API calls
+        const url = new URL("/api/strapi/graphql-cache", window.location.origin);
+        url.searchParams.append('start_date', startDate.split('T')[0]); // Only use date part
+        url.searchParams.append('end_date', endDate.split('T')[0]);
+
+        const result = fetch(url, {
           method: "POST",
-          mode: "cors",
-          cache: "no-cache",
-          credentials: "omit",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain",
           },
-          redirect: "follow",
-          referrerPolicy: "no-referrer",
-          body: JSON.stringify({ query }),
+          body: query,
         })
           .then((response) => {
             if (!response.ok) {

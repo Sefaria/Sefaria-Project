@@ -1,6 +1,21 @@
 import React, { useRef, useState } from 'react';
 import Sefaria from '../sefaria/sefaria';
+import Util from '../sefaria/util';
 import {InterfaceText} from "../Misc";
+
+const NEWSLETTER_TEASER_TEXT = "Stay curious. Get the Timeless Topics newsletter every Tuesday."
+
+const getNewsletterAnalyticsData = () => {
+    const lang = Sefaria._getShortInterfaceLang();
+    const newsletterName = Sefaria.getTopicLandingNewsletterMailingLists().join(", ");
+    return {
+        text: Sefaria._(NEWSLETTER_TEASER_TEXT),
+        feature_name: "Newsletter Signup Form",
+        version: lang,
+        form_name: "newsletter_topics",
+        form_destination: newsletterName,
+    };
+};
 
 export const TopicLandingNewsletter = () => {
     const firstNameRef = useRef();
@@ -9,15 +24,9 @@ export const TopicLandingNewsletter = () => {
     const [subscribeMessage, setSubscribeMessage] = useState(null);
     const [subscribeErrorMessage, setSubscribeErrorMessage] = useState(null);
 
-    function handleSubscribeKeyUp(e) {
-        if (e.keyCode === 13) {
-            handleSubscribe();
-        }
-    }
-
     function validateInputs() {
         if (firstNameRef.current?.value.length === 0 || lastNameRef.current?.value.length === 0) {
-            setSubscribeMessage(Sefaria._("Please enter a valid first and last name"));
+            setSubscribeMessage(Sefaria._("Please enter a valid first and last name."));
             return false;
         }
         if (!Sefaria.util.isValidEmailAddress(emailRef.current?.value)) {
@@ -39,34 +48,44 @@ export const TopicLandingNewsletter = () => {
         });
     }
     return (
-        <div className="topic-landing-newsletter-wrapper" data-anl-feature_name="Newsletter Signup Form">
+        <div className="topic-landing-newsletter-wrapper" data-anl-batch={JSON.stringify(getNewsletterAnalyticsData())}>
             <div className="topic-landing-newsletter">
                 <h3 className="topic-landing-newsletter-text">
-                    <InterfaceText>Stay curious. Get the Timeless Topics newsletter every Tuesday.</InterfaceText>
+                    <InterfaceText>{NEWSLETTER_TEASER_TEXT}</InterfaceText>
                 </h3>
-                <div className="topic-landing-newsletter-input-wrapper">
+                <div className="topic-landing-newsletter-input-wrapper" data-anl-event="form_start:inputStart">
                     <div className="topic-landing-newsletter-input-row">
                         <input
                             type="text"
                             placeholder={Sefaria._("First Name")}
+                            aria-label={Sefaria._("First Name")}
                             ref={firstNameRef}
-                            onKeyUp={handleSubscribeKeyUp}
+                            onKeyUp={Util.handleEnterKey(handleSubscribe)}
                         />
                         <input
                             type="text"
                             placeholder={Sefaria._("Last Name")}
+                            aria-label={Sefaria._("Last Name")}
                             ref={lastNameRef}
-                            onKeyUp={handleSubscribeKeyUp}
+                            onKeyUp={Util.handleEnterKey(handleSubscribe)}
                         />
                     </div>
                     <div className="topic-landing-newsletter-input-row">
                         <input
                             type="text"
                             placeholder={Sefaria._("Email Address")}
+                            aria-label={Sefaria._("Email Address")}
                             ref={emailRef}
-                            onKeyUp={handleSubscribeKeyUp}
+                            onKeyUp={Util.handleEnterKey(handleSubscribe)}
                         />
-                        <button type="submit" onKeyUp={handleSubscribeKeyUp} onClick={handleSubscribe}>{Sefaria._("Sign Up")}</button>
+                        <button
+                            type="submit"
+                            onKeyUp={Util.handleEnterKey(handleSubscribe)}
+                            onClick={handleSubscribe}
+                            data-anl-event="form_submit:click"
+                        >
+                            {Sefaria._("Sign Up")}
+                        </button>
                     </div>
                     <div className="topic-landing-newsletter-input-row">
                         {subscribeMessage ?
@@ -77,7 +96,7 @@ export const TopicLandingNewsletter = () => {
             </div>
             <div className="">
                 {subscribeErrorMessage ?
-                    <div className="subscribeErrorMessage">{Sefaria._(subscribeErrorMessage)}</div>
+                    <div className="subscribeErrorMessage" role="alert" aria-live="assertive">{Sefaria._(subscribeErrorMessage)}</div>
                     : null}
             </div>
         </div>

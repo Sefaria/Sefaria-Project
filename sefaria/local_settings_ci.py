@@ -2,7 +2,7 @@
 from datetime import timedelta
 import structlog
 import os
-
+import json
 
 DATABASES = {
     'default': {
@@ -15,15 +15,17 @@ DATABASES = {
     }
 }
 
-
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
+DOMAIN_MODULES = {
+    "en": {
+        "library": "http://localhost:8000",
+        "voices": "http://voices.localhost:8000",
+    },
+    "he": {
+        "library": "http://localhost:8000",
+        "voices": "http://voices.localhost:8000",
+    }
 }
-
-
+ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 ADMINS = (
@@ -42,7 +44,6 @@ CACHES = {
 SITE_PACKAGE = "sites.sefaria"
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', "0.0.0.0", '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -78,6 +79,7 @@ SEARCH_INDEX_NAME_SHEET = 'sheet'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
+FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
 # NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
@@ -164,15 +166,7 @@ REDIS_URL = "redis://127.0.0.1"
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 ENABLE_LINKER = False
-RAW_REF_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None,
-}
-
-RAW_REF_PART_MODEL_BY_LANG_FILEPATH = {
-    "en": None,
-    "he": None,
-}
+GPU_SERVER_URL = "http://localhost:5000"
 
 LOGGING = {
     'version': 1,
@@ -226,3 +220,6 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")

@@ -7,8 +7,9 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
-from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-
+from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD, LIBRARY_MODULE
+from django.conf import settings
+from sefaria.system.exceptions import InputError
 """
 Time utils
 """
@@ -523,6 +524,16 @@ def short_to_long_lang_code(code):
         code = "english"
     return code
 
+def get_short_lang(language):
+    """
+    Converts a language to a code.
+    :param language: 'english' or 'hebrew'
+    :return: A short language code 'he' or 'en'
+    """
+    if language not in ["english", "hebrew"]:
+        raise InputError("Invalid language. Must be 'english' or 'hebrew'.")
+    return "en" if language == "english" else "he"
+
 
 def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
     """
@@ -611,3 +622,22 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
             return return_value
         return decorated_function
     return argumented_decorator
+    
+def get_redirect_to_help_center(request, sheet_tref_part):
+    """
+    Redirect to the help center for a given sheet id or ref part -- this function can accept sheet_tref_part of "3" but it can also accept "3:4".
+    If the sheet_tref_part is not from an actual sheet, returns None.
+    Otherwise, returns the redirect URL for the help center.
+    """
+    from sefaria.model.text import Ref
+    from sefaria.site.site_settings import SITE_SETTINGS
+    try:
+        oref = Ref(f"Sheet {sheet_tref_part}")
+    except InputError:
+        return None
+    if oref.is_sheet():
+        sheet_id = oref.sections[0]
+        help_center_redirects = SITE_SETTINGS.get('HELP_CENTER_REDIRECTS', {})
+        lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
+        return help_center_redirects.get(lang_code, {}).get(str(sheet_id))
+    return None

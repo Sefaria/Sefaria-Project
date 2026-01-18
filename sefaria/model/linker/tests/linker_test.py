@@ -1,9 +1,33 @@
-from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, span_inds
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
+from sefaria.model.linker.ref_resolver import ResolvedRef, RefResolver, IbidHistory
+from sefaria.model.linker.linker import LinkedDoc
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
+from sefaria.model.marked_up_text_chunk import LinkerOutput
+from sefaria.system.exceptions import IndexSchemaError
+from sefaria.helper.linker.tasks import _extract_debug_spans
+
+
+def _seed_non_unique_terms(term_defs):
+    created_terms = []
+    for term_def in term_defs:
+        slug = term_def["slug"]
+        existing = schema.NonUniqueTerm().load({"slug": slug})
+        if existing:
+            continue
+        term = schema.NonUniqueTerm(term_def)
+        term.save()
+        created_terms.append(term)
+    return created_terms
+
+
+def _cleanup_non_unique_terms(terms):
+    for term in terms:
+        term.delete()
+        schema.NonUniqueTerm._init_cache.pop(term.slug, None)
+
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
@@ -27,16 +51,53 @@ def test_referenceable_child():
 def test_resolved_raw_ref_clone():
     index = library.get_index("Berakhot")
     raw_ref, context_ref, lang, _ = create_raw_ref_data(["@בבלי", "@ברכות", "#דף ב"])
-    rrr = ResolvedRef(raw_ref, [], index.nodes, Ref("Berakhot"))
+    rrr = ResolvedRef(raw_ref, [], [index.nodes], Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
 
 
+
+
 crrd = create_raw_ref_data
+
+def test_multiple_ambiguities():
+    """
+    Exercise ambiguity resolution while simulating sequential ibid-history updates
+    using bulk_resolve (which updates history between items).
+    """
+    linker = library.get_linker('en')
+    ref_resolver = linker._ref_resolver
+
+    # Seed two different last matches to make the ambiguity meaningful
+    ref_resolver._ibid_history._set_last_match(Ref('Genesis 41:15'))
+    ref_resolver._ibid_history._set_last_match(Ref('Psalms 105:18'))
+
+    # create_raw_ref_data(...) usually returns (raw_ref, context, lang, ...)
+    r1 = create_raw_ref_data(["&ibid."], lang='en')
+    r2 = create_raw_ref_data(["&ibid.", "#v. 39"], lang='en')
+
+    raw_refs = [r1[0], r2[0]]
+
+    resolved = ref_resolver.bulk_resolve(
+        raw_refs,
+        book_context_ref=None,
+        reset_ibids=False,
+    )
+
+    m0 = resolved[0]
+    m1 = resolved[1]
+
+    # Expectations: both ambiguous between the two seeded books
+    assert m0.is_ambiguous
+    assert m1.is_ambiguous
+    assert {ref.ref for ref in m0.resolved_raw_refs} == {Ref('Psalms 105:18'), Ref('Genesis 41:15')}
+    assert {ref.ref for ref in m1.resolved_raw_refs} == {Ref('Psalms 105:39'), Ref('Genesis 41:39')}
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), ("Jerusalem Talmud Berakhot 9:1:11-19", "Jerusalem Talmud Berakhot 2:1:14-19")],  # ambig venice or vilna yerushalmi daf
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״ג"]), ("Jerusalem Talmud Berakhot 9:1:31-2:9",)],  # venice yerushalmi daf
     [crrd(["@Jerusalem", "@Talmud", "@Yoma", "#5a"], lang='en'), ("Jerusalem Talmud Yoma 1:1:20-25",)],
     [crrd(["@Babylonian", "@Talmud", "@Sukkah", "#49b"], lang='en'), ("Sukkah 49b",)],
     [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
@@ -122,13 +183,15 @@ crrd = create_raw_ref_data
     # Base text context
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
+    # Consecutive named parts broken up too much
+    [crrd(['@תו"כ', '@ויקרא', '@דבורא דחובה', "#פר' יא"]), ['Sifra, Vayikra Dibbura DeChovah, Section 11']],
+
     # Mis-classified part types
     [crrd(['@ושו"ע', "#אה״ע", "#סי׳ כ״ח", "#סעיף א"]), ("Shulchan Arukh, Even HaEzer 28:1",)],
 
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
     [crrd(['&Ibid', '#12'], prev_trefs=["Exodus 1:7"], lang='en'), ["Exodus 1:12", "Exodus 12"]],  # ambiguous ibid when context is segment level (not clear if this is really ambiguous. maybe should only have segment level result)
-    [crrd(['#ב'], prev_trefs=["Genesis 1"]), ["Genesis 1:2", "Genesis 2"]],  # ambiguous ibid
     [crrd(['#ב', '#ז'], prev_trefs=["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
     [crrd(['@בראשית', '&שם', '#ז'], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
     [crrd(['&שם', '#ב', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 2:7"]],
@@ -150,24 +213,39 @@ crrd = create_raw_ref_data
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
     [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
     [crrd(["@Job"], lang='en', prev_trefs=['Job 1:1']), ("Job",)],  # don't use ibid context if there's a match that uses all input
+    [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
+    [crrd(["#28", "^-", "#30"], lang='en', context_tref='Leviticus 15:13'), ("Leviticus 15:28-30",)],  # ibid range
+    [crrd(["&ibid", "#30"], lang='en', prev_trefs=['Leviticus 15:13-17']), ("Leviticus 15:30",)],  # range in context ref
+    [crrd(["@Mishneh Torah"], lang='en', context_tref="Mishneh Torah, Torah Study 1:1"), tuple()],
+    [crrd(["#סימן תצ״ג"], lang='he', context_tref='Mishnah Berurah 494:1'), ("Mishnah Berurah 493", "Shulchan Arukh, Orach Chayim 493")],  # use base_titles to infer possible links from book_ref context
+    [crrd(["#2"], lang='en', context_tref='Genesis'), tuple()],  # single gematria shouldn't be considered a match due to false positives
+    [crrd(["@Yoma", "&ibid"], lang="en", prev_trefs=["Yoma 86"]), ("Yoma 86",)],  # respect the amud-less ibid
+    [crrd(['@והשולחן ערוך', '#סימן א', '#סעיף ב'], context_tref='Arukh HaShulchan, Orach Chaim 75:11'), ("Shulchan Arukh, Orach Chayim 1:2",)],  # pull context from lower node to use to resolve book title
+    [crrd(["#verse 2"], lang='en', context_tref="Rashi on Genesis 1:1:1"), ("Rashi on Genesis 1:2", "Genesis 1:2")],  # ibid that can refer to either commentary or base text
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     [crrd(['<לקמן', '#משנה א'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
+    
+    # Section name matching instead of address type
+    [crrd(["@Teshuvot", "@HaRosh", "#Klal 1"], lang='en'), ("Teshuvot HaRosh 1",)],
+    [crrd(["@תשובות", '@הרא"ש', '#כלל א']), ("Teshuvot HaRosh 1",)],
 
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
+
+    # Passage nodes
+    [crrd(["@משנה", "@ביצה", "#יד:"]), ("Beitzah 14b:4", "Beitzah 14b:12", "Beitzah 14b:9")],
+
 
     # YERUSHALMI EN
     [crrd(['@Bavli', '#2a'], "Jerusalem Talmud Shabbat 1:1", "en"), ("Shabbat 2a",)],
     pytest.param(crrd(['@Berakhot', '#2', '#1'], "Jerusalem Talmud Shabbat 1:1", "en"), ("Jerusalem Talmud Berakhot 2:1",), marks=pytest.mark.xfail(reason="Tricky case. We've decided to always prefer explicit or ibid citations so this case fails.")),
     [crrd(['@Bavli', '#2a', '^/', '#b'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Shabbat 2",)],
     [crrd(['@Halakha', '#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
-    [crrd(['#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
+    [crrd(['#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3", "Mishnah Shabbat 2:3")],
     [crrd(['@Tosephta', '@Ševi‘it', '#1', '#1'], "Jerusalem Talmud Sheviit 1:1:3", 'en'), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
-    [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
-    [crrd(['@Exodus', '#21', '#1', '~,', '#3', '~,', '#22', '#5'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
     pytest.param(crrd(['@Roš Haššanah', '#4', '#Notes 42', '^–', '#43'], "Jerusalem Talmud Taanit 1:1:3", "en"), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
     [crrd(['@Tosaphot', '#85a', '*s.v. ולרבינא'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), ("Tosafot on Pesachim 85a:14:1",)],
     [crrd(['@Unknown book', '#2'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), tuple()],  # make sure title context doesn't match this
@@ -192,6 +270,10 @@ crrd = create_raw_ref_data
     [crrd(['@ברמב"ם', '#פ"ח', '@מהל\' תרומות', '#הי"א']), ("Mishneh Torah, Heave Offerings 8:11",)],
     [crrd(["@באה\"ע", "#סימן קנ\"ה", "#סי\"ד"]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(['@פירש"י', '@בקידושין', '#דף פ\' ע"א']), ("Rashi on Kiddushin 80a",)],
+    [crrd(["@מורה נבוכים", "#חלק א", "#פרק א"]), ("Guide for the Perplexed, Part 1, Chapter 1",)],
+    [crrd(["@מורה נבוכים", "#חלק ג'", "@הקדמה"]), ("Guide for the Perplexed, Part 3, Introduction",)],
+    [crrd(["@מורה נבוכים", '#ח"ג', '#פמ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
+    [crrd(["@מורה נבוכים", '#ג', '#מ"ג']), ("Guide for the Perplexed, Part 3, Chapter 43",)],
     # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
     [crrd(['@יבמות', '#לט ע״ב']), ["Yevamot 39b"]],
     [crrd(['@פרשת שלח לך']), ['Parashat Shelach']],
@@ -276,20 +358,11 @@ crrd = create_raw_ref_data
     [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    raw_ref, context_ref, lang, prev_trefs = resolver_data
-    linker = library.get_linker(lang)
-    ref_resolver = linker._ref_resolver
-    ref_resolver.reset_ibid_history()  # reset from previous test runs
-    if prev_trefs:
-        for prev_tref in prev_trefs:
-            if prev_tref is None:
-                ref_resolver.reset_ibid_history()
-            else:
-                ref_resolver._ibid_history.last_refs = Ref(prev_tref)
-    print_spans(raw_ref)
-    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
-    matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
-    matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
+    resolved_ref = get_matches_from_resolver_data(resolver_data)
+    if resolved_ref is None:
+        matched_orefs = []
+    else:
+        matched_orefs = sorted([rr.ref for rr in resolved_ref.resolved_raw_refs] if resolved_ref.is_ambiguous else [resolved_ref.ref], key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in matched_orefs:
@@ -297,25 +370,22 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     assert len(matched_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
-class TestResolveRawRef:
+        
 
-    pass
-
-
-@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
-    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
-    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple()],
-    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
-    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
-    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
-    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8']],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר']],
-    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3")],
+@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts', 'expected_part_strs_list'), [
+    ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
+    [None, 'It says in the Torah, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],
+    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)'], [['ביצה', 'דף טו ע"ב', 'רש"י', 'ד"ה שמא']]],
+    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית'], [['מנחות', 'מד ע"א', 'תד"ה','טלית']]],
+    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת'''], [['מנחות', 'דף עח ע"א', "תוס'", "ד\"ה אחת"]]],
+    [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8'], [['Ex.', '9', '6'], ['12', '8']]],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
+    [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3"), [["Genesis", "1", "1"], ["1", "3"]]],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
+def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
     context_oref = context_tref and Ref(context_tref)
     linker = library.get_linker(lang)
-    doc = linker.link(input_str, context_oref, type_filter='citation')
+    doc = linker.link_by_paragraph(input_str, context_oref, type_filter='citation')
     resolved = doc.resolved_refs
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):
@@ -325,9 +395,141 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
     assert len(resolved) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
-    for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
+    for match, expected_pretty_text, expected_part_strs in zip(resolved, expected_pretty_texts, expected_part_strs_list):
         assert input_str[slice(*match.raw_entity.char_indices)] == match.raw_entity.text
         assert match.pretty_text == expected_pretty_text
+        for part, expected_part_str in zip(match.raw_entity.raw_ref_parts, expected_part_strs):
+            assert part.text == expected_part_str
+
+
+@pytest.fixture
+def peninei_base_context_ref():
+    return Ref("Peninei Halakhah, Family, Introduction")
+
+
+@pytest.fixture
+def context_mutation_applier(peninei_base_context_ref):
+    attachments = []
+
+    def _apply(mutations, append=True):
+        node, original = attach_context_mutations(peninei_base_context_ref, mutations, append=append)
+        attachments.append((node, original))
+
+    yield _apply
+
+    for node, original in reversed(attachments):
+        restore_context_mutations(node, original)
+
+
+@pytest.fixture
+def seeded_terms():
+    term_defs = [
+        {"slug": "shulchan-arukh", "titles": [{"text": "Shulchan Arukh", "lang": "en", "primary": True}]},
+        {"slug": "even-haezer", "titles": [{"text": "Even HaEzer", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title2", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "dummy-title3", "titles": [{"text": "Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "yet-another-dummy-title", "titles": [{"text": "Yet Another Dummy Title", "lang": "en", "primary": True}]},
+        {"slug": "yet-another-dummy-title2", "titles": [{"text": "Yet Another Dummy Title", "lang": "en", "primary": True}]},
+    ]
+    created_terms = _seed_non_unique_terms(term_defs)
+    yield
+    _cleanup_non_unique_terms(created_terms)
+
+
+@pytest.fixture
+def mutation_runner():
+    def _run(ref_resolver, base_ref, raw_ref, context_ref, mutations, append=True):
+        node, original = attach_context_mutations(base_ref, mutations, append=append)
+        try:
+            return ref_resolver.resolve_raw_ref(context_ref, raw_ref)
+        finally:
+            restore_context_mutations(node, original)
+
+    return _run
+
+
+@pytest.fixture
+def context_mutation_node(peninei_base_context_ref):
+    base_mutation = [{
+        "op": "swap",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    node, original = attach_context_mutations(peninei_base_context_ref, base_mutation)
+    try:
+        yield node
+    finally:
+        restore_context_mutations(node, original)
+
+
+def test_context_mutations(seeded_terms, mutation_runner):
+    base_context_ref = Ref("Peninei Halakhah, Family, Introduction")
+
+    swap_mutation = {
+        "op": "swap",
+        "input_terms": ["dummy-title", "yet-another-dummy-title"],
+        "output_terms": ["even-haezer", "shulchan-arukh"],
+    }
+    add_mutation = {
+        "op": "add",
+        "input_terms": ["shulchan-arukh"],
+        "output_terms": ["even-haezer"],
+    }
+
+    swap_raw_ref, swap_context_ref, lang, _ = create_raw_ref_data(
+        ["@Dummy Title", "@Yet Another Dummy Title", "#25", "#4"],
+        context_tref=base_context_ref.normal(),
+        lang="en",
+    )
+    add_raw_ref, add_context_ref, _, _ = create_raw_ref_data(
+        ["@Shulchan Arukh", "#25", "#4"],
+        context_tref=base_context_ref.normal(),
+        lang="en",
+    )
+    assert swap_context_ref == base_context_ref
+    assert add_context_ref == base_context_ref
+
+    ref_resolver = library._build_ref_resolver('en')
+    ref_resolver.reset_ibid_history()
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+
+    swap_resolved = mutation_runner(ref_resolver, base_context_ref, swap_raw_ref, swap_context_ref, [swap_mutation])
+    add_resolved = mutation_runner(ref_resolver, base_context_ref, add_raw_ref, add_context_ref, [add_mutation])
+
+    assert not swap_resolved.is_ambiguous
+    assert swap_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
+    assert not add_resolved.is_ambiguous
+    assert add_resolved.ref == Ref("Shulchan Arukh, Even HaEzer 25:4")
+
+
+def test_context_mutation_schema_validation(context_mutation_node):
+    node = context_mutation_node
+    node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "unsupported",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    with pytest.raises(IndexSchemaError):
+        node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "swap",
+        "input_terms": ["valid-input"],
+        "output_terms": [],
+    }]
+    node.validate()
+
+    node.ref_resolver_context_mutations = [{
+        "op": "add",
+        "input_terms": ["valid-input"],
+        "output_terms": ["valid-output"],
+    }]
+    node.validate()
+
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
@@ -374,9 +576,9 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
         assert ranged_raw_ref_parts.toSections == expected_ranged_raw_ref_parts.toSections
         start_span = sections[0].span
         end_span = toSections[-1].span
-        start_token_i, _ = span_inds(start_span)
-        _, end_token_i = span_inds(end_span)
-        full_span = start_span.doc[start_token_i:end_token_i]
+        start_char, _ = start_span.range
+        _, end_char = end_span.range
+        full_span = start_span.doc.subspan(slice(start_char, end_char))
         assert ranged_raw_ref_parts.span.text == full_span.text
     assert expected_raw_ref_parts == raw_ref.raw_ref_parts
 
@@ -436,8 +638,7 @@ def test_map_new_indices(crrd_params):
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
     linker = library.get_linker(lang)
-    nlp = linker.get_ner().named_entity_model
-    doc = nlp.make_doc(text)
+    doc = NEDoc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
@@ -445,16 +646,16 @@ def test_map_new_indices(crrd_params):
     # norm data
     n = linker.get_ner()._normalizer
     norm_text = n.normalize(text)
-    norm_doc = nlp.make_doc(norm_text)
+    norm_doc = NEDoc(norm_text)
     norm_part_indices = n.norm_to_unnorm_indices(text, part_indices, reverse=True)
-    norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
-    norm_part_token_inds = []
+    norm_part_spans = [norm_doc.subspan(slice(s, e)) for (s, e) in norm_part_indices]
+    norm_part_char_inds = []
     for span in norm_part_spans:
-        start, end = span_inds(span)
-        norm_part_token_inds += [slice(start, end)]
+        start, end = span.range
+        norm_part_char_inds += [slice(start, end)]
 
     part_types = [part.type for part in raw_ref.raw_ref_parts]
-    raw_encoded_part_list = EncodedPart.convert_to_raw_encoded_part_list(lang, norm_text, norm_part_token_inds, part_types)
+    raw_encoded_part_list = EncodedPart.convert_to_raw_encoded_part_list(lang, norm_text, norm_part_char_inds, part_types)
     norm_crrd_params = crrd_params[:]
     norm_crrd_params[0] = raw_encoded_part_list
     norm_raw_ref, _, _, _ = crrd(*norm_crrd_params)
@@ -466,3 +667,21 @@ def test_map_new_indices(crrd_params):
     assert norm_raw_ref.text == raw_ref.text
     for norm_part, part in zip(norm_raw_ref.raw_ref_parts, raw_ref.raw_ref_parts):
         assert norm_part.text == part.text
+    
+
+@pytest.mark.parametrize(('resolver_data', 'is_ambiguous'), [
+    [crrd(['@שמות', '#א', '#ב']), False],  # not ambiguous
+    [crrd(["@ירושלמי", "@ברכות", "#יג ע״א"]), True],  # ambiguous
+])
+def test_linker_output_validate(resolver_data, is_ambiguous):
+    resolved_ref = get_matches_from_resolver_data(resolver_data)
+    doc = LinkedDoc("", [resolved_ref], [], [])
+    spans = _extract_debug_spans(doc)
+    for span in spans:
+        assert span['ambiguous'] == is_ambiguous
+    assert LinkerOutput({
+        "ref": "Genesis 1:1",
+        "versionTitle": "Tanakh: The Holy Scriptures, published by JPS",
+        "language": "en",
+        "spans": spans
+    })._validate()

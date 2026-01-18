@@ -17,6 +17,7 @@ from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
+from sefaria.constants.model import VOICES_MODULE
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -171,6 +172,13 @@ class Notification(abst.AbstractMongoRecord):
         "suspected_spam"
     ]
 
+    sheets_notification_types = [
+        "collection add",
+        "follow",
+        "sheet like",
+        "sheet publish"
+    ]
+
     def _init_defaults(self):
         self.read      = False
         self.read_via  = None
@@ -280,8 +288,8 @@ class Notification(abst.AbstractMongoRecord):
 
         def annotate_sheet(n, sheet_id):
             sheet_data = get_sheet_metadata(id=sheet_id)
-            n["content"]["sheet_title"] = strip_tags(sheet_data["title"], remove_new_lines=True)
-            n["content"]["summary"] = sheet_data["summary"]
+            n["content"]["sheet_title"] = strip_tags(sheet_data.get("title", ""), remove_new_lines=True)
+            n["content"]["summary"] = sheet_data.get("summary", "")
 
         def annotate_collection(n, collection_slug):
             try:
@@ -326,7 +334,6 @@ class NotificationSet(abst.AbstractMongoSet):
     def _add_global_messages(self, uid):
         """
         Add user Notification records for any new GlobalNotifications
-        :return:
         """
         latest_id_for_user = Notification.latest_global_for_user(uid)
         latest_global_id = GlobalNotification.latest_id()
@@ -336,28 +343,44 @@ class NotificationSet(abst.AbstractMongoSet):
             else:
                 GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
-    def unread_for_user(self, uid):
+    def _build_query_with_scope(self, uid, read=None, is_global=None, suspected_spam=None, scope='library'):
+        """
+        Helper method to build a query with the given parameters and scope.
+        """
+        query = {"uid": uid}
+        if read is not None:
+            query["read"] = read
+        if is_global is not None:
+            query["is_global"] = is_global
+        if suspected_spam is not None:
+            query["suspected_spam"] = suspected_spam
+        query["type"] = {"$in" if scope == VOICES_MODULE else "$nin": Notification.sheets_notification_types}
+        return query
+
+    def unread_for_user(self, uid, scope='library'):
         """
         Loads the unread notifications for uid.
         """
-        # Add globals ...
         self._add_global_messages(uid)
-        self.__init__(query={"uid": uid, "read": False})
+        query = self._build_query_with_scope(uid, read=False, scope=scope)
+        self.__init__(query=query)
         return self
 
-    def unread_personal_for_user(self, uid):
+    def unread_personal_for_user(self, uid, scope='library'):
         """
-        Loads the unread notifications for uid.
+        Loads the unread personal notifications for uid.
         """
-        self.__init__(query={"uid": uid, "read": False, "is_global": False, "suspected_spam": {'$in': [False, None]}})
+        query = self._build_query_with_scope(uid, read=False, is_global=False, suspected_spam={'$in': [False, None]}, scope=scope)
+        self.__init__(query=query)
         return self
 
-    def recent_for_user(self, uid, page=0, limit=10):
+    def recent_for_user(self, uid, page=0, limit=10, scope='library'):
         """
         Loads recent notifications for uid.
         """
         self._add_global_messages(uid)
-        self.__init__(query={"uid": uid, "suspected_spam": {'$in': [False, None]}}, page=page, limit=limit)
+        query = self._build_query_with_scope(uid, suspected_spam={"$in": [False, None]}, scope=scope)
+        self.__init__(query=query, page=page, limit=limit)
         return self
 
     def mark_read(self, via="site"):

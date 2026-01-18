@@ -11,9 +11,11 @@ from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
 from sefaria.system.cache import django_cache
 from django_topics.models import Topic as DjangoTopic
+from django_topics.utils import get_topic_pool_name_for_module
 import structlog
 from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
+from sefaria.constants.model import LIBRARY_MODULE
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -227,21 +229,26 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
         link['description'] = getattr(topic, 'description', {})
     else:
         link['description'] = {}
-    if not topic.should_display():
-        link['shouldDisplay'] = False
+    link['shouldDisplay'] = topic.should_display()
+    link['pools'] = topic.get_pools()
     link['order'] = link.get('order', None) or {}
     link['order']['numSources'] = getattr(topic, 'numSources', 0)
     return link
 
 
 @django_cache(timeout=24 * 60 * 60)
-def get_all_topics(limit=1000, displayableOnly=True):
+def get_all_topics(limit=1000, displayableOnly=True, active_module=LIBRARY_MODULE):
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
-    return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
+    topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
+    
+    # Get the actual pool name that should be used for this active_module
+    expected_pool_name = get_topic_pool_name_for_module(active_module)
+    
+    return [t for t in topic_list if expected_pool_name in t.get_pools()]
 
 @django_cache(timeout=24 * 60 * 60)
 def get_num_library_topics():
-    all_topics = DjangoTopic.objects.get_topic_slugs_by_pool('library')
+    all_topics = DjangoTopic.objects.get_topic_slugs_by_pool(LIBRARY_MODULE)
     return len(all_topics)
 
 
@@ -1265,10 +1272,20 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
             # or (2) topic is an author (which means linkType is not 'about') as curated primacy is irrelevant to authors
             # this code sets the new source at the top of the topic page, because otherwise it can be hard to find.
             # curated primacy's default value for all links is 0 so set it to 1 + num of links in this language
-            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang})) + 1
+            curated_lang_query = {
+                "toTopic": slug,
+                "linkType": linkType,
+                f"order.curatedPrimacy.{interface_lang}": {"$exists": True}
+            }
+            links = RefTopicLinkSet(curated_lang_query)
+            primacies = [
+                link.order["curatedPrimacy"][interface_lang]
+                for link in links
+            ]
+            new_primacy = max(primacies, default=0) + 1
             if 'curatedPrimacy' not in link.order:
                 link.order['curatedPrimacy'] = {}
-            link.order['curatedPrimacy'][interface_lang] = num_curr_links
+            link.order['curatedPrimacy'][interface_lang] = new_primacy
 
     link.save()
     # process link for client-side, especially relevant in TopicSearch.jsx

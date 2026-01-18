@@ -509,17 +509,18 @@ def simple_portal_saved_directly_to_mongo():
 
 
 @pytest.fixture()
-def simple_topic(simple_portal):
-    topic = Topic({
-        "slug": "blah",
-        "titles": [{"text": "Blah", "lang": "en", "primary": True}],
-        "portal_slug": simple_portal.slug,
-    })
-    topic.save()
+def simple_topic(simple_portal, django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        topic = Topic({
+            "slug": "blah",
+            "titles": [{"text": "Blah", "lang": "en", "primary": True}],
+            "portal_slug": simple_portal.slug,
+        })
+        topic.save()
 
-    yield topic
+        yield topic
 
-    topic.delete()
+        topic.delete()
 
 
 def test_save_simple_portal(simple_portal):

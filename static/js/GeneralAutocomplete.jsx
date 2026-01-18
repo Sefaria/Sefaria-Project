@@ -44,7 +44,7 @@ export const GeneralAutocomplete = ({
 
     return (
         <div className={containerClassString}>
-            {renderInput(highlightedIndex, highlightedSuggestion, getInputProps, setInputValue)}
+            {renderInput(highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions)}
             <div
               {...getMenuProps()}
               className={dropdownMenuClassString}

@@ -43,7 +43,7 @@ data:
     GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
 
-    DOMAIN_LANGUAGES = json.loads(os.getenv("DOMAIN_LANGUAGE"))
+    DOMAIN_MODULES = json.loads(os.getenv("DOMAIN_MODULES", "{}"))
     ADMINS = (
         ('Sefaria Developers', 'dev@sefaria.org'),
     )
@@ -66,10 +66,10 @@ data:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'sefaria_auth',
+            'NAME': '{{ .Values.postgres.db }}',
             'USER': os.getenv("DATABASES_USER"),
             'PASSWORD': os.getenv("DATABASES_PASSWORD"),
-            'HOST': os.getenv("DATABASES_HOST"),
+            'HOST': {{ if .Values.postgres.host }}'{{ .Values.postgres.host }}'{{ else }}os.getenv("DATABASES_HOST"){{ end }},
             'PORT': os.getenv("DATABASES_PORT"),
         }
     }
@@ -125,8 +125,19 @@ data:
     # This is the field that is actually used
     GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
 
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
     SESSION_CACHE_ALIAS = "default"
+    
+    # Session cookie settings for cross-subdomain support
+    # Set this to your top-level domain to allow session cookies to work across all subdomains
+    SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN") or None  
+    SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "true").lower() == "true"
+    SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
+    SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+    
+    CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "true").lower() == "true"
+    CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "false").lower() == "true"  # Must be False for CSRF tokens to work with JavaScript
+    CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -141,12 +152,13 @@ data:
     SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"
     SEARCH_URL = f'http{"s" if SEARCH_SSL_ENABLE else ""}://{auth_str}{os.getenv("SEARCH_HOST")}:{os.getenv("SEARCH_PORT")}/{os.getenv("SEARCH_PATH")}'
     SEARCH_INDEX_ON_SAVE = True
-    SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
-    SEARCH_INDEX_NAME_SHEET = 'sheet'
+    SEARCH_INDEX_NAME_TEXT = os.getenv("SEARCH_INDEX_NAME_TEXT", "text")  # name of the ElasticSearch index to use
+    SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
 
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
+    FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
 
     SEFARIA_DATA_PATH = '/export' # used for exporting texts
     SEFARIA_EXPORT_PATH = '/export'
@@ -227,10 +239,7 @@ data:
     SLACK_URL = os.getenv("SLACK_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
-
-    RAW_REF_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
-
-    RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
+    GPU_SERVER_URL = f'http://{os.getenv("GPU_SERVER_HOST")}:8000'
 
     LOGGING = {
         'version': 1,
@@ -274,6 +283,7 @@ data:
         from sefaria.settings_utils import init_sentry
         
         init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
+
 
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {
@@ -347,3 +357,8 @@ data:
     FAIL_GRACEFULLY = os.getenv("FAIL_GRACEFULLY").lower() == "true"
     if "pytest" in sys.modules:
         FAIL_GRACEFULLY = False
+
+    WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
+    WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+    FAIL_IF_NODE_SSR_UNAVAILABLE = False

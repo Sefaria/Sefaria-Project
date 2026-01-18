@@ -11,12 +11,14 @@ spec:
     blueGreen:
       activeService: node-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
         templates:
           - templateName: rollout-ready-{{ .Values.deployEnv }}
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
   selector:
     matchLabels:
       app: node-{{ .Values.deployEnv }}
@@ -32,7 +34,7 @@ spec:
         stackRole: nodejs
         releaseRevision: "{{ .Release.Revision }}"
         {{- if .Values.instrumentation.enabled }}
-        instrumentation.opentelemetry.io/inject-nodejs: "true" 
+        instrumentation.opentelemetry.io/inject-nodejs: "true"
         {{- end }}
     spec:
       affinity:
@@ -62,6 +64,12 @@ spec:
             value: redis-{{ .Values.deployEnv }}
           - name: DEBUG
             value: {{ .Values.localSettings.DEBUG | quote }}
+          - name: NODE_OPTIONS
+            value: "--max-old-space-size={{ .Values.nodejs.heapSize }}"
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
         envFrom:
           - configMapRef:
               name: local-settings-node-{{ .Values.deployEnv }}

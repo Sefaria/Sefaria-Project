@@ -5,15 +5,19 @@ import zipfile
 import json
 import re
 import bleach
+import requests
 from datetime import datetime, timedelta
+from typing import Optional, Union, List, Any
+from dataclasses import asdict
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
+from celery.result import AsyncResult
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -30,17 +34,22 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from functools import wraps
 
+from remote_config.keys import CURRENT_LINKER_VERSION
+from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import in_memory_cache
+from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
@@ -50,7 +59,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from api.api_errors import APIInvalidInputException
 from sefaria.system.database import db
-from sefaria.system.decorators import catch_error_as_http
+from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
@@ -63,6 +72,8 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
+from remote_config import remoteConfigCache
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -70,6 +81,58 @@ if USE_VARNISH:
 import structlog
 logger = structlog.get_logger(__name__)
 
+class StaticViewMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['renderStatic'] = True
+        return context
+
+class CustomLoginView(StaticViewMixin, LoginView):
+    authentication_form = SefariaLoginForm
+
+class CustomLogoutView(StaticViewMixin, LogoutView):
+
+    def get_next_page(self):
+        next_page = self.request.GET.get('next')
+        if next_page:
+            return resolve_url(next_page)
+        return super().get_next_page()
+
+
+class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
+    pass
+
+class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
+    pass
+
+class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
+    form_class = SefariaPasswordResetForm
+    email_template_name = 'registration/password_reset_email.txt'
+    html_email_template_name = 'registration/password_reset_email.html'
+    
+    def form_valid(self, form):
+        """
+        Override form_valid to set the correct domain for the email context.
+        """
+        # Get the current domain from the request
+        current_domain = self.request.get_host()
+        
+        # Call form.save with domain override - this sends the email
+        form.save(
+            request=self.request,
+            domain_override=current_domain,
+            use_https=self.request.is_secure(),
+            email_template_name=self.email_template_name,
+            subject_template_name=self.subject_template_name,
+            html_email_template_name=self.html_email_template_name,
+            from_email=self.from_email,
+            extra_email_context=self.extra_email_context,
+        )
+        # Don't call super().form_valid(form) as it would send the email again
+        return HttpResponseRedirect(self.get_success_url())
+
+class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
+    form_class = SefariaSetPasswordForm
 
 def process_register_form(request, auth_method='session'):
     from sefaria.utils.util import epoch_time
@@ -157,7 +220,7 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", None, {'form': form, 'next': next})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
 
 
 def maintenance_message(request):
@@ -172,6 +235,7 @@ def accounts(request):
     })
 
 
+@csrf_exempt
 def generic_subscribe_to_newsletter_api(request, org, email):
     """
     Generic view for subscribing a user to a newsletter
@@ -199,6 +263,7 @@ def generic_subscribe_to_newsletter_api(request, org, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+@csrf_exempt
 def subscribe_sefaria_newsletter_view(request, email):
     return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
 
@@ -324,8 +389,7 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    CURRENT_LINKER_VERSION = "2"
-    linker_version = linker_version or CURRENT_LINKER_VERSION
+    linker_version = linker_version or remoteConfigCache.get(CURRENT_LINKER_VERSION, "3")
 
     if linker_version == "3":
         # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
@@ -349,13 +413,76 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
-@api_view(["POST"])
+@cors_allow_all
+@api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response
-    try:
-        return jsonResponse(make_find_refs_response(request))
-    except APIInvalidInputException as e:
-        return e.to_json_response()
+    from sefaria.helper.linker.linker import unpack_find_refs_request, FindRefsInput
+    from sefaria.helper.linker.tasks import find_refs_api_task
+    request_text, options, metadata = unpack_find_refs_request(request)
+    find_refs_input = FindRefsInput(request_text, options, metadata)
+    async_result = find_refs_api_task.apply_async(
+        args=(asdict(find_refs_input),),
+        queue=CeleryQueue.TASKS.value
+    )
+    logger.info(
+        "find_refs_api:enqueued",
+        task_id=async_result.id,
+        lang=find_refs_input.text.lang,
+        title_len=len(find_refs_input.text.title or ""),
+        body_len=len(find_refs_input.text.body or ""),
+    )
+    return jsonResponse({"task_id": async_result.id}, status=202)
+
+
+@cors_allow_all
+@api_view(["GET", "OPTIONS"])
+def async_task_status_api(request, task_id: str):
+    """
+    Poll the task. If complete, include the result.
+    Otherwise, return state (and any meta/progress).
+    """
+    result = AsyncResult(task_id)
+
+    state = result.state
+
+    payload = {
+        "task_id": task_id,
+        "state": state,
+        "ready": result.ready(),
+    }
+
+    # Include progress/meta if your task updates self.update_state(meta=...)
+    # Celery exposes that as `result.info` even while running
+    if result.info is not None and state not in ("SUCCESS", "FAILURE"):
+        payload["meta"] = result.info
+
+    if result.failed():
+        # result.result is the exception instance
+        payload["error"] = str(result.result)
+        logger.error("async_task_status_api:failed", task_id=task_id, state=state, error=payload["error"]) 
+        return jsonResponse(payload, status=500)
+
+    if result.successful():
+        payload["result"] = result.result
+        # summarize result shape if dict-like
+        try:
+            result_dict = result.result if isinstance(result.result, dict) else {}
+            title_results = len(result_dict.get("title", {}).get("results", []) if isinstance(result_dict.get("title"), dict) else [])
+            body_results = len(result_dict.get("body", {}).get("results", []) if isinstance(result_dict.get("body"), dict) else [])
+        except Exception:
+            title_results, body_results = None, None
+        logger.info(
+            "async_task_status_api:success",
+            task_id=task_id,
+            state=state,
+            title_results=title_results,
+            body_results=body_results,
+        )
+        return jsonResponse(payload, status=200)
+
+    # PENDING / STARTED / RETRY
+    logger.info("async_task_status_api:pending", task_id=task_id, state=state)
+    return jsonResponse(payload, status=202)
 
 
 @api_view(["GET"])
@@ -724,9 +851,10 @@ def reset_ref(request, tref):
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
-        vs = model.VersionState(index=oref.index)
+        index = model.library.get_index(tref)  # Get a fresh instance of the index
+        vs = model.VersionState(index=index)
         vs.refresh()
-        model.library.update_index_in_toc(oref.index)
+        model.library.update_index_in_toc(index)
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
@@ -757,6 +885,15 @@ def rebuild_citation_links(request, title):
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
+@csrf_exempt
+@webhook_auth_or_staff_required
+def rebuild_shared_cache(request):
+    regenerating = get_shared_cache_elem("regenerating")
+    status = "build in progress" if regenerating else "start rebuilding"
+    if not regenerating:
+        set_shared_cache_elem("regenerating", True)
+        library.init_shared_cache(rebuild=True)
+    return jsonResponse({"status": status})
 
 @staff_member_required
 def delete_citation_links(request, title):
@@ -769,16 +906,39 @@ def cache_stats(request):
     import resource
     from sefaria.utils.util import get_size
     from sefaria.model.user_profile import public_user_data_cache
+    from sefaria.model import library
+    from reader.templatetags.sefaria_tags import ref_link_cache, he_ref_link_cache
     # from sefaria.sheets import last_updated
+    
+    index_tref_map = model.Ref._RefCacheType__index_tref_map
+    
     resp = {
         'ref_cache_size': f'{model.Ref.cache_size():,}',
-        # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
+        'index_tref_map_size': f'{len(index_tref_map):,}',
         'public_user_data_size': f'{len(public_user_data_cache):,}',
-        'public_user_data_bytes': f'{get_size(public_user_data_cache):,}',
-        # 'sheets_last_updated_size': len(last_updated),
-        # 'sheets_last_updated_bytes': get_size(last_updated),
-        'memory usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}'
+        'ref_link_cache_size': f'{len(ref_link_cache):,}',
+        'he_ref_link_cache_size': f'{len(he_ref_link_cache):,}',
+        'memory_usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}',
+        "library_cache_stats": {
+            name: {
+                'size': f'{len(cache):,}',
+            }
+            for name, cache in model.library.__dict__.items()
+            if isinstance(cache, dict)
+        }
     }
+
+    if request.GET.get("bytes") == "1":
+        resp['ref_cache_bytes'] = model.Ref.cache_size_bytes()
+        resp['index_tref_map_bytes'] = f'{get_size(index_tref_map):,}'
+        resp['he_ref_link_cache_bytes'] = f'{get_size(he_ref_link_cache):,}'
+        resp['ref_link_cache_bytes'] = f'{get_size(ref_link_cache):,}'
+        resp['public_user_data_bytes'] = f'{get_size(public_user_data_cache):,}'
+
+        for name, cache in model.library.__dict__.items():
+            if (resp["library_cache_stats"].get(name)):
+                resp["library_cache_stats"][name]['bytes'] = f'{get_size(cache):,}'
+
     return jsonResponse(resp)
 
 
@@ -788,6 +948,44 @@ def cache_dump(request):
         'ref_cache_dump': model.Ref.cache_dump()
     }
     return jsonResponse(resp)
+
+
+@staff_member_required
+def memory_summary(request):
+    """
+    API endpoint that returns a summary of memory usage by object type.
+    Accepts an optional 'limit' GET parameter to limit the number of object types returned.
+    Returns:
+        JSON response containing a list of object types with their count and size in bytes.
+    Example:
+        {
+            "memory_summary": [
+                {"type": "list", "count": 1500, "size": 240000},
+                {"type": "dict", "count": 800, "size": 160000},
+                ...
+            ]
+        }
+    Example:
+        /memory_summary?limit=10
+    """
+    from pympler import muppy, summary
+
+    limit_param = request.GET.get("limit")
+    try:
+        limit = int(limit_param) if limit_param is not None else None
+    except ValueError:
+        return jsonResponse({"error": "limit must be an integer"}, status=400)
+
+    all_objects = muppy.get_objects()
+    summarized = summary.summarize(all_objects)
+    if limit is not None:
+        summarized = summarized[:limit]
+
+    data = [
+        {"type": type_name, "count": int(count), "size": int(size)}
+        for type_name, count, size in summarized
+    ]
+    return jsonResponse({"memory_summary": data})
 
 
 @staff_member_required
@@ -829,8 +1027,8 @@ def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
     html  = ""
 
-    html += "Total Sheets: %d\n" % db.sheets.find().count()
-    html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
+    html += "Total Sheets: %d\n" % len(list(db.sheets.find()))
+    html += "Public Sheets: %d\n" % len(list(db.sheets.find({"status": "public"})))
 
 
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
@@ -842,10 +1040,10 @@ def sheet_stats(request):
         start    = end - relativedelta(years=1)
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         cursor   = db.sheets.find(query)
-        total    = cursor.count()
+        total    = len(list(cursor.clone()))
         creators = len(cursor.distinct("owner"))
         query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
-        ptotal   = db.sheets.find(query).count()
+        ptotal   = len(list(db.sheets.find(query)))
         html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
 
     html += "\n\nUnique Source Sheet creators per month:\n\n"
@@ -987,7 +1185,7 @@ def profile_spam_dashboard(request):
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
+            history_count = len(list(db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}})))
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
@@ -1051,7 +1249,7 @@ def delete_sheet_by_id(request):
             if not sheet:
                 return jsonResponse({"error": "Sheet %d not found." % id})
 
-            db.sheets.remove({"id": id})
+            db.sheets.delete_one({"id": id})
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
@@ -1093,7 +1291,7 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
-        db.sheets.save(sheet)
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations
@@ -1184,6 +1382,149 @@ def index_sheets_by_timestamp(request):
         return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
+
+@csrf_exempt
+def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
+    """
+    Cache mediator for Strapi GraphQL queries with date parameters.
+    POST request with start_date, end_date GET params and GraphQL query in body.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with GraphQL data or error message
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+
+    try:
+
+        # Parse request parameters from URL query string
+        # Request parameters are used, because the parameters act as cache configuration for the request
+        start_date_raw: Union[str, List[str], None] = request.GET.get("start_date")
+        end_date_raw: Union[str, List[str], None] = request.GET.get("end_date")
+
+        # Validate that parameters are single strings, not lists or None
+        if not start_date_raw or isinstance(start_date_raw, list):
+            return jsonResponse(
+                {"error": "start_date parameter must be a single value"}, status=400
+            )
+        if not end_date_raw or isinstance(end_date_raw, list):
+            return jsonResponse(
+                {"error": "end_date parameter must be a single value"}, status=400
+            )
+
+        # They are strings!
+        start_date: str = start_date_raw
+        end_date: str = end_date_raw
+
+        # Validate date format (YYYY-MM-DD)
+        try:
+            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+        except ValueError:
+            return jsonResponse(
+                {"error": "Dates must be in YYYY-MM-DD format"}, status=400
+            )
+
+        # Validate that start_date is less than end_date
+        if start_date_obj >= end_date_obj:
+            return jsonResponse(
+                {"error": "start_date must be less than end_date"}, status=400
+            )
+
+        # Get GraphQL query from request body
+        # For simplicity, the GraphQL query is accepted as plain text instead of JSON, so client doesn't need to send a formatted
+        query: str = request.body.decode("utf-8")
+        if not query:
+            return jsonResponse(
+                {"error": "GraphQL query required in request body"}, status=400
+            )
+
+        # Create cache key from the specified dates. The query structure will be static while using the dates in its body
+        cache_key: str = f"strapi_graphql_{start_date}_{end_date}"
+
+        # Try to get from cache first
+        # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
+        cached_result: Optional[str] = get_cache_elem(cache_key, cache_type="default")
+        if cached_result:
+            return HttpResponse(cached_result, content_type="application/json")
+
+        # If not the query is not found in the cache, fetch from Strapi
+
+        if settings.STRAPI_LOCATION is None or settings.STRAPI_PORT is None:
+            return jsonResponse(
+                {"error": "Strapi environment variables are not configured"}, status=500
+            )
+        else:
+            strapi_url = f"{settings.STRAPI_LOCATION}:{settings.STRAPI_PORT}"
+
+        # Make request to Strapi GraphQL endpoint
+        response = requests.post(
+            f"{strapi_url}/graphql",
+            json={"query": query},
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+
+        if response.status_code != 200:
+            return jsonResponse(
+                {"error": f"Strapi request failed with status {response.status_code}"},
+                status=500,
+            )
+
+        result_json = response.text
+
+        # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
+        set_cache_elem(
+            cache_key, result_json, timeout=7 * 24 * 60 * 60, cache_type="default"
+        )
+
+        return HttpResponse(result_json, content_type="application/json")
+
+    except Exception as e:
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
+
+
+@csrf_exempt
+@webhook_auth_or_staff_required
+def strapi_cache_invalidate(request: HttpRequest) -> HttpResponse:
+    """
+    Webhook endpoint to invalidate Strapi GraphQL cache when content changes on Strapi.
+    Strapi will call this endpoint with the correct token
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with success/error message and cache invalidation count
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method supported"}, status=405)
+
+    try:
+        # Use the utility function to handle cache invalidation
+        result = invalidate_cache_by_pattern("*strapi_graphql*", cache_type="default")
+
+        if result["success"]:
+            if "warning" in result:
+                return jsonResponse({
+                    "success": result["message"],
+                    "warning": result["warning"]
+                })
+            else:
+                return jsonResponse({"success": result["message"]})
+        else:
+            if result["method"] == "critical_error":
+                return jsonResponse({"error": result["message"]}, status=500)
+            else:
+                return jsonResponse({"success": result["message"]})
+
+    except Exception as e:
+        logger.error(f"Error in strapi_cache_invalidate: {str(e)}")
+        return jsonResponse({"error": "Internal server error"}, status=500)
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")
@@ -1353,20 +1694,40 @@ def modtools_upload_workflowy(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
-    c_index = request.POST.get("c_index", False)
-    c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    # Handle both single and multiple file uploads
+    files = []
+    if 'workflowys[]' in request.FILES:
+        files = request.FILES.getlist("workflowys[]")
+    else:
+        return jsonResponse({"error": "No files provided. Use 'workflowys[]' for multiple files."})
+
+    # Handle checkbox parameters
+    c_index = request.POST.get("c_index", "").lower() == "true"
+    c_version = request.POST.get("c_version", "").lower() == "true"
+    
+    delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
+    term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 
     uid = request.user.id
-    try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
-        res = wfparser.parse()
-    except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
-    return jsonResponse({"status": "ok", "data": res})
+    # Process files - collect both successes and errors
+    successes = []
+    failures = []
+
+    for file in files:
+        try:
+            wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+            res = wfparser.parse()
+            if res.get("error"):
+                raise InputError(res['error'])
+            successes.append(file.name)
+        except Exception as e:
+            failures.append({"file": file.name, "error": str(e)})
+
+    return jsonResponse({
+        "successes": successes,
+        "failures": failures
+    })
 
 @staff_member_required
 def links_upload_api(request):

@@ -14,7 +14,7 @@ import regex
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
-from sefaria.model.linker.has_match_template import HasMatchTemplates
+from sefaria.model.linker.has_match_template import MatchTemplateMixin
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
@@ -672,7 +672,7 @@ class TreeNode(object):
         return self.all_children().index(child) + 1
 
 
-class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, HasMatchTemplates):
+class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin):
     """
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
@@ -1217,7 +1217,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", 'referenceable']
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_mutations", 'referenceable']
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1250,6 +1250,55 @@ class SchemaNode(TitledTreeNode):
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
+        self._validate_context_mutations()
+
+    def _validate_context_mutations(self):
+        mutations = getattr(self, "ref_resolver_context_mutations", None)
+        if mutations is None:
+            return
+
+        full_title = self.full_title()
+
+        if not isinstance(mutations, list):
+            raise IndexSchemaError(
+                f"ref_resolver_context_mutations on {full_title} must be a list"
+            )
+
+        from sefaria.model.linker.context_mutation import ContextMutation, ContextMutationOp
+        allowed_ops = {op.value for op in ContextMutationOp}
+
+        def err(idx, msg: str) -> None:
+            raise IndexSchemaError(f"Context mutation #{idx} on {full_title} {msg}")
+
+        for idx, m in enumerate(mutations):
+            if not isinstance(m, dict):
+                err(idx, "must be a dict with op/input_terms/output_terms")
+
+            op_token = m.get("op")
+            try:
+                op = ContextMutationOp(op_token)
+            except Exception:
+                err(idx, f"has invalid op {op_token!r}. Valid options: {sorted(allowed_ops)}")
+
+            input_terms = m.get("input_terms", ())
+            output_terms = m.get("output_terms", ())
+
+            if not (isinstance(input_terms, (list, tuple)) and input_terms):
+                err(idx, "must declare input_terms as a non-empty list/tuple")
+
+            if not isinstance(output_terms, (list, tuple)):
+                err(idx, "must declare output_terms as a list/tuple")
+
+            if not all(isinstance(t, str) and t for t in input_terms):
+                err(idx, "has invalid input_terms (non-empty strings only)")
+
+            if not all(isinstance(t, str) and t for t in output_terms):
+                err(idx, "has invalid output_terms (non-empty strings only)")
+
+            try:
+                ContextMutation(op, input_terms, output_terms)
+            except ValueError as exc:
+                err(idx, f"is invalid: {exc}")
     def concrete_children(self):
         return [c for c in self.children if not c.is_virtual]
 
@@ -2128,7 +2177,7 @@ class AddressType(object):
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    strict = SuperClass not in {AddressAmud, AddressTalmud, AddressFolio}  # HACK: these address types don't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section', with_roman_numerals=True) + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
@@ -2283,12 +2332,23 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
-    def lacks_amud(cls, part, lang):
+    def lacks_amud(cls, part, lang: str):
         if lang == "he":
             return re.search(cls.amud_patterns["he"], part) is None
         else:
             return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
-    
+        
+    @classmethod
+    def sections_lack_amud(cls, section:int, toSection:int) -> bool:
+        """
+        Given section and toSection integers, return whether together they represent a range that lacks amud.
+        For example, section=3 (daf 2b) and toSection=4 (daf 2b) represent a daf 2 which lacks amud.
+        :param section: 
+        :param toSection: 
+        :return: 
+        """
+        return section % 2 == 1 and toSection % 2 == 0 and toSection == section + 1
+
     @classmethod
     def parse_range_end(cls, ref, parts, base):
         """
@@ -2469,8 +2529,8 @@ class AddressFolio(AddressType):
         if lang == "en":
             reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
         elif lang == "he":
-            # todo: How do these references look in Hebrew?
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            # either dots for amud (add dots from amud gimmel and dalet) or ayin followed by some type of quote followed by alef, bet, gimmel, or dalet
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:ע(?:"|״|''))?[א-ד])?)'''
 
         return reg
 
@@ -2499,21 +2559,20 @@ class AddressFolio(AddressType):
                 indx -= 1
             return indx
         elif lang == "he":
-            # todo: This needs work
             num = re.split(r"[.:,\s]", s)[0]
-            daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"    #bet
-                        and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-            ):
-                return daf  # amud B
-            return daf - 1
+            daf = decode_hebrew_numeral(num) * 4
+            rest = s[len(num):]
 
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+            # check for each amud letter in reverse order (dalet, gimmel, bet, alef)
+            # note: amud_dots for gimmel and dalet are a best guess at what might be used. should be refined as real examples are found.
+            # if the amud matches that amud letter, subtract the appropriate offset
+            quotes = "(?:''|\"|״)"
+            for amud_offset, (amud_letter, amud_dots) in enumerate((("ד", "⁘"), ("ג", "∵"), ("ב", ":"), ("א", "."))):
+                if re.search(fr"^(?:{amud_dots}|,?\s?(?:{amud_letter}|ע{quotes}{amud_letter}))$", rest):
+                    return daf - amud_offset
+            # no match
+            raise ValueError(f"Couldn't parse Folio address: {s} for lang {lang}")
+
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2694,7 +2753,7 @@ class AddressVolume(AddressInteger):
         )
         """
     }
-    
+
 class AddressSiman(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Ss]iman)?\s*)""",
@@ -2721,7 +2780,7 @@ class AddressHalakhah(AddressInteger):
 
 class AddressSeif(AddressInteger):
     section_patterns = {
-        "en": r"""(?:(?:[Ss][ae]if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": r"""(?:(?:[Ss][ae]['\u2018\u2019\u05f3]?if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+)			# Seif spelled out, with a space after
             |(?:\u05e1(?:\u05e2\u05d9)?(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3]|\s+)?)?)	# or trie of first three letters followed by a quote of some sort
@@ -2731,7 +2790,7 @@ class AddressSeif(AddressInteger):
 
 class AddressSeifKatan(AddressInteger):
     section_patterns = {
-        "en": r"""(?:(?:[Ss][ae]if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": r"""(?:(?:[Ss][ae]['\u2018\u2019\u05f3]?if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+\u05e7\u05d8\u05df\s+)			# Seif katan spelled out with or without nikud
             |(?:\u05e1(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3])?)?\u05e7)(?:['\u2018\u2019\u05f3"\u05f4]['\u2018\u2019\u05f3]?|\s+)?	# or trie of first three letters followed by a quote of some sort

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}{% trans "AI on Sefaria" %}{% endblock %}
+{% block description %}{% trans "Sefaria is a nonprofit organization dedicated to building the future of Jewish learning in an open and participatory way." %}{% endblock %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+
+    .aboutPlayer {
+        margin-bottom: 16px;
+        width: 560px;
+        height: 315px;
+    }
+
+    .static h1 {
+        margin: 0 0 30px 0;
+    }
+
+    @media (max-width: 580px) {
+        .static h1.aboutHeader {
+            margin: 40px 0 30px 0;
+        }
+    }
+
+    .aboutPlayer {
+        margin-bottom: 16px;
+        width: 100%;
+        height: 315px;
+    }
+
+    .SheetSource.segment, ol {
+        font-size: 16px;
+    }
+
+    #aboutPage p:has(+ ol) {
+        margin-bottom: 15px;
+    }
+
+    li {
+        margin-bottom: 5px;
+    }
+
+    ol {
+        margin-bottom: 25px;
+    }
+
+    .interface-hebrew #aboutPage * {
+        text-align: left;
+        direction: ltr;
+    }
+
+    .interface-hebrew #aboutPage h1, .interface-hebrew #aboutPage h2 { 
+        text-align: left;
+        direction: ltr;
+    }
+
+    .sheetItem .SheetSource.segment, .sheetItem .SheetSource .ref {
+        cursor: auto;
+        pointer-events: auto;
+    }
+
+{% endblock %}
+{% block content %}
+<div class="superAbout">
+    {% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='ai' %}
+    {% endif %}
+    <main id="aboutPage" class="biReady container static">
+        <div class="inner">
+            <header>
+                <h1 class="aboutHeader"><span class="">AI on Sefaria</span></h1>
+            </header>
+            <section class="about section">
+                <iframe src="https://www.youtube.com/embed/3ar0DetxpvE?si=0OtpHIty19pTbzFq"
+                title="Sefaria AI Video" class="aboutPlayer"
+                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <p class="first">
+                    <span class="">
+                        Sefaria’s mission is to take the People of the Book into the digital age, 
+                        and it is our responsibility to explore how to best leverage technologies to create new ways to access, search, discover, and understand Jewish texts.
+                        Our founders’ foresight in making Jewish texts machine-readable continues to enable Sefaria —
+                        and others — to take advantage of technological advancements such as artificial intelligence
+                        (AI) and, specifically, large language models (LLMs).
+                    </span>
+                <div class="boxedSheetItem">
+                    <div class="sheetItem">
+                        <div class="SheetSource segment" style="border-inline-start-color: var(--mishnah-blue);">
+                            <div class="en">
+                                <div class="ref" style="margin-bottom: 5px">
+                                    <a style="user-select: auto; pointer-events: auto; cursor: pointer" href="/Pirkei_Avot.1.1">Pirkei Avot 1:1</a>
+                                </div>
+                                <div class="sourceContentText">
+                                    <div style="position: relative; outline: none; overflow-wrap: break-word;">
+                                        Moses received the Torah at Sinai and transmitted it to Joshua, Joshua to the
+                                        elders, and the elders to the prophets, and the prophets to the Men of the Great
+                                        Assembly. They said three things: Be deliberate in justice, establish many
+                                        students, and make a fence around the Torah.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                </p>
+                <p>
+                    <span class="">
+                        Sefaria is part of this long and storied history of transmitting Jewish tradition, holding
+                        sacred the texts in our library.
+                        As we experiment with and introduce AI-generated content to the Sefaria library, we are
+                        committed to specific guardrails, effectively making a fence around the Torah.
+                        We have established the following guidelines for Sefaria’s use of AI:
+
+                    </span>
+                </p>
+                <ol>
+                    <li>
+                        <span class="">
+                            <b>Transparency:</b> Sefaria will always be transparent about how, where, why, and when AI is
+                            being used. This includes clearly marking pages with an AI icon when they include AI-generated
+                            content. We currently use one icon to designate AI-generated content.
+                            <img src="/static/icons/ai-info.svg"
+                                style="margin: 3px auto; width: 100px; height: auto; display: block" alt="AI-generated content icon" />
+                        </span>
+                    </li>
+                    <li>
+                        <span class="">
+                            <b>Learning First:</b> AI content on Sefaria will aim to act as a learning resource and not as a
+                            replacement for your rabbis, halakhic advisors, or teachers.
+                        </span>
+                    </li>
+                    <li>
+                        <span class="">
+                            <b>Continued Evaluation:</b> Sefaria will continually monitor new technologies and our use of
+                            them to ensure we serve our users in the best possible way.
+                        </span>
+                    </li>
+                    <li>
+                        <span class="">
+                        <b>Feedback:</b> Sefaria is proactively soliciting user feedback regarding AI-generated content.
+                        Users are invited to provide corrections and feedback using a dedicated <a
+                            href="https://sefaria.formstack.com/forms/ai_feedback_form?utm_source=sefaria&utm_medium=landing+page&utm_campaign=ai">AI
+                            feedback form</a>.
+                        </span>
+                    </li>
+                </ol>
+                <p>
+                    <span class="">
+                        In addition, Sefaria agrees to adhere to the <a href="https://www.romecall.org/the-call/">Rome
+                            Call for Artificial Intelligence Ethics</a>, which has been adopted by organizations around
+                        the world, such as the Chief Rabbinate of Israel, Yeshiva University (among other academic
+                        institutions), the Rabbinical Alliance of America, and major corporations like Microsoft,
+                        Google, IBM, and Cisco.
+                    </span>
+                </p>
+            </section>
+            <header>
+                <h1>
+                    <span class="">AI on Topic Pages</span>
+                </h1>
+            </header>
+            <section class="section">
+                <p>
+                    <span class="">
+                        You will now find AI-generated content on approximately 1,000 of our 5,000 Topic pages. These
+                        pages are marked with an AI symbol (AI) on the top right corner.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        On each page, users will find a series of sources (individual selections of texts from the
+                        library) related to the topic. These sources have been curated by AI to provide a broad
+                        selection of relevant and important sources. Each source includes an AI-generated heading and
+                        introduction to make it more digestible to learners of all backgrounds. Editors have given some
+                        level of review to both of these elements to ensure accuracy and relevance. Many AI-generated
+                        Topic pages also include an overview paragraph written by our learning team.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        The basis for this AI work was developed by Sefaria’s learning team, which includes seasoned
+                        scholars, editors, and translators, in collaboration with a team of engineers dedicated to this
+                        specific project.
+                        After developing the framework for these pages, our learning team created detailed criteria and
+                        prompts for an AI algorithm to reproduce their content creation process.
+                        Of the 15,500 source introductions on AI-generated pages, 14,000 were reviewed and edited by
+                        Sefaria team members.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        Should you encounter anything that seems amiss, we encourage you to let us know by filling out
+                        this <a
+                            href="https://sefaria.formstack.com/forms/ai_feedback_form?utm_source=sefaria&utm_medium=landing+page&utm_campaign=ai">short
+                            feedback form</a>.
+                        Your feedback is crucial to our ongoing efforts to ensure accuracy and uphold our commitment to
+                        quality on Sefaria.
+                    </span>
+                </p>
+                <header>
+                    <h2>
+                        <span class="">ANATOMY OF AN AI-GENERATED TOPIC PAGE</span>
+                    </h2>
+                </header>
+                <p>
+                    <span class="">
+                        <img src="/static/img/ai-landing-page/anatomy-of-a-topic-page.png" alt="Anatomy of a Topic Page"
+                            style="max-width: 100%; height: auto;" />
+                    </span>
+                </p>
+            </section>
+            <header>
+                <h1>
+                    <span class="">AI Research & Development</span>
+                </h1>
+            </header>
+            <section class="section">
+                <p>
+                    <span class="">
+                        As leaders at the intersection of Torah and technology, Sefaria will continue exploring
+                        cutting-edge developments, keeping you informed of our progress. Below is one project we're
+                        currently working on; other projects remain in stealth mode.
+                    </span>
+                </p>
+                <header>
+                    <h2>
+                        <span class="">PUBLIC BETA: PIRKEI AVOT LEARNING GUIDE</span>
+                    </h2>
+                </header>
+                <p>
+                    <span class="">
+                        Sefaria’s experimental Pirkei Avot Learning Guide aims to make this popular text more accessible
+                        to learners of all levels. Sefaria’s engineering and learning teams leveraged AI to create this
+                        interactive learning tool.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        The Guide summarizes the various commentaries on Pirkei Avot from the Sefaria library,
+                        presenting them through an interactive interface. When learners click on any teaching in Pirkei
+                        Avot, they are presented with a selection of questions. The interface allows users to explore
+                        these questions, providing summarized answers drawn from the commentaries along with links to
+                        the commentary in the library. To build this feature, each mishnah (section of the text) and its
+                        associated commentaries were input into Google’s Gemini AI model. A prompt was used to identify
+                        questions that were a matter of discussion or debate among the commentaries, and to generate
+                        summaries of each answer.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        Recognizing that even AI-generated content benefits from editorial review, we took all of the
+                        output from Gemini and fed it to Claude Opus 3, an AI model developed by Anthropic. We asked
+                        Claude to review each commentary alongside the questions and summaries generated by Gemini and
+                        judge them on two scales — relevance of the answer to the question, and accuracy of the summary
+                        of the commentary, giving each of them a score of one to 10. While all of the content received
+                        some level of human review, our learning team was able to use these scores to identify content
+                        that needed an especially close look. Anything with a score of five or below received another
+                        review to ensure both accuracy and accessibility for learners.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        <a
+                            href="https://www.sefaria.org/Pirkei_Avot.1.1?lang=bi&with=Guide&lang2=en&utm_source=sefaria&utm_medium=landing+page&utm_campaign=ai">Visit the Learning Guide</a>.
+                    </span>
+                </p>
+            </section>
+        </div>
+    </main>
+</div>
+{% endblock %}

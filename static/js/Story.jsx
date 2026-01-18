@@ -123,7 +123,7 @@ const StoryTitleBlock = ({url, he, en, children}) => {
 
 
 const StoryBodyBlock = ({children}) => (
-    <SimpleContentBlock classes="storyBody">
+    <SimpleContentBlock classes="storyBody serif">
         {children}
     </SimpleContentBlock>
 );
@@ -166,7 +166,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref, displayD
     if (!text.ref) {
         return null;
     }
-    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+    const langKey = Sefaria._getShortInterfaceLang();
     const isCurated = text.descriptions?.[langKey]?.title ?? false;
     const url = `/${Sefaria.normRef(text.ref)}${Sefaria.util.getUrlVersionsParams(text.versions) ? `?${Sefaria.util.getUrlVersionsParams(text.versions)}` : ''}`;
     const heOnly = !text.en;
@@ -291,16 +291,16 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=
 
   return (
     <StoryFrame cls="textPassageStory">
-      <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
-          <SaveLine
-            dref={text.ref}
-            versions={versions}
-            toggleSignUpModal={toggleSignUpModal}
-            classes={"storyTitleWrapper"}
-            afterChildren={afterSave || null} >
-              <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
-          </SaveLine>
-      </CategoryHeader>
+      <SaveLine
+        dref={text.ref}
+        versions={versions}
+        toggleSignUpModal={toggleSignUpModal}
+        classes={"storyTitleWrapper"}
+        afterChildren={afterSave || null} >
+          <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
+            <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+          </CategoryHeader>
+      </SaveLine>
       <ColorBarBox tref={text.ref}>
           <StoryBodyBlock>
             {content}

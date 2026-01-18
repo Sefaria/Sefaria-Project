@@ -1,3 +1,5 @@
+import Sefaria from "./sefaria";
+
 const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
@@ -6,6 +8,15 @@ const Strings = {
     "Donate": "תרומה",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
+
+    // Module Names and Page Title Suffixes
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Sefaria Library": "ספריית ספריא",
+    "Sheets from Voices on Sefaria": "דפים מתוך חיבורים בספריא",
+    "Texts from the Sefaria Library": "מקורות מתוך ספריית ספריא",
+    "Voices on Sefaria Collection": "אוסף מתוך חיבורים בספריא",
+    "Untitled": "ללא כותרת",
+
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
@@ -21,9 +32,11 @@ const Strings = {
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
     "Log in": "התחברות",
+    "Login": "התחברות",
     "A": "א",
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
+    "Skip to main content": "דלגו לתוכן האתר",
 
     //HeaderAutocomplete
     "Books": "ספרים",
@@ -31,7 +44,7 @@ const Strings = {
     "Users": "משתמשים",
     "Categories": "קטגוריות",
 
-    // Texts Page
+    // Landing Pages
     "Learn More": "למדו עוד",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
@@ -56,6 +69,9 @@ const Strings = {
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
     "Sponsor A Day": "הקדישו יום לימוד",
+    "Community-Powered Jewish Learning": "חיבורים חדשים למקורות ולקהילה",
+    "Share. Discover. Join the Conversation.": "המקום ללמידה, שיתוף רעיונות, וכתיבת חומרים מקוריים.",
+    "Browse Topic Categories": "חיפוש מקורות לפי נושא",
 
     // Text Category Pages
     "All Portions": "פרשות השבוע",
@@ -69,16 +85,20 @@ const Strings = {
     "Hebrew Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים עברית",
     "Choose a Category": "בחר קטגוריה",
     "Main Menu": "תפריט ראשי",
+    "Menu": "תפריט",
     "Saving topic information.": "מעדכן נתוני נושא",
     "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
     "Add a short description.": "הוסף תיאור קצר",
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
+    "Explore User-Created Content by Topic": "מצאו דפים לפי נושא",
     "Explore by Topic": "למדו לפי נושא",
     "About Topics": "אודות \"נושאים\"",
+    "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
+    "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
@@ -106,27 +126,29 @@ const Strings = {
 
     // All Topics
     "All Topics": "כל הנושאים",
-    "Reset": "לאתחל",
-    "Search Topics": "חפש נושאים",
+    "Reset": "איפוס",
+    "Search Topics": "חיפוש נושאים",
 
     // Topic Images
     "Illustrative image" : "תמונה להמחשה",
 
     // Topic Landing Page
-    "Featured Topic": "נושא לדוגמא",
-    "Go to topic ›": "לפתיחת הנושא ›",
-    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "אל תפספסו את החדשות המרעישות! הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
+    "Featured Topic": "נושא היום",
+    "Go to Topic ›": "לפתיחת הנושא ›",
+    "Stay curious. Get the Timeless Topics newsletter every Tuesday.": "הירשמו למיילים של ספריא כדי לקבל עדכונים על מקורות, כותרים וכלים חדשים.",
     "Learn more about": "למדו עוד על",
-    "Read the Portion": "לקריאת הפרשה",
+    "Learn more on": "למדו עוד על",
+    "Read the Portion": "קראו את הפרשה",
     "On the Jewish Calendar": "מועדים קרובים בלוח השנה העברי",
     "Explore the Jewish Calendar": "לעוד מועדים בלוח השנה העברי",
-    "Browse Topics": "לדפדוף בנושאים השונים",
-    "Trending Topics": "נושאים פופולריים",
+    "Browse Topics": "לדפדוף במגוון נושאים",
     "All Topics A-Z ›": "כל הנושאים מא׳ עד ת׳ ›",
     "Browse All Torah Portions": "לרשימת כל הפרשות",
     "First Name": "שם פרטי",
     "Last Name": "שם משפחה",
     "Explore": "למדו עוד על",
+    "Explore all Topics ›": "לדפדוף בכל הנושאים ›",
+    "Learn more…": "למדו עוד…",
 
     // Community Page
     "From the Community: Today on Sefaria": "מן הקהילה: היום בספריא",
@@ -138,6 +160,8 @@ const Strings = {
     "Make a Sheet": "יצירת דף מקורות",
     "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספריה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
     "A Living Library of Torah": "ספריה יהודית דינמית",
+    'Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.': 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מקורות מדיה מגוונים. השתמשו בכלים המוצעים כדי לכתוב מחשבות ותובנות אודות המקורות שבספרייה, להוסיף קטעי וידאו ואודיו, לצטט מהמקורות שבספרייה.',
+    'Use a computer to mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary. The Voices Editor is not supported on mobile devices.': 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מיני מדיה מגוונים. לא ניתן ליצור או לערוך דפים באמצעות המכשיר הנייד. על מנת לגשת לעורך הדפים של ספריא, יש להיכנס לאתר האינטרנט ״חיבורים״ במחשב.',
 
     // Search
     "Results for": "תוצאות עבור",
@@ -146,16 +170,21 @@ const Strings = {
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
+    "Search Collections": "חיפוש באסופות",
+
+    "Close menu": "סגירת תפריט",
+    "Add a source, image, or other media": "הוספת מקור, תמונה או מדיה אחרת",
+    "Add source": "הוספת מקור",
+    "Add image": "הוספת תמונה",
+    "Add media": "הוספת מדיה",
 
     // Sheets
     "Sheet": "דף מקורות",
     "About this Sheet": "אודות דף המקורות",
     "Tags": "תוויות",
     "Search for a text...": "חפש מקור בספריא",
+    "Search for a Text or Commentator.": "לחיפוש מקור",
     "Paste a link to an image, video, or audio": "הוסף קישור לתמונה, סרטון, או אודיו",
-    "Add media": "הוסף מדיה",
-    "Add an image": "הוסף תמונה",
-    "Add a source": "הוסף מקור",
     "Create a New Sheet": "יצירת דף מקורות",
     "Source Sheets": "דפי מקורות",
     "Sheets": "דפי מקורות",
@@ -164,6 +193,7 @@ const Strings = {
     "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
+    "View in Google Docs": "לפתיחה בגוגל דוקס",
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
@@ -229,7 +259,6 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "Reset": "איפוס",
     "Views": "צפיות",
     "Saves": "שמירות",
 
@@ -258,7 +287,6 @@ const Strings = {
     "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
-    "Views": "צפיות",
     "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
     "Versions": "מהדורות",
     "Version Open": "מהדורה פתוחה",
@@ -268,15 +296,15 @@ const Strings = {
     "Select Version": "בחירת מהדורה",
     "Select Translation": "בחירת תרגום",
     "View in Sidebar": "פתיחת תרגום",
-    'Select': 'בחירה',
-    'Currently Selected': 'נוכחי',
+    "Select": "בחירה",
+    "Currently Selected": "נוכחי",
     "Merged from": "נוצר ממיזוג",
     "Sources": "מקורות",
     "Notable Sources": "מקורות מרכזיים",
     "All Sources": "כל המקורות",
     "Source" : "מקור",
     "Translation": "תרגום",
-    "Source with Translation": "מקור עם תרגום",
+    "Source with Translation": "מקור ותרגום",
     "Source Language": "שפת המקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
@@ -294,7 +322,7 @@ const Strings = {
     "following": "נעקבים",
     "followers": "עוקבים",
     "Recent": "תאריך",
-    "Unlisted": "חסוי",
+    "Unlisted": "לא ברשימה",
     "History": "היסטוריה",
     "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
     "Public Domain": "בנחלת הכלל",
@@ -303,6 +331,12 @@ const Strings = {
     "Translations": "תרגומים",
     "Uncategorized": "לא מסווג",
     "Text display options": "אפשרויות תצוגת טקסט",
+    "Source-translation toggle": "מעבר בין מקור לתרגום",
+    "Show Text as a paragraph": "הצגת טקסט כפיסקה",
+    "Show Text segmented": "הצגת טקסט מפוצל",
+    "Show Source & Translation Stacked": "הצגת מקור ותרגום זה מעל זה",
+    "Show RTL Text Right of LTR Text": "הצגת טקסט מימין לשמאל מימין לטקסט משמאל לימין",
+    "Show RTL Text Left of LTR Text": "הצגת טקסט מימין לשמאל משמאל לטקסט משמאל לימין",
 
     // Collections
     "Collections": "אסופות",
@@ -313,6 +347,7 @@ const Strings = {
     "Collections of sheets are created by Sefaria users and can be privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.",
     "Sefaria Collections": "אסופות של ספריא",
     "Create a Collection": "יצירת אסופה",
+    "Create Collection": "יצירת אסופה",
     "Create a New Collection": "יצירת אסופה חדשה",
 
     // Collection Page
@@ -355,6 +390,7 @@ const Strings = {
     "Add to Collection": "צירוף לאסופה",
 
     // Edit Collection page
+    "Edit Collections": "עריכת אסופות",
     "Edit Collection": "עריכת אסופה",
     "Collection Name": "שם האסופה",
     "Website": "כתובת אתר",
@@ -376,6 +412,8 @@ const Strings = {
 
     // Saved / History / Notifications
     "Saved": "שמורים",
+    "My Saved Content": "התוכן השמור שלי",
+    "My Reading History": "היסטוריית הקריאה שלי",
     "Notifications": "התראות",
     "Texts and sheets that you read will be available for you to see here.": "מקורות ודפי מקורות שקראתם יהיו זמינים עבורכם כאן לעיון חוזר.",
     "Click the bookmark icon on texts or sheets to save them here.": "לחצו על סמל הסימניה בתוך מקורות או דפי מקורות כדי לשמור מראי מקומות מסוימים כאן.",
@@ -400,11 +438,13 @@ const Strings = {
     "Portuguese": "פורטוגזית",
     "Spanish": "ספרדית",
     "French": "צרפתית",
+    "Romanian": "רומנית",
     "German": "גרמנית",
     "Arabic": "ערבית",
     "Italian": "איטלקית",
     "Polish": "פולנית",
     "Russian": "רוסית",
+    "Turkish": "טורקית",
     "Esperanto": "אספרנטו",
     "Persian": "פרסית",
     "Ladino" : "לאדינו",
@@ -417,14 +457,12 @@ const Strings = {
     "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
     "Language": "שפה",
     "Layout": "עימוד",
-    "Translation": "תרגום",
-    'Source with Translation': 'מקור ותרגום',
     "Color": "צבע",
     "Font Size" : "גודל גופן",
     "Aliyot" : "עליות לתורה",
     "Taamim and Nikkud" : "טעמים וניקוד",
     "Punctuation" : "פיסוק",
-    'Cantillation': 'טעמים',
+    "Cantillation": "טעמים",
     "Show Punctuation": "הצגת סימני פיסוק",
     "Hide Punctuation": "הסתרת סימני פיסוק",
     "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
@@ -462,7 +500,7 @@ const Strings = {
     "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
-    "Logout": "ניתוק",
+    "Logout": "התנתקות",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
     "Settings Saved": "הגדרות נשמרו",
     "Turning this feature off will permanently delete your reading history." : "כיבוי אפשרות זו תמחק לצמיתות את היסטורית הקריאה שלך.",
@@ -489,6 +527,41 @@ const Strings = {
     "All history ": "כל ההסטוריה ",
     "All History": "כל ההסטוריה",
 
+    // UI Elements
+    "text layout toggle": "החלפת עימוד טקסט",
+
+    // Form Elements
+    "Email address": "כתובת אימייל",
+    "Index Title": "כותרת אינדקס",
+    "Version Title": "כותרת גרסה",
+    "Index Title Pattern": "תבנית כותרת אינדקס",
+    "Version Title Pattern": "תבנית כותרת גרסה",
+    "Version Language": "שפת הגרסה",
+
+    // Actions & Buttons
+    "Add new category": "הוספת קטגוריה חדשה",
+    "Reset topic filter": "איפוס מסנן נושאים",
+    "Clear input": "ניקוי קלט",
+    "Download language selection": "בחירת שפת הורדה",
+
+    // Content & Status
+    "Loading status": "סטטוס טעינה",
+    "Audio playback position": "מיקום השמעה",
+    "New Category": "קטגוריה חדשה",
+    "Update type": "סוג עדכון",
+
+    // Notifications
+    "No notifications message title": "כותרת הודעת אין התראות",
+    "No notifications message body": "גוף הודעת אין התראות",
+
+    // Buttons & Actions
+    "See More": "ראה עוד",
+    "Save and Next": "שמירה והמשך",
+    "Skip this sheet": "דלג על דף מקורות זה",
+    "Collapse": "כווץ",
+    "Expand": "הרחב",
+
+    //Accessibility UI
 
      //About
     "What is Sefaria?": "מהי ספריא",
@@ -499,6 +572,7 @@ const Strings = {
     "Annual Report": 'דו"ח שנתי',
     "Terms of Use": "תנאי שימוש",
     "Privacy Policy": "מדיניות פרטיות",
+    "AI at Sefaria": "שימוש ב-AI בספריא",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
@@ -526,25 +600,23 @@ const Strings = {
     "on Sefaria": " בספריא",
 
     //New Editor Flow
-    "Thanks for Trying the New Editor!": "תודה שבחרת לנסות את העורך החדש שלנו!",
     "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
     "Back to Profile": "חזרה לפרופיל האישי שלך",
-    "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
     "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Welcome to the updated source sheet editor! Check out our step-by-step guide to the new interface.": "תחדשו! הנכם משתמשים כעת בתוכנה העדכנית לעריכת דפי מקורות בספריא. למדו עוד על השימוש בתוכנה בעזרת המדריך המלא למשתמשים חדשים.",
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
+    "Get Started": "התחילו כאן",
     "Difficulties using the editor": "קושי להשתמש בעורך",
     "Missing features": "תכונות חסרות",
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
-    "You are currently using the most up-to-date source sheet editor. Starting March 17, 2025, you will no longer be able to switch to an older version.":    "הנכם משתמשים בגרסה העדכנית ביותר של התוכנה לעריכת דפי מקורות בספריא. החל מה-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסאות מוקדמות יותר של תוכנת העריכה.",
-    "You are currently using an outdated version of Sefaria's source sheet editor. This version will no longer be supported starting March 17, 2025. Start using the new editor now, or learn more about this important change.": "הנכם משתמשים בגרסה מוקדמת של התוכנה לעריכת דפי מקורות בספריא. החל מה-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסה זו של תוכנת העריכה. אנו ממליצים להתחיל להשתמש בגרסה המעודכנת של התוכנה.",
-    "Go Back to Old Version": "חזור לגרסה הישנה",
-    "Switch to New Editor": "עבור לעורך חדש",
+    "Submit": "שלח",
     "Thank you!": "תודה רבה!",
-    "Try the new version": "להתנסוּת בגרסה החדשה",
-    "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
+    "Export to Google Docs": "ייצוא לגוגל דוקס",
+    "Delete Sheet": "מחיקת דף מקורות",
+    "Share": "שיתוף",
 
     //TextTableofContents
     "Contents": "תוכן",
@@ -557,6 +629,7 @@ const Strings = {
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
+    "Top Citations": "ציטוטים עיקריים",
 
     "Install Now": "התקינו עכשיו",
 
@@ -574,7 +647,6 @@ const Strings = {
 
     //Module Names
     "Download Text": "הורדת טקסט",
-    "About this Text" : "אודות ספר זה",
     "About This Text" : "אודות ספר זה",
     "Related Topics": "נושאים קשורים",
 
@@ -582,25 +654,92 @@ const Strings = {
     "Sort by": "מיון לפי",
 
     //Mobile Nav Header
-    "Get Help": "עזרה", //already has a similar string here but with different capitalization, maybe fix bug when not right before a launch?
+    "Get Help": "עזרה",
     "About Sefaria": "אודות ספריא",
-    "Saved & History": "היסטורית קריאה ושמורים",
+    "Saved & History": "שמורים והיסטוריה",
+    "Saved, History & Notes": "שמורים, היסטוריה והערות",
+    "Sidebar navigation": "ניווט בסרגל הצד",
+    "Site search": "חיפוש באתר",
+    "Account menu": "תפריט חשבון",
+    "submenu": "תת-תפריט",
 
     //Misc
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
 
     //WebPage
-    'Citing': 'מצטט',
-    'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
-    'Sefaria Linker': 'במרשתת ההפניות',
+    "Citing": "מצטט",
+    "Sites that are listed here use the": "אתרים המפורטים כאן משתמשים",
+    "Sefaria Linker": "במרשתת ההפניות",
 
     //alt tags
-    'Notifications': 'עדכונים',
-    'Bookmarks': 'שמורים',
-    'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
+    'Sefaria library logo': 'לוגו ספריית ספריא',
+    'Sefaria voices logo': 'לוגו חיבורים בספריא',
+    "Bookmarks": "שמורים",
+    "Toggle Interface Language Menu" : "פתח תפריט שפת ממשק",
+    "book icon": "סמל ספר",
+    "visualization icon": "סמל תרשים גרפי",
+    "Menu icon": "סמל תפריט",
+    "icon": "סמל",
+    "Sefaria app on IOS": "אפליקציית ספריא לאייפון",
+    "Sefaria app on Android": "אפליקציית ספריא לאנדרואיד",
+    "Sefaria on Facebook": "ספריא בפייסבוק",
+    "Sefaria on Instagram": "ספריא באינסטגרם",
+    "Sefaria on YouTube": "ספריא ביוטיוב",
+    "Sefaria Logo": "לוגו ספריא",
+    "Sefaria Sheets Logo": "לוגו ספריא דפי מקורות",
+    "donation icon": "סמל תרומה",
+    "Notification icon": "סמל התראה",
+    "Play video": "נגן וידאו",
+    "make a sheet icon": "סמל יצירת דף מקורות",
+    "collection icon": "סמל אסופה",
+    "Module image": "תמונת מודול",
+    "User uploaded image": "תמונה שהועלתה על ידי משתמש",
+
+    "Website icon": "סמל אתר",
+    "Notes": "הערות",
+    "Close banner": "סגור באנר",
+    "Search topics": "חפש נושאים",
+    "Reset filter": "איפוס מסנן",
+    "Topic": "נושא",
+    "User Profile Picture": "תמונת פרופיל משתמש",
+    "Notification image": "תמונת התראה",
+    "Delete note": "מחק הערה",
+    "Hebrew Language Toggle Icon": "סמל החלפה לעברית",
+    "English Language Toggle Icon": "סמל החלפה לאנגלית",
+    "Edit topic": "ערוך נושא",
+
+    "Toggle Reader Menu Display Settings": "הגדרות תצוגת תפריט קורא",
+    "AI Info Icon": "סמל מידע AI",
+    "Not published": "לא פורסם",
+    "Note author profile picture": "תמונת פרופיל כותב ההערה",
+    "Open dropdown": "פתח תפריט נפתח",
+    "Collection Logo": "לוגו אסופה",
+    "Settings": "הגדרות",
+    "Library": "ספריה",
+    "Sefaria Library": "ספריית ספריא",
+    "Voices": "חיבורים",
+    "Voices on Sefaria": "חיבורים בספריא",
+    "Developers": "מפתחים",
+    "Developers on Sefaria": "מפתחים בספריא",
+    "Products": "מוצרים",
+    "More from Sefaria": "עוד מספריא",
+    "User uploaded media": "מדיה שהועלתה על ידי משתמש",
+    "Edit collection": "ערוך אסופה",
+    "Subscribe to newsletter": "הרשמה לניוזלטר",
+    "Move up": "העבר למעלה",
+    "Move down": "העבר למטה",
+    "Click icon": "סמל לחיצה",
+    "Collection Header Image": "תמונת כותרת אסופה",
+    "image of maginfying glass": "תמונה של זכוכית מגדלת",
   },
 
   _i18nInterfaceStringsWithContext: {
+    "ModuleSwitcherPopover": {
+      "Looking for something?": "חיפשתם משהו?",
+      "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",
+      "Learn More": "למידע נוסף",
+      "Got it!": "הבנתי, תודה!",
+    },
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",
       "None": "ללא",
@@ -608,12 +747,24 @@ const Strings = {
       "Quotation": "ציטוט",
       "Midrash": "מדרש",
       "Ein Mishpat / Ner Mitsvah": "עין משפט / נר מצווה",
-      'Mesorat HaShas': 'מסורת הש"ס',
+      "Mesorat HaShas": "מסורת הש\"ס",
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
+    },
+    "EditorSaveIndicator": {
+      "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
+      "Saving…": "שומר...",
+      "Saved": "נשמר",
+      "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+      "Trying to connect…": "ניסיון התחברות...",
+      "No internet connection detected": "לא זוהה חיבור לאינטרנט",
+      "User Logged out": "בוצעה התנתקות מהמערכת",
+      "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
+      "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
+      "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
     },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
@@ -656,8 +807,6 @@ const Strings = {
       "Resources": "כלי עזר",
     },
     "SearchFilters": {
-      "Texts": "מקורות",
-      "Topics": "נושאים",
       "Collections": "באסופות",
       "See More": "עוד",
     },
@@ -671,7 +820,24 @@ const Strings = {
       "Edit": "לערוך",
     },
     "WebPageList": {
-      'Author': 'מחבר'
+    },
+    "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
+    "Loading guide...": "טוען מדריך...",
+    },
+    "GuideBox": {
+      "Guided Learning": "מדריך למידה",
+    },
+    "AiInfoTooltip": {
+      "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
+      "Some of the text on this page has been AI generated.": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית.",
+      "Learn More": "לפרטים נוספים",
     }
   },
 };

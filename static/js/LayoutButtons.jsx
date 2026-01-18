@@ -5,6 +5,7 @@ import {layoutOptions, layoutLabels} from "./constants";
 import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
 import RadioButton from "./common/RadioButton";
+import Sefaria from "./sefaria/sefaria";
 
 const calculateLayoutState = (language, textsData, panelMode) => {
     const primaryDir = textsData?.primaryDirection;
@@ -30,7 +31,7 @@ const getPath = (layoutOption, layoutState, textsData) => {
 };
 
 const LayoutButton = ({layoutOption, layoutState}) => {
-    const {language, textsData, setOption, layout} = useContext(ReaderPanelContext);
+    const {language, textsData, setOption, layout, panelPosition} = useContext(ReaderPanelContext);
     const path = getPath(layoutOption, layoutState, textsData);
     const optionName = (language === 'bilingual') ? 'biLayout' : 'layout';
     const checked = layout === layoutOption;
@@ -42,6 +43,8 @@ const LayoutButton = ({layoutOption, layoutState}) => {
                 isActive={checked}
                 value={layoutOption}
                 style={{"--url": `url(${path})`}}
+                id={`${layoutOption}${panelPosition}`}
+                label={layoutLabels[layoutOption]}
             />
         </div>
     );
@@ -55,10 +58,11 @@ const LayoutButtons = () => {
     const {language, textsData, panelMode} = useContext(ReaderPanelContext);
     const layoutState = calculateLayoutState(language, textsData, panelMode);
     return (
-        <div className="layout-button-line" role="radiogroup" aria-label="text layout toggle">
+        <div className="layout-button-line" role="radiogroup" aria-label={Sefaria._("text layout toggle")}>
             <InterfaceText>Layout</InterfaceText>
             <div className="layout-options">
                 {layoutOptions[layoutState].map(option => <LayoutButton
+                    key={option}
                     layoutOption={option}
                     layoutState={layoutState}
                 />)}

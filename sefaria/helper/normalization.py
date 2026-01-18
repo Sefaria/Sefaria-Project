@@ -1,4 +1,4 @@
-import re
+import regex as re
 from typing import Dict, List, Callable
 from functools import reduce, lru_cache
 from bisect import bisect_right
@@ -33,7 +33,8 @@ UNIDECODE_TABLE = {
     "\u05f4": '"',
     "\u0323": "",  # chirik-like dot
     "”": '"',
-    "“": '"'
+    "“": '"',
+    "\u00ad": "",  # soft hyphen
 }
 
 
@@ -149,73 +150,54 @@ class AbstractNormalizer:
         return unnormalized_indices
 
 
-class ITagNormalizer(AbstractNormalizer):
+class FootnoteNormalizer(AbstractNormalizer):
+
+    FOOTNOTE_START_RE = re.compile(
+        r"""<sup[^>]*class="(?:[^"]+ )?footnote-marker(?: [^"]+)?">.*?</sup>\s*<i[^>]*class="(?:[^"]+ )?footnote(?: [^"]+)?"[^>]*>""",
+    )
 
     def __init__(self, repl):
         super().__init__()
         self.repl = repl
 
-    @staticmethod
-    def _find_itags(tag):
-        from sefaria.model.text import AbstractTextRecord
-        return AbstractTextRecord._find_itags(tag)
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
+        matches = []
 
-    @staticmethod
-    def _get_all_itags(s):
-        """
-        Very similar to sefaria.model.text.AbstractTextRecord
-        Originally called `_strip_itags`
-        """
-        from sefaria.model.text import AbstractTextRecord
-
-        all_itags = []
-        soup = BeautifulSoup(f"<root>{s}</root>", 'lxml')
-        itag_list = soup.find_all(ITagNormalizer._find_itags)
-        for itag in itag_list:
-            all_itags += [itag]
-            try:
-                if AbstractTextRecord._itag_is_footnote(itag):
-                    all_itags += [itag.next_sibling]  # it's a footnote
-            except AttributeError:
-                pass  # it's an inline commentator
-        return all_itags, soup
-
-    @staticmethod
-    def _find_itag_start(itag_text: str, s: str, search_start: int) -> int:
-        """
-        There can be minor differences in itag created by bs4
-        Try to find start of itag regardless
-        """
-        start = -1
-        for end_char in range(len(itag_text), round(len(itag_text)/2), -10):
-            truncated_itag = itag_text[:end_char]
-            start = s.find(truncated_itag, search_start)
-            if start != -1:
-                break
-        return start
-
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
-        lenient = kwargs.get('lenient', False)  # if lenient, fail gracefully when you can't find an itag
-        all_itags, _ = ITagNormalizer._get_all_itags(s)
-        next_start = 0
-        text_to_remove = []
-        for itag in all_itags:
-            itag_text = itag.decode()
-            start = self._find_itag_start(itag_text, s, next_start)
-            end = start+len(itag_text)
-            if start == -1:
-                exception_text = f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}"
-                if lenient:
-                    print(exception_text)
-                    continue
+        for m in self.FOOTNOTE_START_RE.finditer(s):
+            start_pos = m.start()
+            i_open_end = m.end()
+            depth = 1
+            i = i_open_end
+            while depth > 0:
+                next_open = s.find('<i', i)
+                next_close = s.find('</i', i)
+                
+                # determine where the </i> tag ends in case it's slightly malformed
+                next_close_end = -1
+                if s[next_close+3] == '>':
+                    next_close_end = next_close + 4
+                elif s[next_close+4] == '>':
+                    next_close_end = next_close + 5
+                if next_close == -1 or next_close_end == -1:
+                    # no </i> to match <i>, bail out
+                    break
+                if next_open != -1 and next_open < next_close and s[next_open+2] in (' ', '>'):
+                    depth += 1
+                    i = next_open + 2
                 else:
-                    raise Exception(exception_text)
-            text_to_remove += [((start, end), self.repl)]
-            next_start = start + 1
+                    depth -= 1
+                    i = next_close_end
+            end_pos = i
+            is_subset = False
+            for (start, end), _ in matches:
+                if start_pos > start and end_pos < end:
+                    is_subset = True
+            if not is_subset:
+                matches.append(((start_pos, end_pos), self.repl))
+            
+        # remove subsets
+        return matches
 
-        text_to_remove = self.remove_subsets(text_to_remove)
-        text_to_remove.sort(key=lambda x: x[0][0])
-        return text_to_remove
 
 class ReplaceNormalizer(AbstractNormalizer):
 
@@ -296,28 +278,36 @@ class NormalizerComposer(AbstractNormalizer):
     @staticmethod
     def merge_removal_inds(*all_removal_inds):
         combined_removal_inds = reduce(lambda a, b: a + b, all_removal_inds, [])
-        combined_removal_inds.sort(key=lambda x: x[0][0])
+        combined_removal_inds.sort(key=lambda x: (x[0][0], x[0][1]))
         merged_removal_inds = []
         for curr_inds, curr_repl in combined_removal_inds:
             if len(merged_removal_inds) == 0:
                 merged_removal_inds += [(curr_inds, curr_repl)]
                 continue
             last_inds, last_repl = merged_removal_inds[-1]
-            if curr_inds[0] >= last_inds[1]:
+            a, b = last_inds
+            c, d = curr_inds
+            if c >= b:
                 # If current interval doesn't overlap with the last interval in result, append it
-                merged_removal_inds += [(curr_inds, curr_repl)]
+                merged_removal_inds.append((curr_inds, curr_repl))
+                continue
+            # some sort of overlap
+            # curr_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
+            if c == a and b <= d:
+                # last is subset. use curr_repl
+                merged_removal_inds[-1] = ((a, d), curr_repl)
+            elif c >= a and d <= b:
+                # curr is subset. keep last as is.
+                continue
             else:
-                # some sort of overlap
-                curr_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
-                if curr_inds[0] == last_inds[0] and last_inds[1] <= curr_inds[1]:
-                    # last is subset. use curr_repl
-                    curr_merged_repl = curr_repl
-                elif curr_inds[0] >= last_inds[0] and curr_inds[1] <= last_inds[1]:
-                    # curr is subset. use last_repl
-                    curr_merged_repl = last_repl
+                # partial overlap: a < c < b < d (given sorting by start)
+                if curr_repl == last_repl:
+                    # same replacement -> union into one span
+                    merged_removal_inds[-1] = ((a, d), curr_repl)
                 else:
-                    raise Exception(f"partial overlap. not sure how to reconcile. curr_inds: {curr_inds}. last_inds: {last_inds}")
-                merged_removal_inds[-1] = (curr_merged_inds, curr_merged_repl)
+                    # different replacements -> keep last, trim curr to start at b
+                    trimmed = ((b, d), curr_repl)
+                    merged_removal_inds.append(trimmed)
 
         return merged_removal_inds
 
@@ -366,7 +356,9 @@ class NormalizerFactory:
         "elokim": RegexNormalizer(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)", "\1\2\u05d0\u05dc\u05d4\u05d9\u05dd\3"),
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
         "maqaf": ReplaceNormalizer('־', ' '),
-        "itag": ITagNormalizer(' '),
+        "footnote": FootnoteNormalizer(''),
+        "other-itag": RegexNormalizer(r'<i [^>]*(data-commentator|data-overlay)=[^>]*>\s*</i>', ''),  # other itag types besides for footnotes
+        "fn-marker": RegexNormalizer(r'\s*<sup class="(footnote-marker|endFootnote|itag)">(?:.*?)</sup>\s*', ' '),
         "br-tag": ReplaceNormalizer('<br>', '<br/>'),
         "double-space": RegexNormalizer(r"\s+", " "),
     }

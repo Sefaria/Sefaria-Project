@@ -19,11 +19,11 @@ import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import { NavSidebar, SidebarModules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock/VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
-import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
@@ -32,7 +32,7 @@ import Hebrew from './sefaria/hebrew.js';
 
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
-import DropdownMenu from "./common/DropdownMenu";
+import {DropdownMenu} from "./common/DropdownMenu";
 import Cookies from "js-cookie";
 
 
@@ -170,11 +170,19 @@ class BookPage extends Component {
 
     const readButton = !this.state.indexDetails || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ?
-        <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
+        <a 
+          className="button small readButton" 
+          href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
+        >
           <InterfaceText>Continue Reading</InterfaceText>
         </a>
         :
-        <a className="button small readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
+        <a 
+          className="button small readButton" 
+          href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
+        >
           <InterfaceText>Start Reading</InterfaceText>
         </a>
 
@@ -223,7 +231,7 @@ class BookPage extends Component {
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
-                  <DropdownMenu buttonContent={(<DisplaySettingsButton/>)} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>
+                  <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={(<DisplaySettingsButton/>)}><ReaderDisplayOptionsMenu/></DropdownMenu>
                   : <DisplaySettingsButton placeholder={true} />}
               </div>
             </div>
@@ -297,8 +305,6 @@ class BookPage extends Component {
             {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar sidebarModules={sidebarModules} /> : null}
           </div>
-          {this.isBookToc() && ! this.props.compare ?
-          <Footer /> : null}
         </div>
       </div>
     );
@@ -557,9 +563,30 @@ class SchemaNode extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // Collapse nodes below top level, and those that aren't default or makred includedSections
-      collapsed: "nodes" in props.schema && !(props.topLevel || props.disableSubCollapse) ? props.schema.nodes.map(node => !(node.default || node.includeSections)) : []
+      collapsed: this.getCollapsedState(this.props.schema, this.props.topLevel, this.props.disableSubCollapse)
     };
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.currentlyVisibleRef !== prevProps.currentlyVisibleRef) {
+      this.setState({collapsed: this.getCollapsedState(this.props.schema, this.props.topLevel, this.props.disableSubCollapse)});
+    }
+  }
+  shouldNodeCollapse(node) {
+    // Determine 'collapsed' state for node.
+    // A node should be collapsed if it is not the currently visible node and if it is not a default node.
+    const fullNodeRef = this.props.refPath + (node.default ? "" : `, ${node.title}`);
+    const currentlyVisible = Sefaria.refContains(fullNodeRef, this.props.currentlyVisibleRef);
+    return !currentlyVisible && !node.default && !node.includeSections;
+  }
+  getCollapsedState(schema, topLevel, disableSubCollapse) {
+    // Determine 'collapsed' state for each node in schema.
+    // If no children or topLevel, return [] which is equivalent to no nodes collapsed.
+    // Otherwise, return array of booleans based on call to `shouldNodeCollapse` for each node.
+    if (topLevel || disableSubCollapse || !("nodes" in schema)) {
+      return [];
+    } else {
+      return schema.nodes.map(this.shouldNodeCollapse);
+    }
   }
   toggleCollapse(i) {
     if(this.props.disableSubCollapse) return;
@@ -598,7 +625,7 @@ class SchemaNode extends Component {
     } else { //we do have subcontent
       let content = this.props.schema.nodes.map(function(node, i) {
         let path;
-        if (node.nodeType == "ArrayMapNode") {
+        if (node.nodeType === "ArrayMapNode") {
           //ArrayMapNode content
           path = this.props.refPath + ", " + node.title;
           return <ArrayMapNode schema={node} currentlyVisibleRef={this.props.currentlyVisibleRef}  currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef} key={path}/>;
@@ -700,7 +727,8 @@ class JaggedArrayNode extends Component {
   render() {
     const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
-      let zoom = this.props.schema.toc_zoom - 1;
+      const zoom = this.props.schema.toc_zoom - 1;
+      const currentZoomedOutRef = this.props.currentlyVisibleSectionRef && Sefaria.zoomOutRef(this.props.currentlyVisibleSectionRef, zoom);
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
@@ -708,7 +736,7 @@ class JaggedArrayNode extends Component {
                 contentCounts={this.props.schema.content_counts}
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
-                currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                currentlyVisibleSectionRef={currentZoomedOutRef}
                 offset={offset}
               />);
     }

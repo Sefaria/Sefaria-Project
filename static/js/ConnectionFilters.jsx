@@ -147,7 +147,7 @@ TextFilter.propTypes = {
   updateRecent:    PropTypes.bool,
   inRecentFilters: PropTypes.bool,
   filterSuffix:    PropTypes.string,  // Optionally add a string to the filter parameter set (but not displayed)
-  enDisplayedText: PropTypes.string,  // displayedText fields used when link is 'essay' and we don't want to show the book title
+  enDisplayedText: PropTypes.string,  // displayedText fields used when link category is 'Essay' and we don't want to show the book title
   heDisplayedText: PropTypes.string,
 };
 

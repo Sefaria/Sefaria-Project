@@ -1,0 +1,229 @@
+sandbox: "false"
+contentSandbox: "false"
+deployEnv: preprod
+previousServicesCount: "3"
+deploymentMessage: true
+restore:
+  enabled: false
+  dynamicName: false
+  cleanup: false
+backup:
+  mongo:
+    enabled: false
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+  postgres:
+    enabled: false
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-user-backup
+    serviceAccount: database-backup-write
+  sitemaps:
+    enabled: false
+web:
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-modularization-main
+    tag: sha-d38d468-202601151028
+  replicaCount: 2
+  resources:
+    web:
+      gunicornWorkerCount: 5
+      gunicornThreadCount: 5
+      resources:
+        requests:
+          memory: "14Gi"
+          cpu: "1500m"
+        limits:
+          memory: "18Gi"
+          cpu: "2"
+  secrets:
+    googleClient:
+      ref: google-client-secret-production
+    logging:
+      ref: logging-secret-production
+    schoolLookup:
+      ref: school-lookup-data-production
+redis:
+  containerImage:
+    imageRegistry: redis
+    tag: latest
+  pdb: true
+  resources:
+    requests:
+      memory: "500Mi"
+      cpu: "100m"
+    limits:
+      memory: "1500Mi"
+      cpu: "200m"
+gpuServer: "gpu-server.gpu-server.svc.cluster.local"
+nodejs:
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-node-modularization-main
+    tag: sha-d38d468-202601151028
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "1"
+    limits:
+      memory: "1500Mi"
+      cpu: "1500m"
+  heapSize: 1250
+varnish:
+  logging: {}
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "17Gi"
+      cpu: "1"
+    limits:
+      memory: "18Gi"
+      cpu: "1500m"
+  tuning:
+    malloc: "14440m"
+    nuke_limit: "400"
+    thread_pools: 2
+    thread_pool_max: 5000
+    thread_pool_min: 100
+    first_byte_timeout: 60  # Default 60s
+    between_bytes_timeout: 60  # Default 60s
+  secrets:
+    varnish:
+      ref: varnish-secret-production
+  monitoring:
+    enabled: true
+tasks:
+  enabled: true
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "6Gi"
+      cpu: "1000m"
+  replicaCount: 1
+  redis:
+    url: ""
+    port: "26379"
+    brokerDBNumber: 2
+    resultBackendDBNumber: 3
+    sentinelURL: "redis-headless.redis.svc.cluster.local"
+    transportOptions:
+      master_name: mymaster
+    redisPassword:
+      ref: redis-password
+    sentinelPassword:
+      ref: sentinel-password
+  queues:
+    llm: llm-llm
+domains:
+  root:
+    - url: "sefariapreprod.org"
+      cert: "sefariapreprod-tls"
+      language: english
+      code:
+        - en
+    - url: "sefariapreprod-il.org"
+      cert: "sefariapreprod-il-tls"
+      language: hebrew
+      code:
+        - he
+  modules:
+    - name: voices
+      subdomains:
+        en: voices
+        he: chiburim
+      redirects:
+        - sheets
+        - collections
+        - profile
+nginx:
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-modularization-main
+    tag: sha-d38d468-202601151033
+  SEARCH_HOST: "elasticsearch-es-http.elasticsearch.svc"
+  SEARCH_PORT: "9200"
+  SEARCH_PATH: ""
+  SEARCH_SSL_ENABLE: false
+  disableScraping: false
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "200Mi"
+      cpu: "100m"
+    limits:
+      memory: "300Mi"
+      cpu: "150m"
+monitor:
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-modularization-main
+    tag: sha-d38d468-202601151028
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "300Mi"
+      cpu: "50m"
+    limits:
+      memory: "400Mi"
+      cpu: "100m"
+cronJobs:
+  # Settings for regenerating long cached data
+  regenerate:
+    enabled: false
+  dailyEmailNotifications:
+    enabled: false
+  indexFromQueue:
+    enabled: false
+  metrics:
+    enabled: false
+  nationBuilderSync:
+    enabled: false
+  rambiWebpagesWeekly:
+    enabled: false
+  reindexElasticSearch:
+    enabled: false
+  topicsIndexing:
+    enabled: false
+  trello:
+    enabled: false
+  trends:
+    enabled: false
+  weeklyEmailNotifications:
+    enabled: false
+secrets:
+  localSettings:
+    ref: local-settings-secrets-production
+  backupManager:
+    ref: backup-manager-secret-production
+  slackWebhook:
+    ref: slack-webhook-production
+instrumentation:
+  enabled: false
+  otelEndpoint: "http://otel-collector-collector.monitoring:4317"
+  jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
+
+localSettings:
+  DEBUG: true
+  OFFLINE: "False"
+  DOMAIN_LANGUAGE: {
+    "https://www.sefaria.org": "english",
+    "https://www.sefaria.org.il": "hebrew",
+  }
+  MONGO_HOST: "mongo"
+  APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+  USE_CLOUDFLARE: false
+  FRONT_END_URL:  "https://www.sefariapreprod.org"
+  OFFLINE: false
+  DOWN_FOR_MAINTENANCE: false
+  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  GLOBAL_WARNING: false
+  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+  SITE_PACKAGE: "sites.sefaria"
+  DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
+  SERVER_EMAIL: "dev@sefaria.org"
+  MULTISERVER_ENABLED: "True"
+  CRM_TYPE: "SALESFORCE"
+  FAIL_GRACEFULLY: "True"

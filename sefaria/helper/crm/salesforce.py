@@ -4,7 +4,7 @@ import time
 import json
 
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
-from sefaria import settings as sls
+from django.conf import settings as sls
 
 from typing import Any, Optional
 
@@ -50,6 +50,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
         }
         basic_res = requests.post(access_token_url, headers=headers)
         basic_data = basic_res.json()
+        if 'access_token' not in basic_data:
+            raise Exception(f"Salesforce OAuth failed: {basic_data}")
         session = requests.Session()
         session.headers.update({
             'Authorization': 'Bearer %s' % basic_data['access_token']
@@ -130,13 +132,13 @@ class SalesforceConnectionManager(CrmConnectionManager):
         email: str, 
         first_name: Optional[str] = None, 
         last_name: Optional[str] = None, 
-        lang: str = "en", 
         educator: bool = False,
+        lang: str = "en",
         mailing_lists: Optional[list[str]] = None) -> Any:
 
         mailing_lists = mailing_lists or []
 
-        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
+        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, educator, lang)
         if lang == "he":
             language = "Hebrew"
         else:
@@ -157,9 +159,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
                         })
         try:
             return res.status_code == 201
-        except:
+        except Exception:
             return False
-        return res
 
     def get_available_lists(self) -> list[str]:
         try:

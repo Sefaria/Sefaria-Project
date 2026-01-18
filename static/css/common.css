@@ -1,28 +1,4 @@
 /* CSS common to Reader, Sheets and all static pages */
-@font-face {
-  font-family: 'Rashi Script';
-  src: url('/static/fonts/Mekorot-Rashi.ttf');
-}
-@font-face {
-  font-family: 'Taamey Frank';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf');
-}
-@font-face {
-  font-family: 'Taamey Frank';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf');
-  font-weight: bold;
-}
-@font-face {
-  font-family: 'Taamey Frank';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-MediumOblique.ttf');
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Taamey Frank';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-BoldOblique.ttf');
-  font-style: italic;
-  font-weight: bold;
-}
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
   visibility: hidden;
@@ -576,7 +552,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   top: 0;
   bottom: 0;
   right: 36px;
-  border: 1px solid #999999;
+  border: 1px solid var(--light-grey);
   border-radius: 26px;
   transition: all 0.3s ease-in 0s;
 }
@@ -729,7 +705,7 @@ a:active {
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   border: none;
-  color: #666;
+  color: var(--dark-grey);
   font-size: 14px;
   background-color: white;
   -webkit-appearance: none;
@@ -744,7 +720,7 @@ a:active {
 }
 .static label .sub {
   font-size: 12px;
-  color: #999;
+  color: var(--medium-grey);
   letter-spacing: normal;
   white-space: nowrap;
 }
@@ -774,6 +750,27 @@ a:active {
     var(--chasidut-green) 90% 100%
     );
 }
-.categoryColorLineRainbow.fixedBar{
+.animatedCategoryColorLineRainbow.fixedBar{
   position: fixed;
 }
+
+@keyframes rainbowAnimation {
+  0% {
+      background-position: 0% 50%;
+  }
+  100% {
+      background-position: 100% 50%;
+  }
+}
+
+.animatedCategoryColorLineRainbow {
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--commentary-blue) 10% 20%, var(--mussar-purple) 20% 30%, var(--mishnah-blue) 30% 40%, var(--talmud-gold) 40% 50%, var(--midrash-green) 50% 60%, var(--halakhah-red) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%);
+  background-size: 200% 100%; /* Expand the size so we can animate */
+  animation: rainbowAnimation 1s linear infinite;
+}
+
