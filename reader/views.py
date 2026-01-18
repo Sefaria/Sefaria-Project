@@ -648,8 +648,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     primaryVersion = _extract_version_params(request, 'vhe')
     translationVersion = _extract_version_params(request, 'ven')
 
-    filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
-    filter = [] if filter == ["all"] else filter
+    filter = request.GET.get("with")
+    if request.active_module == VOICES_MODULE:
+        filter = None  # remove side panel from legacy voices urls
+    elif filter == 'all':
+        filter = []
+    elif filter:
+        filter = filter.replace("_", " ").split("+")
 
     noindex = False
 
