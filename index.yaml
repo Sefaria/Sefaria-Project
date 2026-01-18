@@ -77,6 +77,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.72.0-featurenew-es.1.tgz
     version: 0.72.0-featurenew-es.1
   - apiVersion: v2
+    appVersion: v6.55.0-next.1
+    created: "2026-01-18T09:27:31.312952622Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 01ab08dbda67644222ee233cc1f687d2f268fd8714579493034234a5eae9d533
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.72.0-beta.2.tgz
+    version: 0.72.0-beta.2
+  - apiVersion: v2
     appVersion: v6.54.3
     created: "2026-01-18T07:21:33.759084996Z"
     description: Chart to deploy complete Sefaria environment
@@ -13065,4 +13080,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-01-18T09:17:11.257720038Z"
+generated: "2026-01-18T09:27:31.309945212Z"
