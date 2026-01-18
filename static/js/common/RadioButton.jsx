@@ -19,7 +19,7 @@ export default function RadioButton  ({isActive, onClick, value, name, label, id
     };
 
     return (
-        <label className='button' htmlFor={id}>
+        <label className='button'>
             <InterfaceText>{label}</InterfaceText>
             <input
                 type='radio'
