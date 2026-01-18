@@ -88,7 +88,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
               <LanguageToggleButton toggleLanguage={toggleLanguage} />}
             </div>
             { menuOpen === 'notes' ?
-                  <NotesList notes={notes} />
+                  <NotesList notes={notes} onDeleteNote={(noteId) => setNotes(notes.filter(n => n._id !== noteId))} />
                  :
                   <UserHistoryList
                     store={store}
