@@ -56,7 +56,8 @@ class Text(View):
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
 
-        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
+        debug_mode = request.GET.get('debug_mode', None)
+        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format, debug_mode)
 
         try:
             data = text_manager.get_versions_for_query()

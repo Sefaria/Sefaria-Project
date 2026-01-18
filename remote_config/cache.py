@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 import threading
+from django.db.utils import OperationalError
 
 
 class RemoteConfigCache:
@@ -41,7 +42,10 @@ class RemoteConfigCache:
         if self._cache is None:
             with self._lock:
                 if self._cache is None:  # double-checked locking for minimal contention
-                    self._cache = self._build_cache()
+                    try:
+                        self._cache = self._build_cache()
+                    except OperationalError:
+                        self._cache = {}
         return self._cache
 
     def get(self, key: str, default: Any = None) -> Any:

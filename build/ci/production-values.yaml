@@ -34,10 +34,10 @@ web:
       gunicornThreadCount: 5
       resources:
         requests:
-          memory: "12Gi"
+          memory: "14Gi"
           cpu: "1500m"
         limits:
-          memory: "14Gi"
+          memory: "18Gi"
           cpu: "2"
   secrets:
     googleClient:
@@ -119,23 +119,32 @@ tasks:
       ref: sentinel-password
   queues:
     llm: llm-llm
-ingress:
-  hosts:
-    - host: "sefaria.org"
-      tlsRef: origin-tls-prod2
-    - host: "sefaria.org.il"
-      tlsRef: origin-il-tls-prod2
-  # Deprecated but left in place for switchover.
-  secrets:
-    originTls:
-      ref: origin-tls-prod2
-    originIlTls:
-      ref: origin-il-tls-prod2
+domains:
+  root:
+    - url: "sefaria.org"
+      cert: "origin-tls-prod2"
+      language: english
+      code:
+        - en
+    - url: "sefaria.org.il"
+      cert: "origin-il-tls-prod2"
+      language: hebrew
+      code:
+        - he
+  modules:
+    - name: voices
+      subdomains:
+        en: voices
+        he: chiburim
+      redirects:
+        - sheets
+        - collections
+        - profile
 nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: "elasticsearch-es-http.elasticsearch.svc"
+  SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
   SEARCH_PORT: "9200"
   SEARCH_PATH: ""
   SEARCH_SSL_ENABLE: false

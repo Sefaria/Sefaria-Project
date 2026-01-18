@@ -1404,35 +1404,33 @@ class ReaderControls extends Component {
       :
       <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
         <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
-          <div>
-            <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
-              <div className="readerControlsTitle">
-                { this.props.sheetID ?
-                <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-                { this.props.sheetID ?
-                <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
-                  {title}
-                </h1>
-                :
-                <h1>
-                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-                  <span className="sectionString">
-                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
-                  </span>
-                </h1>
-                }
-              </div>
-              <div className="readerTextVersion">
-                {categoryAttribution ? <CategoryAttribution categories={data.categories} linked={false} /> : null }
-                {
-                  this.shouldShowVersion() && displayVersionTitle ?
-                  <span className="readerTextVersion">
-                    <span className="en">{displayVersionTitle}</span>
-                  </span> : null
-                }
-              </div>
-            </a>
-          </div>
+          <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
+            <div className="readerControlsTitle">
+              { this.props.sheetID ?
+              <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+              { this.props.sheetID ?
+              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                {title}
+              </h1>
+              :
+              <h1>
+                <ContentText
+                    text={{en: `${title}${sectionString}`, he: `${heTitle}${heSectionString}`}}
+                    defaultToInterfaceOnBilingual
+                />
+              </h1>
+              }
+            </div>
+            <div className="readerTextVersion">
+              {categoryAttribution ? <CategoryAttribution categories={data.categories} linked={false} /> : null }
+              {
+                this.shouldShowVersion() && displayVersionTitle ?
+                <span className="readerTextVersion">
+                  <span className="en">{displayVersionTitle}</span>
+                </span> : null
+              }
+            </div>
+          </a>
         </div>
       </div>;
 

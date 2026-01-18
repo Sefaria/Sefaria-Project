@@ -158,6 +158,7 @@ data:
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
+    FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
 
     SEFARIA_DATA_PATH = '/export' # used for exporting texts
     SEFARIA_EXPORT_PATH = '/export'
@@ -282,6 +283,7 @@ data:
         from sefaria.settings_utils import init_sentry
         
         init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
+
 
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {
