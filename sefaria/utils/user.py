@@ -5,24 +5,41 @@ Uses MongoDB collections: apikeys, sheets, notes, profiles, notifications
 """
 from django.contrib.auth.models import User
 import structlog
+from typing import Optional, Literal
 
 import sefaria.model as model
 from sefaria.system.database import db
 from sefaria.helper.crm.crm_mediator import CrmMediator
+from sefaria.helper.slack.send_message import send_message
 
 logger = structlog.get_logger(__name__)
 
 
-def delete_user_account(uid, confirm=True):
+def delete_user_account(
+    uid: int,
+    confirm: bool = True,
+    deletion_type: Literal["self", "admin", "manual"] = "manual",
+    admin_user: Optional[User] = None
+) -> bool:
     """ Deletes the account of `uid` as well as all owned data
     Returns True if user is successfully deleted from Mongo & User DB
+
+    Args:
+        uid: User ID to delete
+        confirm: Whether to prompt for confirmation
+        deletion_type: Type of deletion - "self", "admin", or "manual"
+        admin_user: User object of admin performing deletion (for admin deletions)
     """
-    user = model.UserProfile(id=uid)
+    user: model.UserProfile = model.UserProfile(id=uid)
+
+    # Store user info for Slack notification before deletion
+    user_email: str = user.email
+    user_name: str = user.full_name or "No name given"
     if confirm:
         print("Are you sure you want to delete the account of '%s' (%s)?" % (user.full_name, user.email))
         if input("Type 'DELETE' to confirm: ") != "DELETE":
             print("Canceled.")
-            return
+            return False
 
     try:
         crm_mediator = CrmMediator()
@@ -47,10 +64,40 @@ def delete_user_account(uid, confirm=True):
     # Delete Profile
     db.profiles.delete_one({"id": uid})
     # Delete User Object
-    user = User.objects.get(id=uid)
-    user.delete()
+    django_user: User = User.objects.get(id=uid)
+    django_user.delete()
     
     # History is left for posterity, but will no longer be tied to a user profile
+
+    # Send Slack notification about user deletion
+    try:
+        if deletion_type == "admin" and admin_user:
+            # Get admin profile for name and email
+            try:
+                admin_profile: model.UserProfile = model.UserProfile(id=admin_user.id)
+                admin_name: str = admin_profile.full_name or "No name given"
+                admin_email: str = str(admin_user.email)
+                deletion_source: str = f"Admin deleted by {admin_name} ({admin_email})"
+            except:
+                deletion_source: str = f"Admin deleted by {str(admin_user.email)}"
+        else:
+            deletion_source: str = {
+                "self": "User self-deleted",
+                "admin": "Admin deleted",
+                "manual": "Manually deleted"
+            }.get(deletion_type, "Deleted")
+
+        success: bool = send_message(
+            channel='#engineering-signal',
+            username='Account Manager',
+            pretext='User Account Deleted',
+            text=f'{deletion_source}\nUser: {user_name} ({user_email})\nUser ID: {uid}',
+            icon_emoji=':warning:'
+        )
+        if not success:
+            logger.warning(f"Failed to send Slack notification for user deletion: {uid}")
+    except Exception as e:
+        logger.error(f"Error sending Slack notification for user deletion {uid}: {e}")
 
     print("User %d deleted." % uid)
     return True
@@ -102,7 +149,7 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
         into_user.update_empty(from_user.to_mongo_dict())
         into_user.save()
 
-    delete_user_account(from_uid, confirm=False)
+    delete_user_account(from_uid, confirm=False, deletion_type="manual")
 
 
 def generate_api_key(uid):
