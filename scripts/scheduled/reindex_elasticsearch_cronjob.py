@@ -30,6 +30,9 @@ import time
 import django
 django.setup()
 
+from django.contrib.auth.models import User
+from django.conf import settings
+
 from sefaria.model import *
 from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client, TextIndexer, setup_logging
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
@@ -187,6 +190,65 @@ def check_elasticsearch_connection() -> bool:
         return True
     except Exception as e:
         logger.error(f"Failed to connect to Elasticsearch - {str(e)}")
+        return False
+
+
+def check_django_database_connection() -> bool:
+    """
+    Verify Django database (PostgreSQL) is reachable and properly configured.
+
+    This is critical because sheet indexing requires Django User lookups.
+    If the database is unreachable, UserProfile falls back to "User {id}" names,
+    which corrupts the search index with useless data.
+
+    Returns:
+        True if database is properly configured and reachable, False otherwise.
+    """
+    # First, check if database credentials are configured
+    db_config = settings.DATABASES.get('default', {})
+    db_user = db_config.get('USER')
+    db_password = db_config.get('PASSWORD')
+    db_host = db_config.get('HOST')
+    db_port = db_config.get('PORT')
+    db_name = db_config.get('NAME')
+
+    # Log configuration (without password)
+    logger.debug(f"Django database config - host: {db_host}, port: {db_port}, "
+                 f"name: {db_name}, user: {db_user}, password_set: {bool(db_password)}")
+
+    # Check for missing credentials (os.getenv returns None when env var is missing)
+    missing_fields = []
+    if not db_user:
+        missing_fields.append("USER (DATABASES_USER env var)")
+    if not db_password:
+        missing_fields.append("PASSWORD (DATABASES_PASSWORD env var)")
+    if not db_host:
+        missing_fields.append("HOST (DATABASES_HOST env var)")
+    if not db_port:
+        missing_fields.append("PORT (DATABASES_PORT env var)")
+
+    if missing_fields:
+        logger.error(f"Django database configuration incomplete - missing: {', '.join(missing_fields)}")
+        logger.error("This typically means the 'local-settings-secret' Kubernetes secret is missing or misconfigured.")
+        logger.error("Sheet indexing will produce 'User {id}' names instead of real names!")
+        return False
+
+    # Now try to actually connect and query
+    try:
+        # Simple query to verify connection works
+        user_count = User.objects.count()
+        logger.debug(f"Django database connection verified - user_count: {user_count}")
+
+        # Extra sanity check: verify we can get a real user name
+        first_user = User.objects.first()
+        if first_user:
+            logger.debug(f"Sample user lookup successful - id: {first_user.id}, "
+                        f"name: {first_user.first_name} {first_user.last_name}")
+
+        return True
+    except Exception as e:
+        logger.error(f"Django database connection failed - error: {str(e)}", exc_info=True)
+        logger.error(f"Database config - host: {db_host}, port: {db_port}, name: {db_name}, user: {db_user}")
         return False
 
 
@@ -411,8 +473,18 @@ def main():
         logger.info(result.get_summary())
         sys.exit(1)
     result.record_step_success("preflight_elasticsearch", "Elasticsearch connection verified")
-    
-    # 2. Log current index states
+
+    # 2. Check Django database connection (critical for sheet indexing)
+    if not check_django_database_connection():
+        result.record_step_failure("preflight_django_database",
+            "Cannot connect to Django database. Sheet indexing would produce 'User {id}' names. "
+            "Check that 'local-settings-secret' Kubernetes secret is properly configured with "
+            "DATABASES_USER, DATABASES_PASSWORD, DATABASES_HOST, DATABASES_PORT environment variables.")
+        logger.info(result.get_summary())
+        sys.exit(1)
+    result.record_step_success("preflight_django_database", "Django database connection verified")
+
+    # 3. Log current index states
     try:
         log_index_state('text', result)
         log_index_state('sheet', result)
