@@ -102,6 +102,7 @@ jobs:
             echo "No tags found from metadata-action; failing early" >&2
             exit 1
           fi
+          echo "Storing image tag: $PRIMARY"
           echo "primary_tag=$PRIMARY" >> $GITHUB_OUTPUT
 
       - id: build
