@@ -21,7 +21,7 @@ from sefaria.celery_setup.app import app
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
-DEBUG_SEED = 43  # Seed for reproducible random sampling
+DEBUG_SEED = 48  # Seed for reproducible random sampling
 
 
 def is_segment_level_ref(ref_str):
@@ -88,14 +88,22 @@ def find_ambiguous_resolutions():
         # Create a dict for each char range group
         for char_range, spans in char_range_groups.items():
             ambiguous_refs = []
+            normalized_refs = set()
             text = spans[0]['text']  # All spans in group have same text
 
             for span in spans:
                 ref_str = span.get('ref')
-                if ref_str and ref_str not in ambiguous_refs:
+                if not ref_str:
+                    continue
+                if ref_str not in ambiguous_refs:
                     ambiguous_refs.append(ref_str)
+                try:
+                    normalized_refs.add(Ref(ref_str).normal())
+                except Exception:
+                    normalized_refs.add(ref_str)
 
-            if len(ambiguous_refs) > 1:  # Only include if truly ambiguous (2+ options)
+            # Only include if truly ambiguous (2+ distinct resolution options)
+            if len(normalized_refs) > 1:
                 ambiguous_groups.append({
                     'ref': raw_linker_output['ref'],
                     'versionTitle': raw_linker_output['versionTitle'],
@@ -270,4 +278,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

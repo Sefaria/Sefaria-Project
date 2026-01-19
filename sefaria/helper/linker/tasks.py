@@ -124,6 +124,75 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     )
     
     delete_and_save_new_links(asdict(msg))
+    ambiguous_payloads, non_segment_payloads = _load_recent_linker_output_cases(linking_args)
+    print({
+        "ambiguous_resolutions": ambiguous_payloads,
+        "non_segment_resolutions": non_segment_payloads,
+    })
+
+
+def _load_recent_linker_output_cases(linking_args: LinkingArgs) -> tuple[list[dict], list[dict]]:
+    """Load ambiguous and non-segment cases from the latest LinkerOutput for this ref."""
+    linker_output = LinkerOutput().load({
+        "ref": linking_args.ref,
+        "versionTitle": linking_args.vtitle,
+        "language": linking_args.lang,
+    })
+    if not linker_output:
+        return [], []
+
+    spans = linker_output.contents().get("spans", [])
+
+    ambiguous_groups: dict[tuple[int, int], list[dict]] = {}
+    for span in spans:
+        if span.get("type") == MUTCSpanType.CITATION.value and span.get("ambiguous"):
+            key = tuple(span.get("charRange", []))
+            if len(key) == 2:
+                ambiguous_groups.setdefault(key, []).append(span)
+
+    ambiguous_payloads: list[dict] = []
+    for char_range, group in ambiguous_groups.items():
+        refs = [sp.get("ref") for sp in group if sp.get("ref")]
+        normalized = set()
+        for ref_str in refs:
+            try:
+                normalized.add(Ref(ref_str).normal())
+            except Exception:
+                normalized.add(ref_str)
+        if len(normalized) > 1:
+            ambiguous_payloads.append({
+                "ref": linker_output.ref,
+                "versionTitle": linker_output.versionTitle,
+                "language": linker_output.language,
+                "charRange": list(char_range),
+                "text": group[0].get("text"),
+                "ambiguous_refs": refs,
+            })
+
+    non_segment_payloads: list[dict] = []
+    for span in spans:
+        if span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if span.get("failed") or span.get("ambiguous"):
+            continue
+        ref_str = span.get("ref")
+        if not ref_str:
+            continue
+        try:
+            oref = Ref(ref_str)
+        except Exception:
+            continue
+        if not oref.is_segment_level():
+            non_segment_payloads.append({
+                "ref": linker_output.ref,
+                "versionTitle": linker_output.versionTitle,
+                "language": linker_output.language,
+                "charRange": span.get("charRange"),
+                "text": span.get("text"),
+                "resolved_ref": ref_str,
+            })
+
+    return ambiguous_payloads, non_segment_payloads
 
 
 def _extract_resolved_spans(resolved_refs):
@@ -437,4 +506,3 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
         logger.error(f"✗ Error during resolution: {e}", exc_info=True)
 
     logger.info("=========================================")
-
