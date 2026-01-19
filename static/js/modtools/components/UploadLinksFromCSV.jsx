@@ -11,7 +11,6 @@ import Component from 'react-class';
 import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import ModToolsSection from './shared/ModToolsSection';
-import { stripHtmlTags } from '../utils';
 
 /**
  * Help content for UploadLinksFromCSV
@@ -175,7 +174,7 @@ class UploadLinksFromCSV extends Component {
             uploading: false,
             uploadMessage: "",
             error: true,
-            uploadResult: stripHtmlTags(resp_text)
+            uploadResult: resp_text.stripHtml()
           });
         });
       } else {

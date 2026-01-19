@@ -10,7 +10,6 @@ import React, { useState } from 'react';
 import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import ModToolsSection from './shared/ModToolsSection';
-import { stripHtmlTags } from '../utils';
 
 /**
  * Help content for RemoveLinksFromCsv
@@ -116,7 +115,7 @@ const RemoveLinksFromCsv = () => {
       if (!response.ok) {
         response.text().then(resp_text => {
           setUploadMessage(null);
-          setErrorMessage(stripHtmlTags(resp_text));
+          setErrorMessage(resp_text.stripHtml());
         });
       } else {
         response.json().then(resp_json => {
