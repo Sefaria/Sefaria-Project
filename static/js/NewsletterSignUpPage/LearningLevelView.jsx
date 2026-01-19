@@ -1,5 +1,6 @@
 import React from 'react';
-import { renderBilingual, BILINGUAL_TEXT } from './bilingualUtils';
+import { InterfaceText, LoadingMessage } from '../Misc';
+import { BILINGUAL_TEXT } from './bilingualUtils';
 
 /**
  * LearningLevelView - Stage 2b: Optional Learning Level Survey
@@ -33,17 +34,16 @@ export default function LearningLevelView({
       {/* HEADER SECTION */}
       <div className="learningLevelHeader">
         <h2 className="learningLevelTitle">
-          {renderBilingual(BILINGUAL_TEXT.HELP_TAILOR_CONTENT)}
+          <InterfaceText text={BILINGUAL_TEXT.HELP_TAILOR_CONTENT} />
         </h2>
         <p className="learningLevelSubtitle">
-          <span className="int-en">(Optional)</span>
-          <span className="int-he">(אופציונלי)</span>
+          <InterfaceText text={BILINGUAL_TEXT.OPTIONAL} />
         </p>
       </div>
 
       {/* VALUE PROPOSITION */}
       <p className="learningLevelDescription">
-        {renderBilingual(BILINGUAL_TEXT.LEARNING_LEVEL_SUBTITLE)}
+        <InterfaceText text={BILINGUAL_TEXT.LEARNING_LEVEL_SUBTITLE} />
       </p>
 
       {/* ERROR MESSAGE (if any) */}
@@ -77,10 +77,10 @@ export default function LearningLevelView({
               />
               <span className="levelContent">
                 <span className="levelLabel">
-                  {renderBilingual(level.label)}
+                  <InterfaceText text={level.label} />
                 </span>
                 <span className="levelDescription">
-                  {renderBilingual(level.description)}
+                  <InterfaceText text={level.description} />
                 </span>
               </span>
               <span className="selectedCheckmark">
@@ -103,7 +103,7 @@ export default function LearningLevelView({
             data-anl-event="learning_level_action:click"
             data-anl-action="save_learning_level"
             data-anl-form_name="learning_level_survey">
-            {isSubmitting ? renderBilingual(BILINGUAL_TEXT.SAVING) : renderBilingual(BILINGUAL_TEXT.SAVE_MY_LEVEL)}
+            {isSubmitting ? <LoadingMessage message={BILINGUAL_TEXT.SAVING.en} heMessage={BILINGUAL_TEXT.SAVING.he} /> : <InterfaceText text={BILINGUAL_TEXT.SAVE_MY_LEVEL} />}
           </button>
 
           <button
@@ -114,7 +114,7 @@ export default function LearningLevelView({
             data-anl-event="learning_level_action:click"
             data-anl-action="skip_learning_level"
             data-anl-form_name="learning_level_survey">
-            {renderBilingual(BILINGUAL_TEXT.SKIP_TO_HOMEPAGE)}
+            <InterfaceText text={BILINGUAL_TEXT.SKIP_TO_HOMEPAGE} />
           </button>
         </div>
       </form>

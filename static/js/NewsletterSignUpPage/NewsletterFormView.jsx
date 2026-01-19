@@ -1,7 +1,9 @@
 import React from 'react';
 import Sefaria from '../sefaria/sefaria';
+import { InterfaceText, LoadingMessage } from '../Misc';
 import NewsletterCheckbox from './NewsletterCheckbox';
-import { renderBilingual, BILINGUAL_TEXT } from './bilingualUtils';
+import MarketingEmailToggle from './MarketingEmailToggle';
+import { BILINGUAL_TEXT } from './bilingualUtils';
 
 /**
  * NewsletterFormView - Stage 1: Newsletter Selection Form
@@ -28,6 +30,7 @@ export default function NewsletterFormView({
   onEmailChange,
   onConfirmEmailChange,
   onNewsletterToggle,
+  onMarketingEmailToggle,
   onSubmit,
 }) {
   const isSubmitting = formStatus.status === 'submitting';
@@ -45,18 +48,10 @@ export default function NewsletterFormView({
       {/* HEADER SECTION */}
       <div className="newsletterFormHeader">
         <h2 className="newsletterFormTitle">
-          {renderBilingual(
-            isLoggedIn
-              ? BILINGUAL_TEXT.MANAGE_TITLE
-              : BILINGUAL_TEXT.SUBSCRIBE_TITLE
-          )}
+          <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_TITLE : BILINGUAL_TEXT.SUBSCRIBE_TITLE} />
         </h2>
         <p className="newsletterFormSubtitle">
-          {renderBilingual(
-            isLoggedIn
-              ? BILINGUAL_TEXT.MANAGE_SUBTITLE
-              : BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE
-          )}
+          <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_SUBTITLE : BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE} />
         </p>
       </div>
 
@@ -84,7 +79,7 @@ export default function NewsletterFormView({
         {!isLoggedIn && (
           <div className="formSection nameSection">
             <h3 className="sectionHeader">
-              {renderBilingual(BILINGUAL_TEXT.NAME_SECTION)}
+              <InterfaceText text={BILINGUAL_TEXT.NAME_SECTION} />
             </h3>
             <div className="nameFieldsRow">
               <div className="formField firstNameField">
@@ -121,7 +116,7 @@ export default function NewsletterFormView({
         {!isLoggedIn && (
           <div className="formSection contactSection">
             <h3 className="sectionHeader">
-              {renderBilingual(BILINGUAL_TEXT.CONTACT_SECTION)}
+              <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
             </h3>
             <div className="formField emailField">
               <input
@@ -155,27 +150,36 @@ export default function NewsletterFormView({
         {/* NEWSLETTER SELECTION SECTION */}
         <div className="formSection newsletterSelectionSection">
           <h3 className="sectionHeader">
-            {renderBilingual(BILINGUAL_TEXT.SELECT_LISTS_SECTION)}
+            <InterfaceText text={BILINGUAL_TEXT.SELECT_LISTS_SECTION} />
           </h3>
 
           {/* CHECKBOXES */}
-          <div className="newsletterCheckboxes">
+          <div className={`newsletterCheckboxes${isLoggedIn && !formData.wantsMarketingEmails ? ' disabled' : ''}`}>
             {newsletters.map((newsletter) => (
               <NewsletterCheckbox
                 key={newsletter.key}
                 newsletter={newsletter}
                 isChecked={formData.selectedNewsletters[newsletter.key] || false}
                 onChange={() => onNewsletterToggle(newsletter.key)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
               />
             ))}
           </div>
+
+          {/* MARKETING EMAIL TOGGLE (logged-in users only) */}
+          {isLoggedIn && (
+            <MarketingEmailToggle
+              wantsMarketingEmails={formData.wantsMarketingEmails}
+              onToggle={onMarketingEmailToggle}
+              disabled={isSubmitting}
+            />
+          )}
         </div>
 
         {/* FINISHED SECTION */}
         <div className="formSection finishedSection">
           <h3 className="sectionHeader">
-            {renderBilingual(BILINGUAL_TEXT.FINISHED_SECTION)}
+            <InterfaceText text={BILINGUAL_TEXT.FINISHED_SECTION} />
           </h3>
           <div className="formActions">
             <button
@@ -185,7 +189,7 @@ export default function NewsletterFormView({
               data-anl-event="newsletter_action:click"
               data-anl-action={isLoggedIn ? 'update_preferences' : 'submit'}
               data-anl-form_name="newsletter_signup">
-              {isSubmitting ? renderBilingual(loadingText) : renderBilingual(buttonText)}
+              {isSubmitting ? <LoadingMessage message={loadingText.en} heMessage={loadingText.he} /> : <InterfaceText text={buttonText} />}
             </button>
           </div>
         </div>
@@ -194,7 +198,7 @@ export default function NewsletterFormView({
       {/* PRIVACY NOTE */}
       <div className="privacyNote">
         <p className="small">
-          {renderBilingual(BILINGUAL_TEXT.PRIVACY_NOTE)}
+          <InterfaceText text={BILINGUAL_TEXT.PRIVACY_NOTE} />
         </p>
       </div>
     </div>

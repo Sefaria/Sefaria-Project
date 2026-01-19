@@ -1,5 +1,6 @@
 import React from 'react';
-import { renderBilingual, BILINGUAL_TEXT } from './bilingualUtils';
+import { InterfaceText, LoadingMessage } from '../Misc';
+import { BILINGUAL_TEXT } from './bilingualUtils';
 
 /**
  * NewsletterConfirmationView - Stage 2: Subscription Confirmation with Learning Level
@@ -48,7 +49,7 @@ export default function NewsletterConfirmationView({
         </div>
 
         <h2 className="confirmationTitle">
-          {renderBilingual(BILINGUAL_TEXT.THANK_YOU)}
+          <InterfaceText text={BILINGUAL_TEXT.THANK_YOU} />
         </h2>
 
         {/* CONDITIONAL MESSAGE */}
@@ -99,11 +100,10 @@ export default function NewsletterConfirmationView({
         {/* HEADER WITH OPTIONAL INDICATOR */}
         <div className="learningLevelHeaderWrapper">
           <h3 className="learningLevelHeader">
-            {renderBilingual(BILINGUAL_TEXT.LEARNING_LEVEL_HEADER)}
+            <InterfaceText text={BILINGUAL_TEXT.LEARNING_LEVEL_HEADER} />
           </h3>
           <span className="optionalLabel">
-            <span className="int-en">(Optional)</span>
-            <span className="int-he">(אופציונלי)</span>
+            <InterfaceText text={BILINGUAL_TEXT.OPTIONAL} />
           </span>
         </div>
 
@@ -138,10 +138,10 @@ export default function NewsletterConfirmationView({
                 />
                 <span className="levelContent">
                   <span className="levelLabel">
-                    {renderBilingual(level.label)}
+                    <InterfaceText text={level.label} />
                   </span>
                   <span className="levelDescription">
-                    {renderBilingual(level.description)}
+                    <InterfaceText text={level.description} />
                   </span>
                 </span>
                 <span className="selectedCheckmark">
@@ -164,7 +164,7 @@ export default function NewsletterConfirmationView({
               data-anl-event="learning_level_action:click"
               data-anl-action="save_learning_level"
               data-anl-form_name="learning_level_survey">
-              {isSubmitting ? renderBilingual(BILINGUAL_TEXT.SUBMITTING) : renderBilingual(BILINGUAL_TEXT.SUBMIT)}
+              {isSubmitting ? <LoadingMessage message={BILINGUAL_TEXT.SUBMITTING.en} heMessage={BILINGUAL_TEXT.SUBMITTING.he} /> : <InterfaceText text={BILINGUAL_TEXT.SUBMIT} />}
             </button>
 
             {/* SKIP OPTION */}

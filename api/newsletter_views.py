@@ -357,6 +357,7 @@ def update_user_preferences(request):
         # Parse request body
         body = json.loads(request.body)
         newsletters_dict = body.get('newsletters', {})
+        marketing_opt_out = body.get('marketingOptOut', False)  # Informational flag for intent tracking
 
         # Extract selected newsletter stringids
         selected_newsletters = [key for key, selected in newsletters_dict.items() if selected]
@@ -365,7 +366,11 @@ def update_user_preferences(request):
         first_name = request.user.first_name or 'User'
         last_name = request.user.last_name or ''
 
-        logger.info(f"Updating preferences for {email} with selections: {selected_newsletters}")
+        # Log the intent for analytics/debugging (no validation - all selections valid for logged-in users)
+        if marketing_opt_out:
+            logger.info(f"User {email} explicitly opted out of marketing emails")
+
+        logger.info(f"Updating preferences for {email} with selections: {selected_newsletters}, marketingOptOut: {marketing_opt_out}")
 
         # Get cached valid newsletters for validation
         try:
@@ -385,7 +390,8 @@ def update_user_preferences(request):
             'success': True,
             'message': 'Preferences updated successfully',
             'email': email,
-            'subscribedNewsletters': result['subscribed_newsletters']
+            'subscribedNewsletters': result['subscribed_newsletters'],
+            'marketingOptOut': marketing_opt_out,
         }, status=200)
 
     except ActiveCampaignError as e:

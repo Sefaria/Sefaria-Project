@@ -196,8 +196,11 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
     await expect(emailText).toBeVisible();
   });
 
-  test('should require at least one newsletter selection for logged-in user', async ({ page }) => {
-    // First, uncheck all newsletters to ensure none are selected
+  test('should allow logged-in user to submit with no newsletters selected', async ({ page }) => {
+    // Logged-in users can always update preferences (even with no newsletters)
+    // This differs from logged-out users who must select at least one
+
+    // Uncheck all newsletters to ensure none are selected
     const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
     const checkboxes = page.locator('form input[type="checkbox"]');
     const count = await checkboxes.count();
@@ -209,25 +212,19 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
       }
     }
 
-    // Try to submit without any newsletters selected
+    // Submit with no newsletters selected (should succeed for logged-in users)
     const updateButton = page.locator('button:has-text("Update Preferences")').first();
     await updateButton.click();
 
-    // Wait for error message
-    await page.waitForTimeout(500);
+    // Wait for submission
+    await page.waitForTimeout(2000);
 
-    // Should see error about selecting at least one newsletter
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    const isErrorVisible = await errorMessage.isVisible().catch(() => false);
-
-    if (isErrorVisible) {
-      const errorText = await errorMessage.textContent();
-      expect(errorText.toLowerCase()).toContain('select at least one');
-    } else {
-      // Form should still be visible (not submitted)
-      const stillOnForm = await page.locator('form').isVisible();
-      expect(stillOnForm).toBe(true);
-    }
+    // Should move to confirmation view (no validation error)
+    const pageText = await page.textContent('body');
+    const hasMovedForward = pageText.includes('Thank you') ||
+                            pageText.includes('All set') ||
+                            pageText.includes('tailor');
+    expect(hasMovedForward).toBeTruthy();
   });
 
   test('should navigate through full flow for logged-in user', async ({ page }) => {
@@ -329,5 +326,180 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
       const label = checkboxLabels.nth(i);
       await expect(label).toBeVisible();
     }
+  });
+
+  // ==========================================
+  // MARKETING EMAIL TOGGLE TESTS
+  // ==========================================
+
+  test('should display marketing email toggle for logged-in users', async ({ page }) => {
+    // The toggle section should be visible
+    const toggleSection = page.locator('.marketingEmailToggleSection');
+    await expect(toggleSection).toBeVisible();
+
+    // Should show the question label
+    const questionLabel = page.locator('.marketingEmailToggleLabel');
+    await expect(questionLabel).toBeVisible();
+    const labelText = await questionLabel.textContent();
+    expect(labelText.toLowerCase()).toContain('email updates');
+
+    // Should have Yes/No toggle options (using ToggleSet component)
+    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    await expect(yesOption).toBeVisible();
+    await expect(noOption).toBeVisible();
+
+    // Yes should be active by default (ToggleSet uses "on" class)
+    // Use word boundary \b to match ".on" class, not "option"
+    await expect(yesOption).toHaveClass(/\bon\b/);
+    await expect(noOption).not.toHaveClass(/\bon\b/);
+
+    // Should show helper text about administrative emails
+    const helperText = page.locator('.marketingEmailNote');
+    await expect(helperText).toBeVisible();
+    const noteText = await helperText.textContent();
+    expect(noteText.toLowerCase()).toContain('administrative');
+  });
+
+  test('should disable newsletter checkboxes when No is selected', async ({ page }) => {
+    // Click the No option to opt out (using ToggleSet component)
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    await noOption.click();
+
+    // Verify No is now active (ToggleSet uses "on" class)
+    await expect(noOption).toHaveClass(/\bon\b/);
+
+    // Verify newsletter checkboxes container has disabled class
+    const checkboxesContainer = page.locator('.newsletterCheckboxes');
+    await expect(checkboxesContainer).toHaveClass(/disabled/);
+
+    // Verify checkboxes are not clickable (pointer-events: none via CSS)
+    const firstCheckbox = page.locator('form input[type="checkbox"]').nth(0);
+
+    // Verify the disabled attribute on the checkbox
+    const isDisabled = await firstCheckbox.isDisabled();
+    expect(isDisabled).toBe(true);
+  });
+
+  test('should re-enable checkboxes when Yes is selected again', async ({ page }) => {
+    // First, click No to disable checkboxes
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    await noOption.click();
+
+    // Verify checkboxes are disabled
+    const checkboxesContainer = page.locator('.newsletterCheckboxes');
+    await expect(checkboxesContainer).toHaveClass(/disabled/);
+
+    // Now click Yes to re-enable
+    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    await yesOption.click();
+
+    // Verify Yes is active again (ToggleSet uses "on" class)
+    await expect(yesOption).toHaveClass(/\bon\b/);
+
+    // Verify checkboxes container no longer has disabled class
+    await expect(checkboxesContainer).not.toHaveClass(/disabled/);
+
+    // Verify checkboxes are enabled again
+    const firstCheckbox = page.locator('form input[type="checkbox"]').nth(0);
+    const isDisabled = await firstCheckbox.isDisabled();
+    expect(isDisabled).toBe(false);
+  });
+
+  test('should allow submitting with No selected (unsubscribe from all)', async ({ page }) => {
+    // First, select some newsletters
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    await checkboxLabels.nth(0).click();
+    await checkboxLabels.nth(1).click();
+
+    // Now click No to opt out of all marketing emails
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    await noOption.click();
+
+    // Click Update Preferences button
+    const updateButton = page.locator('button:has-text("Update Preferences")').first();
+    await expect(updateButton).toBeVisible();
+    await updateButton.click();
+
+    // Wait for submission
+    await page.waitForTimeout(2000);
+
+    // Should successfully navigate to confirmation or success view
+    // (no validation error for "at least one newsletter" since we're opting out)
+    const pageText = await page.textContent('body');
+    const hasMovedForward = pageText.includes('Thank you') ||
+                            pageText.includes('All set') ||
+                            pageText.includes('tailor');
+    expect(hasMovedForward).toBeTruthy();
+  });
+
+  test('should allow logged-in user to uncheck all newsletters even with Yes selected', async ({ page }) => {
+    // This tests the scenario where user has Yes selected but unchecks all newsletters
+    // This should succeed because logged-in users can always update their preferences
+    // The marketingOptOut flag will be false in this case
+
+    // Ensure Yes is selected (default)
+    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    await expect(yesOption).toHaveClass(/\bon\b/);
+
+    // Uncheck all newsletters
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxes = page.locator('form input[type="checkbox"]');
+    const count = await checkboxes.count();
+
+    for (let i = 0; i < count; i++) {
+      const isChecked = await checkboxes.nth(i).isChecked();
+      if (isChecked) {
+        await checkboxLabels.nth(i).click();
+      }
+    }
+
+    // Submit should succeed (logged-in users can always update preferences)
+    const updateButton = page.locator('button:has-text("Update Preferences")').first();
+    await updateButton.click();
+
+    // Wait for submission
+    await page.waitForTimeout(2000);
+
+    // Should move to confirmation view (no validation error)
+    const pageText = await page.textContent('body');
+    const hasMovedForward = pageText.includes('Thank you') ||
+                            pageText.includes('All set') ||
+                            pageText.includes('tailor');
+    expect(hasMovedForward).toBeTruthy();
+  });
+
+  test('should maintain checkbox selections visually when No is selected', async ({ page }) => {
+    // Get checkbox elements
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
+    const checkbox2 = page.locator('form input[type="checkbox"]').nth(1);
+
+    // Ensure checkboxes are checked (toggle ON if not already checked)
+    const isChecked1 = await checkbox1.isChecked();
+    const isChecked2 = await checkbox2.isChecked();
+
+    if (!isChecked1) {
+      await checkboxLabels.nth(0).click();
+    }
+    if (!isChecked2) {
+      await checkboxLabels.nth(1).click();
+    }
+
+    // Verify they are now checked
+    await expect(checkbox1).toBeChecked();
+    await expect(checkbox2).toBeChecked();
+
+    // Click No to opt out
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    await noOption.click();
+
+    // Checkboxes should still be visually checked (selections maintained until submit)
+    await expect(checkbox1).toBeChecked();
+    await expect(checkbox2).toBeChecked();
+
+    // But the container should be disabled/dimmed
+    const checkboxesContainer = page.locator('.newsletterCheckboxes');
+    await expect(checkboxesContainer).toHaveClass(/disabled/);
   });
 });

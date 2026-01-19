@@ -1108,6 +1108,80 @@
 }
 
 /* ============================================
+   MARKETING EMAIL TOGGLE (Logged-in users only)
+   Uses existing ToggleSet component with blueStyle
+   ============================================ */
+
+.marketingEmailToggleSection {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid var(--lighter-grey);
+}
+
+.marketingEmailToggleLabel {
+  font-size: var(--sans-serif-body-font-size);
+  font-weight: 500;
+  color: var(--darkest-grey);
+  margin-bottom: 15px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .marketingEmailToggleLabel {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+/* Wrapper for the toggle - handles disabled state */
+.marketingToggleWrapper {
+  display: inline-block;
+}
+
+.marketingToggleWrapper.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Override width for marketing toggle to be auto instead of percentage */
+.marketingToggleWrapper .toggleSet.blueStyle {
+  width: auto;
+}
+
+.marketingToggleWrapper .toggleSet.blueStyle .toggleOption {
+  padding: 0 24px;
+  min-width: 60px;
+}
+
+/* Helper text note */
+.marketingEmailNote {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--dark-grey);
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.4;
+}
+
+.interface-hebrew .marketingEmailNote {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+/* ============================================
+   DISABLED NEWSLETTER CHECKBOXES STATE
+   (When marketing emails opt-out is selected)
+   ============================================ */
+
+.newsletterCheckboxes.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.newsletterCheckboxes.disabled .newsletterCheckboxLabel {
+  cursor: not-allowed;
+}
+
+/* ============================================
    ACCESSIBILITY
    ============================================ */
 

@@ -270,4 +270,19 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
       await label.click();
     }
   });
+
+  test('should NOT show marketing email toggle for logged-out users', async ({ page }) => {
+    // The marketing email toggle section should NOT be visible for logged-out users
+    const toggleSection = page.locator('.marketingEmailToggleSection');
+    const isToggleVisible = await toggleSection.isVisible().catch(() => false);
+    expect(isToggleVisible).toBe(false);
+
+    // The Yes/No toggle options should not exist (using ToggleSet component)
+    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    const isYesVisible = await yesOption.isVisible().catch(() => false);
+    const isNoVisible = await noOption.isVisible().catch(() => false);
+    expect(isYesVisible).toBe(false);
+    expect(isNoVisible).toBe(false);
+  });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
-import { renderBilingual, BILINGUAL_TEXT } from './bilingualUtils';
+import { InterfaceText } from '../Misc';
+import { BILINGUAL_TEXT } from './bilingualUtils';
 
 /**
  * SuccessView - Final success view after form completion
@@ -30,11 +31,11 @@ export default function SuccessView() {
         </div>
 
         <h2 className="successTitle">
-          {renderBilingual(BILINGUAL_TEXT.ALL_SET)}
+          <InterfaceText text={BILINGUAL_TEXT.ALL_SET} />
         </h2>
 
         <p className="successMessage">
-          {renderBilingual(BILINGUAL_TEXT.THANKS_FOR_JOINING)}
+          <InterfaceText text={BILINGUAL_TEXT.THANKS_FOR_JOINING} />
         </p>
       </div>
 
@@ -46,7 +47,7 @@ export default function SuccessView() {
           data-anl-event="completion_action:click"
           data-anl-action="go_to_homepage"
           data-anl-form_name="newsletter_signup_complete">
-          {renderBilingual(BILINGUAL_TEXT.RETURN_TO_SEFARIA)}
+          <InterfaceText text={BILINGUAL_TEXT.RETURN_TO_SEFARIA} />
         </a>
       </div>
     </div>

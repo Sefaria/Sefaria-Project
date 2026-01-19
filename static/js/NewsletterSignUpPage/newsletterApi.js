@@ -94,32 +94,41 @@ const MockAPI = {
 
   /**
    * Mock: Update preferences for logged-in user
+   * @param {string} email - User's email address
+   * @param {Object} newsletters - Newsletter selection object
+   * @param {Object} options - Additional options
+   * @param {boolean} options.marketingOptOut - Whether user explicitly opted out of marketing emails
    */
-  updatePreferences: async (email, newsletters) => {
+  updatePreferences: async (email, newsletters, options = {}) => {
     await simulateNetworkDelay();
 
     if (!email) {
       throw new Error('Email is required.');
     }
 
+    const { marketingOptOut = false } = options;
+
     const selectedNewsletterKeys = Object.entries(newsletters)
       .filter(([_, isSelected]) => isSelected)
       .map(([key]) => key);
 
-    if (selectedNewsletterKeys.length === 0) {
-      throw new Error('Please select at least one newsletter.');
-    }
+    // No validation on empty newsletters - logged-in users can always submit
+    // The marketingOptOut flag is informational metadata for backend processing
 
     console.log('✓ Newsletter preferences updated (MOCKED):', {
       email,
       newsletters: selectedNewsletterKeys,
+      marketingOptOut,
     });
 
     return {
       success: true,
-      message: 'Preferences updated successfully',
+      message: marketingOptOut
+        ? 'You have opted out of marketing emails'
+        : 'Preferences updated successfully',
       email,
       subscribedNewsletters: selectedNewsletterKeys,
+      marketingOptOut,
     };
   },
 
@@ -225,12 +234,21 @@ const RealAPI = {
 
   /**
    * Real: Update preferences for logged-in user
+   * @param {string} email - User's email address
+   * @param {Object} newsletters - Newsletter selection object
+   * @param {Object} options - Additional options
+   * @param {boolean} options.marketingOptOut - Whether user explicitly opted out of marketing emails
    */
-  updatePreferences: async (email, newsletters) => {
+  updatePreferences: async (email, newsletters, options = {}) => {
+    const { marketingOptOut = false } = options;
+
     const response = await fetch('/api/newsletter/preferences', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newsletters }),
+      body: JSON.stringify({
+        newsletters,
+        marketingOptOut,
+      }),
     });
 
     const result = await response.json();
@@ -336,10 +354,14 @@ const NewsletterAPI = {
 
   /**
    * Update preferences for logged-in user
+   * @param {string} email - User's email address
+   * @param {Object} newsletters - Newsletter selection object
+   * @param {Object} options - Additional options
+   * @param {boolean} options.marketingOptOut - Whether user explicitly opted out of marketing emails
    */
-  async updatePreferences(email, newsletters) {
+  async updatePreferences(email, newsletters, options = {}) {
     const impl = isMockMode() ? MockAPI : RealAPI;
-    return impl.updatePreferences(email, newsletters);
+    return impl.updatePreferences(email, newsletters, options);
   },
 
   /**
@@ -377,8 +399,8 @@ export default NewsletterAPI;
 // Also export individual methods for backward compatibility
 export const subscribeNewsletter = (data) =>
   NewsletterAPI.subscribeNewsletter(data);
-export const updatePreferences = (email, newsletters) =>
-  NewsletterAPI.updatePreferences(email, newsletters);
+export const updatePreferences = (email, newsletters, options = {}) =>
+  NewsletterAPI.updatePreferences(email, newsletters, options);
 export const updateLearningLevel = (email, learningLevel) =>
   NewsletterAPI.updateLearningLevel(email, learningLevel);
 export const fetchUserSubscriptions = (email) =>

@@ -1,96 +1,16 @@
-import React from 'react';
-import Sefaria from '../sefaria/sefaria';
-
 /**
- * Utility functions for handling bilingual (English/Hebrew) text
- * in the newsletter signup form components.
+ * Bilingual text constants for the newsletter signup page components.
  *
- * This helps avoid duplication of JSX elements and data attributes
- * by using a text object pattern similar to Sefaria's InterfaceText component.
- *
- * Pattern adopted from InterfaceText to:
- * - Only render the current language (not both hidden by CSS)
- * - Automatically detect language via Sefaria.interfaceLang
- * - Fall back to other language if current is missing
- */
-
-/**
- * Renders bilingual text - only renders the current language
- * @param {Object} textObj - Object with 'en' and 'he' properties
- * @returns {React.ReactNode} JSX with only the current language
+ * These constants follow the {en, he} format that is compatible with
+ * Sefaria's InterfaceText component from Misc.jsx.
  *
  * Usage:
- *   {renderBilingual({en: 'Hello', he: 'שלום'})}
+ *   import { BILINGUAL_TEXT } from './bilingualUtils';
+ *   <InterfaceText text={BILINGUAL_TEXT.SOME_KEY} />
  *
- * If interfaceLang is 'english', renders:
- *   <span className="int-en">Hello</span>
- *
- * If interfaceLang is 'hebrew', renders:
- *   <span className="int-he">שלום</span>
- *
- * Falls back to other language if current language text is missing.
+ * This keeps translations in one place for easy maintenance while
+ * using Sefaria's standard InterfaceText component for rendering.
  */
-export const renderBilingual = (textObj) => {
-  if (!textObj || typeof textObj !== 'object') {
-    return null;
-  }
-
-  const isHebrew = Sefaria.interfaceLang === 'hebrew';
-  const className = isHebrew ? 'int-he' : 'int-en';
-
-  // Use requested language, fall back to other if not available
-  const text = isHebrew ? (textObj.he || textObj.en) : (textObj.en || textObj.he);
-
-  return (
-    <span className={className}>{text}</span>
-  );
-};
-
-/**
- * Alternative: Renders bilingual text inside a specified wrapper element
- * @param {Object} textObj - Object with 'en' and 'he' properties
- * @param {string} wrapperTag - HTML tag name ('p', 'h2', 'label', etc.)
- * @param {Object} attributes - HTML attributes for the wrapper element
- * @returns {React.ReactNode} JSX with wrapper
- *
- * Usage:
- *   {renderBilingualElement('h2', 'Hello', 'שלום', { className: 'title' })}
- *
- * Renders:
- *   <h2 className="title">
- *     <span className="int-en">Hello</span>
- *     <span className="int-he">שלום</span>
- *   </h2>
- */
-export const renderBilingualElement = (
-  wrapperTag,
-  textObj,
-  attributes = {}
-) => {
-  const WrapperElement = wrapperTag;
-
-  return (
-    <WrapperElement {...attributes}>
-      {renderBilingual(textObj)}
-    </WrapperElement>
-  );
-};
-
-/**
- * Creates text object from individual language strings
- * Useful for constructing text objects programmatically
- * @param {string} enText - English text
- * @param {string} heText - Hebrew text
- * @returns {Object} Text object {en, he}
- *
- * Usage:
- *   const text = createBilingualText('Hello', 'שלום');
- *   {renderBilingual(text)}
- */
-export const createBilingualText = (enText, heText) => ({
-  en: enText,
-  he: heText,
-});
 
 /**
  * Bilingual text constants for common form labels
@@ -263,5 +183,23 @@ export const BILINGUAL_TEXT = {
   PRIVACY_NOTE: {
     en: 'We respect your privacy. You can unsubscribe from any newsletter at any time.',
     he: 'אנחנו מכבדים את הפרטיות שלך. אתה יכול להתנתק מכל ניוזלטר בכל עת.',
+  },
+
+  // Marketing email opt-out toggle (logged-in users only)
+  MARKETING_EMAIL_QUESTION: {
+    en: 'Do you want to receive email updates from Sefaria?',
+    he: 'האם תרצו לקבל עדכונים במייל מספריא?',
+  },
+  YES: {
+    en: 'Yes',
+    he: 'כן',
+  },
+  NO: {
+    en: 'No',
+    he: 'לא',
+  },
+  ADMIN_EMAILS_NOTE: {
+    en: 'Note: You will still receive administrative emails regarding your account and donations.',
+    he: 'הערה: עדיין תקבלו הודעות מנהליות בנוגע לחשבון שלכם ולתרומות.',
   },
 };

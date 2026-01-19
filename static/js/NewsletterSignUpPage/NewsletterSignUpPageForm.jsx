@@ -101,6 +101,7 @@ export default function NewsletterSignUpPageForm() {
     confirmEmail: '',
     selectedNewsletters: {},
     learningLevel: null,
+    wantsMarketingEmails: true, // Default to opted-in for marketing emails
   });
 
   // ========== FORM STATUS STATE (STATE MACHINE) ==========
@@ -196,6 +197,13 @@ export default function NewsletterSignUpPageForm() {
     }));
   };
 
+  const handleMarketingEmailToggle = (wantsEmails) => {
+    setFormData(prev => ({
+      ...prev,
+      wantsMarketingEmails: wantsEmails,
+    }));
+  };
+
   const handleLearningLevelSelect = (level) => {
     setFormData(prev => ({ ...prev, learningLevel: level }));
   };
@@ -217,10 +225,18 @@ export default function NewsletterSignUpPageForm() {
     // Prepare payload
     setFormStatus(prev => ({ ...prev, status: 'submitting' }));
 
+    // If user opted out of marketing emails, send empty selection to unsubscribe from all
+    const newslettersToSubmit = formData.wantsMarketingEmails
+      ? formData.selectedNewsletters
+      : {}; // Empty object = unsubscribe from all
+
     try {
       if (formStatus.isLoggedIn) {
         // For logged-in users: update preferences
-        await updatePreferences(formStatus.userEmail, formData.selectedNewsletters);
+        // Pass marketingOptOut flag to indicate intent when newsletters is empty
+        await updatePreferences(formStatus.userEmail, newslettersToSubmit, {
+          marketingOptOut: !formData.wantsMarketingEmails,
+        });
       } else {
         // For logged-out users: subscribe
         await subscribeNewsletter({
@@ -315,10 +331,13 @@ export default function NewsletterSignUpPageForm() {
       return 'Email addresses do not match.';
     }
 
-    // Check at least one newsletter is selected
-    const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
-    if (!hasSelection) {
-      return 'Please select at least one newsletter.';
+    // Logged-out users must select at least one newsletter
+    // Logged-in users can always submit (even with no newsletters selected)
+    if (!formStatus.isLoggedIn) {
+      const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
+      if (!hasSelection) {
+        return 'Please select at least one newsletter.';
+      }
     }
 
     return null;
@@ -350,6 +369,7 @@ export default function NewsletterSignUpPageForm() {
           onEmailChange={handleEmailChange}
           onConfirmEmailChange={handleConfirmEmailChange}
           onNewsletterToggle={handleNewsletterToggle}
+          onMarketingEmailToggle={handleMarketingEmailToggle}
           onSubmit={handleSubscribeSubmit}
         />
       )}
