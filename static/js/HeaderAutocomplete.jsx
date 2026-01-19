@@ -204,6 +204,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
         redirectToObject(highlightedItem, {
           "project": "Global Search",
           "feature_name": "Nav To by Keyboard",
+          "link_type": type_title_map[highlightedItem.type],
           "text": getInputValue(),
           "to": highlightedItem.label
         });
@@ -464,6 +465,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               redirectToObject(onChange, item, anl={
                 "project": "Global Search",
                 "feature_name": "Autolink",
+                "link_type": type_title_map[item.type],
                 "text": query,
                 "to": queryId
               });
@@ -500,10 +502,9 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
     const redirectToObject = (onChange, item, anl={}) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-        gtag("event", "search_navto", {...anl,
-          "project": "Global Search",
-          "link_type": type_title_map[item.type]
-        });
+        if (Object.keys(anl).length > 0) {
+          gtag("event", "search_navto", anl);
+        }
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
