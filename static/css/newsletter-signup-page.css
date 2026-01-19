@@ -245,6 +245,123 @@
 }
 
 /* ============================================
+   ERROR SUMMARY - Multi-error display at top of form
+   ============================================ */
+
+.newsletterFormView .newsletterErrorSummary {
+  background-color: #fef2f2;
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.newsletterFormView .newsletterErrorSummary:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+.newsletterFormView .errorSummaryTitle {
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .errorSummaryTitle {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterFormView .errorSummaryList {
+  margin: 0;
+  padding-left: 24px;
+  list-style-type: disc;
+}
+
+.interface-hebrew .newsletterFormView .errorSummaryList {
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+.newsletterFormView .errorSummaryList li {
+  color: #dc2626;
+  margin-bottom: 4px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .errorSummaryList li {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterFormView .errorSummaryLink {
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+.newsletterFormView .errorSummaryLink:hover {
+  text-decoration: none;
+}
+
+/* ============================================
+   INLINE FIELD ERRORS - Above each invalid field
+   ============================================ */
+
+.newsletterFormView .inlineFieldError {
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .inlineFieldError {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+/* ============================================
+   INPUT ERROR STATE - Visual feedback on invalid fields
+   Note: Must use [type] selectors to match specificity of base input styles
+   ============================================ */
+
+.newsletterFormView input[type="text"].hasError,
+.newsletterFormView input[type="email"].hasError,
+.newsletterFormView input[type="text"][aria-invalid="true"],
+.newsletterFormView input[type="email"][aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+
+.newsletterFormView input[type="text"].hasError:focus,
+.newsletterFormView input[type="email"].hasError:focus,
+.newsletterFormView input[type="text"][aria-invalid="true"]:focus,
+.newsletterFormView input[type="email"][aria-invalid="true"]:focus {
+  outline: none;
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Newsletter section error state */
+.newsletterFormView .newsletterCheckboxes.hasError {
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 0;  /* Don't pull up into the error message */
+  margin-left: -12px;
+  margin-right: -12px;
+  margin-bottom: -12px;
+  background-color: #fef2f2;
+}
+
+/* Extra spacing for newsletter inline error */
+.newsletterFormView .newsletterSelectionSection > .inlineFieldError {
+  margin-bottom: 12px;
+}
+
+/* ============================================
    NEWSLETTER SELECTION SECTION
    ============================================ */
 

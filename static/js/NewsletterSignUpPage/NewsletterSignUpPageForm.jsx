@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sefaria from '../sefaria/sefaria';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
@@ -114,6 +114,16 @@ export default function NewsletterSignUpPageForm() {
     userEmail: null,
   });
 
+  // ========== VALIDATION STATE ==========
+  // Tracks per-field validation errors and whether user has attempted submit
+  const [validationState, setValidationState] = useState({
+    fieldErrors: {},        // { firstName: 'error', email: 'error', ... }
+    hasAttemptedSubmit: false,  // Only show errors after first submit attempt
+  });
+
+  // Ref for focusing error summary on validation failure (accessibility)
+  const errorSummaryRef = useRef(null);
+
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
     // Check if user is logged in via Sefaria global object
@@ -158,13 +168,10 @@ export default function NewsletterSignUpPageForm() {
   }, []);
 
   // ========== HANDLERS: Form data updates ==========
+  // Note: Errors are cleared on blur, not on change, for better UX
 
   const handleFirstNameChange = (value) => {
     setFormData(prev => ({ ...prev, firstName: value }));
-    // Clear error on field change
-    if (formStatus.errorMessage) {
-      setFormStatus(prev => ({ ...prev, errorMessage: null }));
-    }
   };
 
   const handleLastNameChange = (value) => {
@@ -173,18 +180,10 @@ export default function NewsletterSignUpPageForm() {
 
   const handleEmailChange = (value) => {
     setFormData(prev => ({ ...prev, email: value }));
-    // Clear error on field change
-    if (formStatus.errorMessage) {
-      setFormStatus(prev => ({ ...prev, errorMessage: null }));
-    }
   };
 
   const handleConfirmEmailChange = (value) => {
     setFormData(prev => ({ ...prev, confirmEmail: value }));
-    // Clear error on field change
-    if (formStatus.errorMessage) {
-      setFormStatus(prev => ({ ...prev, errorMessage: null }));
-    }
   };
 
   const handleNewsletterToggle = (key) => {
@@ -208,22 +207,96 @@ export default function NewsletterSignUpPageForm() {
     setFormData(prev => ({ ...prev, learningLevel: level }));
   };
 
+  // ========== HANDLERS: Field blur validation ==========
+
+  /**
+   * Validates a specific field on blur and updates validation state.
+   * Only runs if user has already attempted to submit (to avoid premature errors).
+   * @param {string} fieldName - The name of the field that lost focus
+   */
+  const handleFieldBlur = (fieldName) => {
+    // Only validate if user has already attempted submit
+    if (!validationState.hasAttemptedSubmit) return;
+
+    const fieldValidators = {
+      firstName: () => {
+        if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
+          return 'Please enter your first name.';
+        }
+        return null;
+      },
+      email: () => {
+        if (!formData.email.trim()) {
+          return 'Please enter your email address.';
+        }
+        if (!Sefaria.util.isValidEmailAddress(formData.email)) {
+          return 'Please enter a valid email address.';
+        }
+        return null;
+      },
+      confirmEmail: () => {
+        if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
+          return 'Email addresses do not match.';
+        }
+        return null;
+      },
+      newsletters: () => {
+        if (!formStatus.isLoggedIn) {
+          const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
+          if (!hasSelection) {
+            return 'Please select at least one newsletter.';
+          }
+        }
+        return null;
+      },
+    };
+
+    const validator = fieldValidators[fieldName];
+    if (validator) {
+      const error = validator();
+      setValidationState(prev => {
+        const newErrors = { ...prev.fieldErrors };
+        if (error) {
+          newErrors[fieldName] = error;
+        } else {
+          delete newErrors[fieldName];
+        }
+        return { ...prev, fieldErrors: newErrors };
+      });
+    }
+  };
+
   // ========== HANDLERS: Form submission ==========
 
   const handleSubscribeSubmit = async () => {
-    // Validate form data
-    const validationError = validateFormData();
-    if (validationError) {
+    // Validate all fields and get errors object
+    const errors = validateFormData();
+    const hasErrors = Object.keys(errors).length > 0;
+
+    // Update validation state with all errors and mark that submit was attempted
+    setValidationState({
+      fieldErrors: errors,
+      hasAttemptedSubmit: true,
+    });
+
+    if (hasErrors) {
+      // Set form status to error (for any legacy UI handling)
       setFormStatus(prev => ({
         ...prev,
         status: 'error',
-        errorMessage: validationError,
+        errorMessage: null, // Clear old single-error message, we use fieldErrors now
       }));
+
+      // Focus the error summary for accessibility
+      // Use setTimeout to ensure the DOM has updated
+      setTimeout(() => {
+        errorSummaryRef.current?.focus();
+      }, 0);
       return;
     }
 
-    // Prepare payload
-    setFormStatus(prev => ({ ...prev, status: 'submitting' }));
+    // Clear any previous error state and prepare for submission
+    setFormStatus(prev => ({ ...prev, status: 'submitting', errorMessage: null }));
 
     // If user opted out of marketing emails, send empty selection to unsubscribe from all
     const newslettersToSubmit = formData.wantsMarketingEmails
@@ -312,35 +385,40 @@ export default function NewsletterSignUpPageForm() {
 
   // ========== VALIDATION ==========
 
+  /**
+   * Validates all form fields and returns an object of errors.
+   * Returns empty object if all fields are valid.
+   * @returns {Object} - { fieldName: errorMessage } for each invalid field
+   */
   const validateFormData = () => {
-    // Logged-out users need to provide first name
+    const errors = {};
+
+    // First name (logged-out only)
     if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
-      return 'Please enter your first name.';
+      errors.firstName = 'Please enter your first name.';
     }
 
+    // Email
     if (!formData.email.trim()) {
-      return 'Please enter your email address.';
+      errors.email = 'Please enter your email address.';
+    } else if (!Sefaria.util.isValidEmailAddress(formData.email)) {
+      errors.email = 'Please enter a valid email address.';
     }
 
-    if (!Sefaria.util.isValidEmailAddress(formData.email)) {
-      return 'Please enter a valid email address.';
-    }
-
-    // Check email confirmation matches (only for logged-out users)
+    // Confirm email (logged-out only)
     if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
-      return 'Email addresses do not match.';
+      errors.confirmEmail = 'Email addresses do not match.';
     }
 
-    // Logged-out users must select at least one newsletter
-    // Logged-in users can always submit (even with no newsletters selected)
+    // Newsletter selection (logged-out only)
     if (!formStatus.isLoggedIn) {
       const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
       if (!hasSelection) {
-        return 'Please select at least one newsletter.';
+        errors.newsletters = 'Please select at least one newsletter.';
       }
     }
 
-    return null;
+    return errors;  // Empty object = valid
   };
 
   // ========== RENDER: View routing based on current stage ==========
@@ -364,12 +442,16 @@ export default function NewsletterSignUpPageForm() {
           newsletters={NEWSLETTERS}
           isLoggedIn={formStatus.isLoggedIn}
           userEmail={formStatus.userEmail}
+          fieldErrors={validationState.fieldErrors}
+          hasAttemptedSubmit={validationState.hasAttemptedSubmit}
+          errorSummaryRef={errorSummaryRef}
           onFirstNameChange={handleFirstNameChange}
           onLastNameChange={handleLastNameChange}
           onEmailChange={handleEmailChange}
           onConfirmEmailChange={handleConfirmEmailChange}
           onNewsletterToggle={handleNewsletterToggle}
           onMarketingEmailToggle={handleMarketingEmailToggle}
+          onFieldBlur={handleFieldBlur}
           onSubmit={handleSubscribeSubmit}
         />
       )}

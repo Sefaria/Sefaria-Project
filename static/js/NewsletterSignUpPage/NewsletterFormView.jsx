@@ -19,22 +19,41 @@ import { BILINGUAL_TEXT } from './bilingualUtils';
  * - Full bilingual support (English/Hebrew) with minimal JSX duplication
  * - Responsive layout
  */
+/**
+ * InlineError - Displays field-specific error above an input
+ * Only renders if the field has an error
+ */
+function InlineError({ fieldName, errors }) {
+  const error = errors[fieldName];
+  if (!error) return null;
+
+  return (
+    <div className="inlineFieldError" id={`${fieldName}-error`} role="alert">
+      {error}
+    </div>
+  );
+}
+
 export default function NewsletterFormView({
   formData,
   formStatus,
   newsletters,
   isLoggedIn,
   userEmail,
+  fieldErrors = {},           // Per-field validation errors
+  hasAttemptedSubmit = false, // Whether user has tried to submit
+  errorSummaryRef,            // Ref for focusing error summary
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
   onConfirmEmailChange,
   onNewsletterToggle,
   onMarketingEmailToggle,
+  onFieldBlur,                // Handler for field blur validation
   onSubmit,
 }) {
   const isSubmitting = formStatus.status === 'submitting';
-  const hasError = formStatus.status === 'error';
+  const hasFieldErrors = hasAttemptedSubmit && Object.keys(fieldErrors).length > 0;
   const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
   const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
 
@@ -58,20 +77,37 @@ export default function NewsletterFormView({
       {/* EMAIL INFO SECTION (for logged-in users) */}
       {isLoggedIn && (
         <div className="newsletterEmailInfo">
-          <span className="int-en">Manage subscriptions for <strong>{userEmail}</strong></span>
+          <span className="int-en">Managing subscriptions for <strong>{userEmail}</strong></span>
           <span className="int-he">נהל מינויים עבור <strong>{userEmail}</strong></span>
         </div>
       )}
 
       {/* FORM FIELDS SECTION */}
-      <form className="newsletterForm" onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
-        {/* ERROR MESSAGE */}
-        {hasError && formStatus.errorMessage && (
-          <div className="newsletterErrorMessage"
-               data-anl-event="form_error:displayed"
-               data-anl-engagement_type="error">
-            <span className="errorIcon">⚠️</span>
-            <span>{formStatus.errorMessage}</span>
+      <form className="newsletterForm" onSubmit={(e) => { e.preventDefault(); onSubmit(); }} noValidate>
+        {/* ERROR SUMMARY - Focus target for accessibility */}
+        {hasFieldErrors && (
+          <div
+            ref={errorSummaryRef}
+            className="newsletterErrorSummary"
+            role="alert"
+            aria-live="assertive"
+            tabIndex={-1}
+            data-anl-event="form_error:displayed"
+            data-anl-engagement_type="error"
+          >
+            <h3 className="errorSummaryTitle">
+              <span className="errorIcon">⚠️</span>
+              <InterfaceText text={{ en: 'Please fix the following errors:', he: 'אנא תקן את השגיאות הבאות:' }} />
+            </h3>
+            <ul className="errorSummaryList">
+              {Object.entries(fieldErrors).map(([field, message]) => (
+                <li key={field}>
+                  <a href={`#${field}`} className="errorSummaryLink">
+                    {message}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -81,6 +117,8 @@ export default function NewsletterFormView({
             <h3 className="sectionHeader">
               <InterfaceText text={BILINGUAL_TEXT.NAME_SECTION} />
             </h3>
+            {/* Error placed outside flex row so both inputs stay aligned */}
+            <InlineError fieldName="firstName" errors={fieldErrors} />
             <div className="nameFieldsRow">
               <div className="formField firstNameField">
                 <input
@@ -89,8 +127,12 @@ export default function NewsletterFormView({
                   placeholder={Sefaria._('First Name')}
                   value={formData.firstName}
                   onChange={(e) => onFirstNameChange(e.target.value)}
+                  onBlur={() => onFieldBlur && onFieldBlur('firstName')}
                   disabled={isSubmitting}
                   aria-label={Sefaria._('First Name')}
+                  aria-invalid={!!fieldErrors.firstName}
+                  aria-describedby={fieldErrors.firstName ? 'firstName-error' : undefined}
+                  className={fieldErrors.firstName ? 'hasError' : ''}
                   data-anl-event="form_interaction:inputStart"
                   data-anl-form_name="newsletter_signup"
                 />
@@ -99,11 +141,12 @@ export default function NewsletterFormView({
                 <input
                   id="lastName"
                   type="text"
-                  placeholder={Sefaria._('Last Name')}
+                  placeholder={Sefaria._('Last Name (Optional)')}
                   value={formData.lastName}
                   onChange={(e) => onLastNameChange(e.target.value)}
                   disabled={isSubmitting}
-                  aria-label={Sefaria._('Last Name')}
+                  aria-label={Sefaria._('Last Name (Optional)')}
+                  aria-required="false"
                   data-anl-event="form_interaction:inputStart"
                   data-anl-form_name="newsletter_signup"
                 />
@@ -119,27 +162,37 @@ export default function NewsletterFormView({
               <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
             </h3>
             <div className="formField emailField">
+              <InlineError fieldName="email" errors={fieldErrors} />
               <input
                 id="email"
                 type="email"
                 placeholder={Sefaria._('Email Address')}
                 value={formData.email}
                 onChange={(e) => onEmailChange(e.target.value)}
+                onBlur={() => onFieldBlur && onFieldBlur('email')}
                 disabled={isSubmitting}
                 aria-label={Sefaria._('Email Address')}
+                aria-invalid={!!fieldErrors.email}
+                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                className={fieldErrors.email ? 'hasError' : ''}
                 data-anl-event="form_interaction:inputStart"
                 data-anl-form_name="newsletter_signup"
               />
             </div>
             <div className="formField confirmEmailField">
+              <InlineError fieldName="confirmEmail" errors={fieldErrors} />
               <input
                 id="confirmEmail"
                 type="email"
                 placeholder={Sefaria._('Confirm Email Address')}
                 value={formData.confirmEmail}
                 onChange={(e) => onConfirmEmailChange(e.target.value)}
+                onBlur={() => onFieldBlur && onFieldBlur('confirmEmail')}
                 disabled={isSubmitting}
                 aria-label={Sefaria._('Confirm Email Address')}
+                aria-invalid={!!fieldErrors.confirmEmail}
+                aria-describedby={fieldErrors.confirmEmail ? 'confirmEmail-error' : undefined}
+                className={fieldErrors.confirmEmail ? 'hasError' : ''}
                 data-anl-event="form_interaction:inputStart"
                 data-anl-form_name="newsletter_signup"
               />
@@ -148,19 +201,35 @@ export default function NewsletterFormView({
         )}
 
         {/* NEWSLETTER SELECTION SECTION */}
-        <div className="formSection newsletterSelectionSection">
+        <div className="formSection newsletterSelectionSection" id="newsletters">
           <h3 className="sectionHeader">
             <InterfaceText text={BILINGUAL_TEXT.SELECT_LISTS_SECTION} />
           </h3>
 
+          {/* INLINE ERROR FOR NEWSLETTERS */}
+          <InlineError fieldName="newsletters" errors={fieldErrors} />
+
           {/* CHECKBOXES */}
-          <div className={`newsletterCheckboxes${isLoggedIn && !formData.wantsMarketingEmails ? ' disabled' : ''}`}>
+          <div
+            className={`newsletterCheckboxes${isLoggedIn && !formData.wantsMarketingEmails ? ' disabled' : ''}${fieldErrors.newsletters ? ' hasError' : ''}`}
+            role="group"
+            aria-label={Sefaria._('Newsletter options')}
+            aria-invalid={!!fieldErrors.newsletters}
+            aria-describedby={fieldErrors.newsletters ? 'newsletters-error' : undefined}
+          >
             {newsletters.map((newsletter) => (
               <NewsletterCheckbox
                 key={newsletter.key}
                 newsletter={newsletter}
                 isChecked={formData.selectedNewsletters[newsletter.key] || false}
-                onChange={() => onNewsletterToggle(newsletter.key)}
+                onChange={() => {
+                  onNewsletterToggle(newsletter.key);
+                  // Trigger validation on newsletter change if submit was attempted
+                  if (onFieldBlur) {
+                    // Small delay to let state update first
+                    setTimeout(() => onFieldBlur('newsletters'), 0);
+                  }
+                }}
                 disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
               />
             ))}

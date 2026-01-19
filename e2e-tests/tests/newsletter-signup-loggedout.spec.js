@@ -285,4 +285,201 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     expect(isYesVisible).toBe(false);
     expect(isNoVisible).toBe(false);
   });
+
+  // ========== MULTI-ERROR VALIDATION TESTS ==========
+
+  test('should show all validation errors at once when submitting empty form', async ({ page }) => {
+    // Submit empty form
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await submitButton.click();
+
+    // Wait for validation to complete
+    await page.waitForTimeout(500);
+
+    // Should see error summary at the top
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
+
+    // Should list multiple errors in the summary
+    const errorItems = page.locator('.errorSummaryList li');
+    const errorCount = await errorItems.count();
+    expect(errorCount).toBeGreaterThanOrEqual(3); // firstName, email, newsletters at minimum
+
+    // Should have inline errors above fields
+    const inlineErrors = page.locator('.inlineFieldError');
+    const inlineCount = await inlineErrors.count();
+    expect(inlineCount).toBeGreaterThanOrEqual(3);
+
+    // Verify specific errors are shown
+    const firstNameError = page.locator('#firstName-error');
+    const emailError = page.locator('#email-error');
+    const newslettersError = page.locator('#newsletters-error');
+
+    await expect(firstNameError).toBeVisible();
+    await expect(emailError).toBeVisible();
+    await expect(newslettersError).toBeVisible();
+  });
+
+  test('should focus error summary on validation failure for accessibility', async ({ page }) => {
+    // Submit empty form
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await submitButton.click();
+
+    // Wait for validation and focus management
+    await page.waitForTimeout(500);
+
+    // Error summary should be focused (for screen reader users)
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeFocused();
+  });
+
+  test('should clear inline error when field is fixed and loses focus', async ({ page }) => {
+    // Submit empty form to trigger errors
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Verify firstName error exists
+    const firstNameError = page.locator('#firstName-error');
+    await expect(firstNameError).toBeVisible();
+
+    // Fill in first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
+
+    // Error should still be visible while typing (not cleared on change)
+    await expect(firstNameError).toBeVisible();
+
+    // Blur the field (click somewhere else or tab away)
+    await firstNameInput.blur();
+
+    // Wait for state update
+    await page.waitForTimeout(100);
+
+    // Now error should be cleared
+    await expect(firstNameError).not.toBeVisible();
+
+    // But other errors should still be visible
+    const emailError = page.locator('#email-error');
+    await expect(emailError).toBeVisible();
+  });
+
+  test('should update error summary when errors are fixed', async ({ page }) => {
+    // Submit empty form to trigger all errors
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Count initial errors
+    const initialErrorCount = await page.locator('.errorSummaryList li').count();
+    expect(initialErrorCount).toBeGreaterThanOrEqual(3);
+
+    // Fix first name
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#firstName').blur();
+    await page.waitForTimeout(100);
+
+    // Error count should decrease
+    const afterFirstFix = await page.locator('.errorSummaryList li').count();
+    expect(afterFirstFix).toBe(initialErrorCount - 1);
+
+    // Fix email
+    await page.locator('input#email').fill('john@example.com');
+    await page.locator('input#email').blur();
+    await page.waitForTimeout(100);
+
+    const afterEmailFix = await page.locator('.errorSummaryList li').count();
+    expect(afterEmailFix).toBe(afterFirstFix - 1);
+  });
+
+  test('should show error styling on invalid input fields', async ({ page }) => {
+    // Submit empty form
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Input fields should have error styling
+    const firstNameInput = page.locator('input#firstName');
+    await expect(firstNameInput).toHaveAttribute('aria-invalid', 'true');
+    await expect(firstNameInput).toHaveClass(/hasError/);
+
+    const emailInput = page.locator('input#email');
+    await expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    await expect(emailInput).toHaveClass(/hasError/);
+  });
+
+  test('should allow clicking error summary links to navigate to fields', async ({ page }) => {
+    // Submit empty form
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Click the email error link in the summary
+    const emailErrorLink = page.locator('.errorSummaryLink[href="#email"]');
+    await emailErrorLink.click();
+
+    // Email input should now be focused (due to href="#email" navigation)
+    // Note: This works because the input has id="email"
+    await page.waitForTimeout(100);
+
+    // The email input should be scrolled into view and potentially focused
+    const emailInput = page.locator('input#email');
+    await expect(emailInput).toBeInViewport();
+  });
+
+  test('should validate email format and show appropriate error', async ({ page }) => {
+    // Fill invalid email
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#email').fill('not-an-email');
+    await page.locator('input#confirmEmail').fill('not-an-email');
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Submit
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Should show email format error
+    const emailError = page.locator('#email-error');
+    await expect(emailError).toBeVisible();
+    await expect(emailError).toContainText('valid email');
+  });
+
+  test('should show mismatched email error when emails do not match', async ({ page }) => {
+    // Fill form with mismatched emails
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#email').fill('john@example.com');
+    await page.locator('input#confirmEmail').fill('jane@example.com');
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Submit
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Should show email mismatch error
+    const confirmEmailError = page.locator('#confirmEmail-error');
+    await expect(confirmEmailError).toBeVisible();
+    await expect(confirmEmailError).toContainText('do not match');
+  });
+
+  test('should clear newsletter error when a newsletter is selected', async ({ page }) => {
+    // Submit empty form to trigger errors
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Verify newsletters error exists
+    const newslettersError = page.locator('#newsletters-error');
+    await expect(newslettersError).toBeVisible();
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Wait for state update
+    await page.waitForTimeout(200);
+
+    // Newsletter error should be cleared
+    await expect(newslettersError).not.toBeVisible();
+  });
 });
