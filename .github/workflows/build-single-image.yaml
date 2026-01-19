@@ -91,17 +91,18 @@ jobs:
           flavor: |
             latest=false
 
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
+
       - name: Extract primary tag
         id: primary_tag
         run: |
-          TAGS="${{ steps.meta.outputs.tags }}"
-          # choose the first tag in the comma-separated list
-          PRIMARY="$(echo "$TAGS" | awk -F, '{print $1}' | sed 's/^ *//;s/ *$//')"
+          PRIMARY="$(echo "$DOCKER_METADATA_OUTPUT_JSON" | yq '.tags[0]' )"
           if [ -z "$PRIMARY" ]; then
             echo "No tags found from metadata-action; failing early" >&2
             exit 1
           fi
-          echo "value=$PRIMARY" >> $GITHUB_OUTPUT
+          echo "primary_tag=$PRIMARY" >> $GITHUB_OUTPUT
 
       - id: build
         uses: docker/build-push-action@v6
