@@ -120,7 +120,7 @@ jobs:
       image: ${{ needs.calculate.outputs.asset_image }}
       prod: ${{ inputs.push_to_prod_registry }}
       build_args: >-
-        SRC_IMG=${{ needs.build_web.outputs.tags }}
+        SRC_IMG=${{ needs.build_web.outputs.primary_tag }}
     secrets:
       PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
       DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}

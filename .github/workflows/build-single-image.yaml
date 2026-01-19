@@ -37,6 +37,8 @@ on:
     outputs:
       tags:
         value: ${{ jobs.build.outputs.tags }}
+      primary_tag:
+        value: ${{ jobs.build.outputs.primary_tag }}
 
 jobs:
   build:
@@ -46,6 +48,7 @@ jobs:
       id-token: 'write'
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
+      primary_tag: ${{ steps.primary_tag.outputs.primary_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,6 +90,18 @@ jobs:
             type=raw,value=latest
           flavor: |
             latest=false
+
+      - name: Extract primary tag
+        id: primary_tag
+        run: |
+          TAGS="${{ steps.meta.outputs.tags }}"
+          # choose the first tag in the comma-separated list
+          PRIMARY="$(echo "$TAGS" | awk -F, '{print $1}' | sed 's/^ *//;s/ *$//')"
+          if [ -z "$PRIMARY" ]; then
+            echo "No tags found from metadata-action; failing early" >&2
+            exit 1
+          fi
+          echo "value=$PRIMARY" >> $GITHUB_OUTPUT
 
       - id: build
         uses: docker/build-push-action@v6
