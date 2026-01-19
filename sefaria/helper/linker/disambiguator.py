@@ -1162,6 +1162,7 @@ def _try_dicta_for_candidates(
     return deduped_matches[0]
 
 
+@traceable(run_type="tool", name="query_dicta_raw")
 def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
     """Query Dicta and return all results (not filtered by target ref)."""
     params = {
@@ -1314,6 +1315,7 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
     return deduped_matches[0]
 
 
+@traceable(run_type="tool", name="query_sefaria_search_raw")
 def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[str, Any]]:
     """Query Sefaria search without filtering by target ref."""
     bool_query = {
@@ -1371,6 +1373,7 @@ def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[
     return None
 
 
+@traceable(run_type="tool", name="query_sefaria_search_with_books")
 def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> Optional[Dict[str, Any]]:
     """Query Sefaria search with optional filtering by list of books."""
     bool_query = {
