@@ -15,7 +15,6 @@ import Component from 'react-class';
 import Cookies from 'js-cookie';
 import { InterfaceText, EnglishText, HebrewText } from '../../Misc';
 import ModToolsSection from './shared/ModToolsSection';
-import { stripHtmlTags } from '../utils';
 
 /**
  * Help content for WorkflowyModeratorTool
@@ -175,7 +174,7 @@ class WorkflowyModeratorTool extends Component {
           this.setState({
             uploading: false,
             error: true,
-            uploadResult: stripHtmlTags(resp_text)
+            uploadResult: resp_text.stripHtml()
           });
         });
       } else {

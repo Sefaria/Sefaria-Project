@@ -18,11 +18,9 @@
  * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
  * - See /docs/modtools/COMPONENT_LOGIC.md for implementation details
  *
- * CSS: Styles are in /static/css/modtools.css
+ * CSS: Styles are in /static/css/static.css (search for "ModTools Design System")
  */
 import Sefaria from './sefaria/sefaria';
-
-// Note: modtools.css is loaded via <link> tag in base.html for CI compatibility
 
 // Import tool components
 import BulkDownloadText from './modtools/components/BulkDownloadText';
