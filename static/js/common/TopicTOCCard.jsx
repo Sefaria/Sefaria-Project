@@ -13,7 +13,10 @@ export const TopicTOCCard = ({topic, setTopic, setNavTopic=null, showDescription
 
   const { slug, children} = topic;
   const description = children ? topic.categoryDescription : topic.description;
-  let {en, he} = topic.primaryTitle;
+  let {en, he} = topic?.primaryTitle || {};
+  if (!en || !he) {
+    return null;
+  }
   en = en.replace(/^Parashat /, "");  // Torah Portions have "Parashat" in their titles, which we do want to display on topic pages, but not in the TOC
   he = he.replace(/^פרשת /, "");
   const href = `/topics/${children ? 'category/' : ''}${slug}`;
