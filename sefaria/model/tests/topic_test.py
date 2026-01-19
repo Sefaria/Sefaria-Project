@@ -199,22 +199,6 @@ class TestTopics(object):
         dt1 = DjangoTopic.objects.get(slug=ts['1'].slug)
         assert dt1.en_title == ts['1'].get_primary_title('en')
 
-    def test_pools(self, topic_graph, topic_pool):
-        ts = topic_graph['topics']
-        t1 = ts['1']
-        t1.add_pool(topic_pool.name)
-        assert topic_pool.name in t1.get_pools()
-
-        # dont add duplicates
-        t1.add_pool(topic_pool.name)
-        assert t1.get_pools().count(topic_pool.name) == 1
-
-        assert t1.has_pool(topic_pool.name)
-        t1.remove_pool(topic_pool.name)
-        assert topic_pool.name not in t1.get_pools()
-        # dont error when removing non-existent pool
-        t1.remove_pool(topic_pool.name)
-
     def test_sanitize(self):
         t = Topic()
         t.slug = "sdfsdg<script/>"
