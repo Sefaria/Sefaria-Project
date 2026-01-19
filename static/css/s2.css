@@ -56,7 +56,8 @@ a, a:hover {
 }
 
 .sr-only,
-.layout-button label {
+.layout-button .int-en,
+.layout-button .int-he {
   position: absolute;
   width: 1px;
   height: 1px;

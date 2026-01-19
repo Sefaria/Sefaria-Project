@@ -1,6 +1,6 @@
 sandbox: "false"
 contentSandbox: "false"
-deployEnv: production
+deployEnv: preprod
 previousServicesCount: "3"
 deploymentMessage: true
 restore:
@@ -9,25 +9,25 @@ restore:
   cleanup: false
 backup:
   mongo:
-    enabled: true
+    enabled: false
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup
     archiveBucket: sefaria-mongo-archive
     serviceAccount: database-backup-write
   postgres:
-    enabled: true
+    enabled: false
     version: 10.3
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
   sitemaps:
-    enabled: true
+    enabled: false
 web:
   containerImage:
-    imageRegistry:
-    tag:
-  replicaCount: 7
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-modularization-main
+    tag: sha-d38d468-202601151028
+  replicaCount: 2
   resources:
     web:
       gunicornWorkerCount: 5
@@ -61,9 +61,9 @@ redis:
 gpuServer: "gpu-server.gpu-server.svc.cluster.local"
 nodejs:
   containerImage:
-    imageRegistry:
-    tag:
-  replicaCount: 4
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-node-modularization-main
+    tag: sha-d38d468-202601151028
+  replicaCount: 1
   resources:
     requests:
       memory: "1Gi"
@@ -104,7 +104,7 @@ tasks:
     limits:
       memory: "6Gi"
       cpu: "1000m"
-  replicaCount: 6
+  replicaCount: 1
   redis:
     url: ""
     port: "26379"
@@ -121,13 +121,13 @@ tasks:
     llm: llm-llm
 domains:
   root:
-    - url: "sefaria.org"
-      cert: "origin-tls-prod2"
+    - url: "sefariapreprod.org"
+      cert: "sefariapreprod-tls"
       language: english
       code:
         - en
-    - url: "sefaria.org.il"
-      cert: "origin-il-tls-prod2"
+    - url: "sefariapreprod-il.org"
+      cert: "sefariapreprod-il-tls"
       language: hebrew
       code:
         - he
@@ -142,14 +142,14 @@ domains:
         - profile
 nginx:
   containerImage:
-    imageRegistry:
-    tag:
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-modularization-main
+    tag: sha-d38d468-202601151033
   SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
   SEARCH_PORT: "9200"
   SEARCH_PATH: ""
   SEARCH_SSL_ENABLE: false
   disableScraping: false
-  replicaCount: 2
+  replicaCount: 1
   resources:
     requests:
       memory: "200Mi"
@@ -159,8 +159,8 @@ nginx:
       cpu: "150m"
 monitor:
   containerImage:
-    imageRegistry:
-    tag:
+    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-modularization-main
+    tag: sha-d38d468-202601151028
   replicaCount: 1
   resources:
     requests:
@@ -172,27 +172,27 @@ monitor:
 cronJobs:
   # Settings for regenerating long cached data
   regenerate:
-    enabled: true
+    enabled: false
   dailyEmailNotifications:
-    enabled: true
+    enabled: false
   indexFromQueue:
-    enabled: true
+    enabled: false
   metrics:
-    enabled: true
+    enabled: false
   nationBuilderSync:
     enabled: false
   rambiWebpagesWeekly:
-    enabled: true
+    enabled: false
   reindexElasticSearch:
-    enabled: true
+    enabled: false
   topicsIndexing:
-    enabled: true
+    enabled: false
   trello:
-    enabled: true
+    enabled: false
   trends:
-    enabled: true
+    enabled: false
   weeklyEmailNotifications:
-     enabled: true
+    enabled: false
 secrets:
   localSettings:
     ref: local-settings-secrets-production
@@ -206,17 +206,16 @@ instrumentation:
   jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
 
 localSettings:
-  DEBUG: false
+  DEBUG: true
   OFFLINE: "False"
   DOMAIN_LANGUAGE: {
     "https://www.sefaria.org": "english",
     "https://www.sefaria.org.il": "hebrew",
   }
-  DOMAIN_MODULES: {"library": "https://www.sefaria.org", "sheets": "https://sheets.sefaria.org"}
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   USE_CLOUDFLARE: false
-  FRONT_END_URL:  "http://www.sefaria.org"
+  FRONT_END_URL:  "https://www.sefariapreprod.org"
   OFFLINE: false
   DOWN_FOR_MAINTENANCE: false
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
@@ -228,11 +227,3 @@ localSettings:
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "SALESFORCE"
   FAIL_GRACEFULLY: "True"
-  SESSION_COOKIE_DOMAIN: ".sefaria.org"
-  SESSION_COOKIE_SECURE: true
-  SESSION_COOKIE_HTTPONLY: true
-  SESSION_COOKIE_SAMESITE: "Lax"
-  CSRF_COOKIE_SECURE: true
-  CSRF_COOKIE_HTTPONLY: false
-  CSRF_COOKIE_SAMESITE: "Lax"
-
