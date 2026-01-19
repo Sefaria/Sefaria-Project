@@ -984,7 +984,6 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
                 return {
                     'resolved_ref': dicta_match['ref'],  # Return the candidate ref, not the segment
                     'matched_segment': match_ref if match_ref != dicta_match['ref'] else None,
-                    'confidence': 0.9,
                     'method': 'dicta_llm_confirmed'
                 }
             else:
@@ -1217,7 +1216,12 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
             for cand in candidates:
                 cand_oref = cand['oref']
                 if cand_oref.contains(result_oref):
-                    logger.info(f"Search result {search_ref} matches candidate {cand['ref']}")
+                    logger.info(
+                        "Search result %s matches candidate %s for query: %s",
+                        search_ref,
+                        cand["ref"],
+                        query,
+                    )
                     seen_refs.add(search_ref)
                     matching_candidates.append({
                         'ref': cand['ref'],  # The candidate ref
@@ -1381,4 +1385,3 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
             continue
 
     return None
-
