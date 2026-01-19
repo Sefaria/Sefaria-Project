@@ -284,6 +284,7 @@ data:
         
         init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
 
+
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {
     #     'version': 1,
