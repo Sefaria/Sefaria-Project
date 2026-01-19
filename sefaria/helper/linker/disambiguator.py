@@ -12,6 +12,7 @@ from html import unescape
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from sefaria.model.text import Ref
+from sefaria.model.schema import AddressType
 
 logger = structlog.get_logger(__name__)
 
@@ -1019,28 +1020,26 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
         return None
 
 
-def _get_commentary_base_context(citing_ref: str) -> Tuple[Optional[str], Optional[str]]:
+def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
     """Get the base text context if citing ref is a commentary."""
+    if not citing_ref:
+        return None, None
+
     try:
-        oref = Ref(citing_ref)
-
-        # Check if this is a commentary
-        if not oref.index.is_commentary():
+        citing_oref = Ref(citing_ref)
+        base_titles = getattr(citing_oref.index, "base_text_titles", []) or []
+        if not base_titles:
             return None, None
 
-        # Get the base ref
-        base_refs = oref.index.base_text_titles
-        if not base_refs:
-            return None, None
+        base_title = base_titles[0]
+        section_ref = citing_oref.section_ref()
+        for sec, addr_type in zip(section_ref.sections, section_ref.index_node.addressTypes):
+            address = AddressType.to_str_by_address_type(addr_type, "en", sec)
+            base_title += f" {address}"
 
-        # Try to get the specific base passage being commented on
-        # This is a simplification - real implementation would be more sophisticated
-        base_title = base_refs[0]
-        base_ref_str = f"{base_title} 1:1"  # Simplified
-
-        base_text = _get_ref_text(base_ref_str)
-        return base_ref_str if base_text else None, base_text
-
+        base_ref = Ref(base_title).normal()
+        base_text = _get_ref_text(base_ref, lang="he") or _get_ref_text(base_ref, lang="en")
+        return base_ref, base_text
     except Exception:
         return None, None
 
@@ -1382,5 +1381,4 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
             continue
 
     return None
-
 
