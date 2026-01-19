@@ -9,6 +9,7 @@ import re
 import requests
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
+from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from sefaria.model.text import Ref
@@ -20,14 +21,24 @@ logger = structlog.get_logger(__name__)
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
 SEFARIA_SEARCH_URL = os.getenv("SEFARIA_SEARCH_URL", "https://www.sefaria.org/api/search/text/_search")
 MIN_THRESHOLD = 1.0
-MAX_DISTANCE = 8.0
+MAX_DISTANCE = 10.0
 REQUEST_TIMEOUT = 30
 WINDOW_WORDS = 120
 
 
 def _get_llm():
-    """Get configured LLM instance."""
-    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    """Get configured primary LLM instance."""
+    model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
+
+    return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+
+
+def _get_keyword_llm():
+    """Get configured keyword extraction LLM instance."""
+    model = os.getenv("LLM_KEYWORD_MODEL", "gpt-4o-mini")
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY environment variable is required")
@@ -59,7 +70,7 @@ def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optiona
             return text
 
         fallback = "he" if primary == "en" else "en"
-        return None
+        return oref.text(fallback).as_string()
     except Exception as e:
         logger.debug(f"Could not get text for {ref_str}: {e}")
         return None
@@ -127,8 +138,13 @@ def _mark_citation(text: str, span: dict) -> str:
     citation_text = text[start:end]
     before = text[:start]
     after = text[end:]
+    ref_attr = span.get("ref")
+    open_tag = "<citation"
+    if ref_attr:
+        open_tag += f' ref="{ref_attr}"'
+    open_tag += ">"
 
-    return f"{before}<citation>{citation_text}</citation>{after}"
+    return f"{before}{open_tag}{citation_text}</citation>{after}"
 
 
 def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
@@ -322,7 +338,7 @@ def _path_regex_for_ref(ref_str: str) -> Optional[str]:
 
 def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
-    llm = _get_llm()
+    llm = _get_keyword_llm()
 
     # Create context with citation redacted
     context_redacted = re.sub(r'<citation>.*?</citation>', '[REDACTED]', marked_text, flags=re.DOTALL)
@@ -741,7 +757,7 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
         if len(segment_refs) in [2, 3]:
             candidates = []
             for i, seg_ref in enumerate(segment_refs, 1):
-                seg_text = _get_ref_text(seg_ref.normal())
+                seg_text = _get_ref_text(seg_ref.normal(), lang="he") or _get_ref_text(seg_ref.normal(), lang="en")
                 if seg_text:
                     preview = seg_text[:300] + ("..." if len(seg_text) > 300 else "")
                     candidates.append({
@@ -828,6 +844,14 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
 
             if candidate:
                 resolved_ref = candidate['resolved_ref']
+                if citing_ref.startswith("Metzudat Zion"):
+                    logger.info(f"Auto-approved Metzudat Zion (skipped LLM): {resolved_ref}")
+                    return {
+                        'resolved_ref': resolved_ref,
+                        'confidence': 0.9,
+                        'method': 'dicta_auto_approved'
+                    }
+
                 candidate_text = _get_ref_text(resolved_ref, citing_lang)
 
                 # Confirm with LLM
@@ -863,6 +887,14 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
 
         if search_result:
             resolved_ref = search_result['resolved_ref']
+            if citing_ref.startswith("Metzudat Zion"):
+                logger.info(f"Auto-approved Metzudat Zion (skipped LLM): {resolved_ref}")
+                return {
+                    'resolved_ref': resolved_ref,
+                    'confidence': 0.8,
+                    'method': 'search_auto_approved'
+                }
+
             candidate_text = _get_ref_text(resolved_ref, citing_lang)
 
             # Confirm with LLM
