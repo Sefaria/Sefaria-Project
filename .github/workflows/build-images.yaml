@@ -66,7 +66,7 @@ jobs:
           echo "node_image=$node" >> $GITHUB_OUTPUT
           echo "asset_image=$asset" >> $GITHUB_OUTPUT
 
-  build-web:
+  build_web:
     needs: calculate
     permissions:
       contents: 'read'
@@ -86,7 +86,7 @@ jobs:
       PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
       PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
 
-  build-node:
+  build_node:
     needs: calculate
     permissions:
       contents: 'read'
@@ -107,7 +107,7 @@ jobs:
       PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
 
   build_asset:
-    needs: [calculate, build-web]
+    needs: [calculate, build_web]
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -120,7 +120,7 @@ jobs:
       image: ${{ needs.calculate.outputs.asset_image }}
       prod: ${{ inputs.push_to_prod_registry }}
       build_args: >-
-        SRC_IMG=${{ needs.build-web.outputs.tags }}
+        SRC_IMG=${{ needs.build_web.outputs.tags }}
     secrets:
       PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
       DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
