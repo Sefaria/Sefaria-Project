@@ -9,9 +9,17 @@ import re
 import requests
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
+
+# Configure LangSmith integration BEFORE any LangChain imports
+os.environ["LANGSMITH_TRACING_V2"] = "true"
+os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
+# LANGSMITH_API_KEY should be set in your environment
+
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from langsmith import traceable
 from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
 
@@ -147,6 +155,7 @@ def _mark_citation(text: str, span: dict) -> str:
     return f"{before}{open_tag}{citation_text}</citation>{after}"
 
 
+@traceable(run_type="tool", name="query_dicta")
 def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
     """Query Dicta parallels API for matching segments."""
     params = {
@@ -231,6 +240,7 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
         return None
 
 
+@traceable(run_type="tool", name="query_sefaria_search")
 def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> Optional[Dict[str, Any]]:
     """Query Sefaria search API for matching segments."""
     try:
@@ -336,6 +346,7 @@ def _path_regex_for_ref(ref_str: str) -> Optional[str]:
         return None
 
 
+@traceable(run_type="llm", name="llm_form_search_query")
 def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
     llm = _get_keyword_llm()
@@ -395,6 +406,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
         return []
 
 
+@traceable(run_type="llm", name="llm_confirm_candidate")
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
     """Use LLM to confirm if a candidate is the correct resolution."""
@@ -442,6 +454,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         return False, str(e)
 
 
+@traceable(run_type="llm", name="llm_choose_best_candidate")
 def _llm_choose_best_candidate(
     marked_text: str,
     candidates: List[Dict[str, Any]],
@@ -693,6 +706,7 @@ def _fallback_search_pipeline(
     return chosen
 
 
+@traceable(run_type="chain", name="disambiguate_non_segment_ref")
 def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Disambiguate a non-segment-level reference to a specific segment.
@@ -917,6 +931,7 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
         return None
 
 
+@traceable(run_type="chain", name="disambiguate_ambiguous_ref")
 def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Disambiguate between multiple possible reference resolutions.
