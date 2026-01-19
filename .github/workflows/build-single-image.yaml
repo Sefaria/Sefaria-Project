@@ -102,8 +102,10 @@ jobs:
             echo "No tags found from metadata-action; failing early" >&2
             exit 1
           fi
-          echo "Storing image tag: $PRIMARY"
           echo "primary_tag=$PRIMARY" >> $GITHUB_OUTPUT
+
+      - name: Debug Tag
+        run: echo "${{ steps.primary_tag.outputs.primary_tag }}"
 
       - id: build
         uses: docker/build-push-action@v6
