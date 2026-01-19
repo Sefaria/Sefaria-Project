@@ -191,6 +191,7 @@ def index_sheet(index_name, id):
             "dateModified": dateModified,
             "views": sheet.get("views", 0)
         }
+        logger.debug(f"Indexing sheet {id} - owner_id: {owner_id}, owner_name: {owner_name}, title: {strip_tags(sheet_title)[:50]}")
         es_client.create(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
