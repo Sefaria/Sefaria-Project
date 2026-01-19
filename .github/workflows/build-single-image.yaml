@@ -97,7 +97,7 @@ jobs:
       - name: Extract primary tag
         id: primary_tag
         run: |
-          PRIMARY="$(echo "$DOCKER_METADATA_OUTPUT_JSON" | yq '.tags[0]' )"
+          PRIMARY="$(echo "$DOCKER_METADATA_OUTPUT_JSON" | yq '.tags-names[0]' )"
           if [ -z "$PRIMARY" ]; then
             echo "No tags found from metadata-action; failing early" >&2
             exit 1
