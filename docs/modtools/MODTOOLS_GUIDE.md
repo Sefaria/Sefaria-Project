@@ -24,7 +24,7 @@ ModTools is an internal admin interface at `/modtools` for Sefaria staff. Access
 | `static/js/modtools/components/*.jsx` | Individual tools | Editing tool behavior |
 | `static/js/modtools/components/shared/*.jsx` | Shared components | Editing shared UI |
 | `static/js/modtools/constants/fieldMetadata.js` | Field definitions | Adding/editing fields |
-| `static/css/modtools.css` | All styles | UI changes |
+| `static/css/s2.css` | All styles | UI changes |
 | `sefaria/views.py` | Backend APIs | API changes |
 
 ---
@@ -49,7 +49,7 @@ static/js/
             └── StatusMessage.jsx      # Message display
 
 static/css/
-└── modtools.css               # All modtools styles
+└── s2.css               # All modtools styles
 
 sefaria/
 ├── views.py                   # Backend API handlers
@@ -232,7 +232,7 @@ const FIELD_GROUPS = [
 1. Create component: `static/js/modtools/components/NewTool.jsx`
 2. Export from: `static/js/modtools/index.js`
 3. Import in: `ModeratorToolsPanel.jsx`
-4. Add CSS if needed: `modtools.css`
+4. Add CSS if needed: `s2.css`
 
 **Template**:
 ```jsx
@@ -312,7 +312,7 @@ if (value === 'false') value = false;
 
 ## CSS Classes
 
-Key classes in `modtools.css`:
+Key classes in `s2.css`:
 
 | Class | Purpose |
 |-------|---------|
