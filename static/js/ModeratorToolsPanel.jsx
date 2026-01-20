@@ -18,7 +18,7 @@
  * - See /docs/modtools/MODTOOLS_GUIDE.md for quick reference
  * - See /docs/modtools/COMPONENT_LOGIC.md for implementation details
  *
- * CSS: Styles are in /static/css/static.css (search for "ModTools Design System")
+ * CSS: Styles are in /static/css/s2.css (search for "ModTools Design System")
  */
 import Sefaria from './sefaria/sefaria';
 
