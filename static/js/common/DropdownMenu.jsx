@@ -179,6 +179,13 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
     const menuRef = useRef(null);
     const wrapperRef = useRef(null);
     const buttonRef = useRef(null);
+    
+    const closeDropdown = (type) => {
+      if (isOpen) {
+        setIsOpen(false);
+        onClose?.({ type });
+      }
+    };
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
@@ -187,7 +194,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
         if (curState) {
           onOpen?.();
         } else {
-          onClose?.({ type: 'active' });
+          closeDropdown("active");
         }
         return curState;
       });
@@ -198,14 +205,12 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
       const preventClose = e.target.closest('[data-prevent-close="true"]');
       // Only toggle if no preventClose element was found
       if (!preventClose) {
-        setIsOpen(false);
-        onClose?.({ type: 'active' });
+        closeDropdown("active");
       }
     };
     const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
-          setIsOpen(false);
-          onClose?.({ type: 'passive' });
+          closeDropdown("passive");
       }
     };
     const handleClickOutside = (event) => {
@@ -213,8 +218,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             wrapperRef.current &&
             !wrapperRef.current.contains(event.target)
         ) {
-            setIsOpen(false);
-            onClose?.({ type: 'passive' });
+            closeDropdown("passive");
         }
     };
 
@@ -237,8 +241,7 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
         Util.trapFocusWithTab(e, {
             container: menuRef.current,
             onClose: () => {
-              setIsOpen(false)
-              onClose?.(true); // Passive dismissal
+              closeDropdown("passive");
             },
             returnFocusRef: buttonRef.current
         });

@@ -151,8 +151,7 @@ const ModuleSwitcher = () => {
     <ModuleSwitcherPopover>
       <DropdownMenu positioningClass="headerDropdownMenu"
                     analyticsFeatureName="module_switcher"
-                    buttonComponent={button}
-                    onClose={handleClose}>
+                    buttonComponent={button}>
         <div className='dropdownLinks-options moduleDropdown'>
           <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
             <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
