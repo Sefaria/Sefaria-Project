@@ -5,7 +5,8 @@ Uses MongoDB collections: apikeys, sheets, notes, profiles, notifications
 """
 from django.contrib.auth.models import User
 import structlog
-from typing import Optional, Literal
+from typing import Optional
+from enum import Enum
 
 import sefaria.model as model
 from sefaria.system.database import db
@@ -15,10 +16,17 @@ from sefaria.helper.slack.send_message import send_message
 logger = structlog.get_logger(__name__)
 
 
+class DeletionType(Enum):
+    """Enum for types of user account deletion"""
+    SELF = "self"
+    ADMIN = "admin"
+    MANUAL = "manual"
+
+
 def delete_user_account(
     uid: int,
     confirm: bool = True,
-    deletion_type: Literal["self", "admin", "manual"] = "manual",
+    deletion_type: DeletionType = DeletionType.MANUAL,
     admin_user: Optional[User] = None
 ) -> bool:
     """ Deletes the account of `uid` as well as all owned data
@@ -27,7 +35,7 @@ def delete_user_account(
     Args:
         uid: User ID to delete
         confirm: Whether to prompt for confirmation
-        deletion_type: Type of deletion - "self", "admin", or "manual"
+        deletion_type: Type of deletion - DeletionType enum (SELF, ADMIN, or MANUAL)
         admin_user: User object of admin performing deletion (for admin deletions)
     """
     user: model.UserProfile = model.UserProfile(id=uid)
@@ -35,6 +43,19 @@ def delete_user_account(
     # Store user info for Slack notification before deletion
     user_email: str = user.email
     user_name: str = user.full_name or "No name given"
+
+    # Get admin info upfront if this is an admin deletion
+    admin_name: Optional[str] = None
+    admin_email: Optional[str] = None
+    if deletion_type == DeletionType.ADMIN and admin_user:
+        admin_email = str(admin_user.email)
+        try:
+            admin_profile: model.UserProfile = model.UserProfile(id=admin_user.id)
+            admin_name = admin_profile.full_name or "No name given"
+        except Exception as e:
+            # If profile lookup fails, we still have the email from admin_user
+            logger.warning(f"Could not load admin profile for user {admin_user.id}: {e}")
+
     if confirm:
         print("Are you sure you want to delete the account of '%s' (%s)?" % (user.full_name, user.email))
         if input("Type 'DELETE' to confirm: ") != "DELETE":
@@ -71,20 +92,17 @@ def delete_user_account(
 
     # Send Slack notification about user deletion
     try:
-        if deletion_type == "admin" and admin_user:
-            # Get admin profile for name and email
-            try:
-                admin_profile: model.UserProfile = model.UserProfile(id=admin_user.id)
-                admin_name: str = admin_profile.full_name or "No name given"
-                admin_email: str = str(admin_user.email)
+        if deletion_type == DeletionType.ADMIN:
+            if admin_name and admin_email:
                 deletion_source: str = f"Admin deleted by {admin_name} ({admin_email})"
-            except:
-                deletion_source: str = f"Admin deleted by {str(admin_user.email)}"
+            elif admin_email:
+                deletion_source: str = f"Admin deleted by {admin_email}"
+            else:
+                deletion_source: str = "Admin deleted (no admin user specified)"
         else:
             deletion_source: str = {
-                "self": "User self-deleted",
-                "admin": "Admin deleted",
-                "manual": "Manually deleted"
+                DeletionType.SELF: "User self-deleted",
+                DeletionType.MANUAL: "Manually deleted"
             }.get(deletion_type, "Deleted")
 
         success: bool = send_message(
@@ -149,7 +167,7 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
         into_user.update_empty(from_user.to_mongo_dict())
         into_user.save()
 
-    delete_user_account(from_uid, confirm=False, deletion_type="manual")
+    delete_user_account(from_uid, confirm=False, deletion_type=DeletionType.MANUAL)
 
 
 def generate_api_key(uid):
