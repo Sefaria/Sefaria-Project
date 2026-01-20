@@ -13,6 +13,7 @@ spec:
     blueGreen:
       activeService: varnish-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
         templates:
           # - templateName: rollout-readiness-{{ .Values.deployEnv }}
@@ -24,6 +25,7 @@ spec:
           #   value: "{{ .Values.deployEnv }}"
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
   selector:
     matchLabels:
       app: varnish-{{ .Values.deployEnv }}

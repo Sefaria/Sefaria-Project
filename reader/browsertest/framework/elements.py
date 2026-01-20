@@ -458,9 +458,9 @@ class SefariaTest(AbstractTest):
     def nav_to_history(self):
         self.login_user()
         self.open_mobile_navigation_menu_if_needed()
-        self.click('a[href="/texts/saved"]')
+        self.click('a[href="/saved"]')
         self.wait_until_clickable("h1")
-        self.click('a[href="/texts/history"]')
+        self.click('a[href="/history"]')
         self.wait_until_clickable(".storyTitle")
         return self
 

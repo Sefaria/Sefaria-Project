@@ -6,7 +6,9 @@ import {InterfaceText} from "../Misc";
 function ToggleSwitchLine({name, onChange, isChecked, text, disabled=false}) {
     return (
         <div className={`toggle-switch-line ${disabled ? 'disabled' : ''}`}>
-            <InterfaceText>{text}</InterfaceText>
+            <label htmlFor={name} id={`${name}-label`}>
+                <InterfaceText>{text}</InterfaceText>
+            </label>
             <ToggleSwitch
                 name={name}
                 disabled={disabled}

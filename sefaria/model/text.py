@@ -21,6 +21,7 @@ from collections import defaultdict, OrderedDict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
+from django_topics.models.topic import Topic as DjangoTopic
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
@@ -4190,7 +4191,7 @@ class Ref(object, metaclass=RefCacheType):
             for r in normals:
                 sections = re.sub(r"^%s" % re.escape(self.book), '', r)
                 patterns.append(r"%s$" % sections)   # exact match
-                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(r"%s:" % sections)   # more granular, exact match followed by :
                 patterns.append(r"%s \d" % sections) # extra granularity following space
         else:
             sections = re.sub(r"^%s" % re.escape(self.book), '', self.normal())
@@ -5160,22 +5161,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = {
-                "slug": topic.slug,
-                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
-                "en": topic.get_primary_title("en"),
-                "he": topic.get_primary_title("he"),
-                "displayOrder": getattr(topic, "displayOrder", 10000)
-            }
-
-            with_descriptions = True # TODO revisit for data size / performance
-            if with_descriptions:
-                if getattr(topic, "categoryDescription", False):
-                    topic_json['categoryDescription'] = topic.categoryDescription
-                description = getattr(topic, "description", None)
-                if description is not None and getattr(topic, "description_published", False):
-                    topic_json['description'] = description
-
+            topic_json = topic.contents(minify=True, children=children, with_html=True)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
