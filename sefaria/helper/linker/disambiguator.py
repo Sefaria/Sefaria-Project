@@ -763,7 +763,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
             logger.info(f"Auto-resolved single segment: {resolved_ref}")
             return {
                 'resolved_ref': resolved_ref,
-                'confidence': 1.0,
                 'method': 'auto_single_segment'
             }
 
@@ -819,7 +818,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                         logger.info(f"LLM resolved to: {cand['resolved_ref']}")
                         return {
                             'resolved_ref': cand['resolved_ref'],
-                            'confidence': 0.8,
                             'method': 'llm_small_range'
                         }
 
@@ -862,7 +860,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                     logger.info(f"Auto-approved Metzudat Zion (skipped LLM): {resolved_ref}")
                     return {
                         'resolved_ref': resolved_ref,
-                        'confidence': 0.9,
                         'method': 'dicta_auto_approved'
                     }
 
@@ -874,7 +871,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                     logger.info(f"Dicta candidate {resolved_ref} confirmed by LLM")
                     return {
                         'resolved_ref': resolved_ref,
-                        'confidence': 0.9,
                         'method': 'dicta_llm_confirmed'
                     }
                 else:
@@ -905,7 +901,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 logger.info(f"Auto-approved Metzudat Zion (skipped LLM): {resolved_ref}")
                 return {
                     'resolved_ref': resolved_ref,
-                    'confidence': 0.8,
                     'method': 'search_auto_approved'
                 }
 
@@ -917,7 +912,6 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 logger.info(f"Search candidate {resolved_ref} confirmed by LLM")
                 return {
                     'resolved_ref': resolved_ref,
-                    'confidence': 0.8,
                     'method': 'search_llm_confirmed'
                 }
             else:
@@ -1052,7 +1046,6 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
                 return {
                     'resolved_ref': search_match['ref'],  # Return the candidate ref, not the segment
                     'matched_segment': match_ref if match_ref != search_match['ref'] else None,
-                    'confidence': 0.8,
                     'method': 'search_llm_confirmed'
                 }
             else:
