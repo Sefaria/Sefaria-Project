@@ -129,6 +129,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     for payload in ambiguous_payloads:
         result = disambiguate_ambiguous_ref(payload)
         ambiguous_results.append(result)
+        _apply_ambiguous_resolution(payload, result)
         print({
             "ambiguous_resolution": payload,
             "ambiguous_result": result,
@@ -139,6 +140,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     for payload in non_segment_payloads:
         result = disambiguate_non_segment_ref(payload)
         non_segment_results.append(result)
+        _apply_non_segment_resolution(payload, result)
         print({
             "non_segment_resolution": payload,
             "non_segment_result": result,
@@ -245,6 +247,134 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
             })
 
     return non_segment_payloads
+
+
+def _apply_non_segment_resolution(payload: dict, result: Optional[dict]) -> None:
+    """Upsert citation span + link for a resolved non-segment reference."""
+    if not result or not result.get("resolved_ref"):
+        return
+
+    citing_ref = payload.get("ref")
+    resolved_ref = result.get("resolved_ref")
+    if not citing_ref or not resolved_ref:
+        return
+
+    span_data = {
+        "charRange": payload.get("charRange"),
+        "text": payload.get("text"),
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+    }
+
+    mutc = MarkedUpTextChunk().load({
+        "ref": payload.get("ref"),
+        "versionTitle": payload.get("versionTitle"),
+        "language": payload.get("language"),
+    })
+    if mutc:
+        updated = False
+        for span in mutc.spans:
+            if (
+                span.get("type") == MUTCSpanType.CITATION.value and
+                span.get("charRange") == payload.get("charRange")
+            ):
+                span["ref"] = resolved_ref
+                updated = True
+                break
+        if not updated:
+            mutc.add_non_overlapping_spans([span_data])
+        mutc.save()
+    else:
+        mutc = MarkedUpTextChunk({
+            "ref": payload.get("ref"),
+            "versionTitle": payload.get("versionTitle"),
+            "language": payload.get("language"),
+            "spans": [span_data],
+        })
+        mutc.save()
+
+    link = {
+        "refs": [citing_ref, resolved_ref],
+        "type": "",
+        "auto": True,
+        "generated_by": "add_links_from_text",
+        "inline_citation": True,
+    }
+    try:
+        tracker.add(payload.get("user_id"), Link, link, **(payload.get("tracker_kwargs") or {}))
+        if USE_VARNISH:
+            try:
+                invalidate_ref(Ref(resolved_ref))
+            except InputError:
+                pass
+    except DuplicateRecordError:
+        pass
+    except InputError as e:
+        logger.info(f"InputError creating link {citing_ref} -> {resolved_ref}: {e}")
+
+
+def _apply_ambiguous_resolution(payload: dict, result: Optional[dict]) -> None:
+    """Upsert citation span + link for a resolved ambiguous reference."""
+    if not result or not result.get("resolved_ref"):
+        return
+
+    citing_ref = payload.get("ref")
+    resolved_ref = result.get("resolved_ref")
+    if not citing_ref or not resolved_ref:
+        return
+
+    span_data = {
+        "charRange": payload.get("charRange"),
+        "text": payload.get("text"),
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+    }
+
+    mutc = MarkedUpTextChunk().load({
+        "ref": payload.get("ref"),
+        "versionTitle": payload.get("versionTitle"),
+        "language": payload.get("language"),
+    })
+    if mutc:
+        updated = False
+        for span in mutc.spans:
+            if (
+                span.get("type") == MUTCSpanType.CITATION.value and
+                span.get("charRange") == payload.get("charRange")
+            ):
+                span["ref"] = resolved_ref
+                updated = True
+                break
+        if not updated:
+            mutc.add_non_overlapping_spans([span_data])
+        mutc.save()
+    else:
+        mutc = MarkedUpTextChunk({
+            "ref": payload.get("ref"),
+            "versionTitle": payload.get("versionTitle"),
+            "language": payload.get("language"),
+            "spans": [span_data],
+        })
+        mutc.save()
+
+    link = {
+        "refs": [citing_ref, resolved_ref],
+        "type": "",
+        "auto": True,
+        "generated_by": "add_links_from_text",
+        "inline_citation": True,
+    }
+    try:
+        tracker.add(payload.get("user_id"), Link, link, **(payload.get("tracker_kwargs") or {}))
+        if USE_VARNISH:
+            try:
+                invalidate_ref(Ref(resolved_ref))
+            except InputError:
+                pass
+    except DuplicateRecordError:
+        pass
+    except InputError as e:
+        logger.info(f"InputError creating link {citing_ref} -> {resolved_ref}: {e}")
 
 
 def _extract_resolved_spans(resolved_refs):
