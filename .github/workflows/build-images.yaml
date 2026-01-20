@@ -106,12 +106,6 @@ jobs:
       PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
       PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
 
-  debug:
-    needs: [build_web]
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "${{ needs.build_web.outputs.primary_tag }}"
-
   build_asset:
     needs: [calculate, build_web]
     permissions:
@@ -126,7 +120,7 @@ jobs:
       image: ${{ needs.calculate.outputs.asset_image }}
       prod: ${{ inputs.push_to_prod_registry }}
       build_args: >-
-        SRC_IMG=${{ needs.build_web.outputs.primary_tag }}
+        SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ inputs.calculate.web_image }}:${{ needs.build_web.outputs.primary_tag }}
     secrets:
       PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
       DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}

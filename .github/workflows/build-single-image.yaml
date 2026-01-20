@@ -57,13 +57,13 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
-      - id: project
-        run: |
-          if [ "${{ inputs.prod }}" = "true" ]; then
-            echo "PROJECT=${{ secrets.PROD_GKE_PROJECT }}" >> $GITHUB_ENV
-          else
-            echo "PROJECT=${{ secrets.DEV_GKE_PROJECT }}" >> $GITHUB_ENV
-          fi
+#      - id: project
+#        run: |
+#          if [ "${{ inputs.prod }}" = "true" ]; then
+#            echo "PROJECT=${{ secrets.PROD_GKE_PROJECT }}" >> $GITHUB_ENV
+#          else
+#            echo "PROJECT=${{ secrets.DEV_GKE_PROJECT }}" >> $GITHUB_ENV
+#          fi
 
       - id: auth
         uses: google-github-actions/auth@v2
@@ -83,7 +83,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            us-east1-docker.pkg.dev/${{ env.PROJECT }}/containers/${{ inputs.image }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ inputs.image }}
           tags: |
             type=raw,value=${{ inputs.image_tag }}-${{ inputs.datetime }}
             type=raw,value=${{ inputs.image_tag }}
