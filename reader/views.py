@@ -1215,7 +1215,13 @@ def notifications(request):
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
-    return menu_page(request, page="modtools", title=title)
+    props = {"initialMenu": "modtools"}
+    return render_template(request, 'base.html', props, {
+        "title": title,
+        "desc": "",
+        "canonical_url": canonical_url(request),
+        "renderStatic": True,
+    })
 
 
 def canonical_url(request):
