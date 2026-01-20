@@ -205,6 +205,9 @@ shared_patterns = [
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
     url(r'^api/newsletter_mailing_lists/?$', sefaria_views.get_available_newsletter_mailing_lists),
 
+    url(r'^api/strapi/graphql-cache$', sefaria_views.strapi_graphql_cache),
+    url(r'^api/strapi/cache-invalidate$', sefaria_views.strapi_cache_invalidate),
+
     url(r'^api/stats/library-stats', sefaria_views.library_stats),
     url(r'^api/stats/core-link-stats', sefaria_views.core_link_stats),
 
