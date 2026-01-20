@@ -124,25 +124,25 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     )
     
     delete_and_save_new_links(asdict(msg))
-    ambiguous_payloads, non_segment_payloads = _load_recent_linker_output_cases(linking_args)
+    ambiguous_payloads = _load_recent_ambiguous_cases(linking_args)
+    non_segment_payloads = _load_recent_non_segment_cases(linking_args)
     print({
         "ambiguous_resolutions": ambiguous_payloads,
         "non_segment_resolutions": non_segment_payloads,
     })
 
 
-def _load_recent_linker_output_cases(linking_args: LinkingArgs) -> tuple[list[dict], list[dict]]:
-    """Load ambiguous and non-segment cases from the latest LinkerOutput for this ref."""
+def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[dict]:
+    """Load ambiguous cases from the latest LinkerOutput for this ref."""
     linker_output = LinkerOutput().load({
         "ref": linking_args.ref,
         "versionTitle": linking_args.vtitle,
         "language": linking_args.lang,
     })
     if not linker_output:
-        return [], []
+        return []
 
     spans = linker_output.contents().get("spans", [])
-
     ambiguous_groups: dict[tuple[int, int], list[dict]] = {}
     for span in spans:
         if span.get("type") == MUTCSpanType.CITATION.value and span.get("ambiguous"):
@@ -169,12 +169,51 @@ def _load_recent_linker_output_cases(linking_args: LinkingArgs) -> tuple[list[di
                 "ambiguous_refs": refs,
             })
 
+    return ambiguous_payloads
+
+
+def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
+    """Load non-segment citation spans; include ambiguous only if MUTC shows non-segment at same charRange."""
+    linker_output = LinkerOutput().load({
+        "ref": linking_args.ref,
+        "versionTitle": linking_args.vtitle,
+        "language": linking_args.lang,
+    })
+    if not linker_output:
+        return []
+
+    spans = linker_output.contents().get("spans", [])
+    mutc = MarkedUpTextChunk().load({
+        "ref": linking_args.ref,
+        "versionTitle": linking_args.vtitle,
+        "language": linking_args.lang,
+    })
+    mutc_spans = (mutc.contents().get("spans", []) if mutc else [])
+    mutc_non_segment_char_ranges: set[tuple[int, int]] = set()
+    for mutc_span in mutc_spans:
+        if mutc_span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        mutc_ref = mutc_span.get("ref")
+        if not mutc_ref:
+            continue
+        try:
+            mutc_oref = Ref(mutc_ref)
+        except Exception:
+            continue
+        if not mutc_oref.is_segment_level():
+            key = tuple(mutc_span.get("charRange", []))
+            if len(key) == 2:
+                mutc_non_segment_char_ranges.add(key)
     non_segment_payloads: list[dict] = []
     for span in spans:
         if span.get("type") != MUTCSpanType.CITATION.value:
             continue
-        if span.get("failed") or span.get("ambiguous"):
+        if span.get("failed"):
             continue
+        if span.get("ambiguous"):
+            key = tuple(span.get("charRange", []))
+            if len(key) != 2 or key not in mutc_non_segment_char_ranges:
+                continue
         ref_str = span.get("ref")
         if not ref_str:
             continue
@@ -192,7 +231,7 @@ def _load_recent_linker_output_cases(linking_args: LinkingArgs) -> tuple[list[di
                 "resolved_ref": ref_str,
             })
 
-    return ambiguous_payloads, non_segment_payloads
+    return non_segment_payloads
 
 
 def _extract_resolved_spans(resolved_refs):
