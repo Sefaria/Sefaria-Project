@@ -24,6 +24,7 @@ django==1.11.*
 django_mobile==0.7.0
 djangorestframework @ https://github.com/encode/django-rest-framework/archive/3.11.1.tar.gz
 djangorestframework_simplejwt==3.3.0
+django-hosts==7.0.0
 dnspython~=2.5.0
 elasticsearch==8.8.2
 geojson==2.5.0
@@ -65,7 +66,7 @@ regex==2020.10.23
 requests
 roman==3.3
 selenium==3.141.0
-# sentry-sdk==1.26.0
+sentry-sdk==1.26.0
 tqdm==4.51.0
 ua-parser==0.10.0
 undecorated==0.3.0
@@ -75,6 +76,7 @@ user-agents==2.2.0
 pytest-django==4.9.*
 redis==5.2.1
 Pympler==1.1
+
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
