@@ -7460,6 +7460,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding-bottom: 0;
 }
 .textListTextRangeBox .connection-buttons, .versionsTextList .connection-buttons{
+  margin-top: 5px;
   margin-bottom: 28px;
   display: flex;
   align-items: flex-start;
