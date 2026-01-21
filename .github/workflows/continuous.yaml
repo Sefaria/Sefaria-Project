@@ -58,8 +58,6 @@ jobs:
       environment: pr
       push_to_prod_registry: false
     secrets:
-      PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
-      DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
       PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
       PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
 

@@ -26,10 +26,6 @@ on:
         type: boolean
         default: false
     secrets:
-      PROD_GKE_PROJECT:
-        required: true
-      DEV_GKE_PROJECT:
-        required: true
       PROD_GKE_PROJECT_ID:
         required: true
       PROD_GKE_SA:
@@ -39,6 +35,8 @@ on:
         value: ${{ jobs.build.outputs.tags }}
       primary_tag:
         value: ${{ jobs.build.outputs.primary_tag }}
+      image:
+        value: ${{ jobs.build.outputs.image }}
 
 jobs:
   build:
@@ -49,6 +47,7 @@ jobs:
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
       primary_tag: ${{ steps.primary_tag.outputs.primary_tag }}
+      image: ${{ steps.primary_tag.outputs.image }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,13 +56,13 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
-#      - id: project
-#        run: |
-#          if [ "${{ inputs.prod }}" = "true" ]; then
-#            echo "PROJECT=${{ secrets.PROD_GKE_PROJECT }}" >> $GITHUB_ENV
-#          else
-#            echo "PROJECT=${{ secrets.DEV_GKE_PROJECT }}" >> $GITHUB_ENV
-#          fi
+      - id: project
+        run: |
+          if [ "${{ inputs.prod }}" = "true" ]; then
+            echo "PROJECT=production-deployment" >> $GITHUB_ENV
+          else
+            echo "PROJECT=development-205018" >> $GITHUB_ENV
+          fi
 
       - id: auth
         uses: google-github-actions/auth@v2
@@ -83,7 +82,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ inputs.image }}
+            us-east1-docker.pkg.dev/${{ steps.project.outputs.project }}/containers/${{ inputs.image }}
           tags: |
             type=raw,value=${{ inputs.image_tag }}-${{ inputs.datetime }}
             type=raw,value=${{ inputs.image_tag }}
@@ -98,12 +97,14 @@ jobs:
         id: primary_tag
         run: |
           PRIMARY="$(echo "$DOCKER_METADATA_OUTPUT_JSON" | yq '.tag-names[0]' )"
+          IMAGE="$(echo "$DOCKER_METADATA_OUTPUT_JSON" | yq '.tags[0]' )"
           if [ -z "$PRIMARY" ]; then
             echo "No tags found from metadata-action; failing early" >&2
             exit 1
           fi
           echo $PRIMARY
           echo "primary_tag=$PRIMARY" >> $GITHUB_OUTPUT
+          echo "image=$PRIMARY" >> $GITHUB_OUTPUT
 
       - name: Debug Tag
         run: echo "${{ steps.primary_tag.outputs.primary_tag }}"
