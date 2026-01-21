@@ -663,29 +663,29 @@ Sefaria = extend(Sefaria, {
       }
       return output;
   },
-    _getLinkerTestString({text, inputRefParts, inputRefPartTypes}) {
-        /**
-         * Outputs a test string that can be pasted into linker_test.py to test the same input.
-         */
+  _getLinkerTestString({text, inputRefParts, inputRefPartTypes}) {
+      /**
+       * Outputs a test string that can be pasted into linker_test.py to test the same input.
+       */
       const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
-        let testStr = "crrd([";
-        for (let i = 0; i < inputRefParts.length; i++) {
-            const part = inputRefParts[i];
-            const type = inputRefPartTypes[i];
-            const symbol = partTypeSymbolMap[type] || "?";
-            testStr += `"${symbol}${part.replace('"', '\\"')}"`;
-            if (i < inputRefParts.length - 1) {
-                testStr += ", ";
-            }
-        }
-        testStr += "]";
-        if (Sefaria.hebrew.isHebrew(text)) {
-            testStr += ")";
-        } else {
-            testStr += ", lang='en')";
-        }
-        return testStr;
-    },
+      let testStr = "crrd([";
+      for (let i = 0; i < inputRefParts.length; i++) {
+          const part = inputRefParts[i];
+          const type = inputRefPartTypes[i];
+          const symbol = partTypeSymbolMap[type] || "?";
+          testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+          if (i < inputRefParts.length - 1) {
+              testStr += ", ";
+          }
+      }
+      testStr += "]";
+      if (Sefaria.hebrew.isHebrew(text)) {
+          testStr += ")";
+      } else {
+          testStr += ", lang='en')";
+      }
+      return testStr;
+  },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
