@@ -17,6 +17,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
 from sefaria.celery_setup.app import app
+from dataclasses import asdict
+from sefaria.helper.linker.tasks import AmbiguousResolutionPayload, NonSegmentResolutionPayload
 
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
@@ -104,14 +106,14 @@ def find_ambiguous_resolutions():
 
             # Only include if truly ambiguous (2+ distinct resolution options)
             if len(normalized_refs) > 1:
-                ambiguous_groups.append({
-                    'ref': raw_linker_output['ref'],
-                    'versionTitle': raw_linker_output['versionTitle'],
-                    'language': raw_linker_output['language'],
-                    'charRange': list(char_range),
-                    'text': text,
-                    'ambiguous_refs': ambiguous_refs
-                })
+                ambiguous_groups.append(AmbiguousResolutionPayload(
+                    ref=raw_linker_output['ref'],
+                    versionTitle=raw_linker_output['versionTitle'],
+                    language=raw_linker_output['language'],
+                    charRange=list(char_range),
+                    text=text,
+                    ambiguous_refs=ambiguous_refs,
+                ))
 
     print(f"Found {len(ambiguous_groups)} ambiguous resolution groups")
     return ambiguous_groups
@@ -190,15 +192,14 @@ def find_non_segment_level_resolutions():
                         # Could be chapter or other level
                         ref_level = f'depth_{len(oref.sections)}'
 
-                    non_segment_resolutions.append({
-                        'ref': raw_linker_output['ref'],
-                        'versionTitle': raw_linker_output['versionTitle'],
-                        'language': raw_linker_output['language'],
-                        'charRange': span['charRange'],
-                        'text': span['text'],
-                        'resolved_ref': ref_str,
-                        'ref_level': ref_level
-                    })
+                    non_segment_resolutions.append(NonSegmentResolutionPayload(
+                        ref=raw_linker_output['ref'],
+                        versionTitle=raw_linker_output['versionTitle'],
+                        language=raw_linker_output['language'],
+                        charRange=span['charRange'],
+                        text=span['text'],
+                        resolved_non_segment_ref=ref_str,
+                    ))
                 except Exception as e:
                     print(f"Warning: Error processing ref {ref_str}: {e}")
 
@@ -206,21 +207,21 @@ def find_non_segment_level_resolutions():
     return non_segment_resolutions
 
 
-def enqueue_ambiguous_resolution(resolution_data: dict):
+def enqueue_ambiguous_resolution(resolution_data: AmbiguousResolutionPayload):
     """Enqueue an ambiguous resolution task following the codebase pattern"""
     sig = app.signature(
         "linker.process_ambiguous_resolution",
-        args=(resolution_data,),
+        args=(asdict(resolution_data),),
         options={"queue": CELERY_QUEUES["tasks"]}
     )
     return sig.apply_async()
 
 
-def enqueue_non_segment_resolution(resolution_data: dict):
+def enqueue_non_segment_resolution(resolution_data: NonSegmentResolutionPayload):
     """Enqueue a non-segment resolution task following the codebase pattern"""
     sig = app.signature(
         "linker.process_non_segment_resolution",
-        args=(resolution_data,),
+        args=(asdict(resolution_data),),
         options={"queue": CELERY_QUEUES["tasks"]}
     )
     return sig.apply_async()

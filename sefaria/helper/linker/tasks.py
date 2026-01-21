@@ -16,7 +16,12 @@ from sefaria.model.linker.ref_resolver import ResolutionThoroughness, ResolvedRe
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.linker import LinkedDoc
 from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
-from sefaria.helper.linker.disambiguator import disambiguate_ambiguous_ref, disambiguate_non_segment_ref
+from sefaria.helper.linker.disambiguator import (
+    disambiguate_ambiguous_ref,
+    disambiguate_non_segment_ref,
+    AmbiguousResolutionResult,
+    NonSegmentResolutionResult,
+)
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
 import structlog
@@ -59,6 +64,39 @@ class DeleteAndSaveLinksMsg:
             user_id=d.get("user_id"),
             tracker_kwargs=d.get("tracker_kwargs") or {},
         )
+
+
+@dataclass(frozen=True)
+class AmbiguousResolutionPayload:
+    ref: str
+    versionTitle: str
+    language: str
+    charRange: list[int]
+    text: str
+    ambiguous_refs: list[str]
+
+
+@dataclass(frozen=True)
+class NonSegmentResolutionPayload:
+    ref: str
+    versionTitle: str
+    language: str
+    charRange: list[int]
+    text: str
+    resolved_non_segment_ref: str
+
+
+@dataclass(frozen=True)
+class AmbiguousResolutionResult:
+    resolved_ref: str
+    matched_segment: Optional[str]
+    method: str
+
+
+@dataclass(frozen=True)
+class NonSegmentResolutionResult:
+    resolved_ref: str
+    method: str
 
 
 @worker_init.connect
@@ -138,7 +176,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
         
 
 
-def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[dict]:
+def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousResolutionPayload]:
     """Load ambiguous cases from the latest LinkerOutput for this ref."""
     linker_output = LinkerOutput().load({
         "ref": linking_args.ref,
@@ -156,7 +194,7 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[dict]:
             if len(key) == 2:
                 ambiguous_groups.setdefault(key, []).append(span)
 
-    ambiguous_payloads: list[dict] = []
+    ambiguous_payloads: list[AmbiguousResolutionPayload] = []
     for char_range, group in ambiguous_groups.items():
         refs = [sp.get("ref") for sp in group if sp.get("ref")]
         normalized = set()
@@ -166,19 +204,19 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[dict]:
             except Exception:
                 normalized.add(ref_str)
         if len(normalized) > 1:
-            ambiguous_payloads.append({
-                "ref": linker_output.ref,
-                "versionTitle": linker_output.versionTitle,
-                "language": linker_output.language,
-                "charRange": list(char_range),
-                "text": group[0].get("text"),
-                "ambiguous_refs": refs,
-            })
+            ambiguous_payloads.append(AmbiguousResolutionPayload(
+                ref=linker_output.ref,
+                versionTitle=linker_output.versionTitle,
+                language=linker_output.language,
+                charRange=list(char_range),
+                text=group[0].get("text"),
+                ambiguous_refs=refs,
+            ))
 
     return ambiguous_payloads
 
 
-def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
+def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegmentResolutionPayload]:
     """Load non-segment citation spans; include ambiguous only if MUTC shows non-segment at same charRange."""
     linker_output = LinkerOutput().load({
         "ref": linking_args.ref,
@@ -210,7 +248,7 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
             key = tuple(mutc_span.get("charRange", []))
             if len(key) == 2:
                 mutc_non_segment_char_ranges.add(key)
-    non_segment_payloads: list[dict] = []
+    non_segment_payloads: list[NonSegmentResolutionPayload] = []
     for span in spans:
         if span.get("type") != MUTCSpanType.CITATION.value:
             continue
@@ -228,14 +266,14 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
         except Exception:
             continue
         if _is_non_segment_or_perek_ref(ref_str, oref):
-            non_segment_payloads.append({
-                "ref": linker_output.ref,
-                "versionTitle": linker_output.versionTitle,
-                "language": linker_output.language,
-                "charRange": span.get("charRange"),
-                "text": span.get("text"),
-                "resolved_ref": ref_str,
-            })
+            non_segment_payloads.append(NonSegmentResolutionPayload(
+                ref=linker_output.ref,
+                versionTitle=linker_output.versionTitle,
+                language=linker_output.language,
+                charRange=span.get("charRange"),
+                text=span.get("text"),
+                resolved_non_segment_ref=ref_str,
+            ))
 
     return non_segment_payloads
 
@@ -277,34 +315,34 @@ def _get_talmud_perek_ref_set() -> set[str]:
     return perakim
 
 
-def _apply_non_segment_resolution(payload: dict, result: Optional[dict]) -> None:
+def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
     """Upsert citation span + link for a resolved non-segment reference."""
-    if not result or not result.get("resolved_ref"):
+    if not result or not result.resolved_ref:
         return
 
-    citing_ref = payload.get("ref")
-    resolved_ref = result.get("resolved_ref")
+    citing_ref = payload.ref
+    resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
 
     span_data = {
-        "charRange": payload.get("charRange"),
-        "text": payload.get("text"),
+        "charRange": payload.charRange,
+        "text": payload.text,
         "type": MUTCSpanType.CITATION.value,
         "ref": resolved_ref,
     }
 
     mutc = MarkedUpTextChunk().load({
-        "ref": payload.get("ref"),
-        "versionTitle": payload.get("versionTitle"),
-        "language": payload.get("language"),
+        "ref": payload.ref,
+        "versionTitle": payload.versionTitle,
+        "language": payload.language,
     })
     if mutc:
         updated = False
         for span in mutc.spans:
             if (
                 span.get("type") == MUTCSpanType.CITATION.value and
-                span.get("charRange") == payload.get("charRange")
+                span.get("charRange") == payload.charRange
             ):
                 span["ref"] = resolved_ref
                 updated = True
@@ -314,9 +352,9 @@ def _apply_non_segment_resolution(payload: dict, result: Optional[dict]) -> None
         mutc.save()
     else:
         mutc = MarkedUpTextChunk({
-            "ref": payload.get("ref"),
-            "versionTitle": payload.get("versionTitle"),
-            "language": payload.get("language"),
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
             "spans": [span_data],
         })
         mutc.save()
@@ -329,7 +367,7 @@ def _apply_non_segment_resolution(payload: dict, result: Optional[dict]) -> None
         "inline_citation": True,
     }
     try:
-        tracker.add(payload.get("user_id"), Link, link, **(payload.get("tracker_kwargs") or {}))
+        tracker.add(None, Link, link, **{})
         if USE_VARNISH:
             try:
                 invalidate_ref(Ref(resolved_ref))
@@ -341,34 +379,34 @@ def _apply_non_segment_resolution(payload: dict, result: Optional[dict]) -> None
         logger.info(f"InputError creating link {citing_ref} -> {resolved_ref}: {e}")
 
 
-def _apply_ambiguous_resolution(payload: dict, result: Optional[dict]) -> None:
+def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
     """Upsert citation span + link for a resolved ambiguous reference."""
-    if not result or not result.get("resolved_ref"):
+    if not result or not result.resolved_ref:
         return
 
-    citing_ref = payload.get("ref")
-    resolved_ref = result.get("resolved_ref")
+    citing_ref = payload.ref
+    resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
 
     span_data = {
-        "charRange": payload.get("charRange"),
-        "text": payload.get("text"),
+        "charRange": payload.charRange,
+        "text": payload.text,
         "type": MUTCSpanType.CITATION.value,
         "ref": resolved_ref,
     }
 
     mutc = MarkedUpTextChunk().load({
-        "ref": payload.get("ref"),
-        "versionTitle": payload.get("versionTitle"),
-        "language": payload.get("language"),
+        "ref": payload.ref,
+        "versionTitle": payload.versionTitle,
+        "language": payload.language,
     })
     if mutc:
         updated = False
         for span in mutc.spans:
             if (
                 span.get("type") == MUTCSpanType.CITATION.value and
-                span.get("charRange") == payload.get("charRange")
+                span.get("charRange") == payload.charRange
             ):
                 span["ref"] = resolved_ref
                 updated = True
@@ -378,9 +416,9 @@ def _apply_ambiguous_resolution(payload: dict, result: Optional[dict]) -> None:
         mutc.save()
     else:
         mutc = MarkedUpTextChunk({
-            "ref": payload.get("ref"),
-            "versionTitle": payload.get("versionTitle"),
-            "language": payload.get("language"),
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
             "spans": [span_data],
         })
         mutc.save()
@@ -393,7 +431,7 @@ def _apply_ambiguous_resolution(payload: dict, result: Optional[dict]) -> None:
         "inline_citation": True,
     }
     try:
-        tracker.add(payload.get("user_id"), Link, link, **(payload.get("tracker_kwargs") or {}))
+        tracker.add(None, Link, link, **{})
         if USE_VARNISH:
             try:
                 invalidate_ref(Ref(resolved_ref))
@@ -602,48 +640,48 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
         }
     """
     logger.info("=== Processing Ambiguous Resolution ===")
-    logger.info(f"Ref: {resolution_data.get('ref')}")
-    logger.info(f"Version: {resolution_data.get('versionTitle')} ({resolution_data.get('language')})")
-    logger.info(f"Text: '{resolution_data.get('text')}'")
-    logger.info(f"Char Range: {resolution_data.get('charRange')}")
-    logger.info(f"Ambiguous Options ({len(resolution_data.get('ambiguous_refs', []))}): {resolution_data.get('ambiguous_refs')}")
+    payload = AmbiguousResolutionPayload(**resolution_data)
+    logger.info(f"Ref: {payload.ref}")
+    logger.info(f"Version: {payload.versionTitle} ({payload.language})")
+    logger.info(f"Text: '{payload.text}'")
+    logger.info(f"Char Range: {payload.charRange}")
+    logger.info(f"Ambiguous Options ({len(payload.ambiguous_refs)}): {payload.ambiguous_refs}")
 
     try:
-        result = disambiguate_ambiguous_ref(resolution_data)
+        result = disambiguate_ambiguous_ref(payload)
         if result:
-            resolved_ref = result['resolved_ref']
+            resolved_ref = result.resolved_ref
             print(f"\n{'='*80}")
             print(f"AMBIGUOUS RESOLUTION SUCCESS")
             print(f"{'='*80}")
-            print(f"Citing Ref: {resolution_data['ref']}")
-            print(f"Version: {resolution_data['versionTitle']} ({resolution_data['language']})")
-            print(f"Citation Text: '{resolution_data['text']}'")
-            print(f"Char Range: {resolution_data['charRange']}")
-            print(f"Ambiguous Options: {resolution_data['ambiguous_refs']}")
+            print(f"Citing Ref: {payload.ref}")
+            print(f"Version: {payload.versionTitle} ({payload.language})")
+            print(f"Citation Text: '{payload.text}'")
+            print(f"Char Range: {payload.charRange}")
+            print(f"Ambiguous Options: {payload.ambiguous_refs}")
             print(f"→ RESOLVED TO: {resolved_ref}")
-            print(f"  Confidence: {result['confidence']}")
-            print(f"  Method: {result['method']}")
-            if 'matched_segment' in result and result['matched_segment']:
-                print(f"  Matched Segment: {result['matched_segment']}")
+            print(f"  Method: {result.method}")
+            if result.matched_segment:
+                print(f"  Matched Segment: {result.matched_segment}")
             print(f"{'='*80}\n")
 
-            logger.info(f"✓ Resolved to: {resolved_ref} (confidence: {result['confidence']}, method: {result['method']})")
+            logger.info(f"✓ Resolved to: {resolved_ref} (method: {result.method})")
             # TODO: Update LinkerOutput with the resolved reference
             # TODO: Create/update Link records if needed
         else:
             print(f"\n{'='*80}")
             print(f"AMBIGUOUS RESOLUTION FAILED")
             print(f"{'='*80}")
-            print(f"Citing Ref: {resolution_data['ref']}")
-            print(f"Citation Text: '{resolution_data['text']}'")
-            print(f"Ambiguous Options: {resolution_data['ambiguous_refs']}")
+            print(f"Citing Ref: {payload.ref}")
+            print(f"Citation Text: '{payload.text}'")
+            print(f"Ambiguous Options: {payload.ambiguous_refs}")
             print(f"{'='*80}\n")
             logger.warning("✗ Could not resolve ambiguous reference")
     except Exception as e:
         print(f"\n{'='*80}")
         print(f"AMBIGUOUS RESOLUTION ERROR")
         print(f"{'='*80}")
-        print(f"Citing Ref: {resolution_data['ref']}")
+        print(f"Citing Ref: {payload.ref}")
         print(f"Error: {e}")
         print(f"{'='*80}\n")
         logger.error(f"✗ Error during disambiguation: {e}", exc_info=True)
@@ -670,47 +708,50 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
         }
     """
     logger.info("=== Processing Non-Segment Resolution ===")
-    logger.info(f"Ref: {resolution_data.get('ref')}")
-    logger.info(f"Version: {resolution_data.get('versionTitle')} ({resolution_data.get('language')})")
-    logger.info(f"Text: '{resolution_data.get('text')}'")
-    logger.info(f"Char Range: {resolution_data.get('charRange')}")
-    logger.info(f"Resolved To: {resolution_data.get('resolved_ref')} (level: {resolution_data.get('ref_level')})")
+    if "resolved_non_segment_ref" not in resolution_data and "resolved_ref" in resolution_data:
+        resolution_data = dict(resolution_data)
+        resolution_data["resolved_non_segment_ref"] = resolution_data.pop("resolved_ref")
+    payload = NonSegmentResolutionPayload(**resolution_data)
+    logger.info(f"Ref: {payload.ref}")
+    logger.info(f"Version: {payload.versionTitle} ({payload.language})")
+    logger.info(f"Text: '{payload.text}'")
+    logger.info(f"Char Range: {payload.charRange}")
+    logger.info(f"Resolved To: {payload.resolved_non_segment_ref}")
 
     try:
-        result = disambiguate_non_segment_ref(resolution_data)
+        result = disambiguate_non_segment_ref(payload)
         if result:
-            resolved_ref = result['resolved_ref']
+            resolved_ref = result.resolved_ref
             print(f"\n{'='*80}")
             print(f"NON-SEGMENT RESOLUTION SUCCESS")
             print(f"{'='*80}")
-            print(f"Citing Ref: {resolution_data['ref']}")
-            print(f"Version: {resolution_data['versionTitle']} ({resolution_data['language']})")
-            print(f"Citation Text: '{resolution_data['text']}'")
-            print(f"Char Range: {resolution_data['charRange']}")
-            print(f"Original Non-Segment Ref: {resolution_data['resolved_ref']} (level: {resolution_data['ref_level']})")
+            print(f"Citing Ref: {payload.ref}")
+            print(f"Version: {payload.versionTitle} ({payload.language})")
+            print(f"Citation Text: '{payload.text}'")
+            print(f"Char Range: {payload.charRange}")
+            print(f"Original Non-Segment Ref: {payload.resolved_non_segment_ref}")
             print(f"→ RESOLVED TO SEGMENT: {resolved_ref}")
-            print(f"  Confidence: {result['confidence']}")
-            print(f"  Method: {result['method']}")
+            print(f"  Method: {result.method}")
             print(f"{'='*80}\n")
 
-            logger.info(f"✓ Resolved to segment: {resolved_ref} (confidence: {result['confidence']}, method: {result['method']})")
+            logger.info(f"✓ Resolved to segment: {resolved_ref} (method: {result.method})")
             # TODO: Update LinkerOutput with the resolved reference
             # TODO: Create/update Link records if needed
         else:
             print(f"\n{'='*80}")
             print(f"NON-SEGMENT RESOLUTION FAILED")
             print(f"{'='*80}")
-            print(f"Citing Ref: {resolution_data['ref']}")
-            print(f"Citation Text: '{resolution_data['text']}'")
-            print(f"Non-Segment Ref: {resolution_data['resolved_ref']}")
+            print(f"Citing Ref: {payload.ref}")
+            print(f"Citation Text: '{payload.text}'")
+            print(f"Non-Segment Ref: {payload.resolved_non_segment_ref}")
             print(f"{'='*80}\n")
             logger.warning("✗ Could not resolve to segment level")
     except Exception as e:
         print(f"\n{'='*80}")
         print(f"NON-SEGMENT RESOLUTION ERROR")
         print(f"{'='*80}")
-        print(f"Citing Ref: {resolution_data['ref']}")
-        print(f"Non-Segment Ref: {resolution_data['resolved_ref']}")
+        print(f"Citing Ref: {payload.ref}")
+        print(f"Non-Segment Ref: {payload.resolved_non_segment_ref}")
         print(f"Error: {e}")
         print(f"{'='*80}\n")
         logger.error(f"✗ Error during resolution: {e}", exc_info=True)

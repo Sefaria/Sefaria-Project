@@ -7,6 +7,7 @@ import structlog
 import os
 import re
 import requests
+from dataclasses import dataclass
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
 
@@ -24,6 +25,19 @@ from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
 
 logger = structlog.get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class AmbiguousResolutionResult:
+    resolved_ref: str
+    matched_segment: Optional[str]
+    method: str
+
+
+@dataclass(frozen=True)
+class NonSegmentResolutionResult:
+    resolved_ref: str
+    method: str
 
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
@@ -707,7 +721,7 @@ def _fallback_search_pipeline(
 
 
 @traceable(run_type="chain", name="disambiguate_non_segment_ref")
-def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def disambiguate_non_segment_ref(resolution_data: Any) -> Optional[NonSegmentResolutionResult]:
     """
     Disambiguate a non-segment-level reference to a specific segment.
 
@@ -735,11 +749,11 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
     """
     try:
 
-        citing_ref = resolution_data['ref']
-        citing_text_snippet = resolution_data['text']
-        citing_lang = resolution_data['language']
-        non_segment_ref_str = resolution_data['resolved_ref']
-        vtitle = resolution_data.get('versionTitle')
+        citing_ref = resolution_data.ref
+        citing_text_snippet = resolution_data.text
+        citing_lang = resolution_data.language
+        non_segment_ref_str = resolution_data.resolved_non_segment_ref
+        vtitle = resolution_data.versionTitle
 
         logger.info(f"Disambiguating non-segment ref: {non_segment_ref_str}")
 
@@ -761,10 +775,10 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
         if len(segment_refs) == 1:
             resolved_ref = segment_refs[0].normal()
             logger.info(f"Auto-resolved single segment: {resolved_ref}")
-            return {
-                'resolved_ref': resolved_ref,
-                'method': 'auto_single_segment'
-            }
+            return NonSegmentResolutionResult(
+                resolved_ref=resolved_ref,
+                method='auto_single_segment',
+            )
 
         # Case 2: 2-3 segments - use LLM to pick directly
         if len(segment_refs) in [2, 3]:
@@ -785,7 +799,7 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 return None
 
             # Create marked text
-            span = {'charRange': resolution_data['charRange'], 'text': citing_text_snippet}
+            span = {'charRange': resolution_data.charRange, 'text': citing_text_snippet}
             windowed_text, windowed_span = _window_around_span(citing_text_full, span, WINDOW_WORDS)
             marked_text = _mark_citation(windowed_text, windowed_span)
 
@@ -816,10 +830,10 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 for cand in candidates:
                     if cand['index'] == choice:
                         logger.info(f"LLM resolved to: {cand['resolved_ref']}")
-                        return {
-                            'resolved_ref': cand['resolved_ref'],
-                            'method': 'llm_small_range'
-                        }
+                        return NonSegmentResolutionResult(
+                            resolved_ref=cand['resolved_ref'],
+                            method='llm_small_range',
+                        )
 
             logger.warning(f"Could not parse LLM response: {content}")
             return None
@@ -830,7 +844,7 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
             return None
 
         # Create windowed and marked text
-        span = {'charRange': resolution_data['charRange'], 'text': citing_text_snippet}
+        span = {'charRange': resolution_data.charRange, 'text': citing_text_snippet}
         windowed_text, windowed_span = _window_around_span(citing_text_full, span, WINDOW_WORDS)
         marked_text = _mark_citation(windowed_text, windowed_span)
 
@@ -858,10 +872,10 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 resolved_ref = candidate['resolved_ref']
                 if citing_ref.startswith("Metzudat Zion"):
                     logger.info(f"Auto-approved Metzudat Zion (skipped LLM): {resolved_ref}")
-                    return {
-                        'resolved_ref': resolved_ref,
-                        'method': 'dicta_auto_approved'
-                    }
+                    return NonSegmentResolutionResult(
+                        resolved_ref=resolved_ref,
+                        method='dicta_auto_approved',
+                    )
 
                 candidate_text = _get_ref_text(resolved_ref, citing_lang)
 
@@ -869,10 +883,10 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
                 ok, reason = _llm_confirm_candidate(marked_text, resolved_ref, candidate_text)
                 if ok:
                     logger.info(f"Dicta candidate {resolved_ref} confirmed by LLM")
-                    return {
-                        'resolved_ref': resolved_ref,
-                        'method': 'dicta_llm_confirmed'
-                    }
+                    return NonSegmentResolutionResult(
+                        resolved_ref=resolved_ref,
+                        method='dicta_llm_confirmed',
+                    )
                 else:
                     logger.info(f"Dicta candidate {resolved_ref} rejected by LLM: {reason}")
 
@@ -886,7 +900,7 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
         search_result = _fallback_search_pipeline(
             marked_citing_text=marked_text,
             citing_text=citing_text_full,
-            span={'charRange': resolution_data['charRange'], 'text': citing_text_snippet},
+            span={'charRange': resolution_data.charRange, 'text': citing_text_snippet},
             non_segment_ref=non_segment_ref_str,
             citing_ref=citing_ref,
             lang=citing_lang,
@@ -899,10 +913,10 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
             resolved_ref = search_result['resolved_ref']
             if citing_ref.startswith("Metzudat Zion"):
                 logger.info(f"Auto-approved Metzudat Zion (skipped LLM): {resolved_ref}")
-                return {
-                    'resolved_ref': resolved_ref,
-                    'method': 'search_auto_approved'
-                }
+                return NonSegmentResolutionResult(
+                    resolved_ref=resolved_ref,
+                    method='search_auto_approved',
+                )
 
             candidate_text = _get_ref_text(resolved_ref, citing_lang)
 
@@ -910,10 +924,10 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
             ok, reason = _llm_confirm_candidate(marked_text, resolved_ref, candidate_text, base_ref, base_text)
             if ok:
                 logger.info(f"Search candidate {resolved_ref} confirmed by LLM")
-                return {
-                    'resolved_ref': resolved_ref,
-                    'method': 'search_llm_confirmed'
-                }
+                return NonSegmentResolutionResult(
+                    resolved_ref=resolved_ref,
+                    method='search_llm_confirmed',
+                )
             else:
                 logger.info(f"Search candidate {resolved_ref} rejected by LLM: {reason}")
 
@@ -926,7 +940,7 @@ def disambiguate_non_segment_ref(resolution_data: Dict[str, Any]) -> Optional[Di
 
 
 @traceable(run_type="chain", name="disambiguate_ambiguous_ref")
-def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def disambiguate_ambiguous_ref(resolution_data: Any) -> Optional[AmbiguousResolutionResult]:
     """
     Disambiguate between multiple possible reference resolutions.
 
@@ -952,11 +966,11 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
     """
     try:
 
-        citing_ref = resolution_data['ref']
-        citing_text_snippet = resolution_data['text']
-        citing_lang = resolution_data['language']
-        ambiguous_refs = resolution_data['ambiguous_refs']
-        vtitle = resolution_data.get('versionTitle')
+        citing_ref = resolution_data.ref
+        citing_text_snippet = resolution_data.text
+        citing_lang = resolution_data.language
+        ambiguous_refs = resolution_data.ambiguous_refs
+        vtitle = resolution_data.versionTitle
 
         logger.info(f"Disambiguating ambiguous ref with {len(ambiguous_refs)} options: {ambiguous_refs}")
 
@@ -995,7 +1009,7 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
         logger.info(f"Valid candidates: {[c['ref'] for c in valid_candidates]}")
 
         # Create windowed and marked text
-        span = {'charRange': resolution_data['charRange'], 'text': citing_text_snippet}
+        span = {'charRange': resolution_data.charRange, 'text': citing_text_snippet}
         windowed_text, windowed_span = _window_around_span(citing_text_full, span, WINDOW_WORDS)
         marked_text = _mark_citation(windowed_text, windowed_span)
 
@@ -1022,11 +1036,11 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
 
             if ok:
                 logger.info(f"LLM confirmed Dicta match: {match_ref}")
-                return {
-                    'resolved_ref': dicta_match['ref'],  # Return the candidate ref, not the segment
-                    'matched_segment': match_ref if match_ref != dicta_match['ref'] else None,
-                    'method': 'dicta_llm_confirmed'
-                }
+                return AmbiguousResolutionResult(
+                    resolved_ref=dicta_match['ref'],
+                    matched_segment=match_ref if match_ref != dicta_match['ref'] else None,
+                    method='dicta_llm_confirmed',
+                )
             else:
                 logger.info(f"LLM rejected Dicta match: {reason}")
 
@@ -1043,11 +1057,11 @@ def disambiguate_ambiguous_ref(resolution_data: Dict[str, Any]) -> Optional[Dict
 
             if ok:
                 logger.info(f"LLM confirmed search match: {match_ref}")
-                return {
-                    'resolved_ref': search_match['ref'],  # Return the candidate ref, not the segment
-                    'matched_segment': match_ref if match_ref != search_match['ref'] else None,
-                    'method': 'search_llm_confirmed'
-                }
+                return AmbiguousResolutionResult(
+                    resolved_ref=search_match['ref'],
+                    matched_segment=match_ref if match_ref != search_match['ref'] else None,
+                    method='search_llm_confirmed',
+                )
             else:
                 logger.info(f"LLM rejected search match: {reason}")
 
