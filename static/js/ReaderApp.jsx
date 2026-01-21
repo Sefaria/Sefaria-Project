@@ -1333,7 +1333,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!settings) { return null; }
     return extend(Sefaria.util.clone(this.getDefaultPanelSettings()), settings);
   }
-  openURL(href, replace=true, overrideContentLang=false) {
 
   handleModuleLinkRightClick(e) {
     /*
