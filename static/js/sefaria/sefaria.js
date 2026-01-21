@@ -663,26 +663,39 @@ Sefaria = extend(Sefaria, {
       }
       return output;
   },
-  _getLinkerTestString({text, inputRefParts, inputRefPartTypes}) {
+  _getLinkerTestString({text, inputRefParts, inputRefPartTypes, inputRangeSections, inputRangeToSections}) {
       /**
        * Outputs a test string that can be pasted into linker_test.py to test the same input.
        */
-      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
       let testStr = "crrd([";
-      for (let i = 0; i < inputRefParts.length; i++) {
-          const part = inputRefParts[i];
-          const type = inputRefPartTypes[i];
-          const symbol = partTypeSymbolMap[type] || "?";
-          testStr += `"${symbol}${part.replace('"', '\\"')}"`;
-          if (i < inputRefParts.length - 1) {
-              testStr += ", ";
-          }
-      }
+      testStr += Sefaria._getLinkerTestStringForParts(inputRefParts, inputRefPartTypes, inputRangeSections, inputRangeToSections);
       testStr += "]";
       if (Sefaria.hebrew.isHebrew(text)) {
           testStr += ")";
       } else {
           testStr += ", lang='en')";
+      }
+      return testStr;
+  },
+  _getLinkerTestStringForParts(refParts, refPartTypes, rangeSections, rangeToSections) {
+      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
+      let testStr = "";
+      for (let i = 0; i < refParts.length; i++) {
+          const part = refParts[i];
+          const type = refPartTypes[i];
+          if (type === "RANGE" && rangeSections && rangeToSections) {
+              testStr += Sefaria._getLinkerTestStringForParts(rangeSections, Array(rangeSections.length).fill("NUMBERED"));
+              testStr += ", ";
+              testStr += Sefaria._getLinkerTestStringForParts(["-"], ["RANGE_SYMBOL"]);
+              testStr += ", ";
+              testStr += Sefaria._getLinkerTestStringForParts(rangeToSections, Array(rangeToSections.length).fill("NUMBERED"));
+          } else {
+              const symbol = partTypeSymbolMap[type] || "?";
+              testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+          }
+          if (i < refParts.length - 1) {
+              testStr += ", ";
+          }
       }
       return testStr;
   },
