@@ -12,9 +12,9 @@ from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
-from sefaria.model.tests.topic_test import topic_pool
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
 logger = structlog.get_logger(__name__)
@@ -202,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    def complete(self, instring, limit=0, redirected=False, types=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -216,7 +216,7 @@ class AutoCompleter(object):
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
-                         do_autocorrect=len(instring) < self.max_autocorrect_length, type=type, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, types=types, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
         cm.process()
         if cm.has_results():
             return cm.get_completion_strings(), cm.get_completion_objects()
@@ -224,7 +224,9 @@ class AutoCompleter(object):
         # No results. Try letter swap
         if not redirected and self.other_lang_ac and not exact_continuations:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
-            return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
+            return self.other_lang_ac.complete(swapped_string, limit, redirected=True, types=types,
+                                               topic_pool=topic_pool, exact_continuations=exact_continuations,
+                                               order_by_matched_length=order_by_matched_length)
 
         return [], []
 
@@ -259,7 +261,7 @@ class Completions(object):
         "Term": "Term",
         "User": "User"}
 
-    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True, type=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect=True, types=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
@@ -284,7 +286,7 @@ class Completions(object):
         self._completion_objects = []
         self._candidate_type_counters = defaultdict(int)
         self._type_limit = 3
-        self.type = type
+        self.types = types
         self.topic_pool = topic_pool
         self.exact_continuations = exact_continuations
         self.order_by_matched_length = order_by_matched_length
@@ -334,7 +336,7 @@ class Completions(object):
             return c[1]["order"]
         else:
             return c[1]["order"] * 100
-
+    
     def _filter_completions_by_type(self, completion_strings, completion_objects):
         filtered_completions = [
             (cs, co)
@@ -345,20 +347,19 @@ class Completions(object):
         return list(list1), list(list2)
 
     def _has_required_type(self, completion_object):
-        if not self.type:
+        if not self.types:
             return True
 
         co_type = completion_object["type"]
         normalized_type = self._type_norm_map[co_type]
 
-        if normalized_type != self.type:
+        if normalized_type not in self.types:
             return False
 
         if normalized_type == 'Topic' and self.topic_pool:
             return self.topic_pool in completion_object["topic_pools"]
 
         return True
-
 
     def _collect_candidates(self):
         # Match titles that begin exactly this way

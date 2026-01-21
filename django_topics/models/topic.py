@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models.query import QuerySet
-from django_topics.models.pool import TopicPool
+from .pool import TopicPool
 from collections import defaultdict
 
 

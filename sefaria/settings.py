@@ -53,7 +53,13 @@ STATIC_ROOT = '/app/static-collected'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+def get_static_url():
+    if os.getenv('FRONT_END_URL'):
+        return os.getenv('FRONT_END_URL').replace('http://', 'https://') + '/static/'
+    else:
+        return '/static/'
+STATIC_URL = get_static_url()
+
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -93,10 +99,9 @@ TEMPLATES = [
                     "sefaria.system.context_processors.cache_timestamp",
                     "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.header_html",
-                    "sefaria.system.context_processors.footer_html",
                     "sefaria.system.context_processors.base_props",
                     "sefaria.system.context_processors.chatbot_user_token",
+                    "sefaria.system.context_processors.module_context",
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',
@@ -108,13 +113,16 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'django_hosts.middleware.HostsRequestMiddleware',  # must be first
+    'sefaria.system.middleware.SessionCookieDomainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'sefaria.system.middleware.ModuleMiddleware',
     'sefaria.system.middleware.LocationSettingsMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
@@ -126,7 +134,7 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
-
+    'django_hosts.middleware.HostsResponseMiddleware',  # must be last
 ]
 
 ROOT_URLCONF = 'sefaria.urls'
@@ -158,13 +166,14 @@ INSTALLED_APPS = (
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'django_hosts',
 )
 
 LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = 'table_of_contents'
+LOGIN_REDIRECT_URL = 'home'
 
-LOGOUT_REDIRECT_URL = 'table_of_contents'
+LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
@@ -316,6 +325,7 @@ if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
@@ -344,3 +354,6 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+ROOT_HOSTCONF = 'sefaria.hosts'
+DEFAULT_HOST = 'library'
