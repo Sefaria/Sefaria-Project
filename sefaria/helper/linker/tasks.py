@@ -19,6 +19,8 @@ from sefaria.helper.linker.linker import make_find_refs_response, FindRefsInput
 from sefaria.helper.linker.disambiguator import (
     disambiguate_ambiguous_ref,
     disambiguate_non_segment_ref,
+    AmbiguousResolutionPayload,
+    NonSegmentResolutionPayload,
     AmbiguousResolutionResult,
     NonSegmentResolutionResult,
 )
@@ -66,37 +68,6 @@ class DeleteAndSaveLinksMsg:
         )
 
 
-@dataclass(frozen=True)
-class AmbiguousResolutionPayload:
-    ref: str
-    versionTitle: str
-    language: str
-    charRange: list[int]
-    text: str
-    ambiguous_refs: list[str]
-
-
-@dataclass(frozen=True)
-class NonSegmentResolutionPayload:
-    ref: str
-    versionTitle: str
-    language: str
-    charRange: list[int]
-    text: str
-    resolved_non_segment_ref: str
-
-
-@dataclass(frozen=True)
-class AmbiguousResolutionResult:
-    resolved_ref: str
-    matched_segment: Optional[str]
-    method: str
-
-
-@dataclass(frozen=True)
-class NonSegmentResolutionResult:
-    resolved_ref: str
-    method: str
 
 
 @worker_init.connect
@@ -666,8 +637,6 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
             print(f"{'='*80}\n")
 
             logger.info(f"✓ Resolved to: {resolved_ref} (method: {result.method})")
-            # TODO: Update LinkerOutput with the resolved reference
-            # TODO: Create/update Link records if needed
         else:
             print(f"\n{'='*80}")
             print(f"AMBIGUOUS RESOLUTION FAILED")
@@ -735,8 +704,6 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
             print(f"{'='*80}\n")
 
             logger.info(f"✓ Resolved to segment: {resolved_ref} (method: {result.method})")
-            # TODO: Update LinkerOutput with the resolved reference
-            # TODO: Create/update Link records if needed
         else:
             print(f"\n{'='*80}")
             print(f"NON-SEGMENT RESOLUTION FAILED")

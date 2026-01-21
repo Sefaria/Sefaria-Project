@@ -18,7 +18,7 @@ from sefaria.system.database import db
 from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
 from sefaria.celery_setup.app import app
 from dataclasses import asdict
-from sefaria.helper.linker.tasks import AmbiguousResolutionPayload, NonSegmentResolutionPayload
+from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonSegmentResolutionPayload
 
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis

@@ -28,6 +28,26 @@ logger = structlog.get_logger(__name__)
 
 
 @dataclass(frozen=True)
+class AmbiguousResolutionPayload:
+    ref: str
+    versionTitle: str
+    language: str
+    charRange: list[int]
+    text: str
+    ambiguous_refs: list[str]
+
+
+@dataclass(frozen=True)
+class NonSegmentResolutionPayload:
+    ref: str
+    versionTitle: str
+    language: str
+    charRange: list[int]
+    text: str
+    resolved_non_segment_ref: str
+
+
+@dataclass(frozen=True)
 class AmbiguousResolutionResult:
     resolved_ref: str
     matched_segment: Optional[str]
@@ -721,7 +741,7 @@ def _fallback_search_pipeline(
 
 
 @traceable(run_type="chain", name="disambiguate_non_segment_ref")
-def disambiguate_non_segment_ref(resolution_data: Any) -> Optional[NonSegmentResolutionResult]:
+def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -> Optional[NonSegmentResolutionResult]:
     """
     Disambiguate a non-segment-level reference to a specific segment.
 
@@ -940,7 +960,7 @@ def disambiguate_non_segment_ref(resolution_data: Any) -> Optional[NonSegmentRes
 
 
 @traceable(run_type="chain", name="disambiguate_ambiguous_ref")
-def disambiguate_ambiguous_ref(resolution_data: Any) -> Optional[AmbiguousResolutionResult]:
+def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> Optional[AmbiguousResolutionResult]:
     """
     Disambiguate between multiple possible reference resolutions.
 
