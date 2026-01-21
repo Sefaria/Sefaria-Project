@@ -126,26 +126,16 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     
     delete_and_save_new_links(asdict(msg))
     ambiguous_payloads = _load_recent_ambiguous_cases(linking_args)
-    ambiguous_results = []
     for payload in ambiguous_payloads:
         result = disambiguate_ambiguous_ref(payload)
-        ambiguous_results.append(result)
         _apply_ambiguous_resolution(payload, result)
-        print({
-            "ambiguous_resolution": payload,
-            "ambiguous_result": result,
-        })
+        
 
     non_segment_payloads = _load_recent_non_segment_cases(linking_args)
-    non_segment_results = []
     for payload in non_segment_payloads:
         result = disambiguate_non_segment_ref(payload)
-        non_segment_results.append(result)
         _apply_non_segment_resolution(payload, result)
-        print({
-            "non_segment_resolution": payload,
-            "non_segment_result": result,
-        })
+        
 
 
 def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[dict]:
