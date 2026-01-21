@@ -129,6 +129,7 @@ data:
     SESSION_CACHE_ALIAS = "default"
 
     SECRET_KEY = os.getenv("SECRET_KEY")
+    CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")

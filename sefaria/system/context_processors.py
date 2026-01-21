@@ -15,6 +15,7 @@ from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
 
@@ -195,3 +196,13 @@ def footer_html(request):
 @user_only
 def body_flags(request):
     return {"EMBED": "embed" in request.GET}
+
+
+@user_only
+def chatbot_user_token(request):
+    if not request.user.is_authenticated:
+        return {"chatbot_user_token": None}
+    if not CHATBOT_USER_ID_SECRET:
+        return {"chatbot_user_token": None}
+    token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+    return {"chatbot_user_token": token}

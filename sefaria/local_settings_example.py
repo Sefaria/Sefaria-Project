@@ -143,6 +143,7 @@ STRAPI_PORT = None
 MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
+CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
 
 
 EMAIL_HOST = 'localhost'

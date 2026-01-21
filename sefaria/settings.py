@@ -69,6 +69,7 @@ STATICFILES_DIRS = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
+CHATBOT_USER_ID_SECRET = 'secret'
 
 TEMPLATES = [
     {
@@ -95,6 +96,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
                     "sefaria.system.context_processors.base_props",
+                    "sefaria.system.context_processors.chatbot_user_token",
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',
