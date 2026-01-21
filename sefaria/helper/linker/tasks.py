@@ -114,7 +114,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     _replace_existing_chunk(chunk)
 
     # Prepare the minimal info the next task needs
-    mutc_trefs = sorted({s["ref"] for s in spans if "ref" in s})  # unique + stable
+    mutc_trefs = sorted({s["ref"] for s in spans if "ref" in s})
     msg = DeleteAndSaveLinksMsg(
         ref=linking_args.ref,
         added_mutc_trefs=mutc_trefs,
