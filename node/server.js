@@ -26,6 +26,7 @@ const server = express();
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
+//Make sure all data her matches what is in data.js
 const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en", "virtualBooks": "virtualBooks" };
 let sharedCacheData = {
   /*
