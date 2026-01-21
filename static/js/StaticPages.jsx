@@ -3107,17 +3107,15 @@ const ProductsPage = memo(() => {
 
 const NewsletterPage = () => (
   <StaticPage>
-    <div className="staticPageBlockInner">
+    <Spacer height={80} />
+    <div className="staticPageBlockInner" style={{ textAlign: 'center' }}>
       <H2Block
         en="Stay Connected"
         he="הישארו מחוברים"
       />
-      <InterfaceText
-        en="Sign up for Sefaria emails"
-        he="הצטרפו לרשימת הדיוור שלנו"
-      />
+      <InterfaceText text={{en: "Sign up for Sefaria emails", he: "הצטרפו לרשימת הדיוור שלנו"}} />
     </div>
-    <div className="staticPageBlockInner" style={{ maxWidth: '400px', margin: '0 auto' }}>
+    <div className="staticPageBlockInner" style={{ width: '200px', margin: '20px auto 0' }}>
       <NewsletterSignUpForm
         contextName="Newsletter Page"
         includeEducatorOption={true}
