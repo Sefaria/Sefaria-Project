@@ -21,6 +21,7 @@ from dataclasses import dataclass, field, asdict
 from bson import ObjectId
 import structlog
 from typing import Any, Dict, List, Optional
+from functools import lru_cache
 
 
 logger = structlog.get_logger(__name__)
@@ -215,7 +216,7 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
             mutc_oref = Ref(mutc_ref)
         except Exception:
             continue
-        if not mutc_oref.is_segment_level():
+        if _is_non_segment_or_perek_ref(mutc_ref, mutc_oref):
             key = tuple(mutc_span.get("charRange", []))
             if len(key) == 2:
                 mutc_non_segment_char_ranges.add(key)
@@ -236,7 +237,7 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
             oref = Ref(ref_str)
         except Exception:
             continue
-        if not oref.is_segment_level():
+        if _is_non_segment_or_perek_ref(ref_str, oref):
             non_segment_payloads.append({
                 "ref": linker_output.ref,
                 "versionTitle": linker_output.versionTitle,
@@ -247,6 +248,43 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[dict]:
             })
 
     return non_segment_payloads
+
+
+def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bool:
+    """Return True for non-segment refs or Talmud perakim refs treated as non-segment."""
+    if oref is None:
+        try:
+            oref = Ref(ref_str)
+        except Exception:
+            return False
+    if not oref.is_segment_level():
+        return True
+    return ref_str in _get_talmud_perek_ref_set()
+
+
+@lru_cache(maxsize=1)
+def _get_talmud_perek_ref_set() -> set[str]:
+    """Cache of Talmud perakim refs (Bavli/Yerushalmi/Tosefta/Mishnah)."""
+    categories = [
+        ["Talmud", "Bavli"],
+        ["Talmud", "Yerushalmi"],
+        ["Tosefta"],
+        ["Mishnah"],
+    ]
+    perakim: set[str] = set()
+    for path in categories:
+        for index in library.get_indexes_in_category_path(path, full_records=True) or []:
+            try:
+                alone_nodes = index.get_referenceable_alone_nodes()
+            except Exception:
+                continue
+            for node in alone_nodes:
+                try:
+                    perakim.add(node.ref().normal())
+                except Exception:
+                    continue
+
+    return perakim
 
 
 def _apply_non_segment_resolution(payload: dict, result: Optional[dict]) -> None:
