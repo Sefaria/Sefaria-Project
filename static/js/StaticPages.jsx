@@ -3105,6 +3105,28 @@ const ProductsPage = memo(() => {
     );
 });
 
+const NewsletterPage = () => (
+  <StaticPage>
+    <div className="staticPageBlockInner">
+      <H2Block
+        en="Stay Connected"
+        he="הישארו מחוברים"
+      />
+      <InterfaceText
+        en="Sign up for Sefaria emails"
+        he="הצטרפו לרשימת הדיוור שלנו"
+      />
+    </div>
+    <div className="staticPageBlockInner" style={{ maxWidth: '400px', margin: '0 auto' }}>
+      <NewsletterSignUpForm
+        contextName="Newsletter Page"
+        includeEducatorOption={true}
+      />
+    </div>
+    <Spacer />
+  </StaticPage>
+);
+
 
 export {
     SheetsLandingPage,
@@ -3119,4 +3141,5 @@ export {
     JobsPage,
     TeamMembersPage,
     ProductsPage,
+    NewsletterPage,
 };
