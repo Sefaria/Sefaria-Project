@@ -34,11 +34,6 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
         purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
-        if version and lang:
-            try:
-                purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
-            except Exception as e:
-                logger.exception(e)
         # Hacky to add these
         purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
