@@ -2220,7 +2220,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
-    const tagsToIgnore = ["INPUT", "TEXTAREA"];
+    const tagsToIgnore = ["INPUT", "TEXTAREA", "LC-CHATBOT"];
     if (tagsToIgnore.includes(e.srcElement.tagName)) {
       // If the selection is from an input or textarea tag, don't do anything special
       return
