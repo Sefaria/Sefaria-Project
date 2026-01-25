@@ -10898,7 +10898,8 @@ span.purim-emoji img{
 }
 @media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {
-    margin-inline-start: 15%;
+    margin-inline-start: 15px;
+    text-align: start;
   }
   .overlayTextOnSheetsHero #title {
     font-size: 24px;
