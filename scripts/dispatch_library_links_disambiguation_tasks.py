@@ -23,7 +23,7 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
-DEBUG_SEED = 48  # Seed for reproducible random sampling
+DEBUG_SEED = 50  # Seed for reproducible random sampling
 
 
 def is_segment_level_ref(ref_str):
@@ -207,21 +207,11 @@ def find_non_segment_level_resolutions():
     return non_segment_resolutions
 
 
-def enqueue_ambiguous_resolution(resolution_data: AmbiguousResolutionPayload):
-    """Enqueue an ambiguous resolution task following the codebase pattern"""
+def enqueue_bulk_disambiguation(payload: dict):
+    """Enqueue single-item bulk disambiguation task following the codebase pattern"""
     sig = app.signature(
-        "linker.process_ambiguous_resolution",
-        args=(asdict(resolution_data),),
-        options={"queue": CELERY_QUEUES["tasks"]}
-    )
-    return sig.apply_async()
-
-
-def enqueue_non_segment_resolution(resolution_data: NonSegmentResolutionPayload):
-    """Enqueue a non-segment resolution task following the codebase pattern"""
-    sig = app.signature(
-        "linker.process_non_segment_resolution",
-        args=(asdict(resolution_data),),
+        "linker.cauldron_routine_disambiguation",
+        args=(payload,),
         options={"queue": CELERY_QUEUES["tasks"]}
     )
     return sig.apply_async()
@@ -252,25 +242,16 @@ def main():
     # Find non-segment-level resolutions
     non_segment_resolutions = find_non_segment_level_resolutions()
 
-    # Dispatch ambiguous resolution tasks
-    print(f"Dispatching {len(ambiguous_resolutions)} ambiguous resolution tasks...")
+    # Dispatch bulk disambiguation tasks (single payload each)
+    print(f"Dispatching {len(ambiguous_resolutions) + len(non_segment_resolutions)} bulk disambiguation tasks...")
     try:
         for resolution in ambiguous_resolutions:
-            enqueue_ambiguous_resolution(resolution)
-        print(f"Dispatched {len(ambiguous_resolutions)} ambiguous resolution tasks")
-    except Exception as e:
-        print(f"\nERROR dispatching ambiguous tasks: {e}")
-        print("Make sure the Celery broker (Redis/RabbitMQ) is running and accessible.")
-        return
-
-    # Dispatch non-segment resolution tasks
-    print(f"Dispatching {len(non_segment_resolutions)} non-segment resolution tasks...")
-    try:
+            enqueue_bulk_disambiguation(asdict(resolution))
         for resolution in non_segment_resolutions:
-            enqueue_non_segment_resolution(resolution)
-        print(f"Dispatched {len(non_segment_resolutions)} non-segment resolution tasks")
+            enqueue_bulk_disambiguation(asdict(resolution))
+        print("Dispatched bulk disambiguation tasks")
     except Exception as e:
-        print(f"\nERROR dispatching non-segment tasks: {e}")
+        print(f"\nERROR dispatching bulk task: {e}")
         print("Make sure the Celery broker (Redis/RabbitMQ) is running and accessible.")
         return
 

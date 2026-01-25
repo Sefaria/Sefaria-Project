@@ -36,6 +36,8 @@ logger = structlog.get_logger(__name__)
 
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.varnish.wrapper import invalidate_ref
+from sefaria.system.database import db
+from datetime import datetime
 
 
 @dataclass(frozen=True)
@@ -296,58 +298,16 @@ def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: 
     if not citing_ref or not resolved_ref:
         return
 
-    span_data = {
-        "charRange": payload.charRange,
-        "text": payload.text,
-        "type": MUTCSpanType.CITATION.value,
-        "ref": resolved_ref,
-    }
+    _upsert_mutc_span(
+        ref=payload.ref,
+        version_title=payload.versionTitle,
+        language=payload.language,
+        char_range=payload.charRange,
+        text=payload.text,
+        resolved_ref=resolved_ref,
+    )
 
-    mutc = MarkedUpTextChunk().load({
-        "ref": payload.ref,
-        "versionTitle": payload.versionTitle,
-        "language": payload.language,
-    })
-    if mutc:
-        updated = False
-        for span in mutc.spans:
-            if (
-                span.get("type") == MUTCSpanType.CITATION.value and
-                span.get("charRange") == payload.charRange
-            ):
-                span["ref"] = resolved_ref
-                updated = True
-                break
-        if not updated:
-            mutc.add_non_overlapping_spans([span_data])
-        mutc.save()
-    else:
-        mutc = MarkedUpTextChunk({
-            "ref": payload.ref,
-            "versionTitle": payload.versionTitle,
-            "language": payload.language,
-            "spans": [span_data],
-        })
-        mutc.save()
-
-    link = {
-        "refs": [citing_ref, resolved_ref],
-        "type": "",
-        "auto": True,
-        "generated_by": "add_links_from_text",
-        "inline_citation": True,
-    }
-    try:
-        tracker.add(None, Link, link, **{})
-        if USE_VARNISH:
-            try:
-                invalidate_ref(Ref(resolved_ref))
-            except InputError:
-                pass
-    except DuplicateRecordError:
-        pass
-    except InputError as e:
-        logger.info(f"InputError creating link {citing_ref} -> {resolved_ref}: {e}")
+    _create_link_for_resolution(citing_ref, resolved_ref)
 
 
 def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
@@ -360,59 +320,136 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
     if not citing_ref or not resolved_ref:
         return
 
-    span_data = {
-        "charRange": payload.charRange,
-        "text": payload.text,
-        "type": MUTCSpanType.CITATION.value,
-        "ref": resolved_ref,
-    }
+    _upsert_mutc_span(
+        ref=payload.ref,
+        version_title=payload.versionTitle,
+        language=payload.language,
+        char_range=payload.charRange,
+        text=payload.text,
+        resolved_ref=resolved_ref,
+    )
 
-    mutc = MarkedUpTextChunk().load({
-        "ref": payload.ref,
-        "versionTitle": payload.versionTitle,
-        "language": payload.language,
-    })
-    if mutc:
-        updated = False
-        for span in mutc.spans:
-            if (
-                span.get("type") == MUTCSpanType.CITATION.value and
-                span.get("charRange") == payload.charRange
-            ):
-                span["ref"] = resolved_ref
-                updated = True
-                break
-        if not updated:
-            mutc.add_non_overlapping_spans([span_data])
-        mutc.save()
-    else:
-        mutc = MarkedUpTextChunk({
+    _create_link_for_resolution(citing_ref, resolved_ref)
+
+
+def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
+    """Upsert citation span + link and record temp data for a resolved non-segment reference."""
+    if not result or not result.resolved_ref:
+        return
+
+    citing_ref = payload.ref
+    resolved_ref = result.resolved_ref
+    if not citing_ref or not resolved_ref:
+        return
+
+    mutc, span_data = _upsert_mutc_span(
+        ref=payload.ref,
+        version_title=payload.versionTitle,
+        language=payload.language,
+        char_range=payload.charRange,
+        text=payload.text,
+        resolved_ref=resolved_ref,
+        return_mutc=True,
+    )
+    if mutc is not None:
+        _record_disambiguated_mutc({
+            "id": mutc._id,
+            "span": span_data,
+            "type": "mutc",
+            "resolution_type": "non_segment",
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
-            "spans": [span_data],
         })
-        mutc.save()
 
-    link = {
-        "refs": [citing_ref, resolved_ref],
-        "type": "",
-        "auto": True,
-        "generated_by": "add_links_from_text",
-        "inline_citation": True,
-    }
+    link_obj, action = _create_or_update_link_for_non_segment_resolution(
+        citing_ref=citing_ref,
+        non_segment_ref=payload.resolved_non_segment_ref,
+        resolved_ref=resolved_ref,
+    )
+    if link_obj is not None:
+        _record_disambiguated_link({
+            "id": link_obj._id,
+            "type": "link",
+            "action": action,
+            "link": link_obj.contents(),
+            "resolution_type": "non_segment",
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
+            "previous_ref": payload.resolved_non_segment_ref,
+            "resolved_ref": resolved_ref,
+        })
+
+
+def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
+    """Upsert citation span + link and record temp data for a resolved ambiguous reference."""
+    if not result or not result.resolved_ref:
+        return
+
+    citing_ref = payload.ref
+    resolved_ref = result.resolved_ref
+    if not citing_ref or not resolved_ref:
+        return
+
+    mutc, span_data = _upsert_mutc_span(
+        ref=payload.ref,
+        version_title=payload.versionTitle,
+        language=payload.language,
+        char_range=payload.charRange,
+        text=payload.text,
+        resolved_ref=resolved_ref,
+        return_mutc=True,
+    )
+    if mutc is not None:
+        _record_disambiguated_mutc({
+            "id": mutc._id,
+            "span": span_data,
+            "type": "mutc",
+            "resolution_type": "ambiguous",
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
+        })
+
+    link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
+    if link_obj is not None:
+        _record_disambiguated_link({
+            "id": link_obj._id,
+            "type": "link",
+            "resolution_type": "ambiguous",
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
+        })
+
+
+def _record_disambiguated_mutc(payload: dict) -> None:
+    """
+    Temp task: record MUTC edits/creates after disambiguation.
+    Expected payload: {id: ObjectId, span: {...}, type: "mutc", ...}
+    """
+    doc = dict(payload)
+    doc["created_at"] = datetime.utcnow()
     try:
-        tracker.add(None, Link, link, **{})
-        if USE_VARNISH:
-            try:
-                invalidate_ref(Ref(resolved_ref))
-            except InputError:
-                pass
-    except DuplicateRecordError:
-        pass
-    except InputError as e:
-        logger.info(f"InputError creating link {citing_ref} -> {resolved_ref}: {e}")
+        db.linker_disambiguation_tmp.insert_one(doc)
+        logger.info("Recorded disambiguated MUTC", payload=doc)
+    except Exception:
+        logger.exception("Failed recording disambiguated MUTC", payload=doc)
 
+
+def _record_disambiguated_link(payload: dict) -> None:
+    """
+    Temp func: record new link after disambiguation.
+    Expected payload: {id: ObjectId, type: "link", ...}
+    """
+    doc = dict(payload)
+    doc["created_at"] = datetime.utcnow()
+    try:
+        db.linker_disambiguation_tmp.insert_one(doc)
+        logger.info("Recorded disambiguated link", payload=doc)
+    except Exception:
+        logger.exception("Failed recording disambiguated link", payload=doc)
 
 def _extract_resolved_spans(resolved_refs):
     spans = []
@@ -427,6 +464,105 @@ def _extract_resolved_spans(resolved_refs):
             "ref": resolved_ref.ref.normal(),
         })
     return spans
+
+
+def _upsert_mutc_span(
+    ref: str,
+    version_title: str,
+    language: str,
+    char_range: list[int],
+    text: str,
+    resolved_ref: str,
+    return_mutc: bool = False,
+):
+    span_data = {
+        "charRange": char_range,
+        "text": text,
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+    }
+
+    mutc = MarkedUpTextChunk().load({
+        "ref": ref,
+        "versionTitle": version_title,
+        "language": language,
+    })
+    if mutc:
+        updated = False
+        for span in mutc.spans:
+            if (
+                span.get("type") == MUTCSpanType.CITATION.value and
+                span.get("charRange") == char_range
+            ):
+                span["ref"] = resolved_ref
+                updated = True
+                break
+        if not updated:
+            mutc.add_non_overlapping_spans([span_data])
+        mutc.save()
+    else:
+        mutc = MarkedUpTextChunk({
+            "ref": ref,
+            "versionTitle": version_title,
+            "language": language,
+            "spans": [span_data],
+        })
+        mutc.save()
+
+    if return_mutc:
+        return mutc, span_data
+    return None
+
+
+def _create_link_for_resolution(citing_ref: str, resolved_ref: str) -> Optional[Link]:
+    link = {
+        "refs": [citing_ref, resolved_ref],
+        "type": "",
+        "auto": True,
+        "generated_by": "add_links_from_text",
+        "inline_citation": True,
+    }
+    try:
+        link_obj = tracker.add(None, Link, link, **{})
+        if USE_VARNISH:
+            try:
+                invalidate_ref(Ref(resolved_ref))
+            except InputError:
+                pass
+        return link_obj
+    except DuplicateRecordError:
+        return None
+    except InputError as e:
+        logger.info(f"InputError creating link {citing_ref} -> {resolved_ref}: {e}")
+        return None
+
+
+def _create_or_update_link_for_non_segment_resolution(
+    citing_ref: str,
+    non_segment_ref: str,
+    resolved_ref: str,
+) -> tuple[Optional[Link], str]:
+    try:
+        citing_normal = Ref(citing_ref).normal()
+        non_segment_normal = Ref(non_segment_ref).normal()
+    except Exception:
+        citing_normal = citing_ref
+        non_segment_normal = non_segment_ref
+
+    existing_link = Link().load({"refs": {"$all": [citing_normal, non_segment_normal]}})
+    if existing_link:
+        existing_link.refs = sorted([citing_ref, resolved_ref])
+        existing_link.save()
+        if USE_VARNISH:
+            try:
+                invalidate_ref(Ref(resolved_ref))
+            except InputError:
+                pass
+        return existing_link, "updated"
+
+    link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
+    return link_obj, "created"
+
 
 
 def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
@@ -724,3 +860,27 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
         logger.error(f"✗ Error during resolution: {e}", exc_info=True)
 
     logger.info("=========================================")
+
+
+@app.task(name="linker.cauldron_routine_disambiguation")
+def cauldron_routine_disambiguation(payload: dict) -> dict:
+    """
+    Single-item disambiguation task that records MUTC/link outputs in a temp collection.
+    Accepts either an AmbiguousResolutionPayload or NonSegmentResolutionPayload (as dict).
+    """
+    logger.info("=== Processing Bulk Disambiguation (single) ===")
+    if "ambiguous_refs" in payload:
+        amb_payload = AmbiguousResolutionPayload(**payload)
+        result = disambiguate_ambiguous_ref(amb_payload)
+        if result and result.resolved_ref:
+            _apply_ambiguous_resolution_with_record(amb_payload, result)
+        return None
+
+    if "resolved_non_segment_ref" not in payload and "resolved_ref" in payload:
+        payload = dict(payload)
+        payload["resolved_non_segment_ref"] = payload.pop("resolved_ref")
+    ns_payload = NonSegmentResolutionPayload(**payload)
+    result = disambiguate_non_segment_ref(ns_payload)
+    if result and result.resolved_ref:
+        _apply_non_segment_resolution_with_record(ns_payload, result)
+    return None
