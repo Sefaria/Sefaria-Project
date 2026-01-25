@@ -813,9 +813,6 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
         }
     """
     logger.info("=== Processing Non-Segment Resolution ===")
-    if "resolved_non_segment_ref" not in resolution_data and "resolved_ref" in resolution_data:
-        resolution_data = dict(resolution_data)
-        resolution_data["resolved_non_segment_ref"] = resolution_data.pop("resolved_ref")
     payload = NonSegmentResolutionPayload(**resolution_data)
     logger.info(f"Ref: {payload.ref}")
     logger.info(f"Version: {payload.versionTitle} ({payload.language})")
@@ -876,9 +873,6 @@ def cauldron_routine_disambiguation(payload: dict) -> dict:
             _apply_ambiguous_resolution_with_record(amb_payload, result)
         return None
 
-    if "resolved_non_segment_ref" not in payload and "resolved_ref" in payload:
-        payload = dict(payload)
-        payload["resolved_non_segment_ref"] = payload.pop("resolved_ref")
     ns_payload = NonSegmentResolutionPayload(**payload)
     result = disambiguate_non_segment_ref(ns_payload)
     if result and result.resolved_ref:
