@@ -23,7 +23,7 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 # Global flag for debug mode
 DEBUG_MODE = True  # Set this to False for full analysis
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
-DEBUG_SEED = 50  # Seed for reproducible random sampling
+DEBUG_SEED = 51  # Seed for reproducible random sampling
 
 
 def is_segment_level_ref(ref_str):
