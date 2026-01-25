@@ -586,7 +586,7 @@ Sefaria = extend(Sefaria, {
     } else if (language) {
         versionParamsString = language;
     }
-    return versionParamsString;
+    return encodeURIComponent(versionParamsString);
   },
   makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
     const host = Sefaria.apiHost;
