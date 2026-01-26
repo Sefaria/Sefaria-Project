@@ -26,7 +26,7 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 
 # ---- params (edit these) ----
-INPUT_REF_OR_URL = "Sod_Yesharim%2C_Yom_Kippur.11.1"
+INPUT_REF_OR_URL = "Sod_Yesharim%2C_Yom_Kippur.13.1"
 BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 # -----------------------------
 

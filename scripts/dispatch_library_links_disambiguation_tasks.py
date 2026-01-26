@@ -21,7 +21,7 @@ from dataclasses import asdict
 from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonSegmentResolutionPayload
 
 # Global flag for debug mode
-DEBUG_MODE = True  # Set this to False for full analysis
+DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
 DEBUG_SEED = 51  # Seed for reproducible random sampling
 
