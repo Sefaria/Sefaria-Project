@@ -213,6 +213,7 @@ tasks:
   replicaCount: 1
   anthropicSecretRef: anthropic-api-key
   openaiSecretRef: openai-api-key
+  langsmithSecretRef: langsmith-api-key
   redis:
     url: "redis://127.0.0.1"
     port: "6397"

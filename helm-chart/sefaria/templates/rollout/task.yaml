@@ -109,6 +109,9 @@ spec:
               name: {{ .Values.tasks.anthropicSecretRef }}
               optional: true
           - secretRef:
+              name: {{ .Values.tasks.langsmithSecretRef }}
+              optional: true
+          - secretRef:
               name: {{ .Values.tasks.openaiSecretRef }}
               optional: true
           {{- end }}
