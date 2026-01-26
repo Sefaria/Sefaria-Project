@@ -59,9 +59,9 @@ jobs:
       - id: project
         run: |
           if [ "${{ inputs.prod }}" = "true" ]; then
-            echo "PROJECT=production-deployment" >> $GITHUB_ENV
+            echo "project=production-deployment" >> $GITHUB_ENV
           else
-            echo "PROJECT=development-205018" >> $GITHUB_ENV
+            echo "project=development-205018" >> $GITHUB_ENV
           fi
 
       - id: auth
