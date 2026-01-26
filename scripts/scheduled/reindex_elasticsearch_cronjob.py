@@ -152,29 +152,23 @@ class ReindexingResult:
         if self.failed_text_versions:
             lines.append(f"\nFailed Text Versions: {len(self.failed_text_versions)}")
             lines.append("-" * 40)
-            for i, failure in enumerate(self.failed_text_versions[:50], 1):
+            for i, failure in enumerate(self.failed_text_versions, 1):
                 title = failure.get('title', 'Unknown')
                 version = failure.get('version', 'Unknown')
                 lang = failure.get('lang', 'Unknown')
                 error_type = failure.get('error_type', 'Unknown')
-                error = failure.get('error', 'Unknown error')[:100]
+                error = failure.get('error', 'Unknown error')
                 lines.append(f"{i}. {title} ({version}, {lang})")
                 lines.append(f"   Error: {error_type}: {error}")
-            
-            if len(self.failed_text_versions) > 50:
-                lines.append(f"... and {len(self.failed_text_versions) - 50} more")
         
         if self.skipped_text_versions:
             lines.append(f"\nSkipped Text Versions: {len(self.skipped_text_versions)}")
             lines.append("-" * 40)
-            for i, skip in enumerate(self.skipped_text_versions[:20], 1):
+            for i, skip in enumerate(self.skipped_text_versions, 1):
                 title = skip.get('title', 'Unknown')
                 version = skip.get('version', 'Unknown')
                 reason = skip.get('reason', 'Unknown')
                 lines.append(f"{i}. {title} ({version}) - {reason}")
-            
-            if len(self.skipped_text_versions) > 20:
-                lines.append(f"... and {len(self.skipped_text_versions) - 20} more")
         
         lines.append(SEPARATOR_LINE)
         return "\n".join(lines)
@@ -256,7 +250,6 @@ def check_index_exists(index_name: str) -> bool:
     """Check if an Elasticsearch index exists."""
     try:
         exists = index_client.exists(index=index_name)
-        logger.debug(f"Index existence check - index: {index_name}, exists: {exists}")
         return exists
     except Exception as e:
         logger.warning(f"Failed to check index existence - index: {index_name}, error: {str(e)}")
@@ -296,10 +289,6 @@ def log_index_state(index_type: str, result: ReindexingResult):
         new_exists = check_index_exists(new_index)
         new_count = get_index_doc_count(new_index) if new_exists else 0
         
-        logger.debug(f"Index state for {index_type} - alias: {alias}, current_index: {current_index}, "
-              f"current_doc_count: {current_count}, new_index: {new_index}, "
-              f"new_index_exists: {new_exists}, new_doc_count: {new_count}")
-        
         # Warn if new index already exists with documents
         if new_exists and new_count > 0:
             result.add_warning(
@@ -313,7 +302,6 @@ def log_index_state(index_type: str, result: ReindexingResult):
 
 def run_pagesheetrank_update(result: ReindexingResult) -> bool:
     """Run pagesheetrank update with error handling."""
-    logger.debug("Starting pagesheetrank update")
     try:
         update_pagesheetrank()
         result.record_step_success("pagesheetrank_update", "PageSheetRank values updated successfully")
@@ -325,7 +313,6 @@ def run_pagesheetrank_update(result: ReindexingResult) -> bool:
 
 def run_index_all(result: ReindexingResult) -> bool:
     """Run full index with error handling and failure capture."""
-    logger.debug("Starting full index rebuild")
     try:
         index_all()
         
@@ -367,10 +354,6 @@ def should_retry_with_backoff(attempt: int, max_retries: int, context: str = "")
         return False
     
     wait_time = attempt * 30  # Linear backoff (30s, 60s, 90s)
-    log_msg = f"Retrying in {wait_time} seconds..."
-    if context:
-        log_msg = f"{context} - {log_msg}"
-    logger.debug(log_msg)
     time.sleep(wait_time)
     return True
 
@@ -381,14 +364,10 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
     
     This catches sheets created/modified during the reindexing process.
     """
-    logger.debug(f"Starting sheets-by-timestamp API call - timestamp: {timestamp}")
-    
     url = "https://www.sefaria.org/admin/index-sheets-by-timestamp"
     
     for attempt in range(1, max_retries + 1):
         try:
-            logger.debug(f"API attempt {attempt}/{max_retries} - url: {url}")
-            
             r = requests.post(
                 url,
                 data={"timestamp": timestamp, "apikey": SEFARIA_BOT_API_KEY},
@@ -462,7 +441,6 @@ def main():
     
     # Store timestamp before we start (sheets created after this will be caught by API)
     last_sheet_timestamp = datetime.now().isoformat()
-    logger.debug(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
     
     # Pre-flight checks
     logger.debug("Running pre-flight checks...")
@@ -542,7 +520,6 @@ def main():
     
     # Only log final index states if there were failures
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
-        logger.debug("Final index states:")
         try:
             log_index_state('text', result)
             log_index_state('sheet', result)

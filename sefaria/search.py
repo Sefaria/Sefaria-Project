@@ -191,7 +191,6 @@ def index_sheet(index_name, id):
             "dateModified": dateModified,
             "views": sheet.get("views", 0)
         }
-        logger.debug(f"Indexing sheet {id} - owner_id: {owner_id}, owner_name: {owner_name}, title: {strip_tags(sheet_title)[:50]}")
         es_client.create(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
@@ -334,13 +333,9 @@ def create_index(index_name, type, force=False):
         raise
 
     if type == 'text':
-        logger.debug(f"Applying text mapping to index - index_name: {index_name}")
         put_text_mapping(index_name)
-        logger.debug(f"Text mapping applied successfully - index_name: {index_name}")
     elif type == 'sheet':
-        logger.debug(f"Applying sheet mapping to index - index_name: {index_name}")
         put_sheet_mapping(index_name)
-        logger.debug(f"Sheet mapping applied successfully - index_name: {index_name}")
     else:
         logger.warning(f"Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
 
@@ -559,7 +554,6 @@ class TextIndexer(object):
                     r = Ref(title)
                 except InputError:
                     parse_errors.append(title)
-                    logger.debug(f"Failed to parse ref - title: {title}")
                     return
                 vlist = cls.get_ref_version_list(r)
                 vpriorities = defaultdict(lambda: 0)
@@ -603,9 +597,6 @@ class TextIndexer(object):
                 versions += temp_versions
                 page += 1
                 first_run = False
-                # Log progress every 100 pages
-                if page % PROGRESS_LOG_EVERY_N == 0:
-                    logger.debug(f"Fetching versions - page: {page}, total_so_far: {len(versions)}")
             logger.debug(f"Completed fetching all versions - total: {len(versions)}")
             return versions
         except pymongo.errors.AutoReconnect as e:
@@ -901,11 +892,9 @@ def index_sheets_by_timestamp(timestamp):
     
     name_dict = get_new_and_current_index_names('sheet', debug=False)
     curr_index_name = name_dict.get('current')
-    logger.debug(f"Using sheet index - index_name: {curr_index_name}")
     
     try:
         ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
-        logger.debug(f"Found sheets to index by timestamp - count: {len(ids)}, timestamp: {timestamp}")
     except Exception as e:
         logger.error(f"Error querying sheets by timestamp - timestamp: {timestamp}, error: {str(e)}", exc_info=True)
         return str(e)
@@ -940,7 +929,6 @@ def index_public_sheets(index_name):
     
     ids = db.sheets.find({"status": "public"}).distinct("id")
     total = len(ids)
-    logger.debug(f"Found public sheets to index - total: {total}, first_10_ids: {ids[:10] if ids else []}")
     
     succeeded = 0
     failed = 0
@@ -975,17 +963,13 @@ def clear_index(index_name):
     """
     Delete the search index.
     """
-    logger.debug(f"Attempting to delete Elasticsearch index - index_name: {index_name}")
     try:
         # Check if index exists before trying to delete
         if index_client.exists(index=index_name):
             index_client.delete(index=index_name)
-            logger.debug(f"Successfully deleted Elasticsearch index - index_name: {index_name}")
-        else:
-            logger.debug(f"Index does not exist, nothing to delete - index_name: {index_name}")
     except NotFoundError:
         # Index doesn't exist - handle race condition where index is deleted between exists() check and delete() call
-        logger.debug(f"Index not found when attempting to delete - index_name: {index_name}")
+        pass
     except Exception as e:
         logger.error(f"Error deleting Elasticsearch index - index_name: {index_name} - error: {str(e)}")
 
@@ -1100,9 +1084,7 @@ def index_all(skip=0, debug=False):
         raise
     
     # Clear index queue
-    logger.debug("Clearing stale index queue")
     deleted = db.index_queue.delete_many({})
-    logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
     
     end = datetime.now()
     total_elapsed = end - start
@@ -1123,20 +1105,10 @@ def index_all_of_type(type, skip=0, debug=False):
     
     # Check if new index already exists
     new_exists = index_client.exists(index=index_names_dict.get('new'))
-    if new_exists:
-        try:
-            stats = index_client.stats(index=index_names_dict.get('new'))
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}, existing_doc_count: {doc_count}")
-        except Exception:
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}")
     
     # Countdown (keeping for backwards compatibility, but logging instead of just printing)
-    logger.debug("Starting countdown before indexing...")
     for i in range(10):
         remaining = 10 - i
-        logger.debug(f'STARTING IN T-MINUS {remaining}')
-        logger.debug(f"Countdown - seconds_remaining: {remaining}")
         pytime.sleep(1)
 
     # Perform the actual indexing
@@ -1144,26 +1116,21 @@ def index_all_of_type(type, skip=0, debug=False):
     index_all_of_type_by_index_name(type, index_names_dict.get('new'), skip, debug)
 
     # Switch aliases
-    logger.debug("Switching aliases after indexing")
     try:
         index_client.delete_alias(index=index_names_dict.get('current'), name=index_names_dict.get('alias'))
-        logger.debug(f"Successfully deleted alias from old index - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
     except NotFoundError:
-        logger.debug(f"Alias not found on old index (may be first run) - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
+        # Alias not found on old index (may be first run)
+        pass
 
     # Clear any index with the alias name
     clear_index(index_names_dict.get('alias'))
 
     # Create new alias
     index_client.put_alias(index=index_names_dict.get('new'), name=index_names_dict.get('alias'))
-    logger.debug(f"Successfully created alias for new index - alias: {index_names_dict.get('alias')}, new_index: {index_names_dict.get('new')}")
 
     # Cleanup old index
     if index_names_dict.get('new') != index_names_dict.get('current'):
-        logger.debug(f"Cleaning up old index - old_index: {index_names_dict.get('current')}")
         clear_index(index_names_dict.get('current'))
-    
-    logger.debug(f"Completed index_all_of_type for '{type}' - type: {type}, final_index: {index_names_dict.get('new')}, alias: {index_names_dict.get('alias')}")
 
 
 def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force_recreate=True):
@@ -1180,16 +1147,8 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
     
     # Check if index exists and validate
     index_exists = index_client.exists(index=index_name)
-    if index_exists and skip == 0:
-        try:
-            stats = index_client.stats(index=index_name)
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.debug(f"Index already exists before creation - index_name: {index_name}, existing_doc_count: {doc_count}, will_recreate: {force_recreate}")
-        except Exception as e:
-            logger.debug(f"Could not check existing index stats - index_name: {index_name}, error: {str(e)}")
     
     if skip == 0:
-        logger.debug(f"Creating fresh index (skip=0) - index_name: {index_name}, type: {type}")
         create_index(index_name, type, force=force_recreate)
     else:
         logger.info(f"Skipping index creation (resuming) - index_name: {index_name}, skip: {skip}")
@@ -1204,9 +1163,7 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
         TextIndexer.index_all(index_name, debug=debug)
         logger.debug("Completed TextIndexer.index_all")
     elif type == 'sheet':
-        logger.debug("Starting sheet indexing")
         index_public_sheets(index_name)
-        logger.debug("Completed sheet indexing")
     else:
         logger.error(f"Unknown index type - type: {type}")
         raise ValueError(f"Unknown index type: {type}")
