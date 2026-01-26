@@ -4,7 +4,7 @@ import Util from "../sefaria/util";
 import Sefaria from "../sefaria/sefaria";
 
 const Card = ({cardTitle, cardTitleHref, oncardTitleClick, cardText, bottomLinkText, bottomLinkUrl, analyticsEventName, analyticsLinkType}) => {
-    const disallowedMarkdownElements = Sefaria.getDisallowedMarkdownElements(); // The assumption here is Card used only for topics which true today, and that this patch is temporal
+    const disallowedMarkdownElements = Sefaria.getDisallowedMarkdownElements(); // The assumption here is that Card is only used for topics, which is true today, and that this patch is temporary.
     return <div className="card">
                 <a href={cardTitleHref}
                 className="cardTitle" onClick={oncardTitleClick}

@@ -3728,7 +3728,8 @@ _media: {},
       return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
   },
   getDisallowedMarkdownElements:  () => {
-    // this function is for preventing showing topic links on voices, for they are stored with library domain). it should be removed when hopefully this will be fixed.
+    // This function prevents showing topic links in Voices, as they are currently stored with the library domain.
+    // This should be removed when this is fixed.
     return (Sefaria.activeModule === Sefaria.VOICES_MODULE) ? ['p', 'a'] : ['p'];
   },
 });
