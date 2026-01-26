@@ -58,12 +58,12 @@ jobs:
 
       - id: project
         run: |
+          PROJECT="development-205018"
           if [ "${{ inputs.prod }}" = "true" ]; then
-            echo "project=production-deployment" >> $GITHUB_ENV
-          else
-            echo "project=development-205018" >> $GITHUB_ENV
+            echo "$PROJECT=production-deployment" >> $GITHUB_ENV
           fi
-
+          echo "project=$PROJECT"
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
       - id: auth
         uses: google-github-actions/auth@v2
         with:
