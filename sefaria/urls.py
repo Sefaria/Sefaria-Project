@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
@@ -520,3 +521,8 @@ if DOWN_FOR_MAINTENANCE:
     urlpatterns += [
         url(r'.*', sefaria_views.maintenance_message)
     ]
+=======
+# Minimal URLconf required by ROOT_URLCONF.
+# All real routing is handled by django-hosts (urls_library, urls_sheets).
+urlpatterns = []
+>>>>>>> master
