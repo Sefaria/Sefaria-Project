@@ -1,6 +1,5 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import $ from './sefaria/sefariaJquery';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import DjangoCSRF from './lib/django-csrf';
@@ -8,7 +7,7 @@ const SefariaReact = require('./ReaderApp');
 import * as Sentry from "@sentry/react";
 
 
-$(function() {
+document.addEventListener('DOMContentLoaded', () => {
   // Initialize Sentry, sentryDSN is defined in base.html
   if (sentryDSN) {
     Sentry.init({
@@ -42,7 +41,7 @@ $(function() {
   } else {
     // Rendering the Header only on top of a static page
     let staticProps = {
-      multiPanel: $(window).width() > 600,
+      multiPanel: window.innerWidth > 600,
       headerMode: true,
     };
 
@@ -54,7 +53,7 @@ $(function() {
 
   // Handle template-specific component rendering (for pages that don't use ReaderApp)
   if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
-    // Render a specific component to a container    
+    // Render a specific component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     renderFunc(component, container);
