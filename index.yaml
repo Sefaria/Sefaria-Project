@@ -212,6 +212,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.73.1-metrics-facelift.1.tgz
     version: 0.73.1-metrics-facelift.1
   - apiVersion: v2
+    appVersion: v6.57.5
+    created: "2026-01-26T17:15:04.641138322Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: f2c42e558d5b22654d1c9588124c55b426b248db04d3f580ddc3e19850880504
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.73.1-links-single-url.1.tgz
+    version: 0.73.1-links-single-url.1
+  - apiVersion: v2
     appVersion: v6.57.0
     created: "2026-01-19T09:59:16.11630372Z"
     description: Chart to deploy complete Sefaria environment
@@ -13380,4 +13395,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-01-26T14:17:12.514873762Z"
+generated: "2026-01-26T17:15:04.638178709Z"
