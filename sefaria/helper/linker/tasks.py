@@ -159,7 +159,7 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousRes
     if not linker_output:
         return []
 
-    spans = linker_output.contents().get("spans", [])
+    spans = linker_output.spans
     ambiguous_groups: dict[tuple[int, int], list[dict]] = {}
     for span in spans:
         if span.get("type") == MUTCSpanType.CITATION.value and span.get("ambiguous"):
@@ -199,13 +199,13 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
     if not linker_output:
         return []
 
-    spans = linker_output.contents().get("spans", [])
+    spans = linker_output.spans
     mutc = MarkedUpTextChunk().load({
         "ref": linking_args.ref,
         "versionTitle": linking_args.vtitle,
         "language": linking_args.lang,
     })
-    mutc_spans = (mutc.contents().get("spans", []) if mutc else [])
+    mutc_spans = (mutc.spans if mutc else [])
     mutc_non_segment_char_ranges: set[tuple[int, int]] = set()
     for mutc_span in mutc_spans:
         if mutc_span.get("type") != MUTCSpanType.CITATION.value:
