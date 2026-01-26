@@ -270,9 +270,9 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def change_primary_title(self, lang, new_text, remove_old=False):
         old_text = self.get_primary_title(lang)
-        self.title_group.add_title(new_text, lang, True, True)
+        self.add_title(new_text, lang, True, True)
         if remove_old:
-            self.title_group.remove_title(old_text, lang)
+            self.remove_title(old_text, lang)
         if lang == 'en':
             self.name = new_text
 
