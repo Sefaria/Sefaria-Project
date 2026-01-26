@@ -17,6 +17,9 @@ os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
 # LANGSMITH_API_KEY should be set in your environment
 
+from sefaria.settings import SEARCH_URL
+
+
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -61,7 +64,7 @@ class NonSegmentResolutionResult:
 
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
-SEFARIA_SEARCH_URL = os.getenv("SEFARIA_SEARCH_URL", "https://www.sefaria.org/api/search/text/_search")
+SEFARIA_SEARCH_URL = f"{SEARCH_URL}/api/search/text/_search"
 MIN_THRESHOLD = 1.0
 MAX_DISTANCE = 10.0
 REQUEST_TIMEOUT = 30
