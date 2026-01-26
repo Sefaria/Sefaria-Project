@@ -65,7 +65,7 @@ python-bidi
 pytz
 pyyaml==6.0.1
 rauth==0.7.3
-regex==2020.10.23
+regex==2026.1.15
 requests
 roman==3.3
 selenium==3.141.0
