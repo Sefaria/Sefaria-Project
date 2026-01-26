@@ -17,6 +17,18 @@ The library: 384 million words, 4.7 million cross-references, 93 million words o
 - `GET /api/search-wrapper?query={q}` - Full-text search
 - `GET /api/calendars` - Current Torah readings, Daf Yomi, holidays
 
+## Site Navigation
+
+- [Sefaria Library](https://www.sefaria.org): Browse the full text library and connections
+- [Voices](https://voices.sefaria.org): Curated source sheets assembled by scholars and educators for thematic exploration
+- [Developer Portal](https://developers.sefaria.org): Developer resources and documentation
+- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md): Third-party projects built with Sefaria's API and data 
+- [The Sefaria MCPs](https://developers.sefaria.org/docs/the-sefaria-mcp.md): Use our MCPs to integrate your LLM of choice with Sefaria's rich library of Jewish texts and huge cache of open-source data.
+- [AI at Sefaria](https://www.sefaria.org/ai): Sefaria's use of AI and AI policy.
+- [How to Donate](https://www.sefaria.org/ways-to-give): Support Sefaria's mission
+- [Sefaria Help Center](https://help.sefaria.org/hc/en-us): Guides and FAQ for using the library
+- [Privacy Policy](https://www.sefaria.org/privacy-policy): Privacy policy for Sefaria users 
+
 ## License
 
 Classical texts are Public Domain. Sefaria translations are CC-BY-SA. Some modern translations are CC-BY-NC. Software is GNU AGPLv3. When citing, include text reference, version used, and "via Sefaria.org".
@@ -62,14 +74,3 @@ Classical texts are Public Domain. Sefaria translations are CC-BY-SA. Some moder
 - [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export): Complete library export in JSON format for bulk/offline access
 - [Sefaria-Project](https://github.com/Sefaria/Sefaria-Project): Open-source codebase (GNU AGPLv3)
 
-## Optional
-
-- [Sefaria Library](https://www.sefaria.org): Browse the full text library and connections
-- [Voices](https://voices.sefaria.org): Curated source sheets assembled by scholars and educators for thematic exploration
-- [Developer Portal](https://developers.sefaria.org): Developer resources and documentation
-- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md): Third-party projects built with Sefaria's API and data 
-- [The Sefaria MCPs](https://developers.sefaria.org/docs/the-sefaria-mcp.md): Use our MCPs to integrate your LLM of choice with Sefaria's rich library of Jewish texts and huge cache of open-source data.
-- [AI at Sefaria](https://www.sefaria.org/ai): Sefaria's use of AI and AI policy.
-- [How to Donate](https://www.sefaria.org/ways-to-give): Support Sefaria's mission
-- [Sefaria Help Center](https://help.sefaria.org/hc/en-us): Guides and FAQ for using the library
-- [Privacy Policy](https://www.sefaria.org/privacy-policy): Privacy policy for Sefaria users 
