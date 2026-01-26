@@ -105,6 +105,12 @@ spec:
               name: {{ .Values.tasks.redis.sentinelPassword.ref }}
           - secretRef:
               name: {{ .Values.tasks.redis.redisPassword.ref }}
+          - secretRef:
+              name: {{ .Values.tasks.anthropicSecretRef }}
+              optional: true
+          - secretRef:
+              name: {{ .Values.tasks.openaiSecretRef }}
+              optional: true
           {{- end }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
