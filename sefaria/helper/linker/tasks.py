@@ -8,7 +8,7 @@ from celery import signature
 from celery.signals import worker_init
 from sefaria.settings import USE_VARNISH
 from sefaria import tracker
-from sefaria.model import library, Link, LinkSet, Version
+from sefaria.model import library, Link, LinkSet, Version, TermSet
 from sefaria.celery_setup.app import app
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, MUTCSpanType, LinkerOutput, MarkedUpTextChunkSet
 from sefaria.model import Ref
@@ -252,7 +252,7 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
 
 
 def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bool:
-    """Return True for non-segment refs or Talmud perakim refs treated as non-segment."""
+    """Return True for non-segment refs or refs treated as non-segment (perakim/parshiot)."""
     if oref is None:
         try:
             oref = Ref(ref_str)
@@ -260,7 +260,7 @@ def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bo
             return False
     if not oref.is_segment_level():
         return True
-    return ref_str in _get_talmud_perek_ref_set()
+    return ref_str in _get_talmud_perek_ref_set() or ref_str in _get_parasha_ref_set()
 
 
 @lru_cache(maxsize=1)
@@ -286,6 +286,44 @@ def _get_talmud_perek_ref_set() -> set[str]:
                     continue
 
     return perakim
+
+
+@lru_cache(maxsize=1)
+def _get_parasha_ref_set() -> set[str]:
+    """Cache of parasha wholeRef ranges from alt-struct leaves whose titles map to Parasha terms."""
+    parasha_titles: set[str] = set()
+    for term in TermSet({"scheme": "Parasha"}):
+        for lang in ("en", "he"):
+            try:
+                parasha_titles.update(term.get_titles(lang))
+            except Exception:
+                continue
+
+    parasha_refs: set[str] = set()
+    for index in library.get_indexes_in_category_path(["Tanakh", "Torah"], include_dependant=False, full_records=True) or []:
+        try:
+            alt_leaves = index.get_alt_struct_leaves()
+        except Exception:
+            continue
+        for node in alt_leaves:
+            if not getattr(node, "wholeRef", None):
+                continue
+            try:
+                titles = set()
+                titles.update(node.get_titles("en"))
+                titles.update(node.get_titles("he"))
+                if getattr(node, "sharedTitle", None):
+                    titles.add(node.sharedTitle)
+            except Exception:
+                titles = set()
+            if parasha_titles and titles.isdisjoint(parasha_titles):
+                continue
+            try:
+                parasha_refs.add(Ref(node.wholeRef).normal())
+            except Exception:
+                continue
+
+    return parasha_refs
 
 
 def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
