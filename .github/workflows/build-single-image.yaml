@@ -104,7 +104,7 @@ jobs:
           fi
           echo $PRIMARY
           echo "primary_tag=$PRIMARY" >> $GITHUB_OUTPUT
-          echo "image=$PRIMARY" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
       - name: Debug Tag
         run: echo "${{ steps.primary_tag.outputs.primary_tag }}"
