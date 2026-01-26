@@ -12,6 +12,7 @@ import django
 django.setup()
 
 from collections import defaultdict
+from tqdm import tqdm
 from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
@@ -245,9 +246,9 @@ def main():
     # Dispatch bulk disambiguation tasks (single payload each)
     print(f"Dispatching {len(ambiguous_resolutions) + len(non_segment_resolutions)} bulk disambiguation tasks...")
     try:
-        for resolution in ambiguous_resolutions:
+        for resolution in tqdm(ambiguous_resolutions, desc="Ambiguous resolutions"):
             enqueue_bulk_disambiguation(asdict(resolution))
-        for resolution in non_segment_resolutions:
+        for resolution in tqdm(non_segment_resolutions, desc="Non-segment resolutions"):
             enqueue_bulk_disambiguation(asdict(resolution))
         print("Dispatched bulk disambiguation tasks")
     except Exception as e:
