@@ -19,7 +19,6 @@ os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
 
 from sefaria.settings import SEARCH_URL
 
-
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
