@@ -648,8 +648,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     primaryVersion = _extract_version_params(request, 'vhe')
     translationVersion = _extract_version_params(request, 'ven')
 
-    filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
-    filter = [] if filter == ["all"] else filter
+    filter = request.GET.get("with")
+    if request.active_module == VOICES_MODULE:
+        filter = None  # remove side panel from legacy voices urls
+    elif filter == 'all':
+        filter = []
+    elif filter:
+        filter = filter.replace("_", " ").split("+")
 
     noindex = False
 
@@ -3307,7 +3312,7 @@ def topics_list_api(request):
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
         task_ids = []
-        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.tasks.topic_prompts import generate_and_save_topic_prompts
         from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
         topic = Topic.init(slug)
         post_body = json.loads(request.body)

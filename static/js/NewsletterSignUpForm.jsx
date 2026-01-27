@@ -48,7 +48,7 @@ export function NewsletterSignUpForm({
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
+            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
             <span className="int-he">
         <input
@@ -58,7 +58,7 @@ export function NewsletterSignUpForm({
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
+            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
             {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
@@ -71,7 +71,7 @@ export function NewsletterSignUpForm({
             value={firstName}
             autoFocus
             onChange={e => setFirstName(e.target.value)}
-            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
+            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
                     <span className="int-he">
         <input
@@ -81,7 +81,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
-            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
+            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
                     <span className="int-en">
         <input
@@ -91,7 +91,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
-            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
+            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
                     <span className="int-he">
         <input
@@ -101,7 +101,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
-            onKeyUp={Util.handleEnterKey(handleSubscribe)}/>
+            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck}/> : null}
