@@ -6,12 +6,17 @@ Script to dispatch library links disambiguation tasks for:
 2. Non-segment-level resolutions
 
 Set DEBUG_MODE = True at the top of the script to limit to 10 random docs for debug.
+
+Examples:
+    python dispatch_library_links_disambiguation_tasks.py --ambiguous-start 565440 --non-segment-start 0
+    python dispatch_library_links_disambiguation_tasks.py --ambiguous-start skip --non-segment-start 0
 """
 
 import django
 django.setup()
 
 from collections import defaultdict
+import argparse
 from tqdm import tqdm
 from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
@@ -25,8 +30,14 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
 DEBUG_SEED = 51  # Seed for reproducible random sampling
-AMBIGUOUS_START_FROM = 565440  # Skip this many ambiguous payloads (resume point)
-NON_SEGMENT_START_FROM = 0  # Skip this many non-segment payloads (resume point)
+
+
+def _parse_start_arg(value: str):
+    if value is None:
+        return 0
+    if value.lower() == "skip":
+        return "skip"
+    return int(value)
 
 
 def is_segment_level_ref(ref_str):
@@ -222,6 +233,15 @@ def enqueue_bulk_disambiguation(payload: dict):
 
 def main():
     """Main execution function - find and dispatch tasks"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ambiguous-start", default="0",
+                        help="Number to skip for ambiguous resolutions, or 'skip'")
+    parser.add_argument("--non-segment-start", default="0",
+                        help="Number to skip for non-segment resolutions, or 'skip'")
+    args = parser.parse_args()
+    ambiguous_start_from = _parse_start_arg(args.ambiguous_start)
+    non_segment_start_from = _parse_start_arg(args.non_segment_start)
+
     print("Starting Library Links Disambiguation Tasks Dispatcher")
     if DEBUG_MODE:
         print(f"DEBUG MODE: Limited to {DEBUG_LIMIT} documents")
@@ -240,27 +260,35 @@ def main():
         return
 
     # Find ambiguous resolutions
-    ambiguous_resolutions = find_ambiguous_resolutions()
+    ambiguous_resolutions = [] if ambiguous_start_from == "skip" else find_ambiguous_resolutions()
 
     # Find non-segment-level resolutions
-    non_segment_resolutions = find_non_segment_level_resolutions()
+    non_segment_resolutions = [] if non_segment_start_from == "skip" else find_non_segment_level_resolutions()
 
     # Dispatch bulk disambiguation tasks (single payload each)
     print(f"Dispatching {len(ambiguous_resolutions) + len(non_segment_resolutions)} bulk disambiguation tasks...")
     try:
-        ambiguous_iter = ambiguous_resolutions[AMBIGUOUS_START_FROM:] if AMBIGUOUS_START_FROM else ambiguous_resolutions
+        ambiguous_iter = (
+            ambiguous_resolutions[ambiguous_start_from:]
+            if isinstance(ambiguous_start_from, int) and ambiguous_start_from
+            else ambiguous_resolutions
+        )
         for resolution in tqdm(
             ambiguous_iter,
             desc="Ambiguous resolutions",
-            initial=AMBIGUOUS_START_FROM if AMBIGUOUS_START_FROM else 0,
+            initial=ambiguous_start_from if isinstance(ambiguous_start_from, int) else 0,
             total=len(ambiguous_resolutions),
         ):
             enqueue_bulk_disambiguation(asdict(resolution))
-        non_segment_iter = non_segment_resolutions[NON_SEGMENT_START_FROM:] if NON_SEGMENT_START_FROM else non_segment_resolutions
+        non_segment_iter = (
+            non_segment_resolutions[non_segment_start_from:]
+            if isinstance(non_segment_start_from, int) and non_segment_start_from
+            else non_segment_resolutions
+        )
         for resolution in tqdm(
             non_segment_iter,
             desc="Non-segment resolutions",
-            initial=NON_SEGMENT_START_FROM if NON_SEGMENT_START_FROM else 0,
+            initial=non_segment_start_from if isinstance(non_segment_start_from, int) else 0,
             total=len(non_segment_resolutions),
         ):
             enqueue_bulk_disambiguation(asdict(resolution))
