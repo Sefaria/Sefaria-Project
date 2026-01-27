@@ -392,7 +392,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
   const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
-  const disallowedMarkdownElements = (Sefaria.activeModule === Sefaria.VOICES_MODULE) ? ['p', 'a'] : ['p'];
+  const disallowedMarkdownElements = Sefaria.getDisallowedMarkdownElements();
 
 return (
     <div>
