@@ -92,7 +92,7 @@ def invalidate_index(indx):
             oref = Ref(indx.title)
             url = oref.url()
         except InputError as e:
-            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            logger.warn(f"In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {(indx.title)}")
             return
     elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
