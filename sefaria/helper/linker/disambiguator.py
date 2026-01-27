@@ -63,7 +63,7 @@ class NonSegmentResolutionResult:
 
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
-SEFARIA_SEARCH_URL = f"{SEARCH_URL}/api/search/text/_search"
+SEFARIA_SEARCH_URL = f"{SEARCH_URL}/text/_search"
 MIN_THRESHOLD = 1.0
 MAX_DISTANCE = 10.0
 REQUEST_TIMEOUT = 30
