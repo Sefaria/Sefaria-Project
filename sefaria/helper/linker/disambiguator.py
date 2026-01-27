@@ -76,6 +76,7 @@ REQUEST_TIMEOUT = 30
 WINDOW_WORDS = 120
 
 
+
 def _get_llm():
     """Get configured primary LLM instance."""
     model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
