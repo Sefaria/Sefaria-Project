@@ -41,10 +41,16 @@ def user_save_patch(self, *args, **kwargs):
 original_init = User.__init__
 original_save_base = User.save_base
 
+_patched = False
+
 
 def monkeypatch_user():
+    global _patched
+    if _patched:
+        return
     User.__init__ = user_init_patch
     User.save_base = user_save_patch
+    _patched = True
 
 
 def unmonkeypatch_user():
@@ -52,7 +58,8 @@ def unmonkeypatch_user():
     User.save_base = original_save_base
 
 
-monkeypatch_user()
+# Note: monkeypatch_user() is now called from EmailUsernamesConfig.ready()
+# in apps.py to ensure proper timing with Django 2.0+ app loading
 
 
 # Monkey-path the admin site to use a custom login form

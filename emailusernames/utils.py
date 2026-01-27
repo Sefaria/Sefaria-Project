@@ -17,7 +17,7 @@ def _email_to_username(email):
     email = email.lower()
     # Deal with internationalized email addresses
     converted = email.encode('utf8', 'ignore')
-    return base64.urlsafe_b64encode(hashlib.sha256(converted).digest())[:30]
+    return base64.urlsafe_b64encode(hashlib.sha256(converted).digest()).decode('ascii')[:30]
 
 
 def get_user(email, queryset=None):
@@ -84,6 +84,8 @@ def migrate_usernames(stream=None, quiet=False):
     Migrate all existing users to django-email-as-username hashed usernames.
     If any users cannot be migrated an exception will be raised and the
     migration will not run.
+
+    @TODO: delete this function and associated management command after
     """
     stream = stream or (quiet and open(os.devnull, 'w') or sys.stdout)
 
