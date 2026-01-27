@@ -375,6 +375,21 @@ def _reader_redirect_add_languages(request, tref):
     return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
 
 
+def redirect_to_library(request, target_path):
+    """
+    Redirect from voices module to library module
+    """
+    lang_code = get_short_lang(request.interfaceLang)
+    library_domain = DOMAIN_MODULES.get(lang_code, {}).get(LIBRARY_MODULE)
+    target_url = urllib.parse.urljoin(library_domain, target_path) if library_domain else target_path
+
+    # Preserve query parameters
+    if params := request.GET.urlencode():
+        target_url += f"?{params}"
+
+    return redirect(target_url, permanent=True)
+
+
 
 @ensure_csrf_cookie
 def catchall(request, tref, sheet=None):
@@ -399,6 +414,14 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         if active_module != LIBRARY_MODULE:
+            try:
+                oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+            except InputError:
+                raise Http404
+
+            uref = oref.url(False)
+            if uref:
+                return redirect_to_library(request, "/" + uref)
             raise Http404
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
