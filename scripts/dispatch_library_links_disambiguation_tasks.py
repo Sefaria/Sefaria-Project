@@ -25,7 +25,7 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
 DEBUG_SEED = 51  # Seed for reproducible random sampling
-AMBIGUOUS_START_FROM = 513458  # Skip this many ambiguous payloads (resume point)
+AMBIGUOUS_START_FROM = 565440  # Skip this many ambiguous payloads (resume point)
 NON_SEGMENT_START_FROM = 0  # Skip this many non-segment payloads (resume point)
 
 
