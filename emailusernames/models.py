@@ -47,6 +47,11 @@ _patched = False
 def monkeypatch_user():
     global _patched
     if _patched:
+        # Django's test database creation can overwrite User.__dict__['__init__']
+        # with Model.__init__, removing our patch. Check and re-apply if needed.
+        if User.__dict__.get('__init__') is not user_init_patch:
+            User.__init__ = user_init_patch
+            User.save_base = user_save_patch
         return
     User.__init__ = user_init_patch
     User.save_base = user_save_patch
