@@ -250,6 +250,9 @@
         inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
       };
 
+      // Make remote config available globally
+      window.remoteConfig = DJANGO_VARS.props?.remoteConfig || {};
+
       {% if STRAPI_LOCATION and STRAPI_PORT %}
           var STRAPI_INSTANCE =  "{{ STRAPI_LOCATION }}:{{ STRAPI_PORT }}";
       {% else %}

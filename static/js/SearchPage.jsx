@@ -87,8 +87,7 @@ class SearchPage extends Component {
                       <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
                     </h1>
                     {showAiBadge && <AiInfoTooltip
-                      enText={aiBadgeText}
-                      heText={Sefaria._(aiBadgeText)}
+                      displayText={aiBadgeText}
                     />}
                   </div>
                   <div className="searchTopMatter">

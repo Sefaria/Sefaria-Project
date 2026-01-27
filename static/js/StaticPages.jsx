@@ -1241,7 +1241,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we're devoted to making sure we're transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2023_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we're devoted to making sure we're transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2024_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1417,7 +1417,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_2023_990_Public.pdf"
+                        href="/static/files/Sefaria_2024_990_Public.pdf"
                         he_href=""
                         he=""
                         en="See Here"
@@ -3105,6 +3105,36 @@ const ProductsPage = memo(() => {
     );
 });
 
+const NewsletterPage = () => (
+  <StaticPage>
+    <Spacer height={100} />
+    <div className="staticPageBlockInner" style={{ textAlign: 'center' }}>
+      <h2 style={{
+        fontSize: '30px',
+        fontWeight: 'normal',
+        marginBottom: '30px',
+        letterSpacing: '1px'
+      }}>
+        <InterfaceText text={{en: "Stay Connected", he: "הישארו מחוברים"}} />
+      </h2>
+      <div className="sans" style={{
+        fontSize: '14px',
+        color: 'var(--medium-grey)',
+        marginBottom: '40px'
+      }}>
+        <InterfaceText text={{en: "Sign up for Sefaria emails", he: "הצטרפו לרשימת הדיוור שלנו"}} />
+      </div>
+    </div>
+    <div className="staticPageBlockInner" style={{ width: '200px', margin: '0 auto' }}>
+      <NewsletterSignUpForm
+        contextName="Newsletter Page"
+        includeEducatorOption={true}
+      />
+    </div>
+    <Spacer height={100} />
+  </StaticPage>
+);
+
 
 export {
     SheetsLandingPage,
@@ -3119,4 +3149,5 @@ export {
     JobsPage,
     TeamMembersPage,
     ProductsPage,
+    NewsletterPage,
 };

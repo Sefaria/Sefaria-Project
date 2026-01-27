@@ -1450,11 +1450,10 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   </div>
 )};
 
-const AiLearnMoreLink = ({lang}) => {
-  const text = lang === 'english' ? 'Learn More' : 'לפרטים נוספים';
+const AiLearnMoreLink = () => {
   return (
       <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
-        {text}
+        <InterfaceText context="AiInfoTooltip">Learn More</InterfaceText>
       </a>
   );
 };
@@ -1468,7 +1467,7 @@ const AiFeedbackLink = ({lang}) => {
   );
 }
 
-const AiInfoTooltip = ({ enText, heText }) => {
+const AiInfoTooltip = ({ displayText }) => {
   const [showMessage, setShowMessage] = useState(false);
   const aiInfoIcon = (
       <img
@@ -1479,16 +1478,15 @@ const AiInfoTooltip = ({ enText, heText }) => {
           onMouseLeave={() => setShowMessage(false)}
       />
     );
+
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
-            <div className="ai-info-first-message">
-            <InterfaceText>
-              <EnglishText>{enText}&nbsp;<AiLearnMoreLink lang="english" /></EnglishText>
-            <HebrewText>
-              {heText}&nbsp;<AiLearnMoreLink lang="hebrew" />
-                </HebrewText>
+          <div className="ai-info-first-message">
+            <InterfaceText context="AiInfoTooltip">
+                {displayText}
             </InterfaceText>
-
+            &nbsp;
+            <AiLearnMoreLink />
         </div>
         <hr className="ai-info-messages-hr" />
         <div className="ai-info-last-message">
@@ -2008,7 +2006,7 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  modalContent: PropTypes.object.isRequired,
+  modalContentKind: PropTypes.symbol,
 };
 
   /**

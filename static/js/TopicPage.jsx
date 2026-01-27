@@ -392,6 +392,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
   const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
+  const disallowedMarkdownElements = (Sefaria.activeModule === Sefaria.VOICES_MODULE) ? ['p', 'a'] : ['p'];
 
 return (
     <div>
@@ -402,7 +403,7 @@ return (
                 </h1>
                 </CategoryHeader>
             {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && 
-                <AiInfoTooltip/>
+                <AiInfoTooltip displayText="Some of the text on this page has been AI generated."/>
             }
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
@@ -418,7 +419,7 @@ return (
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}} disallowedMarkdownElements={['p']}/>
+              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}} disallowedMarkdownElements={disallowedMarkdownElements}/>
             </div>
        : null}
        {tpTopImg}

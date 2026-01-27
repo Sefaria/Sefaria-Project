@@ -35,7 +35,11 @@ from django.contrib.auth.models import User
 from django import http
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.conf import settings
 from bson.objectid import ObjectId
+
+from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
+from remote_config import remoteConfigCache
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
@@ -58,7 +62,7 @@ from sefaria.utils.domains_and_languages import current_domain_lang, get_redirec
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, FAIL_IF_NODE_SSR_UNAVAILABLE
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -195,6 +199,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     template_context = template_context if template_context else {}
     props = base_props(request)
     props.update(app_props)
+    props["remoteConfig"] = remoteConfigCache.get(CLIENT_REMOTE_CONFIG_JSON, {})
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
@@ -227,7 +232,7 @@ def render_react_component(component, props):
         return html
     except Exception as e:
         # Catch timeouts, however they may come.
-        if FAIL_IF_NODE_SSR_UNAVAILABLE:
+        if settings.FAIL_IF_NODE_SSR_UNAVAILABLE:
             # Log full error details before raising so they appear in logs for debugging
             props_dict = json.loads(propsJSON) if isinstance(propsJSON, str) else propsJSON
             logger.exception(
@@ -333,7 +338,8 @@ def base_props(request):
         },
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG
+        "_debug": DEBUG,
+        "_debug_mode": request.GET.get("debug_mode", None),
     })
     return user_data
 
@@ -642,8 +648,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     primaryVersion = _extract_version_params(request, 'vhe')
     translationVersion = _extract_version_params(request, 'ven')
 
-    filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
-    filter = [] if filter == ["all"] else filter
+    filter = request.GET.get("with")
+    if request.active_module == VOICES_MODULE:
+        filter = None  # remove side panel from legacy voices urls
+    elif filter == 'all':
+        filter = []
+    elif filter:
+        filter = filter.replace("_", " ").split("+")
 
     noindex = False
 
@@ -1128,6 +1139,7 @@ def _get_user_calendar_params(request):
     return {"diaspora": request.diaspora, "custom": custom}
 
 
+@ensure_csrf_cookie
 def texts_list(request):
     title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
@@ -1531,17 +1543,16 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
-        wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
         fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name, wrapNamedEntities=wrapNamedEntities):
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
-                                      wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
+                                      wrapLinks=wrapLinks, stripItags=stripItags,
                                       translationLanguagePreference=translationLanguagePreference,
                                       fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:
@@ -1875,6 +1886,7 @@ def index_api(request, title, raw=False):
                 apikey = db.apikeys.find_one({"key": key})
                 if apikey:
                     return CONTENT_TYPE, apikey["uid"]
+                
         return None, None
 
     def index_post(request, uid, j, method, raw):
@@ -2341,7 +2353,7 @@ def related_api(request, tref):
             "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
-            "webpages": get_webpages_for_ref(tref),
+            "webpages": get_webpages_for_ref(tref) if remoteConfigCache.get(ENABLE_WEBPAGES, True) else [],
             "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),

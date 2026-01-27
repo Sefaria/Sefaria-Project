@@ -21,7 +21,8 @@ import {
   JobsPage,
   TeamMembersPage,
   ProductsPage,
-  SheetsLandingPage
+  SheetsLandingPage,
+  NewsletterPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -742,6 +743,9 @@ class ReaderApp extends Component {
     if("aliyot" in histories[0]) {
         url += "&aliyot=" + histories[0].aliyot;
     }
+    if (Sefaria._debug_mode === "linker") {
+        url += "&debug_mode=linker";
+    }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
     let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
@@ -774,6 +778,9 @@ class ReaderApp extends Component {
           }
           if (connectionsHistory.selectedNamedEntityText) {
             hist.url += "&namedEntityText=" + encodeURIComponent(connectionsHistory.selectedNamedEntityText);
+          }
+          if (Sefaria._debug_mode) {
+            hist.url += "&debug_mode=linker";
           }
           hist.url += "&with=" + connectionsHistory.sources;
 
@@ -2464,5 +2471,6 @@ export {
   TeamMembersPage,
   ProductsPage,
   SheetsLandingPage,
+  NewsletterPage,
   UpdatesPanel
 };
