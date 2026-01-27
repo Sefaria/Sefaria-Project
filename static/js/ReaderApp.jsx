@@ -1099,6 +1099,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
       if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // Update href for links with data-target-module to ensure correct subdomain
+        // (similar to handleModuleLinkRightClick for right-clicks)
+        const moduleTarget = linkTarget.getAttribute('data-target-module');
+        if (moduleTarget) {
+          const href = linkTarget.getAttribute('href');
+          const fullUrl = Sefaria.util.fullURL(href, moduleTarget);
+          linkTarget.setAttribute('href', fullUrl);
+        }
         // in this case we want to stop other handlers from running and just go to target href
         e.stopImmediatePropagation();
         return;
