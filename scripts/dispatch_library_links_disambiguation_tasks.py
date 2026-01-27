@@ -25,6 +25,8 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
 DEBUG_SEED = 51  # Seed for reproducible random sampling
+AMBIGUOUS_START_FROM = 513458  # Skip this many ambiguous payloads (resume point)
+NON_SEGMENT_START_FROM = 0  # Skip this many non-segment payloads (resume point)
 
 
 def is_segment_level_ref(ref_str):
@@ -246,9 +248,21 @@ def main():
     # Dispatch bulk disambiguation tasks (single payload each)
     print(f"Dispatching {len(ambiguous_resolutions) + len(non_segment_resolutions)} bulk disambiguation tasks...")
     try:
-        for resolution in tqdm(ambiguous_resolutions, desc="Ambiguous resolutions"):
+        ambiguous_iter = ambiguous_resolutions[AMBIGUOUS_START_FROM:] if AMBIGUOUS_START_FROM else ambiguous_resolutions
+        for resolution in tqdm(
+            ambiguous_iter,
+            desc="Ambiguous resolutions",
+            initial=AMBIGUOUS_START_FROM if AMBIGUOUS_START_FROM else 0,
+            total=len(ambiguous_resolutions),
+        ):
             enqueue_bulk_disambiguation(asdict(resolution))
-        for resolution in tqdm(non_segment_resolutions, desc="Non-segment resolutions"):
+        non_segment_iter = non_segment_resolutions[NON_SEGMENT_START_FROM:] if NON_SEGMENT_START_FROM else non_segment_resolutions
+        for resolution in tqdm(
+            non_segment_iter,
+            desc="Non-segment resolutions",
+            initial=NON_SEGMENT_START_FROM if NON_SEGMENT_START_FROM else 0,
+            total=len(non_segment_resolutions),
+        ):
             enqueue_bulk_disambiguation(asdict(resolution))
         print("Dispatched bulk disambiguation tasks")
     except Exception as e:
