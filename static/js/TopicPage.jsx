@@ -403,7 +403,7 @@ return (
                 </h1>
                 </CategoryHeader>
             {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && 
-                <AiInfoTooltip/>
+                <AiInfoTooltip displayText="Some of the text on this page has been AI generated."/>
             }
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
