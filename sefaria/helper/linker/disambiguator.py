@@ -29,6 +29,12 @@ from sefaria.model.schema import AddressType
 logger = structlog.get_logger(__name__)
 
 
+class DictaAPIError(RuntimeError):
+    def __init__(self, info: Dict[str, Any]):
+        super().__init__("Dicta API returned non-200")
+        self.info = info
+
+
 @dataclass(frozen=True)
 class AmbiguousResolutionPayload:
     ref: str
@@ -192,7 +198,10 @@ def _mark_citation(text: str, span: dict) -> str:
 
 
 @traceable(run_type="tool", name="query_dicta")
-def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
+def _query_dicta(
+    query_text: str,
+    target_ref: str,
+) -> List[Dict[str, Any]]:
     """Query Dicta parallels API for matching segments."""
     params = {
         'minthreshold': int(MIN_THRESHOLD),
@@ -218,7 +227,16 @@ def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
             headers=headers,
             timeout=REQUEST_TIMEOUT
         )
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise DictaAPIError({
+                "status_code": resp.status_code,
+                "url": resp.url,
+                "query_text": query_text,
+                "target_ref": target_ref,
+                "response_text": resp.text,
+            })
+            logger.warning(f"Dicta API request failed: {resp.status_code} for {resp.url}")
+            return []
 
         # Handle UTF-8 BOM by decoding with utf-8-sig
         text = resp.content.decode('utf-8-sig')
@@ -743,7 +761,9 @@ def _fallback_search_pipeline(
 
 
 @traceable(run_type="chain", name="disambiguate_non_segment_ref")
-def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -> Optional[NonSegmentResolutionResult]:
+def disambiguate_non_segment_ref(
+    resolution_data: NonSegmentResolutionPayload,
+) -> Optional[NonSegmentResolutionResult]:
     """
     Disambiguate a non-segment-level reference to a specific segment.
 
@@ -956,13 +976,17 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
         logger.info("No resolution found via Dicta or Search")
         return None
 
+    except DictaAPIError:
+        raise
     except Exception as e:
         logger.error(f"Error in disambiguate_non_segment_ref: {e}", exc_info=True)
         return None
 
 
 @traceable(run_type="chain", name="disambiguate_ambiguous_ref")
-def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> Optional[AmbiguousResolutionResult]:
+def disambiguate_ambiguous_ref(
+    resolution_data: AmbiguousResolutionPayload,
+) -> Optional[AmbiguousResolutionResult]:
     """
     Disambiguate between multiple possible reference resolutions.
 
@@ -1090,6 +1114,8 @@ def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> O
         logger.info("Could not find valid match among ambiguous candidates")
         return None
 
+    except DictaAPIError:
+        raise
     except Exception as e:
         logger.error(f"Error in disambiguate_ambiguous_ref: {e}", exc_info=True)
         return None
@@ -1192,7 +1218,9 @@ def _try_dicta_for_candidates(
 
 
 @traceable(run_type="tool", name="query_dicta_raw")
-def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
+def _query_dicta_raw(
+    query_text: str,
+) -> List[Dict[str, Any]]:
     """Query Dicta and return all results (not filtered by target ref)."""
     params = {
         'minthreshold': int(MIN_THRESHOLD),
@@ -1212,7 +1240,16 @@ def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
             headers=headers,
             timeout=REQUEST_TIMEOUT
         )
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise DictaAPIError({
+                "status_code": resp.status_code,
+                "url": resp.url,
+                "query_text": query_text,
+                "target_ref": None,
+                "response_text": resp.text,
+            })
+            logger.warning(f"Dicta API request failed: {resp.status_code} for {resp.url}")
+            return []
 
         # Handle UTF-8 BOM by decoding with utf-8-sig
         text = resp.content.decode('utf-8-sig')
