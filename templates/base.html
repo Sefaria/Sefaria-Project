@@ -226,12 +226,14 @@
 
     {% endif %}
 
+    {% if chatbot_user_token %}
     <lc-chatbot 
-      user-id="12346"
+      user-id="{{ chatbot_user_token }}"
       api-base-url="https://chat-dev.sefaria.org/api"
       default-open="false"
       placement="right"
     ></lc-chatbot>
+    {% endif %}
 
     <div id="overlay"></div>
 
