@@ -4172,9 +4172,12 @@ def account_settings(request):
 @ensure_csrf_cookie
 def home(request):
     """
-    Homepage (which is the texts page)
+    Homepage - renders the same content as /texts.
+    We render directly instead of redirecting to ensure proper favicon handling,
+    as redirects don't include HTML content that browsers use to identify favicons
+    when creating bookmarks.
     """
-    return redirect("/texts")
+    return texts_list(request)
 
 
 def community_page(request, props={}):
