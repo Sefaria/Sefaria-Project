@@ -59,6 +59,8 @@ def _dispatch(sheet: Dict[str, Any]) -> None:
             logger.info("Queued scoring task id=%s", res.id)
         elif isinstance(res, bool):
             logger.info("Synchronous scoring result: %s", "OK" if res else "FAIL")
+        elif res is None:
+            logger.info('No scoring task dispatched: LLM or tasks pod may be missing.')
         else:
             logger.debug("Dispatched scoring (no return value)")
     except Exception as e:
