@@ -181,7 +181,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     sortedSheets = prepSheetsForDisplay(sortedSheets);
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
     const handleSheetResultClick = (sheetRef) => {
-        const sheetId = parseInt(sheetRef.replace("Sheet ", ""));
+        const sheetId = parseInt(sheetRef.replace("Sheet ", ""), 10);
         onResultClick(sheetId, null, refs);
     };
     return <SearchPage
