@@ -438,11 +438,10 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
           if (queryType === 'Ref') {
-              gtag("event", "search_navto", {
+              gtag("event", "search_submit", {
                 "project": "Global Search",
                 "feature_name": "Autolink",
                 "text": query,
-                "to": queryId
               });
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
@@ -450,11 +449,10 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
-              gtag("event", "search_navto", {
+              gtag("event", "search_submit", {
                 "project": "Global Search",
                 "feature_name": "Autolink",
-                "text": query,
-                "to": queryId
+                "text": query
               });
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
@@ -467,7 +465,6 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
                 "feature_name": "Autolink",
                 "link_type": type_title_map[item.type],
                 "text": query,
-                "to": queryId
               });
           } else {
               search(onChange, query);
