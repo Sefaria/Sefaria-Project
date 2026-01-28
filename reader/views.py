@@ -202,6 +202,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     props["remoteConfig"] = remoteConfigCache.get(CLIENT_REMOTE_CONFIG_JSON, {})
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
+    template_context["active_module"] = getattr(request, "active_module", LIBRARY_MODULE)
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
         html = render_react_component("ReaderApp", propsJSON)
         template_context["html"] = html
