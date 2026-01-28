@@ -3105,6 +3105,36 @@ const ProductsPage = memo(() => {
     );
 });
 
+const NewsletterPage = () => (
+  <StaticPage>
+    <Spacer height={100} />
+    <div className="staticPageBlockInner" style={{ textAlign: 'center' }}>
+      <h2 style={{
+        fontSize: '30px',
+        fontWeight: 'normal',
+        marginBottom: '30px',
+        letterSpacing: '1px'
+      }}>
+        <InterfaceText text={{en: "Stay Connected", he: "הישארו מחוברים"}} />
+      </h2>
+      <div className="sans" style={{
+        fontSize: '14px',
+        color: 'var(--medium-grey)',
+        marginBottom: '40px'
+      }}>
+        <InterfaceText text={{en: "Sign up for Sefaria emails", he: "הצטרפו לרשימת הדיוור שלנו"}} />
+      </div>
+    </div>
+    <div className="staticPageBlockInner" style={{ width: '200px', margin: '0 auto' }}>
+      <NewsletterSignUpForm
+        contextName="Newsletter Page"
+        includeEducatorOption={true}
+      />
+    </div>
+    <Spacer height={100} />
+  </StaticPage>
+);
+
 
 export {
     SheetsLandingPage,
@@ -3119,4 +3149,5 @@ export {
     JobsPage,
     TeamMembersPage,
     ProductsPage,
+    NewsletterPage,
 };
