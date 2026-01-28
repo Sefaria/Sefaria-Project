@@ -398,14 +398,17 @@ def catchall(request, tref, sheet=None):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
-        if active_module != LIBRARY_MODULE:
-            # Redirect to library module for text references
-            return redirect_to_module(request, f"/{tref}", LIBRARY_MODULE)
+        # Validate ref first
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
+        # If on wrong module, redirect to library module
+        if active_module != LIBRARY_MODULE:
+            return redirect_to_module(request, f"/{tref}", LIBRARY_MODULE)
+
+        # Normal processing for library module
         uref = oref.url(False)
         if uref and tref != uref:
             return reader_redirect(uref)
