@@ -4174,7 +4174,12 @@ def home(request):
     """
     Homepage (which is the texts page)
     """
-    return redirect("/texts")
+    response = redirect("/texts")
+    # Add Link header for favicon to help browsers find the icon when bookmarking
+    # the homepage URL (which redirects and has no HTML with <link rel="icon"> tags)
+    active_module = getattr(request, 'active_module', DEFAULT_HOST)
+    response['Link'] = f'</static/icons/{active_module}/favicon.ico>; rel="icon"'
+    return response
 
 
 def community_page(request, props={}):
