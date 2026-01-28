@@ -180,6 +180,10 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     sortedSheets = applySortOption(sortedSheets);
     sortedSheets = prepSheetsForDisplay(sortedSheets);
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
+    const handleSheetResultClick = (sheetRef) => {
+        const sheetId = parseInt(sheetRef.replace("Sheet ", ""));
+        onResultClick(sheetId, null, refs);
+    };
     return <SearchPage
           key={"sheetsPage"}
           isQueryRunning={loading}
@@ -192,7 +196,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           compare={false}
           searchState={searchState}
           panelsOpen={1}
-          onResultClick={onResultClick}
+          onResultClick={handleSheetResultClick}
           updateAppliedFilter={updateAppliedFilter}
           updateAppliedOptionField={updateAppliedOptionField}
           updateAppliedOptionSort={updateAppliedOptionSort}

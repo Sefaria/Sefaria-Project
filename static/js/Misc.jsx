@@ -1674,7 +1674,7 @@ const SheetListing = ({
     }
     if (handleSheetClick) {
       Sefaria.track.sheets("Opened via Connections Panel", connectedRefs.toString());
-      handleSheetClick(e, sheet, null, connectedRefs);
+      handleSheetClick(sheet, null, connectedRefs);
       e.preventDefault();
     }
   };
