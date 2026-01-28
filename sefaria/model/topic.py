@@ -504,7 +504,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         """
         d = {'primaryTitle': {}}
         for lang in ('en', 'he'):
-            d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+            d[lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+            d['primaryTitle'][lang] = d[lang]   # we use 'en' and 'he' for backwards compatibility with mobile app but our desktop app uses 'primaryTitle'
         if not kwargs.get("with_html"):
             for k, v in d.get("description", {}).items():
                 d["description"][k] = re.sub("<[^>]+>", "", v or "")
