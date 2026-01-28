@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
 from webpack_loader import utils as webpack_utils
 
-from django.conf import settings as sls
+from sefaria.settings import relative_to_abs_path
 # from sefaria.model.user_profile import UserProfile
 
 
@@ -54,6 +54,6 @@ def send_email(subject, message_html, from_email, to_email):
 
 def read_webpack_bundle(config_name):
     webpack_files = webpack_utils.get_files('main', config=config_name)
-    bundle_path = sls.relative_to_abs_path('..' + webpack_files[0]["url"])
+    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
     with open(bundle_path, 'r') as file:
         return file.read()
