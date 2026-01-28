@@ -3726,7 +3726,12 @@ _media: {},
 
       // Combine base title with suffix
       return baseTitle ? `${Sefaria._(baseTitle)} | ${Sefaria._(suffix)}` : Sefaria._(suffix);
-    },
+  },
+  getDisallowedMarkdownElements:  () => {
+    // This function prevents showing topic links in Voices, as they are currently stored with the library domain.
+    // This should be removed when this is fixed.
+    return (Sefaria.activeModule === Sefaria.VOICES_MODULE) ? ['p', 'a'] : ['p'];
+  },
 });
 
 Sefaria.unpackDataFromProps = function(props) {
