@@ -23,6 +23,7 @@ from sefaria.helper.linker.disambiguator import (
     NonSegmentResolutionPayload,
     AmbiguousResolutionResult,
     NonSegmentResolutionResult,
+    DictaAPIError,
 )
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
@@ -489,6 +490,36 @@ def _record_disambiguated_link(payload: dict) -> None:
     except Exception:
         logger.exception("Failed recording disambiguated link", payload=doc)
 
+
+def _record_dicta_failure(payload: dict) -> None:
+    doc = dict(payload)
+    doc["created_at"] = datetime.utcnow()
+    try:
+        db.linker_dicta_failures_tmp.insert_one(doc)
+        logger.info("Recorded dicta failure", payload=doc)
+    except Exception:
+        logger.exception("Failed recording dicta failure", payload=doc)
+
+
+def _dicta_error_payload(info: dict, payload_obj: object) -> dict:
+    payload_doc = None
+    payload_type = None
+    try:
+        payload_doc = asdict(payload_obj)
+        payload_type = type(payload_obj).__name__
+    except Exception:
+        payload_doc = None
+    return {
+        "type": "dicta_non_200",
+        "status_code": info.get("status_code"),
+        "url": info.get("url"),
+        "target_ref": info.get("target_ref"),
+        "query_text": (info.get("query_text") or "")[:4000],
+        "response_text": (info.get("response_text") or "")[:2000],
+        "payload": payload_doc,
+        "payload_type": payload_type,
+    }
+
 def _extract_resolved_spans(resolved_refs):
     spans = []
     for resolved_ref in resolved_refs:
@@ -906,13 +937,19 @@ def cauldron_routine_disambiguation(payload: dict) -> dict:
     logger.info("=== Processing Bulk Disambiguation (single) ===")
     if "ambiguous_refs" in payload:
         amb_payload = AmbiguousResolutionPayload(**payload)
-        result = disambiguate_ambiguous_ref(amb_payload)
-        if result and result.resolved_ref:
-            _apply_ambiguous_resolution_with_record(amb_payload, result)
+        try:
+            result = disambiguate_ambiguous_ref(amb_payload)
+            if result and result.resolved_ref:
+                _apply_ambiguous_resolution_with_record(amb_payload, result)
+        except DictaAPIError as e:
+            _record_dicta_failure(_dicta_error_payload(e.info, amb_payload))
         return None
 
     ns_payload = NonSegmentResolutionPayload(**payload)
-    result = disambiguate_non_segment_ref(ns_payload)
-    if result and result.resolved_ref:
-        _apply_non_segment_resolution_with_record(ns_payload, result)
+    try:
+        result = disambiguate_non_segment_ref(ns_payload)
+        if result and result.resolved_ref:
+            _apply_non_segment_resolution_with_record(ns_payload, result)
+    except DictaAPIError as e:
+        _record_dicta_failure(_dicta_error_payload(e.info, ns_payload))
     return None
