@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import urllib.request, urllib.parse, urllib.error
 import re
 import bleach
@@ -6,6 +7,8 @@ import sys
 import json
 import csv
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 from django.utils.translation import ugettext as _, ungettext_lazy
 from random import randint
 
@@ -332,14 +335,19 @@ class UserProfile(object):
             self.email             = user.email
             self.date_joined       = user.date_joined
             self.user              = user
-        except:
+            self._django_user_found = True
+        except Exception as e:
             # These default values allow profiles to function even
-            # if the Django User records are missing (for testing)
+            # if the Django User records are missing (for testing).
+            # WARNING: This fallback causes "User {id}" names to appear in search results
+            # if the Django database is unreachable during Elasticsearch indexing.
+            logger.warning(f"Failed to load Django User for id={id}: {type(e).__name__}: {e}")
             self.first_name        = "User"
             self.last_name         = str(id)
             self.email             = "test@sefaria.org"
             self.date_joined       = None
             self.user              = None
+            self._django_user_found = False
 
         self._id                   = None  # Mongo ID of profile doc
         self.id                    = id    # user ID
@@ -416,6 +424,15 @@ class UserProfile(object):
     @property
     def full_name(self):
         return self.first_name + " " + self.last_name
+
+    @property
+    def has_django_user(self):
+        """
+        Returns True if a Django User record was successfully loaded for this profile.
+        If False, the profile is using fallback values ("User {id}") which indicates
+        the Django database was unreachable - critical during indexing.
+        """
+        return getattr(self, '_django_user_found', False)
 
     def _set_flags_on_update(self, obj):
         if "first_name" in obj or "last_name" in obj:
@@ -816,15 +833,27 @@ def email_unread_notifications(timeframe):
 
 public_user_data_cache = {}
 def public_user_data(uid, ignore_cache=False):
-    """Returns a dictionary with common public data for `uid`"""
+    """
+    Returns a dictionary with common public data for `uid`.
+    Returns None if the Django User record could not be loaded - this indicates
+    the Django database is unreachable and calling code should handle accordingly.
+    """
     if uid in public_user_data_cache and not ignore_cache:
         return public_user_data_cache[uid]
 
     profile = UserProfile(id=uid)
+
+    # If Django User wasn't found, return None to signal the problem.
+    # This prevents indexing sheets with "User {id}" names.
+    if not profile.has_django_user:
+        logger.warning(f"public_user_data returning None for uid={uid} - Django User not found")
+        return None
+
     try:
         user = User.objects.get(id=uid)
-        is_staff = user.is_staff()
-    except:
+        is_staff = user.is_staff
+    except Exception as e:
+        logger.warning(f"Failed to check is_staff for uid={uid}: {type(e).__name__}: {e}")
         is_staff = False
 
     data = {
