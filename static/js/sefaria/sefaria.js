@@ -132,6 +132,9 @@ Sefaria = extend(Sefaria, {
 
       return ref;
   },
+  isSheetRef: function(ref) {
+    return Sefaria.parseRef(ref).book === 'Sheet';
+  },
   normRef: function(ref) {
       // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section seprator).
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
