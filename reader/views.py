@@ -3297,6 +3297,8 @@ def topics_list_api(request):
     for topic in all_topics:
         topic_json = topic.contents(minify=True, with_html=True)
         topic_json["titles"] = topic.titles
+        if getattr(topic, "image", None):
+            topic_json["image"] = topic.image
         all_topics_json.append(topic_json)
     response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
