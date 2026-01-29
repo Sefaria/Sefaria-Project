@@ -33,7 +33,7 @@ spec:
                 memory: 7Gi
             env:
             - name: SEARCH_HOST
-              value: "elasticsearch-es-http.elasticsearch.svc"
+              value: "elasticsearch-1b-es-http.elasticsearch.svc"
             - name: SEARCH_PORT
               value: "9200"
             - name: SEARCH_PATH
@@ -70,7 +70,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob.py --debug"
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob.py"
             ]
           restartPolicy: Never
           volumes:
