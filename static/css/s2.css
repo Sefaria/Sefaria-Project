@@ -3941,6 +3941,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 665px;
 }
 
+.searchTopLineInner {
+  display: flex;
+  justify-content: space-between;
+}
+
+.searchTopLineInner .ai-info-icon {
+  margin-top: 9px;
+  margin-inline-end: 1px;
+}
+
 .searchResultList .topicTitle .int-en, .searchResultList .topicTitle .int-he {
   font-size: 24px;
 }
@@ -10898,7 +10908,8 @@ span.purim-emoji img{
 }
 @media screen and (max-width: 800px) {
   .overlayTextOnSheetsHero {
-    margin-inline-start: 15%;
+    margin-inline-start: 15px;
+    text-align: start;
   }
   .overlayTextOnSheetsHero #title {
     font-size: 24px;
