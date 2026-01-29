@@ -230,8 +230,7 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
-    e.preventDefault();
+  handleSheetClick(sheet, highlightedNode, highlightedRefsInSheet) {
     this.conditionalSetState({
       mode: "Sheet",
       sheetID: typeof sheet === 'object' ? sheet.id : sheet, // latter case is for when 'sheet' passed is ID

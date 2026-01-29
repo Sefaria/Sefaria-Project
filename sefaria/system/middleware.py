@@ -390,6 +390,6 @@ class ModuleMiddleware(MiddlewareURLMixin):
     # a TemplateResponse in our reader.views.render
     def process_template_response(self, request, response):
         # For template responses, add active_module to context
-        if hasattr(response, 'context_data'):
+        if hasattr(response, 'context_data') and response.context_data is not None:
             response.context_data['active_module'] = request.active_module
         return response
