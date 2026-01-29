@@ -201,13 +201,14 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
-        redirectToObject(highlightedItem, {
+        gtag("event", "search_navto", {
           "project": "Global Search",
           "feature_name": "Nav To by Keyboard",
-          "link_type": type_title_map[highlightedItem.type],
+          "link_type": type_title_map?.[highlightedItem.type] || highlightedItem.type,
           "text": getInputValue(),
           "to": highlightedItem.label
         });
+        redirectToObject(highlightedItem);
         return;
       }
       const inputQuery = getInputValue();
@@ -251,12 +252,12 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
         // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
+        gtag("event", "search_defocus", {
+          "project": "Global Search",
+          "text": oldValue,
+        });
       }
       !document.getElementById('keyboardInputMaster') && setInputValue(oldValue);
-      gtag("event", "search_defocus", {
-        "project": "Global Search",
-        "text": oldValue,
-      });
     };
 
     const inputClasses = classNames({
@@ -325,22 +326,22 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
-            onSuggestionClick: redirectToObject,
+            onSuggestionClick: () => {
+              gtag("event", "search_navto", {
+                "project": "Global Search",
+                "feature_name": "Nav To by Mouse",
+                "to": props.label,
+                "text": inputValue
+              });
+              redirectToObject();
+            },
             SuggestionComponent: EntitySearchSuggestion
         }
     };
 
     const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
-    const handleClick = (e) => {
-      onSuggestionClick(e, {
-        "project": "Global Search",
-        "feature_name": "Nav To by Mouse",
-        "to": props.label,
-        "text": inputValue
-      });
-    }
     return (
-        <SuggestionComponent onClick={handleClick} type={type} {...props} />
+        <SuggestionComponent onClick={onSuggestionClick} type={type} {...props} />
     );
 }
 
@@ -460,12 +461,13 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
               const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
-              redirectToObject(onChange, item, anl={
+              gtag("event", 'search_submit', {
                 "project": "Global Search",
                 "feature_name": "Autolink",
-                "link_type": type_title_map[item.type],
+                "link_type": type_title_map?.[queryType] || queryType,
                 "text": query,
               });
+              redirectToObject(onChange, item);
           } else {
               search(onChange, query);
           }
@@ -497,11 +499,8 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         onNavigate && onNavigate();
     };
 
-    const redirectToObject = (onChange, item, anl={}) => {
+    const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-        if (Object.keys(anl).length > 0) {
-          gtag("event", "search_navto", anl);
-        }
         clearSearchBox(onChange);
         const url = item.url.replace(/\?/g, '%3F');
         const handled = openURL(url);
