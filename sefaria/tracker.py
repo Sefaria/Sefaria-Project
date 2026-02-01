@@ -11,9 +11,10 @@ logger = structlog.get_logger(__name__)
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 try:
-    from sefaria.settings import USE_VARNISH
+    from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 except ImportError:
     USE_VARNISH = False
+    CELERY_ENABLED = False
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
@@ -148,7 +149,7 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
             invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
         if oref.prev_section_ref():
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
-    if not kwargs.get("skip_links", None):
+    if not kwargs.get("skip_links", None) and CELERY_ENABLED:
         from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
         from sefaria.model import Version
 
