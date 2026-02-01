@@ -149,14 +149,43 @@ class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
 
 
-def process_category_path_change(changed_cat, **kwargs):
+def process_term_name_change_in_categories(term, **kwargs):
+    """
+    When a Term's name changes, update all categories that reference it via sharedTitle.
+    Uses already-loaded Category objects from TocTree to avoid loading issues.
+    """
+    from sefaria.model.text import library
+    old = kwargs["old"]
+    new = term.name
+
+    # Access cached TocTree directly - Term._pre_save() ensures it's built before save
+    toc_tree = library._toc_tree
+    if not toc_tree:
+        raise Exception("Cannot change term name when library TocTree is not initialized")
+
+    for toc_cat in toc_tree.all_category_nodes(include_root=False):
+        cat = toc_cat.get_category_object()
+        if cat and getattr(cat, "sharedTitle", None) == old:
+            old_path = cat.path[:]
+            cat.add_shared_term(new)
+            cat.path[-1] = new
+            cat.lastPath = new
+            cat.save(override_dependencies=True)
+            # Manually trigger path change processing with cached toc_tree
+            process_category_path_change(cat, toc_tree=toc_tree, old=old_path, new=cat.path)
+
+    library.rebuild(include_toc=True)
+
+
+def process_category_path_change(changed_cat, toc_tree=None, **kwargs):
     def modify(old_val, new_val, pos):
         old_val[:pos] = new_val
         return old_val
 
     from sefaria.model.text import library
     from sefaria.model import Index
-    tree = library.get_toc_tree()
+    # Use provided toc_tree or get from library (may trigger rebuild)
+    tree = toc_tree if toc_tree else library.get_toc_tree()
     new_categories = kwargs["new"]
     old_toc_node = tree.lookup(kwargs["old"])
     assert isinstance(old_toc_node, TocCategory)

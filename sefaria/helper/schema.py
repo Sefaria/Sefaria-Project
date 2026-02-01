@@ -568,7 +568,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     handle_dependant_indices(index.title)
 
 
-def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: True, skip_history=False):
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: True, skip_history=False, index=None):
     """
     Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
      function and run it on every location that references the updated index.
@@ -577,6 +577,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     :param needs_rewrite: f(String, Object)->Boolean. Criteria for which a save will be triggered. If not set, routine will trigger a save for
     every item within the set
     :param skip_history: Set to True to skip history updates
+    :param index: Optional Index object to use for alt struct updates instead of loading from ref_identifier
     """
 
     def generic_rewrite(model_set, attr_name='ref', sub_attr_name=None, ):
@@ -610,6 +611,9 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
                         record.save()
                     except InputError as e:
                         print('Bad Data Found: {}'.format(refs))
+                        print(e)
+                    except Exception as e:
+                        print(f'Cannot save {record}')
                         print(e)
             else:
                 if needs_rewrite(refs, record):
@@ -660,14 +664,14 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
                 sheet["lastModified"] = sheet["dateModified"]
                 save_sheet(sheet, sheet["owner"], search_override=True)
 
-    def update_alt_structs(index):
+    def update_alt_structs(passed_index):
 
-        assert isinstance(index, Index)
-        if not index.has_alt_structures():
+        assert isinstance(passed_index, Index)
+        if not passed_index.has_alt_structures():
             return
         needs_save = False
 
-        for name, struct in index.get_alt_structures().items():
+        for name, struct in passed_index.get_alt_structures().items():
             for map_node in struct.get_leaf_nodes():
                 assert map_node.depth <= 1, "Need to write some code to handle alt structs with depth > 1!"
                 wr = map_node.wholeRef
@@ -679,8 +683,9 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
                         if needs_rewrite(ref):
                             needs_save = True
                             map_node.refs[ref_num] = rewriter(ref)
-        if needs_save:
-            index.save()
+        # If index was passed to cascade, caller is responsible for saving
+        if needs_save and not index:
+            passed_index.save()
 
     if isinstance(ref_identifier, str):
         ref_identifier = Ref(ref_identifier)
@@ -711,15 +716,15 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Sheets')
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print('Updating Alternate Structs')
-    update_alt_structs(ref_identifier.index)
+    update_alt_structs(index if index else ref_identifier.index)
     print('Updating Marked Up Text Chunks')
     generic_rewrite(MarkedUpTextChunkSet(construct_query('ref', identifier)))
     print('Updating Manuscripts')
     generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
     generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
     print('Updating WebPages')
-    generic_rewrite(WebPageSet(construct_query('refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expandedRefs', identifier)))
+    generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
+    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)))
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
@@ -1005,6 +1010,64 @@ def change_term_hebrew(en_primary, new_he):
     t.add_title(new_he, "he", True, True)
     t.remove_title(old_primary, "he")
     t.save()
+
+
+def process_term_change_in_index(index, old, new):
+    """
+    When a Term's name changes, update all Index nodes that reference it via sharedTitle.
+    Also cascades ref changes in links, notes, sheets, etc.
+    And update collective_title.
+    """
+    needs_save = False
+    schema_nodes = [index.nodes] + index.nodes.all_children()
+    alt_struct_roots = list(getattr(index, "struct_objs", {}).values())
+    alt_struct_children = [child for node in alt_struct_roots for child in node.all_children()]
+    nodes_to_check = schema_nodes + alt_struct_roots + alt_struct_children
+
+    affected_nodes = []
+    for node in nodes_to_check:
+        if getattr(node, "sharedTitle", None) == old:
+            node.add_shared_term(new)  # Updates sharedTitle and reloads title_group from term
+            needs_save = True
+            if node in schema_nodes:
+                affected_nodes.append(node)
+
+    # Cascade ref changes while refs with old name still resolve
+    for node in affected_nodes:
+        node_address = node.address()
+        old_pattern = rf'^{re.escape(node.ref().normal())}\b'
+        ref_path = [t for t in node_address if t != 'default']
+        new_ref_path = ref_path[:-1] + [new]
+        new_replacement = ", ".join(new_ref_path)
+
+        def needs_rewrite(ref_str, *args):
+            return re.search(old_pattern, ref_str)
+
+        def rewriter(ref_str):
+            return re.sub(old_pattern, new_replacement, ref_str)
+
+        print(f'Cascading Index {node.index.title}: from {old_pattern} to {new_replacement}')
+        cascade(index.title, rewriter, needs_rewrite, index=index)
+
+    if getattr(index, 'collective_title', None) == old:
+        index.collective_title = new
+        needs_save = True
+
+    if needs_save:
+        # Then save the index with updated sharedTitle values
+        index.save(override_dependencies=True)
+        library.refresh_index_record_in_cache(index)
+
+
+def process_term_name_change_in_indexes(term, **kwargs):
+    """
+    When a Term's name changes, update all Index nodes that reference it via sharedTitle.
+    Also cascades ref changes in links, notes, sheets, etc.
+    """
+    old = kwargs["old"]
+    new = term.name
+    for index in library.all_index_records():
+        process_term_change_in_index(index, old, new)
 
 
 def change_lexicon_headword(parent_lexicon, old_headword, new_headword):

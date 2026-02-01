@@ -3,9 +3,9 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 """
 
 from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
-
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
-import sefaria.system.cache as scache
+from sefaria.helper import schema as schema_helper
+
 
 # Index Save / Create
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
@@ -80,17 +80,20 @@ subscribe(marked_up_text_chunk.process_topic_slug_change,             topic.Topi
 
 
 # Terms
-# TODO cascade change to Term.name.
-# TODO Current locations where we know terms are used [Index, Categories]
-# TODO Use Sefaria-Project/scripts/search_for_indexes_that_use_terms.py for now
-subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
-subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
-subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
-"""
-Notes on where Terms are used
-Index (alt structs and schema)
-Category
-"""
+# Term save/delete rebuilds the term mapping cache
+subscribe(text.reset_simple_term_mapping, schema.Term, "delete")
+subscribe(text.reset_simple_term_mapping, schema.Term, "save")
+
+# Term name change cascades to all places storing the term name as a string:
+# - Category.sharedTitle
+# - Index schema/alt-struct nodes with sharedTitle
+# - Index.collective_title
+# First rebuild term mapping so cascade functions have access to updated mappings
+subscribe(text.reset_simple_term_mapping, schema.Term, "attributeChange", "name")
+# Indexes must be updated before categories, because category save triggers index save,
+# and index validation will fail if collective_title still references the old term name
+subscribe(schema_helper.process_term_name_change_in_indexes, schema.Term, "attributeChange", "name")
+subscribe(category.process_term_name_change_in_categories, schema.Term, "attributeChange", "name")
 
 # Time
 subscribe(cascade(topic.PersonTopicSet, "properties.era.value"),          timeperiod.TimePeriod, "attributeChange", "symbol")

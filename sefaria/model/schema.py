@@ -279,6 +279,13 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     def _normalize(self):
         self.titles = self.title_group.titles
 
+    def _pre_save(self):
+        # If term name is changing, ensure TocTree is built while old term still exists
+        # This is needed because post-save cascades need cached TocTree to update categories
+        if self.pkeys_orig_values.get("name") and self.pkeys_orig_values["name"] != self.name:
+            from sefaria.model.text import library
+            library.get_toc_tree()  # Ensures TocTree is cached before term name changes
+
     def _validate(self):
         super(Term, self)._validate()
         # do not allow duplicates:
