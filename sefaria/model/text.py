@@ -5290,6 +5290,21 @@ class Library(object):
         for each of the languages in the library.
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
+        from sefaria.system.cache import load_from_dev_file_cache, save_to_dev_file_cache
+
+        # Try to load from dev file cache first
+        cached = load_from_dev_file_cache("full_auto_completer")
+        if cached is not None:
+            self._full_auto_completer = cached
+            # Re-establish cross-references between language autocompleters
+            for lang in self.langs:
+                self._full_auto_completer[lang].set_other_lang_ac(
+                    self._full_auto_completer["he" if lang == "en" else "en"]
+                )
+            self._full_auto_completer_is_ready = True
+            return
+
+        # Build from scratch
         from .autospell import AutoCompleter
         self._full_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
@@ -5299,12 +5314,25 @@ class Library(object):
             self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
         self._full_auto_completer_is_ready = True
 
+        # Save to dev file cache for next reload
+        save_to_dev_file_cache("full_auto_completer", self._full_auto_completer)
+
     def build_lexicon_auto_completers(self):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
 
         """
+        from sefaria.system.cache import load_from_dev_file_cache, save_to_dev_file_cache
+
+        # Try to load from dev file cache first
+        cached = load_from_dev_file_cache("lexicon_auto_completers")
+        if cached is not None:
+            self._lexicon_auto_completer = cached
+            self._lexicon_auto_completer_is_ready = True
+            return
+
+        # Build from scratch
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
@@ -5312,14 +5340,30 @@ class Library(object):
         }
         self._lexicon_auto_completer_is_ready = True
 
+        # Save to dev file cache for next reload
+        save_to_dev_file_cache("lexicon_auto_completers", self._lexicon_auto_completer)
+
     def build_cross_lexicon_auto_completer(self):
         """
         Builds the cross lexicon auto completer excluding titles
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
+        from sefaria.system.cache import load_from_dev_file_cache, save_to_dev_file_cache
+
+        # Try to load from dev file cache first
+        cached = load_from_dev_file_cache("cross_lexicon_auto_completer")
+        if cached is not None:
+            self._cross_lexicon_auto_completer = cached
+            self._cross_lexicon_auto_completer_is_ready = True
+            return
+
+        # Build from scratch
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
+
+        # Save to dev file cache for next reload
+        save_to_dev_file_cache("cross_lexicon_auto_completer", self._cross_lexicon_auto_completer)
 
 
     def cross_lexicon_auto_completer(self):
@@ -5682,6 +5726,17 @@ class Library(object):
         return linker
 
     def build_linker(self, lang: str):
+        from sefaria.system.cache import load_from_dev_file_cache, save_to_dev_file_cache
+
+        cache_key = f"linker_{lang}"
+
+        # Try to load from dev file cache first
+        cached = load_from_dev_file_cache(cache_key)
+        if cached is not None:
+            self._linker_by_lang[lang] = cached
+            return self._linker_by_lang[lang]
+
+        # Build from scratch
         from sefaria.model.linker.linker import Linker
 
         logger.info("Loading Spacy Model")
@@ -5691,6 +5746,11 @@ class Library(object):
         named_entity_recognizer = self._build_named_entity_recognizer(lang)
         cat_resolver = self._build_category_resolver(lang)
         self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
+
+        # Save to dev file cache for next reload
+        # Note: Spacy models may not pickle cleanly - if this fails, cache save is skipped gracefully
+        save_to_dev_file_cache(cache_key, self._linker_by_lang[lang])
+
         return self._linker_by_lang[lang]
 
     @staticmethod
