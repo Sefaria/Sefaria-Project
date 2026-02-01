@@ -75,8 +75,8 @@
 
     {% block head %}{% endblock %}
 
-    <script src="https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs"></script>
-    <!-- <script type="module" src="http://localhost:5173/src/main.js?t=1768424211844"></script> -->
+    <!-- <script src="https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs"></script> -->
+    <script type="module" src="http://localhost:5173/src/main.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
@@ -226,10 +226,10 @@
 
     {% endif %}
 
-    {% if chatbot_user_token %}
+    {% if chatbot_enabled and chatbot_user_token %}
     <lc-chatbot 
       user-id="{{ chatbot_user_token }}"
-      api-base-url="https://chat-dev.sefaria.org/api"
+      api-base-url="{{ chatbot_api_base_url }}"
       default-open="false"
       placement="right"
     ></lc-chatbot>

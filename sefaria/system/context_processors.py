@@ -118,8 +118,15 @@ def body_flags(request):
 @user_only
 def chatbot_user_token(request):
     if not request.user.is_authenticated:
-        return {"chatbot_user_token": None}
+        return {"chatbot_user_token": None, "chatbot_enabled": False}
     if not CHATBOT_USER_ID_SECRET:
-        return {"chatbot_user_token": None}
+        return {"chatbot_user_token": None, "chatbot_enabled": False}
+    profile = UserProfile(user_obj=request.user)
+    if not getattr(profile, "experiments", False):
+        return {"chatbot_user_token": None, "chatbot_enabled": False}
     token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-    return {"chatbot_user_token": token}
+    return {
+        "chatbot_user_token": token,
+        "chatbot_enabled": True,
+        "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+    }

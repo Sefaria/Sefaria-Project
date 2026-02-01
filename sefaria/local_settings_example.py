@@ -353,3 +353,5 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
