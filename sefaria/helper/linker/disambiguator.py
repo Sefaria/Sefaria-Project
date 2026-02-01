@@ -87,6 +87,16 @@ def _get_llm():
     return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
 
 
+def _get_confirmation_llm():
+    """Get LLM instance used for prior formation and candidate confirmation."""
+    model = os.getenv("ANTHROPIC_CONFIRM_MODEL", "claude-sonnet-4-5-20250929")
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
+
+    return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+
+
 def _get_keyword_llm():
     """Get configured keyword extraction LLM instance."""
     model = os.getenv("LLM_KEYWORD_MODEL", "gpt-4o-mini")
@@ -464,9 +474,12 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 @traceable(run_type="llm", name="llm_confirm_candidate")
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
-    """Use LLM to confirm if a candidate is the correct resolution."""
+    """Use LLM to confirm if a candidate is the correct resolution, with a prior."""
 
-    llm = _get_llm()
+    llm = _get_confirmation_llm()
+
+    # Form a prior without showing the candidate
+    prior_block = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     base_block = ""
     if base_ref and base_text:
@@ -483,6 +496,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
             "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
             "{citing}\n\n"
             "{base_block}"
+            "Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
             "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
             "Candidate segment text:\n{candidate_text}\n\n"
             "Determine whether the citing passage is actually referring to this candidate segment.\n"
@@ -498,6 +512,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         response = chain.invoke({
             "citing": _escape_template_braces(marked_text[:2000]),
             "base_block": base_block,
+            "prior": _escape_template_braces(prior_block),
             "candidate_ref": candidate_ref,
             "candidate_text": _escape_template_braces(candidate_text[:500])
         })
@@ -508,6 +523,44 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         logger.warning(f"LLM confirmation failed: {e}")
         return False, str(e)
 
+
+@traceable(run_type="llm", name="llm_form_prior")
+def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = None) -> str:
+    """Use LLM to form a prior about what the target segment should contain."""
+    llm = _get_confirmation_llm()
+
+    base_block = ""
+    if base_ref and base_text:
+        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}\n\n"
+
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "You form a prior expectation about what the target text likely contains, "
+            "based only on the citing passage and any base text. Do NOT guess a specific ref."
+        ),
+        (
+            "human",
+            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+            "{citing}\n\n"
+            "{base_block}"
+            "Describe what the target segment should be about, key themes or phrases to expect, "
+            "and any constraints implied by the citation. Keep it concise and concrete.\n"
+            "Return 3-6 bullet points."
+        ),
+    ])
+
+    chain = prompt | llm
+    try:
+        response = chain.invoke({
+            "citing": _escape_template_braces(marked_text[:2000]),
+            "base_block": base_block,
+        })
+        content = getattr(response, 'content', '')
+        return content.strip()
+    except Exception as e:
+        logger.warning(f"LLM prior formation failed: {e}")
+        return ""
 
 @traceable(run_type="llm", name="llm_choose_best_candidate")
 def _llm_choose_best_candidate(
