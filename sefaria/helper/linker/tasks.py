@@ -763,7 +763,7 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
     sig = signature(
         "linker.link_segment_with_worker",
         args=(asdict(linking_args),),
-        options={"queue": CELERY_QUEUES["tasks"]}
+        options={"queue": CELERY_QUEUES.get("tasks", "TASK QUEUE UNDEFINED")},
     )
     return sig.apply_async()
 
