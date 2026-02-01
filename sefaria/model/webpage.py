@@ -36,7 +36,8 @@ class WebPage(abst.AbstractMongoRecord):
         "linkerHits",
         'authors',
         'articleSource',
-        'type'
+        'type',
+        'whitelisted'
     ]
 
     def load(self, url_or_query):
@@ -336,38 +337,106 @@ def get_website_cache():
         return sites
     return sites
 
+def _webpage_client_contents_minimal(webpage):
+    site_data = getattr(webpage, "_site_data", {}) or {}
+    site_name = getattr(webpage, "site_name", "")
+    return {
+        "url": webpage.url,
+        "title": WebPage.clean_title(webpage.title, site_data, site_name),
+        "description": WebPage.clean_description(getattr(webpage, "description", "")),
+        "linkerHits": getattr(webpage, "linkerHits", 0),
+        "domain": webpage.domain,
+        "siteName": site_name,
+        "favicon": webpage.favicon,
+        "authors": getattr(webpage, "authors", None),
+        "articleSource": getattr(webpage, "articleSource", None),
+    }
 
-def get_webpages_for_ref(tref):
+def _get_webpages_for_segment_refs(oref, segment_refs):
     from pymongo.errors import OperationFailure
-    oref = text.Ref(tref)
-    segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
+    if not segment_refs:
+        return []
+    segment_ref_objs = []
+    for tref in segment_refs:
+        try:
+            segment_ref_objs.append(text.Ref(tref))
+        except InputError:
+            continue
+    # only get items that lastUpdated in last year
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs},
+                                "title": {"$ne": ""},
+                                "lastUpdated": {"$gte": datetime.now() - timedelta(days=365)}
+                                },
+                                 proj={
+                                     "url": 1,
+                                     "title": 1,
+                                     "refs": 1,
+                                     "lastUpdated": 1,
+                                     "description": 1,
+                                     "linkerHits": 1,
+                                     "authors": 1,
+                                     "articleSource": 1,
+                                 },
+                                 hint="expandedRefs_1", 
+                                 sort=None)
     try:
         results = results.array()
     except OperationFailure as e:
         # If documents are too large or there are too many results, fail gracefully
-        logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
+        logger.warn(f"WebPageSet for ref {oref.normal()} failed due to Error: {repr(e)}")
         return []
     webpage_objs = {}      # webpage_obj is an actual WebPage()
     webpage_results = {}  # webpage_results is dictionary that API returns
-    
+
     for webpage in results:
-        if not webpage.whitelisted or len(webpage.title) == 0:
+        if not webpage.whitelisted:
             continue
-          
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
         if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
-            anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs,
-                                                                                 webpage.expandedRefs)
+            # Recompute anchor refs from segment refs + webpage refs to avoid loading/using expandedRefs.
+            # This is a reimplementation of the logic in Ref.get_all_anchor_refs to avoid loading Ref objects unnecessarily.
+            anchor_ref_list = []
+            anchor_ref_expanded_list = []
+            for tref in webpage.refs:
+                if not tref.startswith(oref.index.title):
+                    continue
+                try:
+                    document_ref = text.Ref(tref)
+                except InputError:
+                    continue
+                if not oref.overlaps(document_ref):
+                    continue
+                anchor_ref_list.append(document_ref)
+                anchor_ref_expanded_list.append(
+                    [segment_ref for segment_ref in segment_ref_objs if document_ref.overlaps(segment_ref)]
+                )
+            base_webpage_contents = _webpage_client_contents_minimal(webpage)
             for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
-                webpage_contents = webpage.client_contents()
+                webpage_contents = dict(base_webpage_contents)
                 webpage_contents["anchorRef"] = anchor_ref.normal()
                 webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
                 webpage_objs[webpage_key] = webpage
                 webpage_results[webpage_key] = webpage_contents
 
     return list(webpage_results.values())
+
+
+def get_webpages_for_ref(tref):
+    oref = text.Ref(tref)
+    if oref.is_segment_level():
+        segment_refs = [oref.normal()]
+    elif oref.is_range() and oref.range_depth() == 1:
+        segment_refs = [r.normal() for r in oref.range_list()]
+    else:
+        raise InputError("Webpages API requires a segment-level ref.")
+    return _get_webpages_for_segment_refs(oref, segment_refs)
+
+
+def get_webpages_for_section_ref(tref):
+    oref = text.Ref(tref)
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    return _get_webpages_for_segment_refs(oref, segment_refs)
 
 
 def test_normalization():
@@ -679,4 +748,3 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete
-
