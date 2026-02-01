@@ -306,14 +306,14 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
 
 
 @traceable(run_type="tool", name="query_sefaria_search")
-def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> Optional[Dict[str, Any]]:
+def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 20) -> List[Dict[str, Any]]:
     """Query Sefaria search API for matching segments."""
     try:
         target_oref = Ref(target_ref)
         path_regex = _path_regex_for_ref(target_ref)
     except Exception:
         logger.warning(f"Could not create Ref for target: {target_ref}")
-        return None
+        return []
 
     bool_query = {
         'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
@@ -351,10 +351,11 @@ def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> O
         data = resp.json()
     except Exception as e:
         logger.warning(f"Sefaria search API request failed: {e}")
-        return None
+        return []
 
     hits = (data.get('hits') or {}).get('hits', [])
 
+    matches: List[Dict[str, Any]] = []
     for entry in hits:
         normalized = _extract_ref_from_search_hit(entry)
         if not normalized:
@@ -365,16 +366,16 @@ def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> O
             if not cand_oref.is_segment_level():
                 continue
             if target_oref.contains(cand_oref):
-                return {
+                matches.append({
                     'resolved_ref': normalized,
                     'source': 'sefaria_search',
                     'query': query_text,
                     'raw': entry
-                }
+                })
         except Exception:
             continue
 
-    return None
+    return matches
 
 
 def _extract_ref_from_search_hit(hit: Dict[str, Any]) -> Optional[str]:
@@ -414,7 +415,7 @@ def _path_regex_for_ref(ref_str: str) -> Optional[str]:
 @traceable(run_type="llm", name="llm_form_search_query")
 def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
-    llm = _get_keyword_llm()
+    llm = _get_confirmation_llm()
 
     # Create context with citation redacted
     context_redacted = re.sub(r'<citation>.*?</citation>', '[REDACTED]', marked_text, flags=re.DOTALL)
@@ -423,14 +424,18 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
     if base_ref and base_text:
         base_block = f"Base text being commented on ({base_ref}):\n{base_text[:1000]}\n\n"
 
+    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
+
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are extracting a concise citation phrase to search for parallels."),
+        ("system", "You extract concise search phrases that are likely to appear in the target text."),
         ("human",
          "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
          "Context with citation redacted:\n{context}\n\n"
          "{base_block}"
+         "Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
          "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
          "outside the citation span.\n"
+         "- Prefer phrases that you expect to appear verbatim in the target text.\n"
          "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
          "- Include at least one 2-3 word query.\n"
          "- Do NOT copy words that appear inside <citation>...</citation>.\n"
@@ -443,7 +448,8 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
         response = chain.invoke({
             "citing": _escape_template_braces(marked_text[:2000]),
             "context": _escape_template_braces(context_redacted[:2000]),
-            "base_block": _escape_template_braces(base_block)
+            "base_block": _escape_template_braces(base_block),
+            "prior": _escape_template_braces(prior),
         })
         content = getattr(response, 'content', '')
 
@@ -474,12 +480,9 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 @traceable(run_type="llm", name="llm_confirm_candidate")
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
-    """Use LLM to confirm if a candidate is the correct resolution, with a prior."""
+    """Use LLM to confirm if a candidate is the correct resolution."""
 
     llm = _get_confirmation_llm()
-
-    # Form a prior without showing the candidate
-    prior_block = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     base_block = ""
     if base_ref and base_text:
@@ -496,7 +499,6 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
             "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
             "{citing}\n\n"
             "{base_block}"
-            "Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
             "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
             "Candidate segment text:\n{candidate_text}\n\n"
             "Determine whether the citing passage is actually referring to this candidate segment.\n"
@@ -512,7 +514,6 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         response = chain.invoke({
             "citing": _escape_template_braces(marked_text[:2000]),
             "base_block": base_block,
-            "prior": _escape_template_braces(prior_block),
             "candidate_ref": candidate_ref,
             "candidate_text": _escape_template_braces(candidate_text[:500])
         })
@@ -742,20 +743,20 @@ def _fallback_search_pipeline(
             searched.add(q)
 
             logger.info(f"Trying {label} query: '{q}'")
-            hit = _query_sefaria_search(q, non_segment_ref)
+            hits = _query_sefaria_search(q, non_segment_ref)
 
-            if hit:
-                logger.info(f"Sefaria search {label} succeeded: '{q}' -> {hit.get('resolved_ref')}")
-                candidates.append(hit)
+            if hits:
+                logger.info(f"Sefaria search {label} succeeded: '{q}' -> {len(hits)} hits")
+                candidates.extend(hits)
                 continue
 
             # One retry for failed queries
             logger.info(f"Sefaria search {label} failed: '{q}', retrying once...")
-            retry = _query_sefaria_search(q, non_segment_ref)
+            retry_hits = _query_sefaria_search(q, non_segment_ref)
 
-            if retry:
-                logger.info(f"Sefaria search {label} retry succeeded: '{q}' -> {retry.get('resolved_ref')}")
-                candidates.append(retry)
+            if retry_hits:
+                logger.info(f"Sefaria search {label} retry succeeded: '{q}' -> {len(retry_hits)} hits")
+                candidates.extend(retry_hits)
 
     # A) Normal window queries (text-only)
     logger.info("Stage A: Normal window text-only queries")
@@ -1366,40 +1367,41 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
 
     for query in queries:
         # Query search filtered by candidate books
-        result = _query_sefaria_search_with_books(query, list(candidate_books) if candidate_books else None)
-        if not result:
+        results = _query_sefaria_search_with_books(query, list(candidate_books) if candidate_books else None)
+        if not results:
             continue
 
-        search_ref = result['resolved_ref']
-        if search_ref in seen_refs:
-            continue
-
-        try:
-            result_oref = Ref(search_ref)
-
-            if not result_oref.is_segment_level():
+        for result in results:
+            search_ref = result['resolved_ref']
+            if search_ref in seen_refs:
                 continue
 
-            # Check if this result matches any candidate
-            for cand in candidates:
-                cand_oref = cand['oref']
-                if cand_oref.contains(result_oref):
-                    logger.info(
-                        "Search result %s matches candidate %s for query: %s",
-                        search_ref,
-                        cand["ref"],
-                        query,
-                    )
-                    seen_refs.add(search_ref)
-                    matching_candidates.append({
-                        'ref': cand['ref'],  # The candidate ref
-                        'resolved_ref': search_ref,  # The specific segment from search
-                        'query': query,
-                        'raw': result
-                    })
-                    break
-        except Exception:
-            continue
+            try:
+                result_oref = Ref(search_ref)
+
+                if not result_oref.is_segment_level():
+                    continue
+
+                # Check if this result matches any candidate
+                for cand in candidates:
+                    cand_oref = cand['oref']
+                    if cand_oref.contains(result_oref):
+                        logger.info(
+                            "Search result %s matches candidate %s for query: %s",
+                            search_ref,
+                            cand["ref"],
+                            query,
+                        )
+                        seen_refs.add(search_ref)
+                        matching_candidates.append({
+                            'ref': cand['ref'],  # The candidate ref
+                            'resolved_ref': search_ref,  # The specific segment from search
+                            'query': query,
+                            'raw': result
+                        })
+                        break
+            except Exception:
+                continue
 
     if not matching_candidates:
         logger.info("Search found no matches among candidates")
@@ -1494,7 +1496,7 @@ def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[
 
 
 @traceable(run_type="tool", name="query_sefaria_search_with_books")
-def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> Optional[Dict[str, Any]]:
+def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> List[Dict[str, Any]]:
     """Query Sefaria search with optional filtering by list of books."""
     bool_query = {
         'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
@@ -1535,10 +1537,11 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
         data = resp.json()
     except Exception as e:
         logger.warning(f"Sefaria search API request failed: {e}")
-        return None
+        return []
 
     hits = (data.get('hits') or {}).get('hits', [])
 
+    matches: List[Dict[str, Any]] = []
     for entry in hits:
         normalized = _extract_ref_from_search_hit(entry)
         if not normalized:
@@ -1547,11 +1550,11 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
         try:
             cand_oref = Ref(normalized)
             if cand_oref.is_segment_level():
-                return {
+                matches.append({
                     'resolved_ref': normalized,
                     'raw': entry
-                }
+                })
         except Exception:
             continue
 
-    return None
+    return matches

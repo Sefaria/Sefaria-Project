@@ -19,7 +19,7 @@ TEST_CASES = [
             "text": "בירו' פ\"ב דכתובות",
             "versionTitle": "Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898",
         },
-        "expected_resolutions": ["Jerusalem Talmud Ketubot 2:3:3"],
+        "expected_resolutions": ["Jerusalem Talmud Ketubot 2:3:2"],
     },
 ]
 
