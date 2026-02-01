@@ -1,6 +1,8 @@
 import pytest
 from sefaria.model import *
-from sefaria.model.webpage import WebPage, get_webpages_for_ref
+from sefaria.model.webpage import WebPage, WebSite, get_webpages_for_ref
+from sefaria.system.cache import in_memory_cache
+from sefaria.system.exceptions import InputError
 
 title_good_url = "Dvar Torah"
 
@@ -34,6 +36,35 @@ def create_web_page_wout_site():
 	result, webpage = WebPage().add_or_update_from_linker(data)
 	yield {'result': result, 'webpage': webpage, 'data': data}
 	webpage.delete()
+
+@pytest.fixture()
+def whitelisted_site():
+	site = WebSite({"name": "Test Whitelisted Site", "domains": ["whitelisted.test"], "is_whitelisted": True})
+	site.save()
+	in_memory_cache.set("websites_data", None)
+	yield site
+	site.delete()
+	in_memory_cache.set("websites_data", None)
+
+@pytest.fixture()
+def whitelisted_webpage(whitelisted_site):
+	data = {'url': 'https://whitelisted.test/page',
+			'title': 'Whitelisted Page',
+			'description': 'A whitelisted webpage for testing',
+			'refs': ["Genesis 1:1"]}
+	WebPage().add_or_update_from_linker(data)
+	yield data
+	WebPage().load(data["url"]).delete()
+
+@pytest.fixture()
+def non_whitelisted_webpage():
+	data = {'url': 'https://notwhitelisted.test/page',
+			'title': 'Non-whitelisted Page',
+			'description': 'A non-whitelisted webpage for testing',
+			'refs': ["Genesis 1:1"]}
+	WebPage().add_or_update_from_linker(data)
+	yield data
+	WebPage().load(data["url"]).delete()
 
 def test_add_bad_domain_from_linker():
 	#localhost:8000 should not be added to the linker, so make sure attempting to do so fails
@@ -138,8 +169,17 @@ def test_page_wout_description(create_web_page_wout_desc):
 	assert WebPage().add_or_update_from_linker(data)[0] == "excluded"
 
 
-def test_get_webpages_for_ref():
-	results = get_webpages_for_ref("Rashi on Genesis 1:1")
-	assert "title" in results[0]
-	assert "url" in results[0]
-	assert "refs" in results[0]
+def test_get_webpages_for_ref_filters_whitelisted(whitelisted_webpage, non_whitelisted_webpage):
+	results = get_webpages_for_ref("Genesis 1:1")
+	normalized_whitelisted_url = WebPage.normalize_url(whitelisted_webpage["url"])
+	normalized_non_whitelisted_url = WebPage.normalize_url(non_whitelisted_webpage["url"])
+	urls = {result["url"] for result in results}
+	assert normalized_whitelisted_url in urls
+	assert normalized_non_whitelisted_url not in urls
+	matched = next(result for result in results if result["url"] == normalized_whitelisted_url)
+	assert matched["anchorRef"] == "Genesis 1:1"
+
+
+def test_get_webpages_for_ref_requires_segment_level():
+	with pytest.raises(InputError):
+		get_webpages_for_ref("Genesis 1")
