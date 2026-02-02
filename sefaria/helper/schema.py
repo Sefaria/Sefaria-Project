@@ -722,9 +722,9 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Manuscripts')
     generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
     generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
-    print('Updating WebPages')
-    generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
-    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)))
+    # print('Updating WebPages')
+    # generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
+    # generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)))
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
@@ -1024,19 +1024,19 @@ def process_term_change_in_index(index, old, new):
     alt_struct_children = [child for node in alt_struct_roots for child in node.all_children()]
     nodes_to_check = schema_nodes + alt_struct_roots + alt_struct_children
 
-    affected_nodes = []
+    affected_addresses = []
     for node in nodes_to_check:
         if getattr(node, "sharedTitle", None) == old:
-            node.add_shared_term(new)  # Updates sharedTitle and reloads title_group from term
             needs_save = True
+            node.add_shared_term(new)  # Updates sharedTitle and reloads title_group from term
             if node in schema_nodes:
-                affected_nodes.append(node)
+                affected_addresses.append(node.address())
 
     # Cascade ref changes while refs with old name still resolve
-    for node in affected_nodes:
-        node_address = node.address()
-        old_pattern = rf'^{re.escape(node.ref().normal())}\b'
-        ref_path = [t for t in node_address if t != 'default']
+    for address in affected_addresses:
+        ref_path = [t for t in address if t != 'default']
+        old_ref = ", ".join(ref_path)
+        old_pattern = rf'^{re.escape(old_ref)}\b'
         new_ref_path = ref_path[:-1] + [new]
         new_replacement = ", ".join(new_ref_path)
 
@@ -1046,7 +1046,7 @@ def process_term_change_in_index(index, old, new):
         def rewriter(ref_str):
             return re.sub(old_pattern, new_replacement, ref_str)
 
-        print(f'Cascading Index {node.index.title}: from {old_pattern} to {new_replacement}')
+        print(f'Cascading from {old_pattern} to {new_replacement}')
         cascade(index.title, rewriter, needs_rewrite, index=index)
 
     if getattr(index, 'collective_title', None) == old:
