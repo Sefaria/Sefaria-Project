@@ -45,8 +45,8 @@ class PoolFilter(admin.SimpleListFilter):
         return [
             (PoolType.LIBRARY.value, 'Library Pool'),
             (PoolType.SHEETS.value, 'Sheets Pool'),
-            ('general_en', 'General Pool EN'),
-            ('general_he', 'General Pool HE'),
+            (PoolType.GENERAL_EN.value, 'General Pool EN'),
+            (PoolType.GENERAL_HE.value, 'General Pool HE'),
             (PoolType.TORAH_TAB.value, 'TorahTab Pool'),
             ('all', 'All Topics'),
         ]
@@ -55,8 +55,6 @@ class PoolFilter(admin.SimpleListFilter):
         pool_name = self.value()
         if pool_name == 'all':
             return queryset
-        if pool_name is None:
-            pool_name = PoolType.LIBRARY.value  # Default to LIBRARY
         pool = TopicPool.objects.get(name=pool_name)
         return queryset.filter(pools=pool)
 
@@ -69,7 +67,11 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'en_title', 'he_title', 'is_in_pool_general_en', 'is_in_pool_general_he', 'is_in_pool_torah_tab', 'sefaria_link')
+    list_display = []
+    for pool_type in PoolType:
+        list_display.append(f'is_in_pool_{pool_type.value}')
+    list_display.append('slug', 'en_title', 'he_title', 'sefaria_link')
+    list_display = tuple(list_display)
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
@@ -77,13 +79,13 @@ class TopicAdmin(admin.ModelAdmin):
     actions = [
         create_add_to_pool_action(PoolType.LIBRARY.value),
         create_add_to_pool_action(PoolType.SHEETS.value),
-        create_add_to_pool_action('general_en'),
-        create_add_to_pool_action('general_he'),
+        create_add_to_pool_action(PoolType.GENERAL_EN.value),
+        create_add_to_pool_action(PoolType.GENERAL_HE.value),
         create_add_to_pool_action(PoolType.TORAH_TAB.value),
         create_remove_from_pool_action(PoolType.LIBRARY.value),
         create_remove_from_pool_action(PoolType.SHEETS.value),
-        create_remove_from_pool_action('general_en'),
-        create_remove_from_pool_action('general_he'),
+        create_remove_from_pool_action(PoolType.GENERAL_EN.value),
+        create_remove_from_pool_action(PoolType.GENERAL_HE.value),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
     def save_related(self, request, form, formsets, change):
@@ -98,12 +100,12 @@ class TopicAdmin(admin.ModelAdmin):
         return False
 
     def is_in_pool_general_en(self, obj):
-        return obj.pools.filter(name='general_en').exists()
+        return obj.pools.filter(name=PoolType.GENERAL_EN.value).exists()
     is_in_pool_general_en.boolean = True
     is_in_pool_general_en.short_description = "General Pool EN"
 
     def is_in_pool_general_he(self, obj):
-        return obj.pools.filter(name='general_he').exists()
+        return obj.pools.filter(name=PoolType.GENERAL_HE.value).exists()
     is_in_pool_general_he.boolean = True
     is_in_pool_general_he.short_description = "General Pool HE"
 
