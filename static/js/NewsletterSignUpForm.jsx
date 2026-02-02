@@ -18,8 +18,10 @@ export function NewsletterSignUpForm({
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const isFormDisabled = isSubscribed || isSubmitting;
+
     function handleSubscribe() {
-        if (isSubscribed || isSubmitting) {
+        if (isFormDisabled) {
             return;
         }
         if (showNameInputs === true) { // submit
@@ -56,7 +58,7 @@ export function NewsletterSignUpForm({
             aria-label={Sefaria._("Email address")}
             type="email"
             value={email}
-            disabled={isSubscribed || isSubmitting}
+            disabled={isFormDisabled}
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -67,7 +69,7 @@ export function NewsletterSignUpForm({
             aria-label="כתובת אימייל"
             type="email"
             value={email}
-            disabled={isSubscribed || isSubmitting}
+            disabled={isFormDisabled}
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -81,7 +83,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={firstName}
             autoFocus
-            disabled={isSubscribed || isSubmitting}
+            disabled={isFormDisabled}
             onChange={e => setFirstName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -92,7 +94,7 @@ export function NewsletterSignUpForm({
             aria-label="שם פרטי"
             type="text"
             value={firstName}
-            disabled={isSubscribed || isSubmitting}
+            disabled={isFormDisabled}
             onChange={e => setFirstName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -103,7 +105,7 @@ export function NewsletterSignUpForm({
             aria-label={Sefaria._("Last Name")}
             type="text"
             value={lastName}
-            disabled={isSubscribed || isSubmitting}
+            disabled={isFormDisabled}
             onChange={e => setLastName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -114,12 +116,12 @@ export function NewsletterSignUpForm({
             aria-label="שם משפחה"
             type="text"
             value={lastName}
-            disabled={isSubscribed || isSubmitting}
+            disabled={isFormDisabled}
             onChange={e => setLastName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
                     {includeEducatorOption ?
-                        <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isSubscribed || isSubmitting}/> : null}
+                        <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isFormDisabled}/> : null}
                     {!isSubscribed && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>}
                 </>
                 : null}
