@@ -86,6 +86,7 @@ shared_patterns = [
     url(r'^api/link-summary/(?P<ref>.+)$', reader_views.link_summary_api),
     url(r'^api/notes/all$', reader_views.all_notes_api),
     url(r'^api/notes/(?P<note_id_or_ref>.*)$', reader_views.notes_api),
+    url(r'^api/related/(?P<tref>.+)/websites$', reader_views.websites_api),
     url(r'^api/related/(?P<tref>.*)$', reader_views.related_api),
     url(r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', reader_views.link_count_api),
     url(r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', reader_views.word_count_api),
@@ -204,6 +205,9 @@ shared_patterns = [
     url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
     url(r'^api/newsletter_mailing_lists/?$', sefaria_views.get_available_newsletter_mailing_lists),
+
+    url(r'^api/strapi/graphql-cache$', sefaria_views.strapi_graphql_cache),
+    url(r'^api/strapi/cache-invalidate$', sefaria_views.strapi_cache_invalidate),
 
     url(r'^api/stats/library-stats', sefaria_views.library_stats),
     url(r'^api/stats/core-link-stats', sefaria_views.core_link_stats),
