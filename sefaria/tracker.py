@@ -11,11 +11,7 @@ logger = structlog.get_logger(__name__)
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
-try:
-    from sefaria.settings import USE_VARNISH, CELERY_ENABLED
-except ImportError:
-    USE_VARNISH = False
-    CELERY_ENABLED = False
+from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
