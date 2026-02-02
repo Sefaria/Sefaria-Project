@@ -75,9 +75,13 @@ class TopicAdmin(admin.ModelAdmin):
     search_fields = ('slug', 'en_title', 'he_title')
     readonly_fields = ('slug', 'en_title', 'he_title')
     actions = [
+        create_add_to_pool_action(PoolType.LIBRARY.value),
+        create_add_to_pool_action(PoolType.SHEETS.value),
         create_add_to_pool_action('general_en'),
         create_add_to_pool_action('general_he'),
         create_add_to_pool_action(PoolType.TORAH_TAB.value),
+        create_remove_from_pool_action(PoolType.LIBRARY.value),
+        create_remove_from_pool_action(PoolType.SHEETS.value),
         create_remove_from_pool_action('general_en'),
         create_remove_from_pool_action('general_he'),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
