@@ -16,19 +16,23 @@ export function NewsletterSignUpForm({
     const [subscribeMessage, setSubscribeMessage] = useState(null);
     const [showNameInputs, setShowNameInputs] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     function handleSubscribe() {
-        if (isSubscribed) {
+        if (isSubscribed || isSubmitting) {
             return;
         }
         if (showNameInputs === true) { // submit
             if (firstName.length > 0 && lastName.length > 0) {
                 setSubscribeMessage("Subscribing...");
+                setIsSubmitting(true);
                 subscribe(firstName, lastName, email, educatorCheck, additionalNewsletterMailingLists).then(res => {
                     setIsSubscribed(true);
+                    setIsSubmitting(false);
                     setSubscribeMessage("Subscribed! Welcome to our list.");
                     Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
                 }).catch(error => {
+                    setIsSubmitting(false);
                     setSubscribeMessage(error?.message || "Sorry, there was an error.");
                     setShowNameInputs(false);
                 });
@@ -52,7 +56,7 @@ export function NewsletterSignUpForm({
             aria-label={Sefaria._("Email address")}
             type="email"
             value={email}
-            disabled={isSubscribed}
+            disabled={isSubscribed || isSubmitting}
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -63,7 +67,7 @@ export function NewsletterSignUpForm({
             aria-label="כתובת אימייל"
             type="email"
             value={email}
-            disabled={isSubscribed}
+            disabled={isSubscribed || isSubmitting}
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -77,7 +81,7 @@ export function NewsletterSignUpForm({
             type="text"
             value={firstName}
             autoFocus
-            disabled={isSubscribed}
+            disabled={isSubscribed || isSubmitting}
             onChange={e => setFirstName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -88,7 +92,7 @@ export function NewsletterSignUpForm({
             aria-label="שם פרטי"
             type="text"
             value={firstName}
-            disabled={isSubscribed}
+            disabled={isSubscribed || isSubmitting}
             onChange={e => setFirstName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -99,7 +103,7 @@ export function NewsletterSignUpForm({
             aria-label={Sefaria._("Last Name")}
             type="text"
             value={lastName}
-            disabled={isSubscribed}
+            disabled={isSubscribed || isSubmitting}
             onChange={e => setLastName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
@@ -110,12 +114,12 @@ export function NewsletterSignUpForm({
             aria-label="שם משפחה"
             type="text"
             value={lastName}
-            disabled={isSubscribed}
+            disabled={isSubscribed || isSubmitting}
             onChange={e => setLastName(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
                     {includeEducatorOption ?
-                        <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isSubscribed}/> : null}
+                        <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isSubscribed || isSubmitting}/> : null}
                     {!isSubscribed && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>}
                 </>
                 : null}
