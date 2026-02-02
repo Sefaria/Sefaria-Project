@@ -7470,11 +7470,13 @@ But not to use a display block directive that might break continuous mode for ot
   padding-bottom: 0;
 }
 .textListTextRangeBox .connection-buttons, .versionsTextList .connection-buttons{
-  margin-top: 5px;
   margin-bottom: 28px;
   display: flex;
   align-items: flex-start;
   align-content: flex-start;
+}
+.textListTextRangeBox .connection-buttons {
+  margin-top: 5px;
 }
 .connection-buttons.access-user .connection-button.delete-link{
   display:none;
