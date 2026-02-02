@@ -10,6 +10,7 @@ logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
+from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
 try:
     from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 except ImportError:
@@ -149,14 +150,14 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
             invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
         if oref.prev_section_ref():
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
-    if not kwargs.get("skip_links", None) and CELERY_ENABLED:
-        from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
-        from sefaria.model import Version
-
-        generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
-        generator.generate_from_ref_and_version_id(oref, version_id)
-        # # Some commentaries can generate links to their base text automatically
-        # linker = oref.autolinker(user=user)
+    if not kwargs.get("skip_links", None):
+        if CELERY_ENABLED:
+            generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
+            generator.generate_from_ref_and_version_id(oref, version_id)
+        # Some commentaries can generate links to their base text automatically
+        autolinker = oref.autolinker(user=user)
+        if autolinker:
+            autolinker.refresh_links(**kwargs)
 
     count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
 
