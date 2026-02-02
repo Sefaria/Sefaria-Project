@@ -67,11 +67,9 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = []
+    list_display = ['slug', 'en_title', 'he_title', 'sefaria_link']
     for pool_type in PoolType:
         list_display.append(f'is_in_pool_{pool_type.value}')
-    list_display.append('slug', 'en_title', 'he_title', 'sefaria_link')
-    list_display = tuple(list_display)
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
@@ -98,6 +96,16 @@ class TopicAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def is_in_pool_library(self, obj):
+        return obj.pools.filter(name=PoolType.LIBRARY.value).exists()
+    is_in_pool_library.boolean = True
+    is_in_pool_library.short_description = "Library Pool"
+
+    def is_in_pool_sheets(self, obj):
+        return obj.pools.filter(name=PoolType.SHEETS.value).exists()
+    is_in_pool_sheets.boolean = True
+    is_in_pool_sheets.short_description = "Sheets Pool"
 
     def is_in_pool_general_en(self, obj):
         return obj.pools.filter(name=PoolType.GENERAL_EN.value).exists()
