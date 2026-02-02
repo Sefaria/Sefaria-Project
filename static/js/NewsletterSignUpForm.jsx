@@ -73,7 +73,7 @@ export function NewsletterSignUpForm({
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
-            {!showNameInputs && !isSubscribed ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
+            {!showNameInputs && !isFormDisabled ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
                 <><span className="int-en">
         <input
@@ -122,7 +122,7 @@ export function NewsletterSignUpForm({
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isFormDisabled}/> : null}
-                    {!isSubscribed && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>}
+                    {!isFormDisabled && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>}
                 </>
                 : null}
             {subscribeMessage ?
