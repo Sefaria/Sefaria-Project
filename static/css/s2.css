@@ -7476,7 +7476,7 @@ But not to use a display block directive that might break continuous mode for ot
   align-content: flex-start;
 }
 .textListTextRangeBox .connection-buttons {
-  margin-top: 5px;
+  margin-top: 10px;
 }
 .connection-buttons.access-user .connection-button.delete-link{
   display:none;
