@@ -21,9 +21,9 @@ from dataclasses import asdict
 from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonSegmentResolutionPayload
 
 # Global flag for debug mode
-DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
-DEBUG_LIMIT = 5  # Number of random examples to fetch in debug mode
-DEBUG_SEED = 51  # Seed for reproducible random sampling
+DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
+DEBUG_LIMIT = 500 # Number of random examples to fetch in debug mode
+DEBUG_SEED = 6133  # Seed for reproducible random sampling
 
 
 def is_segment_level_ref(ref_str):
@@ -212,7 +212,7 @@ def enqueue_bulk_disambiguation(payload: dict):
     sig = app.signature(
         "linker.cauldron_routine_disambiguation",
         args=(payload,),
-        options={"queue": CELERY_QUEUES["tasks"]}
+        options={"queue": CELERY_QUEUES.get("tasks", "TASK QUEUE UNDEFINED")},
     )
     return sig.apply_async()
 
