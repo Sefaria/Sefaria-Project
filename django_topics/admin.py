@@ -43,17 +43,28 @@ class PoolFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
+            (PoolType.LIBRARY.value, 'Library Pool'),
+            (PoolType.SHEETS.value, 'Sheets Pool'),
             ('general_en', 'General Pool EN'),
             ('general_he', 'General Pool HE'),
             (PoolType.TORAH_TAB.value, 'TorahTab Pool'),
+            ('all', 'All Topics'),
         ]
 
     def queryset(self, request, queryset):
         pool_name = self.value()
-        if pool_name:
-            pool = TopicPool.objects.get(name=pool_name)
-            return queryset.filter(pools=pool)
-        return queryset
+        if pool_name == 'all':
+            return queryset
+        if pool_name is None:
+            pool_name = PoolType.LIBRARY.value  # Default to LIBRARY
+        pool = TopicPool.objects.get(name=pool_name)
+        return queryset.filter(pools=pool)
+
+    def value(self):
+        value = super().value()
+        if value is None:
+            return PoolType.LIBRARY.value
+        return value
 
 
 @admin.register(Topic)
@@ -81,10 +92,6 @@ class TopicAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.filter(pools__name=PoolType.LIBRARY.value)
 
     def is_in_pool_general_en(self, obj):
         return obj.pools.filter(name='general_en').exists()
