@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
-import Footer  from './Footer';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import { NavSidebar, SidebarModules } from './NavSidebar';
@@ -61,7 +60,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
   }
 
   return (
-    <div className="readerNavMenu">
+    <div className="readerNavMenu sans-serif">
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
@@ -91,7 +90,6 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );
@@ -101,9 +99,9 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
 const CollectionBlockListing = ({data}) => {
   return (
     <div className="navBlock">
-      <a href={`/collections/${data.slug}`} className="navBlockTitle">
+      <a href={`/collections/${data.slug}`} className="navBlockTitle" data-target-module={Sefaria.VOICES_MODULE}>
         <div className="collectionListingImageBox">
-          <img className="collectionListingImage" src={data.imageUrl} alt="Collection Logo"/>
+          <img className="collectionListingImage" src={data.imageUrl} alt={Sefaria._("Collection Logo")}/>
         </div>
         <InterfaceText>{data.name}</InterfaceText>
       </a>

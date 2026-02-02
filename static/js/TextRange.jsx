@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import Component from 'react-class';
 import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
@@ -95,11 +96,6 @@ class TextRange extends Component {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
-    }
-  }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
-      this.handleClick(event);
     }
   }
   setData() {
@@ -278,8 +274,8 @@ class TextRange extends Component {
 
     // [\.\!\?\:\,\u05F4]+                                                                      # Match (and remove) one or more punctuation or gershayim
     //    (?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))   # So long as it's not immediately followed by one letter (followed by space, punctuation, endline, etc.)
-    // |—\s;                                                                                    # OR match (and remove) an mdash followed by a space
-    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s/g;
+    // |[—–]\s;                                                                                 # OR match (and remove) an em/en dash followed by a space
+    const punctuationre = /[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|[—–]\s/g;
 
     const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
@@ -316,11 +312,13 @@ class TextRange extends Component {
           );
         }
       }
-      for (const pattern of [strip_vowels_re, strip_punctuation_re]) {
-        if (pattern) {
-          segment.he = segment.he.replace(pattern, "");
-          segment.en = segment.en?.replace(pattern, "");
-        }
+      // Strip vowels/cantillation from both he/en (when enabled), but keep punctuation stripping Hebrew-only
+      if (strip_vowels_re) {
+        segment.he = segment.he.replace(strip_vowels_re, "");
+        segment.en = segment.en?.replace(strip_vowels_re, "");
+      }
+      if (strip_punctuation_re) {
+        segment.he = segment.he.replace(strip_punctuation_re, "");
       }
 
       return (
@@ -328,8 +326,6 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
-            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en?.versionTitle)[1] : 'en'}
-            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             primaryDirection={data.primaryDirection}
@@ -394,7 +390,7 @@ class TextRange extends Component {
       </div>;
     } else { sidebarNum = null;}
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
+      <div className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -498,6 +494,18 @@ class TextSegment extends Component {
     return x?.attr('data-ref') && x?.prop('tagName') === 'A';
   }
   handleClick(event) {
+    const mutcTarget = event.target.closest("a.mutc");
+    if (mutcTarget) {
+        const charRange = mutcTarget.getAttribute('data-range');
+        const contentSpan = mutcTarget.closest('.contentSpan');
+        const lang = contentSpan?.classList.contains('he') ? 'he' : 'en';
+        const key = `${this.props.sref}|${lang}|${charRange}`;
+        const spans = Sefaria._linkerOutputMap[key];
+        Sefaria._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
@@ -521,11 +529,6 @@ class TextSegment extends Component {
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
-    }
-  }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
-      this.handleClick(event);
     }
   }
   formatItag(lang, text) {
@@ -653,8 +656,9 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
-           data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
+           className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)}
+           data-ref={this.props.sref}
+           aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
@@ -688,4 +692,5 @@ TextSegment.propTypes = {
   navigatePanel: PropTypes.func,
 };
 
+export { TextSegment };
 export default TextRange;

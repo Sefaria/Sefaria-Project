@@ -1,0 +1,38 @@
+{{- if .Values.restore.cleanup }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: destroy-postgres-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "5"
+data:
+  destroy-postgres.sh: |-
+    #!/bin/bash
+    set -e
+    set -x
+    
+    DB_NAME="{{ .Values.postgres.db }}"
+    
+    # Safety check: never drop the default/shared database
+    if [[ "$DB_NAME" == "sefaria_auth" ]]; then
+      echo "Skipping deletion - database is the default 'sefaria_auth'"
+      exit 0
+    fi
+    
+    # Set PostgreSQL connection environment variables
+    export PGHOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
+    export PGUSER="${DATABASES_USER}"
+    export PGPASSWORD="${DATABASES_PASSWORD}"
+    
+    echo "Attempting to drop database: $DB_NAME"
+    echo "Using PostgreSQL host: $PGHOST"
+    
+    # Drop the database
+    psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "DROP DATABASE IF EXISTS \"$DB_NAME\";"
+    echo "Successfully dropped database: $DB_NAME"
+{{- end }}

@@ -2,10 +2,11 @@
 from . import abstract as abst
 from . import text
 import structlog
+from sefaria.model.linker.has_match_template import MatchTemplateMixin
 logger = structlog.get_logger(__name__)
 
 
-class Passage(abst.AbstractMongoRecord):
+class Passage(abst.AbstractMongoRecord, MatchTemplateMixin):
     """
     Sugyot
     """
@@ -18,7 +19,8 @@ class Passage(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "same_as",    # []
-        "source"
+        "source",
+        "match_templates",
     ]
 
     possible_types = ["Mishnah", "Sugya", "passage", "biblical-story"]

@@ -9,10 +9,10 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import collection as collection
-from .linker.has_match_template import HasMatchTemplates
+from .linker.has_match_template import MatchTemplateMixin
 
 
-class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject, HasMatchTemplates):
+class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject, MatchTemplateMixin):
     collection = 'category'
     history_noun = "category"
 

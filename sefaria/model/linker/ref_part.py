@@ -1,47 +1,9 @@
 from typing import Union, Optional, Iterable
-from enum import Enum
-from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import schema
-from sefaria.model.linker.ne_span import NESpan, NEDoc
+from ne_span import NESpan, NEDoc, RefPartType, NamedEntityType
 import structlog
 logger = structlog.get_logger(__name__)
-
-
-# keys correspond named entity labels in spacy models
-# values are properties in RefPartType
-LABEL_TO_REF_PART_TYPE_ATTR = {
-    # HE
-    "כותרת": 'NAMED',
-    "מספר": "NUMBERED",
-    "דה": "DH",
-    "סימן-טווח": "RANGE_SYMBOL",
-    "לקמן-להלן": "RELATIVE",
-    "שם": "IBID",
-    "לא-רציף": "NON_CTS",
-    # EN
-    "title": 'NAMED',
-    "number": "NUMBERED",
-    "DH": "DH",
-    "range-symbol": "RANGE_SYMBOL",
-    "dir-ibid": "RELATIVE",
-    "ibid": "IBID",
-    "non-cts": "NON_CTS",
-}
-
-
-# keys correspond named entity labels in spacy models
-# values are properties in NamedEntityType
-LABEL_TO_NAMED_ENTITY_TYPE_ATTR = {
-    # HE
-    "מקור": "CITATION",
-    "בן-אדם": "PERSON",
-    "קבוצה": "GROUP",
-    # EN
-    "Person": "PERSON",
-    "Group": "GROUP",
-    "Citation": "CITATION",
-}
 
 
 class TrieEntry:
@@ -60,37 +22,6 @@ class LeafTrieEntry:
 
 # static entry which represents a leaf entry in MatchTemplateTrie
 LEAF_TRIE_ENTRY = LeafTrieEntry()
-
-
-class NamedEntityType(Enum):
-    PERSON = "person"
-    GROUP = "group"
-    CITATION = "citation"
-
-    @classmethod
-    def span_label_to_enum(cls, span_label: str) -> 'NamedEntityType':
-        """
-        Convert span label from spacy named entity to NamedEntityType
-        """
-        return getattr(cls, LABEL_TO_NAMED_ENTITY_TYPE_ATTR[span_label])
-
-
-class RefPartType(Enum):
-    NAMED = "named"
-    NUMBERED = "numbered"
-    DH = "dibur_hamatchil"
-    RANGE_SYMBOL = "range_symbol"
-    RANGE = "range"
-    RELATIVE = "relative"
-    IBID = "ibid"
-    NON_CTS = "non_cts"
-
-    @classmethod
-    def span_label_to_enum(cls, span_label: str) -> 'RefPartType':
-        """
-        Convert span label from spacy named entity to RefPartType
-        """
-        return getattr(cls, LABEL_TO_REF_PART_TYPE_ATTR[span_label])
 
 
 class RawRefPart(TrieEntry, abst.Cloneable):
@@ -192,6 +123,23 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         self.span = self.span.doc[self_start:other_end]
 
 
+class RawRefPartPair(RawRefPart):
+    """
+    Represents two RawRefParts that should be treated as a single unit
+    Usually these parts are adjacent in the text
+    """
+
+    def __init__(self, part1: RawRefPart, part2: RawRefPart):
+        if part1.type != part2.type:
+            raise Exception(f"Part types need to be the same. Received types: {part1.type} and {part2.type}")
+        # get span by combining spans of part1 and part2
+        span1, span2 = part1.span, part2.span
+        span = span1.doc.subspan(slice(span1.range[0], span2.range[1]), span1.label)
+        _type = part1.type
+        super().__init__(_type, span, None)
+        self.part_pair = (part1, part2)
+
+
 class ContextPart(RawRefPart):
     # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
     pass
@@ -231,7 +179,7 @@ class SectionContext(ContextPart):
     NOTE: used to used index of section to help validate. Doesn't work b/c we change sections list on the nodes as we refine them
     """
 
-    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int) -> None:
+    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int, to_address: int = None) -> None:
         """
         :param addr_type: AddressType of section
         :param section_name: Name of section
@@ -241,6 +189,7 @@ class SectionContext(ContextPart):
         self.addr_type = addr_type
         self.section_name = section_name
         self.address = address
+        self.to_address = to_address  # used for ranged contexts
 
     @property
     def text(self):

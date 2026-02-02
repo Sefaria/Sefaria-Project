@@ -7,7 +7,6 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, SidebarModules }from './NavSidebar';
-import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -58,7 +57,6 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
           </div>
           <NavSidebar sidebarModules={sidebarModules} />
         </div>
-        <Footer />
       </div>
     </div>
   );
@@ -79,7 +77,7 @@ const CalendarListing = ({calendar}) => {
       <div className="calendarRefs">
         {calendar.refs.map(ref => (
         <div className="calendarRef" key={ref.url}>
-          <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
           <a href={`/${ref.url || calendar.url}`} className="">
             <InterfaceText text={ref.displayValue} />
           </a>
