@@ -24,6 +24,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langsmith import traceable
 from sefaria.model.text import Ref
+from sefaria.utils.hebrew import strip_cantillation
 from sefaria.model.schema import AddressType
 
 logger = structlog.get_logger(__name__)
@@ -115,6 +116,13 @@ def _escape_template_braces(text: str) -> str:
     if not text:
         return text
     return text.replace('{', '{{').replace('}', '}}')
+
+
+def _strip_nikud(text: Optional[str]) -> Optional[str]:
+    """Remove cantillation and vowels (nikud) from Hebrew text."""
+    if not text:
+        return text
+    return strip_cantillation(text, strip_vowels=True)
 
 
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
@@ -422,7 +430,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text being commented on ({base_ref}):\n{base_text[:1000]}\n\n"
+        base_block = f"Base text being commented on ({base_ref}):\n{_strip_nikud(base_text)}\n\n"
 
     prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
@@ -446,8 +454,8 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
     chain = prompt | llm
     try:
         response = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:2000]),
-            "context": _escape_template_braces(context_redacted[:2000]),
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "context": _escape_template_braces(_strip_nikud(context_redacted)),
             "base_block": _escape_template_braces(base_block),
             "prior": _escape_template_braces(prior),
         })
@@ -486,7 +494,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}\n\n"
+        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
 
     prompt = ChatPromptTemplate.from_messages([
         (
@@ -512,10 +520,10 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
     chain = prompt | llm
     try:
         response = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:2000]),
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
             "base_block": base_block,
             "candidate_ref": candidate_ref,
-            "candidate_text": _escape_template_braces(candidate_text[:500])
+            "candidate_text": _escape_template_braces(_strip_nikud(candidate_text))
         })
         content = getattr(response, 'content', '')
         verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
@@ -532,7 +540,7 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}\n\n"
+        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
 
     prompt = ChatPromptTemplate.from_messages([
         (
@@ -554,7 +562,7 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
     chain = prompt | llm
     try:
         response = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:2000]),
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
             "base_block": base_block,
         })
         content = getattr(response, 'content', '')
@@ -607,18 +615,17 @@ def _llm_choose_best_candidate(
 
     for i, (ref, cand) in enumerate(unique.items(), 1):
         txt = _get_ref_text(ref, lang=lang)
-        preview = (txt or "").strip()[:400]
-        if txt and len(txt) > 400:
-            preview += "..."
+        preview = (txt or "").strip()
+        if preview:
+            preview = strip_cantillation(preview, strip_vowels=True)
 
-        score_str = f"(score={cand.get('score')})" if cand.get('score') is not None else ""
-        numbered.append(f"{i}) {ref} {score_str}\n{preview}")
+        numbered.append(f"{i}) {ref}\n{preview}")
         payloads.append((i, cand))
 
     # Build base text block if available
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text of commentary target ({base_ref}):\n{_escape_template_braces(base_text[:2000])}\n\n"
+        base_block = f"Base text of commentary target ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
 
     # Create LLM prompt
     llm = _get_llm()
@@ -644,8 +651,8 @@ def _llm_choose_best_candidate(
     chain = prompt | llm
     try:
         resp = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:6000]),
-            "candidates": _escape_template_braces("\n\n".join(numbered))
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "candidates": _escape_template_braces("\n\n".join(numbered)),
         })
         content = getattr(resp, "content", "")
     except Exception as exc:
@@ -883,7 +890,7 @@ def disambiguate_non_segment_ref(
             for i, seg_ref in enumerate(segment_refs, 1):
                 seg_text = _get_ref_text(seg_ref.normal(), lang="he") or _get_ref_text(seg_ref.normal(), lang="en")
                 if seg_text:
-                    preview = seg_text[:300] + ("..." if len(seg_text) > 300 else "")
+                    preview = _strip_nikud(seg_text)
                     candidates.append({
                         'index': i,
                         'resolved_ref': seg_ref.normal(),
