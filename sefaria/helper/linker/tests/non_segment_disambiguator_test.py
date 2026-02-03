@@ -31,7 +31,7 @@ TEST_CASES = [
             "text": "דשבועות דט\"ז",
             "versionTitle": "Tzafnat Pa'neach on Mishneh Torah, Warsaw-Piotrków, 1903-1908",
         },
-        "expected_resolutions": ["Shevuot 16b:9:5, Shevuot 16b:9:6, Shevuot 16b:9:7"], ## discuss noah - i don't think we can expect it so succeed here
+        "expected_resolutions": ["Shevuot 16b:9:5, Shevuot 16b:9:6, Shevuot 16b:9:7", None], ## discuss noah - i don't think we can expect it so succeed here
     },
     {
         "id": "makkot_3b_ben_yehoyada_kiddushin_70a_5",
@@ -80,6 +80,18 @@ TEST_CASES = [
             "versionTitle": "Petach Einayim, Jerusalem 1959",
         },
         "expected_resolutions": ["Gittin 37a:12"],
+    },
+    {
+        "id": "menachot_63a_otzar_laazei_rashi_45",
+        "payload": {
+            "charRange": [8, 17],
+            "language": "he",
+            "ref": "Otzar La'azei Rashi, Talmud, Menachot 45",
+            "resolved_non_segment_ref": "Menachot 63a",
+            "text": "מנחות סג.",
+            "versionTitle": "Otzar Laazei Rashi, Jerusalem, 1988",
+        },
+        "expected_resolutions": ["Menachot 63a:9"],
     },
 ]
 

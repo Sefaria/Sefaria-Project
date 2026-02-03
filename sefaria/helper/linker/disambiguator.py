@@ -435,7 +435,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
     prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You extract concise search phrases that are likely to appear in the target text."),
+        ("system", "You extract concise search phrases that are likely to appear verbatim in the target text."),
         ("human",
          "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
          "Context with citation redacted:\n{context}\n\n"
@@ -445,10 +445,14 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
          "outside the citation span.\n"
          "- Prefer phrases that you expect to appear verbatim in the target text.\n"
          "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
+         "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
+         "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
+         "- Prefer specific/rare tokens over generic ones.\n"
+         "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
          "- Include at least one 2-3 word query.\n"
          "- Do NOT copy words that appear inside <citation>...</citation>.\n"
          "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'."
-        )
+         )
     ])
 
     chain = prompt | llm
@@ -488,9 +492,11 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 @traceable(run_type="llm", name="llm_confirm_candidate")
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
-    """Use LLM to confirm if a candidate is the correct resolution."""
+    """Use LLM to confirm if a candidate is the correct resolution, using a prior."""
 
     llm = _get_confirmation_llm()
+
+    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     base_block = ""
     if base_ref and base_text:
@@ -507,6 +513,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
             "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
             "{citing}\n\n"
             "{base_block}"
+            "Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
             "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
             "Candidate segment text:\n{candidate_text}\n\n"
             "Determine whether the citing passage is actually referring to this candidate segment.\n"
@@ -522,6 +529,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         response = chain.invoke({
             "citing": _escape_template_braces(_strip_nikud(marked_text)),
             "base_block": base_block,
+            "prior": _escape_template_braces(prior),
             "candidate_ref": candidate_ref,
             "candidate_text": _escape_template_braces(_strip_nikud(candidate_text))
         })
