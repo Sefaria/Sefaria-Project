@@ -36,6 +36,7 @@ jobs:
               echo "ref=v${{ inputs.version }}" >> $GITHUB_OUTPUT
             fi
           fi
+
   build-images:
     name: "Build Images for Prod"
     needs: [workflow-check]
@@ -47,8 +48,6 @@ jobs:
       environment: prod
       push_to_prod_registry: true
     secrets:
-      PROD_GKE_PROJECT: ${{ secrets.PROD_GKE_PROJECT }}
-      DEV_GKE_PROJECT: ${{ secrets.DEV_GKE_PROJECT }}
       PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
       PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
   prod-deploy:
