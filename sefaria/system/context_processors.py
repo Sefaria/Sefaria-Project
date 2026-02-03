@@ -7,6 +7,7 @@ import json
 from functools import wraps
 
 from sefaria.settings import *
+from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
@@ -128,5 +129,5 @@ def chatbot_user_token(request):
     return {
         "chatbot_user_token": token,
         "chatbot_enabled": True,
-        "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
     }
