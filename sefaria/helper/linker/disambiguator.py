@@ -79,7 +79,7 @@ WINDOW_WORDS = 120
 
 def _get_llm():
     """Get configured primary LLM instance."""
-    model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
