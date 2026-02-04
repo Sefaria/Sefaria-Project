@@ -23,6 +23,7 @@ from sefaria.helper.linker.disambiguator import (
     NonSegmentResolutionPayload,
     AmbiguousResolutionResult,
     NonSegmentResolutionResult,
+    DictaAPIError,
 )
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
@@ -346,6 +347,7 @@ def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: 
     )
 
     _create_link_for_resolution(citing_ref, resolved_ref)
+    _update_linker_output_resolution_fields(payload, result)
 
 
 def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
@@ -368,6 +370,7 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
     )
 
     _create_link_for_resolution(citing_ref, resolved_ref)
+    _update_linker_output_resolution_fields(payload, result)
 
 
 def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
@@ -398,6 +401,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
+            "llm_resolved_ref_non_segment": result.resolved_ref,
+            "llm_resolved_method_non_segment": result.method,
+            "llm_resolved_phrase_non_segment": getattr(result, "llm_resolved_phrase", None),
         })
 
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
@@ -417,7 +423,11 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "language": payload.language,
             "previous_ref": payload.resolved_non_segment_ref,
             "resolved_ref": resolved_ref,
+            "llm_resolved_ref_non_segment": result.resolved_ref,
+            "llm_resolved_method_non_segment": result.method,
+            "llm_resolved_phrase_non_segment": getattr(result, "llm_resolved_phrase", None),
         })
+    _update_linker_output_resolution_fields(payload, result)
 
 
 def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
@@ -448,6 +458,10 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
+            "llm_resolved_ref_ambiguous": getattr(result, "matched_segment", None),
+            "llm_resolved_method_ambiguous": result.method,
+            "llm_resolved_phrase_ambiguous": getattr(result, "llm_resolved_phrase", None),
+            "llm_ambiguous_option_valid": True,
         })
 
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
@@ -459,7 +473,51 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
+            "llm_resolved_ref_ambiguous": getattr(result, "matched_segment", None),
+            "llm_resolved_method_ambiguous": result.method,
+            "llm_resolved_phrase_ambiguous": getattr(result, "llm_resolved_phrase", None),
+            "llm_ambiguous_option_valid": True,
         })
+    _update_linker_output_resolution_fields(payload, result)
+
+
+def _update_linker_output_resolution_fields(payload: object, result: object) -> None:
+    """Persist resolution metadata onto LinkerOutput spans by charRange."""
+    try:
+        query = {
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
+        }
+    except Exception:
+        return
+
+    linker_output = LinkerOutput().load(query)
+    if not linker_output:
+        return
+
+    updated = False
+    is_ambiguous = hasattr(payload, "ambiguous_refs")
+    for span in linker_output.spans:
+        if span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if span.get("charRange") != payload.charRange:
+            continue
+        if is_ambiguous:
+            is_valid = (span.get("ref") == getattr(result, "resolved_ref", None))
+            span["llm_ambiguous_option_valid"] = is_valid
+            if is_valid:
+                span["llm_resolved_ref_ambiguous"] = getattr(result, "matched_segment", None)
+                span["llm_resolved_method_ambiguous"] = getattr(result, "method", None)
+                span["llm_resolved_phrase_ambiguous"] = getattr(result, "llm_resolved_phrase", None)
+        else:
+            span["llm_resolved_ref_non_segment"] = getattr(result, "resolved_ref", None)
+            span["llm_resolved_method_non_segment"] = getattr(result, "method", None)
+            span["llm_resolved_phrase_non_segment"] = getattr(result, "llm_resolved_phrase", None)
+        updated = True
+
+    if updated:
+        linker_output.save()
 
 
 def _record_disambiguated_mutc(payload: dict) -> None:
@@ -488,6 +546,36 @@ def _record_disambiguated_link(payload: dict) -> None:
         logger.info("Recorded disambiguated link", payload=doc)
     except Exception:
         logger.exception("Failed recording disambiguated link", payload=doc)
+
+
+def _record_dicta_failure(payload: dict) -> None:
+    doc = dict(payload)
+    doc["created_at"] = datetime.utcnow()
+    try:
+        db.linker_dicta_failures_tmp.insert_one(doc)
+        logger.info("Recorded dicta failure", payload=doc)
+    except Exception:
+        logger.exception("Failed recording dicta failure", payload=doc)
+
+
+def _dicta_error_payload(info: dict, payload_obj: object) -> dict:
+    payload_doc = None
+    payload_type = None
+    try:
+        payload_doc = asdict(payload_obj)
+        payload_type = type(payload_obj).__name__
+    except Exception:
+        payload_doc = None
+    return {
+        "type": "dicta_non_200",
+        "status_code": info.get("status_code"),
+        "url": info.get("url"),
+        "target_ref": info.get("target_ref"),
+        "query_text": (info.get("query_text") or "")[:4000],
+        "response_text": (info.get("response_text") or "")[:2000],
+        "payload": payload_doc,
+        "payload_type": payload_type,
+    }
 
 def _extract_resolved_spans(resolved_refs):
     spans = []
@@ -806,6 +894,8 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
             print(f"Ambiguous Options: {payload.ambiguous_refs}")
             print(f"→ RESOLVED TO: {resolved_ref}")
             print(f"  Method: {result.method}")
+            if getattr(result, "llm_resolved_phrase", None):
+                print(f"  Phrase: {result.llm_resolved_phrase}")
             if result.matched_segment:
                 print(f"  Matched Segment: {result.matched_segment}")
             print(f"{'='*80}\n")
@@ -872,6 +962,8 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
             print(f"Original Non-Segment Ref: {payload.resolved_non_segment_ref}")
             print(f"→ RESOLVED TO SEGMENT: {resolved_ref}")
             print(f"  Method: {result.method}")
+            if getattr(result, "llm_resolved_phrase", None):
+                print(f"  Phrase: {result.llm_resolved_phrase}")
             print(f"{'='*80}\n")
 
             logger.info(f"✓ Resolved to segment: {resolved_ref} (method: {result.method})")
@@ -906,13 +998,19 @@ def cauldron_routine_disambiguation(payload: dict) -> dict:
     logger.info("=== Processing Bulk Disambiguation (single) ===")
     if "ambiguous_refs" in payload:
         amb_payload = AmbiguousResolutionPayload(**payload)
-        result = disambiguate_ambiguous_ref(amb_payload)
-        if result and result.resolved_ref:
-            _apply_ambiguous_resolution_with_record(amb_payload, result)
+        try:
+            result = disambiguate_ambiguous_ref(amb_payload)
+            if result and result.resolved_ref:
+                _apply_ambiguous_resolution_with_record(amb_payload, result)
+        except DictaAPIError as e:
+            _record_dicta_failure(_dicta_error_payload(e.info, amb_payload))
         return None
 
     ns_payload = NonSegmentResolutionPayload(**payload)
-    result = disambiguate_non_segment_ref(ns_payload)
-    if result and result.resolved_ref:
-        _apply_non_segment_resolution_with_record(ns_payload, result)
+    try:
+        result = disambiguate_non_segment_ref(ns_payload)
+        if result and result.resolved_ref:
+            _apply_non_segment_resolution_with_record(ns_payload, result)
+    except DictaAPIError as e:
+        _record_dicta_failure(_dicta_error_payload(e.info, ns_payload))
     return None
