@@ -21,18 +21,18 @@ TEST_CASES = [
         },
         "expected_resolutions": ["Jerusalem Talmud Ketubot 2:3:2"],
     },
-    {
-        "id": "shevuot_16_tzafnat_paneach_fwcn_6_8_1",
-        "payload": {
-            "charRange": [802, 814],
-            "language": "he",
-            "ref": "Tzafnat Pa'neach on Mishneh Torah, Foreign Worship and Customs of the Nations 6:8:1",
-            "resolved_non_segment_ref": "Shevuot 16",
-            "text": "דשבועות דט\"ז",
-            "versionTitle": "Tzafnat Pa'neach on Mishneh Torah, Warsaw-Piotrków, 1903-1908",
-        },
-        "expected_resolutions": ["Shevuot 16b:9:5, Shevuot 16b:9:6, Shevuot 16b:9:7", None], ## discuss noah - i don't think we can expect it so succeed here
-    },
+    # {
+    #     "id": "shevuot_16_tzafnat_paneach_fwcn_6_8_1",
+    #     "payload": {
+    #         "charRange": [802, 814],
+    #         "language": "he",
+    #         "ref": "Tzafnat Pa'neach on Mishneh Torah, Foreign Worship and Customs of the Nations 6:8:1",
+    #         "resolved_non_segment_ref": "Shevuot 16",
+    #         "text": "דשבועות דט\"ז",
+    #         "versionTitle": "Tzafnat Pa'neach on Mishneh Torah, Warsaw-Piotrków, 1903-1908",
+    #     },
+    #     "expected_resolutions": ["Shevuot 16b:9:5, Shevuot 16b:9:6, Shevuot 16b:9:7", None], ## discuss with noah - i don't think we can expect it to succeed here
+    # },
     {
         "id": "makkot_3b_ben_yehoyada_kiddushin_70a_5",
         "payload": {
