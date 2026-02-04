@@ -347,6 +347,7 @@ def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: 
     )
 
     _create_link_for_resolution(citing_ref, resolved_ref)
+    _update_linker_output_resolution_fields(payload, result)
 
 
 def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
@@ -369,6 +370,7 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
     )
 
     _create_link_for_resolution(citing_ref, resolved_ref)
+    _update_linker_output_resolution_fields(payload, result)
 
 
 def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
@@ -399,6 +401,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
+            "llm_resolved_ref": result.resolved_ref,
+            "llm_resolved_method": result.method,
+            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
         })
 
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
@@ -418,7 +423,11 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "language": payload.language,
             "previous_ref": payload.resolved_non_segment_ref,
             "resolved_ref": resolved_ref,
+            "llm_resolved_ref": result.resolved_ref,
+            "llm_resolved_method": result.method,
+            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
         })
+    _update_linker_output_resolution_fields(payload, result)
 
 
 def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload, result: Optional[AmbiguousResolutionResult]) -> None:
@@ -449,6 +458,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
+            "llm_resolved_ref": result.resolved_ref,
+            "llm_resolved_method": result.method,
+            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
         })
 
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
@@ -460,7 +472,41 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
+            "llm_resolved_ref": result.resolved_ref,
+            "llm_resolved_method": result.method,
+            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
         })
+    _update_linker_output_resolution_fields(payload, result)
+
+
+def _update_linker_output_resolution_fields(payload: object, result: object) -> None:
+    """Persist resolution metadata onto LinkerOutput spans by charRange."""
+    try:
+        query = {
+            "ref": payload.ref,
+            "versionTitle": payload.versionTitle,
+            "language": payload.language,
+        }
+    except Exception:
+        return
+
+    linker_output = LinkerOutput().load(query)
+    if not linker_output:
+        return
+
+    updated = False
+    for span in linker_output.spans:
+        if span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if span.get("charRange") != payload.charRange:
+            continue
+        span["llm_resolved_ref"] = getattr(result, "resolved_ref", None)
+        span["llm_resolved_method"] = getattr(result, "method", None)
+        span["llm_resolved_phrase"] = getattr(result, "llm_resolved_phrase", None)
+        updated = True
+
+    if updated:
+        linker_output.save()
 
 
 def _record_disambiguated_mutc(payload: dict) -> None:
@@ -837,6 +883,8 @@ def process_ambiguous_resolution(resolution_data: dict) -> None:
             print(f"Ambiguous Options: {payload.ambiguous_refs}")
             print(f"→ RESOLVED TO: {resolved_ref}")
             print(f"  Method: {result.method}")
+            if getattr(result, "llm_resolved_phrase", None):
+                print(f"  Phrase: {result.llm_resolved_phrase}")
             if result.matched_segment:
                 print(f"  Matched Segment: {result.matched_segment}")
             print(f"{'='*80}\n")
@@ -903,6 +951,8 @@ def process_non_segment_resolution(resolution_data: dict) -> None:
             print(f"Original Non-Segment Ref: {payload.resolved_non_segment_ref}")
             print(f"→ RESOLVED TO SEGMENT: {resolved_ref}")
             print(f"  Method: {result.method}")
+            if getattr(result, "llm_resolved_phrase", None):
+                print(f"  Phrase: {result.llm_resolved_phrase}")
             print(f"{'='*80}\n")
 
             logger.info(f"✓ Resolved to segment: {resolved_ref} (method: {result.method})")

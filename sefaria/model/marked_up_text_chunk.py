@@ -234,6 +234,9 @@ class LinkerOutput(MarkedUpTextChunk):
                     "topicSlug": {"type": "string", "required": False, "nullable": True},
                     "contextRef": {"type": "string", "required": False, "nullable": True},
                     "contextType": {"type": "string", "required": False, "nullable": True},
+                    "llm_resolved_ref": {"type": "string", "required": False, "nullable": True},
+                    "llm_resolved_method": {"type": "string", "required": False, "nullable": True},
+                    "llm_resolved_phrase": {"type": "string", "required": False, "nullable": True},
                     "failed": {"type": "boolean", "required": True},
                     "ambiguous": {"type": "boolean", "required": True},
                     **{k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True} for k in optional_list_str_schema_keys}

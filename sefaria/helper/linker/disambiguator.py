@@ -61,6 +61,7 @@ class AmbiguousResolutionResult:
     resolved_ref: str
     matched_segment: Optional[str]
     method: str
+    llm_resolved_phrase: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -379,6 +380,7 @@ def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 20) -> L
                     'resolved_ref': normalized,
                     'source': 'sefaria_search',
                     'query': query_text,
+                    'queries': [query_text],
                     'raw': entry
                 })
         except Exception:
@@ -721,6 +723,19 @@ def _dedupe_candidates_by_ref(candidates: List[Dict[str, Any]]) -> List[Dict[str
             new_score = cand.get('score', 0)
             if new_score > old_score:
                 seen[ref] = cand
+            # Merge queries from duplicate hits
+            prev_queries = seen[ref].get("queries")
+            new_query = cand.get("query")
+            new_queries = cand.get("queries")
+            merged = []
+            if isinstance(prev_queries, list):
+                merged.extend(prev_queries)
+            if isinstance(new_queries, list):
+                merged.extend(new_queries)
+            if new_query:
+                merged.append(new_query)
+            if merged:
+                seen[ref]["queries"] = sorted({q for q in merged if q})
 
     return list(seen.values())
 
@@ -729,6 +744,10 @@ def _resolution_phrase_from_candidate(candidate: Optional[Dict[str, Any]]) -> Op
     """Extract a key phrase used to resolve a candidate from Dicta/Search data."""
     if not candidate:
         return None
+    queries = candidate.get("queries")
+    if isinstance(queries, list) and queries:
+        unique = [q for q in dict.fromkeys([q for q in queries if q])]
+        return "; ".join(unique)
     query = candidate.get("query")
     if query:
         return query
@@ -1178,6 +1197,7 @@ def disambiguate_ambiguous_ref(
                     resolved_ref=dicta_match['ref'],
                     matched_segment=match_ref if match_ref != dicta_match['ref'] else None,
                     method='dicta_llm_confirmed',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(dicta_match),
                 )
             else:
                 logger.info(f"LLM rejected Dicta match: {reason}")
@@ -1199,6 +1219,7 @@ def disambiguate_ambiguous_ref(
                     resolved_ref=search_match['ref'],
                     matched_segment=match_ref if match_ref != search_match['ref'] else None,
                     method='search_llm_confirmed',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(search_match),
                 )
             else:
                 logger.info(f"LLM rejected search match: {reason}")
@@ -1434,6 +1455,7 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
                             'ref': cand['ref'],  # The candidate ref
                             'resolved_ref': search_ref,  # The specific segment from search
                             'query': query,
+                            'queries': [query],
                             'raw': result
                         })
                         break
@@ -1450,6 +1472,17 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
         segment_ref = match['resolved_ref']
         if segment_ref not in deduped:
             deduped[segment_ref] = match
+        else:
+            prev = deduped[segment_ref]
+            merged = []
+            if isinstance(prev.get("queries"), list):
+                merged.extend(prev["queries"])
+            if isinstance(match.get("queries"), list):
+                merged.extend(match["queries"])
+            if match.get("query"):
+                merged.append(match["query"])
+            if merged:
+                prev["queries"] = sorted({q for q in merged if q})
 
     deduped_matches = list(deduped.values())
 
