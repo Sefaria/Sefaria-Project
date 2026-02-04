@@ -1,0 +1,92 @@
+{{- if .Values.cronJobs.braintrust.backupLogs.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-braintrust-backup-logs
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.cronJobs.braintrust.backupLogs.schedule }}"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.cronJobs.braintrust.backupLogs.serviceAccount }}
+          initContainers:
+          # Init container: Query Braintrust logs and create CSV
+          - name: braintrust-log-exporter
+            image: "{{ .Values.cronJobs.braintrust.image.repository }}:{{ .Values.cronJobs.braintrust.image.tag }}"
+            env:
+            - name: BRAINTRUST_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.braintrust.ref }}
+                  key: api-key
+            - name: BRAINTRUST_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.braintrust.ref }}
+                  key: project-id
+            volumeMounts:
+            - mountPath: /app/scripts
+              name: backup-script
+              readOnly: true
+            - mountPath: /tmp
+              name: shared-volume
+            command: ["python"]
+            args: ["/app/scripts/braintrust_backup_logs.py"]
+            resources:
+              limits:
+                memory: "500Mi"
+                cpu: "1000m"
+          containers:
+          # Main container: Upload CSV to GCS bucket
+          - name: braintrust-log-uploader
+            image: google/cloud-sdk
+            volumeMounts:
+            - mountPath: /tmp
+              name: shared-volume
+            env:
+            - name: BUCKET
+              value: {{ .Values.cronJobs.braintrust.backupLogs.bucket }}
+            - name: PREFIX
+              value: {{ .Values.cronJobs.braintrust.backupLogs.prefix }}
+            command: ["bash"]
+            args:
+            - "-c"
+            - |
+              set -e
+
+              # Find the most recent CSV file
+              CSV_FILE=$(ls -t /tmp/logs_backup_*.csv 2>/dev/null | head -1)
+
+              if [ -z "$CSV_FILE" ]; then
+                echo "No CSV file found in /tmp"
+                exit 0
+              fi
+
+              FILENAME=$(basename "$CSV_FILE")
+              DESTINATION="gs://${BUCKET}/${PREFIX}${FILENAME}"
+
+              echo "Uploading $CSV_FILE to $DESTINATION"
+              gsutil cp "$CSV_FILE" "$DESTINATION"
+              echo "Upload complete"
+
+              # Cleanup
+              rm -f "$CSV_FILE"
+            resources:
+              limits:
+                memory: "500Mi"
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-script
+            configMap:
+              name: braintrust-backup-logs-script-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: shared-volume
+            emptyDir: {}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}
