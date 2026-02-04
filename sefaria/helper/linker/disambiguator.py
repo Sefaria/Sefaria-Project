@@ -67,6 +67,7 @@ class AmbiguousResolutionResult:
 class NonSegmentResolutionResult:
     resolved_ref: str
     method: str
+    llm_resolved_phrase: Optional[str] = None
 
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
@@ -724,6 +725,21 @@ def _dedupe_candidates_by_ref(candidates: List[Dict[str, Any]]) -> List[Dict[str
     return list(seen.values())
 
 
+def _resolution_phrase_from_candidate(candidate: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Extract a key phrase used to resolve a candidate from Dicta/Search data."""
+    if not candidate:
+        return None
+    query = candidate.get("query")
+    if query:
+        return query
+    raw = candidate.get("raw", {})
+    if isinstance(raw, dict):
+        base_matched = raw.get("baseMatchedText")
+        if base_matched:
+            return base_matched
+    return None
+
+
 def _fallback_search_pipeline(
     marked_citing_text: str,
     citing_text: str,
@@ -890,6 +906,7 @@ def disambiguate_non_segment_ref(
             return NonSegmentResolutionResult(
                 resolved_ref=resolved_ref,
                 method='auto_single_segment',
+                llm_resolved_phrase=None,
             )
 
         # Case 2: 2-3 segments - use LLM to pick directly
@@ -945,6 +962,7 @@ def disambiguate_non_segment_ref(
                         return NonSegmentResolutionResult(
                             resolved_ref=cand['resolved_ref'],
                             method='llm_small_range',
+                            llm_resolved_phrase=None,
                         )
 
             logger.warning(f"Could not parse LLM response: {content}")
@@ -987,6 +1005,7 @@ def disambiguate_non_segment_ref(
                     return NonSegmentResolutionResult(
                         resolved_ref=resolved_ref,
                         method='dicta_auto_approved',
+                        llm_resolved_phrase=_resolution_phrase_from_candidate(candidate),
                     )
 
                 candidate_text = _get_ref_text(resolved_ref, citing_lang)
@@ -998,6 +1017,7 @@ def disambiguate_non_segment_ref(
                     return NonSegmentResolutionResult(
                         resolved_ref=resolved_ref,
                         method='dicta_llm_confirmed',
+                        llm_resolved_phrase=_resolution_phrase_from_candidate(candidate),
                     )
                 else:
                     logger.info(f"Dicta candidate {resolved_ref} rejected by LLM: {reason}")
@@ -1028,6 +1048,7 @@ def disambiguate_non_segment_ref(
                 return NonSegmentResolutionResult(
                     resolved_ref=resolved_ref,
                     method='search_auto_approved',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(search_result),
                 )
 
             candidate_text = _get_ref_text(resolved_ref, citing_lang)
@@ -1039,6 +1060,7 @@ def disambiguate_non_segment_ref(
                 return NonSegmentResolutionResult(
                     resolved_ref=resolved_ref,
                     method='search_llm_confirmed',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(search_result),
                 )
             else:
                 logger.info(f"Search candidate {resolved_ref} rejected by LLM: {reason}")
