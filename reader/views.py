@@ -2743,7 +2743,7 @@ def terms_api(request, name):
     This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
     """
     if request.method == "GET":
-        term = Term().load({'name': name}) or Term().load_by_title(name)
+        term = Term().load({'name': name})
         if term is None:
             return jsonResponse({"error": "Term does not exist."})
         else:
@@ -2751,7 +2751,7 @@ def terms_api(request, name):
 
     if request.method in ("POST", "DELETE"):
         def _internal_do_post(request, uid):
-            t = Term().load({'name': name}) or Term().load_by_title(name)
+            t = Term().load({'name': name})
             if request.method == "POST":
                 if "json" in request.POST:
                     term = request.POST.get("json")
