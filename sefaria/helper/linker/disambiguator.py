@@ -752,6 +752,8 @@ def _resolution_phrase_from_candidate(candidate: Optional[Dict[str, Any]]) -> Op
     if query:
         return query
     raw = candidate.get("raw", {})
+    if isinstance(raw, dict) and "raw" in raw and isinstance(raw.get("raw"), dict):
+        raw = raw.get("raw")
     if isinstance(raw, dict):
         base_matched = raw.get("baseMatchedText")
         if base_matched:
@@ -1195,7 +1197,7 @@ def disambiguate_ambiguous_ref(
                 logger.info(f"LLM confirmed Dicta match: {match_ref}")
                 return AmbiguousResolutionResult(
                     resolved_ref=dicta_match['ref'],
-                    matched_segment=match_ref if match_ref != dicta_match['ref'] else None,
+                    matched_segment=match_ref,
                     method='dicta_llm_confirmed',
                     llm_resolved_phrase=_resolution_phrase_from_candidate(dicta_match),
                 )
@@ -1217,7 +1219,7 @@ def disambiguate_ambiguous_ref(
                 logger.info(f"LLM confirmed search match: {match_ref}")
                 return AmbiguousResolutionResult(
                     resolved_ref=search_match['ref'],
-                    matched_segment=match_ref if match_ref != search_match['ref'] else None,
+                    matched_segment=match_ref,
                     method='search_llm_confirmed',
                     llm_resolved_phrase=_resolution_phrase_from_candidate(search_match),
                 )

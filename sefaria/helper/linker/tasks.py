@@ -401,9 +401,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
-            "llm_resolved_ref": result.resolved_ref,
-            "llm_resolved_method": result.method,
-            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
+            "llm_resolved_ref_non_segment": result.resolved_ref,
+            "llm_resolved_method_non_segment": result.method,
+            "llm_resolved_phrase_non_segment": getattr(result, "llm_resolved_phrase", None),
         })
 
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
@@ -423,9 +423,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "language": payload.language,
             "previous_ref": payload.resolved_non_segment_ref,
             "resolved_ref": resolved_ref,
-            "llm_resolved_ref": result.resolved_ref,
-            "llm_resolved_method": result.method,
-            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
+            "llm_resolved_ref_non_segment": result.resolved_ref,
+            "llm_resolved_method_non_segment": result.method,
+            "llm_resolved_phrase_non_segment": getattr(result, "llm_resolved_phrase", None),
         })
     _update_linker_output_resolution_fields(payload, result)
 
@@ -458,9 +458,10 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
-            "llm_resolved_ref": result.resolved_ref,
-            "llm_resolved_method": result.method,
-            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
+            "llm_resolved_ref_ambiguous": getattr(result, "matched_segment", None),
+            "llm_resolved_method_ambiguous": result.method,
+            "llm_resolved_phrase_ambiguous": getattr(result, "llm_resolved_phrase", None),
+            "llm_ambiguous_option_valid": True,
         })
 
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
@@ -472,9 +473,10 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "ref": payload.ref,
             "versionTitle": payload.versionTitle,
             "language": payload.language,
-            "llm_resolved_ref": result.resolved_ref,
-            "llm_resolved_method": result.method,
-            "llm_resolved_phrase": getattr(result, "llm_resolved_phrase", None),
+            "llm_resolved_ref_ambiguous": getattr(result, "matched_segment", None),
+            "llm_resolved_method_ambiguous": result.method,
+            "llm_resolved_phrase_ambiguous": getattr(result, "llm_resolved_phrase", None),
+            "llm_ambiguous_option_valid": True,
         })
     _update_linker_output_resolution_fields(payload, result)
 
@@ -495,14 +497,23 @@ def _update_linker_output_resolution_fields(payload: object, result: object) -> 
         return
 
     updated = False
+    is_ambiguous = hasattr(payload, "ambiguous_refs")
     for span in linker_output.spans:
         if span.get("type") != MUTCSpanType.CITATION.value:
             continue
         if span.get("charRange") != payload.charRange:
             continue
-        span["llm_resolved_ref"] = getattr(result, "resolved_ref", None)
-        span["llm_resolved_method"] = getattr(result, "method", None)
-        span["llm_resolved_phrase"] = getattr(result, "llm_resolved_phrase", None)
+        if is_ambiguous:
+            is_valid = (span.get("ref") == getattr(result, "resolved_ref", None))
+            span["llm_ambiguous_option_valid"] = is_valid
+            if is_valid:
+                span["llm_resolved_ref_ambiguous"] = getattr(result, "matched_segment", None)
+                span["llm_resolved_method_ambiguous"] = getattr(result, "method", None)
+                span["llm_resolved_phrase_ambiguous"] = getattr(result, "llm_resolved_phrase", None)
+        else:
+            span["llm_resolved_ref_non_segment"] = getattr(result, "resolved_ref", None)
+            span["llm_resolved_method_non_segment"] = getattr(result, "method", None)
+            span["llm_resolved_phrase_non_segment"] = getattr(result, "llm_resolved_phrase", None)
         updated = True
 
     if updated:
