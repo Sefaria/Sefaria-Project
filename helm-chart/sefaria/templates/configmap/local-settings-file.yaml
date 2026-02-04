@@ -140,7 +140,7 @@ data:
     CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
-    CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
+    CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET", 'secret')
     CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
