@@ -93,6 +93,18 @@ TEST_CASES = [
         },
         "expected_resolutions": ["Menachot 63a:9"],
     },
+    {
+        "id": "mt_ownerless_property_8_ketzot_hachoshen_cm_252_1_1",
+        "payload": {
+            "charRange": [47, 63],
+            "language": "he",
+            "ref": "Ketzot HaChoshen on Shulchan Arukh, Choshen Mishpat 252:1:1",
+            "resolved_non_segment_ref": "Mishneh Torah, Ownerless Property and Gifts 8",
+            "text": "הרמב\"ם פ\"ח מזכיה",
+            "versionTitle": "Shulhan Arukh, Hoshen ha-Mishpat; Lemberg, 1898",
+        },
+        "expected_resolutions": ["Mishneh Torah, Ownerless Property and Gifts 8:9"],
+    },
 ]
 
 
