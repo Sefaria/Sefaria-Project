@@ -977,7 +977,8 @@
           "name": "tref",
           "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text one level up. A section is an array of segments). If a `Ref` which is not a segment or bottom level section is passed, the response will be to the first bottom level section `Ref` (e.g. `Genesis` will resolve to the bottom level section `Ref` of `Genesis 1`)",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Esther 1.1"
           },
           "in": "path",
           "required": true
@@ -1214,7 +1215,10 @@
             "name": "tref",
             "description": "A valid textual `Ref` to a Sefaria text.",
             "schema": {
-              "$ref": "#/components/schemas/ref"
+              "allOf": [
+                { "$ref": "#/components/schemas/ref" }
+              ],
+              "default": "Kohelet 5:10"
             },
             "in": "path",
             "required": true
@@ -1327,7 +1331,10 @@
           "name": "tref",
           "description": "A valid textual `Ref` to a Sefaria text.",
           "schema": {
-            "$ref": "#/components/schemas/ref"
+            "allOf": [
+              { "$ref": "#/components/schemas/ref" }
+            ],
+            "default": "Kohelet 5:10"
           },
           "in": "path",
           "required": true
@@ -1485,7 +1492,8 @@
           "name": "index",
           "description": "A valid Sefaria Index",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Mishnah Berakhot"
           },
           "in": "path",
           "required": true
@@ -1608,7 +1616,8 @@
           "name": "lang",
           "description": "An ISO 639-1 language code.",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "en"
           },
           "in": "path",
           "required": true
@@ -1635,7 +1644,8 @@
             "name": "tref",
             "description": "The `tref` parameter must a valid Sefaria ref to a text.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Numbers 12.1"
             },
             "in": "path",
             "required": true
@@ -1714,7 +1724,8 @@
           "name": "tref",
           "description": "A valid Sefaria ref",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Numbers.17.2"
           },
           "in": "path",
           "required": true
@@ -2448,7 +2459,8 @@
           "name": "index_title",
           "description": "A title of a valid Sefaria `Index`. For a complete list of works in the [Sefaria](sefaria.org) library, as well as their index titles, query the [api/index](https://www.sefaria.org/api/index/) endpoint. ",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Genesis"
           },
           "in": "path",
           "required": true
@@ -2930,7 +2942,8 @@
               "name": "title",
               "description": "The title of a valid Sefaria `Index`, or the path of a valid Sefaria category. ",
               "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "default": "Jonah"
               },
               "in": "path",
               "required": true
@@ -2956,7 +2969,7 @@
   },
     "/api/related/{tref}": {
       "summary": "The Related API",
-      "description": "The Related API returns all related links, sheets, notes, webpages, topics, manuscripts, and other connected media for a given `Ref`. ",
+      "description": "The Related API returns all related links, sheets, notes, topics, manuscripts, and other connected media for a given `Ref`. ",
       "get": {
         "operationId": "get-related",
         "tags": [
@@ -3477,7 +3490,6 @@
                         }
                       ],
                       "notes": [],
-                      "webpages": [],
                       "topics": [],
                       "manuscripts": [],
                       "media": []
@@ -3490,7 +3502,7 @@
           }
         },
         "summary": "Related",
-        "description": "A single API endpoint to return all of the content (links, sheets, notes, media, manuscripts, webpages and topics) related to the given `Ref` in the query. "
+        "description": "A single API endpoint to return all of the content (links, sheets, notes, media, manuscripts, and topics) related to the given `Ref` in the query. "
       },
       "parameters": [
         {
@@ -3501,6 +3513,72 @@
           },
           "name": "tref",
           "description": "A valid Sefaria textual `Ref`. ",
+          "schema": {
+            "allOf": [
+              { "$ref": "#/components/schemas/ref" }
+            ],
+            "default": "Deuteronomy 1.1"
+          },
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/related/{tref}/websites": {
+      "summary": "Related Web Pages",
+      "description": "Returns webpages related to a segment-level `Ref`. ",
+      "get": {
+        "operationId": "get-related-websites",
+        "tags": [
+          "Related"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WebPagesJSON"
+                  }
+                },
+                "examples": {
+                  "Deuteronomy 1:2": {
+                    "value": [
+                      {
+                        "url": "https://etzion.org.il/en/mission-spies",
+                        "title": "The Mission of the Spies | vbm haretzion",
+                        "refs": ["Joshua 2:2-3", "I Samuel 26:9", "Deuteronomy 32:51", "Numbers 34:16-29", "Numbers 26:52-56", "Joshua 14", "Numbers 13", "Numbers 20:12", "Numbers 32:9", "Deuteronomy 9:1-2", "Numbers 13:20", "Genesis 13:17", "Numbers 13:21", "Numbers 13:22", "Deuteronomy 1:37", "Joshua 2:1", "Deuteronomy 1:22", "Deuteronomy 1", "Numbers 34", "Deuteronomy 1:21", "Numbers 32", "Deuteronomy 1:24", "Joshua 18:3-9"],
+                        "description": "Parshat HaShavua Yeshivat Har Etzion PARASHAT SHELACH The Mission of the Spies by Rav Yaakov Medan A  The Problem",
+                        "linkerHits": 283,
+                        "domain": "etzion.org.il",
+                        "siteName": "Torat Har Etzion",
+                        "favicon": "https://www.google.com/s2/favicons?domain=etzion.org.il",
+                        "authors": "",
+                        "articleSource": "",
+                        "anchorRef": "Deuteronomy 1:2",
+                        "anchorRefExpanded": ["Deuteronomy 1:2"]
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "description": "Webpages related to the queried `Ref`. "
+          }
+        },
+        "summary": "Related Web Pages",
+        "description": "A single API endpoint to return the webpages related to a segment-level `Ref` in the query. "
+      },
+      "parameters": [
+        {
+          "examples": {
+            "Tanakh": {
+              "value": "Deuteronomy 1.2"
+            }
+          },
+          "name": "tref",
+          "description": "A valid segment-level Sefaria textual `Ref`. ",
           "schema": {
             "$ref": "#/components/schemas/ref"
           },
@@ -3569,7 +3647,10 @@
           "name": "tref",
           "description": "A valid Sefaria textual `Ref`.",
           "schema": {
-            "$ref": "#/components/schemas/ref"
+            "allOf": [
+              { "$ref": "#/components/schemas/ref" }
+            ],
+            "default": "Obadiah 1.2"
           },
           "in": "path",
           "required": true
@@ -3656,7 +3737,10 @@
           "name": "tref",
           "description": "A valid Sefaria textual `Ref`",
           "schema": {
-            "$ref": "#/components/schemas/ref"
+            "allOf": [
+              { "$ref": "#/components/schemas/ref" }
+            ],
+            "default": "Judges 12"
           },
           "in": "path",
           "required": true
@@ -3817,7 +3901,8 @@
                 "Matot-Masei",
                 "Nitzavim-Vayeilech"
               ],
-              "type": "string"
+              "type": "string",
+              "default": "Bereshit"
             },
             "in": "path",
             "required": true
@@ -3857,7 +3942,8 @@
           "name": "parasha",
           "description": "The _Parasha_ for which you'd like to generate relevant metadata, most notably the schedule of when it is next read. \n\n*Note*: The _Parasha_ must be in English written with a capitalized first letter, so `Noach` is valid, but `noach` will return an empty array. Any parshiyot with special characters (i.e. apostrophes, or spaces) should have those special characters percent url encoded. ",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Devarim"
           },
           "in": "path",
           "required": true
@@ -3948,7 +4034,8 @@
           "name": "word",
           "description": "The word or phrase to search for in the lexicons.",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "תורה"
           },
           "in": "path",
           "required": true
@@ -3995,7 +4082,8 @@
             "name": "lexicon",
             "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Klein Dictionary"
             },
             "in": "path",
             "required": true
@@ -4082,7 +4170,8 @@
           "name": "word",
           "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "תורה"
           },
           "in": "path",
           "required": true
@@ -4261,7 +4350,8 @@
           "name": "topic_slug",
           "description": "The slug of the desired topic",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "moses"
           },
           "in": "path",
           "required": true
@@ -4449,7 +4539,8 @@
           "name": "topic_slug",
           "description": "The slug of a topic in the Sefaria system. (To find all of the slugs, you can run `api/topics` without a path parameter to see the data for each topic in our database).",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "rosh-hashanah"
           },
           "in": "path",
           "required": true
@@ -5035,7 +5126,8 @@
           "name": "topic_slug",
           "description": "A valid Sefaria slug for a topic in the database. ",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "moses"
           },
           "in": "path",
           "required": true
@@ -5074,7 +5166,8 @@
             "name": "ref_list",
             "description": "List of strings separated by '+'",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis 50+Mishnah Peah 3"
             },
             "in": "path",
             "required": true
@@ -5266,7 +5359,8 @@
           "name": "name",
           "description": "The English name of a valid Sefaria term. ",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Noah"
           },
           "in": "path",
           "required": true
@@ -5326,7 +5420,8 @@
           "name": "name",
           "description": "An arbitrary text string to match against Sefaria's data collections.",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Genesis"
           },
           "in": "path",
           "required": true
@@ -5385,6 +5480,19 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SearchPOSTData"
+              },
+              "examples": {
+                "Text Search": {
+                  "value": {
+                    "query": "love",
+                    "type": "text",
+                    "field": "naive_lemmatizer",
+                    "size": 10,
+                    "slop": 10,
+                    "sort_method": "score",
+                    "sort_fields": ["pagesheetrank"]
+                  }
+                }
               }
             }
           },
@@ -5491,7 +5599,10 @@
           "name": "tref",
           "description": "A valid Sefaria textual `Ref`.",
           "schema": {
-            "$ref": "#/components/schemas/ref"
+            "allOf": [
+              { "$ref": "#/components/schemas/ref" }
+            ],
+            "default": "Esther 1.1"
           },
           "in": "path",
           "required": true
@@ -5557,7 +5668,8 @@
           "name": "category_path",
           "description": "A valid Sefaria Category path",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Tanakh/Torah"
           },
           "in": "path",
           "required": true
@@ -10748,29 +10860,6 @@
             "type": "array",
             "items": {}
           },
-          "webpages": {
-            "description": "Webpages related to the `Ref`. ",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebPagesJSON"
-            },
-            "example": [
-              {
-                "url": "https://etzion.org.il/en/mission-spies",
-                "title": "The Mission of the Spies | vbm haretzion",
-                "refs": ["Joshua 2:2-3", "I Samuel 26:9", "Deuteronomy 32:51", "Numbers 34:16-29", "Numbers 26:52-56", "Joshua 14", "Numbers 13", "Numbers 20:12", "Numbers 32:9", "Deuteronomy 9:1-2", "Numbers 13:20", "Genesis 13:17", "Numbers 13:21", "Numbers 13:22", "Deuteronomy 1:37", "Joshua 2:1", "Deuteronomy 1:22", "Deuteronomy 1", "Numbers 34", "Deuteronomy 1:21", "Numbers 32","Deuteronomy 1:24", "Joshua 18:3-9"],
-                "description": "Parshat HaShavua Yeshivat Har Etzion PARASHAT SHELACH The Mission of the Spies by Rav Yaakov Medan A  The Problem",
-                "linkerHits": 283,
-                "domain": "etzion.org.il",
-                "siteName": "Torat Har Etzion",
-                "favicon": "https://www.google.com/s2/favicons?domain=etzion.org.il",
-                "authors": "",
-                "articleSource": "",
-                "anchorRef": "Deuteronomy 1",
-                "anchorRefExpanded": ["Deuteronomy 1:2"]
-              }
-            ]
-          },
           "topics": {
             "description": "Topics related to a given `Ref`. ",
             "type": "array",
@@ -11363,7 +11452,6 @@
             }
           ],
           "notes": [],
-          "webpages": [],
           "topics": [],
           "manuscripts": [],
           "media": []
@@ -13594,7 +13682,8 @@
           },
           "field": {
             "description": "The field you want to query. Common fields to query are `exact` or `naive_lemmatizer` for the `text` and `merged` indices. For querying the `sheet` index, commonly you'll query the `content` field",
-            "type": "string"
+            "type": "string",
+            "default": "naive_lemmatizer"
           },
           "filter_fields": {
             "description": "Must be the same length as `filters`. Each entry specifies the field to apply the corresponding filter in `filters`. For queries of type `text` this has no effect since there's only one field to filter text queries on (`path`. this field is explained in `filters`). For `sheet` queries, the following fields can appear in `filter_fields`: `collections` (corresponds to the collections that the sheet is in), `topics_en` (corresponds to the topics for this sheet, translated into English), `topics_he` (corresponds to the topics for this sheet, translated into Hebrew).",
@@ -13608,24 +13697,28 @@
           },
           "query": {
             "description": "Your search query.",
-            "type": "string"
+            "type": "string",
+            "default": "love"
           },
           "size": {
             "format": "int32",
             "description": "For paginating results. The total number of results to return, starting from `start`",
-            "type": "integer"
+            "type": "integer",
+            "default": 10
           },
           "slop": {
             "format": "int32",
             "description": "The maximum distance between each query word in the resulting document. `0` means an exact match must be found",
-            "type": "integer"
+            "type": "integer",
+            "default": 10
           },
           "sort_fields": {
             "description": "List of fields to sort on. If `sort_method = 'score'` this list should have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the Sheet Rank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "default": ["pagesheetrank"]
           },
           "sort_method": {
             "description": "How to sort results. If sort, the values are sorted according to `sort_fields`. If `score`, the value in `sort_fields` is multiplied with the default ElasticSearch score.",
@@ -13633,7 +13726,8 @@
               "sort",
               "score"
             ],
-            "type": "string"
+            "type": "string",
+            "default": "score"
           },
           "sort_reverse": {
             "description": "Whether or not to reverse the sort applied on `sort_fields`",
@@ -13654,7 +13748,8 @@
               "text",
               "sheet"
             ],
-            "type": "string"
+            "type": "string",
+            "default": "text"
           }
         },
         "example": {

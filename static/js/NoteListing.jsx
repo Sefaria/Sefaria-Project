@@ -62,11 +62,11 @@ NoteListing.propTypes = {
   onDeleteNote: PropTypes.func,
 };
 
-const NotesList = ({notes}) => {  
+const NotesList = ({notes, onDeleteNote}) => {
   return (
-    notes && notes.length ? 
+    notes && notes.length ?
       notes.map((item, i) => (
-        <NoteListing data={item} key={i} />
+        <NoteListing data={item} key={i} onDeleteNote={() => onDeleteNote(item._id)} />
       ))
     : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)};
 
