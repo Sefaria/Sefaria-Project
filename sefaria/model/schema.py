@@ -286,7 +286,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     def normalize(term, lang="en"):
         """ Returns the primary title for of 'term' if it exists in the terms collection
         otherwise return 'term' unchanged """
-        t = Term().load_by_title(term)
+        t = Term().load({'name': term})
         return t.get_primary_title(lang=lang) if t else term
 
 
