@@ -19,10 +19,6 @@ class Test_Terms_Validation(object):
         Term().load({"name": 'Torah'}).title_group.validate()
         Term().load({"name": 'Verse'}).title_group.validate()
 
-    def test_load_by_non_primary_title(self):
-        assert Term().load_by_title('Nachmanides') is not None
-        assert Term().load_by_title('פרשת לך לך') is not None
-
     def test_add_duplicate_primary(self):
         with pytest.raises(InputError):
             term = Term({

@@ -260,10 +260,6 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "description"
     ]
 
-    def load_by_title(self, title):
-        query = {'titles.text': title}
-        return self.load(query=query)
-
     def load_by_primary_title(self, title):
         query = {'titles': {'$elemMatch:': {
                  'text': title,
