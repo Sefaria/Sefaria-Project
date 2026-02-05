@@ -870,23 +870,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
             raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
 
-        # disable this check while data is still not conforming to validation
-        if not self.sharedTitle and False:
-            special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Judges"]
-            for title in self.title_group.titles:
-                title = title["text"]
-                if self.get_primary_title() in special_book_cases:
-                    break
-                term = Term().load_by_title(title)
-                if term:
-                    if "scheme" in list(vars(term).keys()):
-                        if vars(term)["scheme"] == "Parasha":
-                            raise InputError(
-                                "Nodes that represent Parashot must contain the corresponding sharedTitles.")
-
-        # if not self.default and not self.primary_title("he"):
-        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
-
     def serialize(self, **kwargs):
         d = super(TitledTreeNode, self).serialize(**kwargs)
         if self.default:
