@@ -707,7 +707,7 @@ def import_versions_from_stream(csv_stream, columns, user_id):
     return _import_versions_from_csv(rows, columns, user_id)
 
 
-def import_versions_from_file(csv_filename, columns):
+def import_versions_from_file(csv_filename, columns, user_id):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
