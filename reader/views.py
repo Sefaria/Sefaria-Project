@@ -1409,13 +1409,13 @@ def edit_text_info(request, title=None, new_title=None):
 
 @ensure_csrf_cookie
 @staff_member_required
-def terms_editor(request, term=None):
+def terms_editor(request, name=None):
     """
     Add/Editor a term using the JSON Editor.
     """
-    if term is not None:
-        existing_term = Term().load_by_title(term)
-        data = existing_term.contents() if existing_term else {"name": term, "titles": []}
+    if name is not None:
+        existing_term = Term().load({'name': name})
+        data = existing_term.contents() if existing_term else {}
     else:
         return render_template(request,'static/generic.html', None, {
             "title": "Terms Editor",
@@ -1424,7 +1424,7 @@ def terms_editor(request, term=None):
 
     dataJSON = json.dumps(data)
     return render_template(request,'edit_term.html', None, {
-        'term': term,
+        'term': name,
         'dataJSON': dataJSON,
         'is_update': "true" if existing_term else "false"
     })
