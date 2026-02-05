@@ -2646,11 +2646,8 @@ def category_api(request, path=None):
             return {"error": f"Merging two categories named {last_path} is not supported."}
         elif "heSharedTitle" in j:
             # if heSharedTitle provided, make sure sharedTitle and heSharedTitle correspond to same Term
-            en_term = Term().load_by_primary_title(last_path)
-            he_term = Term().load_by_primary_title(he_last_path)
-            if en_term and en_term == he_term:
-                pass  # both titles are found in an existing Term object
-            else:
+            existing_term = Term().load_by_primary_titles(last_path, he_last_path)
+            if not existing_term:
                 # titles weren't found in same Term object, so try to create a new Term
                 t = Term()
                 t.add_primary_titles(last_path, he_last_path)

@@ -260,11 +260,12 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "description"
     ]
 
-    def load_by_primary_title(self, title):
-        query = {'titles': {'$elemMatch:': {
-                 'text': title,
-                 'primary': True
-                 }}}
+    def load_by_primary_titles(self, en_title, he_title):
+        query = {
+            'titles': {
+                '$all': [{'$elemMatch': {'text': t, 'primary': True}} for t in [en_title, he_title]]
+            }
+        }
         return self.load(query=query)
 
     def _set_derived_attributes(self):
