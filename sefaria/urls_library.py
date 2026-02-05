@@ -56,7 +56,6 @@ urlpatterns = [
     url(r'^add/(?P<ref>.+)$', reader_views.edit_text),
     url(r'^translate/(?P<ref>.+)$', reader_views.edit_text),
     url(r'^edit/terms/(?P<name>.+)$', reader_views.terms_editor),
-    url(r'^add/terms/(?P<name>.+)$', reader_views.terms_editor),
     url(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
     url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
 
