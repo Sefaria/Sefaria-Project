@@ -266,6 +266,15 @@ domains:
         - collections
         - profile
 
+ingress:
+  enabled: true
+
+gateway:
+  enabled: false
+  className: envoy
+  annotations:
+    cert-manager.io/cluster-issuer: ingress-ca
+
 nginx:
   containerImage:
     # Full path of the image registry inclusive of the image name

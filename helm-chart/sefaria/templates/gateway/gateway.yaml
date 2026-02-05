@@ -1,0 +1,61 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+metadata:
+  name: {{ .Values.deployEnv }}
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations: {{ .Values.gateway.annotations | toYaml | nindent 4 }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className }}
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
+    {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+    {{- $wwwDomain := printf "www.%s" $rootDomain }}
+    {{- $secretName := tpl .cert $ | default ( printf "origin-%s-$s-tls"  $.Values.deployEnv $code ) }}
+    - name: https-{{ $code }}
+      protocol: HTTPS
+      port: 443
+      hostname: {{ $rootDomain }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: {{ $secretName }}
+    - name: https-www-{{ $code }}
+      protocol: HTTPS
+      port: 443
+      hostname: {{ $wwwDomain }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: {{ $secretName }}
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    - name: https-{{ $subdomain }}-{{ $code }}
+      protocol: HTTPS
+      port: 443
+      {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+      hostname: {{ $subdomain }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: {{ $secretName }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+{{- end }}
