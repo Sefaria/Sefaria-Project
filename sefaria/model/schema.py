@@ -287,7 +287,10 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _validate(self):
         super(Term, self)._validate()
-        # do not allow duplicate names:
+        # ensue uniqueness of primary titles together
+        if self.is_new() and Term().load_by_primary_titles(self.get_primary_title(), self.get_primary_title('he')):
+            raise DuplicateRecordError(f"A Term with the primary titles {self.get_primary_title()} and {self.get_primary_title('he')} already exists")
+        # do not allow duplicate names
         if self.is_new() and Term().load({'name': self.name}):
             raise DuplicateRecordError(f"A Term with the name {self.name} already exists")
         elif not self.is_new() and self.is_key_changed('name'):
