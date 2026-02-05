@@ -32,12 +32,16 @@ data:
         max_requests = int(os.getenv("MAX_REQUESTS"))
         max_requests_jitter = int(os.getenv("MAX_REQUESTS_JITTER"))
 
-    {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
         server.log.info("Worker spawned (pid: %s)", worker.pid)
+
+        # Reset MongoDB connection for fork safety
+        from sefaria.system.database import reset_connection
+        reset_connection()
+
+        {{- if .Values.instrumentation.enabled }}
         from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
-    
-    {{- end }}
+        {{- end }}
 
     def on_starting(server):
         from reader.startup import init_library_cache
