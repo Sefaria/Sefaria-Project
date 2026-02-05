@@ -6,7 +6,7 @@ text.py
 import time
 import structlog
 from functools import reduce, partial
-from typing import Optional, Union
+from typing import Union
 
 from remote_config.keys import REF_CACHE_LIMIT_KEY
 logger = structlog.get_logger(__name__)
@@ -18,17 +18,17 @@ import bleach
 import json
 import itertools
 from collections import defaultdict, OrderedDict
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 import re2 as re
 from . import abstract as abst
-from django_topics.models.topic import Topic as DjangoTopic
-from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
+from .schema import deserialize_tree, AltStructNode, VirtualNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, \
+    AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
+    NoVersionFoundError, MissingKeyError, ComplexBookLevelRefError
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -5671,7 +5671,7 @@ class Library(object):
         value of the topic's Hebrew primary title.
         :returns: topic map for the given slug Dictionary
         """
-        from .topic import Topic, TopicSet
+        from .topic import TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
