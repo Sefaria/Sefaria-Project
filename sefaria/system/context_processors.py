@@ -7,8 +7,15 @@ import json
 from functools import wraps
 
 from sefaria.settings import *
+from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
+from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
+from sefaria.utils import calendars
+from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.hebrew import hebrew_parasha_name
+from reader.views import render_react_component, _get_user_calendar_params
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -107,3 +114,20 @@ def large_data(request):
 @user_only
 def body_flags(request):
     return {"EMBED": "embed" in request.GET}
+
+
+@user_only
+def chatbot_user_token(request):
+    if not request.user.is_authenticated:
+        return {"chatbot_user_token": None, "chatbot_enabled": False}
+    if not CHATBOT_USER_ID_SECRET:
+        return {"chatbot_user_token": None, "chatbot_enabled": False}
+    profile = UserProfile(user_obj=request.user)
+    if not getattr(profile, "experiments", False):
+        return {"chatbot_user_token": None, "chatbot_enabled": False}
+    token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+    return {
+        "chatbot_user_token": token,
+        "chatbot_enabled": True,
+        "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
+    }

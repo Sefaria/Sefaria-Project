@@ -105,6 +105,24 @@
 		</div>
 	</div>
 	{% endif %}
+    {% if experiments_available %}
+    <div id="experimentsSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">Experiments</span>
+			<span class="int-he">ניסויים</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-name="experiments" data-value=true class="toggleOption {% if profile.experiments %} on{% endif %}" tabindex="{% if profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעיל</span>
+            </div>
+            <div role="radio" data-name="experiments" data-value=false class="toggleOption {% if not profile.experiments %} on{% endif %}" tabindex="{% if not profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if not profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבוי</span>
+            </div>
+		</div>
+	</div>
+    {% endif %}
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
@@ -220,6 +238,10 @@
                         translation_language_preference_suggested: true,
                     }
 				};
+                const $experimentsToggle = $("#experimentsSetting .toggleOption.on");
+                if ($experimentsToggle.length) {
+                    profile.experiments = $experimentsToggle.attr("data-value") === "true";
+                }
                 $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
                 $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
                 $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
