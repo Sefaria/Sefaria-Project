@@ -7,6 +7,7 @@ import structlog
 from functools import reduce
 import re2 as re
 from sefaria.system.decorators import conditional_graceful_exception
+from django.core.exceptions import ValidationError
 
 logger = structlog.get_logger(__name__)
 
@@ -15,7 +16,8 @@ from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.model.linker.has_match_template import MatchTemplateMixin
-from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
+from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError, \
+    DuplicateRecordError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
 
@@ -288,7 +290,9 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         super(Term, self)._validate()
         # do not allow duplicate names:
         if self.is_new() and Term().load({'name': self.name}):
-            raise InputError(f"A Term with the name {self.name} already exists")
+            raise DuplicateRecordError(f"A Term with the name {self.name} already exists")
+        elif not self.is_new() and self.is_key_changed('name'):
+            raise ValidationError({"name": "This field cannot be changed."})
         self.title_group.validate()
 
     @staticmethod
