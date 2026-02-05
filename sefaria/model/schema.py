@@ -263,7 +263,9 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     def load_by_primary_titles(self, en_title, he_title):
         query = {
             'titles': {
-                '$all': [{'$elemMatch': {'text': t, 'primary': True}} for t in [en_title, he_title]]
+                '$all': [{'$elemMatch': {
+                    'text': t, 'primary': True
+                }} for t in [en_title, he_title]]
             }
         }
         return self.load(query=query)
