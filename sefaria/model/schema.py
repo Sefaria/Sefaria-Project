@@ -262,6 +262,13 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         query = {'titles.text': title}
         return self.load(query=query)
 
+    def load_by_primary_title(self, title):
+        query = {'titles': {'$elemMatch:': {
+                 'text': title,
+                 'primary': True
+                 }}}
+        return self.load(query=query)
+
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
@@ -270,17 +277,19 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _normalize(self):
         self.titles = self.title_group.titles
+        if not hasattr(self, 'name'):
+            name = self.get_primary_title()
+            dupes = len(TermSet({'name': {'$regex': fr'^{name}\d*$'}}))
+            if dupes:
+                name = f'{name}{dupes}'
+            setattr(self, 'name', name)
 
     def _validate(self):
         super(Term, self)._validate()
-        # do not allow duplicates:
-        for title in self.get_titles():
-            other_term = Term().load_by_title(title)
-            if other_term and not self.same_record(other_term):
-                raise InputError("A Term with the title {} in it already exists".format(title))
+        # do not allow duplicate names:
+        if self.is_new() and Term().load({'name': self.name}):
+            raise InputError(f"A Term with the name {self.name} already exists")
         self.title_group.validate()
-        if self.name != self.get_primary_title():
-            raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
 
     @staticmethod
     def normalize(term, lang="en"):
