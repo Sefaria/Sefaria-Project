@@ -386,6 +386,17 @@ secrets:
     # should be commented out and vice-versa.
     ref: elastic-admin
     # data:
+  braintrust:
+    # Braintrust API credentials (api-key, project-id)
+    ref: braintrust-secret
+    # data:
+    #   api-key: ""
+    #   project-id: ""
+  anthropic:
+    # Anthropic API key for Claude tagging
+    ref: anthropic-api-key
+    # data:
+    #   api-key: ""
 
 # Settings for various cronjobs
 cronJobs:
@@ -418,6 +429,23 @@ cronJobs:
     enabled: false
   syncMongoProductionData:
     enabled: false
+  braintrust:
+    enabled: false
+    image:
+      repository: your-registry/braintrust-automation
+      tag: latest
+    backupLogs:
+      enabled: false
+      schedule: "0 1 * * 0"
+      serviceAccount: braintrust-backup-logs
+      bucket: braintrust-logs
+      prefix: "logs/"
+    tagAndPush:
+      enabled: false
+      schedule: "0 2 * * *"
+      serviceAccount: braintrust-tag-push
+      usePvc: false
+      pvcName: braintrust-shared-storage
 
 localSettings:
   DEBUG: true
