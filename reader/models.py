@@ -35,18 +35,4 @@ if not hasattr(User, "experiments"):
 def user_has_experiments(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    if not user_can_manage_experiments(user):
-        return False
     return UserExperimentSettings.objects.filter(user=user, experiments=True).exists()
-
-
-def user_can_manage_experiments(user):
-    if not user or not getattr(user, "is_authenticated", False):
-        return False
-    return bool(
-        user.is_superuser
-        or user.has_perm("reader.change_userexperimentsettings")
-        or user.has_perm("reader.add_userexperimentsettings")
-        or user.has_perm("reader.delete_userexperimentsettings")
-    )
-
