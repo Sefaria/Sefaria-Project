@@ -28,7 +28,7 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 
 # Global flag for debug mode
 DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
-DEBUG_LIMIT = 500 # Number of random examples to fetch in debug mode
+DEBUG_LIMIT = 10 # Number of random examples to fetch in debug mode
 DEBUG_SEED = 6133  # Seed for reproducible random sampling
 
 

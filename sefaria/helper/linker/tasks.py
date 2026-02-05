@@ -370,6 +370,25 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
     )
 
     _create_link_for_resolution(citing_ref, resolved_ref)
+    if result.matched_segment:
+        try:
+            matched_oref = Ref(result.matched_segment)
+        except Exception:
+            matched_oref = None
+        if matched_oref is not None and matched_oref.is_segment_level():
+            _upsert_mutc_span(
+                ref=payload.ref,
+                version_title=payload.versionTitle,
+                language=payload.language,
+                char_range=payload.charRange,
+                text=payload.text,
+                resolved_ref=result.matched_segment,
+            )
+            _create_or_update_link_for_non_segment_resolution(
+                citing_ref=citing_ref,
+                non_segment_ref=resolved_ref,
+                resolved_ref=result.matched_segment,
+            )
     _update_linker_output_resolution_fields(payload, result)
 
 
@@ -478,6 +497,43 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "llm_resolved_phrase_ambiguous": getattr(result, "llm_resolved_phrase", None),
             "llm_ambiguous_option_valid": True,
         })
+
+    if result.matched_segment:
+        try:
+            matched_oref = Ref(result.matched_segment)
+        except Exception:
+            matched_oref = None
+        if matched_oref is not None and matched_oref.is_segment_level():
+            _upsert_mutc_span(
+                ref=payload.ref,
+                version_title=payload.versionTitle,
+                language=payload.language,
+                char_range=payload.charRange,
+                text=payload.text,
+                resolved_ref=result.matched_segment,
+            )
+            link_obj, action = _create_or_update_link_for_non_segment_resolution(
+                citing_ref=citing_ref,
+                non_segment_ref=resolved_ref,
+                resolved_ref=result.matched_segment,
+            )
+            if link_obj is not None:
+                _record_disambiguated_link({
+                    "id": link_obj._id,
+                    "type": "link",
+                    "action": action,
+                    "link": link_obj.contents(),
+                    "resolution_type": "ambiguous",
+                    "ref": payload.ref,
+                    "versionTitle": payload.versionTitle,
+                    "language": payload.language,
+                    "previous_ref": resolved_ref,
+                    "resolved_ref": result.matched_segment,
+                    "llm_resolved_ref_ambiguous": getattr(result, "matched_segment", None),
+                    "llm_resolved_method_ambiguous": result.method,
+                    "llm_resolved_phrase_ambiguous": getattr(result, "llm_resolved_phrase", None),
+                    "llm_ambiguous_option_valid": True,
+                })
     _update_linker_output_resolution_fields(payload, result)
 
 
