@@ -58,16 +58,16 @@ class NonSegmentResolutionPayload:
 
 @dataclass(frozen=True)
 class AmbiguousResolutionResult:
-    resolved_ref: str
-    matched_segment: Optional[str]
-    method: str
+    resolved_ref: Optional[str] = None
+    matched_segment: Optional[str] = None
+    method: Optional[str] = None
     llm_resolved_phrase: Optional[str] = None
 
 
 @dataclass(frozen=True)
 class NonSegmentResolutionResult:
-    resolved_ref: str
-    method: str
+    resolved_ref: Optional[str] = None
+    method: Optional[str] = None
     llm_resolved_phrase: Optional[str] = None
 
 # Configuration
