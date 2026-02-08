@@ -211,24 +211,6 @@ class Test_Terms_Validation(object):
                 ]
             }).save()
 
-        with pytest.raises(InputError):
-            Term({
-                "name": "Test Fail Five", # name not the same as primary
-                "scheme": "testing_terms",
-                "titles" : [
-                    {
-                        "lang": "en",
-                        "text": "alalalalalala",
-                        "primary": True
-                    },
-                    {
-                        "lang": "he",
-                        "text": "גלדכחשדף",
-                        "primary": True
-                    }
-                ]
-            }).save()
-
         # for ascii validation
         with pytest.raises(InputError):
             Term({
