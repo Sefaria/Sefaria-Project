@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sefaria.local_settings_example import MULTISERVER_ENABLED
+from sefaria.settings import MULTISERVER_ENABLED
 from sefaria.model import *
 from sefaria.model import library
 from sefaria.model.abstract import AbstractMongoRecord
