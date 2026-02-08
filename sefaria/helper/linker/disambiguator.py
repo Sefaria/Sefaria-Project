@@ -544,6 +544,55 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         return False, str(e)
 
 
+@traceable(run_type="llm", name="llm_choose_base_vs_commentary")
+def _llm_choose_base_vs_commentary(
+    marked_text: str,
+    base_ref: str,
+    base_text: str,
+    commentary_ref: str,
+    commentary_text: str,
+) -> Optional[str]:
+    """Choose whether the citation refers to the base text or the commentary."""
+    llm = _get_llm()
+
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
+            "Be strict and choose the most likely target."
+        ),
+        (
+            "human",
+            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+            "{citing}\n\n"
+            "Option A (Base text): {base_ref}\n{base_text}\n\n"
+            "Option B (Commentary): {commentary_ref}\n{commentary_text}\n\n"
+            "Which is more likely being referred to? Answer in exactly two lines:\n"
+            "Reason: <brief rationale>\n"
+            "Choice: BASE or COMMENTARY",
+        ),
+    ])
+
+    chain = prompt | llm
+    try:
+        response = chain.invoke({
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "base_ref": base_ref,
+            "base_text": _escape_template_braces(_strip_nikud(base_text)),
+            "commentary_ref": commentary_ref,
+            "commentary_text": _escape_template_braces(_strip_nikud(commentary_text)),
+        })
+        content = getattr(response, 'content', '')
+        if re.search(r"\bBASE\b", content, re.IGNORECASE):
+            return "BASE"
+        if re.search(r"\bCOMMENTARY\b", content, re.IGNORECASE):
+            return "COMMENTARY"
+        return None
+    except Exception as e:
+        logger.warning(f"LLM base vs commentary choice failed: {e}")
+        return None
+
+
 @traceable(run_type="llm", name="llm_form_prior")
 def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = None) -> str:
     """Use LLM to form a prior about what the target segment should contain."""
@@ -1175,6 +1224,62 @@ def disambiguate_ambiguous_ref(
         # Get base context if commentary
         base_ref, base_text = _get_commentary_base_context(citing_ref)
 
+        # Special case: two options, base text vs commentary on base text, citing ref is that commentary
+        if _is_base_vs_commentary_ambiguous(citing_ref, base_ref, valid_candidates):
+            logger.info(
+                "Detected ambiguous base-text vs commentary case",
+                citing_ref=citing_ref,
+                base_ref=base_ref,
+                options=[c["ref"] for c in valid_candidates],
+            )
+
+            try:
+                base_index = Ref(base_ref).index.title
+            except Exception:
+                base_index = None
+            try:
+                citing_index = Ref(citing_ref).index.title
+            except Exception:
+                citing_index = None
+
+            base_cand = None
+            comm_cand = None
+            for cand in valid_candidates:
+                try:
+                    idx_title = Ref(cand["ref"]).index.title
+                except Exception:
+                    continue
+                if base_index and idx_title == base_index:
+                    base_cand = cand
+                if citing_index and idx_title == citing_index:
+                    comm_cand = cand
+
+            if base_cand and comm_cand:
+                base_text_full = _get_ref_text(base_cand["ref"], citing_lang)
+                comm_text_full = _get_ref_text(comm_cand["ref"], citing_lang)
+                if base_text_full and comm_text_full:
+                    choice = _llm_choose_base_vs_commentary(
+                        marked_text,
+                        base_cand["ref"],
+                        base_text_full,
+                        comm_cand["ref"],
+                        comm_text_full,
+                    )
+                    if choice == "BASE":
+                        return AmbiguousResolutionResult(
+                            resolved_ref=base_cand["ref"],
+                            matched_segment=None,
+                            method="llm_base_vs_commentary",
+                            llm_resolved_phrase=None,
+                        )
+                    if choice == "COMMENTARY":
+                        return AmbiguousResolutionResult(
+                            resolved_ref=comm_cand["ref"],
+                            matched_segment=None,
+                            method="llm_base_vs_commentary",
+                            llm_resolved_phrase=None,
+                        )
+
         # Step 1: Try Dicta to find match among candidates
         logger.info("Trying Dicta to find match among ambiguous candidates...")
         dicta_match = _try_dicta_for_candidates(
@@ -1258,6 +1363,36 @@ def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[st
         return base_ref, base_text
     except Exception:
         return None, None
+
+
+def _is_base_vs_commentary_ambiguous(
+    citing_ref: str,
+    base_ref: Optional[str],
+    valid_candidates: List[Dict[str, Any]],
+) -> bool:
+    """Detect base-text vs commentary ambiguity when citing ref is the commentary."""
+    if not base_ref or len(valid_candidates) != 2:
+        return False
+    try:
+        base_index = Ref(base_ref).index.title
+    except Exception:
+        base_index = None
+    try:
+        citing_index = Ref(citing_ref).index.title
+    except Exception:
+        citing_index = None
+
+    if not base_index or not citing_index:
+        return False
+
+    cand_indexes = []
+    for cand in valid_candidates:
+        try:
+            cand_indexes.append(Ref(cand["ref"]).index.title)
+        except Exception:
+            cand_indexes.append(None)
+
+    return base_index in cand_indexes and citing_index in cand_indexes
 
 
 def _try_dicta_for_candidates(

@@ -34,6 +34,18 @@ TEST_CASES = [
         },
         "expected_resolutions": ["Mishnah Oholot 9:3"],
     },
+    {
+        "id": "isaiah_24_4_malbim_beur_hamilot_34_1_2",
+        "payload": {
+            "ref": "Malbim Beur Hamilot on Isaiah 34:1:2",
+            "versionTitle": "On Your Way",
+            "language": "he",
+            "charRange": [72, 77],
+            "text": "כד ד'",
+            "ambiguous_refs": ["Isaiah 24:4", "Malbim Beur Hamilot on Isaiah 24:4"],
+        },
+        "expected_resolutions": ["Malbim Beur Hamilot on Isaiah 24:4"],
+    },
 ]
 
 
