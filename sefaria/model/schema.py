@@ -7,7 +7,6 @@ import structlog
 from functools import reduce
 import re2 as re
 from sefaria.system.decorators import conditional_graceful_exception
-from django.core.exceptions import ValidationError
 
 logger = structlog.get_logger(__name__)
 
@@ -311,7 +310,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         if self.is_new() and Term().load({'name': self.name}):
             raise DuplicateRecordError(f"A Term with the name {self.name} already exists")
         elif not self.is_new() and self.is_key_changed('name'):
-            raise ValidationError({"name": "This field cannot be changed."})
+            raise InputError("The 'name' field of a Term cannot be changed.")
         self.title_group.validate()
 
     @staticmethod
