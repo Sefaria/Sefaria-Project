@@ -5,7 +5,6 @@ babel
 django-admin-sortable==2.1.13
 bleach==1.4.2
 boto3==1.16.6
-braintrust==0.15.0
 bs4==0.0.1
 celery[redis]==5.5.2
 convertdate==2.2.2

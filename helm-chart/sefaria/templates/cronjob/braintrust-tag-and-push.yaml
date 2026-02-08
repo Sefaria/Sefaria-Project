@@ -36,9 +36,6 @@ spec:
             - name: BRAINTRUST_SHARED_STORAGE
               value: "/shared/braintrust"
             volumeMounts:
-            - mountPath: /app/scripts
-              name: tag-and-push-script
-              readOnly: true
             - mountPath: /shared/braintrust
               name: shared-storage
             command: ["python"]
@@ -52,10 +49,6 @@ spec:
                 cpu: "500m"
           restartPolicy: OnFailure
           volumes:
-          - name: tag-and-push-script
-            configMap:
-              name: braintrust-tag-and-push-script-{{ .Values.deployEnv }}
-              defaultMode: 0755
           - name: shared-storage
             {{- if .Values.cronJobs.braintrust.tagAndPush.usePvc }}
             persistentVolumeClaim:

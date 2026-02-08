@@ -193,6 +193,21 @@ cronJobs:
     enabled: true
   weeklyEmailNotifications:
      enabled: true
+  braintrust:
+    enabled: true
+    image:
+      repository:
+      tag:
+    backupLogs:
+      enabled: true
+      schedule: "0 1 * * 0"
+      serviceAccount: braintrust-backup-logs
+      bucket: braintrust-logs
+      prefix: "logs/"
+    tagAndPush:
+      enabled: true
+      schedule: "0 2 * * *"
+      serviceAccount: braintrust-tag-push
 secrets:
   localSettings:
     ref: local-settings-secrets-production

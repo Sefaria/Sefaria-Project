@@ -10,10 +10,7 @@ Run weekly (e.g., Sundays).
 import sys
 import os
 import csv
-from datetime import datetime, timedelta
-import django
-
-django.setup()
+from datetime import datetime, timedelta, timezone
 
 import structlog
 import requests
@@ -53,7 +50,7 @@ def query_braintrust_logs(days=7):
     }
 
     # Calculate date range
-    days_ago = (datetime.now() - timedelta(days=days)).isoformat()
+    days_ago = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 
     # SQL query to get logs from last N days
     query = f"""
@@ -138,7 +135,7 @@ def main():
             sys.exit(0)  # Don't fail if no logs
 
         # Step 2: Create CSV file in /tmp (will be uploaded by main container)
-        timestamp = datetime.now().strftime("%Y-%m-%d")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         csv_filename = f"/tmp/logs_backup_{timestamp}.csv"
 
         if logs_to_csv(logs, csv_filename):

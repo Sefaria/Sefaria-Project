@@ -30,14 +30,14 @@ spec:
                   name: {{ .Values.secrets.braintrust.ref }}
                   key: project-id
             volumeMounts:
-            - mountPath: /app/scripts
-              name: backup-script
-              readOnly: true
             - mountPath: /tmp
               name: shared-volume
             command: ["python"]
             args: ["/app/scripts/braintrust_backup_logs.py"]
             resources:
+              requests:
+                memory: "256Mi"
+                cpu: "250m"
               limits:
                 memory: "500Mi"
                 cpu: "1000m"
@@ -77,14 +77,13 @@ spec:
               # Cleanup
               rm -f "$CSV_FILE"
             resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
               limits:
                 memory: "500Mi"
           restartPolicy: OnFailure
           volumes:
-          - name: backup-script
-            configMap:
-              name: braintrust-backup-logs-script-{{ .Values.deployEnv }}
-              defaultMode: 0755
           - name: shared-volume
             emptyDir: {}
   successfulJobsHistoryLimit: 1

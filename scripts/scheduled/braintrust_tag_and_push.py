@@ -18,10 +18,7 @@ import sys
 import os
 import json
 import re
-from datetime import datetime, timedelta
-import django
-
-django.setup()
+from datetime import datetime, timedelta, timezone
 
 import structlog
 import requests
@@ -125,13 +122,18 @@ def query_all_logs(hours=24):
     if not project_id:
         raise RuntimeError("BRAINTRUST_PROJECT_ID environment variable is required")
 
+    # Validate project_id format (UUID) to prevent BTQL injection
+    uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+    if not uuid_pattern.match(project_id):
+        raise RuntimeError(f"BRAINTRUST_PROJECT_ID must be a valid UUID, got: {project_id!r}")
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
     # Calculate time range
-    hours_ago = (datetime.now() - timedelta(hours=hours)).isoformat()
+    hours_ago = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
 
     # SQL query to get ALL logs from last N hours (NO tag filter)
     query = f"""
@@ -304,10 +306,15 @@ def init_step():
 
         # Remove duplicates by log ID
         unique_logs = {}
+        logs_without_id = 0
         for log in logs:
             log_id = log.get("id")
             if log_id:
                 unique_logs[log_id] = log
+            else:
+                logs_without_id += 1
+        if logs_without_id > 0:
+            logger.warning("logs_missing_id", count=logs_without_id)
         logs = list(unique_logs.values())
 
         # Step 3-4: Tag all logs with Claude using filtered tags
@@ -523,13 +530,17 @@ def match_logs_to_datasets(logs, filtered_datasets):
         for ds_id, ds_info in filtered_datasets.items():
             dataset_tags = ds_info["relevant_tags"]
 
-            # Collect all logs that match any dataset tag
-            matching_logs = set()
+            # Collect all logs that match any dataset tag (deduplicate by object identity)
+            seen = set()
+            matching_logs = []
             for tag in dataset_tags:
                 if tag in log_tag_map:
-                    matching_logs.update(log_tag_map[tag])
+                    for log in log_tag_map[tag]:
+                        if id(log) not in seen:
+                            seen.add(id(log))
+                            matching_logs.append(log)
 
-            matches[ds_id] = list(matching_logs)
+            matches[ds_id] = matching_logs
 
     logger.info("matching_complete", total_matches=sum(len(v) for v in matches.values()))
     return matches
@@ -587,7 +598,12 @@ def push_logs_to_dataset(dataset, logs):
     for log in logs:
         log_id = str(log.get("id", ""))
 
-        if log_id and log_id in existing_ids:
+        if not log_id:
+            logger.warning("skipping_log_without_id", log_keys=list(log.keys())[:5])
+            skipped_count += 1
+            continue
+
+        if log_id in existing_ids:
             skipped_count += 1
             continue
 
@@ -650,6 +666,7 @@ def push_step():
         # Step 8: Insert logs to each dataset (with deduplication)
         total_inserted = 0
         total_skipped = 0
+        failed_datasets = []
 
         for ds_id, ds_info in filtered_datasets.items():
             if ds_id not in matches or not matches[ds_id]:
@@ -674,9 +691,13 @@ def push_step():
                 logger.info("dataset_push_complete", dataset_id=ds_id, inserted=inserted, skipped=skipped)
 
             except Exception as e:
+                failed_datasets.append(ds_id)
                 logger.error("dataset_push_failed", dataset_id=ds_id, error=str(e))
 
         logger.info("completed_push_step", total_inserted=total_inserted, total_skipped=total_skipped)
+
+        if failed_datasets:
+            raise RuntimeError(f"Push failed for {len(failed_datasets)} dataset(s): {failed_datasets}")
 
     except Exception as e:
         logger.error("push_step_failed", error=str(e), exc_info=True)

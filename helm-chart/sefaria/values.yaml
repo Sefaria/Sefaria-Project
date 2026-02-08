@@ -432,7 +432,7 @@ cronJobs:
   braintrust:
     enabled: false
     image:
-      repository: your-registry/braintrust-automation
+      repository: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-braintrust
       tag: latest
     backupLogs:
       enabled: false

@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: braintrust-backup-logs-script-{{ .Values.deployEnv }}
-  labels:
-    {{- include "sefaria.labels" . | nindent 4 }}
-data:
-  braintrust_backup_logs.py: |
-{{ .Files.Get "scripts/scheduled/braintrust_backup_logs.py" | indent 4 }}
