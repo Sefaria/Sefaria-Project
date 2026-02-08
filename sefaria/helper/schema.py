@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-
+from sefaria.local_settings_example import MULTISERVER_ENABLED
 from sefaria.model import *
+from sefaria.model import library
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.marked_up_text_chunk import MarkedUpTextChunkSet
 from sefaria.model.schema import DictionaryNode
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.sheets import save_sheet
+from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.utils.util import list_depth, traverse_dict_tree
 
 import re
@@ -705,7 +707,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
     print('Updating Topic Links')
     generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
-    generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
+    generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)), attr_name='expandedRefs')
     print('Updating Garden Stops')
     generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
     print('Updating Sheets')
@@ -715,11 +717,11 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Marked Up Text Chunks')
     generic_rewrite(MarkedUpTextChunkSet(construct_query('ref', identifier)))
     print('Updating Manuscripts')
-    generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
+    generic_rewrite(ManuscriptPageSet(construct_query('contained_refs', identifier)), attr_name='contained_refs')
+    generic_rewrite(ManuscriptPageSet(construct_query('expanded_refs', identifier)), attr_name='expanded_refs')
     print('Updating WebPages')
-    generic_rewrite(WebPageSet(construct_query('refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expandedRefs', identifier)))
+    generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
+    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)), attr_name='expandedRefs')
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
@@ -1119,3 +1121,40 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
         if quoted:
             print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
         print('Warning: old ref can appear as wrapped ref in other places in the library.')
+
+
+def cascade_node_shared_title_change(node, old):
+    old_address = node.address()[:-1] + [old]
+    old_pattern = f"^{re.escape(', '.join(old_address))}(?=$|, |:| \d)"
+    new_replacement = node.full_title()
+
+    needs_rewrite = lambda ref_str, *args: re.search(old_pattern, ref_str)
+    rewriter = lambda ref_str: re.sub(old_pattern, new_replacement, ref_str)
+
+    print(f'Cascading from {old_pattern} to {new_replacement}')
+    cascade(node.index.title, rewriter, needs_rewrite)
+
+
+def process_term_primary_title_change(term, **kwargs):
+    """
+    When a Term's primary title (en or he) changes, rebuild library caches.
+    This updates term mapping, categories, and indexes that reference this term.
+    """
+    old_titles = kwargs.get("old", [])
+    old_primary_en = next((t["text"] for t in old_titles if t.get("primary") and t["lang"] == "en"))
+    old_primary_he = next((t["text"] for t in old_titles if t.get("primary") and t["lang"] == "he"))
+    new_primary_en = term.get_primary_title("en")
+    new_primary_he = term.get_primary_title("he")
+    cause_ref_change = old_primary_en != new_primary_en
+
+    if old_primary_en != new_primary_en or old_primary_he != new_primary_he:  # Rebuild terms, categories indexes and refs
+        library.rebuild(include_toc=True)
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "rebuild", [True])
+
+    if cause_ref_change:  # Now new refs are available and can be cascaded
+        for index in library.all_index_records():
+            for node in [index.nodes] + index.nodes.all_children():
+                if getattr(node, "sharedTitle", None) == old_primary_en:
+                    cascade_node_shared_title_change(node, old_primary_en)

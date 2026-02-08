@@ -243,7 +243,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     collection = 'term'
     track_pkeys = True
-    pkeys = ["name"]
+    pkeys = ["name", "titles"]
     title_group = None
     history_noun = "term"
 
