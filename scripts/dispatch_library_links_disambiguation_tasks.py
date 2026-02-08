@@ -27,7 +27,7 @@ from dataclasses import asdict
 from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonSegmentResolutionPayload
 
 # Global flag for debug mode
-DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
+DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 10 # Number of random examples to fetch in debug mode
 DEBUG_SEED = 6133  # Seed for reproducible random sampling
 
@@ -161,8 +161,11 @@ def find_non_segment_level_resolutions():
             "$elemMatch": {
                 "type": "citation",
                 "failed": {"$ne": True},
-                "ambiguous": {"$ne": True},
-                "ref": {"$exists": True}
+                "ref": {"$exists": True},
+                "$or": [
+                    {"ambiguous": {"$ne": True}},
+                    {"llm_ambiguous_option_valid": True},
+                ],
             }
         }
     }
@@ -184,11 +187,16 @@ def find_non_segment_level_resolutions():
         for span in raw_linker_output.get('spans', []):
             # Only look at successful citation resolutions
             if (span.get('type') != 'citation' or
-                span.get('failed', False) or
-                span.get('ambiguous', False)):
+                span.get('failed', False)):
+                continue
+            if span.get('ambiguous', False) and not span.get('llm_ambiguous_option_valid'):
                 continue
 
             ref_str = span.get('ref')
+            if span.get('ambiguous', False) and span.get('llm_ambiguous_option_valid'):
+                amb_resolved_ref = span.get('llm_resolved_ref_ambiguous')
+                if amb_resolved_ref:
+                    ref_str = amb_resolved_ref
             if not ref_str:
                 continue
 
