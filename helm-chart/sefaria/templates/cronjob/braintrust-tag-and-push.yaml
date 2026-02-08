@@ -1,4 +1,4 @@
-{{- if .Values.cronJobs.braintrust.tagAndPush.enabled }}
+{{- if and .Values.cronJobs.braintrust.enabled .Values.cronJobs.braintrust.tagAndPush.enabled }}
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -8,12 +8,15 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "{{ .Values.cronJobs.braintrust.tagAndPush.schedule }}"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       backoffLimit: 1
       template:
         spec:
           serviceAccount: {{ .Values.cronJobs.braintrust.tagAndPush.serviceAccount }}
+          securityContext:
+            fsGroup: 1000
           containers:
           - name: braintrust-tag-and-push
             image: "{{ .Values.cronJobs.braintrust.image.repository }}:{{ .Values.cronJobs.braintrust.image.tag }}"

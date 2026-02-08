@@ -10,6 +10,7 @@ Run weekly (e.g., Sundays).
 import sys
 import os
 import csv
+import re
 from datetime import datetime, timedelta, timezone
 
 import structlog
@@ -43,6 +44,11 @@ def query_braintrust_logs(days=7):
 
     if not project_id:
         raise RuntimeError("BRAINTRUST_PROJECT_ID environment variable is required")
+
+    # Validate project_id format (UUID) to prevent BTQL injection
+    uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.IGNORECASE)
+    if not uuid_pattern.match(project_id):
+        raise RuntimeError(f"BRAINTRUST_PROJECT_ID must be a valid UUID, got: {project_id!r}")
 
     headers = {
         "Authorization": f"Bearer {api_key}",

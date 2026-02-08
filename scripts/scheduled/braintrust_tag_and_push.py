@@ -18,6 +18,7 @@ import sys
 import os
 import json
 import re
+import time
 from datetime import datetime, timedelta, timezone
 
 import structlog
@@ -29,6 +30,11 @@ logger = structlog.get_logger(__name__)
 
 # Constant filter for dataset tagging tags
 DATASET_TAGGING_FILTER = "dataset-tagging"
+
+# Configurable limits for Claude tagging
+MAX_LOGS_PER_RUN = int(os.getenv("BRAINTRUST_MAX_LOGS", "500"))
+TAGGING_DELAY_SECONDS = float(os.getenv("BRAINTRUST_TAGGING_DELAY", "0.5"))
+MAX_TAGS_IN_PROMPT = int(os.getenv("BRAINTRUST_MAX_TAGS_IN_PROMPT", "50"))
 
 # Shared storage path (from environment variable)
 SHARED_STORAGE_PATH = os.getenv("BRAINTRUST_SHARED_STORAGE", "/shared/braintrust")
@@ -190,7 +196,10 @@ def tag_log_with_claude(client, log_entry, available_tags):
     output = str(log_entry.get("output", ""))[:500]
     log_id = log_entry.get("id", "")
 
-    tags_str = ", ".join(available_tags)
+    prompt_tags = available_tags[:MAX_TAGS_IN_PROMPT]
+    if len(available_tags) > MAX_TAGS_IN_PROMPT:
+        logger.warning("tags_truncated_for_prompt", total=len(available_tags), used=MAX_TAGS_IN_PROMPT)
+    tags_str = ", ".join(prompt_tags)
 
     prompt = f"""Analyze this log entry and assign relevant tags that categorize it.
 Select from ONLY these available tags: {tags_str}
@@ -242,6 +251,10 @@ def tag_all_logs(logs, available_tags):
         logger.warning("no_logs_to_tag")
         return []
 
+    if len(logs) > MAX_LOGS_PER_RUN:
+        logger.warning("logs_capped", total=len(logs), cap=MAX_LOGS_PER_RUN)
+        logs = logs[:MAX_LOGS_PER_RUN]
+
     logger.info("tagging_all_logs", total_logs=len(logs), available_tags_count=len(available_tags))
     client = get_claude_client()
     tagged_logs = []
@@ -253,6 +266,9 @@ def tag_all_logs(logs, available_tags):
 
         if (idx + 1) % 10 == 0:
             logger.info("tagging_progress", processed=idx + 1, total=len(logs))
+
+        if TAGGING_DELAY_SECONDS > 0:
+            time.sleep(TAGGING_DELAY_SECONDS)
 
     logger.info("completed_tagging", total_logs=len(tagged_logs))
     return tagged_logs
@@ -345,11 +361,20 @@ def load_tagged_logs():
     logs = []
 
     try:
+        skipped_lines = 0
         with open(TAGGED_LOGS_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
+            for line_num, line in enumerate(f, 1):
                 line = line.strip()
-                if line:
+                if not line:
+                    continue
+                try:
                     logs.append(json.loads(line))
+                except json.JSONDecodeError as e:
+                    skipped_lines += 1
+                    logger.warning("skipping_corrupted_jsonl_line", line_num=line_num, error=str(e))
+
+        if skipped_lines > 0:
+            logger.warning("jsonl_lines_skipped", skipped=skipped_lines, loaded=len(logs))
 
         logger.info("loaded_tagged_logs", count=len(logs))
         return logs
@@ -466,8 +491,9 @@ def filter_datasets_by_relevant_tags(datasets):
 
 def optimize_matching_order(logs_count, datasets_count):
     """
-    Determine optimal matching strategy (leet code style optimization).
+    Determine which collection to iterate first when matching logs to datasets.
 
+    Iterates the smaller collection as the outer loop to reduce total comparisons.
     If fewer logs, iterate logs and find matching datasets.
     If fewer datasets, iterate datasets and find matching logs.
 
@@ -678,10 +704,18 @@ def push_step():
             logger.info("pushing_to_dataset", dataset_id=ds_id, dataset_name=dataset_obj.get("name"), logs_count=len(logs_for_dataset))
 
             try:
+                # Validate required dataset identifiers
+                project_name = dataset_obj.get("project_name")
+                dataset_name = dataset_obj.get("name")
+                if not project_name or not str(project_name).strip():
+                    raise ValueError(f"Missing or empty project_name for dataset_id={ds_id}")
+                if not dataset_name or not str(dataset_name).strip():
+                    raise ValueError(f"Missing or empty dataset name for dataset_id={ds_id}")
+
                 # Initialize Braintrust dataset
                 dataset = braintrust.init_dataset(
-                    project=dataset_obj.get("project_name", ""),
-                    name=dataset_obj.get("name", "")
+                    project=str(project_name).strip(),
+                    name=str(dataset_name).strip()
                 )
 
                 inserted, skipped = push_logs_to_dataset(dataset, logs_for_dataset)

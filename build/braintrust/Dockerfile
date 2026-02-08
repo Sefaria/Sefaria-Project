@@ -6,14 +6,15 @@ LABEL org.opencontainers.image.description="Braintrust automation scripts for lo
 COPY requirements-braintrust.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
-RUN useradd --create-home --shell /bin/bash braintrust
-USER braintrust
+RUN useradd --create-home --shell /bin/bash --uid 1000 --gid 0 braintrust
 
 WORKDIR /app
+
+RUN mkdir -p /app/scripts /app/shared && chown -R braintrust:braintrust /app
 
 COPY scripts/scheduled/braintrust_backup_logs.py /app/scripts/braintrust_backup_logs.py
 COPY scripts/scheduled/braintrust_tag_and_push.py /app/scripts/braintrust_tag_and_push.py
 
-RUN mkdir -p /app/shared
+USER braintrust
 
 ENTRYPOINT ["python"]

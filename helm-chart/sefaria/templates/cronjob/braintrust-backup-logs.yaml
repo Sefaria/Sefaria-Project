@@ -1,4 +1,4 @@
-{{- if .Values.cronJobs.braintrust.backupLogs.enabled }}
+{{- if and .Values.cronJobs.braintrust.enabled .Values.cronJobs.braintrust.backupLogs.enabled }}
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -8,6 +8,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "{{ .Values.cronJobs.braintrust.backupLogs.schedule }}"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       backoffLimit: 1

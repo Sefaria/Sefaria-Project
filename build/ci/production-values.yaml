@@ -215,6 +215,10 @@ secrets:
     ref: backup-manager-secret-production
   slackWebhook:
     ref: slack-webhook-production
+  braintrust:
+    ref: braintrust-secret-production
+  anthropic:
+    ref: anthropic-api-key-production
 instrumentation:
   enabled: false
   otelEndpoint: "http://otel-collector-collector.monitoring:4317"
