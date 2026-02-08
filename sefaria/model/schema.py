@@ -243,7 +243,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     collection = 'term'
     track_pkeys = True
-    pkeys = ["name", "titles"]
+    pkeys = ["name", "_primary_en", "_primary_he"]
     title_group = None
     history_noun = "term"
 
@@ -270,6 +270,15 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         }
         return self.load(query=query)
 
+    def _update_tracked_primary_titles(self):
+        self._primary_en = self.get_primary_title("en")
+        self._primary_he = self.get_primary_title("he")
+
+    def _set_pkeys(self):
+        self.set_titles(getattr(self, "titles", None))
+        self._update_tracked_primary_titles()
+        super()._set_pkeys()
+
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
@@ -288,6 +297,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _normalize(self):
         self.titles = self.title_group.titles
+        self._update_tracked_primary_titles()
         if not hasattr(self, 'name'):
             self._set_name()
 

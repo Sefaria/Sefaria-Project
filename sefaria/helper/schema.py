@@ -1140,21 +1140,16 @@ def process_term_primary_title_change(term, **kwargs):
     When a Term's primary title (en or he) changes, rebuild library caches.
     This updates term mapping, categories, and indexes that reference this term.
     """
-    old_titles = kwargs.get("old", [])
-    old_primary_en = next((t["text"] for t in old_titles if t.get("primary") and t["lang"] == "en"))
-    old_primary_he = next((t["text"] for t in old_titles if t.get("primary") and t["lang"] == "he"))
-    new_primary_en = term.get_primary_title("en")
-    new_primary_he = term.get_primary_title("he")
-    cause_ref_change = old_primary_en != new_primary_en
+    old = kwargs.get("old")
+    attr = kwargs.get("attr")
 
-    if old_primary_en != new_primary_en or old_primary_he != new_primary_he:  # Rebuild terms, categories indexes and refs
-        library.rebuild(include_toc=True)
+    library.rebuild(include_toc=True)
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "rebuild", [True])
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild", [True])
 
-    if cause_ref_change:  # Now new refs are available and can be cascaded
+    if attr == "_primary_en":  # Now new refs are available and can be cascaded
         for index in library.all_index_records():
             for node in [index.nodes] + index.nodes.all_children():
-                if getattr(node, "sharedTitle", None) == old_primary_en:
-                    cascade_node_shared_title_change(node, old_primary_en)
+                if getattr(node, "sharedTitle", None) == old:
+                    cascade_node_shared_title_change(node, old)

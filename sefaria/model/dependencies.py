@@ -88,7 +88,8 @@ subscribe(text.reset_simple_term_mapping,                                   sche
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
 
 # Term primary title change rebuilds library (term mapping, categories, indexes)
-subscribe(sefaria.helper.schema.process_term_primary_title_change, schema.Term, "attributeChange", "titles")
+subscribe(sefaria.helper.schema.process_term_primary_title_change, schema.Term, "attributeChange", "_primary_en")
+subscribe(sefaria.helper.schema.process_term_primary_title_change, schema.Term, "attributeChange", "_primary_he")
 
 # Time
 subscribe(cascade(topic.PersonTopicSet, "properties.era.value"),          timeperiod.TimePeriod, "attributeChange", "symbol")
