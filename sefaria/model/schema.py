@@ -276,14 +276,20 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
+    def _set_name(self):
+        name = base_name = self.get_primary_title()
+        terms = TermSet({'name': {'$regex': f'^{re.escape(name)}\d*$'}})
+        existing_names = {t.name for t in terms}
+        i = 1
+        while name in existing_names:
+            name = base_name + i
+            i += 1
+        self.name = name
+
     def _normalize(self):
         self.titles = self.title_group.titles
         if not hasattr(self, 'name'):
-            name = self.get_primary_title()
-            dupes = len(TermSet({'name': {'$regex': fr'^{name}\d*$'}}))
-            if dupes:
-                name = f'{name}{dupes}'
-            setattr(self, 'name', name)
+            self._set_name()
 
     def _validate(self):
         super(Term, self)._validate()
