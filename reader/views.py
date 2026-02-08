@@ -1414,7 +1414,7 @@ def terms_editor(request, name):
     Add/Editor a term using the JSON Editor.
     """
     existing_term = Term().load({'name': name})
-    data = existing_term.contents() if existing_term else {}
+    data = existing_term.contents() if existing_term else {"titles": []}
 
     dataJSON = json.dumps(data)
     return render_template(request,'edit_term.html', None, {
