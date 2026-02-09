@@ -270,11 +270,8 @@ def main():
     # Find ambiguous resolutions
     ambiguous_resolutions = [] if ambiguous_start_from == "skip" else find_ambiguous_resolutions()
 
-    # Find non-segment-level resolutions
-    non_segment_resolutions = [] if non_segment_start_from == "skip" else find_non_segment_level_resolutions()
-
-    # Dispatch bulk disambiguation tasks (single payload each)
-    print(f"Dispatching {len(ambiguous_resolutions) + len(non_segment_resolutions)} bulk disambiguation tasks...")
+    # Dispatch ambiguous first
+    print(f"Dispatching {len(ambiguous_resolutions)} ambiguous disambiguation tasks...")
     try:
         ambiguous_iter = (
             ambiguous_resolutions[ambiguous_start_from:]
@@ -288,6 +285,11 @@ def main():
             total=len(ambiguous_resolutions),
         ):
             enqueue_bulk_disambiguation(asdict(resolution))
+
+        # Find non-segment-level resolutions AFTER ambiguous dispatch
+        non_segment_resolutions = [] if non_segment_start_from == "skip" else find_non_segment_level_resolutions()
+        print(f"Dispatching {len(non_segment_resolutions)} non-segment disambiguation tasks...")
+
         non_segment_iter = (
             non_segment_resolutions[non_segment_start_from:]
             if isinstance(non_segment_start_from, int) and non_segment_start_from

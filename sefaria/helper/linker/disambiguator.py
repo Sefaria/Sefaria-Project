@@ -7,7 +7,7 @@ import structlog
 import os
 import re
 import requests
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
 
@@ -947,6 +947,7 @@ def disambiguate_non_segment_ref(
     """
     try:
 
+        logger.info("Non-segment payload", payload=asdict(resolution_data))
         citing_ref = resolution_data.ref
         citing_text_snippet = resolution_data.text
         citing_lang = resolution_data.language
@@ -1174,6 +1175,7 @@ def disambiguate_ambiguous_ref(
     """
     try:
 
+        logger.info("Ambiguous payload", payload=asdict(resolution_data))
         citing_ref = resolution_data.ref
         citing_text_snippet = resolution_data.text
         citing_lang = resolution_data.language
