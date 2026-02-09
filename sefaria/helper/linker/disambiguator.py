@@ -70,6 +70,7 @@ class NonSegmentResolutionResult:
     method: Optional[str] = None
     llm_resolved_phrase: Optional[str] = None
 
+
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
 SEFARIA_SEARCH_URL = f"{SEARCH_URL}/text/_search"
