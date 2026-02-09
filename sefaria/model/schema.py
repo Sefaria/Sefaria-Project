@@ -290,7 +290,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         existing_names = {t.name for t in terms}
         i = 1
         while name in existing_names:
-            name = base_name + i
+            name = f"{base_name}{i}"
             i += 1
         self.name = name
 
