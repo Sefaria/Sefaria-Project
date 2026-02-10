@@ -5,7 +5,7 @@ import { MODULE_URLS } from '../constants';
 
 test.describe('Cross-Module Redirects - Library to Voices', () => {
 
-  test.beforeEach(async ({context }) => {
+  test.beforeEach(async ({ context }) => {
     // goToPageWithUser handles auth setup, navigation, and modal hiding
     await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
   });
@@ -36,7 +36,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
   test('Collections Redirect', async ({ page }) => {
     // Navigate to collections on library module and capture response
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections`, { waitUntil: 'networkidle' });
-    
+
     // Verify we didn't get a 404 (or similar) and that redirect occurred to voices collections
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/collections`);
 
@@ -53,7 +53,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     const finalUrl = page.url();
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/collections/-midrash-calendar`, true);
   });
-// Probably Redundant with the below test
+  // Probably Redundant with the below test
   test('Profile Redirect ', async ({ page }) => {
     // Navigate to profile without user (logged in, so should redirect to user's profile)
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile`, { waitUntil: 'networkidle' });
@@ -74,7 +74,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     assertStatusNotError(respone?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/profile/qa-tester`);
 
     await page.waitForTimeout(5000);
-    
+
     // Verify redirect occurred to voices profile
     const finalUrl = page.url();
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/profile/qa-automation`, true);
@@ -148,7 +148,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
     let redirectStatusCode: number | null = null;
     page.on('response', response => {
       if (response.url() === `${MODULE_URLS.EN.LIBRARY}/settings/profile` ||
-          response.url() === `${MODULE_URLS.EN.LIBRARY}/settings/profile/`) {
+        response.url() === `${MODULE_URLS.EN.LIBRARY}/settings/profile/`) {
         redirectStatusCode = response.status();
       }
     });
@@ -164,7 +164,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
     let redirectStatusCode: number | null = null;
     page.on('response', response => {
       if (response.url() === `${MODULE_URLS.EN.LIBRARY}/community` ||
-          response.url() === `${MODULE_URLS.EN.LIBRARY}/community/`) {
+        response.url() === `${MODULE_URLS.EN.LIBRARY}/community/`) {
         redirectStatusCode = response.status();
       }
     });

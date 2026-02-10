@@ -142,7 +142,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
       'Find connections'
     ],
     sheetPath: '/sheets/218668?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18613227644316-How-to-Find-Interconnected-Texts',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18613227644316-How-to-Find-Interconnected-Texts-in-the-Sefaria-Library',
     upToDate: 'yes',
     views: 2582
   },
