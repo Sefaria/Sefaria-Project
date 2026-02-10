@@ -95,7 +95,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     const libraryPage = await selectDropdownOption(page, 'Library', true);
 
     // Wait for Library to load
-    await libraryPage!.waitForLoadState('networkidle');
+    await libraryPage!.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(libraryPage!);
 
     // Verify user is on Library
@@ -252,7 +252,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await selectDropdownOption(voicesTab2, 'Log in');
     const pm2 = new PageManager(voicesTab2, LANGUAGES.EN);
     await pm2.onLoginPage().loginAs(testUser);
-    await voicesTab2.waitForLoadState('networkidle');
+    await voicesTab2.waitForLoadState('domcontentloaded');
 
     // Wait for profile pic to appear (indicates login success)
     await voicesTab2.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });

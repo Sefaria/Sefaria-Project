@@ -422,6 +422,7 @@ export class SheetEditorPage extends HelperBase {
     await this.page.waitForLoadState('domcontentloaded');
     // Assert error saying please add a ... doesnt appear
     await expect(this.page.getByText('Please add a')).not.toBeVisible();
+    await expect(this.page.getByText('Something went wrong. Try refreshing the page.')).not.toBeVisible();
     // Assert that the popup Success! appears
     await expect(this.page.getByText('Success!')).toBeVisible();
   }

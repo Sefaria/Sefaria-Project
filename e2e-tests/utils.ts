@@ -482,11 +482,11 @@ export const selectDropdownOption = async (
       page.context().waitForEvent('page'),
       option.click()
     ]);
-    await newPage.waitForLoadState('networkidle');
+    await newPage.waitForLoadState('domcontentloaded');
     return newPage;
   } else {
     await option.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     return null;
   }
 };

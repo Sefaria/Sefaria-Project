@@ -171,7 +171,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
       'Compare texts'
     ],
     sheetPath: '/sheets/219447?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472472138652-Quick-Guide-Meet-the-Resource-Panel',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472472138652-Quick-Guide-Meet-the-Sefaria-Library-Resource-Panel',
     upToDate: 'yes',
     views: 24878
   },
@@ -227,7 +227,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
       'Setting or changing privacy settings'
     ],
     sheetPath: '/sheets/233017?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Sheet-Collections',
     upToDate: 'yes',
     views: 1778
   },
@@ -283,7 +283,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
       'change translations on the app'
     ],
     sheetPath: '/sheets/429277?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-A-%D7%90-menu',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-Library-s-A-%D7%90-Menu',
     upToDate: 'yes',
     views: 318
   },
@@ -327,7 +327,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
       'delete a collection'
     ],
     sheetPath: '/sheets/289837?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Sheet-Collections',
     upToDate: 'yes',
     views: 3269
   },
@@ -411,7 +411,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
     sheetTitle: 'Navigating Sefaria\'s New Design',
     includedTopics: ['Explanation of new header'],
     sheetPath: '/sheets/330784?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472380899484-Quick-Guide-Meet-the-Homepage',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472380899484-Quick-Guide-Meet-the-Sefaria-Library-Homepage',
     upToDate: 'yes',
     views: 3582
   },
@@ -462,7 +462,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
     sheetTitle: 'Collaborating with Others',
     includedTopics: [],
     sheetPath: '/sheets/233017?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections'
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Sheet-Collections'
   },
   {
     category: '',

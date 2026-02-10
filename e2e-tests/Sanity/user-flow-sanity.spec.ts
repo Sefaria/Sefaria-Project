@@ -227,8 +227,10 @@ test.describe.serial('User Flow Sanity Tests', () => {
 
     // Verify logged in
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
-
+    // wait 1000ms
+    await page.waitForTimeout(1000);
     // Perform logout
+    await page.waitForLoadState('networkidle');
     await pm.onModuleHeader().logout();
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
