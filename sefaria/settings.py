@@ -76,6 +76,7 @@ STATICFILES_DIRS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
+CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
     {

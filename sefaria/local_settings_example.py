@@ -355,3 +355,5 @@ CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaS
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 
 CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
+# Use the local Vite dev server script instead of the hosted UMD bundle.
+CHATBOT_USE_LOCAL_SCRIPT = True
