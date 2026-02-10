@@ -5055,8 +5055,10 @@ class Library(object):
 
     def init_shared_cache(self, rebuild=False):
         self.get_toc(rebuild=rebuild)
+        logger.info("Finished toc.")
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
+        logger.info("Finished topic mapping.")
         self.get_topic_toc(rebuild=rebuild)
         logger.info("Finished topic toc.")
         self.get_topic_toc_json(rebuild=rebuild)
