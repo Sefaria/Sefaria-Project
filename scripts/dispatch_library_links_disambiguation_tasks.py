@@ -25,6 +25,7 @@ from sefaria.settings import CELERY_QUEUES, CELERY_ENABLED
 from sefaria.celery_setup.app import app
 from dataclasses import asdict
 from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonSegmentResolutionPayload
+from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 # Global flag for debug mode
 DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
@@ -201,8 +202,8 @@ def find_non_segment_level_resolutions():
             if not ref_str:
                 continue
 
-            # Check if it's NOT segment level
-            if not is_segment_level_ref(ref_str):
+            # Check if it's NOT segment level (including perek/parasha treated as non-segment)
+            if _is_non_segment_or_perek_ref(ref_str):
                 try:
                     oref = Ref(ref_str)
                     ref_level = 'unknown'
@@ -313,4 +314,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    print(len(find_non_segment_level_resolutions()))
