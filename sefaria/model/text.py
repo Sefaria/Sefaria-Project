@@ -5055,23 +5055,17 @@ class Library(object):
 
     def init_shared_cache(self, rebuild=False):
         self.get_toc(rebuild=rebuild)
-        logger.info("Finished toc.")
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
-        logger.info("Finished topic mapping.")
         self.get_topic_toc(rebuild=rebuild)
-        logger.info("Finished topic toc.")
         self.get_topic_toc_json(rebuild=rebuild)
         self.get_topic_toc_category_mapping(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
-        logger.info("Library shared cache initialized.")
         if rebuild:
-            logger.info("pre-Regenerating library cache.")
             scache.delete_shared_cache_elem("regenerating")
-            logger.info("Regenerating library cache.")
 
     def get_last_cached_time(self):
         if not self.last_cached:
