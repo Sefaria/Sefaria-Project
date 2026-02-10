@@ -86,6 +86,7 @@ shared_patterns = [
     url(r'^api/link-summary/(?P<ref>.+)$', reader_views.link_summary_api),
     url(r'^api/notes/all$', reader_views.all_notes_api),
     url(r'^api/notes/(?P<note_id_or_ref>.*)$', reader_views.notes_api),
+    url(r'^api/related/(?P<tref>.+)/websites$', reader_views.websites_api),
     url(r'^api/related/(?P<tref>.*)$', reader_views.related_api),
     url(r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', reader_views.link_count_api),
     url(r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', reader_views.word_count_api),

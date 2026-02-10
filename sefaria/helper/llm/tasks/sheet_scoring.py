@@ -17,10 +17,14 @@ def save_sheet_scoring(raw_output: dict):
 
 
 def generate_and_save_sheet_scoring(sheet_content: Dict[str, Any]) -> object:
+    llm_queue = CELERY_QUEUES.get('llm')
+    tasks_queue = CELERY_QUEUES.get('tasks')
+    if not (llm_queue and tasks_queue):  # development environment without tasks pod and llm pod
+        return
     sheet_scoring_input = make_sheet_scoring_input(sheet_content)
     generate_signature = signature('llm.score_sheet',
                                    args=(asdict(sheet_scoring_input),),
-                                   queue=CELERY_QUEUES['llm'])
-    save_signature = save_sheet_scoring.s().set(queue=CELERY_QUEUES['tasks'])
+                                   queue=llm_queue)
+    save_signature = save_sheet_scoring.s().set(queue=tasks_queue)
     chain = generate_signature | save_signature
     return chain()
