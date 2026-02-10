@@ -5064,8 +5064,11 @@ class Library(object):
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
+        logger.info("Library shared cache initialized.")
         if rebuild:
+            logger.info("pre-Regenerating library cache.")
             scache.delete_shared_cache_elem("regenerating")
+            logger.info("Regenerating library cache.")
 
     def get_last_cached_time(self):
         if not self.last_cached:
