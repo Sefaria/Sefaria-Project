@@ -16,6 +16,8 @@ from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -127,8 +129,10 @@ def chatbot_user_token(request):
     if not getattr(profile, "experiments", False):
         return {"chatbot_user_token": None, "chatbot_enabled": False}
     token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+    max_input_chars = remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500)
     return {
         "chatbot_user_token": token,
         "chatbot_enabled": True,
         "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
+        "chatbot_max_input_chars": max_input_chars,
     }
