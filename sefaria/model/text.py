@@ -5058,6 +5058,7 @@ class Library(object):
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
+        logger.info("Finished topic toc.")
         self.get_topic_toc_json(rebuild=rebuild)
         self.get_topic_toc_category_mapping(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
