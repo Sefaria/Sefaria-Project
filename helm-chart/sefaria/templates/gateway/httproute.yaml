@@ -3,6 +3,8 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: {{ .Values.deployEnv }}
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   parentRefs:
     - name: {{ .Values.deployEnv }}

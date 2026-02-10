@@ -19,7 +19,7 @@ spec:
     {{- end }}
     {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
     {{- $wwwDomain := printf "www.%s" $rootDomain }}
-    {{- $secretName := tpl .cert $ | default ( printf "origin-%s-$s-tls"  $.Values.deployEnv $code ) }}
+    {{- $secretName := tpl .cert $ | default ( printf "origin-%s-%s-tls"  $.Values.deployEnv $code ) }}
     - name: https-{{ $code }}
       protocol: HTTPS
       port: 443
