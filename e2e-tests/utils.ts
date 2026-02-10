@@ -498,14 +498,25 @@ export const selectDropdownOption = async (
  */
 export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
   try {
+    // Wait for potential logged-out icon or profile pic to load (whichever appears first)
+    await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => { /* continue if it times out */ });
+
     // Check if logged-out icon is visible
     const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
     const isLoggedOut = await loggedOutIcon.isVisible({ timeout: 2000 });
-    if (isLoggedOut) return false;
+    if (isLoggedOut) {
+      // log that logged out icon is visible for debugging purposes
+      console.log(`User is not logged in (logged-out icon visible)`);
+      return false;
+    }
 
     // Check if profile pic is visible (logged in)
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
-    return await profilePic.isVisible({ timeout: 2000 }).catch(() => false);
+    const isLoggedIn = await profilePic.isVisible({ timeout: 2000 }).catch(() => false);
+    if (isLoggedIn) {
+      console.log('User is logged in (profile pic visible)');
+    }
+    return isLoggedIn;
   } catch {
     return false;
   }
@@ -517,6 +528,7 @@ export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
  */
 export const logout = async (page: Page) => {
   if (!(await isUserLoggedIn(page))) {
+    console.log('User is not logged in, skipping logout. Check if test was supposed to be logged in or not.');
     return;
   }
 
