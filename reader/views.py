@@ -62,7 +62,7 @@ from sefaria.utils.domains_and_languages import current_domain_lang, get_redirec
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -85,6 +85,7 @@ import sefaria.tracker as tracker
 from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
+from sefaria.utils.chatbot import build_chatbot_user_token
 from PIL import Image
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
@@ -342,6 +343,21 @@ def base_props(request):
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
     })
+    # Chatbot props (passed through base_props for ReaderApp)
+    chatbot_version = request.GET.get("chatbot_version", "").strip()
+    chatbot_data = {
+        "chatbot_version": chatbot_version,
+        "chatbot_use_local_script": CHATBOT_USE_LOCAL_SCRIPT,
+        "chatbot_user_token": None,
+        "chatbot_enabled": False,
+        "chatbot_api_base_url": getattr(settings, "CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api"),
+    }
+    if request.user.is_authenticated and CHATBOT_USER_ID_SECRET:
+        profile = UserProfile(user_obj=request.user)
+        if getattr(profile, "experiments", False):
+            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            chatbot_data["chatbot_enabled"] = True
+    user_data.update(chatbot_data)
     return user_data
 
 

@@ -13,9 +13,9 @@ from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
+from sefaria.utils.chatbot import build_chatbot_user_token
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -117,33 +117,47 @@ def body_flags(request):
     return {"EMBED": "embed" in request.GET}
 
 
+def _chatbot_script_url_and_type(chatbot_version):
+    """Return (url, type) for the chatbot script. type is None for classic, 'module' for ES module."""
+    if chatbot_version:
+        return (
+            f"https://{chatbot_version}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs",
+            None,
+        )
+    if getattr(settings, "CHATBOT_USE_LOCAL_SCRIPT", False):
+        return ("http://localhost:5173/src/main.js", "module")
+    return (
+        "https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs",
+        None,
+    )
+
+
 @user_only
 def chatbot_user_token(request):
     chatbot_version = request.GET.get("chatbot_version", "").strip()
+    disabled = {
+        "chatbot_user_token": None,
+        "chatbot_enabled": False,
+        "chatbot_version": chatbot_version,
+        "chatbot_script_url": None,
+        "chatbot_script_type": None,
+    }
 
     if not request.user.is_authenticated:
-        return {
-            "chatbot_user_token": None,
-            "chatbot_enabled": False,
-            "chatbot_version": chatbot_version,
-        }
+        return disabled
     if not CHATBOT_USER_ID_SECRET:
-        return {
-            "chatbot_user_token": None,
-            "chatbot_enabled": False,
-            "chatbot_version": chatbot_version,
-        }
+        return disabled
     profile = UserProfile(user_obj=request.user)
     if not getattr(profile, "experiments", False):
-        return {
-            "chatbot_user_token": None,
-            "chatbot_enabled": False,
-            "chatbot_version": chatbot_version,
-        }
+        return disabled
+
     token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+    script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
     return {
         "chatbot_user_token": token,
         "chatbot_enabled": True,
         "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
+        "chatbot_script_url": script_url,
+        "chatbot_script_type": script_type,
     }
