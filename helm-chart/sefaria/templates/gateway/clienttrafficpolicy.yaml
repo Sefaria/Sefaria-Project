@@ -10,8 +10,8 @@ spec:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: {{ .Values.deployEnv }}
-  alpn:
-    protocols:
+  tls:
+    alpnProtocols:
       - h2
       - http/1.1
 {{- end }}
