@@ -25,7 +25,7 @@ backup:
     enabled: false
 web:
   containerImage:
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/us-east1/containers/sefaria-web
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
     tag: sha-72f0a33-202602101120
   replicaCount: 2
   resources:
@@ -61,7 +61,7 @@ redis:
 gpuServer: "gpu-server.gpu-server.svc.cluster.local"
 nodejs:
   containerImage:
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/us-east1/containers/sefaria-node
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
     tag: sha-72f0a33-202602101120
   replicaCount: 1
   resources:
@@ -163,7 +163,7 @@ nginx:
       cpu: "150m"
 monitor:
   containerImage:
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/us-east1/containers/sefaria-web
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
     tag: sha-72f0a33-202602101120
   replicaCount: 1
   resources:
