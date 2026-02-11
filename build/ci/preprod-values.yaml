@@ -140,6 +140,10 @@ domains:
         - sheets
         - collections
         - profile
+gateway:
+  enabled: true
+ingress:
+  enabled: false
 nginx:
   containerImage:
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-modularization-main
