@@ -75,7 +75,9 @@
 
     {% block head %}{% endblock %}
 
-    {% if CHATBOT_USE_LOCAL_SCRIPT %}
+    {% if chatbot_version  %}
+    <script src="https://{{chatbot_version}}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs"></script>
+    {% elif CHATBOT_USE_LOCAL_SCRIPT %}
     <script type="module" src="http://localhost:5173/src/main.js"></script>
     {% else %}
     <script src="https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs"></script>
