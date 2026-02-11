@@ -16,14 +16,14 @@
   border-left: 1px solid var(--border-gray, #e0e0e0);
 }
 
-/* Constrain #s2 so it doesn't overlay the chatbot dock */
-.page-layout.with-chatbot-dock #s2 {
+/* Constrain #s2 only when chatbot is docked (not when floating) */
+.page-layout.with-chatbot-dock.chatbot-mode-docked #s2 {
   width: calc(100% - 380px);
   right: 380px;
 }
 
 /* RTL: chatbot on left, content on right */
-body.interface-hebrew .page-layout.with-chatbot-dock #s2 {
+body.interface-hebrew .page-layout.with-chatbot-dock.chatbot-mode-docked #s2 {
   right: auto;
   left: 380px;
 }
