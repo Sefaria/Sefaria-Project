@@ -213,8 +213,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             wrapperRef.current &&
             !wrapperRef.current.contains(event.target)
         ) {
+            if (isOpen) {onClose?.({ type: 'passive' });}
             setIsOpen(false);
-            onClose?.({ type: 'passive' });
         }
     };
 
