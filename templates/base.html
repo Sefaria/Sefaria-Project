@@ -123,6 +123,9 @@
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     <!-- Specific styling to correct behavior of Unbounce banners -->
     <link rel="stylesheet" href="{% static 'css/unbounce-banner.css' %}">
+    {% if chatbot_enabled and chatbot_user_token %}
+    <link rel="stylesheet" href="{% static 'css/chatbot-dock.css' %}">
+    {% endif %}
 
     {% block static_css %}
     {% if renderStatic %}
@@ -211,6 +214,13 @@
     </script>
     <!--End Sentry error reporting config-->
 
+    {% endautoescape %}
+
+    {% if chatbot_enabled and chatbot_user_token %}
+    <div class="page-layout with-chatbot-dock">
+        <div class="content-area">
+    {% endif %}
+    {% autoescape off %}
     {% if html and not renderStatic %}
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
@@ -230,13 +240,18 @@
     {% endif %}
 
     {% if chatbot_enabled and chatbot_user_token %}
-    <lc-chatbot 
-      user-id="{{ chatbot_user_token }}"
-      api-base-url="{{ chatbot_api_base_url }}"
-      default-open="false"
-      placement="right"
-      max-input-chars="{{ chatbot_max_input_chars }}"
-    ></lc-chatbot>
+        </div>
+        <aside class="chatbot-dock">
+            <lc-chatbot
+              user-id="{{ chatbot_user_token }}"
+              api-base-url="{{ chatbot_api_base_url }}"
+              default-open="false"
+              placement="right"
+              mode="docked"
+              max-input-chars="{{ chatbot_max_input_chars }}"
+            ></lc-chatbot>
+        </aside>
+    </div>
     {% endif %}
 
     <div id="overlay"></div>

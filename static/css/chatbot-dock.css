@@ -1,0 +1,34 @@
+/* Chatbot dock layout: grid with content + chatbot sidebar */
+.page-layout.with-chatbot-dock {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  min-height: 100vh;
+}
+
+.page-layout.with-chatbot-dock .content-area {
+  min-width: 0; /* allow grid child to shrink */
+}
+
+.page-layout.with-chatbot-dock .chatbot-dock {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  border-left: 1px solid var(--border-gray, #e0e0e0);
+}
+
+/* Constrain #s2 so it doesn't overlay the chatbot dock */
+.page-layout.with-chatbot-dock #s2 {
+  width: calc(100% - 380px);
+  right: 380px;
+}
+
+/* RTL: chatbot on left, content on right */
+body.interface-hebrew .page-layout.with-chatbot-dock #s2 {
+  right: auto;
+  left: 380px;
+}
+
+body.interface-hebrew .page-layout.with-chatbot-dock .chatbot-dock {
+  border-left: none;
+  border-right: 1px solid var(--border-gray, #e0e0e0);
+}
