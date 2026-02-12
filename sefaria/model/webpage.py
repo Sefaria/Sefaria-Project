@@ -1,5 +1,4 @@
 # coding=utf-8
-from urllib.parse import urlparse
 import regex as re
 from collections import defaultdict
 from django.core.validators import URLValidator
@@ -7,7 +6,6 @@ from django.core.exceptions import ValidationError
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
-from sefaria.system.cache import in_memory_cache
 import bleach
 import structlog
 logger = structlog.get_logger(__name__)
@@ -18,6 +16,10 @@ from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
 from sefaria.model import *
+from sefaria.helper.url import normalize_url as normalize_webpage_url
+from sefaria.helper.url import domain_for_url as webpage_domain_for_url
+from sefaria.helper.url import site_data_for_domain as get_site_data_for_domain
+from sefaria.helper.url import get_website_cache as get_cached_websites
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -108,31 +110,11 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def normalize_url(url):
-        rewrite_rules = {
-            "use https": lambda url: re.sub(r"^http://", "https://", url),
-            "remove hash": lambda url: re.sub(r"#.*", "", url),
-            "remove url params": lambda url: re.sub(r"\?.+", "", url),
-            "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
-            "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
-            "remove www": lambda url: re.sub(r"^(https?://)?www\.", r"\1", url),
-            "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
-            "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
-            "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
-        }
-        global_rules = ["remove hash", "remove utm params", "remove fbclid param", "remove www", "use https"]
-        domain = WebPage.domain_for_url(url)
-        site_rules = global_rules
-        site_data = WebPage.site_data_for_domain(domain)
-        if site_data and site_data["is_whitelisted"]:
-            site_rules += [x for x in site_data.get("normalization_rules", []) if x not in global_rules]
-        for rule in site_rules:
-            url = rewrite_rules[rule](url)
-
-        return url
+        return normalize_webpage_url(url)
 
     @staticmethod
     def domain_for_url(url):
-        return urlparse(url).netloc
+        return webpage_domain_for_url(url)
 
     def should_be_excluded(self):
         """ Returns true if this webpage should not be included in our index
@@ -189,12 +171,7 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def site_data_for_domain(domain):
-        sites = get_website_cache()
-        for site in sites:
-            for site_domain in site["domains"]:
-                if site_domain == domain or domain.endswith("." + site_domain):
-                    return site
-        return None
+        return get_site_data_for_domain(domain)
 
     @staticmethod
     def add_or_update_from_linker(webpage_contents: dict, add_hit=True):
@@ -330,12 +307,7 @@ class WebSiteSet(abst.AbstractMongoSet):
 
 
 def get_website_cache():
-    sites = in_memory_cache.get("websites_data")
-    if sites in [None, []]:
-        sites = [w.contents() for w in WebSiteSet()]
-        in_memory_cache.set("websites_data", sites)
-        return sites
-    return sites
+    return get_cached_websites()
 
 def _webpage_client_contents_minimal(webpage):
     site_data = getattr(webpage, "_site_data", {}) or {}
