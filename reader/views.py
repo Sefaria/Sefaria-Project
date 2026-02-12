@@ -19,7 +19,6 @@ import re
 import uuid
 from dataclasses import asdict
 
-from sefaria.local_settings_example import CHATBOT_API_BASE_URL
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS
 from sefaria.system.context_processors import _is_user_in_experiment
