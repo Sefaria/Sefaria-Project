@@ -148,20 +148,12 @@ def chatbot_user_token(request):
 
     if not _is_user_in_experiment(request):
         return {
-        "chatbot_user_token": None,
-        "chatbot_enabled": False,
-        "chatbot_version": None,
-        "chatbot_script_url": None,
-        "chatbot_script_type": None,
-    }
+            "chatbot_script_url": None,
+            "chatbot_script_type": None,
+        }
 
-    token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
     script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
     return {
-        "chatbot_user_token": token,
-        "chatbot_enabled": True,
-        "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
-        "chatbot_version": chatbot_version,
         "chatbot_script_url": script_url,
         "chatbot_script_type": script_type,
     }
