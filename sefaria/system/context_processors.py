@@ -74,7 +74,6 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
         "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
-        "CHATBOT_USE_LOCAL_SCRIPT": CHATBOT_USE_LOCAL_SCRIPT,
     }
 
 
