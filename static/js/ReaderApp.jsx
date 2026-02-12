@@ -1171,13 +1171,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
   }
-  bootstrapUrl(href, options) {
-    if (this.shouldAlertBeforeCloseEditor()) {
-      if (!this.alertUnsavedChangesConfirmed()) {
-        return true;
-      }
-    }
-    const opts = options || {};
+  _getPathAndRefFromUrl(url) {
     let url;
     try {
       url = new URL(href, window.location.href);
@@ -1190,6 +1184,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const path = decodeURI(url.pathname);
     const ref = path.slice(1).replace(/%3F/g, '?');
+    return {path, ref};
+  }
+  bootstrapUrl(href, options) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
+    const opts = options || {};
+    const {path, ref} = this._getPathAndRefFromUrl(href);
     if (Sefaria.isRef(ref)) {
       // Route bot refs through the same path as Header search ref navigation.
       this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
