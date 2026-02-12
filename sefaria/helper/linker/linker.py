@@ -131,7 +131,7 @@ def _add_webpage_hit_for_url(url):
     webpage.save()
 
 
-def _persist_webpage_from_linker_metadata(meta_data: dict, response: dict) -> Optional[WebPage]:
+def _save_webpage_from_linker_metadata(meta_data: dict, response: dict) -> Optional[WebPage]:
     url = meta_data.get("url")
     if not url:
         return None
@@ -144,7 +144,7 @@ def _persist_webpage_from_linker_metadata(meta_data: dict, response: dict) -> Op
     return webpage
 
 
-def _persist_webpage_text_from_linker_request(meta_data: dict, request_text: _FindRefsText) -> None:
+def _save_webpage_text_from_linker_request(meta_data: dict, request_text: _FindRefsText) -> None:
     url = meta_data.get("url")
     if not url:
         return
@@ -162,11 +162,11 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
     if not meta_data:
         return response
 
-    webpage = _persist_webpage_from_linker_metadata(meta_data, response)
+    webpage = _save_webpage_from_linker_metadata(meta_data, response)
     if webpage:
         response['url'] = webpage.url
     try:
-        _persist_webpage_text_from_linker_request(meta_data, request_text)
+        _save_webpage_text_from_linker_request(meta_data, request_text)
     except Exception:
         logger.exception("linker:webpage_text_save_failed", url=meta_data.get("url"))
     return response
