@@ -2594,6 +2594,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 api-base-url={this.props.chatbot_api_base_url}
                 default-open="false"
                 placement="right"
+                max-input-chars={this.props.chatbot_max_input_chars}
               />
             )}
           </div>

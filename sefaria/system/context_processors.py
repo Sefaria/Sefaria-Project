@@ -12,7 +12,6 @@ from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.chatbot import build_chatbot_user_token
 
 import structlog
 
