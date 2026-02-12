@@ -6,13 +6,12 @@ Djagno Context Processors, for decorating all HTTP requests with common data.
 import json
 from functools import wraps
 
+from reader.models import UserExperimentSettings, user_has_experiments
 from sefaria.settings import *
 from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
-from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.model.user_profile import UserProfile
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
@@ -20,6 +19,8 @@ from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS
 
 import structlog
+
+from sefaria.utils.util import is_int
 logger = structlog.get_logger(__name__)
 
 
@@ -119,20 +120,44 @@ def body_flags(request):
     return {"EMBED": "embed" in request.GET}
 
 
-@user_only
-def chatbot_user_token(request):
-    if not request.user.is_authenticated:
-        return {"chatbot_user_token": None, "chatbot_enabled": False}
-    if not CHATBOT_USER_ID_SECRET:
-        return {"chatbot_user_token": None, "chatbot_enabled": False}
+def _chatbot_script_url_and_type(chatbot_version):
+    """Return (url, type) for the chatbot script. type is None for classic, 'module' for ES module."""
+    if chatbot_version:
+        # is_int check is a safeguard to ensure chatbot_version is a valid integer before using it,
+        # as it is used for a script insersion and we want to avoid any potential security issues with malicious input.
+        if not is_int(chatbot_version):
+            return None, None
+        return (
+            f"https://{chatbot_version}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs",
+            None,
+        )
+    if settings.CHATBOT_USE_LOCAL_SCRIPT:
+        return ("http://localhost:5173/src/main.js", "module")
+    return (
+        "https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs",
+        None,
+    )
+
+def _is_user_in_experiment(request):
+    if not user_has_experiments(request.user):
+        return False
     profile = UserProfile(user_obj=request.user)
     if not getattr(profile, "experiments", False):
-        return {"chatbot_user_token": None, "chatbot_enabled": False}
-    token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-    max_input_chars = remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500)
+        return False
+    return True
+
+@user_only
+def chatbot_user_token(request):
+    chatbot_version = request.GET.get("chatbot_version", "").strip()
+
+    if not _is_user_in_experiment(request):
+        return {
+            "chatbot_script_url": None,
+            "chatbot_script_type": None,
+        }
+
+    script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
     return {
-        "chatbot_user_token": token,
-        "chatbot_enabled": True,
-        "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
-        "chatbot_max_input_chars": max_input_chars,
+        "chatbot_script_url": script_url,
+        "chatbot_script_type": script_type,
     }

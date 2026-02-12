@@ -3848,6 +3848,11 @@ Sefaria.unpackBaseProps = function(props){
       "domainModules",
       "_debug",
       "_debug_mode",
+      "chatbot_enabled",
+      "chatbot_user_token",
+      "chatbot_api_base_url",
+      "chatbot_version",
+      "chatbot_use_local_script",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

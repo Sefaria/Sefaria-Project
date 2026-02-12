@@ -75,10 +75,8 @@
 
     {% block head %}{% endblock %}
 
-    {% if CHATBOT_USE_LOCAL_SCRIPT %}
-    <script type="module" src="http://localhost:5173/src/main.js"></script>
-    {% else %}
-    <script src="https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs"></script>
+    {% if chatbot_script_url %}
+    <script src="{{ chatbot_script_url }}"{% if chatbot_script_type %} type="{{ chatbot_script_type }}"{% endif %}></script>
     {% endif %}
 
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
@@ -228,17 +226,7 @@
     </div>
 
     {% endif %}
-
-    {% if chatbot_enabled and chatbot_user_token %}
-    <lc-chatbot 
-      user-id="{{ chatbot_user_token }}"
-      api-base-url="{{ chatbot_api_base_url }}"
-      default-open="false"
-      placement="right"
-      max-input-chars="{{ chatbot_max_input_chars }}"
-    ></lc-chatbot>
-    {% endif %}
-
+    
     <div id="overlay"></div>
 
     <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>

@@ -641,3 +641,10 @@ def get_redirect_to_help_center(request, sheet_tref_part):
         lang_code = request.LANGUAGE_CODE if request.LANGUAGE_CODE in help_center_redirects else 'en'
         return help_center_redirects.get(lang_code, {}).get(str(sheet_id))
     return None
+
+def is_int(value):
+    try:
+        int(value)
+        return True
+    except (ValueError, TypeError):
+        return False
