@@ -2591,6 +2591,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   default-open="false"
                   placement="right"
                   mode="docked"
+                  max-input-chars={this.props.chatbot_max_input_chars}
                 />
               )}
               </main>
@@ -2599,15 +2600,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />
-            {this.props.chatbot_enabled && this.props.chatbot_user_token && (
-              <lc-chatbot
-                user-id={this.props.chatbot_user_token}
-                api-base-url={this.props.chatbot_api_base_url}
-                default-open="false"
-                placement="right"
-                max-input-chars={this.props.chatbot_max_input_chars}
-              />
-            )}
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
