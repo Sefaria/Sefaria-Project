@@ -1171,7 +1171,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
   }
-  _getPathAndRefFromUrl(url) {
+  _getPathAndRefFromUrl(href) {
     let url;
     try {
       url = new URL(href, window.location.href);
