@@ -343,9 +343,30 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .readerApp {
   display: flex;
+  flex-direction: column;
   flex: 1;
   position: relative;
 }
+
+#main {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+#main .mainContentWrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.interface-hebrew #main:has(lc-chatbot),
+#main:has(lc-chatbot[placement="left"]) {
+  flex-direction: row-reverse;
+}
+
 .noselect {
   user-select: none;
 }

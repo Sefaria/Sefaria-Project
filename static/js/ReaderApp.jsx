@@ -2581,22 +2581,24 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               <main id="main" role="main">
-                {panels}
+                <div className="mainContentWrap">
+                  {panels}
+                </div>
+                {this.props.chatbot_enabled && this.props.chatbot_user_token && (
+                <lc-chatbot
+                  user-id={this.props.chatbot_user_token}
+                  api-base-url={this.props.chatbot_api_base_url}
+                  default-open="false"
+                  placement="right"
+                  mode="docked"
+                />
+              )}
               </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />
-            {this.props.chatbot_enabled && this.props.chatbot_user_token && (
-              <lc-chatbot
-                user-id={this.props.chatbot_user_token}
-                api-base-url={this.props.chatbot_api_base_url}
-                default-open="false"
-                placement="right"
-                mode="docked"
-              />
-            )}
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
