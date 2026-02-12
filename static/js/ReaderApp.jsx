@@ -2581,7 +2581,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               <main id="main" role="main">
-                <div className="mainContentWrap">
+                <div className="panelContainer">
                   {panels}
                 </div>
                 {this.props.chatbot_enabled && this.props.chatbot_user_token && (
