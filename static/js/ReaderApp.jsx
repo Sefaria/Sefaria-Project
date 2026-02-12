@@ -1177,6 +1177,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         return true;
       }
     }
+    const opts = options || {};
     let url;
     try {
       url = new URL(href, window.location.href);
@@ -1188,153 +1189,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return false;
     }
     const path = decodeURI(url.pathname);
-    const params = url.searchParams;
     const ref = path.slice(1).replace(/%3F/g, '?');
     if (Sefaria.isRef(ref)) {
-      return this.bootstrapTextUrl(ref, params, options);
+      // Route bot refs through the same path as Header search ref navigation.
+      this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
+      return true;
     }
     return this.openURL(path + url.search, true);
-  }
-  bootstrapTextUrl(ref, params, options) {
-    const opts = options || {};
-    const lang = this._normalizePanelLanguage(params.get("lang"), true);
-    const withParam = params.get("with");
-    const filter = this._parseWithParam(withParam);
-    const hasConnections = withParam !== null;
-    const {connectionsMode, connectionsCategory, webPagesFilter, filter: normalizedFilter} =
-      this._getConnectionsModeFromFilter(filter || []);
-
-    const currVersions = {
-      en: this._parseVersionParam(params.get("ven")),
-      he: this._parseVersionParam(params.get("vhe")),
-    };
-    const versionFilterParam = params.get("vside");
-    const versionFilter = versionFilterParam ? [Sefaria.util.decodeVtitle(versionFilterParam)] : [];
-
-    let settings = lang ? {language: lang} : null;
-    const aliyotParam = params.get("aliyot");
-    if (aliyotParam !== null) {
-      settings = settings || {};
-      settings.aliyotTorah = (parseInt(aliyotParam, 10) === 1) ? "aliyotOn" : "aliyotOff";
-    }
-    settings = this._mergePanelSettings(settings);
-
-    const humanRef = Sefaria.humanRef(ref);
-    const highlightedRefs = hasConnections ? [Sefaria.normRef(ref)] : [];
-    const showHighlight = hasConnections;
-    const basePanelProps = {
-      mode: (!this.props.multiPanel && hasConnections) ? "TextAndConnections" : "Text",
-      refs: [humanRef],
-      currVersions: currVersions,
-      filter: normalizedFilter || [],
-      recentFilters: normalizedFilter || [],
-      connectionsMode: connectionsMode || null,
-      connectionsCategory: connectionsCategory,
-      webPagesFilter: webPagesFilter,
-      versionFilter: versionFilter,
-      highlightedRefs: highlightedRefs,
-      showHighlight: showHighlight,
-      settings: settings,
-      selectedWords: params.get("lookup"),
-      sidebarSearchQuery: params.get("sbsq"),
-      selectedNamedEntity: params.get("namedEntity"),
-      selectedNamedEntityText: params.get("namedEntityText"),
-    };
-    const basePanel = this.makePanelState(basePanelProps);
-    basePanel.currentlyVisibleRef = humanRef;
-
-    const panels = [basePanel];
-    if (hasConnections && this.props.multiPanel) {
-      const connectionsLang = this._getConnectionsPanelLanguage(params.get("lang2"), lang);
-      const connectionsSettings = this._mergePanelSettings({language: connectionsLang});
-      const connectionsPanelProps = {
-        ...basePanelProps,
-        mode: "Connections",
-        settings: connectionsSettings,
-        connectionsMode: connectionsMode || (filter && filter.length ? "TextList" : null),
-      };
-      const connectionsPanel = this.makePanelState(connectionsPanelProps);
-      panels.push(connectionsPanel);
-    }
-
-    if (opts.replaceHistory) {
-      this.replaceHistory = true;
-    }
-    this.setState({panels: panels});
-    if (opts.saveLastPlace !== false) {
-      this.saveLastPlace(basePanel, 1, hasConnections && this.props.multiPanel);
-    }
-    return true;
-  }
-  _normalizePanelLanguage(langParam, allowBilingual) {
-    if (!langParam) { return null; }
-    const normalized = langParam.toLowerCase();
-    if (normalized === "bi" || normalized === "bilingual") {
-      return allowBilingual ? "bilingual" : null;
-    } else if (normalized === "en" || normalized === "english") {
-      return "english";
-    } else if (normalized === "he" || normalized === "hebrew") {
-      return "hebrew";
-    }
-    return null;
-  }
-  _getConnectionsPanelLanguage(lang2Param, baseLang) {
-    const lang2 = this._normalizePanelLanguage(lang2Param, false);
-    if (lang2) { return lang2; }
-    if (baseLang === "english" || baseLang === "hebrew") { return baseLang; }
-    return (Sefaria.interfaceLang === "hebrew") ? "hebrew" : "english";
-  }
-  _parseWithParam(param) {
-    if (param === null || typeof param === "undefined") { return null; }
-    const normalized = param.replace(/_/g, " ");
-    let filter = normalized.split("+").map(x => x.trim()).filter(Boolean);
-    if (filter.length === 1 && filter[0] === "all") {
-      filter = [];
-    }
-    return filter;
-  }
-  _parseVersionParam(param) {
-    if (!param) { return null; }
-    const parts = param.split("|");
-    return {
-      languageFamilyName: parts[0] || null,
-      versionTitle: parts[1] ? Sefaria.util.decodeVtitle(parts[1]) : null,
-    };
-  }
-  _getConnectionsModeFromFilter(filter) {
-    if (!filter || !filter.length) {
-      return {connectionsMode: null, connectionsCategory: null, webPagesFilter: null, filter: filter};
-    }
-    const sidebarModes = [
-      "Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open",
-      "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide",
-    ];
-    const first = filter[0];
-    if (sidebarModes.includes(first)) {
-      return {connectionsMode: first, connectionsCategory: null, webPagesFilter: null, filter: []};
-    }
-    if (first.endsWith(" ConnectionsList")) {
-      const cleaned = filter.map(x => x.replace(" ConnectionsList", ""));
-      return {
-        connectionsMode: "ConnectionsList",
-        connectionsCategory: cleaned.length === 1 ? cleaned[0] : null,
-        webPagesFilter: null,
-        filter: cleaned,
-      };
-    }
-    if (first.startsWith("WebPage:")) {
-      return {
-        connectionsMode: "WebPagesList",
-        connectionsCategory: null,
-        webPagesFilter: first.replace("WebPage:", ""),
-        filter: filter,
-      };
-    }
-    return {connectionsMode: "TextList", connectionsCategory: null, webPagesFilter: null, filter: filter};
-  }
-  _mergePanelSettings(settings) {
-    if (!settings) { return null; }
-    return extend(Sefaria.util.clone(this.getDefaultPanelSettings()), settings);
   }
 
   updateModuleLinkHref(link) {
@@ -1721,13 +1582,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setState(this.state);
     }
   }
-  openPanel(ref, currVersions, options) {
+  openPanel(ref, currVersions, options, replaceHistory=false) {
     // Opens a text panel, replacing all panels currently open.
     // options can contain {
     //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
     // }
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
-    this.openPanelAt(0, ref, currVersions, options);
+    this.openPanelAt(0, ref, currVersions, options, undefined, true, replaceHistory);
   }
   openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
               replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
