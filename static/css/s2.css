@@ -362,11 +362,6 @@ body.hasBannerMessage #s2.headerOnly {
   position: relative;
 }
 
-.interface-hebrew #main:has(lc-chatbot),
-#main:has(lc-chatbot[placement="left"]) {
-  flex-direction: row-reverse;
-}
-
 .noselect {
   user-select: none;
 }

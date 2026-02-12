@@ -2590,7 +2590,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   api-base-url={this.props.chatbot_api_base_url}
                   default-open="false"
                   placement="right"
-                  mode="docked"
+                  mode="docked"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
                 />
               )}

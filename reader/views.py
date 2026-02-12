@@ -348,7 +348,6 @@ def base_props(request):
         "_debug_mode": request.GET.get("debug_mode", None),
     })
     # Chatbot props (passed through base_props for ReaderApp)
-
     chatbot_data = {
         "chatbot_user_token": None,
         "chatbot_enabled": False,

@@ -143,14 +143,6 @@ def _is_user_in_experiment(request):
 @user_only
 def chatbot_user_token(request):
     chatbot_version = request.GET.get("chatbot_version", "").strip()
-    disabled = {
-        "chatbot_user_token": None,
-        "chatbot_enabled": False,
-        "chatbot_version": chatbot_version,
-        "chatbot_script_url": None,
-        "chatbot_script_type": None,
-    }
-
 
     if not _is_user_in_experiment(request):
         return {
