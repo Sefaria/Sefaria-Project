@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from sefaria.system.exceptions import DuplicateRecordError
 
 from . import abstract as abst
-from sefaria.helper.url import normalize_url
+from sefaria.helper.webpages import normalize_url
 
 
 class WebPageText(abst.AbstractMongoRecord):

@@ -6,6 +6,10 @@ from sefaria.system.cache import in_memory_cache
 from sefaria.system.database import db
 
 
+def domain_for_url(url):
+    return urlparse(url).netloc
+
+
 def get_website_cache():
     sites = in_memory_cache.get("websites_data")
     if sites in [None, []]:
@@ -16,10 +20,6 @@ def get_website_cache():
         in_memory_cache.set("websites_data", sites)
         return sites
     return sites
-
-
-def domain_for_url(url):
-    return urlparse(url).netloc
 
 
 def site_data_for_domain(domain):

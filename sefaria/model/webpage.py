@@ -16,10 +16,10 @@ from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
 from sefaria.model import *
-from sefaria.helper.url import normalize_url as normalize_webpage_url
-from sefaria.helper.url import domain_for_url as webpage_domain_for_url
-from sefaria.helper.url import site_data_for_domain as get_site_data_for_domain
-from sefaria.helper.url import get_website_cache as get_cached_websites
+from sefaria.helper.webpages import normalize_url as normalize_webpage_url
+from sefaria.helper.webpages import site_data_for_domain as get_site_data_for_domain
+from sefaria.helper.webpages import get_website_cache as get_cached_websites
+from sefaria.helper.webpages import domain_for_url as webpage_domain_for_url
 
 
 class WebPage(abst.AbstractMongoRecord):
