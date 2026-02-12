@@ -6,18 +6,16 @@ Djagno Context Processors, for decorating all HTTP requests with common data.
 import json
 from functools import wraps
 
+from reader.models import UserExperimentSettings, user_has_experiments
 from sefaria.settings import *
 from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
-from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code
-from sefaria.utils.hebrew import hebrew_parasha_name
-from reader.views import render_react_component, _get_user_calendar_params
-from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.model.user_profile import UserProfile
 
 import structlog
+
+from sefaria.utils.util import is_int
 logger = structlog.get_logger(__name__)
 
 
@@ -75,7 +73,6 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
         "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
-        "CHATBOT_USE_LOCAL_SCRIPT": CHATBOT_USE_LOCAL_SCRIPT,
     }
 
 
@@ -120,17 +117,28 @@ def body_flags(request):
 def _chatbot_script_url_and_type(chatbot_version):
     """Return (url, type) for the chatbot script. type is None for classic, 'module' for ES module."""
     if chatbot_version:
+        # is_int check is a safeguard to ensure chatbot_version is a valid integer before using it,
+        # as it is used for a script insersion and we want to avoid any potential security issues with malicious input.
+        if not is_int(chatbot_version):
+            return None, None
         return (
             f"https://{chatbot_version}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs",
             None,
         )
-    if getattr(settings, "CHATBOT_USE_LOCAL_SCRIPT", False):
+    if settings.CHATBOT_USE_LOCAL_SCRIPT:
         return ("http://localhost:5173/src/main.js", "module")
     return (
         "https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs",
         None,
     )
 
+def _is_user_in_experiment(request):
+    if not user_has_experiments(request.user):
+        return False
+    profile = UserProfile(user_obj=request.user)
+    if not getattr(profile, "experiments", False):
+        return False
+    return True
 
 @user_only
 def chatbot_user_token(request):
@@ -143,21 +151,15 @@ def chatbot_user_token(request):
         "chatbot_script_type": None,
     }
 
-    if not request.user.is_authenticated:
-        return disabled
-    if not CHATBOT_USER_ID_SECRET:
-        return disabled
-    profile = UserProfile(user_obj=request.user)
-    if not getattr(profile, "experiments", False):
-        return disabled
 
-    token = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+    if not _is_user_in_experiment(request):
+        return {
+            "chatbot_script_url": None,
+            "chatbot_script_type": None,
+        }
+
     script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
     return {
-        "chatbot_user_token": token,
-        "chatbot_enabled": True,
-        "chatbot_api_base_url": settings.CHATBOT_API_BASE_URL,
-        "chatbot_version": chatbot_version,
         "chatbot_script_url": script_url,
         "chatbot_script_type": script_type,
     }

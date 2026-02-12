@@ -3,3 +3,6 @@ REF_CACHE_LIMIT_KEY = "feature.text.ref_cache_limit"
 ENABLE_WEBPAGES = "feature.webpages.enable"
 CLIENT_REMOTE_CONFIG_JSON = "feature.client.remote_config_json"
 EXPIRE_LEGACY_COOKIES = "feature.cookies.expire_legacy"
+
+# Chatbot configuration
+CHATBOT_MAX_INPUT_CHARS = "feature.chatbot.max_input_chars"
