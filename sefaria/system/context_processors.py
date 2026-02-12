@@ -12,11 +12,6 @@ from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.chatbot import build_chatbot_user_token
-from sefaria.utils.hebrew import hebrew_parasha_name
-from reader.views import render_react_component, _get_user_calendar_params
-from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS
 
 import structlog
 
