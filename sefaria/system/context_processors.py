@@ -6,7 +6,7 @@ Djagno Context Processors, for decorating all HTTP requests with common data.
 import json
 from functools import wraps
 
-from reader.models import UserExperimentSettings
+from reader.models import UserExperimentSettings, user_has_experiments
 from sefaria.settings import *
 from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -134,13 +134,10 @@ def _chatbot_script_url_and_type(chatbot_version):
         None,
     )
 
-def _is_user_in_experiment(user, request):
-    if not request.user.is_authenticated:
+def _is_user_in_experiment(request):
+    if not user_has_experiments(request.user):
         return False
-    user_experiments = UserExperimentSettings(user).experiments
-    if not user_experiments:
-        return False
-    profile = UserProfile(user_obj=user)
+    profile = UserProfile(user_obj=request.user)
     if not getattr(profile, "experiments", False):
         return False
     return True
@@ -149,7 +146,7 @@ def _is_user_in_experiment(user, request):
 def chatbot_user_token(request):
     chatbot_version = request.GET.get("chatbot_version", "").strip()
 
-    if not _is_user_in_experiment(request.user, request):
+    if not _is_user_in_experiment(request):
         return {
         "chatbot_user_token": None,
         "chatbot_enabled": False,
