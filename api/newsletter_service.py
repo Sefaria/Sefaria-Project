@@ -21,6 +21,42 @@ class ActiveCampaignError(Exception):
     pass
 
 
+# Module-level cache: maps AC custom field perstags to their numeric IDs.
+# Populated on first call to get_ac_field_id_by_perstag(), persists for process lifetime.
+_field_id_cache = {}
+
+
+def get_ac_field_id_by_perstag(perstag):
+    """
+    Look up an ActiveCampaign custom field ID by its perstag.
+
+    Fetches all fields on first call and caches the full mapping.
+    Subsequent calls return from cache without an API call.
+
+    Args:
+        perstag (str): The perstag identifier (e.g., 'LEARNING_LEVEL')
+
+    Returns:
+        str: The numeric field ID as a string
+
+    Raises:
+        ActiveCampaignError: If field not found or API request fails
+    """
+    if perstag in _field_id_cache:
+        return _field_id_cache[perstag]
+
+    response = _make_ac_request('fields?limit=100')
+    fields = response.get('fields', [])
+
+    for field in fields:
+        _field_id_cache[field.get('perstag', '')] = field['id']
+
+    if perstag not in _field_id_cache:
+        raise ActiveCampaignError(f"Custom field with perstag '{perstag}' not found in ActiveCampaign")
+
+    return _field_id_cache[perstag]
+
+
 def _get_base_url():
     """
     Get the ActiveCampaign API base URL.
@@ -31,13 +67,14 @@ def _get_base_url():
     return f"https://{ACTIVECAMPAIGN_ACCOUNT_NAME}.api-us1.com/api/3"
 
 
-def _make_ac_request(endpoint, method='GET'):
+def _make_ac_request(endpoint, method='GET', data=None):
     """
     Make a request to the ActiveCampaign API.
 
     Args:
         endpoint (str): API endpoint path (e.g., 'lists', 'personalizations')
         method (str): HTTP method (GET, POST, etc.)
+        data (dict or None): JSON body payload for POST/PUT requests
 
     Returns:
         dict: Parsed JSON response
@@ -52,8 +89,14 @@ def _make_ac_request(endpoint, method='GET'):
         'Accept': 'application/json',
     }
 
+    if data is not None:
+        headers['Content-Type'] = 'application/json'
+
     try:
-        response = requests.request(method, url, headers=headers, timeout=10)
+        kwargs = {'headers': headers, 'timeout': 10}
+        if data is not None:
+            kwargs['json'] = data
+        response = requests.request(method, url, **kwargs)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.Timeout:
@@ -85,7 +128,7 @@ def get_all_lists():
         ActiveCampaignError: If API request fails
     """
     try:
-        response = _make_ac_request('lists')
+        response = _make_ac_request('lists?limit=100')
         lists = response.get('lists', [])
         logger.info(f"Retrieved {len(lists)} lists from ActiveCampaign")
         return lists
@@ -107,7 +150,7 @@ def get_all_personalization_variables():
         ActiveCampaignError: If API request fails
     """
     try:
-        response = _make_ac_request('personalizations')
+        response = _make_ac_request('personalizations?limit=100')
         variables = response.get('personalizations', [])
         logger.info(f"Retrieved {len(variables)} personalization variables from ActiveCampaign")
         return variables
@@ -165,6 +208,24 @@ def parse_metadata_from_variable(variable):
         return None
 
 
+def get_all_ac_list_ids():
+    """
+    Fetch all list IDs from ActiveCampaign (managed and unmanaged).
+
+    Unlike get_newsletter_list() which only returns lists with personalization metadata,
+    this returns every list in the account. Used when opting out of all marketing emails
+    to ensure unmanaged lists are also unsubscribed.
+
+    Returns:
+        list: List of AC list ID strings (e.g., ['1', '2', '3', '99'])
+
+    Raises:
+        ActiveCampaignError: If API request fails
+    """
+    lists = get_all_lists()
+    return [lst['id'] for lst in lists]
+
+
 def get_newsletter_list():
     """
     Fetch all available newsletters with their metadata.
@@ -183,7 +244,7 @@ def get_newsletter_list():
                 "id": "1",                          # AC numeric list ID
                 "stringid": "sefaria_news",         # From AC list object
                 "displayName": "Sefaria News",      # From personalization variable's 'name' field
-                "emoji": "📚",                      # From personalization variable's JSON content
+                "icon": "news-and-resources.svg",   # From personalization variable's JSON content
                 "language": "english"               # From personalization variable's JSON content
             }
 
@@ -221,7 +282,7 @@ def get_newsletter_list():
             'id': list_item['id'],
             'stringid': list_item.get('stringid', ''),
             'displayName': variable_data['name'],
-            'emoji': variable_data['metadata'].get('emoji', ''),
+            'icon': variable_data['metadata'].get('icon', 'news-and-resources.svg'),
             'language': variable_data['metadata'].get('language', 'english'),
         }
         for list_id_str, variable_data in variables_by_id.items()
@@ -236,7 +297,7 @@ def get_newsletter_list():
 # Contact Management and Subscription Functions
 # ============================================================================
 
-def find_or_create_contact(email, first_name, last_name):
+def find_or_create_contact(email, first_name='', last_name=''):
     """
     Find an existing contact by email or create a new one.
 
@@ -309,12 +370,14 @@ def find_or_create_contact(email, first_name, last_name):
         raise ActiveCampaignError(f"Error finding or creating contact: {str(e)}")
 
 
-def get_contact_list_memberships(contact_id):
+def get_contact_list_memberships(contact_id, active_only=False):
     """
     Get all list memberships for a contact.
 
     Args:
         contact_id (str or int): ActiveCampaign contact ID
+        active_only (bool): If True, only return lists with status=1 (active subscriptions).
+                           If False (default), return all memberships regardless of status.
 
     Returns:
         list: List of list IDs the contact is subscribed to (as strings)
@@ -326,11 +389,15 @@ def get_contact_list_memberships(contact_id):
         response = _make_ac_request(f'contacts/{contact_id}/contactLists')
         contact_lists = response.get('contactLists', [])
 
+        if active_only:
+            # Filter to only active subscriptions (status=1)
+            contact_lists = [cl for cl in contact_lists if str(cl.get('status', '')) == '1']
+
         # Extract list IDs from contact list objects
         list_ids = [str(cl.get('list', cl.get('listid', ''))) for cl in contact_lists]
         list_ids = [lid for lid in list_ids if lid]  # Filter out empty strings
 
-        logger.info(f"Contact {contact_id} is subscribed to {len(list_ids)} lists: {list_ids}")
+        logger.info(f"Contact {contact_id} memberships (active_only={active_only}): {len(list_ids)} lists: {list_ids}")
         return list_ids
 
     except ActiveCampaignError:
@@ -338,6 +405,46 @@ def get_contact_list_memberships(contact_id):
     except Exception as e:
         logger.exception(f"Error fetching contact list memberships: {e}")
         raise ActiveCampaignError(f"Error fetching contact list memberships: {str(e)}")
+
+
+def get_contact_learning_level(contact_id):
+    """
+    Get a contact's learning level from ActiveCampaign custom fields.
+
+    Reads the LEARNING_LEVEL custom field value for the given contact.
+
+    Args:
+        contact_id (str or int): ActiveCampaign contact ID
+
+    Returns:
+        int or None: Learning level (1-5) if set, None if empty/missing
+
+    Raises:
+        ActiveCampaignError: If API request fails
+    """
+    try:
+        field_id = get_ac_field_id_by_perstag('LEARNING_LEVEL')
+        response = _make_ac_request(f'contacts/{contact_id}/fieldValues')
+        field_values = response.get('fieldValues', [])
+
+        for fv in field_values:
+            if str(fv.get('field', '')) == str(field_id):
+                raw_value = fv.get('value', '')
+                if raw_value:
+                    try:
+                        return int(raw_value)
+                    except (ValueError, TypeError):
+                        logger.warning(f"Non-numeric LEARNING_LEVEL value for contact {contact_id}: {raw_value}")
+                        return None
+                return None
+
+        return None
+
+    except ActiveCampaignError:
+        raise
+    except Exception as e:
+        logger.exception(f"Error fetching learning level for contact {contact_id}: {e}")
+        raise ActiveCampaignError(f"Error fetching learning level: {str(e)}")
 
 
 def map_stringids_to_list_ids(newsletter_stringids, newsletter_list):
@@ -431,7 +538,8 @@ def add_contact_to_list(contact_id, list_id):
         contact_list_data = {
             'contactList': {
                 'contact': str(contact_id),
-                'list': str(list_id)
+                'list': str(list_id),
+                'status': 1  # 1 = subscribed (required by AC API)
             }
         }
 
@@ -681,18 +789,20 @@ def subscribe_with_union(email, first_name, last_name, newsletter_stringids, val
         raise ActiveCampaignError(f"Error in subscribe_with_union: {str(e)}")
 
 
-def fetch_user_subscriptions_impl(email, valid_newsletters):
+def fetch_user_subscriptions_impl(email, valid_newsletters, user=None):
     """
     Fetch current newsletter subscriptions for a user by email.
 
     Args:
         email (str): User's email address
         valid_newsletters (list): List of valid newsletters from get_newsletter_list()
+        user: Django User object (optional, for reading UserProfile preferences)
 
     Returns:
         dict: {
             'subscribed_newsletters': [...],  # Array of stringids
-            'learning_level': None
+            'learning_level': None,
+            'wants_marketing_emails': bool  # From MongoDB UserProfile (default True)
         }
 
     Raises:
@@ -701,24 +811,37 @@ def fetch_user_subscriptions_impl(email, valid_newsletters):
     try:
         logger.info(f"Fetching subscriptions for {email}")
 
+        # Read preferences from MongoDB UserProfile for authenticated users
+        wants_marketing_emails = True  # Default for unauthenticated or new users
+        profile_learning_level = None
+        if user is not None and user.is_authenticated:
+            try:
+                profile = UserProfile(email=email, user_registration=True)
+                if profile.id is not None:
+                    wants_marketing_emails = getattr(profile, 'wants_marketing_emails', True)
+                    profile_learning_level = getattr(profile, 'learning_level', None)
+            except Exception as e:
+                logger.warning(f"Could not load UserProfile for {email}: {e}")
+
         # Find contact by email
         response = _make_ac_request(f'contacts?filters[email]={email}')
         contacts = response.get('contacts', [])
 
         if not contacts:
-            # User not in ActiveCampaign yet
+            # User not in ActiveCampaign yet — fall back to profile value
             logger.info(f"Contact {email} not found in ActiveCampaign")
             return {
                 'subscribed_newsletters': [],
-                'learning_level': None
+                'learning_level': profile_learning_level,
+                'wants_marketing_emails': wants_marketing_emails,
             }
 
         contact = contacts[0]
         contact_id = contact.get('id')
         logger.info(f"Found contact {contact_id} for email {email}")
 
-        # Get list memberships
-        existing_list_ids = get_contact_list_memberships(contact_id)
+        # Get list memberships (active only for accurate subscription state)
+        existing_list_ids = get_contact_list_memberships(contact_id, active_only=True)
 
         # Map to stringids
         list_id_to_stringid = get_list_id_to_stringid_map(valid_newsletters)
@@ -730,9 +853,19 @@ def fetch_user_subscriptions_impl(email, valid_newsletters):
 
         logger.info(f"User {email} is subscribed to: {subscribed_newsletters}")
 
+        # Fetch learning level from AC custom field; AC value takes priority over profile
+        learning_level = profile_learning_level
+        try:
+            ac_learning_level = get_contact_learning_level(contact_id)
+            if ac_learning_level is not None:
+                learning_level = ac_learning_level
+        except Exception as e:
+            logger.warning(f"Could not fetch learning level from AC for {email}: {e}")
+
         return {
             'subscribed_newsletters': subscribed_newsletters,
-            'learning_level': None
+            'learning_level': learning_level,
+            'wants_marketing_emails': wants_marketing_emails,
         }
 
     except ActiveCampaignError:
@@ -742,11 +875,16 @@ def fetch_user_subscriptions_impl(email, valid_newsletters):
         raise ActiveCampaignError(f"Error fetching user subscriptions: {str(e)}")
 
 
-def update_user_preferences_impl(email, first_name, last_name, selected_stringids, valid_newsletters):
+def update_user_preferences_impl(email, first_name, last_name, selected_stringids, valid_newsletters,
+                                  marketing_opt_out=False, user=None):
     """
     Update user's newsletter preferences using REPLACE behavior (not union).
 
-    This function replaces the user's subscriptions entirely with their new selections.
+    Two modes of operation:
+    - Normal (marketing_opt_out=False): Replaces managed list subscriptions with new selections.
+      Unmanaged lists are not touched.
+    - Opt-out (marketing_opt_out=True): Unsubscribes from ALL lists (managed + unmanaged).
+      Sets wants_marketing_emails=False in MongoDB UserProfile.
 
     Args:
         email (str): User's email address
@@ -754,6 +892,8 @@ def update_user_preferences_impl(email, first_name, last_name, selected_stringid
         last_name (str): User's last name
         selected_stringids (list): Array of newsletter stringids user is selecting NOW
         valid_newsletters (list): List of valid newsletters from get_newsletter_list()
+        marketing_opt_out (bool): If True, unsubscribe from ALL lists (managed + unmanaged)
+        user: Django User object (optional, for updating MongoDB UserProfile)
 
     Returns:
         dict: {
@@ -765,43 +905,102 @@ def update_user_preferences_impl(email, first_name, last_name, selected_stringid
         ActiveCampaignError: If any step fails
     """
     try:
-        logger.info(f"Updating preferences for {email} with selections: {selected_stringids}")
+        logger.info(f"Updating preferences for {email} with selections: {selected_stringids}, "
+                     f"marketing_opt_out: {marketing_opt_out}")
 
-        # Step 1: Validate stringids
-        validate_newsletter_keys(selected_stringids, valid_newsletters)
-
-        # Step 2: Map stringids to AC list IDs
-        new_list_ids = set(map_stringids_to_list_ids(selected_stringids, valid_newsletters))
-        logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
-
-        # Step 3: Find or create contact
+        # Find or create contact
         contact = find_or_create_contact(email, first_name, last_name)
         contact_id = contact.get('id')
 
-        # Step 4: Get existing subscriptions
-        existing_list_ids = set(get_contact_list_memberships(contact_id))
-        logger.info(f"Contact has existing list IDs: {existing_list_ids}")
+        if marketing_opt_out:
+            # === OPT-OUT BRANCH: Unsubscribe from ALL lists ===
+            logger.info(f"Marketing opt-out for {email}: unsubscribing from all lists")
 
-        # Step 5: Calculate differences for replace behavior
-        lists_to_add = new_list_ids - existing_list_ids
-        lists_to_remove = existing_list_ids - new_list_ids
-        logger.info(f"Lists to add: {lists_to_add}, Lists to remove: {lists_to_remove}")
+            # Get ALL list IDs in the AC account (managed + unmanaged)
+            all_list_ids = set(get_all_ac_list_ids())
 
-        # Step 6: Update list memberships (add and remove as needed)
-        update_list_memberships(contact_id, list(lists_to_add), list(lists_to_remove))
+            # Get user's current active memberships
+            active_list_ids = set(get_contact_list_memberships(contact_id, active_only=True))
 
-        logger.info(f"Preferences updated for {email}. New subscriptions: {selected_stringids}")
+            # Only unsubscribe from lists the user is actually subscribed to
+            lists_to_remove = all_list_ids & active_list_ids
+            logger.info(f"Unsubscribing from {len(lists_to_remove)} lists: {lists_to_remove}")
 
-        return {
-            'contact': contact,
-            'subscribed_newsletters': sorted(selected_stringids)
-        }
+            update_list_memberships(contact_id, [], list(lists_to_remove))
+
+            # Update wants_marketing_emails in MongoDB UserProfile
+            _update_wants_marketing_emails(email, False)
+
+            logger.info(f"Marketing opt-out complete for {email}")
+            return {
+                'contact': contact,
+                'subscribed_newsletters': []
+            }
+
+        else:
+            # === NORMAL BRANCH: REPLACE within managed lists only ===
+            logger.info(f"Normal preference update for {email}")
+
+            # Validate stringids against managed list
+            validate_newsletter_keys(selected_stringids, valid_newsletters)
+
+            # Map stringids to AC list IDs
+            new_list_ids = set(map_stringids_to_list_ids(selected_stringids, valid_newsletters))
+            logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
+
+            # Get managed list IDs (only diff against these)
+            managed_list_ids = set(nl['id'] for nl in valid_newsletters)
+
+            # Get existing active subscriptions
+            existing_list_ids = set(get_contact_list_memberships(contact_id, active_only=True))
+            logger.info(f"Contact has existing active list IDs: {existing_list_ids}")
+
+            # Scope the diff to managed lists only (don't touch unmanaged lists)
+            existing_managed = existing_list_ids & managed_list_ids
+            lists_to_add = new_list_ids - existing_managed
+            lists_to_remove = existing_managed - new_list_ids
+            logger.info(f"Lists to add: {lists_to_add}, Lists to remove: {lists_to_remove}")
+
+            # Update list memberships (add and remove as needed)
+            update_list_memberships(contact_id, list(lists_to_add), list(lists_to_remove))
+
+            # Update wants_marketing_emails in MongoDB UserProfile
+            _update_wants_marketing_emails(email, True)
+
+            logger.info(f"Preferences updated for {email}. New subscriptions: {selected_stringids}")
+
+            return {
+                'contact': contact,
+                'subscribed_newsletters': sorted(selected_stringids)
+            }
 
     except ActiveCampaignError:
         raise
     except Exception as e:
         logger.exception(f"Error updating user preferences: {e}")
         raise ActiveCampaignError(f"Error updating user preferences: {str(e)}")
+
+
+def _update_wants_marketing_emails(email, wants_marketing):
+    """
+    Update the wants_marketing_emails flag in MongoDB UserProfile.
+
+    Only updates if the user has an existing Sefaria account.
+
+    Args:
+        email (str): User email address
+        wants_marketing (bool): New value for wants_marketing_emails
+    """
+    try:
+        profile = UserProfile(email=email, user_registration=True)
+        if profile.id is not None:
+            profile.wants_marketing_emails = wants_marketing
+            profile.save()
+            logger.info(f"Updated wants_marketing_emails={wants_marketing} for {email}")
+        else:
+            logger.info(f"No UserProfile found for {email}, skipping wants_marketing_emails update")
+    except Exception as e:
+        logger.warning(f"Failed to update wants_marketing_emails for {email}: {e}")
 
 
 # ============================================================================
@@ -843,12 +1042,13 @@ def update_learning_level_in_ac(email, learning_level):
         contact = find_or_create_contact(email)
         contact_id = contact['id']
 
-        # Update contact's learning_level custom field in AC
-        # Using fieldValue endpoint for custom field updates
+        # Look up the field ID dynamically by perstag (cached after first call)
+        field_id = get_ac_field_id_by_perstag('LEARNING_LEVEL')
+
         payload = {
             'fieldValue': {
                 'contact': contact_id,
-                'field': 'learning_level',  # Custom field name in AC
+                'field': field_id,
                 'value': str(learning_level) if learning_level is not None else ''
             }
         }

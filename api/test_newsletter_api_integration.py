@@ -32,28 +32,28 @@ def mock_newsletters():
             'id': '1',
             'stringid': 'sefaria_news',
             'displayName': 'Sefaria News & Resources',
-            'emoji': '📚',
+            'icon': 'news-and-resources.svg',
             'language': 'english'
         },
         {
             'id': '3',
             'stringid': 'text_updates',
             'displayName': 'New Text Updates',
-            'emoji': '📖',
+            'icon': 'new-text-release-updates.svg',
             'language': 'english'
         },
         {
             'id': '5',
             'stringid': 'parashah_series',
             'displayName': 'Weekly Parashah Study Series',
-            'emoji': '✡️',
+            'icon': 'weekly-study-guide.svg',
             'language': 'english'
         },
         {
             'id': '7',
             'stringid': 'educator_resources',
             'displayName': 'Educator Resources',
-            'emoji': '🎓',
+            'icon': 'educator-resources.svg',
             'language': 'english'
         },
     ]

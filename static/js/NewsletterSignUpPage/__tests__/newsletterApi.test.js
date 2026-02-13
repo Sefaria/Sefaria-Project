@@ -160,3 +160,25 @@ describe('API mode switching', () => {
     expect(NewsletterAPI.isMockMode()).toBe(false);
   });
 });
+
+describe('MockAPI.fetchUserSubscriptions', () => {
+  beforeEach(() => {
+    localStorage.setItem('_use_mock_api', 'true');
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('_use_mock_api');
+  });
+
+  it('returns wantsMarketingEmails in response', async () => {
+    const result = await NewsletterAPI.fetchUserSubscriptions('user@example.com');
+    expect(result.success).toBe(true);
+    expect(result).toHaveProperty('wantsMarketingEmails', true);
+  });
+
+  it('returns subscribedNewsletters array', async () => {
+    const result = await NewsletterAPI.fetchUserSubscriptions('user@example.com');
+    expect(Array.isArray(result.subscribedNewsletters)).toBe(true);
+    expect(result.subscribedNewsletters.length).toBeGreaterThan(0);
+  });
+});

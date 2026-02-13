@@ -6,7 +6,7 @@ Functional views for newsletter operations via ActiveCampaign integration.
 
 import json
 import logging
-from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
@@ -38,7 +38,7 @@ def get_newsletter_lists(request):
                     "id": "1",
                     "stringid": "sefaria_news",
                     "displayName": "Sefaria News & Resources",
-                    "emoji": "📚",
+                    "icon": "news-and-resources.svg",
                     "language": "english",
                     "acListId": "1"
                 },
@@ -73,27 +73,24 @@ def get_newsletter_lists(request):
 # Caching Wrapper for Newsletter List (used for validation during subscription)
 # ============================================================================
 
-@cache_page(60 * 60)  # Cache for 1 hour
-def _get_cached_newsletter_list_impl(request):
-    """
-    Internal implementation for cached newsletter list.
-    Used during subscription to validate newsletter keys without hitting AC API repeatedly.
-    """
-    return get_newsletter_list()
+NEWSLETTER_LIST_CACHE_KEY = 'newsletter_list_from_ac'
+NEWSLETTER_LIST_CACHE_TTL = 60 * 60  # 1 hour
 
 
 def get_cached_newsletter_list():
     """
-    Get cached newsletter list without HTTP request overhead.
+    Get cached newsletter list, fetching from ActiveCampaign if not cached.
 
     Returns:
         list: Cached list of newsletters
     """
-    # Create a fake request object for the cache decorator
-    from django.test import RequestFactory
-    factory = RequestFactory()
-    request = factory.get('/api/newsletter/lists')
-    return _get_cached_newsletter_list_impl(request)
+    cached = cache.get(NEWSLETTER_LIST_CACHE_KEY)
+    if cached is not None:
+        return cached
+
+    newsletters = get_newsletter_list()
+    cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
+    return newsletters
 
 
 # ============================================================================
@@ -279,13 +276,15 @@ def get_user_subscriptions(request):
                 'error': 'Failed to validate newsletter options'
             }, status=500)
 
-        # Fetch user subscriptions
-        result = fetch_user_subscriptions_impl(email, valid_newsletters)
+        # Fetch user subscriptions (pass user for UserProfile lookup)
+        result = fetch_user_subscriptions_impl(email, valid_newsletters, user=request.user)
 
         return jsonResponse({
             'success': True,
             'email': email,
-            'subscribedNewsletters': result['subscribed_newsletters']
+            'subscribedNewsletters': result['subscribed_newsletters'],
+            'wantsMarketingEmails': result.get('wants_marketing_emails', True),
+            'learningLevel': result.get('learning_level'),
         }, status=200)
 
     except ActiveCampaignError as e:
@@ -381,9 +380,11 @@ def update_user_preferences(request):
                 'error': 'Failed to validate newsletter options'
             }, status=500)
 
-        # Update preferences using replace behavior
+        # Update preferences using replace behavior (or opt-out if marketing_opt_out=True)
         result = update_user_preferences_impl(email, first_name, last_name,
-                                              selected_newsletters, valid_newsletters)
+                                              selected_newsletters, valid_newsletters,
+                                              marketing_opt_out=marketing_opt_out,
+                                              user=request.user)
 
         # Return success response
         return jsonResponse({

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria from '../sefaria/sefaria';
+import { LoadingMessage } from '../Misc';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
 import SuccessView from './SuccessView';
-import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions } from './newsletterApi';
+import NewsletterAPI, { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions, getNewsletterLists } from './newsletterApi';
 
 /**
  * NEWSLETTER CONFIGURATION
@@ -121,11 +122,36 @@ export default function NewsletterSignUpPageForm() {
     hasAttemptedSubmit: false,  // Only show errors after first submit attempt
   });
 
+  // ========== DYNAMIC NEWSLETTER LIST ==========
+  const [newsletters, setNewsletters] = useState(NEWSLETTERS);
+  const [newslettersLoading, setNewslettersLoading] = useState(!NewsletterAPI.isMockMode());
+
   // Ref for focusing error summary on validation failure (accessibility)
   const errorSummaryRef = useRef(null);
 
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
+    // Fetch newsletter list dynamically from AC API (real mode only)
+    if (!NewsletterAPI.isMockMode()) {
+      getNewsletterLists()
+        .then(response => {
+          if (response.newsletters) {
+            const mapped = response.newsletters.map(nl => ({
+              key: nl.stringid,
+              labelKey: nl.displayName,
+              icon: nl.icon,
+            }));
+            setNewsletters(mapped);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to fetch newsletter lists, using defaults:', error);
+        })
+        .finally(() => {
+          setNewslettersLoading(false);
+        });
+    }
+
     // Check if user is logged in via Sefaria global object
     const isLoggedIn = !!Sefaria._uid;
     const userEmail = isLoggedIn ? Sefaria._email : null;
@@ -143,8 +169,7 @@ export default function NewsletterSignUpPageForm() {
         email: userEmail,
       }));
 
-      // Fetch user's current subscriptions from the mocked API
-      // In production, this would call the real backend API
+      // Fetch user's current subscriptions from the API
       fetchUserSubscriptions(userEmail)
         .then(response => {
           if (response.success && response.subscribedNewsletters) {
@@ -154,9 +179,20 @@ export default function NewsletterSignUpPageForm() {
               selectedNewsletters[key] = true;
             });
 
+            // Stale opt-out detection: if backend says opted-out but user has
+            // active managed subscriptions (re-subscribed via another channel),
+            // show as opted-in. The MongoDB value is NOT corrected until user submits.
+            const backendWantsMarketing = response.wantsMarketingEmails ?? true;
+            const hasActiveManagedSubscription = response.subscribedNewsletters.length > 0;
+            const effectiveWantsMarketing = !backendWantsMarketing && hasActiveManagedSubscription
+              ? true
+              : backendWantsMarketing;
+
             setFormData(prev => ({
               ...prev,
               selectedNewsletters,
+              wantsMarketingEmails: effectiveWantsMarketing,
+              learningLevel: response.learningLevel ?? null,
             }));
           }
         })
@@ -298,10 +334,8 @@ export default function NewsletterSignUpPageForm() {
     // Clear any previous error state and prepare for submission
     setFormStatus(prev => ({ ...prev, status: 'submitting', errorMessage: null }));
 
-    // If user opted out of marketing emails, send empty selection to unsubscribe from all
-    const newslettersToSubmit = formData.wantsMarketingEmails
-      ? formData.selectedNewsletters
-      : {}; // Empty object = unsubscribe from all
+    // Always send actual selections; backend handles opt-out via marketingOptOut flag
+    const newslettersToSubmit = formData.selectedNewsletters;
 
     try {
       if (formStatus.isLoggedIn) {
@@ -427,7 +461,7 @@ export default function NewsletterSignUpPageForm() {
     return Object.entries(formData.selectedNewsletters)
       .filter(([_, isSelected]) => isSelected)
       .map(([key]) => {
-        const newsletter = NEWSLETTERS.find(n => n.key === key);
+        const newsletter = newsletters.find(n => n.key === key);
         return newsletter ? Sefaria._(newsletter.labelKey) : key;
       })
       .join(', ');
@@ -435,11 +469,15 @@ export default function NewsletterSignUpPageForm() {
 
   return (
     <div className="newsletterSignUpPageForm">
-      {formStatus.currentStage === 'newsletter_selection' && (
+      {formStatus.currentStage === 'newsletter_selection' && newslettersLoading && (
+        <LoadingMessage />
+      )}
+
+      {formStatus.currentStage === 'newsletter_selection' && !newslettersLoading && (
         <NewsletterFormView
           formData={formData}
           formStatus={formStatus}
-          newsletters={NEWSLETTERS}
+          newsletters={newsletters}
           isLoggedIn={formStatus.isLoggedIn}
           userEmail={formStatus.userEmail}
           fieldErrors={validationState.fieldErrors}
@@ -460,6 +498,7 @@ export default function NewsletterSignUpPageForm() {
         <NewsletterConfirmationView
           email={formData.email}
           selectedNewsletters={formData.selectedNewsletters}
+          newsletters={newsletters}
           selectedNewsletterLabels={getSelectedNewsletterLabels()}
           formStatus={formStatus}
           selectedLevel={formData.learningLevel}

@@ -19,6 +19,7 @@ export default function NewsletterConfirmationView({
   email,
   selectedNewsletters,
   selectedNewsletterLabels,
+  newsletters = [],
   formStatus,
   selectedLevel,
   learningLevels,
@@ -28,7 +29,9 @@ export default function NewsletterConfirmationView({
 }) {
   // Check if user selected the general "Sefaria News & Resources" newsletter
   // (This is the list that triggers confirmation email + welcome series)
-  const hasGeneralNewsletter = selectedNewsletters.sefaria_news === true;
+  // The first newsletter in the dynamic list is always the general one (AC list ID 1)
+  const generalKey = newsletters.length > 0 ? newsletters[0].key : null;
+  const hasGeneralNewsletter = generalKey && selectedNewsletters[generalKey] === true;
   const isSubmitting = formStatus.status === 'submitting';
 
   return (

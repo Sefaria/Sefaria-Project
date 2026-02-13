@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Newsletter Signup - Accessibility', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('http://localhost:8000/newsletter');
+    await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
     await page.waitForTimeout(1000);
   });
@@ -168,18 +168,17 @@ test.describe('Newsletter Signup - Accessibility', () => {
 
     await page.waitForTimeout(500);
 
-    // Error message should exist and be visible
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    const isVisible = await errorMessage.isVisible().catch(() => false);
+    // Error summary should exist and be visible
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    const isVisible = await errorSummary.isVisible().catch(() => false);
 
     if (isVisible) {
       // Error should be readable text
-      const text = await errorMessage.textContent();
+      const text = await errorSummary.textContent();
       expect(text).toBeTruthy();
       expect(text.length).toBeGreaterThan(0);
 
       // Should be clear and descriptive
-      const words = text.toLowerCase().split(' ');
       const hasHelpfulInfo = text.toLowerCase().includes('name') ||
                             text.toLowerCase().includes('email') ||
                             text.toLowerCase().includes('select') ||

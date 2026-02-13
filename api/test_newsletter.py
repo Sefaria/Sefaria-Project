@@ -46,12 +46,12 @@ class TestParseMetadataFromVariable:
         """Parse valid JSON metadata from variable"""
         variable = {
             'tag': 'list_1_meta',
-            'content': '{"emoji": "📚", "language": "english"}'
+            'content': '{"icon": "news-and-resources.svg", "language": "english"}'
         }
         metadata = newsletter_service.parse_metadata_from_variable(variable)
 
         assert metadata is not None
-        assert metadata['emoji'] == '📚'
+        assert metadata['icon'] == 'news-and-resources.svg'
         assert metadata['language'] == 'english'
 
     def test_parse_invalid_json(self):
@@ -75,6 +75,39 @@ class TestParseMetadataFromVariable:
         assert newsletter_service.parse_metadata_from_variable(None) is None
 
 
+class TestMakeAcRequest:
+    """Tests for _make_ac_request helper function"""
+
+    @mock.patch('api.newsletter_service.requests.request')
+    def test_data_parameter_passed_as_json(self, mock_request):
+        """Verify data parameter is passed through as json= to requests.request()"""
+        mock_response = mock.MagicMock()
+        mock_response.json.return_value = {'success': True}
+        mock_response.raise_for_status = mock.MagicMock()
+        mock_request.return_value = mock_response
+
+        payload = {'fieldValue': {'contact': '123', 'field': 'test', 'value': '42'}}
+        newsletter_service._make_ac_request('fieldValues', method='POST', data=payload)
+
+        mock_request.assert_called_once()
+        call_kwargs = mock_request.call_args
+        assert call_kwargs[1].get('json') == payload
+
+    @mock.patch('api.newsletter_service.requests.request')
+    def test_no_data_parameter_omits_json(self, mock_request):
+        """Verify GET requests without data don't include json= parameter"""
+        mock_response = mock.MagicMock()
+        mock_response.json.return_value = {'lists': []}
+        mock_response.raise_for_status = mock.MagicMock()
+        mock_request.return_value = mock_response
+
+        newsletter_service._make_ac_request('lists')
+
+        mock_request.assert_called_once()
+        call_kwargs = mock_request.call_args
+        assert 'json' not in call_kwargs[1]
+
+
 class TestGetAllLists:
     """Tests for fetching lists from ActiveCampaign"""
 
@@ -92,7 +125,7 @@ class TestGetAllLists:
         assert len(lists) == 2
         assert lists[0]['id'] == '1'
         assert lists[1]['stringid'] == 'educator_resources'
-        mock_request.assert_called_once_with('lists')
+        mock_request.assert_called_once_with('lists?limit=100')
 
     @mock.patch('api.newsletter_service._make_ac_request')
     def test_get_all_lists_error(self, mock_request):
@@ -103,6 +136,30 @@ class TestGetAllLists:
             newsletter_service.get_all_lists()
 
 
+class TestGetAllAcListIds:
+    """Tests for get_all_ac_list_ids helper function"""
+
+    @mock.patch('api.newsletter_service.get_all_lists')
+    def test_returns_all_list_ids(self, mock_get_all_lists):
+        """Returns IDs from all lists (managed and unmanaged)"""
+        mock_get_all_lists.return_value = [
+            {'id': '1', 'stringid': 'sefaria_news', 'name': 'Sefaria News'},
+            {'id': '2', 'stringid': 'educator_resources', 'name': 'Educator Resources'},
+            {'id': '99', 'stringid': 'internal_list', 'name': 'Internal List'},
+        ]
+        list_ids = newsletter_service.get_all_ac_list_ids()
+
+        assert list_ids == ['1', '2', '99']
+
+    @mock.patch('api.newsletter_service.get_all_lists')
+    def test_returns_empty_when_no_lists(self, mock_get_all_lists):
+        """Returns empty list when no lists exist"""
+        mock_get_all_lists.return_value = []
+        list_ids = newsletter_service.get_all_ac_list_ids()
+
+        assert list_ids == []
+
+
 class TestGetAllPersonalizationVariables:
     """Tests for fetching personalization variables from ActiveCampaign"""
 
@@ -111,15 +168,15 @@ class TestGetAllPersonalizationVariables:
         """Successfully fetch personalization variables"""
         mock_request.return_value = {
             'personalizations': [
-                {'tag': 'list_1_meta', 'name': 'Sefaria News', 'content': '{"emoji": "📚", "language": "english"}'},
-                {'tag': 'list_2_meta', 'name': 'Educator Resources', 'content': '{"emoji": "🎓", "language": "english"}'},
+                {'tag': 'list_1_meta', 'name': 'Sefaria News', 'content': '{"icon": "news-and-resources.svg", "language": "english"}'},
+                {'tag': 'list_2_meta', 'name': 'Educator Resources', 'content': '{"icon": "educator-resources.svg", "language": "english"}'},
             ]
         }
         variables = newsletter_service.get_all_personalization_variables()
 
         assert len(variables) == 2
         assert variables[0]['tag'] == 'list_1_meta'
-        mock_request.assert_called_once_with('personalizations')
+        mock_request.assert_called_once_with('personalizations?limit=100')
 
 
 class TestGetNewsletterList:
@@ -137,12 +194,12 @@ class TestGetNewsletterList:
             {
                 'tag': 'list_1_meta',
                 'name': 'Sefaria News & Resources',
-                'content': '{"emoji": "📚", "language": "english"}'
+                'content': '{"icon": "news-and-resources.svg", "language": "english"}'
             },
             {
                 'tag': 'list_2_meta',
                 'name': 'Educator Resources',
-                'content': '{"emoji": "🎓", "language": "english"}'
+                'content': '{"icon": "educator-resources.svg", "language": "english"}'
             },
         ]
         newsletters = newsletter_service.get_newsletter_list()
@@ -151,10 +208,10 @@ class TestGetNewsletterList:
         assert newsletters[0]['id'] == '1'
         assert newsletters[0]['stringid'] == 'sefaria_news'
         assert newsletters[0]['displayName'] == 'Sefaria News & Resources'
-        assert newsletters[0]['emoji'] == '📚'
+        assert newsletters[0]['icon'] == 'news-and-resources.svg'
         assert newsletters[0]['language'] == 'english'
         assert newsletters[1]['id'] == '2'
-        assert newsletters[1]['emoji'] == '🎓'
+        assert newsletters[1]['icon'] == 'educator-resources.svg'
 
     @mock.patch('api.newsletter_service.get_all_lists')
     @mock.patch('api.newsletter_service.get_all_personalization_variables')
@@ -168,7 +225,7 @@ class TestGetNewsletterList:
             {
                 'tag': 'list_1_meta',
                 'name': 'Sefaria News',
-                'content': '{"emoji": "📚", "language": "english"}'
+                'content': '{"icon": "news-and-resources.svg", "language": "english"}'
             },
         ]
         newsletters = newsletter_service.get_newsletter_list()
@@ -188,7 +245,7 @@ class TestGetNewsletterList:
             {
                 'tag': 'list_1_meta',
                 'name': 'Sefaria News',
-                'content': '{"emoji": "📚", "language": "english"}'
+                'content': '{"icon": "news-and-resources.svg", "language": "english"}'
             },
             {
                 'tag': 'list_2_meta',
@@ -226,7 +283,7 @@ class TestGetNewsletterListsView:
                 'id': '1',
                 'stringid': 'sefaria_news',
                 'displayName': 'Sefaria News',
-                'emoji': '📚',
+                'icon': 'news-and-resources.svg',
                 'language': 'english'
             }
         ]
@@ -331,6 +388,38 @@ class TestGetContactListMemberships:
         list_ids = newsletter_service.get_contact_list_memberships('28529')
 
         assert list_ids == []
+
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_active_only_filters_by_status(self, mock_request):
+        """active_only=True filters to only status=1 (active) memberships"""
+        mock_request.return_value = {
+            'contactLists': [
+                {'list': '1', 'contact': '28529', 'status': '1'},  # Active
+                {'list': '3', 'contact': '28529', 'status': '2'},  # Unsubscribed
+                {'list': '5', 'contact': '28529', 'status': '1'},  # Active
+            ]
+        }
+        list_ids = newsletter_service.get_contact_list_memberships('28529', active_only=True)
+
+        assert len(list_ids) == 2
+        assert '1' in list_ids
+        assert '5' in list_ids
+        assert '3' not in list_ids
+
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_active_only_false_returns_all(self, mock_request):
+        """active_only=False (default) returns all memberships regardless of status"""
+        mock_request.return_value = {
+            'contactLists': [
+                {'list': '1', 'contact': '28529', 'status': '1'},
+                {'list': '3', 'contact': '28529', 'status': '2'},
+            ]
+        }
+        list_ids = newsletter_service.get_contact_list_memberships('28529', active_only=False)
+
+        assert len(list_ids) == 2
+        assert '1' in list_ids
+        assert '3' in list_ids
 
 
 class TestMapStringidsToListIds:
@@ -756,6 +845,8 @@ class TestFetchUserSubscriptionsImpl:
         assert 'sefaria_news' in result['subscribed_newsletters']
         assert 'text_updates' in result['subscribed_newsletters']
         assert 'parashah_series' in result['subscribed_newsletters']
+        # Default wants_marketing_emails when no user passed
+        assert result['wants_marketing_emails'] is True
 
     @mock.patch('api.newsletter_service._make_ac_request')
     def test_fetch_new_user_no_subscriptions(self, mock_request):
@@ -770,6 +861,7 @@ class TestFetchUserSubscriptionsImpl:
 
         assert result['subscribed_newsletters'] == []
         assert result['learning_level'] is None
+        assert result['wants_marketing_emails'] is True
 
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
     @mock.patch('api.newsletter_service._make_ac_request')
@@ -804,6 +896,253 @@ class TestFetchUserSubscriptionsImpl:
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.fetch_user_subscriptions_impl('user@example.com', newsletter_list)
 
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_fetch_returns_wants_marketing_emails_from_profile(self, mock_request, mock_get_memberships, mock_profile_class):
+        """Returns wants_marketing_emails from UserProfile when user is provided"""
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'user@example.com'}]
+        }
+        mock_get_memberships.return_value = ['1']
+
+        # Mock UserProfile with wants_marketing_emails=False
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = False
+        mock_profile_class.return_value = mock_profile
+
+        # Mock authenticated user
+        mock_user = mock.MagicMock()
+        mock_user.is_authenticated = True
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+
+        result = newsletter_service.fetch_user_subscriptions_impl(
+            'user@example.com', newsletter_list, user=mock_user
+        )
+
+        assert result['wants_marketing_emails'] is False
+
+
+class TestGetContactLearningLevel:
+    """Tests for get_contact_learning_level function"""
+
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_returns_int_when_field_present(self, mock_request, mock_get_field_id):
+        """Return integer learning level when AC field has a valid value"""
+        mock_get_field_id.return_value = '7'
+        mock_request.return_value = {
+            'fieldValues': [
+                {'field': '7', 'value': '3'},
+                {'field': '12', 'value': 'other'},
+            ]
+        }
+
+        result = newsletter_service.get_contact_learning_level('28529')
+
+        assert result == 3
+        mock_get_field_id.assert_called_once_with('LEARNING_LEVEL')
+
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_returns_none_when_field_empty(self, mock_request, mock_get_field_id):
+        """Return None when field exists but value is empty string"""
+        mock_get_field_id.return_value = '7'
+        mock_request.return_value = {
+            'fieldValues': [
+                {'field': '7', 'value': ''},
+            ]
+        }
+
+        result = newsletter_service.get_contact_learning_level('28529')
+
+        assert result is None
+
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_returns_none_when_field_missing(self, mock_request, mock_get_field_id):
+        """Return None when LEARNING_LEVEL field is not in contact's fieldValues"""
+        mock_get_field_id.return_value = '7'
+        mock_request.return_value = {
+            'fieldValues': [
+                {'field': '12', 'value': 'unrelated'},
+            ]
+        }
+
+        result = newsletter_service.get_contact_learning_level('28529')
+
+        assert result is None
+
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_returns_none_for_non_numeric_value(self, mock_request, mock_get_field_id):
+        """Return None when AC stores a non-numeric string"""
+        mock_get_field_id.return_value = '7'
+        mock_request.return_value = {
+            'fieldValues': [
+                {'field': '7', 'value': 'advanced'},
+            ]
+        }
+
+        result = newsletter_service.get_contact_learning_level('28529')
+
+        assert result is None
+
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_api_error_propagates(self, mock_request, mock_get_field_id):
+        """ActiveCampaignError propagates to caller"""
+        mock_get_field_id.return_value = '7'
+        mock_request.side_effect = newsletter_service.ActiveCampaignError("API down")
+
+        with pytest.raises(newsletter_service.ActiveCampaignError):
+            newsletter_service.get_contact_learning_level('28529')
+
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_matches_field_id_as_string(self, mock_request, mock_get_field_id):
+        """Field ID matching works when AC returns int vs string"""
+        mock_get_field_id.return_value = '7'
+        mock_request.return_value = {
+            'fieldValues': [
+                {'field': 7, 'value': '2'},  # int instead of string
+            ]
+        }
+
+        result = newsletter_service.get_contact_learning_level('28529')
+
+        assert result == 2
+
+
+class TestFetchUserSubscriptionsLearningLevel:
+    """Tests for learning_level in fetch_user_subscriptions_impl"""
+
+    @mock.patch('api.newsletter_service.get_contact_learning_level')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_returns_ac_learning_level(self, mock_request, mock_get_memberships, mock_get_ll):
+        """Return learning level from AC when present"""
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'user@example.com'}]
+        }
+        mock_get_memberships.return_value = ['1']
+        mock_get_ll.return_value = 3
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+        result = newsletter_service.fetch_user_subscriptions_impl('user@example.com', newsletter_list)
+
+        assert result['learning_level'] == 3
+
+    @mock.patch('api.newsletter_service.get_contact_learning_level')
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_ac_value_wins_over_profile(self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll):
+        """AC learning level takes priority over MongoDB profile value"""
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'user@example.com'}]
+        }
+        mock_get_memberships.return_value = []
+        mock_get_ll.return_value = 4
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.learning_level = 2
+        mock_profile.wants_marketing_emails = True
+        mock_profile_class.return_value = mock_profile
+
+        mock_user = mock.MagicMock()
+        mock_user.is_authenticated = True
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+        result = newsletter_service.fetch_user_subscriptions_impl(
+            'user@example.com', newsletter_list, user=mock_user
+        )
+
+        assert result['learning_level'] == 4  # AC wins over profile's 2
+
+    @mock.patch('api.newsletter_service.get_contact_learning_level')
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_falls_back_to_profile_when_ac_has_none(self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll):
+        """Falls back to profile learning level when AC field is empty"""
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'user@example.com'}]
+        }
+        mock_get_memberships.return_value = []
+        mock_get_ll.return_value = None  # AC has no value
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.learning_level = 5
+        mock_profile.wants_marketing_emails = True
+        mock_profile_class.return_value = mock_profile
+
+        mock_user = mock.MagicMock()
+        mock_user.is_authenticated = True
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+        result = newsletter_service.fetch_user_subscriptions_impl(
+            'user@example.com', newsletter_list, user=mock_user
+        )
+
+        assert result['learning_level'] == 5  # Falls back to profile
+
+    @mock.patch('api.newsletter_service.get_contact_learning_level')
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_graceful_degradation_on_ac_field_error(self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll):
+        """AC field fetch failure falls back to profile — doesn't break subscription fetch"""
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'user@example.com'}]
+        }
+        mock_get_memberships.return_value = ['1']
+        mock_get_ll.side_effect = newsletter_service.ActiveCampaignError("field API down")
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.learning_level = 3
+        mock_profile.wants_marketing_emails = True
+        mock_profile_class.return_value = mock_profile
+
+        mock_user = mock.MagicMock()
+        mock_user.is_authenticated = True
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+        result = newsletter_service.fetch_user_subscriptions_impl(
+            'user@example.com', newsletter_list, user=mock_user
+        )
+
+        # Subscriptions still work despite learning level failure
+        assert result['subscribed_newsletters'] == ['sefaria_news']
+        assert result['learning_level'] == 3  # Falls back to profile
+
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service._make_ac_request')
+    def test_profile_learning_level_when_not_in_ac(self, mock_request, mock_profile_class):
+        """User not in AC gets profile learning level as fallback"""
+        mock_request.return_value = {'contacts': []}
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.learning_level = 1
+        mock_profile.wants_marketing_emails = True
+        mock_profile_class.return_value = mock_profile
+
+        mock_user = mock.MagicMock()
+        mock_user.is_authenticated = True
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+        result = newsletter_service.fetch_user_subscriptions_impl(
+            'user@example.com', newsletter_list, user=mock_user
+        )
+
+        assert result['learning_level'] == 1
+
 
 # ============================================================================
 # Tests for Update User Preferences Implementation
@@ -812,13 +1151,14 @@ class TestFetchUserSubscriptionsImpl:
 class TestUpdateUserPreferencesImpl:
     """Tests for update_user_preferences_impl function (replace behavior)"""
 
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    def test_update_replace_subscriptions(self, mock_get_memberships, mock_find, mock_update):
-        """Replace existing subscriptions with new selections"""
+    def test_update_replace_subscriptions(self, mock_get_memberships, mock_find, mock_update, mock_update_flag):
+        """Replace existing subscriptions with new selections (scoped to managed lists)"""
         mock_find.return_value = {'id': '28529', 'email': 'user@example.com'}
-        # User currently subscribed to lists 1 and 2
+        # User currently subscribed to lists 1 and 2 (both managed)
         mock_get_memberships.return_value = ['1', '2']
         mock_update.return_value = None
 
@@ -845,10 +1185,14 @@ class TestUpdateUserPreferencesImpl:
 
         assert sorted(result['subscribed_newsletters']) == ['sefaria_news', 'text_updates']
 
+        # Verify wants_marketing_emails set to True for normal update
+        mock_update_flag.assert_called_once_with('user@example.com', True)
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    def test_update_unsubscribe_all_previous(self, mock_get_memberships, mock_find, mock_update):
+    def test_update_unsubscribe_all_previous(self, mock_get_memberships, mock_find, mock_update, mock_update_flag):
         """User was subscribed to many, now selects just one (unsubscribe rest)"""
         mock_find.return_value = {'id': '28529', 'email': 'user@example.com'}
         # User currently subscribed to lists 1, 2, 3
@@ -876,10 +1220,11 @@ class TestUpdateUserPreferencesImpl:
 
         assert result['subscribed_newsletters'] == ['sefaria_news']
 
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    def test_update_subscribe_all_new(self, mock_get_memberships, mock_find, mock_update):
+    def test_update_subscribe_all_new(self, mock_get_memberships, mock_find, mock_update, mock_update_flag):
         """User had no subscriptions, now subscribes to several"""
         mock_find.return_value = {'id': '28529', 'email': 'newuser@example.com'}
         # User has no existing subscriptions
@@ -922,6 +1267,83 @@ class TestUpdateUserPreferencesImpl:
                 ['sefaria_news', 'invalid_key'],
                 newsletter_list
             )
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service.update_list_memberships')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service.get_all_ac_list_ids')
+    @mock.patch('api.newsletter_service.find_or_create_contact')
+    def test_marketing_opt_out_unsubscribes_all_lists(self, mock_find, mock_get_all_ids,
+                                                       mock_get_memberships, mock_update, mock_update_flag):
+        """Marketing opt-out unsubscribes from ALL lists (managed + unmanaged)"""
+        mock_find.return_value = {'id': '28529', 'email': 'user@example.com'}
+        # All lists in AC account (managed + unmanaged)
+        mock_get_all_ids.return_value = ['1', '2', '3', '99']
+        # User is actively subscribed to lists 1, 3, 99
+        mock_get_memberships.return_value = ['1', '3', '99']
+        mock_update.return_value = None
+
+        newsletter_list = [
+            {'stringid': 'sefaria_news', 'id': '1'},
+            {'stringid': 'text_updates', 'id': '3'},
+        ]
+
+        result = newsletter_service.update_user_preferences_impl(
+            'user@example.com', 'John', 'Doe',
+            ['sefaria_news'],  # Selections don't matter for opt-out
+            newsletter_list,
+            marketing_opt_out=True
+        )
+
+        # Should unsubscribe from all active lists (1, 3, 99)
+        mock_update.assert_called_once()
+        call_args = mock_update.call_args
+        add_list = call_args[0][1]
+        remove_list = set(call_args[0][2])
+        assert add_list == []  # No subscriptions added
+        assert '1' in remove_list
+        assert '3' in remove_list
+        assert '99' in remove_list  # Unmanaged list also removed
+
+        assert result['subscribed_newsletters'] == []
+
+        # Verify wants_marketing_emails set to False
+        mock_update_flag.assert_called_once_with('user@example.com', False)
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service.update_list_memberships')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service.find_or_create_contact')
+    def test_normal_update_preserves_unmanaged_lists(self, mock_find, mock_get_memberships,
+                                                      mock_update, mock_update_flag):
+        """Normal update (not opt-out) only touches managed lists, preserves unmanaged"""
+        mock_find.return_value = {'id': '28529', 'email': 'user@example.com'}
+        # User subscribed to managed list 1 and unmanaged list 99
+        mock_get_memberships.return_value = ['1', '99']
+        mock_update.return_value = None
+
+        newsletter_list = [
+            {'stringid': 'sefaria_news', 'id': '1'},
+            {'stringid': 'text_updates', 'id': '3'},
+        ]
+
+        result = newsletter_service.update_user_preferences_impl(
+            'user@example.com', 'John', 'Doe',
+            ['text_updates'],  # Switch from sefaria_news to text_updates
+            newsletter_list,
+            marketing_opt_out=False
+        )
+
+        mock_update.assert_called_once()
+        call_args = mock_update.call_args
+        add_list = set(call_args[0][1])
+        remove_list = set(call_args[0][2])
+
+        assert '3' in add_list  # text_updates added
+        assert '1' in remove_list  # sefaria_news removed
+        assert '99' not in remove_list  # unmanaged list NOT removed
+
+        assert result['subscribed_newsletters'] == ['text_updates']
 
 
 # ============================================================================
@@ -1029,9 +1451,12 @@ class TestUpdateUserPreferencesView:
         data = json.loads(response.content)
         assert 'POST' in data['error']
 
-    @mock.patch('api.newsletter_views.update_user_preferences_impl')
-    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_update_preferences_empty_selection_allowed(self, mock_get_list, mock_update):
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service.update_list_memberships')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service.find_or_create_contact')
+    def test_update_preferences_empty_selection_allowed(self, mock_find, mock_get_memberships,
+                                                         mock_update_memberships, mock_update_flag):
         """
         Empty newsletter selection is allowed for authenticated users.
 
@@ -1041,39 +1466,37 @@ class TestUpdateUserPreferencesView:
         to prevent creating contacts with no subscriptions.
 
         Behavior:
-        - Logged-in users: Empty selection ALLOWED (unsubscribe from all)
+        - Logged-in users: Empty selection ALLOWED (unsubscribe from all managed)
         - Logged-out users: Empty selection REJECTED (prevent useless contacts)
         """
-        # Setup mocks
-        mock_get_list.return_value = [
+        mock_find.return_value = {'id': '12345', 'email': 'test@example.com'}
+        mock_get_memberships.return_value = ['1', '3']
+        mock_update_memberships.return_value = None
+
+        valid_newsletters = [
             {'stringid': 'sefaria_news', 'id': '1'},
             {'stringid': 'text_updates', 'id': '3'},
         ]
-        mock_update.return_value = {
-            'contact': {'id': '12345', 'email': 'test@example.com'},
-            'subscribed_newsletters': []  # No subscriptions after unsubscribe-all
-        }
 
-        # This test would require authentication, but demonstrates the expected behavior
-        # when an authenticated user passes empty newsletter selection.
-        # The view should NOT reject empty selections (no 400 error for empty list).
-        # Instead, it should call update_user_preferences_impl with an empty array,
-        # which will unsubscribe the user from all newsletters.
-
-        # Verify the service layer is called with empty selection
-        # (In actual usage, this would happen after authentication)
+        # Verify the service layer handles empty selection without error
         result = newsletter_service.update_user_preferences_impl(
             email='test@example.com',
             first_name='Test',
             last_name='User',
-            selected_stringids=[],  # Empty selection - unsubscribe from all
-            valid_newsletters=mock_get_list.return_value
+            selected_stringids=[],  # Empty selection - unsubscribe from all managed
+            valid_newsletters=valid_newsletters
         )
 
         # The function should handle empty selection without error
         # and return empty subscribed_newsletters list
-        assert 'subscribed_newsletters' in result
-        # Note: Actual assertion depends on mocked return value
+        assert result['subscribed_newsletters'] == []
+
+        # Should unsubscribe from both managed lists
+        mock_update_memberships.assert_called_once()
+        call_args = mock_update_memberships.call_args
+        remove_list = set(call_args[0][2])
+        assert '1' in remove_list
+        assert '3' in remove_list
 
 
 # ============================================================================
@@ -1084,8 +1507,9 @@ class TestUpdateLearningLevelInAc:
     """Tests for update_learning_level_in_ac() service function"""
 
     @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag', return_value='104')
     @mock.patch('api.newsletter_service.find_or_create_contact')
-    def test_update_learning_level_valid(self, mock_find_contact, mock_ac_request):
+    def test_update_learning_level_valid(self, mock_find_contact, mock_field_lookup, mock_ac_request):
         """Update learning level in AC with valid value"""
         mock_find_contact.return_value = {'id': '12345', 'email': 'test@example.com'}
         mock_ac_request.return_value = {'success': True}
@@ -1095,10 +1519,12 @@ class TestUpdateLearningLevelInAc:
         assert result['contact_id'] == '12345'
         assert result['learning_level'] == 3
         assert result['email'] == 'test@example.com'
+        mock_field_lookup.assert_called_once_with('LEARNING_LEVEL')
 
     @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag', return_value='104')
     @mock.patch('api.newsletter_service.find_or_create_contact')
-    def test_update_learning_level_none(self, mock_find_contact, mock_ac_request):
+    def test_update_learning_level_none(self, mock_find_contact, mock_field_lookup, mock_ac_request):
         """Update learning level to None (clear) in AC"""
         mock_find_contact.return_value = {'id': '12345', 'email': 'test@example.com'}
         mock_ac_request.return_value = {'success': True}
@@ -1123,8 +1549,9 @@ class TestUpdateLearningLevelInAc:
         with pytest.raises(newsletter_service.InputError):
             newsletter_service.update_learning_level_in_ac('test@example.com', 'advanced')
 
+    @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag', return_value='104')
     @mock.patch('api.newsletter_service.find_or_create_contact')
-    def test_update_learning_level_ac_error(self, mock_find_contact):
+    def test_update_learning_level_ac_error(self, mock_find_contact, mock_field_lookup):
         """Handle AC API errors gracefully"""
         mock_find_contact.return_value = {'id': '12345', 'email': 'test@example.com'}
 
@@ -1299,7 +1726,7 @@ class TestUpdateLearningLevelView:
         assert result['learning_level'] is None
         assert result['email'] == 'test@example.com'
 
-    @mock.patch('api.newsletter_service.update_learning_level_impl')
+    @mock.patch('api.newsletter_views.update_learning_level_impl')
     def test_update_learning_level_ac_error(self, mock_update, client):
         """AC API errors return 500"""
         mock_update.side_effect = newsletter_service.ActiveCampaignError('AC API failed')

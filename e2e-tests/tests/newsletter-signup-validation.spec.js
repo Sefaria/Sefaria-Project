@@ -7,6 +7,12 @@
  * 3. Newsletter selection (at least one required)
  * 4. Error message display and clearing
  * 5. Form state after validation errors
+ *
+ * Error UI structure (multi-error system):
+ * - .newsletterErrorSummary  — top-level summary banner (focused on error)
+ * - .errorSummaryList li     — individual error items in the summary
+ * - .errorSummaryLink        — clickable links to fields
+ * - .inlineFieldError#field-error — per-field inline error messages
  */
 
 import { test, expect } from '@playwright/test';
@@ -14,7 +20,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Newsletter Signup - Form Validation', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('http://localhost:8000/newsletter');
+    await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
     await page.waitForTimeout(1000);
   });
@@ -41,18 +47,23 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error to appear
     await page.waitForTimeout(500);
 
-    // Check for error message
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    await expect(errorMessage).toBeVisible();
+    // Check for error summary at the top
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
 
-    const errorText = await errorMessage.textContent();
-    expect(errorText.toLowerCase()).toContain('first name');
+    // Check the summary contains a first name error
+    const summaryText = await errorSummary.textContent();
+    expect(summaryText.toLowerCase()).toContain('first name');
+
+    // Check inline error on the first name field
+    const firstNameError = page.locator('#firstName-error');
+    await expect(firstNameError).toBeVisible();
   });
 
   test('should show error when trying to submit without email', async ({ page }) => {
     // Fill first name
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('John');
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
     // Leave email empty
     // Select a newsletter
@@ -66,12 +77,17 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error
     await page.waitForTimeout(500);
 
-    // Check for error message about email
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    await expect(errorMessage).toBeVisible();
+    // Check for error summary
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
 
-    const errorText = await errorMessage.textContent();
-    expect(errorText.toLowerCase()).toContain('email');
+    // Summary should mention email
+    const summaryText = await errorSummary.textContent();
+    expect(summaryText.toLowerCase()).toContain('email');
+
+    // Inline error on email field
+    const emailError = page.locator('#email-error');
+    await expect(emailError).toBeVisible();
   });
 
   test('should show error for invalid email format', async ({ page }) => {
@@ -95,14 +111,14 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error
     await page.waitForTimeout(500);
 
-    // Check for error message about email format
+    // Check for error summary or inline email error
     // HTML5 email input validation might prevent our custom validation from running,
     // so we accept either our error message or no submission
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    const isOurErrorVisible = await errorMessage.isVisible().catch(() => false);
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    const isOurErrorVisible = await errorSummary.isVisible().catch(() => false);
 
     if (isOurErrorVisible) {
-      const errorText = await errorMessage.textContent();
+      const errorText = await errorSummary.textContent();
       expect(errorText.toLowerCase()).toContain('valid email');
     }
 
@@ -131,15 +147,20 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error
     await page.waitForTimeout(500);
 
-    // Check for error message
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    await expect(errorMessage).toBeVisible();
+    // Check for error summary
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
 
-    const errorText = await errorMessage.textContent();
-    expect(errorText.toLowerCase()).toContain('select at least one');
+    // Should mention selecting a newsletter
+    const summaryText = await errorSummary.textContent();
+    expect(summaryText.toLowerCase()).toContain('select at least one');
+
+    // Inline error on newsletters section
+    const newslettersError = page.locator('#newsletters-error');
+    await expect(newslettersError).toBeVisible();
   });
 
-  test('should clear error message when user corrects the field', async ({ page }) => {
+  test('should clear inline error when user corrects the field', async ({ page }) => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
@@ -157,18 +178,18 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
     // Wait for error to appear
     await page.waitForTimeout(500);
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    await expect(errorMessage).toBeVisible();
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
 
     // Now fill in the email and confirm email
     await emailInputs.nth(0).fill('john@example.com');
     await emailInputs.nth(1).fill('john@example.com');
 
-    // Wait a moment and check if error is cleared
+    // Blur email field to trigger inline error clearing
+    await emailInputs.nth(1).blur();
     await page.waitForTimeout(300);
 
-    // Error should still be visible (might be cleared on submit, not on input change)
-    // But we can verify form can now be submitted successfully
+    // Verify form can now be submitted successfully
     await submitButton.click();
 
     // Wait for page transition
@@ -216,13 +237,13 @@ test.describe('Newsletter Signup - Form Validation', () => {
       // Wait for response
       await page.waitForTimeout(1500);
 
-      // Should not show error for valid email
-      const errorMessage = page.locator('.newsletterErrorMessage');
-      const isErrorVisible = await errorMessage.isVisible().catch(() => false);
+      // Should not show error summary for valid email
+      const errorSummary = page.locator('.newsletterErrorSummary');
+      const isErrorVisible = await errorSummary.isVisible().catch(() => false);
 
       // Either no error, or error is not about email format
       if (isErrorVisible) {
-        const errorText = await errorMessage.textContent();
+        const errorText = await errorSummary.textContent();
         expect(errorText.toLowerCase()).not.toContain('valid email');
       }
 
@@ -268,13 +289,13 @@ test.describe('Newsletter Signup - Form Validation', () => {
       // Wait for error
       await page.waitForTimeout(500);
 
-      // Should show error for invalid email
-      const errorMessage = page.locator('.newsletterErrorMessage');
-      const isErrorVisible = await errorMessage.isVisible().catch(() => false);
+      // Should show error summary or inline email error for invalid email
+      const errorSummary = page.locator('.newsletterErrorSummary');
+      const isErrorVisible = await errorSummary.isVisible().catch(() => false);
 
       // Either shows error, or HTML5 validation prevents submission
       if (isErrorVisible) {
-        const errorText = await errorMessage.textContent();
+        const errorText = await errorSummary.textContent();
         expect(errorText.toLowerCase()).toContain('email');
       }
       // HTML5 email validation is also acceptable
@@ -300,9 +321,9 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error
     await page.waitForTimeout(500);
 
-    // Verify error exists
-    let errorMessage = page.locator('.newsletterErrorMessage');
-    const errorWasShown = await errorMessage.isVisible().catch(() => false);
+    // Verify error summary exists
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    const errorWasShown = await errorSummary.isVisible().catch(() => false);
 
     // Fix the email in both fields
     await emailInputs.nth(0).fill('john@example.com');
@@ -384,26 +405,30 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error to appear
     await page.waitForTimeout(500);
 
-    // Check for error message about email mismatch
-    const errorMessage = page.locator('.newsletterErrorMessage');
-    await expect(errorMessage).toBeVisible();
+    // Check for error summary with mismatch message
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
 
-    const errorText = await errorMessage.textContent();
-    expect(errorText.toLowerCase()).toContain('do not match');
+    const summaryText = await errorSummary.textContent();
+    expect(summaryText.toLowerCase()).toContain('do not match');
+
+    // Inline error on confirm email field
+    const confirmEmailError = page.locator('#confirmEmail-error');
+    await expect(confirmEmailError).toBeVisible();
   });
 
   test('should show/hide error message appropriately', async ({ page }) => {
     // First verify form loads without error
-    let errorMessage = page.locator('.newsletterErrorMessage');
-    let isErrorVisible = await errorMessage.isVisible().catch(() => false);
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    let isErrorVisible = await errorSummary.isVisible().catch(() => false);
     expect(isErrorVisible).toBe(false); // No error initially
 
     // Fill only first name (incomplete form)
-    const inputs = page.locator('form input[type="text"], form input[type="email"]');
-    await inputs.nth(0).fill('John');
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
 
     // Verify no error yet
-    isErrorVisible = await errorMessage.isVisible().catch(() => false);
+    isErrorVisible = await errorSummary.isVisible().catch(() => false);
     expect(isErrorVisible).toBe(false);
 
     // Try to submit incomplete form
@@ -413,9 +438,8 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Wait for error
     await page.waitForTimeout(500);
 
-    // Error should now be visible
-    errorMessage = page.locator('.newsletterErrorMessage');
-    isErrorVisible = await errorMessage.isVisible().catch(() => false);
+    // Error summary should now be visible
+    isErrorVisible = await errorSummary.isVisible().catch(() => false);
     expect(isErrorVisible).toBe(true);
   });
 });

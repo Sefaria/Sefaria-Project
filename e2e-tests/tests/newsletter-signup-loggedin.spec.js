@@ -77,8 +77,8 @@ test.describe('Newsletter Signup - Logged-In User Flow', () => {
       });
     }, { mockUser: MOCK_USER });
 
-    // Navigate to newsletter page on local development server
-    await page.goto('http://localhost:8000/newsletter');
+    // Navigate to newsletter page (uses baseURL from playwright config / SANDBOX_URL)
+    await page.goto('/newsletter');
 
     // Wait for the form to be visible
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });

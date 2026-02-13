@@ -17,8 +17,8 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     // Set viewport to test responsive design
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    // Navigate to newsletter page on local development server
-    await page.goto('http://localhost:8000/newsletter');
+    // Navigate to newsletter page (uses baseURL from playwright config / SANDBOX_URL)
+    await page.goto('/newsletter');
 
     // Wait for the form to be visible - wait longer for JS to execute
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });

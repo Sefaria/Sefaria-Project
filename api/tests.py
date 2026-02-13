@@ -251,13 +251,13 @@ class NewsletterServiceTests(SefariaTestCase):
         """Test parsing valid JSON metadata from personalization variable"""
         variable = {
             'tag': 'LIST_1_META',
-            'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News", "emoji": "📚", "language": "english"}'
+            'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News", "icon": "news-and-resources.svg", "language": "english"}'
         }
         metadata = newsletter_service.parse_metadata_from_variable(variable)
         self.assertIsNotNone(metadata)
         self.assertEqual(metadata['stringid'], 'sefaria_news')
         self.assertEqual(metadata['displayName'], 'Sefaria News')
-        self.assertEqual(metadata['emoji'], '📚')
+        self.assertEqual(metadata['icon'], 'news-and-resources.svg')
         self.assertEqual(metadata['language'], 'english')
 
     def test_parse_metadata_from_variable_invalid_json(self):
@@ -331,11 +331,11 @@ class NewsletterServiceTests(SefariaTestCase):
         mock_variables.return_value = [
             {
                 'tag': 'LIST_1_META',
-                'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News & Resources", "emoji": "📚", "language": "english"}'
+                'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News & Resources", "icon": "news-and-resources.svg", "language": "english"}'
             },
             {
                 'tag': 'LIST_2_META',
-                'content': '{"stringid": "educator_resources", "displayName": "Educator Resources", "emoji": "🎓", "language": "english"}'
+                'content': '{"stringid": "educator_resources", "displayName": "Educator Resources", "icon": "educator-resources.svg", "language": "english"}'
             },
         ]
         newsletters = newsletter_service.get_newsletter_list()
@@ -346,13 +346,13 @@ class NewsletterServiceTests(SefariaTestCase):
         self.assertEqual(newsletters[0]['id'], '1')
         self.assertEqual(newsletters[0]['stringid'], 'sefaria_news')
         self.assertEqual(newsletters[0]['displayName'], 'Sefaria News & Resources')
-        self.assertEqual(newsletters[0]['emoji'], '📚')
+        self.assertEqual(newsletters[0]['icon'], 'news-and-resources.svg')
         self.assertEqual(newsletters[0]['language'], 'english')
         self.assertEqual(newsletters[0]['acListId'], '1')
 
         # Check second newsletter
         self.assertEqual(newsletters[1]['id'], '2')
-        self.assertEqual(newsletters[1]['emoji'], '🎓')
+        self.assertEqual(newsletters[1]['icon'], 'educator-resources.svg')
 
     @mock.patch('api.newsletter_service.get_all_lists')
     @mock.patch('api.newsletter_service.get_all_personalization_variables')
@@ -365,7 +365,7 @@ class NewsletterServiceTests(SefariaTestCase):
         mock_variables.return_value = [
             {
                 'tag': 'LIST_1_META',
-                'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News", "emoji": "📚", "language": "english"}'
+                'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News", "icon": "news-and-resources.svg", "language": "english"}'
             },
         ]
         newsletters = newsletter_service.get_newsletter_list()
@@ -385,7 +385,7 @@ class NewsletterServiceTests(SefariaTestCase):
         mock_variables.return_value = [
             {
                 'tag': 'LIST_1_META',
-                'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News", "emoji": "📚"}'
+                'content': '{"stringid": "sefaria_news", "displayName": "Sefaria News", "icon": "news-and-resources.svg"}'
             },
             {
                 'tag': 'LIST_2_META',
@@ -421,7 +421,7 @@ class NewsletterViewTests(SefariaTestCase):
                 'id': '1',
                 'stringid': 'sefaria_news',
                 'displayName': 'Sefaria News',
-                'emoji': '📚',
+                'icon': 'news-and-resources.svg',
                 'language': 'english',
                 'acListId': '1'
             }

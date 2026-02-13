@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie';
+
 /**
  * Newsletter API Module - Dual Mode (Mock/Real)
  *
@@ -38,8 +40,8 @@ const isMockMode = () => {
     return process.env.REACT_APP_USE_MOCK_API === 'true';
   }
 
-  // Default to mock API (safe for development)
-  return true;
+  // Default to real API (production mode)
+  return false;
 };
 
 /**
@@ -176,6 +178,7 @@ const MockAPI = {
       email,
       subscribedNewsletters: ['sefaria_news', 'text_updates'],
       learningLevel: null,
+      wantsMarketingEmails: true,
     };
   },
 
@@ -193,14 +196,42 @@ const MockAPI = {
           id: '1',
           stringid: 'sefaria_news',
           displayName: 'Sefaria News & Resources',
-          emoji: '📚',
+          icon: 'news-and-resources.svg',
           language: 'english',
         },
         {
           id: '2',
+          stringid: 'educator_resources',
+          displayName: 'Educator Resources',
+          icon: 'educator-resources.svg',
+          language: 'english',
+        },
+        {
+          id: '3',
           stringid: 'text_updates',
-          displayName: 'Text Updates',
-          emoji: '📖',
+          displayName: 'New Text Updates',
+          icon: 'new-text-release-updates.svg',
+          language: 'english',
+        },
+        {
+          id: '4',
+          stringid: 'parashah_series',
+          displayName: 'Weekly Parashah Study Series',
+          icon: 'weekly-study-guide.svg',
+          language: 'english',
+        },
+        {
+          id: '5',
+          stringid: 'tech_updates',
+          displayName: 'Technology and Developer Updates',
+          icon: 'technology-updates.svg',
+          language: 'english',
+        },
+        {
+          id: '6',
+          stringid: 'timeless_topics',
+          displayName: 'Timeless Topics',
+          icon: 'timeless-topics.svg',
           language: 'english',
         },
       ],
@@ -244,7 +275,12 @@ const RealAPI = {
 
     const response = await fetch('/api/newsletter/preferences', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+      },
       body: JSON.stringify({
         newsletters,
         marketingOptOut,

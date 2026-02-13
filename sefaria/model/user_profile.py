@@ -398,6 +398,7 @@ class UserProfile(object):
 
         # Newsletter preferences
         self.learning_level = None  # numeric 1-5 for user learning level in Sefaria, None if not set
+        self.wants_marketing_emails = True  # whether user wants marketing emails; default opted-in
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
@@ -675,6 +676,7 @@ class UserProfile(object):
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
             "learning_level":        self.learning_level,
+            "wants_marketing_emails": self.wants_marketing_emails,
         }
 
     def to_api_dict(self, basic=False):

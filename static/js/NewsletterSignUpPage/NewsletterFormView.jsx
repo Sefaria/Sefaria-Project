@@ -14,7 +14,7 @@ import { BILINGUAL_TEXT } from './bilingualUtils';
  *
  * Features:
  * - Inline validation error display
- * - Newsletter checkboxes with emoji
+ * - Newsletter checkboxes with icons
  * - "We recommend" copy section
  * - Full bilingual support (English/Hebrew) with minimal JSX duplication
  * - Responsive layout

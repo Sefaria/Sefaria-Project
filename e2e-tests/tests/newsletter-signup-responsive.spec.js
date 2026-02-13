@@ -28,7 +28,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
     test.describe(`${name} (${width}x${height})`, () => {
       test.beforeEach(async ({ page }) => {
         await page.setViewportSize({ width, height });
-        await page.goto('http://localhost:8000/newsletter');
+        await page.goto('/newsletter');
         await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
         await page.waitForTimeout(500);
       });
@@ -216,13 +216,13 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
 
         await page.waitForTimeout(500);
 
-        // Error message should be visible and readable
-        const errorMessage = page.locator('.newsletterErrorMessage');
-        const isVisible = await errorMessage.isVisible().catch(() => false);
+        // Error summary should be visible and readable
+        const errorSummary = page.locator('.newsletterErrorSummary');
+        const isVisible = await errorSummary.isVisible().catch(() => false);
 
         if (isVisible) {
           // Should not be cut off
-          const box = await errorMessage.boundingBox();
+          const box = await errorSummary.boundingBox();
           expect(box).toBeTruthy();
 
           // Should have reasonable width
@@ -300,7 +300,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
   test('should handle orientation change gracefully', async ({ page, context }) => {
     // Start in portrait
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('http://localhost:8000/newsletter');
+    await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
 
     // Verify form is visible
@@ -324,7 +324,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
   test('should maintain form state across viewport changes', async ({ page }) => {
     // Start at desktop size
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('http://localhost:8000/newsletter');
+    await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
 
     // Fill in some data
