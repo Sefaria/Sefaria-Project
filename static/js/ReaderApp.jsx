@@ -2446,22 +2446,25 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               <main id="main" role="main">
-                {panels}
+                <div className="panelContainer">
+                  {panels}
+                </div>
+                {this.props.chatbot_enabled && this.props.chatbot_user_token && (
+                <lc-chatbot
+                  user-id={this.props.chatbot_user_token}
+                  api-base-url={this.props.chatbot_api_base_url}
+                  default-open="false"
+                  placement="right"
+                  mode="docked"  //this simply defines the initial mode which can be toggled by the user
+                  max-input-chars={this.props.chatbot_max_input_chars}
+                />
+              )}
               </main>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />
-            {this.props.chatbot_enabled && this.props.chatbot_user_token && (
-              <lc-chatbot
-                user-id={this.props.chatbot_user_token}
-                api-base-url={this.props.chatbot_api_base_url}
-                default-open="false"
-                placement="right"
-                max-input-chars={this.props.chatbot_max_input_chars}
-              />
-            )}
           </div>
         </AdContext.Provider>
       </StrapiDataProvider>
