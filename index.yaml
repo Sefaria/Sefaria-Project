@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   sefaria:
   - apiVersion: v2
+    appVersion: v6.63.0
+    created: "2026-02-15T11:22:29.65245014Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: f432206079968d17f664727595fd298455902fb93c10ea85563768b6de4c969c
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.75.0-wip-chatbot.1.tgz
+    version: 0.75.0-wip-chatbot.1
+  - apiVersion: v2
     appVersion: v6.62.5
     created: "2026-02-11T12:42:04.349606513Z"
     description: Chart to deploy complete Sefaria environment
@@ -13665,4 +13680,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-02-12T11:34:53.32171835Z"
+generated: "2026-02-15T11:22:29.650047363Z"
