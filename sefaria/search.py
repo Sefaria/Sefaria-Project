@@ -864,7 +864,7 @@ class TextIndexer(object):
 
         tp = cls.best_time_period
         if tp is not None:
-            comp_start_date = int(tp.start)
+            comp_start_date = int(getattr(tp, 'start', getattr(tp, 'end', 3000)))
         else:
             comp_start_date = 3000  # far in the future
 
