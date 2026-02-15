@@ -7,7 +7,7 @@ import structlog
 import os
 import re
 import requests
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
 
@@ -19,15 +19,21 @@ os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
 
 from sefaria.settings import SEARCH_URL
 
-
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langsmith import traceable
 from sefaria.model.text import Ref
+from sefaria.utils.hebrew import strip_cantillation
 from sefaria.model.schema import AddressType
 
 logger = structlog.get_logger(__name__)
+
+
+class DictaAPIError(RuntimeError):
+    def __init__(self, info: Dict[str, Any]):
+        super().__init__("Dicta API returned non-200")
+        self.info = info
 
 
 @dataclass(frozen=True)
@@ -52,28 +58,42 @@ class NonSegmentResolutionPayload:
 
 @dataclass(frozen=True)
 class AmbiguousResolutionResult:
-    resolved_ref: str
-    matched_segment: Optional[str]
-    method: str
+    resolved_ref: Optional[str] = None
+    matched_segment: Optional[str] = None
+    method: Optional[str] = None
+    llm_resolved_phrase: Optional[str] = None
 
 
 @dataclass(frozen=True)
 class NonSegmentResolutionResult:
-    resolved_ref: str
-    method: str
+    resolved_ref: Optional[str] = None
+    method: Optional[str] = None
+    llm_resolved_phrase: Optional[str] = None
+
 
 # Configuration
 DICTA_URL = os.getenv("DICTA_PARALLELS_URL", "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus")
-SEFARIA_SEARCH_URL = f"{SEARCH_URL}/api/search/text/_search"
+SEFARIA_SEARCH_URL = f"{SEARCH_URL}/text/_search"
 MIN_THRESHOLD = 1.0
 MAX_DISTANCE = 10.0
 REQUEST_TIMEOUT = 30
 WINDOW_WORDS = 120
 
 
+
 def _get_llm():
     """Get configured primary LLM instance."""
-    model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
+
+    return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+
+
+def _get_confirmation_llm():
+    """Get LLM instance used for prior formation and candidate confirmation."""
+    model = os.getenv("ANTHROPIC_CONFIRM_MODEL", "claude-sonnet-4-5-20250929")
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
@@ -99,6 +119,13 @@ def _escape_template_braces(text: str) -> str:
     if not text:
         return text
     return text.replace('{', '{{').replace('}', '}}')
+
+
+def _strip_nikud(text: Optional[str]) -> Optional[str]:
+    """Remove cantillation and vowels (nikud) from Hebrew text."""
+    if not text:
+        return text
+    return strip_cantillation(text, strip_vowels=True)
 
 
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
@@ -193,7 +220,10 @@ def _mark_citation(text: str, span: dict) -> str:
 
 
 @traceable(run_type="tool", name="query_dicta")
-def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
+def _query_dicta(
+    query_text: str,
+    target_ref: str,
+) -> List[Dict[str, Any]]:
     """Query Dicta parallels API for matching segments."""
     params = {
         'minthreshold': int(MIN_THRESHOLD),
@@ -219,7 +249,16 @@ def _query_dicta(query_text: str, target_ref: str) -> List[Dict[str, Any]]:
             headers=headers,
             timeout=REQUEST_TIMEOUT
         )
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise DictaAPIError({
+                "status_code": resp.status_code,
+                "url": resp.url,
+                "query_text": query_text,
+                "target_ref": target_ref,
+                "response_text": resp.text,
+            })
+            logger.warning(f"Dicta API request failed: {resp.status_code} for {resp.url}")
+            return []
 
         # Handle UTF-8 BOM by decoding with utf-8-sig
         text = resp.content.decode('utf-8-sig')
@@ -278,14 +317,14 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
 
 
 @traceable(run_type="tool", name="query_sefaria_search")
-def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> Optional[Dict[str, Any]]:
+def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 20) -> List[Dict[str, Any]]:
     """Query Sefaria search API for matching segments."""
     try:
         target_oref = Ref(target_ref)
         path_regex = _path_regex_for_ref(target_ref)
     except Exception:
         logger.warning(f"Could not create Ref for target: {target_ref}")
-        return None
+        return []
 
     bool_query = {
         'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
@@ -323,10 +362,11 @@ def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> O
         data = resp.json()
     except Exception as e:
         logger.warning(f"Sefaria search API request failed: {e}")
-        return None
+        return []
 
     hits = (data.get('hits') or {}).get('hits', [])
 
+    matches: List[Dict[str, Any]] = []
     for entry in hits:
         normalized = _extract_ref_from_search_hit(entry)
         if not normalized:
@@ -337,16 +377,17 @@ def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 10) -> O
             if not cand_oref.is_segment_level():
                 continue
             if target_oref.contains(cand_oref):
-                return {
+                matches.append({
                     'resolved_ref': normalized,
                     'source': 'sefaria_search',
                     'query': query_text,
+                    'queries': [query_text],
                     'raw': entry
-                }
+                })
         except Exception:
             continue
 
-    return None
+    return matches
 
 
 def _extract_ref_from_search_hit(hit: Dict[str, Any]) -> Optional[str]:
@@ -386,36 +427,45 @@ def _path_regex_for_ref(ref_str: str) -> Optional[str]:
 @traceable(run_type="llm", name="llm_form_search_query")
 def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
-    llm = _get_keyword_llm()
+    llm = _get_confirmation_llm()
 
     # Create context with citation redacted
     context_redacted = re.sub(r'<citation>.*?</citation>', '[REDACTED]', marked_text, flags=re.DOTALL)
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text being commented on ({base_ref}):\n{base_text[:1000]}\n\n"
+        base_block = f"Base text being commented on ({base_ref}):\n{_strip_nikud(base_text)}\n\n"
+
+    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are extracting a concise citation phrase to search for parallels."),
+        ("system", "You extract concise search phrases that are likely to appear verbatim in the target text."),
         ("human",
          "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
          "Context with citation redacted:\n{context}\n\n"
          "{base_block}"
+         "Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
          "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
          "outside the citation span.\n"
+         "- Prefer phrases that you expect to appear verbatim in the target text.\n"
          "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
+         "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
+         "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
+         "- Prefer specific/rare tokens over generic ones.\n"
+         "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
          "- Include at least one 2-3 word query.\n"
          "- Do NOT copy words that appear inside <citation>...</citation>.\n"
          "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'."
-        )
+         )
     ])
 
     chain = prompt | llm
     try:
         response = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:2000]),
-            "context": _escape_template_braces(context_redacted[:2000]),
-            "base_block": _escape_template_braces(base_block)
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "context": _escape_template_braces(_strip_nikud(context_redacted)),
+            "base_block": _escape_template_braces(base_block),
+            "prior": _escape_template_braces(prior),
         })
         content = getattr(response, 'content', '')
 
@@ -446,13 +496,15 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 @traceable(run_type="llm", name="llm_confirm_candidate")
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
-    """Use LLM to confirm if a candidate is the correct resolution."""
+    """Use LLM to confirm if a candidate is the correct resolution, using a prior."""
 
-    llm = _get_llm()
+    llm = _get_confirmation_llm()
+
+    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(base_text[:1000])}\n\n"
+        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
 
     prompt = ChatPromptTemplate.from_messages([
         (
@@ -465,6 +517,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
             "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
             "{citing}\n\n"
             "{base_block}"
+            "Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
             "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
             "Candidate segment text:\n{candidate_text}\n\n"
             "Determine whether the citing passage is actually referring to this candidate segment.\n"
@@ -478,10 +531,11 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
     chain = prompt | llm
     try:
         response = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:2000]),
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
             "base_block": base_block,
+            "prior": _escape_template_braces(prior),
             "candidate_ref": candidate_ref,
-            "candidate_text": _escape_template_braces(candidate_text[:500])
+            "candidate_text": _escape_template_braces(_strip_nikud(candidate_text))
         })
         content = getattr(response, 'content', '')
         verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
@@ -490,6 +544,93 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         logger.warning(f"LLM confirmation failed: {e}")
         return False, str(e)
 
+
+@traceable(run_type="llm", name="llm_choose_base_vs_commentary")
+def _llm_choose_base_vs_commentary(
+    marked_text: str,
+    base_ref: str,
+    base_text: str,
+    commentary_ref: str,
+    commentary_text: str,
+) -> Optional[str]:
+    """Choose whether the citation refers to the base text or the commentary."""
+    llm = _get_llm()
+
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
+            "Be strict and choose the most likely target."
+        ),
+        (
+            "human",
+            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+            "{citing}\n\n"
+            "Option A (Base text): {base_ref}\n{base_text}\n\n"
+            "Option B (Commentary): {commentary_ref}\n{commentary_text}\n\n"
+            "Which is more likely being referred to? Answer in exactly two lines:\n"
+            "Reason: <brief rationale>\n"
+            "Choice: BASE or COMMENTARY",
+        ),
+    ])
+
+    chain = prompt | llm
+    try:
+        response = chain.invoke({
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "base_ref": base_ref,
+            "base_text": _escape_template_braces(_strip_nikud(base_text)),
+            "commentary_ref": commentary_ref,
+            "commentary_text": _escape_template_braces(_strip_nikud(commentary_text)),
+        })
+        content = getattr(response, 'content', '')
+        if re.search(r"\bBASE\b", content, re.IGNORECASE):
+            return "BASE"
+        if re.search(r"\bCOMMENTARY\b", content, re.IGNORECASE):
+            return "COMMENTARY"
+        return None
+    except Exception as e:
+        logger.warning(f"LLM base vs commentary choice failed: {e}")
+        return None
+
+
+@traceable(run_type="llm", name="llm_form_prior")
+def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = None) -> str:
+    """Use LLM to form a prior about what the target segment should contain."""
+    llm = _get_confirmation_llm()
+
+    base_block = ""
+    if base_ref and base_text:
+        base_block = f"Base text ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
+
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "You form a prior expectation about what the target text likely contains, "
+            "based only on the citing passage and any base text. Do NOT guess a specific ref."
+        ),
+        (
+            "human",
+            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+            "{citing}\n\n"
+            "{base_block}"
+            "Describe what the target segment should be about, key themes or phrases to expect, "
+            "and any constraints implied by the citation. Keep it concise and concrete.\n"
+            "Return 3-6 bullet points."
+        ),
+    ])
+
+    chain = prompt | llm
+    try:
+        response = chain.invoke({
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "base_block": base_block,
+        })
+        content = getattr(response, 'content', '')
+        return content.strip()
+    except Exception as e:
+        logger.warning(f"LLM prior formation failed: {e}")
+        return ""
 
 @traceable(run_type="llm", name="llm_choose_best_candidate")
 def _llm_choose_best_candidate(
@@ -535,18 +676,17 @@ def _llm_choose_best_candidate(
 
     for i, (ref, cand) in enumerate(unique.items(), 1):
         txt = _get_ref_text(ref, lang=lang)
-        preview = (txt or "").strip()[:400]
-        if txt and len(txt) > 400:
-            preview += "..."
+        preview = (txt or "").strip()
+        if preview:
+            preview = strip_cantillation(preview, strip_vowels=True)
 
-        score_str = f"(score={cand.get('score')})" if cand.get('score') is not None else ""
-        numbered.append(f"{i}) {ref} {score_str}\n{preview}")
+        numbered.append(f"{i}) {ref}\n{preview}")
         payloads.append((i, cand))
 
     # Build base text block if available
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text of commentary target ({base_ref}):\n{_escape_template_braces(base_text[:2000])}\n\n"
+        base_block = f"Base text of commentary target ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
 
     # Create LLM prompt
     llm = _get_llm()
@@ -572,8 +712,8 @@ def _llm_choose_best_candidate(
     chain = prompt | llm
     try:
         resp = chain.invoke({
-            "citing": _escape_template_braces(marked_text[:6000]),
-            "candidates": _escape_template_braces("\n\n".join(numbered))
+            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "candidates": _escape_template_braces("\n\n".join(numbered)),
         })
         content = getattr(resp, "content", "")
     except Exception as exc:
@@ -633,8 +773,42 @@ def _dedupe_candidates_by_ref(candidates: List[Dict[str, Any]]) -> List[Dict[str
             new_score = cand.get('score', 0)
             if new_score > old_score:
                 seen[ref] = cand
+            # Merge queries from duplicate hits
+            prev_queries = seen[ref].get("queries")
+            new_query = cand.get("query")
+            new_queries = cand.get("queries")
+            merged = []
+            if isinstance(prev_queries, list):
+                merged.extend(prev_queries)
+            if isinstance(new_queries, list):
+                merged.extend(new_queries)
+            if new_query:
+                merged.append(new_query)
+            if merged:
+                seen[ref]["queries"] = sorted({q for q in merged if q})
 
     return list(seen.values())
+
+
+def _resolution_phrase_from_candidate(candidate: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Extract a key phrase used to resolve a candidate from Dicta/Search data."""
+    if not candidate:
+        return None
+    queries = candidate.get("queries")
+    if isinstance(queries, list) and queries:
+        unique = [q for q in dict.fromkeys([q for q in queries if q])]
+        return "; ".join(unique)
+    query = candidate.get("query")
+    if query:
+        return query
+    raw = candidate.get("raw", {})
+    if isinstance(raw, dict) and "raw" in raw and isinstance(raw.get("raw"), dict):
+        raw = raw.get("raw")
+    if isinstance(raw, dict):
+        base_matched = raw.get("baseMatchedText")
+        if base_matched:
+            return base_matched
+    return None
 
 
 def _fallback_search_pipeline(
@@ -671,20 +845,20 @@ def _fallback_search_pipeline(
             searched.add(q)
 
             logger.info(f"Trying {label} query: '{q}'")
-            hit = _query_sefaria_search(q, non_segment_ref)
+            hits = _query_sefaria_search(q, non_segment_ref)
 
-            if hit:
-                logger.info(f"Sefaria search {label} succeeded: '{q}' -> {hit.get('resolved_ref')}")
-                candidates.append(hit)
+            if hits:
+                logger.info(f"Sefaria search {label} succeeded: '{q}' -> {len(hits)} hits")
+                candidates.extend(hits)
                 continue
 
             # One retry for failed queries
             logger.info(f"Sefaria search {label} failed: '{q}', retrying once...")
-            retry = _query_sefaria_search(q, non_segment_ref)
+            retry_hits = _query_sefaria_search(q, non_segment_ref)
 
-            if retry:
-                logger.info(f"Sefaria search {label} retry succeeded: '{q}' -> {retry.get('resolved_ref')}")
-                candidates.append(retry)
+            if retry_hits:
+                logger.info(f"Sefaria search {label} retry succeeded: '{q}' -> {len(retry_hits)} hits")
+                candidates.extend(retry_hits)
 
     # A) Normal window queries (text-only)
     logger.info("Stage A: Normal window text-only queries")
@@ -744,7 +918,9 @@ def _fallback_search_pipeline(
 
 
 @traceable(run_type="chain", name="disambiguate_non_segment_ref")
-def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -> Optional[NonSegmentResolutionResult]:
+def disambiguate_non_segment_ref(
+    resolution_data: NonSegmentResolutionPayload,
+) -> Optional[NonSegmentResolutionResult]:
     """
     Disambiguate a non-segment-level reference to a specific segment.
 
@@ -772,6 +948,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
     """
     try:
 
+        logger.info("Non-segment payload", payload=asdict(resolution_data))
         citing_ref = resolution_data.ref
         citing_text_snippet = resolution_data.text
         citing_lang = resolution_data.language
@@ -801,6 +978,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
             return NonSegmentResolutionResult(
                 resolved_ref=resolved_ref,
                 method='auto_single_segment',
+                llm_resolved_phrase=None,
             )
 
         # Case 2: 2-3 segments - use LLM to pick directly
@@ -809,7 +987,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
             for i, seg_ref in enumerate(segment_refs, 1):
                 seg_text = _get_ref_text(seg_ref.normal(), lang="he") or _get_ref_text(seg_ref.normal(), lang="en")
                 if seg_text:
-                    preview = seg_text[:300] + ("..." if len(seg_text) > 300 else "")
+                    preview = _strip_nikud(seg_text)
                     candidates.append({
                         'index': i,
                         'resolved_ref': seg_ref.normal(),
@@ -856,6 +1034,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
                         return NonSegmentResolutionResult(
                             resolved_ref=cand['resolved_ref'],
                             method='llm_small_range',
+                            llm_resolved_phrase=None,
                         )
 
             logger.warning(f"Could not parse LLM response: {content}")
@@ -898,6 +1077,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
                     return NonSegmentResolutionResult(
                         resolved_ref=resolved_ref,
                         method='dicta_auto_approved',
+                        llm_resolved_phrase=_resolution_phrase_from_candidate(candidate),
                     )
 
                 candidate_text = _get_ref_text(resolved_ref, citing_lang)
@@ -909,6 +1089,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
                     return NonSegmentResolutionResult(
                         resolved_ref=resolved_ref,
                         method='dicta_llm_confirmed',
+                        llm_resolved_phrase=_resolution_phrase_from_candidate(candidate),
                     )
                 else:
                     logger.info(f"Dicta candidate {resolved_ref} rejected by LLM: {reason}")
@@ -939,6 +1120,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
                 return NonSegmentResolutionResult(
                     resolved_ref=resolved_ref,
                     method='search_auto_approved',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(search_result),
                 )
 
             candidate_text = _get_ref_text(resolved_ref, citing_lang)
@@ -950,6 +1132,7 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
                 return NonSegmentResolutionResult(
                     resolved_ref=resolved_ref,
                     method='search_llm_confirmed',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(search_result),
                 )
             else:
                 logger.info(f"Search candidate {resolved_ref} rejected by LLM: {reason}")
@@ -957,13 +1140,17 @@ def disambiguate_non_segment_ref(resolution_data: NonSegmentResolutionPayload) -
         logger.info("No resolution found via Dicta or Search")
         return None
 
+    except DictaAPIError:
+        raise
     except Exception as e:
         logger.error(f"Error in disambiguate_non_segment_ref: {e}", exc_info=True)
         return None
 
 
 @traceable(run_type="chain", name="disambiguate_ambiguous_ref")
-def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> Optional[AmbiguousResolutionResult]:
+def disambiguate_ambiguous_ref(
+    resolution_data: AmbiguousResolutionPayload,
+) -> Optional[AmbiguousResolutionResult]:
     """
     Disambiguate between multiple possible reference resolutions.
 
@@ -989,6 +1176,7 @@ def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> O
     """
     try:
 
+        logger.info("Ambiguous payload", payload=asdict(resolution_data))
         citing_ref = resolution_data.ref
         citing_text_snippet = resolution_data.text
         citing_lang = resolution_data.language
@@ -1039,6 +1227,62 @@ def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> O
         # Get base context if commentary
         base_ref, base_text = _get_commentary_base_context(citing_ref)
 
+        # Special case: two options, base text vs commentary on base text, citing ref is that commentary
+        if _is_base_vs_commentary_ambiguous(citing_ref, base_ref, valid_candidates):
+            logger.info(
+                "Detected ambiguous base-text vs commentary case",
+                citing_ref=citing_ref,
+                base_ref=base_ref,
+                options=[c["ref"] for c in valid_candidates],
+            )
+
+            try:
+                base_index = Ref(base_ref).index.title
+            except Exception:
+                base_index = None
+            try:
+                citing_index = Ref(citing_ref).index.title
+            except Exception:
+                citing_index = None
+
+            base_cand = None
+            comm_cand = None
+            for cand in valid_candidates:
+                try:
+                    idx_title = Ref(cand["ref"]).index.title
+                except Exception:
+                    continue
+                if base_index and idx_title == base_index:
+                    base_cand = cand
+                if citing_index and idx_title == citing_index:
+                    comm_cand = cand
+
+            if base_cand and comm_cand:
+                base_text_full = _get_ref_text(base_cand["ref"], citing_lang)
+                comm_text_full = _get_ref_text(comm_cand["ref"], citing_lang)
+                if base_text_full and comm_text_full:
+                    choice = _llm_choose_base_vs_commentary(
+                        marked_text,
+                        base_cand["ref"],
+                        base_text_full,
+                        comm_cand["ref"],
+                        comm_text_full,
+                    )
+                    if choice == "BASE":
+                        return AmbiguousResolutionResult(
+                            resolved_ref=base_cand["ref"],
+                            matched_segment=None,
+                            method="llm_base_vs_commentary",
+                            llm_resolved_phrase=None,
+                        )
+                    if choice == "COMMENTARY":
+                        return AmbiguousResolutionResult(
+                            resolved_ref=comm_cand["ref"],
+                            matched_segment=None,
+                            method="llm_base_vs_commentary",
+                            llm_resolved_phrase=None,
+                        )
+
         # Step 1: Try Dicta to find match among candidates
         logger.info("Trying Dicta to find match among ambiguous candidates...")
         dicta_match = _try_dicta_for_candidates(
@@ -1061,8 +1305,9 @@ def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> O
                 logger.info(f"LLM confirmed Dicta match: {match_ref}")
                 return AmbiguousResolutionResult(
                     resolved_ref=dicta_match['ref'],
-                    matched_segment=match_ref if match_ref != dicta_match['ref'] else None,
+                    matched_segment=match_ref,
                     method='dicta_llm_confirmed',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(dicta_match),
                 )
             else:
                 logger.info(f"LLM rejected Dicta match: {reason}")
@@ -1082,8 +1327,9 @@ def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> O
                 logger.info(f"LLM confirmed search match: {match_ref}")
                 return AmbiguousResolutionResult(
                     resolved_ref=search_match['ref'],
-                    matched_segment=match_ref if match_ref != search_match['ref'] else None,
+                    matched_segment=match_ref,
                     method='search_llm_confirmed',
+                    llm_resolved_phrase=_resolution_phrase_from_candidate(search_match),
                 )
             else:
                 logger.info(f"LLM rejected search match: {reason}")
@@ -1091,6 +1337,8 @@ def disambiguate_ambiguous_ref(resolution_data: AmbiguousResolutionPayload) -> O
         logger.info("Could not find valid match among ambiguous candidates")
         return None
 
+    except DictaAPIError:
+        raise
     except Exception as e:
         logger.error(f"Error in disambiguate_ambiguous_ref: {e}", exc_info=True)
         return None
@@ -1118,6 +1366,36 @@ def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[st
         return base_ref, base_text
     except Exception:
         return None, None
+
+
+def _is_base_vs_commentary_ambiguous(
+    citing_ref: str,
+    base_ref: Optional[str],
+    valid_candidates: List[Dict[str, Any]],
+) -> bool:
+    """Detect base-text vs commentary ambiguity when citing ref is the commentary."""
+    if not base_ref or len(valid_candidates) != 2:
+        return False
+    try:
+        base_index = Ref(base_ref).index.title
+    except Exception:
+        base_index = None
+    try:
+        citing_index = Ref(citing_ref).index.title
+    except Exception:
+        citing_index = None
+
+    if not base_index or not citing_index:
+        return False
+
+    cand_indexes = []
+    for cand in valid_candidates:
+        try:
+            cand_indexes.append(Ref(cand["ref"]).index.title)
+        except Exception:
+            cand_indexes.append(None)
+
+    return base_index in cand_indexes and citing_index in cand_indexes
 
 
 def _try_dicta_for_candidates(
@@ -1193,7 +1471,9 @@ def _try_dicta_for_candidates(
 
 
 @traceable(run_type="tool", name="query_dicta_raw")
-def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
+def _query_dicta_raw(
+    query_text: str,
+) -> List[Dict[str, Any]]:
     """Query Dicta and return all results (not filtered by target ref)."""
     params = {
         'minthreshold': int(MIN_THRESHOLD),
@@ -1213,7 +1493,16 @@ def _query_dicta_raw(query_text: str) -> List[Dict[str, Any]]:
             headers=headers,
             timeout=REQUEST_TIMEOUT
         )
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise DictaAPIError({
+                "status_code": resp.status_code,
+                "url": resp.url,
+                "query_text": query_text,
+                "target_ref": None,
+                "response_text": resp.text,
+            })
+            logger.warning(f"Dicta API request failed: {resp.status_code} for {resp.url}")
+            return []
 
         # Handle UTF-8 BOM by decoding with utf-8-sig
         text = resp.content.decode('utf-8-sig')
@@ -1276,40 +1565,42 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
 
     for query in queries:
         # Query search filtered by candidate books
-        result = _query_sefaria_search_with_books(query, list(candidate_books) if candidate_books else None)
-        if not result:
+        results = _query_sefaria_search_with_books(query, list(candidate_books) if candidate_books else None)
+        if not results:
             continue
 
-        search_ref = result['resolved_ref']
-        if search_ref in seen_refs:
-            continue
-
-        try:
-            result_oref = Ref(search_ref)
-
-            if not result_oref.is_segment_level():
+        for result in results:
+            search_ref = result['resolved_ref']
+            if search_ref in seen_refs:
                 continue
 
-            # Check if this result matches any candidate
-            for cand in candidates:
-                cand_oref = cand['oref']
-                if cand_oref.contains(result_oref):
-                    logger.info(
-                        "Search result %s matches candidate %s for query: %s",
-                        search_ref,
-                        cand["ref"],
-                        query,
-                    )
-                    seen_refs.add(search_ref)
-                    matching_candidates.append({
-                        'ref': cand['ref'],  # The candidate ref
-                        'resolved_ref': search_ref,  # The specific segment from search
-                        'query': query,
-                        'raw': result
-                    })
-                    break
-        except Exception:
-            continue
+            try:
+                result_oref = Ref(search_ref)
+
+                if not result_oref.is_segment_level():
+                    continue
+
+                # Check if this result matches any candidate
+                for cand in candidates:
+                    cand_oref = cand['oref']
+                    if cand_oref.contains(result_oref):
+                        logger.info(
+                            "Search result %s matches candidate %s for query: %s",
+                            search_ref,
+                            cand["ref"],
+                            query,
+                        )
+                        seen_refs.add(search_ref)
+                        matching_candidates.append({
+                            'ref': cand['ref'],  # The candidate ref
+                            'resolved_ref': search_ref,  # The specific segment from search
+                            'query': query,
+                            'queries': [query],
+                            'raw': result
+                        })
+                        break
+            except Exception:
+                continue
 
     if not matching_candidates:
         logger.info("Search found no matches among candidates")
@@ -1321,6 +1612,17 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
         segment_ref = match['resolved_ref']
         if segment_ref not in deduped:
             deduped[segment_ref] = match
+        else:
+            prev = deduped[segment_ref]
+            merged = []
+            if isinstance(prev.get("queries"), list):
+                merged.extend(prev["queries"])
+            if isinstance(match.get("queries"), list):
+                merged.extend(match["queries"])
+            if match.get("query"):
+                merged.append(match["query"])
+            if merged:
+                prev["queries"] = sorted({q for q in merged if q})
 
     deduped_matches = list(deduped.values())
 
@@ -1404,7 +1706,7 @@ def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[
 
 
 @traceable(run_type="tool", name="query_sefaria_search_with_books")
-def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> Optional[Dict[str, Any]]:
+def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> List[Dict[str, Any]]:
     """Query Sefaria search with optional filtering by list of books."""
     bool_query = {
         'must': {'match_phrase': {'naive_lemmatizer': {'query': query_text, 'slop': slop}}}
@@ -1445,10 +1747,11 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
         data = resp.json()
     except Exception as e:
         logger.warning(f"Sefaria search API request failed: {e}")
-        return None
+        return []
 
     hits = (data.get('hits') or {}).get('hits', [])
 
+    matches: List[Dict[str, Any]] = []
     for entry in hits:
         normalized = _extract_ref_from_search_hit(entry)
         if not normalized:
@@ -1457,11 +1760,11 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
         try:
             cand_oref = Ref(normalized)
             if cand_oref.is_segment_level():
-                return {
+                matches.append({
                     'resolved_ref': normalized,
                     'raw': entry
-                }
+                })
         except Exception:
             continue
 
-    return None
+    return matches
