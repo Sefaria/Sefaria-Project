@@ -204,6 +204,7 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
@@ -236,6 +237,7 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1161,6 +1163,44 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       e.preventDefault();
     }
   }
+  handleBootstrapUrlEvent(event) {
+    if (!event || !event.detail) { return; }
+    const detail = event.detail;
+    const url = (typeof detail === "string") ? detail : detail.url;
+    if (!url) { return; }
+    const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
+    this.bootstrapUrl(url, {replaceHistory: replaceHistory});
+  }
+  _getPathAndRefFromUrl(href) {
+    let url;
+    try {
+      url = new URL(href, window.location.href);
+    } catch {
+      return false;
+    }
+    const hostname = url.hostname || "";
+    if (hostname && hostname !== window.location.hostname && hostname.indexOf("sefaria.org") === -1) {
+      return false;
+    }
+    const path = decodeURI(url.pathname);
+    const ref = path.slice(1).replace(/%3F/g, '?');
+    return {path, ref};
+  }
+  bootstrapUrl(href, options) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
+    const opts = options || {};
+    const {path, ref} = this._getPathAndRefFromUrl(href);
+    if (Sefaria.isRef(ref)) {
+      // Route bot refs through the same path as Header search ref navigation.
+      this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
+      return true;
+    }
+    return this.openURL(path + url.search, true);
+  }
 
   updateModuleLinkHref(link) {
     /*
@@ -1546,13 +1586,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setState(this.state);
     }
   }
-  openPanel(ref, currVersions, options) {
+  openPanel(ref, currVersions, options, replaceHistory=false) {
     // Opens a text panel, replacing all panels currently open.
     // options can contain {
     //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
     // }
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
-    this.openPanelAt(0, ref, currVersions, options);
+    this.openPanelAt(0, ref, currVersions, options, undefined, true, replaceHistory);
   }
   openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
               replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
@@ -2058,7 +2098,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
-    const tagsToIgnore = ["INPUT", "TEXTAREA"];
+    const tagsToIgnore = ["INPUT", "TEXTAREA", "LC-CHATBOT"];
     if (tagsToIgnore.includes(e.srcElement.tagName)) {
       // If the selection is from an input or textarea tag, don't do anything special
       return
@@ -2406,7 +2446,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               <main id="main" role="main">
-                {panels}
+                <div className="panelContainer">
+                  {panels}
+                </div>
+                {this.props.chatbot_enabled && this.props.chatbot_user_token && (
+                <lc-chatbot
+                  user-id={this.props.chatbot_user_token}
+                  api-base-url={this.props.chatbot_api_base_url}
+                  default-open="false"
+                  placement="right"
+                  mode="docked"  //this simply defines the initial mode which can be toggled by the user
+                  max-input-chars={this.props.chatbot_max_input_chars}
+                />
+              )}
               </main>
               {signUpModal}
               {communityPagePreviewControls}
