@@ -863,11 +863,7 @@ class TextIndexer(object):
         indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
-        if tp is not None:
-            comp_start_date = int(getattr(tp, 'start', getattr(tp, 'end', 3000)))
-        else:
-            comp_start_date = 3000  # far in the future
-
+        comp_start_date = int(getattr(tp, 'end', None) or getattr(tp, 'start', 3000)) # far in the future if no end date
         ref_data = RefData().load({"ref": tref})
         pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
 
