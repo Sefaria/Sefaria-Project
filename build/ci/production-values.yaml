@@ -140,6 +140,11 @@ domains:
         - sheets
         - collections
         - profile
+ingress:
+  enabled: true
+gateway:
+  enabled: true
+  annotations: {}
 nginx:
   containerImage:
     imageRegistry:
