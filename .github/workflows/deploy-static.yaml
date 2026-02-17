@@ -1,0 +1,244 @@
+name: Deploy Static Environment
+
+on:
+  push:
+    branches: [preprod]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      app_changed: ${{ steps.changes.outputs.app_changed }}
+      chart_changed: ${{ steps.changes.outputs.chart_changed }}
+      env: ${{ steps.env.outputs.env }}
+      env_file: ${{ steps.env.outputs.env_file }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Map branch to environment
+        id: env
+        run: |
+          declare -A branch_to_env=(
+            ["preprod"]="preprod"
+          )
+
+          branch="${GITHUB_REF_NAME}"
+          env="${branch_to_env[$branch]:-}"
+
+          if [[ -z "$env" ]]; then
+            echo "ERROR: No environment mapping for branch '${branch}'"
+            exit 1
+          fi
+
+          env_file="envs/${env}/helmrelease.yaml"
+
+          if [[ ! -f "$env_file" ]]; then
+            echo "ERROR: Environment file '${env_file}' does not exist"
+            exit 1
+          fi
+
+          echo "env=$env" >> $GITHUB_OUTPUT
+          echo "env_file=$env_file" >> $GITHUB_OUTPUT
+      - id: changes
+        run: |
+          changed=$(git diff --name-only HEAD~1)
+          echo "Changed files:"
+          echo "$changed"
+
+          app_changed=false
+          chart_changed=false
+
+          while IFS= read -r file; do
+            if [[ "$file" == helm-chart/* ]]; then
+              chart_changed=true
+            else
+              app_changed=true
+            fi
+          done <<< "$changed"
+
+          echo "app_changed=$app_changed" >> $GITHUB_OUTPUT
+          echo "chart_changed=$chart_changed" >> $GITHUB_OUTPUT
+
+  release-chart:
+    needs: detect
+    if: needs.detect.outputs.chart_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      chart_version: ${{ steps.chart_version.outputs.chart_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: fetch head of branch
+        run: git pull origin $GITHUB_REF
+      - name: Create release rules
+        run: helm-chart/release-rules.sh
+      - uses: cycjimmy/semantic-release-action@v4
+        id: semantic
+        with:
+          working_directory: ./helm-chart
+          semantic_version: 18.0.1
+          extra_plugins: |
+            conventional-changelog-conventionalcommits@6.1.0
+            semantic-release-monorepo@7.0.5
+            @semantic-release/commit-analyzer@9.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get chart version
+        id: chart_version
+        run: |
+          if [[ -n "${{ steps.semantic.outputs.new_release_version }}" ]]; then
+            echo "chart_version=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+          else
+            tag=$(git tag --points-at HEAD -l 'helm-chart-*' | head -1)
+            if [[ -n "$tag" ]]; then
+              echo "chart_version=${tag#helm-chart-}" >> $GITHUB_OUTPUT
+            else
+              echo "No chart version available"
+              exit 1
+            fi
+          fi
+      - name: Setup git
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Get appVersion
+        id: appVersion
+        run: |
+          echo "appVersion=$(git describe --match 'v*' --abbrev=0 HEAD --tags)" >> $GITHUB_OUTPUT
+      - name: Download yq
+        run: |
+          wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
+          chmod +x yq
+      - name: Update chart version
+        run: ./yq -i e '.version = "${{ steps.chart_version.outputs.chart_version }}"' helm-chart/sefaria/Chart.yaml
+      - name: Update chart appVersion
+        run: ./yq -i e '.appVersion = "${{ steps.appVersion.outputs.appVersion }}"' helm-chart/sefaria/Chart.yaml
+      - name: Publish Helm charts
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          chart_version: ${{ steps.chart_version.outputs.chart_version }}
+          app_version: ${{ steps.appVersion.outputs.appVersion }}
+          charts_dir: helm-chart
+
+  release-app:
+    needs: detect
+    if: needs.detect.outputs.app_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    outputs:
+      app_version: ${{ steps.app_version.outputs.app_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.PROD_GKE_SA }}'
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+      - uses: cycjimmy/semantic-release-action@v4
+        id: semantic
+        with:
+          extra_plugins: |
+            conventional-changelog-conventionalcommits@8.0.0
+            @semantic-release/commit-analyzer@10.0.1
+            @semantic-release/exec
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_IMAGES: "true"
+          IMAGE_REGISTRY: us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers
+          IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      - name: Get app version
+        id: app_version
+        run: |
+          if [[ -n "${{ steps.semantic.outputs.new_release_version }}" ]]; then
+            echo "app_version=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+          else
+            tag=$(git tag --points-at HEAD -l 'v*' | head -1)
+            if [[ -n "$tag" ]]; then
+              echo "app_version=${tag#v}" >> $GITHUB_OUTPUT
+            else
+              echo "No app version available"
+              exit 1
+            fi
+          fi
+
+  update-deployment-state:
+    needs: [detect, release-chart, release-app]
+    if: always() && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      ENV_NAME: ${{ needs.detect.outputs.env }}
+      ENV_FILE: ${{ needs.detect.outputs.env_file }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
+      - name: Resolve app version
+        id: app
+        run: |
+          if [[ -n "${{ needs.release-app.outputs.app_version }}" ]]; then
+            echo "version=${{ needs.release-app.outputs.app_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(yq '.spec.values.web.containerImage.tag' "$ENV_FILE" | sed 's/^v//')" >> $GITHUB_OUTPUT
+          fi
+      - name: Resolve chart version
+        id: chart
+        run: |
+          if [[ -n "${{ needs.release-chart.outputs.chart_version }}" ]]; then
+            echo "version=${{ needs.release-chart.outputs.chart_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(yq '.spec.chart.spec.version' "$ENV_FILE")" >> $GITHUB_OUTPUT
+          fi
+      - name: Update HelmRelease
+        run: |
+          export APP_TAG="v${{ steps.app.outputs.version }}"
+          export CHART_VERSION="${{ steps.chart.outputs.version }}"
+
+          yq -i '
+            .spec.chart.spec.version = strenv(CHART_VERSION) |
+            .spec.values.web.containerImage.tag = strenv(APP_TAG) |
+            .spec.values.nodejs.containerImage.tag = strenv(APP_TAG) |
+            .spec.values.nginx.containerImage.tag = strenv(APP_TAG) |
+            .spec.values.monitor.containerImage.tag = strenv(APP_TAG)
+          ' "$ENV_FILE"
+      - name: Commit and tag
+        run: |
+          APP_VERSION="${{ steps.app.outputs.version }}"
+          CHART_VERSION="${{ steps.chart.outputs.version }}"
+
+          git add "$ENV_FILE"
+          git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
+          git tag -a "${ENV_NAME}/${APP_VERSION}+chart.${CHART_VERSION}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
+          git push origin "${GITHUB_REF_NAME}" --follow-tags
