@@ -612,7 +612,7 @@ def word_frequency_for_text(title, lang="en"):
     return counts
 
 @lru_cache(maxsize=1)
-def get_talmud_perek_ref_set() -> set[str]:
+def get_talmud_perek_ref_set() -> frozenset[str]:
     """Cache of Talmud perakim refs (Bavli/Yerushalmi/Tosefta/Mishnah)."""
     categories = [
         ["Talmud", "Bavli"],
@@ -633,11 +633,11 @@ def get_talmud_perek_ref_set() -> set[str]:
                 except Exception:
                     continue
 
-    return perakim
+    return frozenset(perakim)
 
 
 @lru_cache(maxsize=1)
-def get_parasha_ref_set() -> set[str]:
+def get_parasha_ref_set() -> frozenset[str]:
     """Cache of parasha wholeRef ranges from alt-struct leaves whose titles map to Parasha terms."""
     parasha_titles: set[str] = set()
     for term in TermSet({"scheme": "Parasha"}):
@@ -671,7 +671,7 @@ def get_parasha_ref_set() -> set[str]:
             except Exception:
                 continue
 
-    return parasha_refs
+    return frozenset(parasha_refs)
 
 
 class WorkflowyParser(object):
