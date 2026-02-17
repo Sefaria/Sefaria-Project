@@ -23,9 +23,15 @@ def _get_user_experiments(user):
 
 
 def _set_user_experiments(user, value):
+    experiments_enabled = bool(value)
     settings, _ = UserExperimentSettings.objects.get_or_create(user=user)
-    settings.experiments = bool(value)
+    settings.experiments = experiments_enabled
     settings.save(update_fields=["experiments"])
+
+    from sefaria.model.user_profile import UserProfile
+    profile = UserProfile(id=user.id)
+    profile.experiments = experiments_enabled
+    profile.save()
 
 
 if not hasattr(User, "experiments"):

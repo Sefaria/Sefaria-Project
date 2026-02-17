@@ -15,6 +15,10 @@ class UserExperimentSettingsAdmin(admin.ModelAdmin):
     search_fields = ("user__email", "user__username", "user__first_name", "user__last_name")
     list_filter = ("experiments",)
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        _set_user_experiments(obj.user, obj.experiments)
+
     def user_email(self, obj):
         return obj.user.email
     user_email.short_description = "Email"
