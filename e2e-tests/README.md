@@ -130,6 +130,35 @@ Note - Currently local development could have problems with language changes.
 Create an `.env` file in the project root (gitignored):
 You can use the example.env in the /e2e-tests folder as a template.
 
+#### Timeout Multiplier
+
+The `TIMEOUT_MULTIPLIER` environment variable scales **all** timeout values across the test suite. This is useful for slower CI environments or debugging:
+
+```bash
+# In your .env file
+TIMEOUT_MULTIPLIER=1.0   # Default — no change
+TIMEOUT_MULTIPLIER=1.5   # 50% longer timeouts (recommended for slower environments)
+TIMEOUT_MULTIPLIER=2.0   # Double all timeouts
+```
+
+- **Range:** `0.1` – `3.0` (values outside this range are clamped)
+- **Default:** `1.0` (no scaling)
+- All `timeout:` options, `waitForTimeout()` calls, and Playwright global timeouts are affected
+- The multiplier is applied via the `t()` helper function from `globals.ts`
+
+When adding new timeouts to tests or page objects, always wrap them with `t()`:
+
+```typescript
+import { t } from '../globals';
+
+// ✅ Correct — respects TIMEOUT_MULTIPLIER
+await expect(element).toBeVisible({ timeout: t(10000) });
+await page.waitForTimeout(t(2000));
+
+// ❌ Wrong — ignores TIMEOUT_MULTIPLIER
+await expect(element).toBeVisible({ timeout: 10000 });
+```
+
 ```bash
 # Run tests
 npx playwright test
@@ -405,9 +434,11 @@ await pm.onTextsPage().clickTanakh(); // This method already exists
 
 ### Playwright Config Highlights
 - **Base URL**: Configurable via `SANDBOX_URL` environment variable
-- **Timeout**: 30 seconds per test, 5 seconds per expect
+- **Global Timeout**: 200 seconds per test (scaled by `TIMEOUT_MULTIPLIER`)
+- **Expect Timeout**: 10 seconds per assertion (scaled by `TIMEOUT_MULTIPLIER`)
 - **Retries**: 2 on CI, 0 locally
 - **Trace**: Enabled on first retry for debugging
+- **TIMEOUT_MULTIPLIER**: Scales all timeouts (see [Environment Setup](#environment-setup))
 
 ---
 
