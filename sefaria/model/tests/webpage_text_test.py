@@ -7,7 +7,7 @@ from sefaria.system.exceptions import DuplicateRecordError
 
 
 @pytest.fixture()
-def webpage_text_normalized():
+def webpage_text_unnormalized_input():
 	data = {
 		"url": "http://www.example.com/page?utm_source=test#section",
 		"title": "Example Title",
@@ -58,8 +58,8 @@ def webpage_text_upsert_data():
 		loaded.delete()
 
 
-def test_webpage_text_normalizes_url_on_save_and_load(webpage_text_normalized):
-	data = webpage_text_normalized["data"]
+def test_webpage_text_normalizes_url_on_save_and_load(webpage_text_unnormalized_input):
+	data = webpage_text_unnormalized_input["data"]
 	normalized_url = WebPage.normalize_url(data["url"])
 	loaded = WebPageText().load(normalized_url)
 	assert loaded is not None
