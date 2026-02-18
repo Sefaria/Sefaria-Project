@@ -24,6 +24,9 @@ plugins: [
       ]
     },
   }],
+  ['@semantic-release/exec', {
+    "prepareCmd": "scripts/release-prepare.sh ${nextRelease.version}"
+  }],
   ['@semantic-release/github', {
     "successComment": false,
     "failTitle": false
@@ -32,4 +35,5 @@ plugins: [
 branches: [
   {"name": "master"},
   {"name": "beta", "prerelease": "next"},
+  {"name": "preprod", "prerelease": "preprod"}
 ]
