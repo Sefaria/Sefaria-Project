@@ -274,6 +274,7 @@ gateway:
   className: envoy
   annotations:
     cert-manager.io/cluster-issuer: ingress-ca
+  clientIPHeader: X-Forward-For
 
 nginx:
   containerImage:
@@ -410,7 +411,7 @@ cronJobs:
   nationBuilderSync:
     enabled: false
   rambiWebpagesWeekly:
-    enabled: false
+    enabled: true
   reindexElasticSearch:
     enabled: false
     SEARCH_HOST_ES6: ""
