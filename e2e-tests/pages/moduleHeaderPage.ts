@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups, changeLanguage } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import {
   MODULE_SELECTORS,
   SEARCH_DROPDOWN,
@@ -94,11 +94,11 @@ export class ModuleHeaderPage extends HelperBase {
     // Ensure overlays are dismissed before interacting with header controls
     await hideAllModalsAndPopups(this.page);
     const icon = this.header.locator(iconSelector);
-    await icon.waitFor({ state: 'visible', timeout: 8000 });
+    await icon.waitFor({ state: 'visible', timeout: t(8000) });
     await icon.click();
     // Wait for any dropdown options to appear (tolerant to different dropdown implementations)
     const possibleOptions = this.page.locator(`${MODULE_SELECTORS.DROPDOWN_OPTION}, ${MODULE_SELECTORS.MODULE_DROPDOWN_OPTIONS}`);
-    await possibleOptions.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    await possibleOptions.first().waitFor({ state: 'visible', timeout: t(5000) }).catch(() => { });
   }
 
   async selectDropdownOption(optionText: string, openNewTab = false, _dropdownContext?: string): Promise<any> {
@@ -115,9 +115,9 @@ export class ModuleHeaderPage extends HelperBase {
 
     const dropdownContainer = this.page.locator(MODULE_SELECTORS.DROPDOWN);
     // Wait for dropdown container (if present) and the option to be visible
-    await dropdownContainer.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    await dropdownContainer.first().waitFor({ state: 'visible', timeout: t(5000) }).catch(() => { });
     const option = this.page.locator(MODULE_SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText }).first();
-    await option.waitFor({ state: 'visible', timeout: 10000 });
+    await option.waitFor({ state: 'visible', timeout: t(10000) });
 
     if (openNewTab) {
       const [newPage] = await Promise.all([
@@ -133,7 +133,7 @@ export class ModuleHeaderPage extends HelperBase {
     // If navigation opened a new page/state, ensure overlays are dismissed on the new page
     try {
       await hideAllModalsAndPopups(this.page);
-    } catch (e) {}
+    } catch (e) { }
     return null;
   }
 
@@ -155,7 +155,7 @@ export class ModuleHeaderPage extends HelperBase {
     // Ensure any overlays are dismissed on the login page before interacting with the form
     try {
       await hideAllModalsAndPopups(this.page);
-    } catch (e) {}
+    } catch (e) { }
 
     await this.page.getByPlaceholder('Email Address').fill(credentials.email);
     await this.page.getByPlaceholder('Password').fill(credentials.password);
@@ -168,22 +168,26 @@ export class ModuleHeaderPage extends HelperBase {
     try {
       const loggedOutIcon = this.page.locator('img[src="/static/icons/profile_loggedout_mdl.svg"]');
       const isLoggedOut = await loggedOutIcon.isVisible();
+      // console.log(`Logged out icon visible: ${isLoggedOut}`);
       return !isLoggedOut;
     } catch {
+      // console.log('Logged out icon not found, assuming user is logged in');
       return false;
     }
   }
 
   async logout() {
     if (!(await this.isLoggedIn())) {
+      // console.log('User is not logged in, skipping logout');
       return;
     }
-
-    const userProfile = this.header.locator('.default-profile-img');
+    // console.log('User is logged in, proceeding with logout');
+    const userProfile = this.header.locator('.profile-img');
     let userMenuClicked = false;
 
     if (await userProfile.isVisible()) {
       await userProfile.click();
+      console.log('Clicked user profile icon to open menu');
       userMenuClicked = true;
     }
 
@@ -193,8 +197,10 @@ export class ModuleHeaderPage extends HelperBase {
       if (await logoutOption.isVisible()) {
         await logoutOption.click();
         await this.page.waitForLoadState('networkidle');
+        console.log('Clicked logout option and waited for page to load');
       }
     }
+    console.log('Logout process completed, verifying logged out state');
   }
 
   async testWithAuthStates(
@@ -215,7 +221,7 @@ export class ModuleHeaderPage extends HelperBase {
     // Ensure overlays are dismissed and header is visible for accessibility checks
     await hideAllModalsAndPopups(this.page);
     try {
-      await this.header.waitFor({ state: 'visible', timeout: 15000 });
+      await this.header.waitFor({ state: 'visible', timeout: t(15000) });
       await expect(this.header).toBeVisible();
     } catch (e) {
       // If header is rendered but not visible due to site behavior in this environment,
@@ -229,7 +235,7 @@ export class ModuleHeaderPage extends HelperBase {
     // Ensure overlays are dismissed and header is visible for accessibility checks
     await hideAllModalsAndPopups(this.page);
     try {
-      await this.header.waitFor({ state: 'visible', timeout: 15000 });
+      await this.header.waitFor({ state: 'visible', timeout: t(15000) });
       await expect(this.header).toBeVisible();
     } catch (e) {
       // Fall back to existence check to avoid flaky failures in CI/staging where header

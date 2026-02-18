@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test"
-import { LANGUAGES, SOURCE_LANGUAGES } from "../globals"
+import { LANGUAGES, SOURCE_LANGUAGES, t } from "../globals"
 import { HelperBase } from "./helperBase"
 
 export class SourceTextPage extends HelperBase {
@@ -98,13 +98,13 @@ export class SourceTextPage extends HelperBase {
 
         const addToSheetButton = this.page.locator('.addToSourceSheetBox .dropdown .sefaria-common-button')
         await addToSheetButton.click();
-        await this.page.waitForTimeout(500); // Wait for dropdown to appear
+        await this.page.waitForTimeout(t(500)); // Wait for dropdown to appear
 
         // Select sheet from dropdown by title
         const sheetOption = this.page.locator('.dropdownOption')
             .filter({ hasText: sheetTitle });
         await sheetOption.first().click();
-        await this.page.waitForTimeout(300);
+        await this.page.waitForTimeout(t(300));
 
         // Click final "Add to Sheet" button to confirm
         const addButton2 = this.page.getByText('Add to Sheet')

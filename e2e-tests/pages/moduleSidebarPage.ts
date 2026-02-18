@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { HelperBase } from './helperBase';
+import { t } from '../globals';
 
 /**
  * Specification for footer link testing
@@ -28,7 +29,7 @@ export class ModuleSidebarPage extends HelperBase {
    * Wait for sidebar footer to be visible
    */
   async waitForFooter() {
-    await expect(this.footer).toBeVisible({ timeout: 5000 });
+    await expect(this.footer).toBeVisible({ timeout: t(5000) });
   }
 
   /**

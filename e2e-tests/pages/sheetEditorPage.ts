@@ -2,7 +2,7 @@ import { BrowserContext, Cookie, ElementHandle, Locator, Page } from 'playwright
 import { expect } from 'playwright/test';
 import { isClickable } from "../utils";
 import { SaveStates, SaveState, SHEET_EDITOR_SELECTORS, MODULE_URLS } from '../constants';
-import { LANGUAGES, testUser } from '../globals';
+import { LANGUAGES, testUser, t } from '../globals';
 import { HelperBase } from "./helperBase";
 import { LoginPage } from './loginPage';
 
@@ -15,7 +15,7 @@ export class SheetEditorPage extends HelperBase {
   statusIndicator = () => this.page.locator('.editorSaveStateIndicator');
   statusMessage = () => this.page.locator('.saveStateMessage');
   statusTooltip = () => this.page.locator('.editorSaveStateIndicator [data-tooltip]');
-  maxSaveStateTimeout = 5000; //used in assertSaveState and a few other functions to allow for save state detection/update
+  maxSaveStateTimeout = t(5000); //used in assertSaveState and a few other functions to allow for save state detection/update
 
   async getHoverStatus() { await this.statusIndicator().hover(); }
 
@@ -159,7 +159,7 @@ export class SheetEditorPage extends HelperBase {
     const editorInterface = this.page.locator('.editorAddInterface');
 
     try {
-      const box = await editorInterface.boundingBox({ timeout: 2000 });
+      const box = await editorInterface.boundingBox({ timeout: t(2000) });
       if (box) {
         await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
         return;
@@ -170,7 +170,7 @@ export class SheetEditorPage extends HelperBase {
       await this.page.keyboard.press('End');
 
       try {
-        const box = await editorInterface.boundingBox({ timeout: 1000 });
+        const box = await editorInterface.boundingBox({ timeout: t(1000) });
         if (box) {
           await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
         }
@@ -206,10 +206,10 @@ export class SheetEditorPage extends HelperBase {
 
   async focusTextInput() {
     try {
-      await this.page.locator('.spacerSelected.spacer.empty').click({ timeout: 2000, force: true });
+      await this.page.locator('.spacerSelected.spacer.empty').click({ timeout: t(2000), force: true });
     } catch (error) {
       try {
-        await this.page.locator('.editorAddInterface').click({ timeout: 2000, force: true });
+        await this.page.locator('.editorAddInterface').click({ timeout: t(2000), force: true });
       } catch (error2) {
         // Use existing moveCursorToEnd helper
         await this.moveCursorToEnd();
@@ -230,7 +230,7 @@ export class SheetEditorPage extends HelperBase {
     await this.focusTextInput();
     //delay is used to simulate user typing and ensure the save state is detected/updated
     await this.page.keyboard.type(text);
-    await this.page.waitForTimeout(100); // Extra wait for auto-save
+    await this.page.waitForTimeout(t(100)); // Extra wait for auto-save
     await this.page.keyboard.press('Enter');
   }
 
@@ -246,7 +246,7 @@ export class SheetEditorPage extends HelperBase {
     const fileInput = this.page.locator('#addImageFileSelector');
     await fileInput.setInputFiles(imagePath);
     // Wait for the image to be added to the sheet
-    await expect(this.addedImage()).toBeVisible({ timeout: 10000 });
+    await expect(this.addedImage()).toBeVisible({ timeout: t(10000) });
   };
 
   async addSampleMedia(link: string) {
@@ -255,10 +255,10 @@ export class SheetEditorPage extends HelperBase {
     await mediaInput.fill(link);
     // Wait for the "Add Media" button to appear (it only appears after valid URL is entered)
     const addButton = this.page.getByRole('button', { name: 'Add Media' });
-    await expect(addButton).toBeVisible({ timeout: 5000 });
+    await expect(addButton).toBeVisible({ timeout: t(5000) });
     await addButton.click();
     // Wait a moment for the media to be embedded
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(t(500));
   };
 
   async moveCursorToEnd() {
@@ -376,7 +376,7 @@ export class SheetEditorPage extends HelperBase {
   async clickPublishButton() {
     const publishButton = this.page.getByRole('button', { name: /publish/i });
     await publishButton.click();
-    await this.page.waitForTimeout(500); // Wait for modal to appear
+    await this.page.waitForTimeout(t(500)); // Wait for modal to appear
   }
 
   /**
@@ -405,9 +405,9 @@ export class SheetEditorPage extends HelperBase {
 
         const suggestion = this.page.locator('.react-tags__suggestions li')
           .filter({ hasText: new RegExp(topic, 'i') }).first();
-        await expect(suggestion).toBeVisible({ timeout: 5000 });
+        await expect(suggestion).toBeVisible({ timeout: t(5000) });
         await suggestion.click();
-        await this.page.waitForTimeout(300);
+        await this.page.waitForTimeout(t(300));
       }
     }
   }
@@ -433,7 +433,7 @@ export class SheetEditorPage extends HelperBase {
   async openOptionsMenu() {
     const ellipsisButton = this.page.locator('img[src="/static/icons/ellipses.svg"]');
     await ellipsisButton.click();
-    await this.page.waitForTimeout(300); // Wait for menu to appear
+    await this.page.waitForTimeout(t(300)); // Wait for menu to appear
   }
 
   /**
@@ -457,7 +457,7 @@ export class SheetEditorPage extends HelperBase {
 
     const collectionsOption = this.page.getByText(/Edit Collections|Add to Collection/);
     await collectionsOption.click();
-    await this.page.waitForTimeout(500); // Wait for modal to appear
+    await this.page.waitForTimeout(t(500)); // Wait for modal to appear
   }
 
   /**
@@ -475,12 +475,12 @@ export class SheetEditorPage extends HelperBase {
     await createButton.click();
 
     // Wait for collection to be created and auto-checked
-    await this.page.waitForTimeout(800);
+    await this.page.waitForTimeout(t(800));
 
     // Click Done
     const doneButton = this.page.locator('.button.large.fillWidth');
     await doneButton.click();
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(t(300));
   }
 
   /**
@@ -494,7 +494,7 @@ export class SheetEditorPage extends HelperBase {
     const dialog = await dialogPromise;
     expect(dialog.message()).toContain("Are you sure you want to delete this sheet?");
     await dialog.accept();
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(t(500));
 
     await this.page.waitForLoadState('networkidle');
   }

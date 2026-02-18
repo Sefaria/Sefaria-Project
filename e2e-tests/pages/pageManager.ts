@@ -17,6 +17,7 @@ import { ModuleSidebarPage } from "./moduleSidebarPage"
 import { ProfilePage } from "./profilePage"
 import { EditProfilePage } from "./editProfilePage"
 import { AccountSettingsPage } from "./accountSettingsPage"
+import { MobileHamburgerMenuPage } from "./mobileHamburgerMenuPage"
 
 export class PageManager{
     private readonly page: Page
@@ -36,6 +37,7 @@ export class PageManager{
     private readonly profilePage: ProfilePage
     private readonly editProfilePage: EditProfilePage
     private readonly accountSettingsPage: AccountSettingsPage
+    private readonly mobileHamburgerMenuPage: MobileHamburgerMenuPage
 
 
     constructor(page: Page, language: string){
@@ -56,6 +58,7 @@ export class PageManager{
         this.profilePage = new ProfilePage(page, language)
         this.editProfilePage = new EditProfilePage(page, language)
         this.accountSettingsPage = new AccountSettingsPage(page, language)
+        this.mobileHamburgerMenuPage = new MobileHamburgerMenuPage(page, language)
     }
 
     navigateFromBannerTo(){
@@ -121,5 +124,9 @@ export class PageManager{
 
     onAccountSettingsPage(){
         return this.accountSettingsPage
+    }
+
+    onMobileHamburgerMenu(){
+        return this.mobileHamburgerMenuPage
     }
 }

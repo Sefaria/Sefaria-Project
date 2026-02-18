@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 
 /**
  * Page object for account settings page
@@ -85,7 +85,7 @@ export class AccountSettingsPage extends HelperBase {
     });
 
     // Wait a bit for the save operation to complete
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(t(1000));
   }
 
   async verifyPageLoaded() {
