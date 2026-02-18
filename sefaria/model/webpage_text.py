@@ -40,14 +40,14 @@ class WebPageText(abst.AbstractMongoRecord):
     @staticmethod
     def add_or_update(webpage_text_contents: dict):
         """
-        Adds or updates WebPageText by normalized URL.
+        Adds or updates WebPageText by URL.
         @param webpage_text_contents: dict with keys url, title, body
         """
-        normalized_url = normalize_url(webpage_text_contents["url"])
+        url = webpage_text_contents["url"]
         title = webpage_text_contents["title"]
         body = webpage_text_contents["body"]
 
-        webpage_text = WebPageText().load(normalized_url)
+        webpage_text = WebPageText().load(url)
         if webpage_text:
             if title == webpage_text.title and body == webpage_text.body:
                 return "excluded", webpage_text
@@ -55,7 +55,7 @@ class WebPageText(abst.AbstractMongoRecord):
             webpage_text.body = body
         else:
             webpage_text = WebPageText({
-                "url": normalized_url,
+                "url": url,
                 "title": title,
                 "body": body,
             })
