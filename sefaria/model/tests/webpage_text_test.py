@@ -92,11 +92,10 @@ def test_webpage_text_duplicate_url_rejected(webpage_text_duplicate_base):
 
 
 def test_webpage_text_add_or_update_from_linker_upserts(webpage_text_upsert_data):
-	data = webpage_text_upsert_data
-	status, webpage_text = WebPageText.add_or_update_from_linker(data)
+	status, webpage_text = WebPageText.add_or_update_from_linker(webpage_text_upsert_data)
 	assert status == "saved"
 	assert webpage_text is not None
-	status_again, same_webpage_text = WebPageText.add_or_update_from_linker(data)
+	status_again, same_webpage_text = WebPageText.add_or_update_from_linker(webpage_text_upsert_data)
 	assert status_again == "excluded"
 	assert same_webpage_text is not None
 
@@ -109,8 +108,8 @@ def test_webpage_text_add_or_update_from_linker_upserts(webpage_text_upsert_data
 	assert status_updated == "saved"
 	assert updated_webpage_text is not None
 
-	loaded = WebPageText().load(data["url"])
+	loaded = WebPageText().load(webpage_text_upsert_data["url"])
 	assert loaded is not None
 	assert loaded.title == "Updated Title"
 	assert loaded.body == "Updated body"
-	assert loaded.url == WebPage.normalize_url(data["url"])
+	assert loaded.url == WebPage.normalize_url(webpage_text_upsert_data["url"])
