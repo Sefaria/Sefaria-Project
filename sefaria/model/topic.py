@@ -720,58 +720,141 @@ class AuthorTopic(PersonTopic):
             return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(
                 index, 'collective_title', None) is not None
 
+        print(f"[aggregate_authors_indexes_by_category] START author_slug={self.slug}")
         indexes = self.get_authored_indexes()
+        print(f"[aggregate_authors_indexes_by_category] authored_indexes_count={len(indexes)} titles={[i.title for i in indexes]}")
 
         final_aggregations = []
 
         blocks = {}
 
         MAX_ICAT_FROM_END_TO_CONSIDER = 2
+        print(f"[aggregate_authors_indexes_by_category] MAX_ICAT_FROM_END_TO_CONSIDER={MAX_ICAT_FROM_END_TO_CONSIDER}")
         for index in indexes:
+            idx = index
+            print("raw idx.collective_title:", getattr(idx, "collective_title", "MISSING_ATTR"))
             is_comm = index_is_commentary(index)
             base = library.get_index(index.base_text_titles[0]) if is_comm else index
             collective_title = index.collective_title if is_comm else None
             base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER + 1])
+            print(
+                f"[aggregate_authors_indexes_by_category] processing_index="
+                f"{index.title} is_commentary={is_comm} base_title={base.title} "
+                f"collective_title={collective_title} base_categories={base.categories} "
+                f"base_cat_path={base_cat_path}"
+            )
 
             new_empty_block = DisjointBookSet(base_cat_path=base_cat_path, collective_title=collective_title)
             if new_empty_block in blocks:
                 block = blocks[new_empty_block]
+                print(
+                    f"[aggregate_authors_indexes_by_category] using_existing_block "
+                    f"base_cat_path={base_cat_path} collective_title={collective_title}"
+                )
             else:
                 blocks[new_empty_block] = new_empty_block
                 block = new_empty_block
+                print(
+                    f"[aggregate_authors_indexes_by_category] created_new_block "
+                    f"base_cat_path={base_cat_path} collective_title={collective_title}"
+                )
 
             for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
                 sub_cat_book_set = SubCatBookSet(depth=icat+1, sub_cat_path=tuple(base.categories[:icat + 1]))
                 if sub_cat_book_set not in block.sub_cat_book_sets:
                     block.sub_cat_book_sets[sub_cat_book_set] = sub_cat_book_set
+                    print(
+                        f"[aggregate_authors_indexes_by_category] created_sub_cat_book_set "
+                        f"index={index.title} depth={icat + 1} sub_cat_path={sub_cat_book_set.sub_cat_path}"
+                    )
 
                 block.sub_cat_book_sets[sub_cat_book_set].books.append(index)
+                print(
+                    f"[aggregate_authors_indexes_by_category] appended_book_to_sub_cat_book_set "
+                    f"index={index.title} depth={icat + 1} sub_cat_path={sub_cat_book_set.sub_cat_path} "
+                    f"sub_cat_book_count={len(block.sub_cat_book_sets[sub_cat_book_set].books)}"
+                )
 
         for block in blocks:
+            print(
+                f"[aggregate_authors_indexes_by_category] evaluating_block "
+                f"base_cat_path={block.base_cat_path} collective_title={block.collective_title} "
+                f"sub_cat_book_set_count={len(block.sub_cat_book_sets)}"
+            )
             cat_choices_sorted = sort_sub_cat_book_sets(book_sets=block.sub_cat_book_sets.values())
+            print(
+                "[aggregate_authors_indexes_by_category] sorted_sub_categories="
+                f"{[(c.sub_cat_path, len(c.books), c.depth) for c in cat_choices_sorted]}"
+            )
             collective_title = block.collective_title
             best_base_cat_path = cat_choices_sorted[0].sub_cat_path
             temp_indexes = cat_choices_sorted[0].books
+            print(
+                f"[aggregate_authors_indexes_by_category] best_choice "
+                f"best_base_cat_path={best_base_cat_path} selected_titles={[i.title for i in temp_indexes]} "
+                f"selected_count={len(temp_indexes)} collective_title={collective_title}"
+            )
             if len(temp_indexes) == 1:
+                print(
+                    f"[aggregate_authors_indexes_by_category] decision=single_index "
+                    f"title={temp_indexes[0].title} aggregation_type=index"
+                )
                 final_aggregations += [AuthorAggregationFactory.create(index=temp_indexes[0])]
                 continue
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
+                print(
+                    f"[aggregate_authors_indexes_by_category] special_case_applied "
+                    f"original_best_base_cat_path=('Talmud', 'Bavli') adjusted_best_base_cat_path={best_base_cat_path}"
+                )
 
             base_category = Category().load({"path": list(best_base_cat_path)})
+            print(
+                f"[aggregate_authors_indexes_by_category] base_category_loaded "
+                f"path={list(best_base_cat_path)} found={base_category is not None}"
+            )
             if collective_title is None:
                 index_category = base_category
                 collective_title_term = None
+                print(
+                    f"[aggregate_authors_indexes_by_category] collective_title_absent "
+                    f"index_category_path={(index_category.path if index_category is not None else None)}"
+                )
             else:
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
-            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path,
-                                                                                 collective_title is not None) or (
-                    collective_title is None and self._category_matches_author(index_category)):
+                print(
+                    f"[aggregate_authors_indexes_by_category] collective_title_present "
+                    f"collective_title={collective_title} "
+                    f"index_category_path={(index_category.path if index_category is not None else None)} "
+                    f"collective_title_term_found={collective_title_term is not None}"
+                )
+            fill_category_ok = index_category is not None and self._authors_indexes_fill_category(
+                temp_indexes, index_category.path, collective_title is not None
+            )
+            category_matches_author = collective_title is None and index_category is not None and self._category_matches_author(index_category)
+            should_fallback_to_indexes = index_category is None or (not fill_category_ok) or category_matches_author
+            print(
+                f"[aggregate_authors_indexes_by_category] decision_inputs "
+                f"index_category_is_none={index_category is None} fill_category_ok={fill_category_ok} "
+                f"category_matches_author={category_matches_author} should_fallback_to_indexes={should_fallback_to_indexes}"
+            )
+            if should_fallback_to_indexes:
+                print(
+                    "[aggregate_authors_indexes_by_category] decision=fallback_to_individual_indexes "
+                    f"titles={[i.title for i in temp_indexes]}"
+                )
                 for temp_index in temp_indexes:
                     final_aggregations += [AuthorAggregationFactory.create(index=temp_index)]
                 continue
+            print(
+                "[aggregate_authors_indexes_by_category] decision=create_category_aggregation "
+                f"index_category_path={index_category.path} "
+                f"base_category_path={(base_category.path if base_category is not None else None)} "
+                f"collective_title_term={collective_title}"
+            )
             final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
+        print(f"[aggregate_authors_indexes_by_category] END final_aggregations_count={len(final_aggregations)}")
         return final_aggregations
 
 
@@ -1233,9 +1316,3 @@ def process_topic_description_change(topic, **kwargs):
             ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
                               'ref': ref}
             RefTopicLink(ref_topic_dict).save()
-
-
-
-
-
-
