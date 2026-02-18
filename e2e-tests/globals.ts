@@ -19,8 +19,8 @@ export const cookieObject = {
 
 export const testUser = {
     // These environment variables should be set in your local .env file
-     email: process.env.PLAYWRIGHT_USER_EMAIL ?? '',
-     password: process.env.PLAYWRIGHT_USER_PASSWORD ?? '',
+    email: process.env.PLAYWRIGHT_USER_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_USER_PASSWORD ?? '',
 }
 
 export const testAdminUser = {
@@ -70,3 +70,12 @@ export const BROWSER_SETTINGS = {
         user: null,
     },
 };
+
+// Parse and validate TIMEOUT_MULTIPLIER from environment
+const rawMultiplier = parseFloat(process.env.TIMEOUT_MULTIPLIER || '1.0');
+const clampedMultiplier = Math.min(3.0, Math.max(0.1, isNaN(rawMultiplier) ? 1.0 : rawMultiplier));
+// Round to 1 decimal place
+export const TIMEOUT_MULTIPLIER = Math.round(clampedMultiplier * 10) / 10;
+
+/** Apply TIMEOUT_MULTIPLIER to a timeout value in ms */
+export const t = (ms: number): number => Math.round(ms * TIMEOUT_MULTIPLIER);

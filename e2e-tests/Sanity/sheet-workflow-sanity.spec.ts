@@ -76,7 +76,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Add source via text lookup
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
     // BOOTLEG: Fix because plus button is not on bottom as it should be
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 15; i++) {
       await page.keyboard.press('ArrowDown');
     }
     await sheetEditorPage.addSampleSource(); // Genesis 1:1

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { t } from './e2e-tests/globals';
 
 // load environment variables from .env file in the e2e-tests directory
 if (!process.env.CI) {
@@ -35,11 +36,11 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* timeout for each test */
-  timeout: 200000,
+  timeout: t(200000),
 
   /* timeout for each expect */
   expect: {
-    timeout: 10000,
+    timeout: t(10000),
   },
 
 

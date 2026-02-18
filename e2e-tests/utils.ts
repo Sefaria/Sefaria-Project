@@ -1,4 +1,4 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS } from './globals'
+import { DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS, t } from './globals'
 import { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
@@ -141,14 +141,14 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   for (const s of selectors) {
     try {
       const el = page.locator(s);
-      if (await el.isVisible({ timeout: 1500 })) await el.click();
+      if (await el.isVisible({ timeout: t(1500) })) await el.click();
     } catch (e) { console.log(e); }
   }
   // await page.evaluate(() => {
   //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2');
   //   overlays.forEach(el => el.remove());
   // }).catch(() => { });
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(t(300));
 };
 
 /**
@@ -179,18 +179,18 @@ export const toggleLanguage = async (page: Page, language: string) => {
   try {
     // Use dropdown menu to toggle language
     await openHeaderDropdown(page, 'user');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(t(1000));
 
 
 
     const languageToggle = page.locator(`.header .headerDropdownMenu .dropdownLinks-menu.open .dropdownLinks-options .dropdownLanguageToggle`);
-    await languageToggle.waitFor({ state: 'visible', timeout: 5000 });
+    await languageToggle.waitFor({ state: 'visible', timeout: t(5000) });
     const languageToggleClass = languageToggle.locator(languageClass);
-    await languageToggleClass.waitFor({ state: 'visible', timeout: 5000 });
+    await languageToggleClass.waitFor({ state: 'visible', timeout: t(5000) });
     await languageToggleClass.click();
 
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(t(500));
 
     // Verify language changed
     const newBodyClass = await body.getAttribute('class') || '';
@@ -218,7 +218,7 @@ export const toggleLanguage = async (page: Page, language: string) => {
       await page.context().addCookies([cookie]);
     } catch (e) { }
 
-    await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: t(30000) });
     await page.waitForLoadState('domcontentloaded');
   }
 };
@@ -419,10 +419,10 @@ export const simulateOnlineMode = async (page: Page) => {
 export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<Page['goto']>[1]) => {
   const response = await page.goto(url, options);
   if (response && response.status() === 404) {
-    throw new Error(`Navigation to ${url} returned 404`);
+    throw new Error(`Error 404: Navigation to ${url} returned 404`);
   }
   else if (response && response.status() >= 400) {
-    throw new Error(`Navigation to ${url} returned status ${response.status()}`);
+    throw new Error(`Error ${response.status()}: Navigation to ${url} returned status ${response.status()}`);
   }
 
   return response;
@@ -456,11 +456,11 @@ export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'mod
     button = page.locator(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
   }
 
-  await button.waitFor({ state: 'visible', timeout: 5000 });
+  await button.waitFor({ state: 'visible', timeout: t(5000) });
   await button.click();
 
   // Wait for dropdown to appear (use .open to avoid strict mode violation with multiple dropdowns)
-  await page.locator(`${MODULE_SELECTORS.DROPDOWN}.open`).waitFor({ state: 'visible', timeout: 5000 });
+  await page.locator(`${MODULE_SELECTORS.DROPDOWN}.open`).waitFor({ state: 'visible', timeout: t(5000) });
 };
 
 /**
@@ -475,7 +475,7 @@ export const selectDropdownOption = async (
   openNewTab: boolean = false
 ) => {
   const option = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText }).first();
-  await option.waitFor({ state: 'visible', timeout: 5000 });
+  await option.waitFor({ state: 'visible', timeout: t(5000) });
 
   if (openNewTab) {
     const [newPage] = await Promise.all([
@@ -499,11 +499,11 @@ export const selectDropdownOption = async (
 export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
   try {
     // Wait for potential logged-out icon or profile pic to load (whichever appears first)
-    await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => { /* continue if it times out */ });
+    await page.waitForLoadState('networkidle', { timeout: t(4000) }).catch(() => { /* continue if it times out */ });
 
     // Check if logged-out icon is visible
     const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
-    const isLoggedOut = await loggedOutIcon.isVisible({ timeout: 2000 });
+    const isLoggedOut = await loggedOutIcon.isVisible({ timeout: t(2000) });
     if (isLoggedOut) {
       // log that logged out icon is visible for debugging purposes
       console.log(`User is not logged in (logged-out icon visible)`);
@@ -512,7 +512,7 @@ export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
 
     // Check if profile pic is visible (logged in)
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
-    const isLoggedIn = await profilePic.isVisible({ timeout: 2000 }).catch(() => false);
+    const isLoggedIn = await profilePic.isVisible({ timeout: t(2000) }).catch(() => false);
     if (isLoggedIn) {
       console.log('User is logged in (profile pic visible)');
     }
@@ -536,7 +536,7 @@ export const logout = async (page: Page) => {
   const logoutOption = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)
     .filter({ hasText: /log out|sign out|logout|ניתוק/i });
 
-  await logoutOption.waitFor({ state: 'visible', timeout: 5000 });
+  await logoutOption.waitFor({ state: 'visible', timeout: t(5000) });
   await logoutOption.click();
   await page.waitForLoadState('networkidle');
 };
@@ -554,15 +554,15 @@ export const createNewSheet = async (page: Page): Promise<string> => {
 
   const initialUrl = page.url();
 
-  if (await createButton.isVisible({ timeout: 2000 })) {
+  if (await createButton.isVisible({ timeout: t(2000) })) {
     await createButton.click();
-  } else if (await createLink.isVisible({ timeout: 2000 })) {
+  } else if (await createLink.isVisible({ timeout: t(2000) })) {
     await createLink.click();
   } else {
     await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/new`);
   }
 
-  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: 10000 });
+  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
   await page.waitForLoadState('networkidle');
   await hideAllModalsAndPopups(page);
 
@@ -603,10 +603,10 @@ export const switchModule = async (
  */
 export const waitForSegment = async (page: Page, selector: string) => {
   const loadingHeading = page.getByRole('heading', { name: 'Loading...' });
-  await loadingHeading.waitFor({ state: 'detached', timeout: 15000 }).catch(() => { });
+  await loadingHeading.waitFor({ state: 'detached', timeout: t(15000) }).catch(() => { });
 
   const segment = page.locator(selector);
-  await segment.waitFor({ state: 'visible', timeout: 10000 });
+  await segment.waitFor({ state: 'visible', timeout: t(10000) });
   return segment;
 };
 
