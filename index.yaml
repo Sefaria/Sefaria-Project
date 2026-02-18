@@ -33,6 +33,21 @@ entries:
     version: 0.76.0-master.1
   - apiVersion: v2
     appVersion: v6.65.0
+    created: "2026-02-18T10:05:56.726978265Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 1bd0d907a12d37e812de4f8e7c18adb9e5fe83e512a28aaa98c92cb7496a9fc9
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.76.0-gateway-client-detection.3.tgz
+    version: 0.76.0-gateway-client-detection.3
+  - apiVersion: v2
+    appVersion: v6.65.0
     created: "2026-02-18T08:37:11.832857011Z"
     description: Chart to deploy complete Sefaria environment
     digest: 88a14ebc7369eb17c44c39d03495ef90c94018ab747602457c6aeeeab523379b
@@ -13755,4 +13770,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-02-18T09:07:26.691452579Z"
+generated: "2026-02-18T10:05:56.723549785Z"
