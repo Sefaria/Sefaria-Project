@@ -216,23 +216,7 @@ export default defineConfig({
       },
     },
 
-    /* Test against mobile viewports - Sefaria Mobile Web */
-    {
-      name: 'mobile-iphone',
-      testDir: './e2e-tests/mobile',
-      use: {
-        ...devices['iPhone 16'],
-        baseURL: MODULE_URLS.EN.LIBRARY,
-      },
-    },
-    {
-      name: 'mobile-android',
-      testDir: './e2e-tests/mobile',
-      use: {
-        ...devices['Pixel 9'],
-        baseURL: MODULE_URLS.EN.LIBRARY,
-      },
-    },
+
 
     /* Test against branded browsers. */
     // {

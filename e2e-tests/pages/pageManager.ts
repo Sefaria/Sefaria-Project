@@ -1,6 +1,6 @@
 import { Page } from "@playwright/test"
-import {changeLanguage} from "../utils"
-import {LANGUAGES} from '../globals'
+import { changeLanguage } from "../utils"
+import { LANGUAGES } from '../globals'
 import { Banner } from "./banner"
 import { TextsPage } from "./textsPage"
 import { TopicsPage } from "./topicsPage"
@@ -17,9 +17,9 @@ import { ModuleSidebarPage } from "./moduleSidebarPage"
 import { ProfilePage } from "./profilePage"
 import { EditProfilePage } from "./editProfilePage"
 import { AccountSettingsPage } from "./accountSettingsPage"
-import { MobileHamburgerMenuPage } from "./mobileHamburgerMenuPage"
 
-export class PageManager{
+
+export class PageManager {
     private readonly page: Page
     private readonly banner: Banner
     private readonly textsPage: TextsPage
@@ -37,10 +37,10 @@ export class PageManager{
     private readonly profilePage: ProfilePage
     private readonly editProfilePage: EditProfilePage
     private readonly accountSettingsPage: AccountSettingsPage
-    private readonly mobileHamburgerMenuPage: MobileHamburgerMenuPage
 
 
-    constructor(page: Page, language: string){
+
+    constructor(page: Page, language: string) {
         this.page = page
         this.banner = new Banner(page, language)
         this.textsPage = new TextsPage(page, language)
@@ -58,75 +58,73 @@ export class PageManager{
         this.profilePage = new ProfilePage(page, language)
         this.editProfilePage = new EditProfilePage(page, language)
         this.accountSettingsPage = new AccountSettingsPage(page, language)
-        this.mobileHamburgerMenuPage = new MobileHamburgerMenuPage(page, language)
+
     }
 
-    navigateFromBannerTo(){
+    navigateFromBannerTo() {
         // This method is used to navigate to different pages using the banner
         return this.banner
     }
 
-    onTextsPage(){
+    onTextsPage() {
         return this.textsPage
     }
 
-    onTopicsPage(){
+    onTopicsPage() {
         return this.topicsPage
     }
 
-    onCommunityPage(){
+    onCommunityPage() {
         return this.communityPage
     }
 
-    onDonatePage(){
+    onDonatePage() {
         return this.donatePage
     }
 
-    onLoginPage(){
+    onLoginPage() {
         return this.loginPage
     }
 
-    onSignUpPage(){
+    onSignUpPage() {
         return this.signupPage
     }
 
-    onSearchPage(){
+    onSearchPage() {
         return this.searchPage
     }
 
-    onUserMenu(){
+    onUserMenu() {
         return this.userMenu
     }
 
-    onSourceTextPage(){
+    onSourceTextPage() {
         return this.sourceTextPage
     }
 
-    onSourceSheetEditorPage(){
+    onSourceSheetEditorPage() {
         return this.sheetEditorPage
     }
 
-    onModuleHeader(){
+    onModuleHeader() {
         return this.moduleHeaderPage
     }
 
-    onModuleSidebar(){
+    onModuleSidebar() {
         return this.moduleSidebarPage
     }
 
-    onProfilePage(){
+    onProfilePage() {
         return this.profilePage
     }
 
-    onEditProfilePage(){
+    onEditProfilePage() {
         return this.editProfilePage
     }
 
-    onAccountSettingsPage(){
+    onAccountSettingsPage() {
         return this.accountSettingsPage
     }
 
-    onMobileHamburgerMenu(){
-        return this.mobileHamburgerMenuPage
-    }
+
 }
