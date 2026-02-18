@@ -70,6 +70,7 @@ site_urlpatterns = [
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),
+    url(r'^llms\.txt/?$', reader_views.serve_llms_txt),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
     url(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
     url(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?

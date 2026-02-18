@@ -5018,6 +5018,17 @@ def module_favicon(request, filename):
     return response
 
 
+def serve_llms_txt(request):
+    """
+    Serve llms.txt from the static directory.
+    This provides LLM-friendly documentation about Sefaria's API and resources.
+    """
+    llms_path = os.path.join(STATICFILES_DIRS[0], 'llms.txt')
+    response = FileResponse(open(llms_path, 'rb'), content_type='text/plain; charset=utf-8')
+    response["Cache-Control"] = "max-age=86400"  # 1 day
+    return response
+
+
 def android_asset_links_json(request):
     return jsonResponse(
         [{
