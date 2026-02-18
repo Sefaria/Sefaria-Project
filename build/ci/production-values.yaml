@@ -145,7 +145,6 @@ ingress:
 gateway:
   enabled: true
   annotations: {}
-  clientIPHeader: CF-Connecting-IP
 nginx:
   containerImage:
     imageRegistry:

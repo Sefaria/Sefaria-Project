@@ -274,7 +274,6 @@ gateway:
   className: envoy
   annotations:
     cert-manager.io/cluster-issuer: ingress-ca
-  clientIPHeader: X-Forwarded-For
 
 nginx:
   containerImage:

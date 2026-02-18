@@ -143,7 +143,6 @@ domains:
 gateway:
   enabled: true
   annotations: {}
-  clientIPHeader: CF-Connecting-IP
 ingress:
   enabled: false
 nginx:
