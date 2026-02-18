@@ -148,7 +148,7 @@ def _save_webpage_text_from_linker_request(meta_data: dict, request_text: _FindR
     url = meta_data.get("url")
     if not url:
         return
-    WebPageText.add_or_update_from_linker({
+    WebPageText.add_or_update({
         "url": url,
         "title": request_text.title,
         "body": request_text.body,

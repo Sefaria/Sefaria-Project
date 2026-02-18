@@ -43,13 +43,13 @@ class WebPage(abst.AbstractMongoRecord):
     ]
 
     def load(self, url_or_query):
-        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
+        query = {"url": normalize_webpage_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
         return super(WebPage, self).load(query)
 
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
-            self.domain      = WebPage.domain_for_url(self.url)
-            self._site_data  = WebPage.site_data_for_domain(self.domain)
+            self.domain      = webpage_domain_for_url(self.url)
+            self._site_data  = get_site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
             self.favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else None
             self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
@@ -59,7 +59,7 @@ class WebPage(abst.AbstractMongoRecord):
         self.lastUpdated = datetime.now()
 
     def _normalize_data_sent_from_linker(self):
-        self.url = self.normalize_url(self.url)
+        self.url = normalize_webpage_url(self.url)
         self.refs = self._normalize_refs(getattr(self, "refs", []))
         self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
         self.description = self.clean_description(getattr(self, "description", ""))
@@ -98,23 +98,15 @@ class WebPage(abst.AbstractMongoRecord):
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
-        domain = WebPage.domain_for_url(WebPage.normalize_url(self.url))
+        domain = webpage_domain_for_url(normalize_webpage_url(self.url))
         if dict_only is False:
             return WebSite().load({"domains": domain})
         else:
-            sites = get_website_cache()
+            sites = get_cached_websites()
             for site in sites:
                 if domain in site["domains"]:
                     return site
             return {}
-
-    @staticmethod
-    def normalize_url(url):
-        return normalize_webpage_url(url)
-
-    @staticmethod
-    def domain_for_url(url):
-        return webpage_domain_for_url(url)
 
     def should_be_excluded(self):
         """ Returns true if this webpage should not be included in our index
@@ -147,7 +139,7 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
         bad_urls = []
-        sites = get_website_cache()
+        sites = get_cached_websites()
         for site in sites:
             if looking_for_domain is None or looking_for_domain in site["domains"]:
                 bad_urls += site.get("bad_urls", [])
@@ -168,10 +160,6 @@ class WebPage(abst.AbstractMongoRecord):
             r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
-
-    @staticmethod
-    def site_data_for_domain(domain):
-        return get_site_data_for_domain(domain)
 
     @staticmethod
     def add_or_update_from_linker(webpage_contents: dict, add_hit=True):
@@ -305,10 +293,6 @@ class WebSite(abst.AbstractMongoRecord):
 class WebSiteSet(abst.AbstractMongoSet):
     recordClass = WebSite
 
-
-def get_website_cache():
-    return get_cached_websites()
-
 def _webpage_client_contents_minimal(webpage):
     site_data = getattr(webpage, "_site_data", {}) or {}
     site_name = getattr(webpage, "site_name", "")
@@ -415,7 +399,7 @@ def test_normalization():
     pages = WebPageSet()
     count = 0
     for page in pages:
-        norm = WebPage.normalize_url(page.url)
+        norm = normalize_webpage_url(page.url)
         if page.url != norm:
             print(page.url.encode("utf-8"))
             print(norm.encode("utf-8"))
@@ -430,7 +414,7 @@ def dedupe_webpages(webpages, test=True):
     norm_count = 0
     dedupe_count = 0
     for i, webpage in tqdm(enumerate(webpages)):
-        norm = WebPage.normalize_url(webpage.url)
+        norm = normalize_webpage_url(webpage.url)
         if webpage.url != norm:
             normpage = WebPage().load(norm)
             if normpage:
@@ -692,7 +676,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     from datetime import datetime, timedelta
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
     webpages_without_websites = 0
-    for data in get_website_cache():
+    for data in get_cached_websites():
          if data["is_whitelisted"]:  # we only care about whitelisted sites
             for domain in data['domains']:
                 ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])

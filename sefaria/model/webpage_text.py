@@ -38,7 +38,7 @@ class WebPageText(abst.AbstractMongoRecord):
         return True
 
     @staticmethod
-    def add_or_update_from_linker(webpage_text_contents: dict):
+    def add_or_update(webpage_text_contents: dict):
         """
         Adds or updates WebPageText by normalized URL.
         @param webpage_text_contents: dict with keys url, title, body

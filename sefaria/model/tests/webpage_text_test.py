@@ -1,7 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from sefaria.model.webpage import WebPage
+from sefaria.helper.webpages import normalize_url
 from sefaria.model.webpage_text import WebPageText
 from sefaria.system.exceptions import DuplicateRecordError
 
@@ -60,7 +60,7 @@ def webpage_text_upsert_data():
 
 def test_webpage_text_normalizes_url_on_save_and_load(webpage_text_unnormalized_input):
 	data = webpage_text_unnormalized_input["data"]
-	normalized_url = WebPage.normalize_url(data["url"])
+	normalized_url = normalize_url(data["url"])
 	loaded = WebPageText().load(normalized_url)
 	assert loaded is not None
 	assert loaded.url == normalized_url
@@ -69,7 +69,7 @@ def test_webpage_text_normalizes_url_on_save_and_load(webpage_text_unnormalized_
 def test_webpage_text_load_accepts_string_url(webpage_text_other):
 	loaded = WebPageText().load("http://www.example.com/another-page?utm_source=test")
 	assert loaded is not None
-	assert loaded.url == WebPage.normalize_url(webpage_text_other["data"]["url"])
+	assert loaded.url == normalize_url(webpage_text_other["data"]["url"])
 
 
 def test_webpage_text_invalid_url_rejected():
@@ -91,11 +91,11 @@ def test_webpage_text_duplicate_url_rejected(webpage_text_duplicate_base):
 		}).save()
 
 
-def test_webpage_text_add_or_update_from_linker_upserts(webpage_text_upsert_data):
-	status, webpage_text = WebPageText.add_or_update_from_linker(webpage_text_upsert_data)
+def test_webpage_text_add_or_update_upserts(webpage_text_upsert_data):
+	status, webpage_text = WebPageText.add_or_update(webpage_text_upsert_data)
 	assert status == "saved"
 	assert webpage_text is not None
-	status_again, same_webpage_text = WebPageText.add_or_update_from_linker(webpage_text_upsert_data)
+	status_again, same_webpage_text = WebPageText.add_or_update(webpage_text_upsert_data)
 	assert status_again == "excluded"
 	assert same_webpage_text is not None
 
@@ -104,7 +104,7 @@ def test_webpage_text_add_or_update_from_linker_upserts(webpage_text_upsert_data
 		"title": "Updated Title",
 		"body": "Updated body",
 	}
-	status_updated, updated_webpage_text = WebPageText.add_or_update_from_linker(updated)
+	status_updated, updated_webpage_text = WebPageText.add_or_update(updated)
 	assert status_updated == "saved"
 	assert updated_webpage_text is not None
 
@@ -112,4 +112,4 @@ def test_webpage_text_add_or_update_from_linker_upserts(webpage_text_upsert_data
 	assert loaded is not None
 	assert loaded.title == "Updated Title"
 	assert loaded.body == "Updated body"
-	assert loaded.url == WebPage.normalize_url(webpage_text_upsert_data["url"])
+	assert loaded.url == normalize_url(webpage_text_upsert_data["url"])
