@@ -24,13 +24,26 @@ class TopicManager(models.Manager):
         return self.filter(pools__name=pool).values_list("slug", flat=True)
 
     def build_slug_to_pools_cache(self, rebuild=False):
+        from sefaria.system.cache import load_from_dev_file_cache, save_to_dev_file_cache
+
         if rebuild or not self.slug_to_pools:
+            # Try to load from dev file cache first (only if not forcing rebuild)
+            if not rebuild:
+                cached = load_from_dev_file_cache("topic_slug_to_pools")
+                if cached is not None:
+                    self.slug_to_pools = cached
+                    return
+
+            # Build from scratch
             new_slug_to_pools = defaultdict(list)
             topics = self.model.objects.values_list('slug', 'pools__name')
             for slug, pool_name in topics:
                 if pool_name:
                     new_slug_to_pools[slug].append(pool_name)
             self.slug_to_pools = new_slug_to_pools
+
+            # Save to dev file cache for next reload
+            save_to_dev_file_cache("topic_slug_to_pools", dict(self.slug_to_pools))
 
 class Topic(models.Model):
     slug = models.CharField(max_length=255, primary_key=True)

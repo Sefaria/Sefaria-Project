@@ -278,3 +278,124 @@ def invalidate_cache_by_pattern(pattern: str, cache_type: Optional[str] = None) 
             "count": 0,
             "message": "Internal server error"
         }
+
+
+# =============================================================================
+# File-based cache for development - persists expensive objects across reloads
+# =============================================================================
+
+import pickle
+from pathlib import Path
+
+
+def _get_dev_file_cache_dir() -> Path:
+    """Get the development file cache directory from settings."""
+    cache_dir = Path(getattr(settings, 'DEV_FILE_CACHE_DIR', '/tmp/sefaria_dev_cache'))
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir
+
+
+def _get_dev_cache_path(name: str) -> Path:
+    """Get the full path for a named cache file."""
+    return _get_dev_file_cache_dir() / f"{name}.pkl"
+
+
+def is_dev_file_cache_enabled() -> bool:
+    """Check if development file caching is enabled."""
+    return getattr(settings, 'USE_DEV_FILE_CACHE', False)
+
+
+def save_to_dev_file_cache(name: str, obj: Any) -> bool:
+    """
+    Save an object to the development file cache.
+
+    Args:
+        name: A unique identifier for the cached object
+        obj: The object to cache (must be picklable)
+
+    Returns:
+        True if saved successfully, False otherwise
+    """
+    if not is_dev_file_cache_enabled():
+        return False
+
+    try:
+        cache_path = _get_dev_cache_path(name)
+        with open(cache_path, 'wb') as f:
+            pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
+        logger.info(f"Saved {name} to dev file cache: {cache_path}")
+        return True
+    except Exception as e:
+        logger.warning(f"Failed to save {name} to dev file cache: {e}")
+        return False
+
+
+def load_from_dev_file_cache(name: str) -> Optional[Any]:
+    """
+    Load an object from the development file cache.
+
+    Args:
+        name: The unique identifier for the cached object
+
+    Returns:
+        The cached object if found and valid, None otherwise
+    """
+    if not is_dev_file_cache_enabled():
+        return None
+
+    try:
+        cache_path = _get_dev_cache_path(name)
+        if not cache_path.exists():
+            logger.info(f"Dev file cache miss for {name}: file not found")
+            return None
+
+        with open(cache_path, 'rb') as f:
+            obj = pickle.load(f)
+        logger.info(f"Loaded {name} from dev file cache: {cache_path}")
+        return obj
+    except Exception as e:
+        logger.warning(f"Failed to load {name} from dev file cache: {e}")
+        return None
+
+
+def clear_dev_file_cache(name: Optional[str] = None) -> int:
+    """
+    Clear the development file cache.
+
+    Args:
+        name: If provided, only clear this specific cache entry.
+              If None, clear all cache entries.
+
+    Returns:
+        Number of cache files deleted
+    """
+    cache_dir = _get_dev_file_cache_dir()
+    deleted = 0
+
+    if name:
+        cache_path = _get_dev_cache_path(name)
+        if cache_path.exists():
+            cache_path.unlink()
+            deleted = 1
+            logger.info(f"Cleared dev file cache entry: {name}")
+    else:
+        for cache_file in cache_dir.glob("*.pkl"):
+            try:
+                cache_file.unlink()
+                deleted += 1
+            except Exception as e:
+                logger.warning(f"Failed to delete cache file {cache_file}: {e}")
+        logger.info(f"Cleared {deleted} dev file cache entries")
+
+    return deleted
+
+
+def list_dev_file_cache() -> list:
+    """
+    List all entries in the development file cache.
+
+    Returns:
+        List of cache entry names (without .pkl extension)
+    """
+    cache_dir = _get_dev_file_cache_dir()
+    return [f.stem for f in cache_dir.glob("*.pkl")]
