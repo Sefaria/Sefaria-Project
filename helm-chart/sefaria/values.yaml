@@ -205,12 +205,15 @@ tasks:
   enabled: false
   resources:
     requests:
-      memory: "100Mi"
-      cpu: "100m"
+      memory: "2Gi"
+      cpu: "500m"
     limits:
-      memory: "200Mi"
-      cpu: "400m"
+      memory: "4Gi"
+      cpu: "1000m"
   replicaCount: 1
+  anthropicSecretRef: anthropic-api-key
+  openaiSecretRef: openai-api-key
+  langsmithSecretRef: langsmith-api-key
   redis:
     url: "redis://127.0.0.1"
     port: "6397"
@@ -262,6 +265,16 @@ domains:
         - sheets
         - collections
         - profile
+
+ingress:
+  enabled: true
+
+gateway:
+  enabled: false
+  className: envoy
+  annotations:
+    cert-manager.io/cluster-issuer: ingress-ca
+  clientIPHeader: X-Forwarded-For
 
 nginx:
   containerImage:

@@ -201,6 +201,13 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
       if (highlightedItem  && highlightedItem.type != 'search'){
+        gtag("event", "search_navto", {
+          "project": "Global Search",
+          "feature_name": "Nav To by Keyboard",
+          "link_type": type_title_map?.[highlightedItem.type] || highlightedItem.type,
+          "text": getInputValue(),
+          "to": highlightedItem.label
+        });
         redirectToObject(highlightedItem);
         return;
       }
@@ -208,7 +215,6 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       if (!inputQuery) return;
       submitSearch(inputQuery);
     };
-
 
     const handleSearchButtonClick = (event) => {
       const inputQuery = getInputValue();
@@ -233,6 +239,9 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const focusSearch = () => {
       setSearchFocused(true);
       showVirtualKeyboardIcon(true);
+      gtag("event", "search_focus", {
+        "project": "Global Search",
+      });
     };
 
     const blurSearch = (e) => {
@@ -243,8 +252,12 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
         // debug: comment out the following line:
         setSearchFocused(false);
         showVirtualKeyboardIcon(false);
+        gtag("event", "search_defocus", {
+          "project": "Global Search",
+          "text": oldValue,
+        });
       }
-      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue)
+      !document.getElementById('keyboardInputMaster') && setInputValue(oldValue);
     };
 
     const inputClasses = classNames({
@@ -255,7 +268,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     });
 
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
-
+     
     return (
       <div id="searchBox"
            className={searchBoxClasses}
@@ -278,7 +291,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
-                                            submitSearch, redirectToObject}) => {
+                                            submitSearch, redirectToObject, inputValue}) => {
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -295,7 +308,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                         key={object.type}
                         suggestions={object.items}
                         initialIndexForGroup={initialIndexForGroup}
-
+                        inputValue={inputValue}
                         submitSearch={submitSearch}
                         redirectToObject={redirectToObject}
                     />
@@ -306,27 +319,34 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 }
 
 
-const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, ...props }) => {
+const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputValue, ...props }) => {
     const _type_component_map = {
         search: {
             onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
-            onSuggestionClick: redirectToObject,
+            onSuggestionClick: () => {
+              gtag("event", "search_navto", {
+                "project": "Global Search",
+                "feature_name": "Nav To by Mouse",
+                "to": props.label,
+                "text": inputValue
+              });
+              redirectToObject();
+            },
             SuggestionComponent: EntitySearchSuggestion
         }
     };
 
     const { onSuggestionClick, SuggestionComponent } = _type_component_map[type] || _type_component_map.other;
-
     return (
         <SuggestionComponent onClick={onSuggestionClick} type={type} {...props} />
     );
 }
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
-                                    submitSearch, redirectToObject}) => {
+                                    submitSearch, redirectToObject, inputValue}) => {
 
     const type = suggestions[0].type;
     const title = type_title_map[type];
@@ -352,6 +372,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             universalIndex = {universalIndex}
                             highlightedIndex = {highlightedIndex}
                             getItemProps = {getItemProps}
+                            inputValue={inputValue}
                             submitSearch={submitSearch}
                             redirectToObject={redirectToObject}
                         />
@@ -364,7 +385,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
-
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
           return[];
@@ -407,6 +427,11 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
   const search = (onChange, query) => {
       //   Execute the actions for searching the query string
       Sefaria.track.event("Search", "Search Box Search", query);
+      gtag("event", "search_submit", {
+        "project": "Global Search",
+        "feature_name": "Search Results",
+        "text": query
+      });
       showSearchWrapper(query);
       clearSearchBox(onChange);
   }
@@ -414,19 +439,35 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
       //   Redirect search when an action that is not actually a search is needed (e.g. go to the selected ref), or execute a search
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
           if (queryType === 'Ref') {
+              gtag("event", "search_submit", {
+                "project": "Global Search",
+                "feature_name": "Autolink",
+                "text": query,
+              });
               let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               clearSearchBox(onChange);
               onRefClick(queryId);
               onNavigate && onNavigate();
           } else if (queryType === 'Topic') {
+              gtag("event", "search_submit", {
+                "project": "Global Search",
+                "feature_name": "Autolink",
+                "text": query
+              });
               Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
               clearSearchBox(onChange);
               openTopic(queryId);
               onNavigate && onNavigate();
           } else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-                const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
-                redirectToObject(onChange, item);
+              const item = { type: queryType, key: queryId, url: getURLForObject(queryType, queryId) };
+              gtag("event", 'search_submit', {
+                "project": "Global Search",
+                "feature_name": "Autolink",
+                "link_type": type_title_map?.[queryType] || queryType,
+                "text": query,
+              });
+              redirectToObject(onChange, item);
           } else {
               search(onChange, query);
           }
@@ -478,10 +519,8 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
             hideHebrewKeyboard={hideHebrewKeyboard}
             highlightedIndex={highlightedIndex}
             setInputValue={setInputValue}
-
             setSearchFocused={setSearchFocused}
             searchFocused={searchFocused}
-
             submitSearch={submitSearch.bind(null, getInputProps().onChange)}
             redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
         />
@@ -489,19 +528,19 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     };
 
     const renderItems =(suggestions, highlightedIndex, getItemProps, getInputProps) => {
+        const inputValue = getInputProps().value || '';
 
         return(
-             <SuggestionsDispatcher
+             <SuggestionsDispatcher      
                 suggestions={suggestions}
                 getItemProps={getItemProps}
                 highlightedIndex={highlightedIndex}
-                getInputProps={getInputProps}
+                inputValue={inputValue}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
                 redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
               />
         )
     };
-
 
   return (
       <GeneralAutocomplete

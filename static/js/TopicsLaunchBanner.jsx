@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import TopicsLaunchBannerGraphics from "./TopicsLaunchBannerGraphics";
 import TopicsLaunchBannerMobileGraphics from "./TopicsLaunchBannerMobileGraphics";
 import { OnInView } from "./Misc";
+import Sefaria from './sefaria/sefaria';
 
 const TopicsLaunchBanner = ({ onClose }) => {
   const bannerName = "2025-topics_launch";

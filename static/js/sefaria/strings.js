@@ -160,6 +160,8 @@ const Strings = {
     "Make a Sheet": "יצירת דף מקורות",
     "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספריה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
     "A Living Library of Torah": "ספריה יהודית דינמית",
+    'Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.': 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מקורות מדיה מגוונים. השתמשו בכלים המוצעים כדי לכתוב מחשבות ותובנות אודות המקורות שבספרייה, להוסיף קטעי וידאו ואודיו, לצטט מהמקורות שבספרייה.',
+    'Use a computer to mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary. The Voices Editor is not supported on mobile devices.': 'כל דף הוא בגדר לוח חלק, מרחב בו תוכלו לחבר בין הרעיונות שלכם לבין המקורות ולהוסיף מיני מדיה מגוונים. לא ניתן ליצור או לערוך דפים באמצעות המכשיר הנייד. על מנת לגשת לעורך הדפים של ספריא, יש להיכנס לאתר האינטרנט ״חיבורים״ במחשב.',
 
     // Search
     "Results for": "תוצאות עבור",
@@ -195,6 +197,12 @@ const Strings = {
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
+    "Exporting to Google Docs...": "מייצא לגוגל דוקס...",
+    "Success!": "ייצוא הסתיים!",
+    "You declined permission to connect with Google. Export requires Google Drive access.": "סירבת לתת הרשאה להתחבר לגוגל. הייצוא דורש גישה ל-Google Drive.",
+    "The authorization expired or was already used. Please try again.": "ההרשאה פגה או כבר נוצלה. אנא נסה שוב.",
+    "There was a permission mismatch. Please try again.": "הייתה אי התאמה בהרשאות. אנא נסה שוב.",
+    "A network error occurred. Please check your connection and try again.": "אירעה שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב.",
      "Enter link URL": "הכנס קישור",
     "Copied" : "הועתק",
     "Copying..." : "מעתיק...",
@@ -345,6 +353,7 @@ const Strings = {
     "Collections of sheets are created by Sefaria users and can be privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שנוצרו על ידי משתמשי האתר. הן ניתנות לשימוש פרטי, לצורך שיתוף עם אחרים או לשימוש ציבורי באתר ספריא.",
     "Sefaria Collections": "אסופות של ספריא",
     "Create a Collection": "יצירת אסופה",
+    "Create Collection": "יצירת אסופה",
     "Create a New Collection": "יצירת אסופה חדשה",
 
     // Collection Page
@@ -707,6 +716,7 @@ const Strings = {
 
     "Toggle Reader Menu Display Settings": "הגדרות תצוגת תפריט קורא",
     "AI Info Icon": "סמל מידע AI",
+    'These sheet results are ranked by AI relevance.': 'תוצאות הדפים מסודרות לפי רלוונטיות על בסיס בינה מלאכותית.',
     "Not published": "לא פורסם",
     "Note author profile picture": "תמונת פרופיל כותב ההערה",
     "Open dropdown": "פתח תפריט נפתח",
@@ -827,6 +837,14 @@ const Strings = {
     "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
     "of": "מתוך",
     "Loading guide...": "טוען מדריך...",
+    },
+    "GuideBox": {
+      "Guided Learning": "מדריך למידה",
+    },
+    "AiInfoTooltip": {
+      "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
+      "Some of the text on this page has been AI generated.": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית.",
+      "Learn More": "לפרטים נוספים",
     }
   },
 };

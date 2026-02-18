@@ -2,6 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
+import Sefaria from './sefaria/sefaria';
 import {ImageCropper} from "./ImageCropper";
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */

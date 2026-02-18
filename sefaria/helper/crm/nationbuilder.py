@@ -1,3 +1,17 @@
+"""
+DEPRECATED: NationBuilder CRM integration is deprecated.
+This module is no longer used in production. The CrmFactory routes
+NATIONBUILDER CRM_TYPE to DummyConnectionManager instead.
+For new CRM integrations, use SalesforceConnectionManager.
+"""
+import warnings
+warnings.warn(
+    "NationbuilderConnectionManager is deprecated and will be removed in a future release. "
+    "Use SalesforceConnectionManager or DummyConnectionManager instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 from urllib.parse import unquote
 from rauth import OAuth2Service
 import time
@@ -55,17 +69,20 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         if last_name:
             post["person"]["last_name"] = last_name
 
-        r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
-                             data=json.dumps(post),
-                             params={'format': 'json'},
-                             headers={'content-type': 'application/json'})
+        try:
+            r = self.session.put("https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com/api/v1/people/push",
+                                 data=json.dumps(post),
+                                 params={'format': 'json'},
+                                 headers={'content-type': 'application/json'})
+        except Exception:
+            return False
 
         try:  # add nationbuilder id to user profile
             nationbuilder_user = r.json()
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
                 nationbuilder_user["id"]
             return nationbuilder_id
-        except:
+        except Exception:
             return False
 
         return True

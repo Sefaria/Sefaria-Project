@@ -14,6 +14,9 @@ spec:
     spec:
       backoffLimit: 1
       template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
           volumes:

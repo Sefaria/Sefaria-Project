@@ -140,6 +140,8 @@ data:
     CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
+    CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
+    CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
@@ -158,6 +160,7 @@ data:
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
+    FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
 
     SEFARIA_DATA_PATH = '/export' # used for exporting texts
     SEFARIA_EXPORT_PATH = '/export'
@@ -283,6 +286,7 @@ data:
         
         init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
 
+
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {
     #     'version': 1,
@@ -358,3 +362,5 @@ data:
 
     WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
     WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+    FAIL_IF_NODE_SSR_UNAVAILABLE = False

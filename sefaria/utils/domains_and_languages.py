@@ -9,7 +9,7 @@ from sefaria.utils.util import short_to_long_lang_code, get_short_lang
 IPV4_ADDRESS_PATTERN = r'^\d+\.\d+\.\d+\.\d+$'
 
 
-def _get_hostname_without_port(request):
+def get_hostname_without_port(request):
     """
     Extract hostname from request, stripping port if present.
     Handles both IPv4 and IPv6 addresses.
@@ -42,7 +42,7 @@ def current_domain_lang(request):
     if not getattr(settings, 'DOMAIN_MODULES', None):
         return None
 
-    current_hostname = _get_hostname_without_port(request)
+    current_hostname = get_hostname_without_port(request)
     matched_langs = []
 
     for lang_code, modules in settings.DOMAIN_MODULES.items():
@@ -83,7 +83,7 @@ def needs_domain_switch(request, target_domain):
     :param target_domain: Full domain URL (e.g., 'https://www.sefaria.org') or None
     :return: Boolean indicating if domain switch is needed
     """
-    current_hostname = _get_hostname_without_port(request)
+    current_hostname = get_hostname_without_port(request)
     target_hostname = urlparse(target_domain).hostname if target_domain else None
     return target_hostname is not None and current_hostname != target_hostname
 
@@ -135,6 +135,7 @@ def _find_longest_common_domain_suffix(hostnames):
 
     Returns the shared domain part starting with a dot.
     Example: ['www.sefaria.org', 'voices.sefaria.org'] -> '.sefaria.org'
+             ['localsefaria.xyz', 'voices.localsefaria.xyz'] -> '.localsefaria.xyz'
 
     :param hostnames: List of 2+ hostname strings
     :return: Domain suffix starting with '.' (e.g., '.sefaria.org'), or None if no common suffix
@@ -142,14 +143,12 @@ def _find_longest_common_domain_suffix(hostnames):
     common_suffix = hostnames[0]
 
     for hostname in hostnames[1:]:
-        # Find the longest suffix that matches domain boundaries
-        common_suffix = next(
-            (common_suffix[i:] for i in range(len(common_suffix))
-             if hostname.endswith(common_suffix[i:]) and common_suffix[i:].startswith('.')),
-            ''
-        )
+        # Find longest common suffix by progressively removing left parts
+        # Check if hostname ends with .{common} (common as a subdomain suffix)
+        while common_suffix and hostname != common_suffix and not hostname.endswith(f'.{common_suffix}'):
+            common_suffix = common_suffix.split('.', 1)[1] if '.' in common_suffix else ''
 
         if not common_suffix:
             return None
 
-    return common_suffix
+    return f'.{common_suffix}' if common_suffix else None

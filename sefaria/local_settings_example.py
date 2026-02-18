@@ -147,6 +147,7 @@ STRAPI_PORT = None
 MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
+CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
 
 
 EMAIL_HOST = 'localhost'
@@ -175,6 +176,7 @@ SEARCH_INDEX_NAME_SHEET = 'sheet'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
+FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
@@ -351,3 +353,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
+# Use the local Vite dev server script instead of the hosted UMD bundle.
+CHATBOT_USE_LOCAL_SCRIPT = True
