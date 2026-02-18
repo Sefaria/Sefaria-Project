@@ -10,7 +10,7 @@
 import { test, expect } from '@playwright/test';
 import { MobileHamburgerMenuPage } from '../pages/mobileHamburgerMenuPage';
 import { hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { MODULE_URLS, SEARCH_DROPDOWN } from '../constants';
 import { MOBILE_DEVICES } from '../mobile-constants';
 
@@ -43,7 +43,7 @@ test.describe('Mobile Hamburger Menu Sanity Tests', () => {
     // =================================================================
     // Note: Already on English, but let's ensure via language toggle
     await mobileMenu.switchLanguageInMenu('english');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(t(500));
 
     // Close and reopen menu to verify state
     await mobileMenu.closeHamburgerMenu();

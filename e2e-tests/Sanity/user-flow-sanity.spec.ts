@@ -16,7 +16,7 @@ import {
   selectDropdownOption,
   changeLanguage,
 } from '../utils';
-import { LANGUAGES, testUser, BROWSER_SETTINGS } from '../globals';
+import { LANGUAGES, testUser, BROWSER_SETTINGS, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../constants';
 
@@ -44,7 +44,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
 
     // Explicitly wait for profile pic to ensure login completed
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
-    await profilePic.waitFor({ state: 'visible', timeout: 10000 });
+    await profilePic.waitFor({ state: 'visible', timeout: t(10000) });
 
     // Verify user is logged in
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
@@ -62,11 +62,11 @@ test.describe.serial('User Flow Sanity Tests', () => {
     // Navigate to profile via user menu
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Profile');
-    await page.waitForURL(/\/profile\//, { timeout: 10000 });
+    await page.waitForURL(/\/profile\//, { timeout: t(10000) });
     await hideAllModalsAndPopups(page);
 
     // Verify profile page loaded (#main is hidden, check .content instead)
-    await expect(page.locator('.content')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.content')).toBeVisible({ timeout: t(10000) });
     expect(page.url()).toContain('/profile/');
 
     // Verify profile artifacts
@@ -117,7 +117,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     await hideAllModalsAndPopups(page);
 
     // Verify we're back on profile page (#main is hidden, check .content instead)
-    await expect(page.locator('.content')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('.content')).toBeVisible({ timeout: t(20000) });
     await expect(page.locator('.title.sub-title')).toContainText(`QA Automation ${timestamp}`);
   });
 
@@ -228,7 +228,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     // Verify logged in
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
     // wait 1000ms
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(t(1000));
     // Perform logout
     await page.waitForLoadState('networkidle');
     await pm.onModuleHeader().logout();

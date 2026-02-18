@@ -7,7 +7,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import {
   MODULE_URLS,
@@ -76,7 +76,7 @@ test.describe('Voices Module Header Tests - English', () => {
       await createButton.click();
     }
 
-    await page.waitForURL(url => url.toString() !== initialUrl, { timeout: 10000 });
+    await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
     await pm.onModuleHeader().closeGuideOverlay();
@@ -87,7 +87,7 @@ test.describe('Voices Module Header Tests - English', () => {
 
     // If on a created sheet, delete it for cleanup
     if (/\/sheets\/\d+/.test(currentUrl)) {
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(t(2000));
       expect(await page.getByRole('button', { name: /publish/i }).count()).toBeGreaterThan(0);
 
       await pm.onModuleHeader().closeGuideOverlay();
@@ -103,7 +103,7 @@ test.describe('Voices Module Header Tests - English', () => {
         await dialog.accept();
       });
 
-      const navigationPromise = page.waitForURL(/\/profile\//, { timeout: 15000 });
+      const navigationPromise = page.waitForURL(/\/profile\//, { timeout: t(15000) });
       await deleteOption.click();
       await navigationPromise;
       await page.waitForLoadState('networkidle');

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { goToPageWithLang, assertStatusNotError } from "../utils";
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { MODULE_URLS } from '../constants';
 import { HELP_SHEET_REDIRECTS, HELP_SHEET_REDIRECTS_HE } from '../helpDeskLinksConstants'
 
@@ -29,7 +29,7 @@ test.describe('Help Sheet to Zendesk Redirects - English', () => {
       // Navigate to the sheet URL
       const response = await page.goto(testUrl, {
         waitUntil: 'networkidle',
-        timeout: 30000
+        timeout: t(30000)
       });
 
       // Verify we didn't get an error status
@@ -77,7 +77,7 @@ test.describe('Help Sheet to Zendesk Redirects - Hebrew', () => {
       // Navigate to the sheet URL
       const response = await page.goto(testUrl, {
         waitUntil: 'networkidle',
-        timeout: 30000
+        timeout: t(30000)
       });
 
       // Verify we didn't get an error status

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { SourceTextPage } from "../pages/sourceTextPage";
-import { BROWSER_SETTINGS, LANGUAGES, testUser } from "../globals";
+import { BROWSER_SETTINGS, LANGUAGES, testUser, t } from "../globals";
 import { goToPageWithLang , hideAllModalsAndPopups, goToPageWithUser} from "../utils";
 import { LoginPage } from "../pages/loginPage";
 import { SheetEditorPage } from "../pages/sheetEditorPage";
@@ -118,7 +118,7 @@ test.describe("Pages Load", () => {
     await searchInput.fill('Tosefta Peah');
     await page.keyboard.press('Enter');
     await page.locator('a.sectionLink[data-ref="Tosefta Peah 3"]').click();
-    await page.waitForLoadState('networkidle', { timeout: 10000 });
+    await page.waitForLoadState('networkidle', { timeout: t(10000) });
     await page.waitForURL(/Tosefta_Peah/);
     // Navigate to Tosefta Berakhot 4
     await page.goto('/Tosefta_Berakhot.4');
@@ -197,12 +197,12 @@ test.describe("Navigating To/Loading Book Pages", () => {
   test('TC015 Navigate to different books through titles', async ({ context }) => {
     const page = await goToPageWithLang(context, '/Genesis.1.1?lang=he&with=all&lang2=he'); 
     //Test Bereshit
-    await expect(page.getByText(/When God began to create|בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/When God began to create|בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃/)).toBeVisible({ timeout: t(5000) });
    //Test Mishneh Torah
     await page.goto('/Mishneh_Torah%2C_Repentance.1.1?');
-    await expect(page.getByText(/כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה|If a person transgresses/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/כָּל מִצְוֹת שֶׁבַּתּוֹרָה בֵּין עֲשֵׂה|If a person transgresses/)).toBeVisible({ timeout: t(5000) });
     await page.goto('/Kedushat_Levi%2C_Genesis%2C_Bereshit?');
-    await expect(page.getByText(/הכלל שהבורא ברוך הוא ברא הכל|The first thing Gd embarked on/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/הכלל שהבורא ברוך הוא ברא הכל|The first thing Gd embarked on/)).toBeVisible({ timeout: t(5000) });
   });
 
 });
@@ -213,7 +213,7 @@ test.describe('Navigating to/loading spanning references and opening connections
     // Click the segment
     const englishText = (await page).getByText('MISHNA: The acts of carrying out from a public domain', { exact: false });
     const hebrewText = (await page).getByText('מַתְנִי׳ יְצִיאוֹת הַשַּׁבָּת, שְׁתַּיִם שֶׁהֵן אַרְבַּע בִּפְנִים', { exact: false });
-    if (await hebrewText.isVisible({timeout: 1000})) {
+    if (await hebrewText.isVisible({timeout: t(1000)})) {
       await hebrewText.click();
     } else {
       await englishText.click();
@@ -229,9 +229,9 @@ test.describe('Navigating to/loading spanning references and opening connections
     await searchInput.click();
     await searchInput.fill('Shabbat 2a-2b');
     await (await page).keyboard.press('Enter');
-    await (await page).waitForLoadState('domcontentloaded', { timeout: 10000 });
+    await (await page).waitForLoadState('domcontentloaded', { timeout: t(10000) });
     const selectedText = (await page).getByText(/MISHNA: The acts of carrying out from a public domain into a private domain|מַתְנִי׳ יְצִיאוֹת הַשַּׁבָּת, שְׁתַּיִם שֶׁהֵן אַרְבַּע בִּפְנִים, וּשְׁתַּיִם/).first()
-    await expect(selectedText).toBeVisible({ timeout: 10000 });
+    await expect(selectedText).toBeVisible({ timeout: t(10000) });
     await selectedText.click();
     const connectionsPanel = (await page).locator('.readerPanelBox.sidebar');
     await expect(connectionsPanel).toBeVisible();
@@ -242,7 +242,7 @@ test.describe('Navigating to/loading spanning references and opening connections
     const page = await goToPageWithLang(context, '/Shabbat.2a');      
     const englishText1 = (await page).getByText('MISHNA: The acts of carrying out from a public domain', { exact: false });
     const hebrewText1 = (await page).getByText('מַתְנִי׳ יְצִיאוֹת הַשַּׁבָּת, שְׁתַּיִם שֶׁהֵן אַרְבַּע בִּפְנִים', { exact: false });
-    if (await hebrewText1.isVisible({timeout: 1000})) {
+    if (await hebrewText1.isVisible({timeout: t(1000)})) {
       await hebrewText1.click();
     } else {
       await englishText1.click();
@@ -283,7 +283,7 @@ test.describe('Navigating to/loading spanning references and opening connections
     await searchInput.press('Enter');
     const versionedResult = page.locator( '.result.textResult:has(.version):has(.result-title span)').first();
     await versionedResult.click();
-    await expect(versionedResult).toBeVisible({ timeout: 3000 });
+    await expect(versionedResult).toBeVisible({ timeout: t(3000) });
     await versionedResult.locator('a').click();
     await expect(page).toHaveURL(/Psalms\.59\.7.*The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein.*lang=(en|he|bi)/);    
   });

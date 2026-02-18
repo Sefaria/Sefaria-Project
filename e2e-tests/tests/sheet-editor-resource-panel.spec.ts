@@ -1,7 +1,7 @@
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { SheetEditorPage } from '../pages/sheetEditorPage';
-import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
+import { BROWSER_SETTINGS, LANGUAGES, t } from '../globals';
 
 // Shared variables for all resource panel tests
 let browser: Browser;
@@ -16,7 +16,7 @@ test.beforeAll(async ({ browser: testBrowser }) => {
   context = await browser.newContext();
   page = await goToPageWithUser(context, '/texts', BROWSER_SETTINGS.enUser);
   sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
-  
+
   // Create a new sheet
   await page.locator('.myProfileBox .profile-pic').click();
   await page.locator('#new-sheet-link').click();
@@ -49,11 +49,11 @@ test('TC031: Click on Title to open Resource Panel - Added Source NOT in focus',
   await sheetEditorPage.addSampleSource();
   // await page.waitForLoadState('networkidle');
   await expect(sheetEditorPage.addedSource().first()).toBeVisible();
-  await sheetEditorPage.sourceSheetBody().click(); 
+  await sheetEditorPage.sourceSheetBody().click();
   await page.waitForLoadState('networkidle');
   await hideAllModalsAndPopups(sheetEditorPage.page);
   await sheetEditorPage.topTitle().click();
-  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });
+  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: t(15000) });
   await expect(sheetEditorPage.resourcePanel()).toContainText('Publish Settings');
   await expect(sheetEditorPage.resourcePanel()).toContainText('Share');
   await expect(sheetEditorPage.resourcePanel()).toContainText('Tools');
@@ -64,10 +64,10 @@ test('TC032: Click on Title to open Resource Panel - Added Source in focus', asy
   //await page.waitForLoadState('networkidle');
   const sourceElement = sheetEditorPage.addedSource().first();
   await sourceElement.click();
-  await expect(sourceElement).toHaveClass(/selected/);  
+  await expect(sourceElement).toHaveClass(/selected/);
   await page.waitForLoadState('networkidle');
   await sheetEditorPage.topTitle().click();
-  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });
+  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: t(15000) });
   await expect(sheetEditorPage.resourcePanel()).toContainText('Publish Settings');
   await expect(sheetEditorPage.resourcePanel()).toContainText('Share');
   await expect(sheetEditorPage.resourcePanel()).toContainText('Tools');
@@ -76,9 +76,9 @@ test('TC032: Click on Title to open Resource Panel - Added Source in focus', asy
 });
 
 test('TC033: Click on sidebar toggle opens resource panel', async () => {
-  await expect(sheetEditorPage.sideBarToggleButton()).toBeVisible({ timeout: 10000 });
+  await expect(sheetEditorPage.sideBarToggleButton()).toBeVisible({ timeout: t(10000) });
   await sheetEditorPage.clickSidebarToggle();
-  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });   
+  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: t(15000) });
 });
 
 test('TC034: Clicking on text does not open resource panel', async () => {
@@ -86,7 +86,7 @@ test('TC034: Clicking on text does not open resource panel', async () => {
   const textElement = await sheetEditorPage.getTextLocator('This is test text');
   await textElement.click();
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
-  await textElement.click({ clickCount: 3 }); 
+  await textElement.click({ clickCount: 3 });
   await page.keyboard.press('Delete');
   await expect(textElement).not.toBeVisible();
 });
@@ -122,9 +122,9 @@ test('TC039: Click "x" closes Resource Panel', async () => {
   await sheetEditorPage.addSampleSource();
   await page.waitForLoadState('networkidle');
   await expect(sheetEditorPage.addedSource().first()).toBeVisible();
-  await sheetEditorPage.sourceSheetBody().click(); 
+  await sheetEditorPage.sourceSheetBody().click();
   await sheetEditorPage.topTitle().click();
-  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: 15000 });
+  await expect(sheetEditorPage.resourcePanel()).toBeVisible({ timeout: t(15000) });
   await page.locator('a.readerNavMenuCloseButton.circledX').click();
   await expect(sheetEditorPage.resourcePanel()).not.toBeVisible();
 });

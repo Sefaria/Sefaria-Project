@@ -7,7 +7,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, VALID_TOPICS } from '../constants';
 
@@ -36,7 +36,7 @@ async function createAndPublishSheetWithTopic(
   }
 
   // Navigate to sheet editor
-  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: 10000 });
+  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
   await page.waitForLoadState('networkidle');
   await hideAllModalsAndPopups(page);
   await pm.onModuleHeader().closeGuideOverlay();
@@ -45,7 +45,7 @@ async function createAndPublishSheetWithTopic(
   const isValidSheet = /\/sheets\/(new|\d+)/.test(currentUrl);
   expect(isValidSheet).toBeTruthy();
 
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(t(2000));
 
   // Add content to the sheet
   const editorArea = page.locator('[contenteditable="true"]').first();
@@ -56,7 +56,7 @@ async function createAndPublishSheetWithTopic(
   const publishButton = page.getByRole('button', { name: /publish/i });
   await expect(publishButton).toBeVisible();
   await publishButton.click();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(t(500));
 
   // Fill in publish form
   const titleInput = page.locator('input[type="text"]').first();
@@ -74,15 +74,15 @@ async function createAndPublishSheetWithTopic(
 
   // Wait for autocomplete suggestion to appear and click it
   const topicSuggestion = page.locator('.react-tags__suggestions li').filter({ hasText: new RegExp(topicName, 'i') }).first();
-  await expect(topicSuggestion).toBeVisible({ timeout: 5000 }).catch(() => {
+  await expect(topicSuggestion).toBeVisible({ timeout: t(5000) }).catch(() => {
     throw new Error(`Autocomplete suggestion for "${topicName}" did not appear`);
   });
   await topicSuggestion.click();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(t(500));
 
   // Verify topic was added as a tag
   const addedTag = page.locator('.react-tags__selected-tag').filter({ hasText: topicName });
-  await expect(addedTag).toBeVisible({ timeout: 5000 }).catch(() => {
+  await expect(addedTag).toBeVisible({ timeout: t(5000) }).catch(() => {
     throw new Error(`Topic "${topicName}" was not added to the sheet. Ensure the topic is valid.`);
   });
 
@@ -91,7 +91,7 @@ async function createAndPublishSheetWithTopic(
   await publishModalButton.click();
 
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(t(1000));
   await hideAllModalsAndPopups(page);
 }
 
@@ -116,7 +116,7 @@ test.describe('Voices Module - Trending Topics', () => {
 
     // User 1 logs out
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(t(300));
     await pm.onModuleHeader().logout();
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(false);
 
@@ -155,10 +155,10 @@ test.describe('Voices Module - Trending Topics', () => {
       const submitButton = page.locator('input[type="submit"]');
       await submitButton.click();
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(t(2000));
     } else {
       // Already authenticated, just wait for the reset to complete
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(t(2000));
     }
 
     // Navigate to Voices > Topics and verify topic appears in Trending Topics sidebar
@@ -169,7 +169,7 @@ test.describe('Voices Module - Trending Topics', () => {
 
     const trendingTopicsModule = pm.onModuleSidebar().getModuleByHeading('Trending Topics');
     const topicInTrendingSidebar = trendingTopicsModule.locator('a, li, div').filter({ hasText: new RegExp(topicName, 'i') }).first();
-    await expect(topicInTrendingSidebar).toBeVisible({ timeout: 10000 }).catch(() => {
+    await expect(topicInTrendingSidebar).toBeVisible({ timeout: t(10000) }).catch(() => {
       throw new Error(`Topic "${topicName}" did not appear in Trending Topics sidebar after reset`);
     });
 

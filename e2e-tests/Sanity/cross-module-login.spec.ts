@@ -1,6 +1,6 @@
 import { test, expect, BrowserContext } from '@playwright/test';
 import { goToPageWithUser, goToPageWithLang, hideAllModalsAndPopups, isUserLoggedIn, openHeaderDropdown, selectDropdownOption } from "../utils";
-import { BROWSER_SETTINGS, LANGUAGES, testUser } from '../globals';
+import { BROWSER_SETTINGS, LANGUAGES, testUser, t } from '../globals';
 import { MODULE_URLS, MODULE_SELECTORS } from '../constants';
 import { PageManager } from '../pages/pageManager';
 
@@ -30,7 +30,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Explicitly wait for profile pic to ensure login completed
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
-    await profilePic.waitFor({ state: 'visible', timeout: 10000 });
+    await profilePic.waitFor({ state: 'visible', timeout: t(10000) });
 
     // Verify user is logged in
     expect(await isUserLoggedIn(page)).toBe(true);
@@ -148,7 +148,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Verify error message appears
     const errorText = libraryTab2.locator('text=/You are already logged in as/i');
-    await expect(errorText).toBeVisible({ timeout: 10000 });
+    await expect(errorText).toBeVisible({ timeout: t(10000) });
 
     await libraryTab1.close();
     await libraryTab2.close();
@@ -185,7 +185,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Verify error message appears
     const errorTextVoices = voicesTab2.locator('text=/You are already logged in as/i');
-    await expect(errorTextVoices).toBeVisible({ timeout: 10000 });
+    await expect(errorTextVoices).toBeVisible({ timeout: t(10000) });
 
     await voicesTab1.close();
     await voicesTab2.close();
@@ -215,7 +215,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     await hideAllModalsAndPopups(libraryTab);
     // Wait for profile pic to appear (indicates login success)
-    await libraryTab.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });
+    await libraryTab.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: t(10000) });
 
     // Verify Library tab is logged in
     expect(await isUserLoggedIn(libraryTab)).toBe(true);
@@ -227,7 +227,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Verify error message appears
     const errorText1 = voicesTab.locator('text=/You are already logged in as/i');
-    await expect(errorText1).toBeVisible({ timeout: 10000 });
+    await expect(errorText1).toBeVisible({ timeout: t(10000) });
 
     await libraryTab.close();
     await voicesTab.close();
@@ -255,7 +255,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await voicesTab2.waitForLoadState('domcontentloaded');
 
     // Wait for profile pic to appear (indicates login success)
-    await voicesTab2.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: 10000 });
+    await voicesTab2.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: t(10000) });
     await hideAllModalsAndPopups(voicesTab2);
 
     // Verify Voices tab is logged in
@@ -268,7 +268,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Verify error message appears
     const errorText2 = libraryTab2.locator('text=/You are already logged in as/i');
-    await expect(errorText2).toBeVisible({ timeout: 10000 });
+    await expect(errorText2).toBeVisible({ timeout: t(10000) });
 
     await libraryTab2.close();
     await voicesTab2.close();

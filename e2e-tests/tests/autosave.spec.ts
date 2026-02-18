@@ -1,14 +1,14 @@
 import { test, expect, Page } from '@playwright/test';
 import { PageManager } from '../pages/pageManager';
-import {simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, hideAllModalsAndPopups} from "../utils";
-import { LANGUAGES, BROWSER_SETTINGS } from '../globals';
+import { simulateOfflineMode, simulateOnlineMode, expireLogoutCookie, goToPageWithUser, hideAllModalsAndPopups } from "../utils";
+import { LANGUAGES, BROWSER_SETTINGS, t } from '../globals';
 import { SaveStates } from '../constants';
 import { Banner } from '../pages/banner';
 
 test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   let page: Page;
   let pageManager: PageManager;
-  
+
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithUser(context, '/sheets/new', BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
@@ -24,17 +24,17 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await textLocator.dblclick();
     await page.keyboard.type('new text');
   });
-  
+
   test('Detect logout after unsaved changes', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.editTitle("test title");
-    await editor.focusTextInput(); 
+    await editor.focusTextInput();
     await page.keyboard.type('Testing logout with unsaved changes', { delay: 100 });
     await expireLogoutCookie(page.context());
     await editor.assertSaveState(SaveStates.loggedOut);
-    await editor.validateEditingIsBlocked();    
+    await editor.validateEditingIsBlocked();
   });
-    
+
   test('Detect logout when user is idle- no unsaved changes', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.editTitle("test title");
@@ -45,7 +45,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
   });
-  
+
   test('Restore session when user logs back in via navbar link', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('text before logout');
@@ -64,12 +64,12 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Restore session when user logs back in via tooltip link', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('text before logout');
-    await editor.waitForAutosave();    
+    await editor.waitForAutosave();
     await expireLogoutCookie(page.context());
     await editor.addText('trigger logout detection');
     await editor.assertSaveState(SaveStates.loggedOut);
     await editor.validateEditingIsBlocked();
-    
+
     await editor.loginViaTooltip();
     await editor.assertSaveState(SaveStates.saved || SaveStates.saving);
     await expect(editor.sourceSheetBody()).toBeEnabled();
@@ -78,9 +78,9 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Detect connection loss and block editing', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('Testing connection loss');
-    
+
     await simulateOfflineMode(page);
-    await editor.addText('trigger connection loss');    
+    await editor.addText('trigger connection loss');
     await editor.assertSaveState(SaveStates.tryingToConnect);
     await editor.validateEditingIsBlocked();
   });
@@ -88,12 +88,12 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
   test('Restore connection and resume editing', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('Testing connection recovery');
-    
+
     await simulateOfflineMode(page);
     await editor.addText('trigger connection loss');
     await editor.assertSaveState(SaveStates.tryingToConnect);
     await editor.validateEditingIsBlocked();
-    
+
     await simulateOnlineMode(page);
     await editor.waitForConnectionState('online');
     await editor.assertSaveState(SaveStates.saved || SaveStates.saving);
@@ -125,12 +125,12 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.focusTextInput();
     // Add much more text to slow down the save process
-    const longText = 'This is a very long text that should take significant time to save. '.repeat(5) + 
-                   'Adding even more content here to ensure the saving process is slower. '.repeat(2) +
-                   'Final part of very long text to guarantee saving state persists longer.';
+    const longText = 'This is a very long text that should take significant time to save. '.repeat(5) +
+      'Adding even more content here to ensure the saving process is slower. '.repeat(2) +
+      'Final part of very long text to guarantee saving state persists longer.';
     await page.keyboard.type(longText);
     // Wait briefly to ensure saving starts but don't wait for completion
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(t(100));
     await expect(editor.statusMessage()).toContainText(SaveStates.saving.text);
     let dialogTriggered = false;
     await Promise.all([
@@ -139,11 +139,11 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
         dialogTriggered = true;
         await dialog.dismiss();
       }),
-      page.goto('about:blank').catch(() => {}) // Ignore navigation error since dialog interrupts it
+      page.goto('about:blank').catch(() => { }) // Ignore navigation error since dialog interrupts it
     ]);
     expect(dialogTriggered).toBe(true);
   });
-  
+
   test('Show unknown error state and block editing', async () => {
     const editor = pageManager.onSourceSheetEditorPage();
     await editor.addText('Before unknown error');
@@ -156,7 +156,7 @@ test.describe('Test Saved/Saving Without Pop-ups: English', () => {
     await editor.addText(' - triggering error');
     await editor.assertSaveState(SaveStates.catchAllFifthState, LANGUAGES.EN, 23000);
     await editor.validateEditingIsBlocked();
-    
+
     const promptTriggered = await page.evaluate(() => {
       const e = new Event('beforeunload', { cancelable: true });
       return !window.dispatchEvent(e);

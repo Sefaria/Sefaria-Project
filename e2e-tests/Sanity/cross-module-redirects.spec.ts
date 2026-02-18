@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups, normalizeUrl, urlMatches, assertUrlMatches, assertStatusNotError } from "../utils";
-import { BROWSER_SETTINGS } from '../globals';
+import { BROWSER_SETTINGS, t } from '../globals';
 import { MODULE_URLS } from '../constants';
 
 test.describe('Cross-Module Redirects - Library to Voices', () => {
@@ -73,7 +73,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(respone?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/profile/qa-tester`);
 
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(t(5000));
 
     // Verify redirect occurred to voices profile
     const finalUrl = page.url();

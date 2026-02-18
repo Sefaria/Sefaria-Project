@@ -7,7 +7,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import {
   MODULE_URLS,
@@ -111,10 +111,10 @@ test.describe('Library Module Header Tests - English', () => {
     await expect(page).toHaveURL(/\/login/);
     // Dismiss any leftover overlays and give the login form time to render
     await hideAllModalsAndPopups(page);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(t(500));
     // Use placeholders which are reliable across login implementations
-    await expect(page.getByPlaceholder('Email Address')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByPlaceholder('Password')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByPlaceholder('Email Address')).toBeVisible({ timeout: t(15000) });
+    await expect(page.getByPlaceholder('Password')).toBeVisible({ timeout: t(15000) });
   });
 
   test('MOD-H008: Browser navigation controls (back/forward buttons)', async () => {

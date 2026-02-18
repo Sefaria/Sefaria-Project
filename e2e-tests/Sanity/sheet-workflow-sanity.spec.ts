@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES, BROWSER_SETTINGS } from '../globals';
+import { LANGUAGES, BROWSER_SETTINGS, t } from '../globals';
 import { MODULE_URLS } from '../constants';
 import { PageManager } from '../pages/pageManager';
 import { SheetEditorPage } from '../pages/sheetEditorPage';
@@ -34,7 +34,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     await hideAllModalsAndPopups(page);
 
     // Wait for sheet editor to load (using modularized selector)
-    await page.waitForSelector('.sheetContent', { timeout: 10000 });
+    await page.waitForSelector('.sheetContent', { timeout: t(10000) });
 
     // Store sheet info for subsequent tests
     sheetUrl = page.url();
@@ -43,7 +43,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Verify sheet created successfully
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
     expect(sheetUrl).toBeTruthy();
-    await expect(sheetEditorPage.sourceSheetBody()).toBeVisible({ timeout: 10000 });
+    await expect(sheetEditorPage.sourceSheetBody()).toBeVisible({ timeout: t(10000) });
   });
 
   // =================================================================
@@ -59,7 +59,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Need to write something to save title
     await sheetEditorPage.addText("Genesis 1:3");
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(2000); // Extra wait for auto-save
+    await page.waitForTimeout(t(2000)); // Extra wait for auto-save
     await expect(sheetEditorPage.addedSource().first()).toBeVisible();
     await expect(sheetEditorPage.addedSource().first()).toContainText("Genesis 1:3");
     await expect(sheetEditorPage.title()).toContainText(sheetTitle);
@@ -80,7 +80,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
       await page.keyboard.press('ArrowDown');
     }
     await sheetEditorPage.addSampleSource(); // Genesis 1:1
-    await page.waitForTimeout(2000); // Extra wait for auto-save
+    await page.waitForTimeout(t(2000)); // Extra wait for auto-save
 
     await expect(sheetEditorPage.addedSource().last()).toBeVisible();
     await expect(sheetEditorPage.addedSource().last()).toContainText("Genesis 1:1");
@@ -103,7 +103,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
 
     // Add image using the sample image method
     await sheetEditorPage.addSampleImage();
-    await page.waitForTimeout(2000); // Extra wait for image upload and auto-save
+    await page.waitForTimeout(t(2000)); // Extra wait for image upload and auto-save
 
     // Verify image was added
     await expect(sheetEditorPage.addedImage()).toBeVisible();
@@ -127,7 +127,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Add YouTube video
     const youtubeUrl = 'https://youtu.be/oRXVtpUCSGM';
     await sheetEditorPage.addSampleMedia(youtubeUrl);
-    await page.waitForTimeout(2000); // Extra wait for video embed and auto-save
+    await page.waitForTimeout(t(2000)); // Extra wait for video embed and auto-save
 
     // Verify YouTube video was added
     await expect(sheetEditorPage.addedYoutube()).toBeVisible();

@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, SEARCH_DROPDOWN } from '../constants';
 
@@ -29,11 +29,11 @@ test.describe('Search Sanity Tests', () => {
 
     // Wait for dropdown to appear
     const dropdown = page.locator(SEARCH_DROPDOWN.CONTAINER);
-    await expect(dropdown).toBeVisible({ timeout: 10000 });
+    await expect(dropdown).toBeVisible({ timeout: t(10000) });
 
     // Click on the first topic suggestion (should be "Abraham" topic)
     const topicSuggestion = dropdown.locator('.search-suggestion').filter({ hasText: /Abraham/i }).first();
-    await expect(topicSuggestion).toBeVisible({ timeout: 10000 });
+    await expect(topicSuggestion).toBeVisible({ timeout: t(10000) });
     await topicSuggestion.click();
 
     // Wait for navigation
@@ -65,11 +65,11 @@ test.describe('Search Sanity Tests', () => {
 
     // Verify search results are displayed
     const searchContent = page.locator('.searchContent, .content');
-    await expect(searchContent.first()).toBeVisible({ timeout: 10000 });
+    await expect(searchContent.first()).toBeVisible({ timeout: t(10000) });
 
     // Verify we have results (check for "Results" text in result count)
     const resultsText = page.locator('text=/Results/i');
-    await expect(resultsText.first()).toBeVisible({ timeout: 10000 });
+    await expect(resultsText.first()).toBeVisible({ timeout: t(10000) });
   });
 
   // =================================================================
@@ -108,11 +108,11 @@ test.describe('Search Sanity Tests', () => {
 
     // Wait for dropdown to appear
     const dropdown = page.locator(SEARCH_DROPDOWN.CONTAINER);
-    await expect(dropdown).toBeVisible({ timeout: 5000 });
+    await expect(dropdown).toBeVisible({ timeout: t(5000) });
 
     // Click on a topic or author suggestion
     const suggestion = dropdown.locator('.search-suggestion').filter({ hasText: /Rashi/i }).first();
-    await expect(suggestion).toBeVisible({ timeout: 5000 });
+    await expect(suggestion).toBeVisible({ timeout: t(5000) });
     await suggestion.click();
 
     // Wait for navigation
@@ -144,11 +144,11 @@ test.describe('Search Sanity Tests', () => {
 
     // Verify search results are displayed
     const searchContent = page.locator('.searchContent, .content');
-    await expect(searchContent.first()).toBeVisible({ timeout: 10000 });
+    await expect(searchContent.first()).toBeVisible({ timeout: t(10000) });
 
     // Verify we have results (check for "Results" text in result count)
     const resultsText = page.locator('text=/Results/i');
-    await expect(resultsText.first()).toBeVisible({ timeout: 10000 });
+    await expect(resultsText.first()).toBeVisible({ timeout: t(10000) });
   });
 
   // =================================================================

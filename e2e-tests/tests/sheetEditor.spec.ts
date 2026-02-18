@@ -1,7 +1,7 @@
 import { test, expect, Page, Browser, BrowserContext } from '@playwright/test';
 import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { SheetEditorPage } from '../pages/sheetEditorPage';
-import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
+import { BROWSER_SETTINGS, LANGUAGES, t } from '../globals';
 import { SaveStates } from '../constants';
 
 let browser: Browser;
@@ -83,17 +83,17 @@ test('TC005: Delete Text- Backwards, Forwards, All', async () => {
   await backwardsTestLocator.click();
   await page.keyboard.press('End');
   await page.keyboard.press('Backspace');
-  await page.keyboard.press('Backspace'); 
+  await page.keyboard.press('Backspace');
   await page.keyboard.press('Backspace');
   const partialBackwardsLocator = await sheetEditorPage.getTextLocator('Test backwards delet');
   await expect(partialBackwardsLocator).toBeVisible();
   // Test forwards character deletion (delete)
-  await page.keyboard.press('Home'); 
-  await page.keyboard.press('Delete'); 
-  await page.keyboard.press('Delete'); 
-  await page.keyboard.press('Delete'); 
-  await page.keyboard.press('Delete'); 
-  await page.keyboard.press('Delete'); 
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Delete');
+  await page.keyboard.press('Delete');
+  await page.keyboard.press('Delete');
+  await page.keyboard.press('Delete');
+  await page.keyboard.press('Delete');
   const partialForwardsLocator = await sheetEditorPage.getTextLocator('backwards delet');
   await expect(partialForwardsLocator).toBeVisible();
   //test select all and delete
@@ -195,14 +195,14 @@ test('TC011: Delete Added Image', async () => {
     await sheetEditorPage.focusTextInput();
     await sheetEditorPage.addSampleImage();
     await expect(sheetEditorPage.addedImage()).toBeVisible();
-  } 
+  }
   const updatedImageCount = await sheetEditorPage.addedImage().count();
   const imageElement = sheetEditorPage.addedImage().first();
   await imageElement.click();
   await page.keyboard.press('Delete');
   const remainingImageCount = await sheetEditorPage.addedImage().count();
   expect(remainingImageCount).toBeLessThan(updatedImageCount);
-  
+
 });
 
 test('TC012: Add Media - Spotify (followed by text)', async () => {
@@ -227,7 +227,7 @@ test('TC013: Delete Added Media- Spotify', async () => {
     await sheetEditorPage.focusTextInput();
     await sheetEditorPage.addSampleMedia(SPOTIFY_TEST_URL);
     await expect(sheetEditorPage.addedSpotify()).toBeVisible();
-  } 
+  }
   const updatedSpotifyCount = await sheetEditorPage.addedSpotify().count();
   await sheetEditorPage.focusTextInput();
   await page.keyboard.press('ArrowDown');
@@ -280,7 +280,7 @@ test('TC016: Click "X" and confirm sheet now appears in Account Profile', async 
   await sheetEditorPage.addText('test saved upon exit');
   await sheetEditorPage.closeSheetEditor();
   await page.locator('.myProfileBox .profile-pic').click();
-  await page.locator('#my-profile-link').click();  
+  await page.locator('#my-profile-link').click();
   await page.waitForURL(/\/profile/);
   expect(page.url()).toContain('/profile');
   const sheetTitle = 'Test Sheet Title';
@@ -319,13 +319,13 @@ test('TC017: Manually delete sheet from account profile', async () => {
       deleteBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
       deleteBtn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
       deleteBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      
+
       return true;
     }
     return false;
   });
   const deletedSheetRow = page.locator('.sheet').filter({ has: page.locator(`a.sheetTitle:has-text("${uniqueTitle}")`) }).first();
-  await expect(deletedSheetRow).not.toBeVisible({ timeout: 10000 });
+  await expect(deletedSheetRow).not.toBeVisible({ timeout: t(10000) });
 });
 
 
