@@ -117,23 +117,31 @@ $button-height-desktop: 30px;
   box-shadow: $popover-shadow;
   z-index: -1;
 
-  // Arrow positioning based on placement
+  // Arrow positioning based on placement - static CSS positioning
   &.mobile-hebrew-right,
   &.desktop-left {
     right: $popover-arrow-offset;
+    top: 8%;
+    transform: translateY(-10%) rotate(45deg);
   }
 
   &.mobile-english-left,
   &.desktop-right {
     left: $popover-arrow-offset;
+    top: 8%;
+    transform: translateY(-10%) rotate(45deg);
   }
 
   &.desktop-top {
     bottom: $popover-arrow-offset;
+    left: 8%;
+    transform: translateX(-10%) rotate(45deg);
   }
 
   &.desktop-bottom {
     top: $popover-arrow-offset;
+    right: 8%;
+    transform: translateX(-10%) rotate(45deg);
   }
 }
 
