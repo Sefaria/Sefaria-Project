@@ -1340,6 +1340,7 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   filter: brightness(1); /* Keep at #666666 (--dark-grey) when tab is focused*/
 }
 .sidebarLayout {
+  background-color: red !important;
   display: flex;
   flex-direction: row;
 }
