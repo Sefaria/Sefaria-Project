@@ -28,9 +28,9 @@ from sefaria.helper.linker.disambiguator import AmbiguousResolutionPayload, NonS
 from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 # Global flag for debug mode
-DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
-DEBUG_LIMIT = 10 # Number of random examples to fetch in debug mode
-DEBUG_SEED = 6133  # Seed for reproducible random sampling
+DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
+DEBUG_LIMIT = 1750 # Number of random examples to fetch in debug mode
+DEBUG_SEED = 6138  # Seed for reproducible random sampling
 
 
 
@@ -314,5 +314,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    print(len(find_non_segment_level_resolutions()))
+    main()
