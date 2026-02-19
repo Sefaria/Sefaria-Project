@@ -195,8 +195,6 @@ cronJobs:
     enabled: true
   topicsIndexing:
     enabled: true
-  trello:
-    enabled: true
   trends:
     enabled: true
   weeklyEmailNotifications:
