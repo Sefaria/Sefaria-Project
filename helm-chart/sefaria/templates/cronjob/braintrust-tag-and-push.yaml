@@ -1,0 +1,64 @@
+{{- if and .Values.cronJobs.braintrust.enabled .Values.cronJobs.braintrust.tagAndPush.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-braintrust-tag-and-push
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.cronJobs.braintrust.tagAndPush.schedule }}"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.cronJobs.braintrust.tagAndPush.serviceAccount }}
+          securityContext:
+            fsGroup: 1000
+          containers:
+          - name: braintrust-tag-and-push
+            image: "{{ .Values.cronJobs.braintrust.image.repository }}:{{ .Values.cronJobs.braintrust.image.tag }}"
+            env:
+            - name: BRAINTRUST_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.braintrust.ref }}
+                  key: api-key
+            - name: BRAINTRUST_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.braintrust.ref }}
+                  key: project-id
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.anthropic.ref }}
+                  key: api-key
+            - name: BRAINTRUST_SHARED_STORAGE
+              value: "/shared/braintrust"
+            volumeMounts:
+            - mountPath: /shared/braintrust
+              name: shared-storage
+            command: ["python"]
+            args: ["/app/scripts/braintrust_tag_and_push.py", "all"]
+            resources:
+              limits:
+                memory: "3Gi"
+                cpu: "2000m"
+              requests:
+                memory: "1Gi"
+                cpu: "500m"
+          restartPolicy: OnFailure
+          volumes:
+          - name: shared-storage
+            {{- if .Values.cronJobs.braintrust.tagAndPush.usePvc }}
+            persistentVolumeClaim:
+              claimName: {{ .Values.cronJobs.braintrust.tagAndPush.pvcName }}
+            {{- else }}
+            emptyDir: {}
+            {{- end }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

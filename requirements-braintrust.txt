@@ -1,0 +1,6 @@
+braintrust==0.15.0
+langchain-anthropic==0.3.22
+requests>=2.31.0
+structlog>=23.2.0
+google-cloud-logging>=3.5.0
+google-cloud-storage>=2.10.0
