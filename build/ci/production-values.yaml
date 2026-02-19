@@ -144,8 +144,10 @@ ingress:
   enabled: true
 gateway:
   enabled: true
+  alpnProtocols:
+    - h2
+    - http/1.1
   annotations: {}
-  clientIPHeader: CF-Connecting-IP
 nginx:
   containerImage:
     imageRegistry:
