@@ -1,7 +1,7 @@
 """
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
-
+import sefaria.helper.schema
 from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
@@ -80,17 +80,16 @@ subscribe(marked_up_text_chunk.process_topic_slug_change,             topic.Topi
 
 
 # Terms
-# TODO cascade change to Term.name.
-# TODO Current locations where we know terms are used [Index, Categories]
-# TODO Use Sefaria-Project/scripts/search_for_indexes_that_use_terms.py for now
+# TermScheme name change cascades to Term.scheme field
 subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
+
+# Term save/delete rebuilds the term mapping cache
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
-"""
-Notes on where Terms are used
-Index (alt structs and schema)
-Category
-"""
+
+# Term primary title change rebuilds library (term mapping, categories, indexes)
+subscribe(sefaria.helper.schema.process_term_primary_title_change, schema.Term, "attributeChange", "_primary_en")
+subscribe(sefaria.helper.schema.process_term_primary_title_change, schema.Term, "attributeChange", "_primary_he")
 
 # Time
 subscribe(cascade(topic.PersonTopicSet, "properties.era.value"),          timeperiod.TimePeriod, "attributeChange", "symbol")

@@ -72,9 +72,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     # if the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
     if com["type"] == "commentary":
+        collective_title = getattr(linkRef.index, 'collective_title', None)
+        term = library.get_simple_term_mapping().get(collective_title) or {}
         com["collectiveTitle"] = {
-            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
-            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+            lang: term.get(lang) or linkRef.index.get_title(lang) for lang in ('en', 'he')
         }
     else:
         com["collectiveTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}

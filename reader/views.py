@@ -1426,22 +1426,16 @@ def edit_text_info(request, title=None, new_title=None):
 
 @ensure_csrf_cookie
 @staff_member_required
-def terms_editor(request, term=None):
+def terms_editor(request, name):
     """
     Add/Editor a term using the JSON Editor.
     """
-    if term is not None:
-        existing_term = Term().load_by_title(term)
-        data = existing_term.contents() if existing_term else {"name": term, "titles": []}
-    else:
-        return render_template(request,'static/generic.html', None, {
-            "title": "Terms Editor",
-            "content": "Please include the primary Term name in the URL to uses the Terms Editor."
-        })
+    existing_term = Term().load({'name': name})
+    data = existing_term.contents() if existing_term else {"titles": []}
 
     dataJSON = json.dumps(data)
     return render_template(request,'edit_term.html', None, {
-        'term': term,
+        'term': name,
         'dataJSON': dataJSON,
         'is_update': "true" if existing_term else "false"
     })
@@ -2648,9 +2642,9 @@ def category_api(request, path=None):
             return jsonResponse({"error": "Missing data in POST request."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
-        new_category = Category().load({"path": j["path"]})
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
+        new_category = Category().load({"path": j["path"]})
         if not update and new_category is not None:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
 
@@ -2669,14 +2663,10 @@ def category_api(request, path=None):
             return {"error": f"Merging two categories named {last_path} is not supported."}
         elif "heSharedTitle" in j:
             # if heSharedTitle provided, make sure sharedTitle and heSharedTitle correspond to same Term
-            en_term = Term().load_by_title(last_path)
-            he_term = Term().load_by_title(he_last_path)
-            if en_term and en_term == he_term:
-                pass  # both titles are found in an existing Term object
-            else:
+            existing_term = Term().load_by_primary_titles(last_path, he_last_path)
+            if not existing_term:
                 # titles weren't found in same Term object, so try to create a new Term
                 t = Term()
-                t.name = last_path
                 t.add_primary_titles(last_path, he_last_path)
                 t.save()
 
@@ -2760,7 +2750,7 @@ def terms_api(request, name):
     This is mainly to be used for adding hebrew internationalization language for section names, categories and commentators
     """
     if request.method == "GET":
-        term = Term().load({'name': name}) or Term().load_by_title(name)
+        term = Term().load({'name': name})
         if term is None:
             return jsonResponse({"error": "Term does not exist."})
         else:
@@ -2768,7 +2758,7 @@ def terms_api(request, name):
 
     if request.method in ("POST", "DELETE"):
         def _internal_do_post(request, uid):
-            t = Term().load({'name': name}) or Term().load_by_title(name)
+            t = Term().load({'name': name})
             if request.method == "POST":
                 if "json" in request.POST:
                     term = request.POST.get("json")
