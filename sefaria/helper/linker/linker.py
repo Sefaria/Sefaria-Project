@@ -6,6 +6,7 @@ from sefaria.model.linker.ref_part import TermContext
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
+from sefaria.model.webpage_text import WebPageText
 from sefaria.system.cache import django_cache
 from api.api_errors import APIInvalidInputException
 from typing import List, Optional, Tuple
@@ -130,19 +131,44 @@ def _add_webpage_hit_for_url(url):
     webpage.save()
 
 
+def _save_webpage_from_linker_metadata(meta_data: dict, response: dict) -> Optional[WebPage]:
+    url = meta_data.get("url")
+    if not url:
+        return None
+    _, webpage = WebPage.add_or_update_from_linker({
+        "url": url,
+        "title": meta_data.get("title", ""),
+        "description": meta_data.get("description", ""),
+        "refs": _get_trefs_from_response(response),
+    }, add_hit=False)
+    return webpage
+
+
+def _save_webpage_text_from_linker_request(meta_data: dict, request_text: _FindRefsText) -> None:
+    url = meta_data.get("url")
+    if not url:
+        return
+    WebPageText.add_or_update({
+        "url": url,
+        "title": request_text.title,
+        "body": request_text.body,
+    })
+
+
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
     response = _make_find_refs_response_linker_v3(request_text, options)
 
-    if meta_data:
-        _, webpage = WebPage.add_or_update_from_linker({
-            "url": meta_data['url'],
-            "title": meta_data['title'],
-            "description": meta_data['description'],
-            "refs": _get_trefs_from_response(response),
-        }, add_hit=False)
-        if webpage:
-            response['url'] = webpage.url
+    if not meta_data:
+        return response
+
+    webpage = _save_webpage_from_linker_metadata(meta_data, response)
+    if webpage:
+        response['url'] = webpage.url
+    try:
+        _save_webpage_text_from_linker_request(meta_data, request_text)
+    except Exception:
+        logger.exception("linker:webpage_text_save_failed", url=meta_data.get("url"))
     return response
 
 
