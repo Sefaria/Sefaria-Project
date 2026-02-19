@@ -4607,7 +4607,26 @@
               "name": "limit",
               "description": "This parameter limits the number of topics returned. The default is `1000`. If `limit=0` then all topics will be returned.",
               "schema": {
-                  "type": "integer"
+                  "type": "integer",
+                  "default": 1000
+              },
+              "in": "query"
+          },
+          {
+              "examples": {
+                  "Minified response (default)": {
+                      "value": 1
+                  },
+                  "Full response with images": {
+                      "value": 0
+                  }
+              },
+              "name": "minify",
+              "description": "When set to `1` (default), returns a minified response with only essential fields (slug, titles, primaryTitle, description, categoryDescription, displayOrder, pools, shouldDisplay). When set to `0`, returns the full topic data including images and all other fields.",
+              "schema": {
+                  "type": "integer",
+                  "enum": [0, 1],
+                  "default": 1
               },
               "in": "query"
           }
@@ -4941,11 +4960,11 @@
                 }
               }
             },
-            "description": "A list of JSON objects, each object representing a topic in the Sefaria database. Please note, since this list is over 30,000 topics long, in the example we only presented the first several topics that are returned in the array. "
+            "description": "A list of JSON objects, each object representing a topic in the Sefaria database. Please note, since this list is over 30,000 topics long, in the example we only presented the first several topics that are returned in the array. When `minify=0` is specified, the full topic data is returned including images and all other fields."
           }
         },
         "summary": "All Topics",
-        "description": "The topics API returns a list of JSON objects, with each object containing all of the metadata for each topic in the Sefaria database. "
+        "description": "The topics API returns a list of JSON objects, with each object containing metadata for every topic in the Sefaria database. By default, responses are minified to reduce payload size. Use `minify=0` to get the full topic data including images and all other fields."
       }
     },
     "/api/topics-graph/{topic_slug}": {

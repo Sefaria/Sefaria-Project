@@ -3322,10 +3322,11 @@ def topics_list_api(request):
     API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
+    minify = bool(int(request.GET.get("minify", 1)))
     all_topics = get_all_topics(limit, active_module=request.active_module)
     all_topics_json = []
     for topic in all_topics:
-        topic_json = topic.contents(minify=True, with_html=True)
+        topic_json = topic.contents(minify=minify, with_html=True)
         topic_json["titles"] = topic.titles
         all_topics_json.append(topic_json)
     response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
