@@ -1,10 +1,19 @@
+import csv
+import io
+
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import User
+from django.shortcuts import redirect, render
+from django.conf.urls import url
 
 from reader.models import UserExperimentSettings, _set_user_experiments
+
+
+class CsvUploadForm(forms.Form):
+    csv_file = forms.FileField(label="CSV file with email addresses")
 
 
 @admin.register(UserExperimentSettings)
@@ -14,6 +23,7 @@ class UserExperimentSettingsAdmin(admin.ModelAdmin):
     raw_id_fields = ("user",)
     search_fields = ("user__email", "user__username", "user__first_name", "user__last_name")
     list_filter = ("experiments",)
+    change_list_template = "admin/reader/userexperimentsettings/change_list.html"
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -23,6 +33,69 @@ class UserExperimentSettingsAdmin(admin.ModelAdmin):
         return obj.user.email
     user_email.short_description = "Email"
     user_email.admin_order_field = "user__email"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            url(
+                r'^upload-csv/$',
+                self.admin_site.admin_view(self.upload_csv_view),
+                name='reader_userexperimentsettings_upload_csv',
+            ),
+        ]
+        return custom_urls + urls
+
+    def upload_csv_view(self, request):
+        if request.method == "POST":
+            form = CsvUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                csv_file = request.FILES["csv_file"]
+                decoded_file = csv_file.read().decode("utf-8")
+                reader = csv.reader(io.StringIO(decoded_file))
+
+                emails_not_found = []
+                emails_updated = []
+
+                for row in reader:
+                    if not row:
+                        continue
+                    email = row[0].strip()
+                    if not email:
+                        continue
+                    try:
+                        user = User.objects.get(email__iexact=email)
+                        _set_user_experiments(user, True)
+                        emails_updated.append(email)
+                    except User.DoesNotExist:
+                        emails_not_found.append(email)
+
+                if emails_updated:
+                    self.message_user(
+                        request,
+                        f"Successfully enabled experiments for {len(emails_updated)} user(s).",
+                        messages.SUCCESS,
+                    )
+
+                if emails_not_found:
+                    not_found_list = ", ".join(emails_not_found)
+                    self.message_user(
+                        request,
+                        f"The following email addresses were not found: {not_found_list}",
+                        messages.WARNING,
+                    )
+
+                return redirect("..")
+
+        else:
+            form = CsvUploadForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "form": form,
+            "title": "Upload CSV with Email Addresses",
+            "opts": self.model._meta,
+        }
+        return render(request, "admin/upload_csv_form.html", context)
 
 
 class UserExperimentsChangeForm(UserChangeForm):

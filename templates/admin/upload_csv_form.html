@@ -1,0 +1,19 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<p>Upload a CSV file containing email addresses (one per row). Each user with a matching email will have experiments enabled.</p>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <fieldset class="module aligned">
+        {{ form.as_p }}
+    </fieldset>
+    <div class="submit-row">
+        <input type="submit" value="Upload and Enable Experiments" class="default">
+        <a href="{% url 'admin:reader_userexperimentsettings_changelist' %}" class="closelink">Cancel</a>
+    </div>
+</form>
+{% endblock %}
