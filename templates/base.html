@@ -274,6 +274,9 @@
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '{{ GOOGLE_GTAG }}', {
+//Previous NPS
+//                'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
+//                'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefaria.org' : null
               'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
               'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null,
               'site_lang': '{{ request.interfaceLang }}',
