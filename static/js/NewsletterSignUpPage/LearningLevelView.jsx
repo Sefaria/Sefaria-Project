@@ -1,5 +1,6 @@
 import React from 'react';
 import { InterfaceText, LoadingMessage } from '../Misc';
+import SelectableOption from './SelectableOption';
 import { BILINGUAL_TEXT } from './bilingualUtils';
 
 /**
@@ -61,36 +62,21 @@ export default function LearningLevelView({
       <form className="learningLevelForm" onSubmit={(e) => { e.preventDefault(); onSave(true); }}>
         <div className="learningLevelOptions">
           {learningLevels.map((level) => (
-            <label
+            <SelectableOption
               key={level.value}
-              className={`learningLevelOption ${selectedLevel === level.value ? 'selected' : ''}`}>
-              <input
-                type="radio"
-                name="learningLevel"
-                value={level.value}
-                checked={selectedLevel === level.value}
-                onChange={() => onLevelSelect(level.value)}
-                disabled={isSubmitting}
-                data-anl-event="learning_level_selected:input"
-                data-anl-text={level.label.en}
-                data-anl-form_name="learning_level_survey"
-              />
-              <span className="levelContent">
-                <span className="levelLabel">
-                  <InterfaceText text={level.label} />
-                </span>
-                <span className="levelDescription">
-                  <InterfaceText text={level.description} />
-                </span>
-              </span>
-              <span className="selectedCheckmark">
-                <img
-                  src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
-                  alt=""
-                  aria-hidden="true"
-                />
-              </span>
-            </label>
+              type="radio"
+              name="learningLevel"
+              value={level.value}
+              label={<InterfaceText text={level.description} />}
+              isSelected={selectedLevel === level.value}
+              onChange={() => onLevelSelect(level.value)}
+              disabled={isSubmitting}
+              analyticsAttributes={{
+                'data-anl-event': 'learning_level_selected:input',
+                'data-anl-text': level.label.en,
+                'data-anl-form_name': 'learning_level_survey',
+              }}
+            />
           ))}
         </div>
 

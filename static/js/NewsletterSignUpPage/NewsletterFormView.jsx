@@ -1,7 +1,7 @@
 import React from 'react';
 import Sefaria from '../sefaria/sefaria';
 import { InterfaceText, LoadingMessage } from '../Misc';
-import NewsletterCheckbox from './NewsletterCheckbox';
+import SelectableOption from './SelectableOption';
 import MarketingEmailToggle from './MarketingEmailToggle';
 import { BILINGUAL_TEXT } from './bilingualUtils';
 
@@ -218,10 +218,12 @@ export default function NewsletterFormView({
             aria-describedby={fieldErrors.newsletters ? 'newsletters-error' : undefined}
           >
             {newsletters.map((newsletter) => (
-              <NewsletterCheckbox
+              <SelectableOption
                 key={newsletter.key}
-                newsletter={newsletter}
-                isChecked={formData.selectedNewsletters[newsletter.key] || false}
+                type="checkbox"
+                label={Sefaria._(newsletter.labelKey)}
+                icon={newsletter.icon}
+                isSelected={formData.selectedNewsletters[newsletter.key] || false}
                 onChange={() => {
                   onNewsletterToggle(newsletter.key);
                   // Trigger validation on newsletter change if submit was attempted
@@ -231,6 +233,11 @@ export default function NewsletterFormView({
                   }
                 }}
                 disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
+                analyticsAttributes={{
+                  'data-anl-event': 'newsletter_selected:input',
+                  'data-anl-text': Sefaria._(newsletter.labelKey),
+                  'data-anl-form_name': 'newsletter_signup',
+                }}
               />
             ))}
           </div>

@@ -377,36 +377,21 @@
 }
 
 /* ============================================
-   CUSTOM CHECKBOXES
-   Pattern: Based on .searchContent checkbox implementation
+   SELECTABLE OPTION - Shared radio/checkbox button style
+   Used by newsletter checkboxes and learning level options
    ============================================ */
 
-.newsletterFormView .newsletterCheckboxes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: 16px;
-  row-gap: 16px;
-}
-
-/* Mobile: single column layout */
-@media (max-width: 768px) {
-  .newsletterFormView .newsletterCheckboxes {
-    grid-template-columns: 1fr;
-  }
-}
-
-.newsletterFormView .newsletterCheckboxWrapper {
+.selectableOptionWrapper {
   display: flex;
   align-items: stretch;
   height: 100%;
 }
 
-.newsletterFormView .newsletterCheckboxInput {
+.selectableOptionInput {
   display: none;
 }
 
-/* Label for checkbox - button-style selectable items */
-.newsletterFormView .newsletterCheckboxLabel {
+.selectableOptionLabel {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -421,39 +406,33 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-.interface-hebrew .newsletterFormView .newsletterCheckboxLabel {
+.interface-hebrew .selectableOptionLabel {
   font-family: var(--hebrew-sans-serif-font-family);
   font-size: 122%;
-  /* Note: direction: rtl is inherited from body, which handles RTL layout */
 }
 
-.newsletterFormView .newsletterCheckboxLabel:hover {
+.selectableOptionLabel:hover {
   background-color: var(--lightest-grey);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 }
 
-/* Selected state - gray background like in design */
-.newsletterFormView .newsletterCheckboxLabel.checked {
+.selectableOptionLabel.selected {
   background-color: #E8E8E8;
 }
 
-.newsletterFormView .newsletterCheckboxLabel.checked:hover {
+.selectableOptionLabel.selected:hover {
   background-color: #DEDEDE;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 }
 
 /* Focus state for accessibility */
-.newsletterFormView .newsletterCheckboxInput:focus-visible + .newsletterIcon {
-  outline: none;
-}
-
-.newsletterFormView .newsletterCheckboxLabel:focus-within {
+.selectableOptionLabel:focus-within {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(11, 113, 231, 0.2);
 }
 
 /* Selected checkmark icon - positioned at end (right for LTR, left for RTL) */
 /* Always present in DOM to prevent reflow, hidden by default */
-.newsletterFormView .selectedCheckmark {
+.selectedCheckmark {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -462,50 +441,66 @@
   visibility: hidden;
 }
 
-.newsletterFormView .newsletterCheckboxLabel.checked .selectedCheckmark {
+.selectableOptionLabel.selected .selectedCheckmark {
   visibility: visible;
 }
 
-.newsletterFormView .selectedCheckmark img {
+.selectedCheckmark img {
   width: 18px;
   height: 18px;
 }
 
 /* Hebrew interface - checkmark on left side */
-.interface-hebrew .newsletterFormView .selectedCheckmark {
+.interface-hebrew .selectedCheckmark {
   margin-left: 0;
   margin-right: auto;
 }
 
-/* Newsletter icon - uses CSS mask for dynamic color control */
-.newsletterFormView .newsletterIcon {
+/* Optional icon - uses CSS mask for dynamic color control */
+.selectableOptionIcon {
   display: inline-block;
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  background-color: #CCCCCC; /* Default lighter gray */
+  background-color: #CCCCCC;
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
   transition: background-color 0.2s ease;
 }
 
-/* Icon color variations - control via background-color with mask */
-.newsletterFormView .newsletterCheckboxLabel.checked .newsletterIcon {
-  background-color: #999999; /* Darker gray when selected */
+.selectableOptionLabel.selected .selectableOptionIcon {
+  background-color: #999999;
 }
 
-/* Hover state for icons */
-.newsletterFormView .newsletterCheckboxLabel:hover .newsletterIcon {
-  background-color: #999999; /* Darker on hover */
+.selectableOptionLabel:hover .selectableOptionIcon {
+  background-color: #999999;
 }
 
-/* Label text */
-.newsletterFormView .newsletterLabel {
+/* Text label */
+.selectableOptionText {
   font-size: var(--sans-serif-body-font-size);
   color: var(--darkest-grey);
   font-weight: 400;
   line-height: 1.4;
+}
+
+/* ============================================
+   NEWSLETTER CHECKBOX CONTAINER (grid layout)
+   ============================================ */
+
+.newsletterFormView .newsletterCheckboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 16px;
+  row-gap: 16px;
+}
+
+/* Mobile: single column layout */
+@media (max-width: 768px) {
+  .newsletterFormView .newsletterCheckboxes {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================
@@ -619,106 +614,12 @@
    Pattern: Matches newsletter checkbox styling with radio behavior
    ============================================ */
 
+/* Learning level options container (flex column layout) */
 .learningLevelView .learningLevelOptions {
   display: flex;
   flex-direction: column;
   gap: 15px;
   margin-bottom: 40px;
-}
-
-.learningLevelView .learningLevelOption {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 14px 18px;
-  border: none;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  font-family: var(--english-sans-serif-font-family);
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-.interface-hebrew .learningLevelView .learningLevelOption {
-  font-family: var(--hebrew-sans-serif-font-family);
-}
-
-.learningLevelView .learningLevelOption:hover {
-  background-color: var(--lightest-grey);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-}
-
-.learningLevelView .learningLevelOption.selected {
-  background-color: #E8E8E8;
-}
-
-.learningLevelView .learningLevelOption.selected:hover {
-  background-color: #DEDEDE;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-}
-
-/* Hide native radio button */
-.learningLevelView input[type="radio"] {
-  display: none;
-}
-
-/* Focus state for accessibility */
-.learningLevelView .learningLevelOption:focus-within {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(11, 113, 231, 0.2);
-}
-
-/* Selected checkmark icon - positioned at end (right for LTR, left for RTL) */
-/* Always present in DOM to prevent reflow, hidden by default */
-.learningLevelView .selectedCheckmark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  flex-shrink: 0;
-  visibility: hidden;
-}
-
-.learningLevelView .learningLevelOption.selected .selectedCheckmark {
-  visibility: visible;
-}
-
-.learningLevelView .selectedCheckmark img {
-  width: 18px;
-  height: 18px;
-}
-
-/* Hebrew interface - checkmark on left side */
-.interface-hebrew .learningLevelView .selectedCheckmark {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-/* Level content (label + description) */
-.learningLevelView .levelContent {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-  width: 100%;
-}
-
-.learningLevelView .levelLabel {
-  font-size: var(--sans-serif-body-font-size);
-  color: var(--darkest-grey);
-  font-weight: 600;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.learningLevelView .levelDescription {
-  font-size: 14px;
-  color: var(--dark-grey);
-  line-height: 1.6;
-  font-weight: 400;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
 }
 
 /* ============================================
@@ -888,7 +789,7 @@
     gap: 10px;
   }
 
-  .learningLevelView .learningLevelOption {
+  .learningLevelView .selectableOptionLabel {
     padding: 12px;
   }
 
@@ -928,14 +829,6 @@
 .interface-hebrew .newsletterFormView .formField label {
   flex-direction: row-reverse;
   justify-content: flex-end;
-}
-
-.interface-hebrew .learningLevelView .learningLevelOption {
-  flex-direction: row-reverse;
-}
-
-.interface-hebrew .learningLevelView .levelContent {
-  text-align: right;
 }
 
 /* ============================================
@@ -985,107 +878,12 @@
   text-align: right;
 }
 
-/* Learning level radio options within confirmation view */
+/* Learning level options container within confirmation view */
 .newsletterConfirmationView .embeddedLearningLevel .learningLevelOptions {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-bottom: 25px;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 14px 18px;
-  border: none;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  font-family: var(--english-sans-serif-font-family);
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelOption {
-  font-family: var(--hebrew-sans-serif-font-family);
-  flex-direction: row-reverse;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption:hover {
-  background-color: var(--lightest-grey);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption.selected {
-  background-color: #E8E8E8;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption.selected:hover {
-  background-color: #DEDEDE;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-}
-
-/* Hide native radio button */
-.newsletterConfirmationView .embeddedLearningLevel input[type="radio"] {
-  display: none;
-}
-
-/* Focus state for accessibility */
-.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption:focus-within {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(11, 113, 231, 0.2);
-}
-
-/* Selected checkmark icon */
-.newsletterConfirmationView .embeddedLearningLevel .selectedCheckmark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  flex-shrink: 0;
-  visibility: hidden;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .learningLevelOption.selected .selectedCheckmark {
-  visibility: visible;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .selectedCheckmark img {
-  width: 18px;
-  height: 18px;
-}
-
-/* Hebrew interface - checkmark on left side */
-.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .selectedCheckmark {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-/* Level content (label + description) */
-.newsletterConfirmationView .embeddedLearningLevel .levelContent {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  width: 100%;
-}
-
-.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .levelContent {
-  text-align: right;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .levelLabel {
-  font-size: var(--sans-serif-body-font-size);
-  color: var(--darkest-grey);
-  font-weight: 600;
-  word-wrap: break-word;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .levelDescription {
-  font-size: 14px;
-  color: var(--dark-grey);
-  line-height: 1.5;
-  font-weight: 400;
-  word-wrap: break-word;
 }
 
 /* Error message within embedded learning level */
@@ -1202,7 +1000,7 @@
     padding-top: 25px;
   }
 
-  .newsletterConfirmationView .embeddedLearningLevel .learningLevelOption {
+  .newsletterConfirmationView .embeddedLearningLevel .selectableOptionLabel {
     padding: 12px;
   }
 
@@ -1294,7 +1092,7 @@
   pointer-events: none;
 }
 
-.newsletterCheckboxes.disabled .newsletterCheckboxLabel {
+.newsletterCheckboxes.disabled .selectableOptionLabel {
   cursor: not-allowed;
 }
 
