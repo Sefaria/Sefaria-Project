@@ -129,6 +129,11 @@ export default function NewsletterSignUpPageForm() {
   // Ref for focusing error summary on validation failure (accessibility)
   const errorSummaryRef = useRef(null);
 
+  // Baseline snapshots for computing subscription diffs (logged-in users only).
+  // Refs because these are write-once values that never drive rendering.
+  const initialSubscriptionsRef = useRef({});
+  const initialWantsMarketingRef = useRef(true);
+
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
     // Fetch newsletter list dynamically from AC API (real mode only)
@@ -187,6 +192,10 @@ export default function NewsletterSignUpPageForm() {
             const effectiveWantsMarketing = !backendWantsMarketing && hasActiveManagedSubscription
               ? true
               : backendWantsMarketing;
+
+            // Snapshot the initial state for diff computation on submit
+            initialSubscriptionsRef.current = { ...selectedNewsletters };
+            initialWantsMarketingRef.current = effectiveWantsMarketing;
 
             setFormData(prev => ({
               ...prev,
@@ -331,6 +340,17 @@ export default function NewsletterSignUpPageForm() {
       return;
     }
 
+    // For logged-in users: skip API call if nothing actually changed
+    if (formStatus.isLoggedIn) {
+      const diffs = getSubscriptionDiffs();
+      const optOutChanged = formData.wantsMarketingEmails !== initialWantsMarketingRef.current;
+
+      if (diffs.added.length === 0 && diffs.removed.length === 0 && !optOutChanged) {
+        setFormStatus(prev => ({ ...prev, currentStage: 'confirmation' }));
+        return;
+      }
+    }
+
     // Clear any previous error state and prepare for submission
     setFormStatus(prev => ({ ...prev, status: 'submitting', errorMessage: null }));
 
@@ -455,6 +475,32 @@ export default function NewsletterSignUpPageForm() {
     return errors;  // Empty object = valid
   };
 
+  // ========== HELPERS: Subscription diff computation ==========
+
+  /**
+   * Computes the set differences between initial and current newsletter selections.
+   * Returns human-readable labels for added and removed newsletters.
+   */
+  const getSubscriptionDiffs = () => {
+    const initial = initialSubscriptionsRef.current;
+    const current = formData.selectedNewsletters;
+
+    const labelForKey = (key) => {
+      const nl = newsletters.find(n => n.key === key);
+      return nl ? Sefaria._(nl.labelKey) : key;
+    };
+
+    const added = Object.keys(current)
+      .filter(key => current[key] && !initial[key])
+      .map(labelForKey);
+
+    const removed = Object.keys(initial)
+      .filter(key => initial[key] && !current[key])
+      .map(labelForKey);
+
+    return { added, removed };
+  };
+
   // ========== RENDER: View routing based on current stage ==========
 
   const getSelectedNewsletterLabels = () => {
@@ -506,6 +552,9 @@ export default function NewsletterSignUpPageForm() {
           onLevelSelect={handleLearningLevelSelect}
           onSave={handleLearningLevelSubmit}
           onSkip={handleSkipLearningLevel}
+          isLoggedIn={formStatus.isLoggedIn}
+          subscriptionDiffs={formStatus.isLoggedIn ? getSubscriptionDiffs() : null}
+          marketingOptOut={!formData.wantsMarketingEmails}
         />
       )}
 

@@ -138,6 +138,22 @@ export const BILINGUAL_TEXT = {
     en: 'Your preferences have been saved.',
     he: 'ההעדפות שלך נשמרו.',
   },
+  SUBSCRIBED_TO: {
+    en: "You've subscribed to:",
+    he: 'הרשמת לרשימה:',
+  },
+  UNSUBSCRIBED_FROM: {
+    en: "You've unsubscribed from:",
+    he: 'ביטלת את הרשמתך מ:',
+  },
+  PREFERENCES_UP_TO_DATE: {
+    en: 'Your preferences are up to date.',
+    he: 'ההעדפות שלך מעודכנות.',
+  },
+  OPTED_OUT_MARKETING: {
+    en: "You've opted out of marketing emails.",
+    he: 'ביטלת קבלת מיילים שיווקיים.',
+  },
 
   // Learning level
   HELP_TAILOR_CONTENT: {

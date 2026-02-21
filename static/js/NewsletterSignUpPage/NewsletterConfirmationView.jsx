@@ -27,6 +27,9 @@ export default function NewsletterConfirmationView({
   onLevelSelect,
   onSave,
   onSkip,
+  isLoggedIn = false,
+  subscriptionDiffs = null,
+  marketingOptOut = false,
 }) {
   // Check if user selected the general "Sefaria News & Resources" newsletter
   // (This is the list that triggers confirmation email + welcome series)
@@ -82,15 +85,50 @@ export default function NewsletterConfirmationView({
         )}
 
         {/* SELECTED NEWSLETTERS DISPLAY */}
-        {selectedNewsletterLabels && (
-          <div className="selectedNewslettersDisplay"
-               data-anl-text={selectedNewsletterLabels}>
-            <p className="selectedLabel">
-              <span className="int-en">You've subscribed to:</span>
-              <span className="int-he">הרשמת לרשימה:</span>
-            </p>
-            <p className="selectedList">{selectedNewsletterLabels}</p>
+        {isLoggedIn && subscriptionDiffs ? (
+          <div className="selectedNewslettersDisplay">
+            {subscriptionDiffs.added.length > 0 && (
+              <div data-anl-text={subscriptionDiffs.added.join(', ')}>
+                <p className="selectedLabel">
+                  <span className="int-en">{BILINGUAL_TEXT.SUBSCRIBED_TO.en}</span>
+                  <span className="int-he">{BILINGUAL_TEXT.SUBSCRIBED_TO.he}</span>
+                </p>
+                <p className="selectedList">{subscriptionDiffs.added.join(', ')}</p>
+              </div>
+            )}
+            {subscriptionDiffs.removed.length > 0 && (
+              <div data-anl-text={subscriptionDiffs.removed.join(', ')}>
+                <p className="selectedLabel">
+                  <span className="int-en">{BILINGUAL_TEXT.UNSUBSCRIBED_FROM.en}</span>
+                  <span className="int-he">{BILINGUAL_TEXT.UNSUBSCRIBED_FROM.he}</span>
+                </p>
+                <p className="selectedList">{subscriptionDiffs.removed.join(', ')}</p>
+              </div>
+            )}
+            {marketingOptOut && (
+              <p className="selectedLabel">
+                <span className="int-en">{BILINGUAL_TEXT.OPTED_OUT_MARKETING.en}</span>
+                <span className="int-he">{BILINGUAL_TEXT.OPTED_OUT_MARKETING.he}</span>
+              </p>
+            )}
+            {subscriptionDiffs.added.length === 0 && subscriptionDiffs.removed.length === 0 && !marketingOptOut && (
+              <p className="selectedLabel">
+                <span className="int-en">{BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE.en}</span>
+                <span className="int-he">{BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE.he}</span>
+              </p>
+            )}
           </div>
+        ) : (
+          selectedNewsletterLabels && (
+            <div className="selectedNewslettersDisplay"
+                 data-anl-text={selectedNewsletterLabels}>
+              <p className="selectedLabel">
+                <span className="int-en">{BILINGUAL_TEXT.SUBSCRIBED_TO.en}</span>
+                <span className="int-he">{BILINGUAL_TEXT.SUBSCRIBED_TO.he}</span>
+              </p>
+              <p className="selectedList">{selectedNewsletterLabels}</p>
+            </div>
+          )
         )}
       </div>
 
