@@ -20,9 +20,15 @@ import { test, expect } from '@playwright/test';
 test.describe('Newsletter Signup - Form Validation', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
+    await page.addInitScript(() => {
+      document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";
+    });
     await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
     await page.waitForTimeout(1000);
+    await page.evaluate(() => {
+      document.querySelector('#s2')?.remove();
+    });
   });
 
   test('should show error when trying to submit without first name', async ({ page }) => {
@@ -37,7 +43,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await emailInputs.nth(1).fill('test@example.com');
 
     // Select a newsletter
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
 
     // Try to submit without first name
@@ -67,7 +73,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
     // Leave email empty
     // Select a newsletter
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
 
     // Try to submit without email
@@ -101,7 +107,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await emailInputs.nth(1).fill('not-an-email');
 
     // Select a newsletter
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
 
     // Try to submit with invalid email
@@ -169,7 +175,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     const emailInputs = page.locator('input[type="email"]');
 
     // Select a newsletter so the only error is email
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
 
     // Submit to trigger error
@@ -227,7 +233,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
       await emailInputs.nth(1).fill(email);
 
       // Select a newsletter
-      const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+      const checkboxLabels = page.locator('label.selectableOptionLabel');
       await checkboxLabels.nth(0).click();
 
       // Submit form
@@ -279,7 +285,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
       await emailInputs.nth(1).fill(email);
 
       // Select a newsletter
-      const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+      const checkboxLabels = page.locator('label.selectableOptionLabel');
       await checkboxLabels.nth(0).click();
 
       // Submit form
@@ -312,7 +318,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await emailInputs.nth(0).fill('invalid-email');
     await emailInputs.nth(1).fill('invalid-email');
 
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
 
     const submitButton = page.locator('button:has-text("Submit")').first();
@@ -357,7 +363,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await emailInputs.nth(1).fill('john@example.com');
 
     // Select two newsletters
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
     await checkboxLabels.nth(1).click();
 
@@ -395,7 +401,7 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await emailInputs.nth(1).fill('different@example.com');
 
     // Select a newsletter
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     await checkboxLabels.nth(0).click();
 
     // Try to submit with mismatched emails

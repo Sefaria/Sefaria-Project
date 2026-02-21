@@ -41,9 +41,28 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /* Auth setup — logs in a real user and saves session to .auth/user.json */
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.js/,
+    },
+
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      /* Exclude auth setup and real-auth tests from the default project */
+      testIgnore: [/auth\.setup\.js/, /.*-real\.spec\.js/],
+    },
+
+    /* Authenticated project — uses real Django session from setup */
+    {
+      name: 'authenticated',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e-tests/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testMatch: /.*-real\.spec\.js/,
     },
 
     // {

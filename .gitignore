@@ -144,4 +144,5 @@ dump/*
 /playwright-report/
 /playwright/.cache/
 /playwright-profile/
+e2e-tests/.auth/
 .env

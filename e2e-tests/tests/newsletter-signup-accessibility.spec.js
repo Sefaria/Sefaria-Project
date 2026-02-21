@@ -14,9 +14,15 @@ import { test, expect } from '@playwright/test';
 test.describe('Newsletter Signup - Accessibility', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
+    await page.addInitScript(() => {
+      document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";
+    });
     await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
     await page.waitForTimeout(1000);
+    await page.evaluate(() => {
+      document.querySelector('#s2')?.remove();
+    });
   });
 
   test('should have proper label associations for all inputs', async ({ page }) => {
@@ -109,7 +115,7 @@ test.describe('Newsletter Signup - Accessibility', () => {
 
   test('should make checkboxes keyboard accessible', async ({ page }) => {
     // Get checkboxes - they're CSS hidden, so interact with labels instead
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     const count = await checkboxLabels.count();
 
     expect(count).toBeGreaterThan(0);
@@ -156,7 +162,7 @@ test.describe('Newsletter Signup - Accessibility', () => {
     // Trigger a validation error
     const firstInput = page.locator('form input[type="text"]').first();
     const emailInputs = page.locator('input[type="email"]');
-    const checkbox = page.locator('label.newsletterCheckboxLabel').first();
+    const checkbox = page.locator('label.selectableOptionLabel').first();
 
     await firstInput.fill('');
     await emailInputs.nth(0).fill('');
@@ -198,7 +204,7 @@ test.describe('Newsletter Signup - Accessibility', () => {
     expect(headerCount).toBeGreaterThan(0);
 
     // Check form has newsletter checkbox labels
-    const checkboxLabels = page.locator('form label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('form label.selectableOptionLabel');
     const labelCount = await checkboxLabels.count();
     expect(labelCount).toBeGreaterThan(0);
   });
@@ -224,7 +230,7 @@ test.describe('Newsletter Signup - Accessibility', () => {
     const emailInputs = page.locator('input[type="email"]');
     await emailInputs.nth(0).fill('john@example.com');
     await emailInputs.nth(1).fill('john@example.com');
-    const checkbox = page.locator('label.newsletterCheckboxLabel').first();
+    const checkbox = page.locator('label.selectableOptionLabel').first();
     await checkbox.click();
 
     await submitButton.focus();
@@ -235,7 +241,7 @@ test.describe('Newsletter Signup - Accessibility', () => {
 
   test('should have accessible newsletter options', async ({ page }) => {
     // Get all newsletter checkbox labels
-    const checkboxLabels = page.locator('label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
     const count = await checkboxLabels.count();
 
     expect(count).toBeGreaterThanOrEqual(5);
@@ -302,7 +308,7 @@ test.describe('Newsletter Signup - Accessibility', () => {
     }
 
     // Also verify newsletter checkbox labels are readable
-    const checkboxLabels = page.locator('form label.newsletterCheckboxLabel');
+    const checkboxLabels = page.locator('form label.selectableOptionLabel');
     const labelTexts = await checkboxLabels.allTextContents();
     expect(labelTexts.length).toBeGreaterThan(0);
   });
