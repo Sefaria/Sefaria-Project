@@ -179,6 +179,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
     const menuRef = useRef(null);
     const wrapperRef = useRef(null);
     const buttonRef = useRef(null);
+    const isOpenRef = useRef(false);
+    isOpenRef.current = isOpen;
 
     const handleButtonClick = (e) => {
       e.stopPropagation();
@@ -213,8 +215,8 @@ const DropdownMenu = ({children, buttonComponent, positioningClass, analyticsFea
             wrapperRef.current &&
             !wrapperRef.current.contains(event.target)
         ) {
+            if (isOpenRef.current) {onClose?.({ type: 'passive' });}
             setIsOpen(false);
-            onClose?.({ type: 'passive' });
         }
     };
 
