@@ -3189,7 +3189,7 @@ const NewsletterPage = () => (
             heTitle="מדריך לפרשת השבוע"
             heText="<p>כל שבוע אנו שולחים מדריך שעוזר ללמוד את פרשת השבוע. המשאב הזה כולל הקשר היסטורי, שאלות לדיון וקשרים לטקסטים אחרים בספרייה שלנו.</p><p>מדריכי הלימוד האלה תומכים בקוראים סקרנים מכל הרמות, מאלה שפוגשים טקסטים יהודיים בפעם הראשונה ועד ללומדים מנוסים המחפשים נקודות מבט חדשות.</p>"
             borderColor="#004E5F"
-            iframeSrc="/static/files/weekly-parashah-bereshit-email-example.html"
+            iframeSrc="/static/files/email-examples/weekly-parashah-bereshit-email-example.html"
         />
         <EnhancedFeature
             enTitle="Timeless Topics"
@@ -3197,7 +3197,7 @@ const NewsletterPage = () => (
             heTitle="נושאים נצחיים"
             heText="<p>גלו את הקשרים בין חכמה עתיקה לחיים עכשוויים עם מדריכי הנושאים שלנו. כל גיליון חוקר נושא דרך עדשות מרובות, תוך שימוש בתקופות ונקודות מבט שונות במחשבת ישראל.</p><p>בין אם אתם מתעניינים באתיקה, פילוסופיה או הדרכה מעשית לחיים, המיילים הללו עוזרים לכם לחקור כיצד טקסטים יהודיים מדברים אל שאלות נצחיות.</p>"
             borderColor="#004E5F"
-            iframeSrc="/static/files/topics-silence-email-example.html"
+            iframeSrc="/static/files/email-examples/topics-silence-email-example.html"
         />
         <GreyBox>
             <H2Block en="What the people are saying..." he="מה אנשים אומרים..."/>
