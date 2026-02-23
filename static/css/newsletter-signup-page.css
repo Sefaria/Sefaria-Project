@@ -697,11 +697,22 @@
   text-decoration: none;
   cursor: pointer;
   font-weight: 500;
-  transition: text-decoration 0.2s ease;
+  transition: text-decoration 0.2s ease, opacity 0.2s ease, color 0.2s ease;
 }
 
 .newsletterConfirmationView .skipLink:hover {
   text-decoration: underline;
+}
+
+.newsletterConfirmationView .skipLink.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--medium-grey);
+  pointer-events: none;
+}
+
+.newsletterConfirmationView .skipLink.disabled:hover {
+  text-decoration: none;
 }
 
 /* Success message */
@@ -716,6 +727,12 @@
 .interface-hebrew .successView .successMessage {
   font-family: var(--hebrew-sans-serif-font-family);
   font-size: 122%;
+}
+
+.successView .successActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
 }
 
 .successView .homepageLink {
@@ -986,11 +1003,22 @@
   text-decoration: none;
   cursor: pointer;
   font-weight: 500;
-  transition: text-decoration 0.2s ease;
+  transition: text-decoration 0.2s ease, opacity 0.2s ease, color 0.2s ease;
 }
 
 .newsletterConfirmationView .embeddedLearningLevel .skipLink:hover {
   text-decoration: underline;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--medium-grey);
+  pointer-events: none;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink.disabled:hover {
+  text-decoration: none;
 }
 
 /* Mobile responsive for embedded learning level */

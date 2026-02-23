@@ -39,7 +39,7 @@ export default function SuccessView() {
         </p>
       </div>
 
-      {/* ACTION: Go to homepage */}
+      {/* ACTION: Go to homepage - Centered button */}
       <div className="successActions">
         <a
           href="/"

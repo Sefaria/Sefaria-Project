@@ -16,6 +16,13 @@ jest.mock('../../sefaria/sefaria', () => ({
   site: false,
 }));
 
+// Set up global Sefaria object for components that use it
+global.Sefaria = {
+  _: (text) => text, // Simple pass-through for translation function
+  interfaceLang: 'english',
+  site: false,
+};
+
 // Mock components from Misc
 jest.mock('../../Misc', () => ({
   InterfaceText: ({ text, children }) => {

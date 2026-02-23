@@ -31,11 +31,29 @@ export default function NewsletterConfirmationView({
   subscriptionDiffs = null,
   marketingOptOut = false,
 }) {
-  // Check if user selected the general "Sefaria News & Resources" newsletter
-  // (This is the list that triggers confirmation email + welcome series)
-  // The first newsletter in the dynamic list is always the general one (AC list ID 1)
-  const generalKey = newsletters.length > 0 ? newsletters[0].key : null;
-  const hasGeneralNewsletter = generalKey && selectedNewsletters[generalKey] === true;
+  /**
+   * Determine if we should show "check your email for confirmation" messaging.
+   *
+   * ActiveCampaign only sends confirmation emails for NEW subscriptions.
+   *
+   * Logic (where G = generalNewsletter exists, L = isLoggedIn, D = subscriptionDiffs exists,
+   *              A = newsletter in added list, S = newsletter selected):
+   *   willReceive = G ∧ ((L ∧ D → A) ∨ (¬(L ∧ D) → S))
+   *
+   * For logged-in users with diffs: check if general newsletter was ADDED
+   * For logged-out users (or logged-in without diffs): check if general newsletter is SELECTED
+   *   (For logged-out users, "selected" implies "new" since they're signing up)
+   *
+   * The first newsletter in the dynamic list is always the general one (AC list ID 1).
+   */
+  const generalNewsletter = newsletters.length > 0 ? newsletters[0] : null;
+
+  const willReceiveConfirmationEmail = generalNewsletter && (
+    (isLoggedIn && subscriptionDiffs)
+      ? subscriptionDiffs.added.includes(Sefaria._(generalNewsletter.labelKey))
+      : selectedNewsletters[generalNewsletter.key]
+  );
+
   const isSubmitting = formStatus.status === 'submitting';
 
   return (
@@ -45,43 +63,50 @@ export default function NewsletterConfirmationView({
            engagement_type: 'success',
          })}>
 
-      {/* SUCCESS ICON AND HEADING */}
+      {/* SUCCESS ICON AND HEADING - Only show when NOT opting out of marketing */}
       <div className="confirmationContent">
-        <div className="successIcon">
-          <img
-            src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
-            alt=""
-            aria-hidden="true"
-          />
-        </div>
+        {!marketingOptOut && (
+          <>
+            <div className="successIcon">
+              <img
+                src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
+                alt=""
+                aria-hidden="true"
+              />
+            </div>
 
-        <h2 className="confirmationTitle">
-          <InterfaceText text={BILINGUAL_TEXT.THANK_YOU} />
-        </h2>
+            <h2 className="confirmationTitle">
+              <InterfaceText text={BILINGUAL_TEXT.THANK_YOU} />
+            </h2>
 
-        {/* CONDITIONAL MESSAGE */}
-        {hasGeneralNewsletter ? (
-          <p className="confirmationMessage">
-            <span className="int-en">
-              {BILINGUAL_TEXT.CONFIRMATION_SENT.en} <strong>{email}</strong>.<br />
-              {BILINGUAL_TEXT.SHOULD_SEE_SOON.en}
-            </span>
-            <span className="int-he">
-              {BILINGUAL_TEXT.CONFIRMATION_SENT.he} <strong>{email}</strong>.<br />
-              {BILINGUAL_TEXT.SHOULD_SEE_SOON.he}
-            </span>
-          </p>
-        ) : (
-          <p className="confirmationMessage">
-            <span className="int-en">
-              {BILINGUAL_TEXT.SUBMISSION_RECEIVED.en}<br />
-              {BILINGUAL_TEXT.PREFERENCES_SAVED.en}
-            </span>
-            <span className="int-he">
-              {BILINGUAL_TEXT.SUBMISSION_RECEIVED.he}<br />
-              {BILINGUAL_TEXT.PREFERENCES_SAVED.he}
-            </span>
-          </p>
+            {/* CONDITIONAL MESSAGE
+                - Show "check email for confirmation" only when user will actually receive a confirmation email
+                - Show generic "preferences saved" message otherwise
+            */}
+            {willReceiveConfirmationEmail ? (
+              <p className="confirmationMessage">
+                <span className="int-en">
+                  {BILINGUAL_TEXT.CONFIRMATION_SENT.en} <strong>{email}</strong>.<br />
+                  {BILINGUAL_TEXT.SHOULD_SEE_SOON.en}
+                </span>
+                <span className="int-he">
+                  {BILINGUAL_TEXT.CONFIRMATION_SENT.he} <strong>{email}</strong>.<br />
+                  {BILINGUAL_TEXT.SHOULD_SEE_SOON.he}
+                </span>
+              </p>
+            ) : (
+              <p className="confirmationMessage">
+                <span className="int-en">
+                  {BILINGUAL_TEXT.SUBMISSION_RECEIVED.en}<br />
+                  {BILINGUAL_TEXT.PREFERENCES_SAVED.en}
+                </span>
+                <span className="int-he">
+                  {BILINGUAL_TEXT.SUBMISSION_RECEIVED.he}<br />
+                  {BILINGUAL_TEXT.PREFERENCES_SAVED.he}
+                </span>
+              </p>
+            )}
+          </>
         )}
 
         {/* SELECTED NEWSLETTERS DISPLAY */}
@@ -194,15 +219,18 @@ export default function NewsletterConfirmationView({
               {isSubmitting ? <LoadingMessage message={BILINGUAL_TEXT.SUBMITTING.en} heMessage={BILINGUAL_TEXT.SUBMITTING.he} /> : <InterfaceText text={BILINGUAL_TEXT.SUBMIT} />}
             </button>
 
-            {/* SKIP OPTION */}
+            {/* SKIP OPTION - Disabled during submission to prevent concurrent actions */}
             <p className="skipPrompt">
               <span className="int-en">
                 Or <a href="#"
-                       className="skipLink"
+                       className={`skipLink${isSubmitting ? ' disabled' : ''}`}
                        onClick={(e) => {
                          e.preventDefault();
-                         onSkip();
+                         if (!isSubmitting) {
+                           onSkip();
+                         }
                        }}
+                       aria-disabled={isSubmitting}
                        data-anl-event="learning_level_action:click"
                        data-anl-action="skip_learning_level"
                        data-anl-form_name="learning_level_survey">
@@ -211,11 +239,14 @@ export default function NewsletterConfirmationView({
               </span>
               <span className="int-he">
                 או <a href="#"
-                      className="skipLink"
+                      className={`skipLink${isSubmitting ? ' disabled' : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        onSkip();
+                        if (!isSubmitting) {
+                          onSkip();
+                        }
                       }}
+                      aria-disabled={isSubmitting}
                       data-anl-event="learning_level_action:click"
                       data-anl-action="skip_learning_level"
                       data-anl-form_name="learning_level_survey">
