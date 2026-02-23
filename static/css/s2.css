@@ -252,15 +252,15 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
   height: 60px;
 }
-#s2.headerOnly .header,
-#s2.headerOnly #main lc-chatbot,
-#s2.headerOnly .sefariaModalBox,
-#s2.headerOnly .cookiesNotification {
-  pointer-events: auto;
-}
+
+/* lc-chatbot docked mode conflicts with readerApp so pointer-events are disabled for the readerApp and enabled for the main content */
 #s2.headerOnly .readerApp {
   pointer-events: none;
 }
+#s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
+  pointer-events: auto;
+}
+
 #readerAppWrap {
   display: flex;
   flex-direction: column;
