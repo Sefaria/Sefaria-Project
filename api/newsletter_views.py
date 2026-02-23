@@ -4,14 +4,20 @@ Newsletter API Views
 Functional views for newsletter operations via ActiveCampaign integration.
 """
 
+from __future__ import annotations
+
 import json
 import logging
+from typing import Any, cast
+
 from django.core.cache import cache
+from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from api.newsletter_service import (
     ActiveCampaignError,
+    NewsletterInfo,
     get_newsletter_list,
     subscribe_with_union,
     fetch_user_subscriptions_impl,
@@ -19,10 +25,10 @@ from api.newsletter_service import (
     update_learning_level_impl,
 )
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
-def get_newsletter_lists(request):
+def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
     """
     GET /api/newsletter/lists
 
@@ -60,7 +66,7 @@ def get_newsletter_lists(request):
         return jsonResponse({'error': 'Only GET method is supported'}, status=405)
 
     try:
-        newsletters = get_newsletter_list()
+        newsletters: list[NewsletterInfo] = get_newsletter_list()
         return jsonResponse({'newsletters': newsletters})
     except ActiveCampaignError as e:
         return jsonResponse({'error': str(e)}, status=500)
@@ -73,22 +79,22 @@ def get_newsletter_lists(request):
 # Caching Wrapper for Newsletter List (used for validation during subscription)
 # ============================================================================
 
-NEWSLETTER_LIST_CACHE_KEY = 'newsletter_list_from_ac'
-NEWSLETTER_LIST_CACHE_TTL = 60 * 60  # 1 hour
+NEWSLETTER_LIST_CACHE_KEY: str = 'newsletter_list_from_ac'
+NEWSLETTER_LIST_CACHE_TTL: int = 60 * 60  # 1 hour
 
 
-def get_cached_newsletter_list():
+def get_cached_newsletter_list() -> list[NewsletterInfo]:
     """
     Get cached newsletter list, fetching from ActiveCampaign if not cached.
 
     Returns:
         list: Cached list of newsletters
     """
-    cached = cache.get(NEWSLETTER_LIST_CACHE_KEY)
+    cached: list[NewsletterInfo] | None = cache.get(NEWSLETTER_LIST_CACHE_KEY)
     if cached is not None:
         return cached
 
-    newsletters = get_newsletter_list()
+    newsletters: list[NewsletterInfo] = get_newsletter_list()
     cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
     return newsletters
 
@@ -98,7 +104,7 @@ def get_cached_newsletter_list():
 # ============================================================================
 
 @csrf_exempt
-def subscribe_newsletter(request):
+def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/subscribe
 
@@ -160,11 +166,11 @@ def subscribe_newsletter(request):
 
     try:
         # Parse request body
-        body = json.loads(request.body)
-        first_name = body.get('firstName', '').strip()
-        last_name = body.get('lastName', '').strip()
-        email = body.get('email', '').strip()
-        newsletters_dict = body.get('newsletters', {})
+        body: dict[str, Any] = json.loads(cast(bytes, request.body))
+        first_name: str = body.get('firstName', '').strip()
+        last_name: str = body.get('lastName', '').strip()
+        email: str = body.get('email', '').strip()
+        newsletters_dict: dict[str, bool] = body.get('newsletters', {})
 
         # Validate required fields
         if not first_name or not email:
@@ -173,7 +179,7 @@ def subscribe_newsletter(request):
             }, status=400)
 
         # Extract selected newsletter stringids
-        selected_newsletters = [key for key, selected in newsletters_dict.items() if selected]
+        selected_newsletters: list[str] = [key for key, selected in newsletters_dict.items() if selected]
 
         # Validate at least one newsletter selected
         if not selected_newsletters:
@@ -183,7 +189,7 @@ def subscribe_newsletter(request):
 
         # Get cached valid newsletters for validation
         try:
-            valid_newsletters = get_cached_newsletter_list()
+            valid_newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
         except Exception as e:
             logger.exception(f"Error fetching cached newsletter list: {e}")
             return jsonResponse({
@@ -222,7 +228,7 @@ def subscribe_newsletter(request):
 # Authenticated Newsletter Endpoints
 # ============================================================================
 
-def get_user_subscriptions(request):
+def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
     """
     GET /api/newsletter/subscriptions
 
@@ -259,17 +265,20 @@ def get_user_subscriptions(request):
     if request.method != 'GET':
         return jsonResponse({'error': 'Only GET method is supported'}, status=405)
 
+    # Extract user from middleware-injected attribute (not on base HttpRequest type)
+    user: Any = getattr(request, 'user')
+
     # Check authentication
-    if not request.user.is_authenticated:
+    if not user.is_authenticated:
         return jsonResponse({'error': 'Authentication required'}, status=401)
 
     try:
-        email = request.user.email
+        email: str = user.email
         logger.info(f"Fetching subscriptions for authenticated user: {email}")
 
         # Get cached valid newsletters for mapping
         try:
-            valid_newsletters = get_cached_newsletter_list()
+            valid_newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
         except Exception as e:
             logger.exception(f"Error fetching cached newsletter list: {e}")
             return jsonResponse({
@@ -277,7 +286,7 @@ def get_user_subscriptions(request):
             }, status=500)
 
         # Fetch user subscriptions (pass user for UserProfile lookup)
-        result = fetch_user_subscriptions_impl(email, valid_newsletters, user=request.user)
+        result = fetch_user_subscriptions_impl(email, valid_newsletters, user=user)
 
         return jsonResponse({
             'success': True,
@@ -298,7 +307,7 @@ def get_user_subscriptions(request):
         }, status=500)
 
 
-def update_user_preferences(request):
+def update_user_preferences(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/preferences
 
@@ -348,22 +357,25 @@ def update_user_preferences(request):
     if request.method != 'POST':
         return jsonResponse({'error': 'Only POST method is supported'}, status=405)
 
+    # Extract user from middleware-injected attribute (not on base HttpRequest type)
+    user: Any = getattr(request, 'user')
+
     # Check authentication
-    if not request.user.is_authenticated:
+    if not user.is_authenticated:
         return jsonResponse({'error': 'Authentication required'}, status=401)
 
     try:
         # Parse request body
-        body = json.loads(request.body)
-        newsletters_dict = body.get('newsletters', {})
-        marketing_opt_out = body.get('marketingOptOut', False)  # Informational flag for intent tracking
+        body: dict[str, Any] = json.loads(cast(bytes, request.body))
+        newsletters_dict: dict[str, bool] = body.get('newsletters', {})
+        marketing_opt_out: bool = body.get('marketingOptOut', False)  # Informational flag for intent tracking
 
         # Extract selected newsletter stringids
-        selected_newsletters = [key for key, selected in newsletters_dict.items() if selected]
+        selected_newsletters: list[str] = [key for key, selected in newsletters_dict.items() if selected]
 
-        email = request.user.email
-        first_name = request.user.first_name or 'User'
-        last_name = request.user.last_name or ''
+        email: str = user.email
+        first_name: str = user.first_name or 'User'
+        last_name: str = user.last_name or ''
 
         # Log the intent for analytics/debugging (no validation - all selections valid for logged-in users)
         if marketing_opt_out:
@@ -373,7 +385,7 @@ def update_user_preferences(request):
 
         # Get cached valid newsletters for validation
         try:
-            valid_newsletters = get_cached_newsletter_list()
+            valid_newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
         except Exception as e:
             logger.exception(f"Error fetching cached newsletter list: {e}")
             return jsonResponse({
@@ -384,7 +396,7 @@ def update_user_preferences(request):
         result = update_user_preferences_impl(email, first_name, last_name,
                                               selected_newsletters, valid_newsletters,
                                               marketing_opt_out=marketing_opt_out,
-                                              user=request.user)
+                                              user=user)
 
         # Return success response
         return jsonResponse({
@@ -416,7 +428,7 @@ def update_user_preferences(request):
 # ============================================================================
 
 @csrf_exempt
-def update_learning_level(request):
+def update_learning_level(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/learning-level
 
@@ -476,19 +488,20 @@ def update_learning_level(request):
     if request.method != 'POST':
         return jsonResponse({'error': 'Only POST method is supported'}, status=405)
 
+    # Extract user from middleware-injected attribute (not on base HttpRequest type)
+    user: Any = getattr(request, 'user')
+
     try:
         # Parse request body
-        body = json.loads(request.body)
+        body: dict[str, Any] = json.loads(cast(bytes, request.body))
 
         # Determine email source based on authentication status
-        if request.user.is_authenticated:
+        if user.is_authenticated:
             # For authenticated users, use their email from the session
-            email = request.user.email
-            is_authenticated = True
+            email: str = user.email
         else:
             # For logged-out users, email must be provided in request
             email = body.get('email', '').strip()
-            is_authenticated = False
 
             if not email:
                 return jsonResponse({
@@ -496,7 +509,7 @@ def update_learning_level(request):
                 }, status=400)
 
         # Get learning level from request body
-        learning_level = body.get('learningLevel')
+        learning_level: int | None = body.get('learningLevel')
 
         # Validate learning_level type if provided
         # Allow null/None (optional field), or integer 1-5
