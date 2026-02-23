@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria from '../sefaria/sefaria';
+import { FORM_STATUS, STAGE } from './constants';
 import { LoadingMessage } from '../Misc';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
@@ -107,8 +108,8 @@ export default function NewsletterSignUpPageForm() {
 
   // ========== FORM STATUS STATE (STATE MACHINE) ==========
   const [formStatus, setFormStatus] = useState({
-    currentStage: 'newsletter_selection', // 'newsletter_selection' | 'confirmation' | 'success'
-    status: 'idle', // 'idle' | 'submitting' | 'success' | 'error'
+    currentStage: STAGE.NEWSLETTER_SELECTION,
+    status: FORM_STATUS.IDLE,
     errorMessage: null,
     successMessage: null,
     isLoggedIn: false,
@@ -328,7 +329,7 @@ export default function NewsletterSignUpPageForm() {
       // Set form status to error (for any legacy UI handling)
       setFormStatus(prev => ({
         ...prev,
-        status: 'error',
+        status: FORM_STATUS.ERROR,
         errorMessage: null, // Clear old single-error message, we use fieldErrors now
       }));
 
@@ -346,13 +347,13 @@ export default function NewsletterSignUpPageForm() {
       const optOutChanged = formData.wantsMarketingEmails !== initialWantsMarketingRef.current;
 
       if (diffs.added.length === 0 && diffs.removed.length === 0 && !optOutChanged) {
-        setFormStatus(prev => ({ ...prev, currentStage: 'confirmation' }));
+        setFormStatus(prev => ({ ...prev, currentStage: STAGE.CONFIRMATION }));
         return;
       }
     }
 
     // Clear any previous error state and prepare for submission
-    setFormStatus(prev => ({ ...prev, status: 'submitting', errorMessage: null }));
+    setFormStatus(prev => ({ ...prev, status: FORM_STATUS.SUBMITTING, errorMessage: null }));
 
     // Always send actual selections; backend handles opt-out via marketingOptOut flag
     const newslettersToSubmit = formData.selectedNewsletters;
@@ -377,15 +378,15 @@ export default function NewsletterSignUpPageForm() {
       // Success! Move to confirmation view
       setFormStatus(prev => ({
         ...prev,
-        status: 'success',
-        currentStage: 'confirmation',
+        status: FORM_STATUS.SUCCESS,
+        currentStage: STAGE.CONFIRMATION,
         successMessage: `We've sent a confirmation to ${formData.email}. You should see it soon.`,
       }));
     } catch (error) {
       // Error during submission
       setFormStatus(prev => ({
         ...prev,
-        status: 'error',
+        status: FORM_STATUS.ERROR,
         errorMessage: error.message || 'Sorry, there was an error. Please try again.',
       }));
     }
@@ -396,7 +397,7 @@ export default function NewsletterSignUpPageForm() {
       // User clicked "No thanks" - go straight to success
       setFormStatus(prev => ({
         ...prev,
-        currentStage: 'success',
+        currentStage: STAGE.SUCCESS,
       }));
       return;
     }
@@ -404,26 +405,26 @@ export default function NewsletterSignUpPageForm() {
     if (formData.learningLevel === null) {
       setFormStatus(prev => ({
         ...prev,
-        status: 'error',
+        status: FORM_STATUS.ERROR,
         errorMessage: 'Please select a learning level.',
       }));
       return;
     }
 
-    setFormStatus(prev => ({ ...prev, status: 'submitting' }));
+    setFormStatus(prev => ({ ...prev, status: FORM_STATUS.SUBMITTING }));
 
     try {
       await updateLearningLevel(formData.email, formData.learningLevel);
 
       setFormStatus(prev => ({
         ...prev,
-        status: 'success',
-        currentStage: 'success',
+        status: FORM_STATUS.SUCCESS,
+        currentStage: STAGE.SUCCESS,
       }));
     } catch (error) {
       setFormStatus(prev => ({
         ...prev,
-        status: 'error',
+        status: FORM_STATUS.ERROR,
         errorMessage: error.message || 'Sorry, there was an error. Please try again.',
       }));
     }
@@ -433,7 +434,7 @@ export default function NewsletterSignUpPageForm() {
     // Go directly to success view without saving learning level
     setFormStatus(prev => ({
       ...prev,
-      currentStage: 'success',
+      currentStage: STAGE.SUCCESS,
     }));
   };
 
@@ -515,11 +516,11 @@ export default function NewsletterSignUpPageForm() {
 
   return (
     <div className="newsletterSignUpPageForm">
-      {formStatus.currentStage === 'newsletter_selection' && newslettersLoading && (
+      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && newslettersLoading && (
         <LoadingMessage />
       )}
 
-      {formStatus.currentStage === 'newsletter_selection' && !newslettersLoading && (
+      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && !newslettersLoading && (
         <NewsletterFormView
           formData={formData}
           formStatus={formStatus}
@@ -540,7 +541,7 @@ export default function NewsletterSignUpPageForm() {
         />
       )}
 
-      {formStatus.currentStage === 'confirmation' && (
+      {formStatus.currentStage === STAGE.CONFIRMATION && (
         <NewsletterConfirmationView
           email={formData.email}
           selectedNewsletters={formData.selectedNewsletters}
@@ -558,7 +559,7 @@ export default function NewsletterSignUpPageForm() {
         />
       )}
 
-      {formStatus.currentStage === 'success' && (
+      {formStatus.currentStage === STAGE.SUCCESS && (
         <SuccessView />
       )}
     </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { InterfaceText, LoadingMessage } from '../Misc';
 import SelectableOption from './SelectableOption';
 import { BILINGUAL_TEXT } from './bilingualUtils';
+import { FORM_STATUS } from './constants';
 
 /**
  * NewsletterConfirmationView - Stage 2: Subscription Confirmation with Learning Level
@@ -54,7 +55,7 @@ export default function NewsletterConfirmationView({
       : selectedNewsletters[generalNewsletter.key]
   );
 
-  const isSubmitting = formStatus.status === 'submitting';
+  const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
 
   return (
     <div className="newsletterConfirmationView"
@@ -175,7 +176,7 @@ export default function NewsletterConfirmationView({
         </div>
 
         {/* ERROR MESSAGE (if any) */}
-        {formStatus.status === 'error' && formStatus.errorMessage && (
+        {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
           <div className="learningLevelErrorMessage"
                data-anl-event="form_error:displayed"
                data-anl-engagement_type="error"

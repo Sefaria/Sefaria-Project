@@ -2,6 +2,7 @@ import React from 'react';
 import { InterfaceText, LoadingMessage } from '../Misc';
 import SelectableOption from './SelectableOption';
 import { BILINGUAL_TEXT } from './bilingualUtils';
+import { FORM_STATUS } from './constants';
 
 /**
  * LearningLevelView - Stage 2b: Optional Learning Level Survey
@@ -23,7 +24,7 @@ export default function LearningLevelView({
   onSave,
   onSkip,
 }) {
-  const isSubmitting = formStatus.status === 'submitting';
+  const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
 
   return (
     <div className="learningLevelView"
@@ -48,7 +49,7 @@ export default function LearningLevelView({
       </p>
 
       {/* ERROR MESSAGE (if any) */}
-      {formStatus.status === 'error' && formStatus.errorMessage && (
+      {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
         <div className="learningLevelErrorMessage"
              data-anl-event="form_error:displayed"
              data-anl-engagement_type="error"

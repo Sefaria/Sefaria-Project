@@ -8,6 +8,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import NewsletterConfirmationView from '../NewsletterConfirmationView';
+import { FORM_STATUS } from '../constants';
 
 // Mock Sefaria global object
 jest.mock('../../sefaria/sefaria', () => ({
@@ -56,7 +57,7 @@ const LEARNING_LEVELS = [
 const baseProps = {
   email: 'test@example.com',
   newsletters: NEWSLETTERS,
-  formStatus: { status: 'success', isLoggedIn: false },
+  formStatus: { status: FORM_STATUS.SUCCESS, isLoggedIn: false },
   selectedLevel: null,
   learningLevels: LEARNING_LEVELS,
   onLevelSelect: jest.fn(),

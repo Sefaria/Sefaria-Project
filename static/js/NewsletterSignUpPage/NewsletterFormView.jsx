@@ -4,6 +4,7 @@ import { InterfaceText, LoadingMessage } from '../Misc';
 import SelectableOption from './SelectableOption';
 import MarketingEmailToggle from './MarketingEmailToggle';
 import { BILINGUAL_TEXT } from './bilingualUtils';
+import { FORM_STATUS } from './constants';
 
 /**
  * NewsletterFormView - Stage 1: Newsletter Selection Form
@@ -52,7 +53,7 @@ export default function NewsletterFormView({
   onFieldBlur,                // Handler for field blur validation
   onSubmit,
 }) {
-  const isSubmitting = formStatus.status === 'submitting';
+  const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
   const hasFieldErrors = hasAttemptedSubmit && Object.keys(fieldErrors).length > 0;
   const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
   const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
@@ -84,6 +85,17 @@ export default function NewsletterFormView({
 
       {/* FORM FIELDS SECTION */}
       <form className="newsletterForm" onSubmit={(e) => { e.preventDefault(); onSubmit(); }} noValidate>
+        {/* BACKEND ERROR — shown when API call fails after successful client-side validation */}
+        {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
+          <div className="newsletterErrorMessage"
+               role="alert"
+               data-anl-event="form_error:displayed"
+               data-anl-engagement_type="error"
+               data-anl-form_name="newsletter_signup">
+            <span className="errorIcon">⚠️</span>
+            <span>{formStatus.errorMessage}</span>
+          </div>
+        )}
         {/* ERROR SUMMARY - Focus target for accessibility */}
         {hasFieldErrors && (
           <div
