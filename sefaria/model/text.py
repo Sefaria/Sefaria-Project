@@ -5068,6 +5068,9 @@ class Library(object):
         self.get_virtual_books(rebuild=rebuild)
         
         # functions backed by lru cache
+        if rebuild:
+            get_talmud_perek_ref_set.cache_clear()
+            get_parasha_ref_set.cache_clear()
         get_talmud_perek_ref_set()
         get_parasha_ref_set()
         
