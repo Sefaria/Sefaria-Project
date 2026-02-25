@@ -5054,6 +5054,8 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
+        
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
@@ -5064,6 +5066,14 @@ class Library(object):
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
+        
+        # functions backed by lru cache
+        if rebuild:
+            get_talmud_perek_ref_set.cache_clear()
+            get_parasha_ref_set.cache_clear()
+        get_talmud_perek_ref_set()
+        get_parasha_ref_set()
+        
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
