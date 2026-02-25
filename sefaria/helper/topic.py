@@ -324,6 +324,46 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
     return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
 
 
+def _serialize_author_work(index: Index) -> dict:
+    try:
+        url = f"/{Ref(index.title).url()}"
+    except InputError:
+        url = None
+    return {
+        "title": index.title,
+        "heTitle": index.get_title("he"),
+        "categories": getattr(index, "categories", []),
+        "url": url,
+        "dependence": getattr(index, "dependence", None),
+    }
+
+
+def _get_author_works_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False) -> dict:
+    works = [_serialize_author_work(index) for index in author_topic.get_authored_indexes()]
+    response = {
+        "works": works,
+        "total": len(works),
+    }
+    if include_aggregations:
+        response["aggregations"] = author_topic.get_aggregated_urls_for_authors_indexes()
+    return response
+
+
+def get_author_works(slug: str, include_aggregations: bool = False) -> Optional[dict]:
+    topic = Topic.init(slug)
+    if topic is None or not isinstance(topic, AuthorTopic):
+        return None
+    response = _get_author_works_from_topic(topic, include_aggregations=include_aggregations)
+    response["author"] = {
+        "slug": topic.slug,
+        "title": {
+            "en": topic.get_primary_title("en"),
+            "he": topic.get_primary_title("he"),
+        }
+    }
+    return response
+
+
 def recommend_topics(refs: list) -> list:
     """Returns a list of topics recommended for the list of string refs"""
     seg_refs = []

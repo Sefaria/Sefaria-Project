@@ -80,7 +80,8 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
     get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
     get_random_topic_source, edit_topic_source, \
-    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
+    get_author_works
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3333,6 +3334,17 @@ def topics_list_api(request):
     response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
+
+
+@catch_error_as_json
+def author_works_api(request, author_slug):
+    if request.method != "GET":
+        return jsonResponse({"error": "This API only accepts GET requests."})
+    include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
+    response = get_author_works(author_slug, include_aggregations=include_aggregations)
+    if response is None:
+        return jsonResponse({"error": f"Author slug '{author_slug}' does not exist"}, status=404)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @staff_member_required
