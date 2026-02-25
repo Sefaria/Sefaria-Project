@@ -3341,7 +3341,12 @@ def author_works_api(request, author_slug):
     if request.method != "GET":
         return jsonResponse({"error": "This API only accepts GET requests."})
     include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
-    response = get_author_works(author_slug, include_aggregations=include_aggregations)
+    include_descriptions = bool(int(request.GET.get("include_descriptions", False)))
+    response = get_author_works(
+        author_slug,
+        include_aggregations=include_aggregations,
+        include_descriptions=include_descriptions,
+    )
     if response is None:
         return jsonResponse({"error": f"Author slug '{author_slug}' does not exist"}, status=404)
     return jsonResponse(response, callback=request.GET.get("callback", None))
