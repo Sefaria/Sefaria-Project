@@ -42,3 +42,55 @@ def user_has_experiments(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
     return UserExperimentSettings.objects.filter(user=user, experiments=True).exists()
+
+
+DEFAULT_WELCOME = "Welcome! Ask me anything about Jewish texts."
+DEFAULT_RESTART = "Start a conversation"
+
+
+class ChatbotWelcomeMessage(models.Model):
+    """
+    Editable welcome/restart messages for the LC chatbot empty state.
+    Single record per key (e.g. 'default'). Managed via Django admin.
+    """
+    key = models.CharField(
+        max_length=50,
+        unique=True,
+        default="default",
+        help_text="Identifier for this message set (e.g. 'default')",
+    )
+    welcome = models.TextField(
+        default=DEFAULT_WELCOME,
+        help_text="Message shown when chat is empty (first-time or cleared)",
+    )
+    restart = models.TextField(
+        default=DEFAULT_RESTART,
+        help_text="Message shown on restart button when chat is empty",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Chatbot welcome message"
+        verbose_name_plural = "Chatbot welcome messages"
+        ordering = ["key"]
+
+    def __str__(self):
+        return f"Chatbot welcome ({self.key})"
+
+
+def get_chatbot_welcome_messages():
+    """
+    Returns dict with 'welcome' and 'restart' keys for the chatbot.
+    Falls back to defaults if no record exists.
+    """
+    try:
+        obj = ChatbotWelcomeMessage.objects.get(key="default")
+        return {
+            "welcome": obj.welcome or DEFAULT_WELCOME,
+            "restart": obj.restart or DEFAULT_RESTART,
+        }
+    except ChatbotWelcomeMessage.DoesNotExist:
+        return {
+            "welcome": DEFAULT_WELCOME,
+            "restart": DEFAULT_RESTART,
+        }

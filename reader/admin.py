@@ -9,7 +9,26 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.conf.urls import url
 
-from reader.models import UserExperimentSettings, _set_user_experiments
+from reader.models import UserExperimentSettings, ChatbotWelcomeMessage, _set_user_experiments
+
+
+@admin.register(ChatbotWelcomeMessage)
+class ChatbotWelcomeMessageAdmin(admin.ModelAdmin):
+    list_display = ("key", "welcome_preview", "restart_preview", "updated_at")
+    list_display_links = ("key",)
+    readonly_fields = ("updated_at",)
+    fieldsets = (
+        (None, {"fields": ("key", "welcome", "restart")}),
+        ("Metadata", {"fields": ("updated_at",)}),
+    )
+
+    def welcome_preview(self, obj):
+        return (obj.welcome[:50] + "…") if len(obj.welcome) > 50 else obj.welcome
+    welcome_preview.short_description = "Welcome (preview)"
+
+    def restart_preview(self, obj):
+        return (obj.restart[:50] + "…") if len(obj.restart) > 50 else obj.restart
+    restart_preview.short_description = "Restart (preview)"
 
 
 class CsvUploadForm(forms.Form):
