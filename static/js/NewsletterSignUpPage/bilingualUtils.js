@@ -37,27 +37,6 @@ export const BILINGUAL_TEXT = {
     he: 'בחר אילו ניוזלטרים תרצה לקבל.',
   },
 
-  // Form labels
-  FIRST_NAME: {
-    en: 'First Name',
-    he: 'שם פרטי',
-  },
-  LAST_NAME: {
-    en: 'Last Name',
-    he: 'שם משפחה',
-  },
-  EMAIL: {
-    en: 'Email',
-    he: 'דוא"ל',
-  },
-  CONFIRM_EMAIL: {
-    en: 'Confirm Email',
-    he: 'אשר דוא"ל',
-  },
-  REQUIRED: {
-    en: '*',
-    he: '*',
-  },
   OPTIONAL: {
     en: '(Optional)',
     he: '(אופציונלי)',
@@ -81,16 +60,6 @@ export const BILINGUAL_TEXT = {
     he: 'סיימת?',
   },
 
-  // Newsletter section (legacy - keeping for compatibility)
-  WE_RECOMMEND: {
-    en: 'We recommend:',
-    he: 'אנחנו ממליצים:',
-  },
-  CHOOSE_NEWSLETTERS: {
-    en: 'Choose which newsletters you\'d like to receive.',
-    he: 'בחר אילו ניוזלטרים תרצה לקבל.',
-  },
-
   // Button text
   SUBMIT: {
     en: 'Submit',
@@ -104,13 +73,13 @@ export const BILINGUAL_TEXT = {
     en: 'Subscribe',
     he: 'הרשמו',
   },
-  UPDATE_PREFERENCES: {
-    en: 'Update Preferences',
-    he: 'עדכנו העדפות',
-  },
   SUBSCRIBING: {
     en: 'Subscribing...',
     he: 'הרשמה...',
+  },
+  UPDATE_PREFERENCES: {
+    en: 'Update Preferences',
+    he: 'עדכנו העדפות',
   },
   UPDATING: {
     en: 'Updating...',
@@ -217,5 +186,39 @@ export const BILINGUAL_TEXT = {
   ADMIN_EMAILS_NOTE: {
     en: 'Note: You will still receive administrative emails regarding your account and donations.',
     he: 'הערה: עדיין תקבלו הודעות מנהליות בנוגע לחשבון שלכם ולתרומות.',
+  },
+
+  // Validation errors
+  FIX_ERRORS: {
+    en: 'Please fix the following errors:',
+    he: 'אנא תקן את השגיאות הבאות:',
+  },
+  ENTER_FIRST_NAME: {
+    en: 'Please enter your first name.',
+    he: 'אנא הזן את שמך הפרטי.',
+  },
+  ENTER_EMAIL: {
+    en: 'Please enter your email address.',
+    he: 'אנא הזן את כתובת הדוא"ל שלך.',
+  },
+  VALID_EMAIL: {
+    en: 'Please enter a valid email address.',
+    he: 'אנא הזן כתובת דוא"ל תקינה.',
+  },
+  EMAILS_MISMATCH: {
+    en: 'Email addresses do not match.',
+    he: 'כתובות הדוא"ל אינן תואמות.',
+  },
+  SELECT_NEWSLETTER: {
+    en: 'Please select at least one newsletter.',
+    he: 'אנא בחר לפחות ניוזלטר אחד.',
+  },
+  SELECT_LEARNING_LEVEL: {
+    en: 'Please select a learning level.',
+    he: 'אנא בחר רמת למידה.',
+  },
+  GENERIC_ERROR: {
+    en: 'Sorry, there was an error. Please try again.',
+    he: 'מצטערים, אירעה שגיאה. אנא נסה שוב.',
   },
 };

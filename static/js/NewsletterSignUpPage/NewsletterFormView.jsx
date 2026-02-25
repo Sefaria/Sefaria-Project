@@ -30,7 +30,7 @@ function InlineError({ fieldName, errors }) {
 
   return (
     <div className="inlineFieldError" id={`${fieldName}-error`} role="alert">
-      {error}
+      <InterfaceText text={error} />
     </div>
   );
 }
@@ -93,7 +93,7 @@ export default function NewsletterFormView({
                data-anl-engagement_type="error"
                data-anl-form_name="newsletter_signup">
             <span className="errorIcon">⚠️</span>
-            <span>{formStatus.errorMessage}</span>
+            <span><InterfaceText text={formStatus.errorMessage} /></span>
           </div>
         )}
         {/* ERROR SUMMARY - Focus target for accessibility */}
@@ -109,13 +109,13 @@ export default function NewsletterFormView({
           >
             <h3 className="errorSummaryTitle">
               <span className="errorIcon">⚠️</span>
-              <InterfaceText text={{ en: 'Please fix the following errors:', he: 'אנא תקן את השגיאות הבאות:' }} />
+              <InterfaceText text={BILINGUAL_TEXT.FIX_ERRORS} />
             </h3>
             <ul className="errorSummaryList">
               {Object.entries(fieldErrors).map(([field, message]) => (
                 <li key={field}>
                   <a href={`#${field}`} className="errorSummaryLink">
-                    {message}
+                    <InterfaceText text={message} />
                   </a>
                 </li>
               ))}

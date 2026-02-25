@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria from '../sefaria/sefaria';
 import { FORM_STATUS, STAGE } from './constants';
+import { BILINGUAL_TEXT } from './bilingualUtils';
 import { LoadingMessage } from '../Misc';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
@@ -267,22 +268,22 @@ export default function NewsletterSignUpPageForm() {
     const fieldValidators = {
       firstName: () => {
         if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
-          return 'Please enter your first name.';
+          return BILINGUAL_TEXT.ENTER_FIRST_NAME;
         }
         return null;
       },
       email: () => {
         if (!formData.email.trim()) {
-          return 'Please enter your email address.';
+          return BILINGUAL_TEXT.ENTER_EMAIL;
         }
         if (!Sefaria.util.isValidEmailAddress(formData.email)) {
-          return 'Please enter a valid email address.';
+          return BILINGUAL_TEXT.VALID_EMAIL;
         }
         return null;
       },
       confirmEmail: () => {
         if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
-          return 'Email addresses do not match.';
+          return BILINGUAL_TEXT.EMAILS_MISMATCH;
         }
         return null;
       },
@@ -290,7 +291,7 @@ export default function NewsletterSignUpPageForm() {
         if (!formStatus.isLoggedIn) {
           const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
           if (!hasSelection) {
-            return 'Please select at least one newsletter.';
+            return BILINGUAL_TEXT.SELECT_NEWSLETTER;
           }
         }
         return null;
@@ -387,7 +388,9 @@ export default function NewsletterSignUpPageForm() {
       setFormStatus(prev => ({
         ...prev,
         status: FORM_STATUS.ERROR,
-        errorMessage: error.message || 'Sorry, there was an error. Please try again.',
+        errorMessage: error.message
+          ? { en: error.message, he: error.message }
+          : BILINGUAL_TEXT.GENERIC_ERROR,
       }));
     }
   };
@@ -406,7 +409,7 @@ export default function NewsletterSignUpPageForm() {
       setFormStatus(prev => ({
         ...prev,
         status: FORM_STATUS.ERROR,
-        errorMessage: 'Please select a learning level.',
+        errorMessage: BILINGUAL_TEXT.SELECT_LEARNING_LEVEL,
       }));
       return;
     }
@@ -425,7 +428,9 @@ export default function NewsletterSignUpPageForm() {
       setFormStatus(prev => ({
         ...prev,
         status: FORM_STATUS.ERROR,
-        errorMessage: error.message || 'Sorry, there was an error. Please try again.',
+        errorMessage: error.message
+          ? { en: error.message, he: error.message }
+          : BILINGUAL_TEXT.GENERIC_ERROR,
       }));
     }
   };
@@ -450,26 +455,26 @@ export default function NewsletterSignUpPageForm() {
 
     // First name (logged-out only)
     if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
-      errors.firstName = 'Please enter your first name.';
+      errors.firstName = BILINGUAL_TEXT.ENTER_FIRST_NAME;
     }
 
     // Email
     if (!formData.email.trim()) {
-      errors.email = 'Please enter your email address.';
+      errors.email = BILINGUAL_TEXT.ENTER_EMAIL;
     } else if (!Sefaria.util.isValidEmailAddress(formData.email)) {
-      errors.email = 'Please enter a valid email address.';
+      errors.email = BILINGUAL_TEXT.VALID_EMAIL;
     }
 
     // Confirm email (logged-out only)
     if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
-      errors.confirmEmail = 'Email addresses do not match.';
+      errors.confirmEmail = BILINGUAL_TEXT.EMAILS_MISMATCH;
     }
 
     // Newsletter selection (logged-out only)
     if (!formStatus.isLoggedIn) {
       const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
       if (!hasSelection) {
-        errors.newsletters = 'Please select at least one newsletter.';
+        errors.newsletters = BILINGUAL_TEXT.SELECT_NEWSLETTER;
       }
     }
 

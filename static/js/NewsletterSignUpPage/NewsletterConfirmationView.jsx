@@ -182,7 +182,7 @@ export default function NewsletterConfirmationView({
                data-anl-engagement_type="error"
                data-anl-form_name="learning_level_survey">
             <span className="errorIcon">⚠️</span>
-            <span>{formStatus.errorMessage}</span>
+            <span><InterfaceText text={formStatus.errorMessage} /></span>
           </div>
         )}
 

@@ -699,5 +699,13 @@ const Strings = {
   },
 };
 
+// Newsletter sign-up page additions — maintained separately until merged above.
+const _i18nNewsletterStrings = {
+  "Last Name (Optional)":       "שם משפחה (אופציונלי)",
+  "Confirm Email Address":      'אשר כתובת דוא"ל',
+  "Newsletter options":         "אפשרויות ניוזלטר",
+  "Marketing email preference": 'העדפת דוא"ל שיווקי',
+};
+Object.assign(Strings._i18nInterfaceStrings, _i18nNewsletterStrings);
 
 export default Strings;
