@@ -91,7 +91,8 @@ from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
 from sefaria.utils.chatbot import build_chatbot_user_token
 from PIL import Image
-from sefaria.utils.user import delete_user_account
+from io import BytesIO
+from sefaria.utils.user import delete_user_account, DeletionType
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
@@ -4079,7 +4080,7 @@ def delete_user_account_api(request):
     email_msg = "User {} has requested deletion of his account".format(user_email)
     reply_email = None
     try:
-        delete_user_account(uid, False)
+        delete_user_account(uid, False, DeletionType.SELF)
         email_msg += "\n\n The request was completed automatically."
         reply_email = user_email
         response = jsonResponse({"status": "ok"})

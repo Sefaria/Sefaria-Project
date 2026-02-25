@@ -1201,7 +1201,7 @@ def profile_spam_dashboard(request):
 @staff_member_required
 def delete_user_by_email(request):
     from django.contrib.auth.models import User
-    from sefaria.utils.user import delete_user_account
+    from sefaria.utils.user import delete_user_account, DeletionType
     if request.method == 'GET':
         form = SefariaDeleteUserForm()
         return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
@@ -1216,7 +1216,7 @@ def delete_user_by_email(request):
             return jsonResponse({"failure": "incorrect password"})
         try:
             id_to_delete = UserProfile(email=email)
-            if delete_user_account(id_to_delete.id, False):
+            if delete_user_account(id_to_delete.id, False, DeletionType.ADMIN, request.user):
                 return jsonResponse({"success": f"deleted user {email}"})
             else:
                 return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
