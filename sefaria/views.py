@@ -1736,18 +1736,30 @@ def version_bulk_edit_api(request):
 
     try:
         version_title = data["versionTitle"]
+        language = data["language"]
         indices = data["indices"]
         updates = data["updates"]
     except KeyError as e:
         return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
 
+    if language not in ("en", "he"):
+        return jsonResponse({"error": "language must be 'en' or 'he'"}, status=400)
+
     if not indices:
         return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    if not updates:
+        return jsonResponse({"error": "updates may not be empty"}, status=400)
 
     # Validate that all update fields are allowed
     disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
     if disallowed_fields:
         return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
+
+    # Required Version fields cannot be cleared (set to None)
+    null_required = {k for k, v in updates.items() if v is None and k in Version.required_attrs}
+    if null_required:
+        return jsonResponse({"error": f"Cannot clear required fields: {', '.join(null_required)}"}, status=400)
 
     # Track successes and failures for detailed reporting
     successes = []
@@ -1755,10 +1767,10 @@ def version_bulk_edit_api(request):
 
     for index_title in indices:
         try:
-            # title + versionTitle uniquely identifies a version (pkeys in Version model)
             version = Version().load({
                 "title": index_title,
                 "versionTitle": version_title,
+                "language": language,
             })
             if not version:
                 failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})

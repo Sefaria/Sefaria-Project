@@ -2472,6 +2472,8 @@ def lock_text_api(request, title, lang, version):
     title   = title.replace("_", " ")
     version = version.replace("_", " ")
     vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+    if not vobj:
+        return jsonResponse({"error": "Version not found."})
 
     if request.GET.get("action", None) == "unlock":
         updates = {"status": None}  # None signals deletion in tracker
@@ -2501,6 +2503,8 @@ def flag_text_api(request, title, lang, version):
         title = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+        if not vobj:
+            return jsonResponse({"error": "Version not found."})
 
         # Build updates dict for tracker function
         updates = {}
